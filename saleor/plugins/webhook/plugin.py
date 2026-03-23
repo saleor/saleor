@@ -17,7 +17,7 @@ from ...checkout.models import Checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify import NotifyEventType
-from ...core.taxes import TaxData, TaxDataError, TaxType
+from ...core.taxes import TaxType
 from ...core.telemetry import get_task_context
 from ...core.utils import build_absolute_uri, get_domain
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -60,13 +60,11 @@ from ...payment.utils import (
     recalculate_refundable_for_checkout,
 )
 from ...settings import WEBHOOK_SYNC_TIMEOUT
-from ...tax.webhooks.parser import parse_tax_data
 from ...thumbnail.models import Thumbnail
 from ...webhook.const import WEBHOOK_CACHE_DEFAULT_TTL
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
-    generate_checkout_payload_for_tax_calculation,
     generate_collection_payload,
     generate_customer_payload,
     generate_fulfillment_payload,
@@ -112,7 +110,6 @@ from ...webhook.transport.payment import (
     parse_payment_action_response,
 )
 from ...webhook.transport.synchronous.transport import (
-    trigger_taxes_all_webhooks_sync,
     trigger_transaction_request,
     trigger_webhook_sync,
     trigger_webhook_sync_if_not_cached,
@@ -3490,97 +3487,6 @@ class WebhookPlugin(BasePlugin):
             payment_information,
             previous_value,
             **kwargs,
-        )
-
-    def __run_tax_webhook(
-        self,
-        event_type: str,
-        app_identifier: str,
-        payload_gen: Callable,
-        expected_lines_count: int,
-        subscriptable_object=None,
-        pregenerated_subscription_payloads: dict | None = None,
-    ) -> TaxData:
-        if pregenerated_subscription_payloads is None:
-            pregenerated_subscription_payloads = {}
-        app = (
-            App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-            .filter(
-                identifier=app_identifier,
-                is_active=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
-        if app is None:
-            msg = "Configured tax app doesn't exist."
-            logger.warning(msg)
-            raise TaxDataError(msg)
-        webhook = get_webhooks_for_event(event_type, apps_ids=[app.id]).first()
-        if webhook is None:
-            msg = "Configured tax app's webhook for taxes calculation doesn't exists."
-            logger.warning(msg)
-            raise TaxDataError(msg)
-
-        request_context = initialize_request(
-            app=app,
-            requestor=self.requestor,
-            sync_event=event_type in WebhookEventSyncType.ALL,
-            allow_replica=False,
-            event_type=event_type,
-        )
-
-        pregenerated_subscription_payload = get_pregenerated_subscription_payload(
-            webhook, pregenerated_subscription_payloads
-        )
-        response = trigger_webhook_sync(
-            event_type=event_type,
-            webhook=webhook,
-            payload=payload_gen(),
-            allow_replica=False,
-            subscribable_object=subscriptable_object,
-            request=request_context,
-            requestor=self.requestor,
-            pregenerated_subscription_payload=pregenerated_subscription_payload,
-        )
-        return parse_tax_data(event_type, response, expected_lines_count)
-
-    def get_taxes_for_checkout(
-        self,
-        checkout_info,
-        lines,
-        app_identifier,
-        previous_value,
-        pregenerated_subscription_payloads: dict | None = None,
-    ) -> TaxData | None:
-        if pregenerated_subscription_payloads is None:
-            pregenerated_subscription_payloads = {}
-        event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-        lines_count = len(lines)
-        if app_identifier:
-            return self.__run_tax_webhook(
-                event_type,
-                app_identifier,
-                lambda: generate_checkout_payload_for_tax_calculation(
-                    checkout_info, lines
-                ),
-                lines_count,
-                checkout_info.checkout,
-                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-            )
-        # This is deprecated flow, kept to maintain backward compatibility.
-        # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
-        # be dropped.
-        return trigger_taxes_all_webhooks_sync(
-            event_type,
-            lambda: generate_checkout_payload_for_tax_calculation(
-                checkout_info,
-                lines,
-            ),
-            lines_count,
-            checkout_info.checkout,
-            self.requestor,
-            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
         )
 
     def get_tax_code_from_object_meta(

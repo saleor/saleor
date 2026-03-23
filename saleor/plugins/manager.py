@@ -629,26 +629,6 @@ class PluginsManager(PaymentInterface):
             or default_value
         )
 
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def get_taxes_for_checkout(
-        self,
-        checkout_info,
-        lines,
-        app_identifier,
-        pregenerated_subscription_payloads: dict | None = None,
-    ) -> TaxData | None:
-        if pregenerated_subscription_payloads is None:
-            pregenerated_subscription_payloads = {}
-        return self.__run_tax_method_until_first_success(
-            "get_taxes_for_checkout",
-            checkout_info,
-            lines,
-            app_identifier,
-            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-            channel_slug=checkout_info.channel.slug,
-        )
-
     def __run_tax_method_until_first_success(
         self,
         method_name: str,
