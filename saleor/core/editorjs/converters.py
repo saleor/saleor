@@ -30,7 +30,7 @@ def parse_editorjs(data: dict, *, for_django: bool = True) -> EditorJSDocumentMo
             # Needs to be logged because Saleor doesn't log handled errors in GraphQL
             # and we cannot return the error the user as it can reveal internal information
             logger.info("Received invalid EditorJS input: %s", str(exc))
-            raise ValidationError("Invalid input EditorJS format") from exc
+            raise ValidationError("Invalid EditorJS input") from exc
         raise
 
 
