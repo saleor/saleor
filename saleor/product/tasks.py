@@ -378,6 +378,10 @@ def on_failure_fetch_product_media_image_task(self, exc, task_id, args, kwargs, 
     default_retry_delay=1,
     autoretry_for=(IOError,),
     on_failure=on_failure_fetch_product_media_image_task,
+    throws=(
+        IOError,
+        ValueError,
+    ),
 )
 @allow_writer()
 def fetch_product_media_image_task(product_media_id: int):

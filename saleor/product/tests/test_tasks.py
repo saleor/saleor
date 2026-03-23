@@ -502,7 +502,9 @@ def test_fetch_product_media_image_request_exception(
     assert ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
-def test_fetch_product_media_image_invalid_schema_exception(
+@pytest.mark.parametrize("exc_class", [InvalidSchema, ValueError])
+def test_fetch_product_media_image_non_retryable_exception(
+    exc_class,
     product_media_image_not_yet_fetched,
 ):
     # given
@@ -512,8 +514,8 @@ def test_fetch_product_media_image_invalid_schema_exception(
 
     # when
     with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
-        mock_http_client.send_request.side_effect = InvalidSchema()
-        with pytest.raises(InvalidSchema):
+        mock_http_client.send_request.side_effect = exc_class()
+        with pytest.raises(exc_class):
             # this call simulates a single attempt for executing the task
             fetch_product_media_image_task(product_media.pk)
 
@@ -521,7 +523,9 @@ def test_fetch_product_media_image_invalid_schema_exception(
     assert ProductMedia.objects.filter(pk=product_media.pk).exists()
 
 
-def test_fetch_product_media_image_invalid_schema_exception_on_failure_handler(
+@pytest.mark.parametrize("exc_class", [InvalidSchema, ValueError])
+def test_fetch_product_media_image_non_retryable_exception_on_failure_handler(
+    exc_class,
     product_media_image_not_yet_fetched,
 ):
     # given
@@ -531,7 +535,7 @@ def test_fetch_product_media_image_invalid_schema_exception_on_failure_handler(
 
     # when
     with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
-        mock_http_client.send_request.side_effect = InvalidSchema()
+        mock_http_client.send_request.side_effect = exc_class()
         fetch_product_media_image_task.apply(args=(product_media.pk,))
 
     # then
