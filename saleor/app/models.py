@@ -138,10 +138,6 @@ class AppWebhookMutex(models.Model):
     )
     acquired_at = models.DateTimeField(default=timezone.now)
 
-    @property
-    def lock_id(self) -> str:
-        return str(self.acquired_at.timestamp())
-
 
 class AppTokenManager(models.Manager["AppToken"]):
     def create(self, *, app, name="", auth_token=None, **extra_fields):  # type: ignore[override]
