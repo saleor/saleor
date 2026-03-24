@@ -16,7 +16,7 @@ from ...discount.utils.promotion import (
     calculate_discounted_price_for_promotions,
     get_variants_to_promotion_rules_map,
 )
-from ..interface import ChannelPriceChange
+from ..interface import VariantDiscountedPriceChange
 from ..managers import ProductsQueryset, ProductVariantQueryset
 from ..models import (
     ProductChannelListing,
@@ -28,7 +28,7 @@ from ..models import (
 
 def update_discounted_prices_for_promotion(
     products: ProductsQueryset, only_dirty_products: bool = False
-) -> dict[int, list[ChannelPriceChange]]:
+) -> dict[int, list[VariantDiscountedPriceChange]]:
     """Update Products and ProductVariants discounted prices.
 
     The discounted price is the minimal price of the product/variant based on active
@@ -40,7 +40,7 @@ def update_discounted_prices_for_promotion(
     When only_dirty_products set to True, the prices will be recalculated only for the
     listings marked as dirty.
 
-    Returns a dict mapping variant_id to a list of ChannelPriceChange for variants
+    Returns a dict mapping variant_id to a list of VariantDiscountedPriceChange for variants
     whose discounted price changed.
     """
     variant_qs = ProductVariant.objects.using(
@@ -60,7 +60,9 @@ def update_discounted_prices_for_promotion(
     changed_variant_listing_promotion_rule_to_create = []
     changed_variant_listing_promotion_rule_to_update = []
 
-    changed_variants_prices: dict[int, list[ChannelPriceChange]] = defaultdict(list)
+    changed_variants_prices: dict[int, list[VariantDiscountedPriceChange]] = (
+        defaultdict(list)
+    )
 
     product_channel_listings = (
         ProductChannelListing.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
@@ -262,7 +264,7 @@ def _get_discounted_variants_prices_for_promotions(
     list[ProductVariantChannelListing],
     list[VariantChannelListingPromotionRule],
     list[VariantChannelListingPromotionRule],
-    list[tuple[int, ChannelPriceChange]],
+    list[tuple[int, VariantDiscountedPriceChange]],
 ]:
     variants_listings_to_update: list[ProductVariantChannelListing] = []
     discounted_variants_price: list[Money] = []
@@ -272,7 +274,7 @@ def _get_discounted_variants_prices_for_promotions(
     variant_listing_promotion_rule_to_update: list[
         VariantChannelListingPromotionRule
     ] = []
-    variant_price_changes: list[tuple[int, ChannelPriceChange]] = []
+    variant_price_changes: list[tuple[int, VariantDiscountedPriceChange]] = []
 
     for variant_listing in variant_listings:
         applied_discount = calculate_discounted_price_for_promotions(
@@ -311,8 +313,10 @@ def _get_discounted_variants_prices_for_promotions(
             variant_price_changes.append(
                 (
                     variant_listing.variant_id,
-                    ChannelPriceChange(
+                    VariantDiscountedPriceChange(
+                        variant_id=variant_listing.variant_id,
                         channel_id=channel.id,
+                        channel_slug=channel.slug,
                         previous_price_amount=previous_price_amount,
                         new_price_amount=discounted_variant_price.amount,
                         currency=channel.currency_code,

@@ -3,14 +3,10 @@ from decimal import Decimal
 
 
 @dataclass
-class ChannelPriceChange:
+class VariantDiscountedPriceChange:
+    variant_id: int
     channel_id: int
+    channel_slug: str
     previous_price_amount: Decimal
     new_price_amount: Decimal
     currency: str
-
-
-@dataclass
-class VariantDiscountedPriceUpdatedInfo:
-    variant_id: int
-    changed_prices: list[ChannelPriceChange]

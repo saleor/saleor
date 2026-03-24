@@ -9,7 +9,7 @@ from prices import Money
 
 from ...discount import RewardValueType
 from ...discount.models import Promotion, PromotionRule
-from ...product.interface import ChannelPriceChange
+from ...product.interface import VariantDiscountedPriceChange
 from ...product.models import (
     Product,
     ProductChannelListing,
@@ -708,8 +708,10 @@ def test_update_discounted_prices_returns_changed_prices_when_discount_applied(
     changed_prices = changed_variants_map[variant.id]
     assert len(changed_prices) == 1
     cp = changed_prices[0]
-    assert isinstance(cp, ChannelPriceChange)
+    assert isinstance(cp, VariantDiscountedPriceChange)
+    assert cp.variant_id == variant.id
     assert cp.channel_id == channel_USD.id
+    assert cp.channel_slug == channel_USD.slug
     assert cp.currency == channel_USD.currency_code
     assert cp.previous_price_amount == variant_price.amount
     assert cp.new_price_amount == variant_price.amount - reward_value

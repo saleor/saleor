@@ -1231,7 +1231,6 @@ PRODUCT_VARIANT_UPDATED = """
     }
 """
 
-
 PRODUCT_VARIANT_DELETED = """
     subscription{
       event{
@@ -1302,18 +1301,16 @@ PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = """
           productVariant{
             id
           }
-          changedPrices{
-            channel{
-              slug
-            }
-            previousPrice{
-              amount
-              currency
-            }
-            newPrice{
-              amount
-              currency
-            }
+          channel{
+            slug
+          }
+          previousPrice{
+            amount
+            currency
+          }
+          newPrice{
+            amount
+            currency
           }
         }
       }

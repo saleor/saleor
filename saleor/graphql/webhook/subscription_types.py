@@ -1,7 +1,10 @@
+from typing import TYPE_CHECKING
+
 import graphene
 from django.conf import settings
 from graphene import AbstractType, Union
 from prices import Money
+from promise import Promise
 from rx import Observable
 
 from ... import __version__
@@ -86,6 +89,10 @@ from .resolvers import (
     resolve_only_internal_shipping_methods_for_checkout,
     resolve_shipping_methods_for_checkout,
 )
+
+if TYPE_CHECKING:
+    from ...channel.models import Channel
+    from ...product.interface import VariantDiscountedPriceChange
 
 TRANSLATIONS_TYPES_MAP = {
     ProductTranslation: translation_types.ProductTranslation,
@@ -1053,7 +1060,11 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
         return WarehouseByIdLoader(info.context).load(stock.warehouse_id)
 
 
-class ChannelPriceChange(graphene.ObjectType):
+class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType):
+    product_variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        description="The product variant the event relates to.",
+    )
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
         description="The channel where the price changed.",
@@ -1071,16 +1082,6 @@ class ChannelPriceChange(graphene.ObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-
-
-class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType, ProductVariantBase):
-    changed_prices = NonNullList(
-        ChannelPriceChange,
-        description="Per-channel price changes that triggered this event.",
-    )
-
-    class Meta:
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
@@ -1091,42 +1092,45 @@ class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType, ProductVarian
         doc_category = DOC_CATEGORY_PRODUCTS
 
     @staticmethod
-    def resolve_product_variant(root, info: ResolveInfo, channel=None):
+    def resolve_product_variant(
+        root: tuple[str, "VariantDiscountedPriceChange"],
+        info: ResolveInfo,
+    ) -> Promise["ChannelContext"]:
         _, price_info = root
+        channel_slug = price_info.channel_slug
         return (
             ProductVariantByIdLoader(info.context)
             .load(price_info.variant_id)
-            .then(lambda variant: ChannelContext(node=variant, channel_slug=channel))
+            .then(
+                lambda variant: ChannelContext(node=variant, channel_slug=channel_slug)
+            )
         )
 
     @staticmethod
-    def resolve_changed_prices(root, info: ResolveInfo):
+    def resolve_channel(
+        root: tuple[str, "VariantDiscountedPriceChange"],
+        info: ResolveInfo,
+    ) -> Promise["Channel"]:
         _, price_info = root
-        channel_ids = [
-            channel_price.channel_id for channel_price in price_info.changed_prices
-        ]
-        return (
-            ChannelByIdLoader(info.context)
-            .load_many(channel_ids)
-            .then(
-                lambda channels: [
-                    {
-                        "channel": channel,
-                        "previous_price": Money(
-                            amount=channel_price.previous_price_amount,
-                            currency=channel_price.currency,
-                        ),
-                        "new_price": Money(
-                            amount=channel_price.new_price_amount,
-                            currency=channel_price.currency,
-                        ),
-                    }
-                    for channel, channel_price in zip(
-                        channels, price_info.changed_prices, strict=False
-                    )
-                ]
-            )
+        return ChannelByIdLoader(info.context).load(price_info.channel_id)
+
+    @staticmethod
+    def resolve_previous_price(
+        root: tuple[str, "VariantDiscountedPriceChange"],
+        _info: ResolveInfo,
+    ) -> Money:
+        _, price_info = root
+        return Money(
+            amount=price_info.previous_price_amount, currency=price_info.currency
         )
+
+    @staticmethod
+    def resolve_new_price(
+        root: tuple[str, "VariantDiscountedPriceChange"],
+        _info: ResolveInfo,
+    ) -> Money:
+        _, price_info = root
+        return Money(amount=price_info.new_price_amount, currency=price_info.currency)
 
 
 class ProductExportCompleted(SubscriptionObjectType):
@@ -2901,6 +2905,17 @@ class Subscription(SubscriptionObjectType):
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
+    )
+    product_variant_discounted_price_updated = BaseField(
+        ProductVariantDiscountedPriceUpdated,
+        description=(
+            "Event sent when product variant discounted price is recalculated."
+            + ADDED_IN_322
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
     )
 
     class Meta:

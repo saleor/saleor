@@ -11,7 +11,7 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
-from ....product.interface import ChannelPriceChange, VariantDiscountedPriceUpdatedInfo
+from ....product.interface import VariantDiscountedPriceChange
 from ....product.models import Category
 from ....shipping.models import ShippingMethod, ShippingZone
 from ....site.models import SiteSettings
@@ -1566,16 +1566,13 @@ def test_product_variant_discounted_price_updated(
     new_price = Decimal("8.00")
     currency = channel_USD.currency_code
 
-    price_info = VariantDiscountedPriceUpdatedInfo(
+    price_info = VariantDiscountedPriceChange(
         variant_id=variant.id,
-        changed_prices=[
-            ChannelPriceChange(
-                channel_id=channel_USD.id,
-                previous_price_amount=previous_price,
-                new_price_amount=new_price,
-                currency=currency,
-            )
-        ],
+        channel_id=channel_USD.id,
+        channel_slug=channel_USD.slug,
+        previous_price_amount=previous_price,
+        new_price_amount=new_price,
+        currency=currency,
     )
 
     # when
@@ -1585,16 +1582,12 @@ def test_product_variant_discounted_price_updated(
     payload = json.loads(deliveries[0].payload.get_payload())
     assert payload == {
         "productVariant": {"id": variant_id},
-        "changedPrices": [
-            {
-                "channel": {"slug": channel_USD.slug},
-                "previousPrice": {
-                    "amount": previous_price,
-                    "currency": currency,
-                },
-                "newPrice": {"amount": new_price, "currency": currency},
-            }
-        ],
+        "channel": {"slug": channel_USD.slug},
+        "previousPrice": {
+            "amount": previous_price,
+            "currency": currency,
+        },
+        "newPrice": {"amount": new_price, "currency": currency},
     }
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

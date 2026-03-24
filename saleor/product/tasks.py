@@ -21,7 +21,7 @@ from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
-from .interface import VariantDiscountedPriceUpdatedInfo
+from .interface import VariantDiscountedPriceChange
 from .models import Product, ProductChannelListing, ProductType, ProductVariant
 from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
@@ -232,7 +232,7 @@ def update_products_discounted_prices_for_promotion_task(
 
 
 def _send_variant_price_updated_webhooks(
-    changed_variants_map: dict[int, list],
+    changed_variants_map: dict[int, list[VariantDiscountedPriceChange]],
 ) -> None:
     if not changed_variants_map:
         return
@@ -242,16 +242,13 @@ def _send_variant_price_updated_webhooks(
     if not webhooks:
         return
     manager = get_plugins_manager(allow_replica=True)
-    for variant_id, changed_prices in changed_variants_map.items():
-        price_info = VariantDiscountedPriceUpdatedInfo(
-            variant_id=variant_id,
-            changed_prices=changed_prices,
-        )
-        call_event(
-            manager.product_variant_discounted_price_updated,
-            price_info,
-            webhooks=webhooks,
-        )
+    for price_infos in changed_variants_map.values():
+        for price_info in price_infos:
+            call_event(
+                manager.product_variant_discounted_price_updated,
+                price_info,
+                webhooks=webhooks,
+            )
 
 
 @app.task

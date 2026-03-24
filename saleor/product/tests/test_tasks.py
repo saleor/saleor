@@ -9,7 +9,7 @@ from faker import Faker
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
-from ..interface import ChannelPriceChange, VariantDiscountedPriceUpdatedInfo
+from ..interface import VariantDiscountedPriceChange
 from ..models import Product, ProductChannelListing, ProductVariantChannelListing
 from ..tasks import (
     _get_preorder_variants_to_clean,
@@ -358,14 +358,12 @@ def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
     assert len(calls) == len(expected_prices)
     for call in calls:
         price_info = call[0][1]
-        assert isinstance(price_info, VariantDiscountedPriceUpdatedInfo)
-        assert len(price_info.changed_prices) == 1
-        cp = price_info.changed_prices[0]
-        assert isinstance(cp, ChannelPriceChange)
-        assert cp.channel_id == channel_USD.id
-        assert cp.currency == channel_USD.currency_code
-        assert cp.previous_price_amount == current_price
-        assert cp.new_price_amount == expected_prices[price_info.variant_id]
+        assert isinstance(price_info, VariantDiscountedPriceChange)
+        assert price_info.channel_id == channel_USD.id
+        assert price_info.channel_slug == channel_USD.slug
+        assert price_info.currency == channel_USD.currency_code
+        assert price_info.previous_price_amount == current_price
+        assert price_info.new_price_amount == expected_prices[price_info.variant_id]
 
 
 @patch("saleor.product.tasks.call_event")

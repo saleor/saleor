@@ -1984,7 +1984,10 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+        channel_slug = variant_price_info.channel_slug
+        if webhooks := self._get_webhooks_for_channel_events(
+            event_type, channel_slug, webhooks
+        ):
             self.trigger_webhooks_async(
                 None,
                 event_type,
