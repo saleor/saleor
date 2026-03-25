@@ -108,8 +108,8 @@ def _analyze_plan(plan: list) -> tuple[list[str], list[str], float, float]:
         # Red flag: Sort node (may indicate missing index for ORDER BY)
         if node_type == "Sort":
             warnings.append(
-                f"Explicit Sort node detected — "
-                f"check if an index could eliminate the sort"
+                "Explicit Sort node detected — "
+                "check if an index could eliminate the sort"
             )
 
         # Red flag: Nested Loop with Seq Scan inner
@@ -189,7 +189,7 @@ def analyze(qs, title: str, *, upload: bool = True) -> PlanResult:
         try:
             dalibo_url = _upload_to_dalibo(plan_default, title)
         except Exception as e:
-            print(f"Warning: Dalibo upload failed: {e}")
+            print(f"Warning: Dalibo upload failed: {e}")  # noqa: T201
 
     result = PlanResult(
         title=title,
@@ -206,11 +206,13 @@ def analyze(qs, title: str, *, upload: bool = True) -> PlanResult:
 
     # Print quick summary
     status = "OK" if not warnings else f"{len(warnings)} warning(s)"
-    print(f"[{title}] {exec_time:.2f}ms exec, {plan_time:.2f}ms plan — {status}")
+    print(  # noqa: T201
+        f"[{title}] {exec_time:.2f}ms exec, {plan_time:.2f}ms plan — {status}"
+    )
     if dalibo_url:
-        print(f"  Dalibo: {dalibo_url}")
+        print(f"  Dalibo: {dalibo_url}")  # noqa: T201
     for w in warnings:
-        print(f"  ⚠ {w}")
+        print(f"  ⚠ {w}")  # noqa: T201
 
     return result
 
@@ -223,7 +225,7 @@ def report() -> str:
 
     """
     if not _results:
-        print("No results. Use analyze(qs, title) first.")
+        print("No results. Use analyze(qs, title) first.")  # noqa: T201
         return ""
 
     lines = ["# Filter Benchmark Report", ""]
@@ -262,5 +264,5 @@ def report() -> str:
             lines.append("")
 
     text = "\n".join(lines)
-    print(text)
+    print(text)  # noqa: T201
     return text
