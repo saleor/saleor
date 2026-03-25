@@ -28,7 +28,7 @@ from ..models import (
 
 def update_discounted_prices_for_promotion(
     products: ProductsQueryset, only_dirty_products: bool = False
-) -> dict[int, list[VariantDiscountedPriceChange]]:
+) -> list[VariantDiscountedPriceChange]:
     """Update Products and ProductVariants discounted prices.
 
     The discounted price is the minimal price of the product/variant based on active
@@ -40,8 +40,8 @@ def update_discounted_prices_for_promotion(
     When only_dirty_products set to True, the prices will be recalculated only for the
     listings marked as dirty.
 
-    Returns a dict mapping variant_id to a list of VariantDiscountedPriceChange for variants
-    whose discounted price changed.
+    Returns a list of VariantDiscountedPriceChange for variants whose discounted price
+    changed.
     """
     variant_qs = ProductVariant.objects.using(
         settings.DATABASE_CONNECTION_REPLICA_NAME
@@ -60,9 +60,7 @@ def update_discounted_prices_for_promotion(
     changed_variant_listing_promotion_rule_to_create = []
     changed_variant_listing_promotion_rule_to_update = []
 
-    changed_variants_prices: dict[int, list[VariantDiscountedPriceChange]] = (
-        defaultdict(list)
-    )
+    changed_variant_prices: list[VariantDiscountedPriceChange] = []
 
     product_channel_listings = (
         ProductChannelListing.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
@@ -102,8 +100,7 @@ def update_discounted_prices_for_promotion(
             variant_listing_promotion_rule_to_update
         )
 
-        for variant_id, price_change in variant_price_changes:
-            changed_variants_prices[variant_id].append(price_change)
+        changed_variant_prices.extend(variant_price_changes)
 
         # check if the product discounted_price has changed
         if product_channel_listing.discounted_price != product_discounted_price:
@@ -119,7 +116,7 @@ def update_discounted_prices_for_promotion(
         changed_variant_listing_promotion_rule_to_update,
     )
 
-    return dict(changed_variants_prices)
+    return changed_variant_prices
 
 
 def _update_or_create_listings(
@@ -264,7 +261,7 @@ def _get_discounted_variants_prices_for_promotions(
     list[ProductVariantChannelListing],
     list[VariantChannelListingPromotionRule],
     list[VariantChannelListingPromotionRule],
-    list[tuple[int, VariantDiscountedPriceChange]],
+    list[VariantDiscountedPriceChange],
 ]:
     variants_listings_to_update: list[ProductVariantChannelListing] = []
     discounted_variants_price: list[Money] = []
@@ -274,7 +271,7 @@ def _get_discounted_variants_prices_for_promotions(
     variant_listing_promotion_rule_to_update: list[
         VariantChannelListingPromotionRule
     ] = []
-    variant_price_changes: list[tuple[int, VariantDiscountedPriceChange]] = []
+    variant_price_changes: list[VariantDiscountedPriceChange] = []
 
     for variant_listing in variant_listings:
         applied_discount = calculate_discounted_price_for_promotions(
@@ -311,16 +308,13 @@ def _get_discounted_variants_prices_for_promotions(
                 else variant_listing.price_amount,
             )
             variant_price_changes.append(
-                (
-                    variant_listing.variant_id,
-                    VariantDiscountedPriceChange(
-                        variant_id=variant_listing.variant_id,
-                        channel_id=channel.id,
-                        channel_slug=channel.slug,
-                        previous_price_amount=previous_price_amount,
-                        new_price_amount=discounted_variant_price.amount,
-                        currency=channel.currency_code,
-                    ),
+                VariantDiscountedPriceChange(
+                    variant_id=variant_listing.variant_id,
+                    channel_id=channel.id,
+                    channel_slug=channel.slug,
+                    previous_price_amount=previous_price_amount,
+                    new_price_amount=discounted_variant_price.amount,
+                    currency=channel.currency_code,
                 )
             )
 

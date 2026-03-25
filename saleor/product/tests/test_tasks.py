@@ -172,7 +172,7 @@ def test_recalculate_discounted_price_for_products_task(
     assert recalculate_discounted_price_for_products_task_mock.called
 
 
-@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value={})
+@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value=[])
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
 def test_recalculate_discounted_price_for_products_task_with_correct_prices(
     recalculate_discounted_price_for_products_task_mock,
@@ -190,7 +190,7 @@ def test_recalculate_discounted_price_for_products_task_with_correct_prices(
     assert not update_discounted_prices_for_promotion_mock.called
 
 
-@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value={})
+@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value=[])
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
 def test_recalculate_discounted_price_for_products_task_updates_only_dirty_listings(
     recalculate_discounted_price_for_products_task_mock,
@@ -368,7 +368,7 @@ def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
 
 @patch("saleor.product.tasks.call_event")
 @patch("saleor.product.tasks.get_webhooks_for_event")
-@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value={})
+@patch("saleor.product.tasks.update_discounted_prices_for_promotion", return_value=[])
 @patch("saleor.product.tasks.recalculate_discounted_price_for_products_task.delay")
 def test_recalculate_discounted_price_no_webhook_when_prices_unchanged(
     recalculate_task_mock,

@@ -232,9 +232,9 @@ def update_products_discounted_prices_for_promotion_task(
 
 
 def _send_variant_price_updated_webhooks(
-    changed_variants_map: dict[int, list[VariantDiscountedPriceChange]],
+    changed_prices: list[VariantDiscountedPriceChange],
 ) -> None:
-    if not changed_variants_map:
+    if not changed_prices:
         return
     webhooks = get_webhooks_for_event(
         WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
@@ -242,13 +242,12 @@ def _send_variant_price_updated_webhooks(
     if not webhooks:
         return
     manager = get_plugins_manager(allow_replica=True)
-    for price_infos in changed_variants_map.values():
-        for price_info in price_infos:
-            call_event(
-                manager.product_variant_discounted_price_updated,
-                price_info,
-                webhooks=webhooks,
-            )
+    for price_info in changed_prices:
+        call_event(
+            manager.product_variant_discounted_price_updated,
+            price_info,
+            webhooks=webhooks,
+        )
 
 
 @app.task
@@ -270,10 +269,10 @@ def recalculate_discounted_price_for_products_task():
         products = Product.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).filter(id__in=products_ids)
-        changed_variants_map = update_discounted_prices_for_promotion(
+        changed_prices = update_discounted_prices_for_promotion(
             products, only_dirty_products=True
         )
-        _send_variant_price_updated_webhooks(changed_variants_map)
+        _send_variant_price_updated_webhooks(changed_prices)
         with transaction.atomic():
             channel_listings_ids = list(
                 ProductChannelListing.objects.select_for_update(of=("self",))

@@ -699,13 +699,11 @@ def test_update_discounted_prices_returns_changed_prices_when_discount_applied(
     rule.variants.add(variant)
 
     # when
-    changed_variants_map = update_discounted_prices_for_promotion(
+    changed_prices = update_discounted_prices_for_promotion(
         Product.objects.filter(id__in=[product.id])
     )
 
     # then
-    assert variant.id in changed_variants_map
-    changed_prices = changed_variants_map[variant.id]
     assert len(changed_prices) == 1
     cp = changed_prices[0]
     assert isinstance(cp, VariantDiscountedPriceChange)
@@ -731,12 +729,12 @@ def test_update_discounted_prices_returns_empty_when_prices_unchanged(
     variant_channel_listing.save()
 
     # when
-    changed_variants_map = update_discounted_prices_for_promotion(
+    changed_prices = update_discounted_prices_for_promotion(
         Product.objects.filter(id__in=[product.id])
     )
 
     # then
-    assert changed_variants_map == {}
+    assert changed_prices == []
 
 
 def test_update_discounted_prices_returns_changed_prices_for_multiple_channels(
@@ -787,23 +785,23 @@ def test_update_discounted_prices_returns_changed_prices_for_multiple_channels(
     rule.variants.add(variant)
 
     # when
-    changed_variants_map = update_discounted_prices_for_promotion(
+    changed_prices = update_discounted_prices_for_promotion(
         Product.objects.filter(id__in=[product.id])
     )
 
     # then
-    assert variant.id in changed_variants_map
-    changed_prices = changed_variants_map[variant.id]
     assert len(changed_prices) == 2
 
     prices_by_channel = {cp.channel_id: cp for cp in changed_prices}
 
     cp_usd = prices_by_channel[channel_USD.id]
+    assert cp_usd.variant_id == variant.id
     assert cp_usd.currency == channel_USD.currency_code
     assert cp_usd.previous_price_amount == variant_price_usd.amount
     assert cp_usd.new_price_amount == variant_price_usd.amount - reward_value
 
     cp_pln = prices_by_channel[channel_PLN.id]
+    assert cp_pln.variant_id == variant.id
     assert cp_pln.currency == channel_PLN.currency_code
     assert cp_pln.previous_price_amount == variant_price_pln
     assert cp_pln.new_price_amount == variant_price_pln - reward_value
