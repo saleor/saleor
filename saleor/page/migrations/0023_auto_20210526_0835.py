@@ -14,14 +14,18 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="page",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["title", "slug"], name="page_page_title_964714_gin"
+                fields=["title", "slug"],
+                name="page_page_title_964714_gin",
+                opclasses=["gin_trgm_ops"] * 2,
             ),
         ),
         # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="pagetype",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["name", "slug"], name="page_pagety_name_7c1cb8_gin"
+                fields=["name", "slug"],
+                name="page_pagety_name_7c1cb8_gin",
+                opclasses=["gin_trgm_ops"] * 2,
             ),
         ),
     ]

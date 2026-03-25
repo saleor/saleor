@@ -15,6 +15,10 @@ class Migration(migrations.Migration):
     operations = [
         AddIndexConcurrently(
             model_name="order",
-            index=GinIndex(fields=["voucher_code"], name="order_voucher_code_idx"),
+            index=GinIndex(
+                fields=["voucher_code"],
+                name="order_voucher_code_idx",
+                opclasses=["gin_trgm_ops"],
+            ),
         ),
     ]

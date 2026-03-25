@@ -196,14 +196,18 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="checkoutdiscount",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["name", "translated_name"], name="discount_ch_name_64e096_gin"
+                fields=["name", "translated_name"],
+                name="discount_ch_name_64e096_gin",
+                opclasses=["gin_trgm_ops"] * 2,
             ),
         ),
         # nosemgrep: add-index-concurrently
         migrations.AddIndex(
             model_name="checkoutdiscount",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["voucher_code"], name="checkoutdiscount_voucher_idx"
+                fields=["voucher_code"],
+                name="checkoutdiscount_voucher_idx",
+                opclasses=["gin_trgm_ops"],
             ),
         ),
         migrations.AlterUniqueTogether(

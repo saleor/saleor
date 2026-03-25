@@ -14,7 +14,9 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name="orderdiscount",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["name", "translated_name"], name="discount_or_name_d16858_gin"
+                fields=["name", "translated_name"],
+                name="discount_or_name_d16858_gin",
+                opclasses=["gin_trgm_ops"] * 2,
             ),
         ),
     ]

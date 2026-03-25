@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["email", "first_name", "last_name"],
                 name="account_use_email_d707ff_gin",
+                opclasses=["gin_trgm_ops"] * 3,
             ),
         ),
     ]

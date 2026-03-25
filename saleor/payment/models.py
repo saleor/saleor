@@ -359,7 +359,7 @@ class Payment(ModelWithMetadata):
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             # Orders filtering by status index
-            GinIndex(fields=["order_id", "is_active", "charge_status"]),
+            BTreeIndex(fields=["order_id", "is_active", "charge_status"]),
         ]
 
     def __repr__(self):
@@ -490,6 +490,7 @@ class Transaction(models.Model):
             GinIndex(
                 name="token_idx",
                 fields=["token"],
+                opclasses=["gin_trgm_ops"],
             ),
         ]
 

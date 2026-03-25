@@ -104,4 +104,10 @@ class PageType(ModelWithMetadata):
                 "Manage page types and attributes.",
             ),
         )
-        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["name", "slug"])]
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                fields=["name", "slug"],
+                opclasses=["gin_trgm_ops"] * 2,
+            ),
+        ]
