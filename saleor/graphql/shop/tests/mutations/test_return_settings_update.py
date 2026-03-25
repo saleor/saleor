@@ -150,7 +150,10 @@ def test_nonexistent_page_type(staff_api_client, permission_manage_settings):
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
 
-    nonexistent_id = graphene.Node.to_global_id("PageType", 99999)
+    page_type_id = 99999
+    assert not PageType.objects.filter(pk=page_type_id).exists()
+
+    nonexistent_id = graphene.Node.to_global_id("PageType", page_type_id)
     variables = {"input": {"returnReasonReferenceType": nonexistent_id}}
 
     # when

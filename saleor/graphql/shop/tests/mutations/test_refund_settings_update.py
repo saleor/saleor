@@ -169,7 +169,10 @@ def test_refund_settings_update_nonexistent_page_type(
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
 
-    nonexistent_id = graphene.Node.to_global_id("PageType", 99999)
+    page_type_id = 99999
+    assert not PageType.objects.filter(pk=page_type_id).exists()
+
+    nonexistent_id = graphene.Node.to_global_id("PageType", page_type_id)
     variables = {"input": {"refundReasonReferenceType": nonexistent_id}}
 
     # when

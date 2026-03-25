@@ -29,7 +29,6 @@ def test_by_staff_success(
 
     site_settings.return_reason_reference_type = page_type
     site_settings.save()
-    assert site_settings.return_reason_reference_type == page_type
 
     # when
     response = staff_api_client.post_graphql(
@@ -56,7 +55,6 @@ def test_by_app_success(
 
     site_settings.return_reason_reference_type = page_type
     site_settings.save()
-    assert site_settings.return_reason_reference_type == page_type
 
     # when
     response = app_api_client.post_graphql(
@@ -82,7 +80,6 @@ def test_when_already_none(staff_api_client, site_settings, permission_manage_se
 
     site_settings.return_reason_reference_type = None
     site_settings.save()
-    assert site_settings.return_reason_reference_type is None
 
     # when
     response = staff_api_client.post_graphql(
