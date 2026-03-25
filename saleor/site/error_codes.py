@@ -24,5 +24,6 @@ class RefundSettingsErrorCode(Enum):
 
 class ReturnSettingsErrorCode(Enum):
     INVALID = "invalid"
+    NOT_FOUND = "not_found"
     REQUIRED = "required"
     GRAPHQL_ERROR = "graphql_error"

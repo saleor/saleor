@@ -23482,7 +23482,7 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type ReturnSettingsUpdate @doc(category: "Shop") {
   """Return settings."""
-  returnSettings: ReturnSettings!
+  returnSettings: ReturnSettings
   returnSettingsErrors: [ReturnSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ReturnSettingsUpdateError!]!
 }
@@ -23502,6 +23502,7 @@ type ReturnSettingsUpdateError @doc(category: "Shop") {
 
 enum ReturnSettingsErrorCode @doc(category: "Shop") {
   INVALID
+  NOT_FOUND
   REQUIRED
   GRAPHQL_ERROR
 }
@@ -23524,7 +23525,7 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type ReturnReasonReferenceTypeClear @doc(category: "Orders") {
   """Return settings."""
-  returnSettings: ReturnSettings!
+  returnSettings: ReturnSettings
   returnSettingsErrors: [ReturnReasonReferenceTypeClearError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ReturnReasonReferenceTypeClearError!]!
 }
