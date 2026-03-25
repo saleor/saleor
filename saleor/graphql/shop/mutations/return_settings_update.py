@@ -62,19 +62,14 @@ class ReturnSettingsUpdate(BaseMutation):
         site = get_site_promise(info.context).get()
         settings = site.settings
 
-        if return_reason_reference_type:
-            try:
-                model_type = cls.get_node_or_error(
-                    info,
-                    return_reason_reference_type,
-                    only_type=PageType,
-                    field="return_reason_reference_type",
-                )
-            except ValidationError as e:
-                return cls.handle_errors(e)
+        model_type = cls.get_node_or_error(
+            info,
+            return_reason_reference_type,
+            only_type=PageType,
+            field="return_reason_reference_type",
+        )
 
-            settings.return_reason_reference_type = model_type
-
-            settings.save(update_fields=["return_reason_reference_type"])
+        settings.return_reason_reference_type = model_type
+        settings.save(update_fields=["return_reason_reference_type"])
 
         return ReturnSettingsUpdate(return_settings=settings)
