@@ -98,8 +98,6 @@ jobs:
             latest=false
           tags: |
             type=ref,event=branch,prefix=${{ inputs.prefix }}
-            type=pep440,pattern={{version}}
-            type=pep440,pattern={{major}}.{{minor}}
             type=raw,value=${{ inputs.version }},enable=${{ inputs.version != null }}
             type=raw,value=latest,enable=${{ steps.check-latest.outputs.IS_LATEST }}
           context: git
