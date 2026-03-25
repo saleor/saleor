@@ -17,6 +17,13 @@ subscription {
     ... on ProductVariantDiscountedPriceUpdated {
       productVariant {
         id
+        pricing {
+          price {
+            gross {
+              amount
+            }
+          }
+        }
       }
       channel {
         slug
@@ -76,6 +83,11 @@ def test_product_variant_discounted_price_updated(
     payload = json.loads(deliveries[0].payload.get_payload())
     event_data = payload["data"]["productVariantDiscountedPriceUpdated"]
     assert event_data["productVariant"]["id"] == variant_id
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    assert (
+        event_data["productVariant"]["pricing"]["price"]["gross"]["amount"]
+        == variant_channel_listing.discounted_price_amount
+    )
     assert event_data["channel"] == {"slug": channel_USD.slug}
     assert event_data["previousPrice"] == {
         "amount": previous_price,

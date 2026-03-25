@@ -604,6 +604,7 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: {
             "name": "Product variant discounted price updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_CREATED: {
             "name": "Checkout created",
