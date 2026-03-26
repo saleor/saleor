@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import hashlib
 import json
@@ -5,6 +6,7 @@ import logging
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import Enum
 from time import time
 from typing import Optional
@@ -38,8 +40,10 @@ from ...core.tasks import delete_files_from_private_storage_task
 from ...core.telemetry import tracer
 from ...core.utils import build_absolute_uri
 from ...core.utils.url import sanitize_url_for_logging
+from ...product.interface import VariantDiscountedPriceChange
 from .. import observability
 from ..const import APP_ID_PREFIX
+from ..event_types import WebhookEventAsyncType
 from ..models import Webhook
 from . import signature_for_payload
 
@@ -85,30 +89,70 @@ class RequestorModelName:
 
 @dataclass
 class DeferredPayloadData:
-    model_name: str
-    object_id: int | UUID
     requestor_model_name: str | None
     requestor_object_id: int | UUID | None
     request_time: datetime.datetime | None
+    # Legacy: used when subscribable_object is a Django model.
+    model_name: str | None = None
+    object_id: int | UUID | None = None
+    # New: used when subscribable_object is a dataclass with object IDs
+    # resolved by subscription resolvers.
+    subscribable_object_data: dict | None = None
+
+
+# Mapping from event type to subscribable object dataclass. Used by deferred
+# payloads to validate and reconstruct subscribable objects from serialized JSON.
+# Only event types that use dataclass subscribable objects (instead of Django
+# models) need to be listed here.
+DEFERRED_SUBSCRIBABLE_OBJECT_MAP: dict[str, type] = {
+    WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: (
+        VariantDiscountedPriceChange
+    ),
+}
+
+
+def _serialize_dataclass_field(value):
+    """Serialize dataclass field values to JSON-compatible types."""
+    if isinstance(value, Decimal):
+        return str(value)
+    return value
 
 
 def prepare_deferred_payload_data(
     subscribable_object, requestor, request_time
 ) -> DeferredPayloadData:
-    model_name = (
-        f"{subscribable_object._meta.app_label}.{subscribable_object._meta.model_name}"
-    )
     requestor_model_name = (
         f"{requestor._meta.app_label}.{requestor._meta.model_name}"
         if requestor
         else None
     )
+    requestor_object_id = requestor.pk if requestor else None
+
+    if hasattr(subscribable_object, "_meta"):
+        # Django model — store model reference for DB lookup in deferred task.
+        model_name = (
+            f"{subscribable_object._meta.app_label}"
+            f".{subscribable_object._meta.model_name}"
+        )
+        return DeferredPayloadData(
+            model_name=model_name,
+            object_id=subscribable_object.pk,
+            request_time=request_time,
+            requestor_model_name=requestor_model_name,
+            requestor_object_id=requestor_object_id,
+        )
+
+    # Dataclass — serialize all fields as JSON data. Resolvers are responsible
+    # for fetching DB objects from the IDs stored in the data.
+    subscribable_object_data = {
+        k: _serialize_dataclass_field(v)
+        for k, v in dataclasses.asdict(subscribable_object).items()
+    }
     return DeferredPayloadData(
-        model_name=model_name,
-        object_id=subscribable_object.pk,
+        subscribable_object_data=subscribable_object_data,
         request_time=request_time,
         requestor_model_name=requestor_model_name,
-        requestor_object_id=(requestor.pk if requestor else None),
+        requestor_object_id=requestor_object_id,
     )
 
 

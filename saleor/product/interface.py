@@ -10,3 +10,7 @@ class VariantDiscountedPriceChange:
     previous_price_amount: Decimal
     new_price_amount: Decimal
     currency: str
+
+    @property
+    def pk(self) -> int:
+        return self.variant_id

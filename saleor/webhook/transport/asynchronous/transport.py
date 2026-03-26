@@ -38,6 +38,7 @@ from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
 from ..metrics import record_external_request, record_first_delivery_attempt_delay
 from ..utils import (
+    DEFERRED_SUBSCRIBABLE_OBJECT_MAP,
     DeferredPayloadData,
     RequestorModelName,
     WebhookResponse,
@@ -494,6 +495,36 @@ def trigger_webhooks_async(
     )
 
 
+def _reconstruct_subscribable_object(
+    event_type: str,
+    deferred_data: "DeferredPayloadData",
+):
+    """Reconstruct a dataclass subscribable object from serialized data.
+
+    Looks up the expected dataclass from the event type mapping and instantiates
+    it with the stored data. The dataclass constructor validates the structure —
+    missing or unexpected fields will raise a TypeError.
+    """
+    data = deferred_data.subscribable_object_data
+    if data is None:
+        raise ValueError(
+            "subscribable_object_data is required for "
+            "dataclass-based deferred payloads."
+        )
+    cls = DEFERRED_SUBSCRIBABLE_OBJECT_MAP.get(event_type)
+    if cls is None:
+        raise ValueError(
+            f"No subscribable object class registered for event type: "
+            f"{event_type}. Add it to DEFERRED_SUBSCRIBABLE_OBJECT_MAP."
+        )
+    try:
+        return cls(**data)
+    except (TypeError, ValueError) as e:
+        raise ValueError(
+            f"Failed to reconstruct {cls.__name__} from deferred payload data: {e}"
+        ) from e
+
+
 @app.task(bind=True)
 @allow_writer()
 @task_with_telemetry_context
@@ -517,11 +548,17 @@ def generate_deferred_payloads(
         model = apps.get_model(args_obj.requestor_model_name)
         requestor = model.objects.filter(pk=args_obj.requestor_object_id).first()
 
-    subscribable_object = (
-        apps.get_model(args_obj.model_name)
-        .objects.filter(pk=args_obj.object_id)
-        .first()
-    )
+    if args_obj.subscribable_object_data is not None:
+        event_type = deliveries[0].event_type
+        subscribable_object = _reconstruct_subscribable_object(event_type, args_obj)
+    elif args_obj.model_name and args_obj.object_id is not None:
+        subscribable_object = (
+            apps.get_model(args_obj.model_name)
+            .objects.filter(pk=args_obj.object_id)
+            .first()
+        )
+    else:
+        subscribable_object = None
     if not subscribable_object:
         EventDelivery.objects.filter(pk__in=event_delivery_ids).update(
             status=EventDeliveryStatus.FAILED
