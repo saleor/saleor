@@ -1064,6 +1064,7 @@ class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType):
     product_variant = graphene.Field(
         "saleor.graphql.product.types.ProductVariant",
         description="The product variant the event relates to.",
+        required=True,
     )
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",

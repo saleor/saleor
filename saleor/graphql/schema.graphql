@@ -34347,7 +34347,7 @@ type ProductVariantDiscountedPriceUpdated implements Event @doc(category: "Produ
   recipient: App
 
   """The product variant the event relates to."""
-  productVariant: ProductVariant
+  productVariant: ProductVariant!
 
   """The channel where the price changed."""
   channel: Channel!
