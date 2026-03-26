@@ -137,9 +137,6 @@ package = false
 
 # Applies the 21 days cooldown (3 weeks) recommendation from Snyk
 # (https://snyk.io/articles/npm-security-best-practices-shai-hulud-attack/#2-2-snyk-cooldown-in-automatic-p-rs)
-#
-#
-#       exclude-newer-package = { setuptools = "30 days" }
 exclude-newer = "3 weeks"
 
 [tool.uv.exclude-newer-package]
