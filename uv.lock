@@ -8,6 +8,13 @@ supported-markers = [
     "platform_python_implementation != 'PyPy'",
 ]
 
+[options]
+exclude-newer = "2026-03-05T14:03:19.981164582Z"
+exclude-newer-span = "P3W"
+
+[options.exclude-newer-package]
+pyjwt = { timestamp = "2026-03-16T14:03:19.981206291Z", span = "P10D" }
+
 [[package]]
 name = "amqp"
 version = "5.3.1"
@@ -2680,7 +2687,7 @@ requires-dist = [
     { name = "pybars3", specifier = ">=0.9.7,<0.10" },
     { name = "pydantic", specifier = ">=2.11.0,<3" },
     { name = "pydantic-core", specifier = ">=2.33.0,<3" },
-    { name = "pyjwt", specifier = ">=2.10.1,<3" },
+    { name = "pyjwt", specifier = ">=2.12.1,<3" },
     { name = "python-dateutil", specifier = ">=2.8.2,<3" },
     { name = "python-http-client", specifier = ">=3.3.7,<4" },
     { name = "python-json-logger", specifier = ">=0.1.11,<3.3.0" },
