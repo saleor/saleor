@@ -39,10 +39,12 @@ jobs:
           # Greps the semgrep version from the pre-commit configuration
           # (ensures a single source of truth and a single source to update)
           semgrep_version=$(
-            yq -r '.repos[] | select( .repo == "https://github.com/returntocorp/semgrep" ) | .rev' .pre-commit-config.yaml \
-            `# remove the 'v' character, e.g., 'v1.89.0' -> '1.89.0'` \
-            | tr -d v
-          )
+            `# Grep + tail are grabbing the 'rev' field` \
+            grep -m1 -A 1 \
+              -F 'repo: https://github.com/returntocorp/semgrep' .pre-commit-config.yaml \
+            | tail -n1 \
+            `# Extracts the version number from the YAML comment` \
+            | sed -nE 's/.*# frozen: v(.*)/\1/p')
           pip install semgrep=="$semgrep_version"
 
       - name: Run Tests
