@@ -2,7 +2,7 @@ import datetime
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Hashable, Sequence
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -247,10 +247,10 @@ def create_deliveries_for_deferred_payload_subscriptions(
     requestor=None,
     allow_replica=False,
     request_time=None,
-) -> dict[int, list[tuple[EventDelivery, DeferredPayloadData]]]:
+) -> dict[Hashable, list[tuple[EventDelivery, DeferredPayloadData]]]:
     deliveries_to_create = []
     deliveries_per_object: dict[
-        int, list[tuple[EventDelivery, DeferredPayloadData]]
+        Hashable, list[tuple[EventDelivery, DeferredPayloadData]]
     ] = defaultdict(list)
 
     for subscribable_object in subscribable_objects:
@@ -357,7 +357,7 @@ def trigger_webhooks_async_for_multiple_objects(
     # List of deliveries and data to generate deferred payloads for each subscribable
     # object. Note: we assume that all subscribable objects are of the same type.
     deferred_deliveries_per_object: dict[
-        int, list[tuple[EventDelivery, DeferredPayloadData]]
+        Hashable, list[tuple[EventDelivery, DeferredPayloadData]]
     ] = defaultdict(list)
 
     for webhook_payload_detail in webhook_payloads_data:

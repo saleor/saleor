@@ -1580,8 +1580,18 @@ def test_product_variant_discounted_price_updated(
 
     # then
     payload = json.loads(deliveries[0].payload.get_payload())
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     assert payload == {
-        "productVariant": {"id": variant_id},
+        "productVariant": {
+            "id": variant_id,
+            "pricing": {
+                "price": {
+                    "gross": {
+                        "amount": variant_channel_listing.discounted_price_amount,
+                    }
+                }
+            },
+        },
         "channel": {"slug": channel_USD.slug},
         "previousPrice": {
             "amount": previous_price,

@@ -325,7 +325,11 @@ def test_generate_deferred_payload_with_dataclass(
     assert delivery.payload
 
     payload = json.loads(delivery.payload.get_payload())
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
     assert payload["productVariant"]["id"] == variant_global_id
+    assert payload["productVariant"]["pricing"]["price"]["gross"]["amount"] == (
+        variant_channel_listing.discounted_price_amount
+    )
     assert payload["channel"]["slug"] == channel_USD.slug
     assert payload["previousPrice"] == {
         "amount": float(previous_price),

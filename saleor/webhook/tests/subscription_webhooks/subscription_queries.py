@@ -1300,6 +1300,13 @@ PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = """
         ...on ProductVariantDiscountedPriceUpdated{
           productVariant{
             id
+            pricing{
+              price{
+                gross{
+                  amount
+                }
+              }
+            }
           }
           channel{
             slug

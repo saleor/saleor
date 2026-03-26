@@ -12,5 +12,10 @@ class VariantDiscountedPriceChange:
     currency: str
 
     @property
-    def pk(self) -> int:
-        return self.variant_id
+    def pk(self) -> tuple[int, int]:
+        """Required by deferred payload mechanism to group deliveries per object.
+
+        Uses (variant_id, channel_id) because the same variant can have
+        separate price change events for different channels.
+        """
+        return (self.variant_id, self.channel_id)
