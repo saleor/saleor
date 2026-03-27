@@ -5,6 +5,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
+from ....order.lock_objects import order_qs_select_for_update
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     delete_order_line,
@@ -61,6 +62,11 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             else None
         )
         with traced_atomic_transaction():
+            # Lock the order before modifying lines to ensure consistent
+            # lock ordering (order → lines) with `process_order_prices`,
+            # and preventing deadlocks.
+            order_qs_select_for_update().only("pk").get(pk=order.pk)
+
             line_info = OrderLineInfo(
                 line=line,
                 quantity=line.quantity,
