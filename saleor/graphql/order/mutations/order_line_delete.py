@@ -65,7 +65,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             # Lock the order before modifying lines to ensure consistent
             # lock ordering (order → lines) with `process_order_prices`,
             # and preventing deadlocks.
-            order_qs_select_for_update().filter(pk=order.pk).only("pk").get()
+            order_qs_select_for_update().only("pk").get(pk=order.pk)
 
             line_info = OrderLineInfo(
                 line=line,
