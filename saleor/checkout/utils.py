@@ -151,14 +151,16 @@ def delete_checkouts(checkout_pks_to_delete: list[UUID]) -> int:
     """Delete a checkouts with lock applied on them."""
     with transaction.atomic():
         CheckoutLine.objects.filter(
-            id__in=CheckoutLine.objects.order_by("id")
-            .select_for_update()
+            id__in=checkout_lines_qs_select_for_update()
             .filter(checkout_id__in=checkout_pks_to_delete)
             .values_list("id", flat=True)
         ).delete()
-        deleted_count, _ = Checkout.objects.filter(
-            pk__in=checkout_pks_to_delete
-        ).delete()
+        locked_pks = list(
+            checkout_qs_select_for_update()
+            .filter(pk__in=checkout_pks_to_delete)
+            .values_list("pk", flat=True)
+        )
+        deleted_count, _ = Checkout.objects.filter(pk__in=locked_pks).delete()
     return deleted_count
 
 
