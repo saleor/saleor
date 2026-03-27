@@ -6,7 +6,6 @@ import logging
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
-from decimal import Decimal
 from enum import Enum
 from time import time
 from typing import Optional
@@ -39,6 +38,7 @@ from ...core.models import (
 from ...core.tasks import delete_files_from_private_storage_task
 from ...core.telemetry import tracer
 from ...core.utils import build_absolute_uri
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...core.utils.url import sanitize_url_for_logging
 from ...product.interface import VariantDiscountedPriceChange
 from .. import observability
@@ -111,11 +111,39 @@ DEFERRED_SUBSCRIBABLE_OBJECT_MAP: dict[str, type] = {
 }
 
 
-def _serialize_dataclass_field(value):
-    """Serialize dataclass field values to JSON-compatible types."""
-    if isinstance(value, Decimal):
-        return str(value)
-    return value
+def _prepare_deferred_payload_for_model(
+    subscribable_object, requestor_model_name, requestor_object_id, request_time
+) -> DeferredPayloadData:
+    """Prepare deferred payload data for a Django model subscribable object."""
+    model_name = (
+        f"{subscribable_object._meta.app_label}.{subscribable_object._meta.model_name}"
+    )
+    return DeferredPayloadData(
+        model_name=model_name,
+        object_id=subscribable_object.pk,
+        request_time=request_time,
+        requestor_model_name=requestor_model_name,
+        requestor_object_id=requestor_object_id,
+    )
+
+
+def _prepare_deferred_payload_for_dataclass(
+    subscribable_object, requestor_model_name, requestor_object_id, request_time
+) -> DeferredPayloadData:
+    """Prepare deferred payload data for a dataclass subscribable object.
+
+    Serializes all fields as JSON data. Resolvers are responsible for fetching
+    DB objects from the IDs stored in the data.
+    """
+    subscribable_object_data = json.loads(
+        json.dumps(dataclasses.asdict(subscribable_object), cls=CustomJsonEncoder)
+    )
+    return DeferredPayloadData(
+        subscribable_object_data=subscribable_object_data,
+        request_time=request_time,
+        requestor_model_name=requestor_model_name,
+        requestor_object_id=requestor_object_id,
+    )
 
 
 def prepare_deferred_payload_data(
@@ -129,30 +157,17 @@ def prepare_deferred_payload_data(
     requestor_object_id = requestor.pk if requestor else None
 
     if hasattr(subscribable_object, "_meta"):
-        # Django model — store model reference for DB lookup in deferred task.
-        model_name = (
-            f"{subscribable_object._meta.app_label}"
-            f".{subscribable_object._meta.model_name}"
+        return _prepare_deferred_payload_for_model(
+            subscribable_object,
+            requestor_model_name,
+            requestor_object_id,
+            request_time,
         )
-        return DeferredPayloadData(
-            model_name=model_name,
-            object_id=subscribable_object.pk,
-            request_time=request_time,
-            requestor_model_name=requestor_model_name,
-            requestor_object_id=requestor_object_id,
-        )
-
-    # Dataclass — serialize all fields as JSON data. Resolvers are responsible
-    # for fetching DB objects from the IDs stored in the data.
-    subscribable_object_data = {
-        k: _serialize_dataclass_field(v)
-        for k, v in dataclasses.asdict(subscribable_object).items()
-    }
-    return DeferredPayloadData(
-        subscribable_object_data=subscribable_object_data,
-        request_time=request_time,
-        requestor_model_name=requestor_model_name,
-        requestor_object_id=requestor_object_id,
+    return _prepare_deferred_payload_for_dataclass(
+        subscribable_object,
+        requestor_model_name,
+        requestor_object_id,
+        request_time,
     )
 
 
