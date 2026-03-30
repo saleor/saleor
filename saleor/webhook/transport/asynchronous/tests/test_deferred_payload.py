@@ -232,7 +232,6 @@ def test_call_trigger_webhook_async_deferred_payload_with_dataclass(
 
     price_info = VariantDiscountedPriceChange(
         variant_id=variant.id,
-        channel_id=channel_USD.id,
         channel_slug=channel_USD.slug,
         previous_price_amount=previous_price,
         new_price_amount=new_price,
@@ -257,7 +256,6 @@ def test_call_trigger_webhook_async_deferred_payload_with_dataclass(
     assert deferred_payload_data["object_id"] is None
     assert deferred_payload_data["subscribable_object_data"] == {
         "variant_id": variant.id,
-        "channel_id": channel_USD.id,
         "channel_slug": channel_USD.slug,
         "previous_price_amount": str(previous_price),
         "new_price_amount": str(new_price),
@@ -297,7 +295,6 @@ def test_generate_deferred_payload_with_dataclass(
     deferred_payload_data = DeferredPayloadData(
         subscribable_object_data={
             "variant_id": variant.id,
-            "channel_id": channel_USD.id,
             "channel_slug": channel_USD.slug,
             "previous_price_amount": str(previous_price),
             "new_price_amount": str(new_price),

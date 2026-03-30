@@ -1568,7 +1568,6 @@ def test_product_variant_discounted_price_updated(
 
     price_info = VariantDiscountedPriceChange(
         variant_id=variant.id,
-        channel_id=channel_USD.id,
         channel_slug=channel_USD.slug,
         previous_price_amount=previous_price,
         new_price_amount=new_price,

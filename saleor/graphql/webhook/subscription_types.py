@@ -42,7 +42,7 @@ from ...webhook.const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
-from ..channel.dataloaders.by_self import ChannelByIdLoader
+from ..channel.dataloaders.by_self import ChannelByIdLoader, ChannelBySlugLoader
 from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
 from ..core.context import (
@@ -1113,7 +1113,7 @@ class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType):
         info: ResolveInfo,
     ) -> Promise["Channel"]:
         _, price_info = root
-        return ChannelByIdLoader(info.context).load(price_info.channel_id)
+        return ChannelBySlugLoader(info.context).load(price_info.channel_slug)
 
     @staticmethod
     def resolve_previous_price(

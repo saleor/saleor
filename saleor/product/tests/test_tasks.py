@@ -359,7 +359,6 @@ def test_recalculate_discounted_price_triggers_variant_price_updated_webhook(
     for call in calls:
         price_info = call[0][1]
         assert isinstance(price_info, VariantDiscountedPriceChange)
-        assert price_info.channel_id == channel_USD.id
         assert price_info.channel_slug == channel_USD.slug
         assert price_info.currency == channel_USD.currency_code
         assert price_info.previous_price_amount == current_price
