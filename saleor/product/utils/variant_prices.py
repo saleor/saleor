@@ -310,7 +310,6 @@ def _get_discounted_variants_prices_for_promotions(
             variant_price_changes.append(
                 VariantDiscountedPriceChange(
                     variant_id=variant_listing.variant_id,
-                    channel_id=channel.id,
                     channel_slug=channel.slug,
                     previous_price_amount=previous_price_amount,
                     new_price_amount=discounted_variant_price.amount,
