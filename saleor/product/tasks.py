@@ -15,6 +15,7 @@ from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
 from ..core.http_client import HTTPClient
+from ..core.utils.events import call_event
 from ..core.utils.validators import get_mime_type
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
@@ -23,6 +24,7 @@ from ..product import ProductMediaTypes
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
+from .interface import VariantDiscountedPriceChange
 from .lock_objects import product_qs_select_for_update
 from .models import (
     Product,
@@ -247,6 +249,25 @@ def update_products_discounted_prices_for_promotion_task(
     PromotionRule.objects.filter(variants_dirty=False).update(variants_dirty=True)
 
 
+def _send_variant_price_updated_webhooks(
+    changed_prices: list[VariantDiscountedPriceChange],
+) -> None:
+    if not changed_prices:
+        return
+    webhooks = get_webhooks_for_event(
+        WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
+    )
+    if not webhooks:
+        return
+    manager = get_plugins_manager(allow_replica=True)
+    for price_info in changed_prices:
+        call_event(
+            manager.product_variant_discounted_price_updated,
+            price_info,
+            webhooks=webhooks,
+        )
+
+
 @app.task
 @allow_writer()
 def recalculate_discounted_price_for_products_task():
@@ -266,7 +287,10 @@ def recalculate_discounted_price_for_products_task():
         products = Product.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).filter(id__in=products_ids)
-        update_discounted_prices_for_promotion(products, only_dirty_products=True)
+        changed_prices = update_discounted_prices_for_promotion(
+            products, only_dirty_products=True
+        )
+        _send_variant_price_updated_webhooks(changed_prices)
         with transaction.atomic():
             channel_listings_ids = list(
                 ProductChannelListing.objects.select_for_update(of=("self",))
