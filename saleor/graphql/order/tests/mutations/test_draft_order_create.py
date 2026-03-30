@@ -3784,6 +3784,7 @@ def test_draft_order_create_triggers_webhooks(
                 "requestor_model_name": "app.app",
                 "requestor_object_id": app_api_client.app.pk,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
