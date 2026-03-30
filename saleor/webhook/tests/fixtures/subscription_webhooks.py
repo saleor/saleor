@@ -481,6 +481,14 @@ def subscription_product_variant_stock_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_product_variant_discounted_price_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED,
+        WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED,
+    )
+
+
+@pytest.fixture
 def subscription_order_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_CREATED, WebhookEventAsyncType.ORDER_CREATED

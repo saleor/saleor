@@ -33,6 +33,27 @@
 - When building GraphQL query variables, use enum values instead of plain strings. For example: `{"field": TransactionSortField.CREATED_AT.name}` instead of `{"field": "CREATED_AT"}`
 - Do not write unnecessary prefix to test names. If file name is `test_my_mutation.py`, do not write `test_my_mutation_with_x_y` but `test_with_x_y`
 - When testing graphQL cases with expected errors ALWAYS assert expected length of errors list
+- When setting up test data, extract values into variables and reuse them in assertions. Do not repeat literal values between setup and assertion — use the variable instead.
+- When comparing JSON payloads in tests, use `json.loads()` to compare dicts instead of comparing serialized strings with `json.dumps()`. String comparison breaks when key order changes.
+
+
+# Webhooks and Events
+
+## Dispatching webhook events
+
+When triggering plugin manager methods to dispatch webhook events, always use `call_event` from `saleor.core.utils.events` instead of calling the manager method directly.
+
+**Bad:**
+```python
+manager.product_variant_discounted_price_updated(price_info, webhooks=webhooks)
+```
+
+**Good:**
+```python
+from saleor.core.utils.events import call_event
+
+call_event(manager.product_variant_discounted_price_updated, price_info, webhooks=webhooks)
+```
 
 # Concurrency and Thread Safety
 

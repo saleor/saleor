@@ -9,7 +9,13 @@ from prices import Money
 
 from ...discount import RewardValueType
 from ...discount.models import Promotion, PromotionRule
-from ...product.models import Product, VariantChannelListingPromotionRule
+from ...product.interface import VariantDiscountedPriceChange
+from ...product.models import (
+    Product,
+    ProductChannelListing,
+    ProductVariantChannelListing,
+    VariantChannelListingPromotionRule,
+)
 from ...tests import race_condition
 from ..utils.variant_prices import update_discounted_prices_for_promotion
 
@@ -663,3 +669,139 @@ def test_update_discounted_prices_for_promotion_only_dirty_products(
     )
     second_listing.refresh_from_db()
     assert second_listing.discounted_price_amount == second_channel_discounted_price
+
+
+def test_update_discounted_prices_returns_changed_prices_when_discount_applied(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    variant_price = Money("9.99", "USD")
+    variant_channel_listing.price = variant_price
+    variant_channel_listing.discounted_price = variant_price
+    variant_channel_listing.save()
+
+    reward_value = Decimal(2)
+    promotion = Promotion.objects.create(name="Promotion")
+    rule = promotion.rules.create(
+        name="Fixed promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD)
+    rule.variants.add(variant)
+
+    # when
+    changed_prices = update_discounted_prices_for_promotion(
+        Product.objects.filter(id__in=[product.id])
+    )
+
+    # then
+    assert len(changed_prices) == 1
+    cp = changed_prices[0]
+    assert isinstance(cp, VariantDiscountedPriceChange)
+    assert cp.variant_id == variant.id
+    assert cp.channel_id == channel_USD.id
+    assert cp.channel_slug == channel_USD.slug
+    assert cp.currency == channel_USD.currency_code
+    assert cp.previous_price_amount == variant_price.amount
+    assert cp.new_price_amount == variant_price.amount - reward_value
+
+
+def test_update_discounted_prices_returns_empty_when_prices_unchanged(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+
+    # Ensure discounted_price already equals price (no promotion)
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount
+    )
+    variant_channel_listing.save()
+
+    # when
+    changed_prices = update_discounted_prices_for_promotion(
+        Product.objects.filter(id__in=[product.id])
+    )
+
+    # then
+    assert changed_prices == []
+
+
+def test_update_discounted_prices_returns_changed_prices_for_multiple_channels(
+    product, channel_USD, channel_PLN
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing_usd = variant.channel_listings.get(
+        channel_id=channel_USD.id
+    )
+    variant_price_usd = Money("9.99", "USD")
+    variant_channel_listing_usd.price = variant_price_usd
+    variant_channel_listing_usd.discounted_price = variant_price_usd
+    variant_channel_listing_usd.save()
+
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
+        discounted_price_amount=Decimal("40.00"),
+        currency=channel_PLN.currency_code,
+        visible_in_listings=True,
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC),
+    )
+    variant_price_pln = Decimal("40.00")
+    ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_PLN,
+        price_amount=variant_price_pln,
+        discounted_price_amount=variant_price_pln,
+        currency=channel_PLN.currency_code,
+    )
+
+    reward_value = Decimal(2)
+    promotion = Promotion.objects.create(name="Promotion")
+    rule = promotion.rules.create(
+        name="Fixed promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(channel_USD, channel_PLN)
+    rule.variants.add(variant)
+
+    # when
+    changed_prices = update_discounted_prices_for_promotion(
+        Product.objects.filter(id__in=[product.id])
+    )
+
+    # then
+    assert len(changed_prices) == 2
+
+    prices_by_channel = {cp.channel_id: cp for cp in changed_prices}
+
+    cp_usd = prices_by_channel[channel_USD.id]
+    assert cp_usd.variant_id == variant.id
+    assert cp_usd.currency == channel_USD.currency_code
+    assert cp_usd.previous_price_amount == variant_price_usd.amount
+    assert cp_usd.new_price_amount == variant_price_usd.amount - reward_value
+
+    cp_pln = prices_by_channel[channel_PLN.id]
+    assert cp_pln.variant_id == variant.id
+    assert cp_pln.currency == channel_PLN.currency_code
+    assert cp_pln.previous_price_amount == variant_price_pln
+    assert cp_pln.new_price_amount == variant_price_pln - reward_value
