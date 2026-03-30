@@ -708,7 +708,6 @@ def test_update_discounted_prices_returns_changed_prices_when_discount_applied(
     cp = changed_prices[0]
     assert isinstance(cp, VariantDiscountedPriceChange)
     assert cp.variant_id == variant.id
-    assert cp.channel_id == channel_USD.id
     assert cp.channel_slug == channel_USD.slug
     assert cp.currency == channel_USD.currency_code
     assert cp.previous_price_amount == variant_price.amount
@@ -792,15 +791,15 @@ def test_update_discounted_prices_returns_changed_prices_for_multiple_channels(
     # then
     assert len(changed_prices) == 2
 
-    prices_by_channel = {cp.channel_id: cp for cp in changed_prices}
+    prices_by_channel = {cp.channel_slug: cp for cp in changed_prices}
 
-    cp_usd = prices_by_channel[channel_USD.id]
+    cp_usd = prices_by_channel[channel_USD.slug]
     assert cp_usd.variant_id == variant.id
     assert cp_usd.currency == channel_USD.currency_code
     assert cp_usd.previous_price_amount == variant_price_usd.amount
     assert cp_usd.new_price_amount == variant_price_usd.amount - reward_value
 
-    cp_pln = prices_by_channel[channel_PLN.id]
+    cp_pln = prices_by_channel[channel_PLN.slug]
     assert cp_pln.variant_id == variant.id
     assert cp_pln.currency == channel_PLN.currency_code
     assert cp_pln.previous_price_amount == variant_price_pln
