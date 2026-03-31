@@ -400,12 +400,15 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
 
 
 def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_USD):
+    # given
     channel_USD.shipping_zones.clear()
 
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
     line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
+
+    # when / then - with legacy flag, clearing shipping zones makes allocation fail
     with pytest.raises(InsufficientStock):
         allocate_stocks(
             [line_data],
@@ -413,6 +416,27 @@ def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_US
             channel_USD,
             manager=get_plugins_manager(allow_replica=False),
         )
+
+
+def test_allocate_stocks_no_channel_shipping_zones_flag_disabled(
+    order_line, stock, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
+
+    # when / then - with flag disabled, shipping zones don't affect allocation
+    allocate_stocks(
+        [line_data],
+        COUNTRY_CODE,
+        channel_USD,
+        manager=get_plugins_manager(allow_replica=False),
+        include_shipping_zones=False,
+    )
 
 
 def test_allocate_stock_insufficient_stocks(

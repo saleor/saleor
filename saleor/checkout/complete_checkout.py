@@ -1954,6 +1954,7 @@ def complete_checkout_with_payment(
 def _reserve_stocks_without_availability_check(
     checkout_info: CheckoutInfo,
     lines: list[CheckoutLineInfo],
+    include_shipping_zones: bool = True,
 ):
     """Add additional temporary reservation for stock.
 
@@ -1961,10 +1962,11 @@ def _reserve_stocks_without_availability_check(
     ordering the same product, in the same time, which is out of stock.
     """
     variants = [line.variant for line in lines]
-    stocks = Stock.objects.get_variants_stocks_for_country(
-        country_code=checkout_info.get_country(),
+    stocks = Stock.objects.get_variants_stocks(
         channel_slug=checkout_info.channel.slug,
         products_variants=variants,
+        country_code=checkout_info.get_country(),
+        include_shipping_zones=include_shipping_zones,
     )
     variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}
 

@@ -106,16 +106,20 @@ def check_stock_quantity(
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    include_shipping_zones: bool = True,
 ):
-    """Validate if there is stock available for given variant in given country.
+    """Validate if there is stock available for given variant in given channel.
 
     If so - returns None. If there is less stock then required raise InsufficientStock
     exception.
     """
     if variant.track_inventory:
-        stocks = Stock.objects.using(
-            database_connection_name
-        ).get_variant_stocks_for_country(country_code, channel_slug, variant)
+        stocks = Stock.objects.using(database_connection_name).get_variant_stocks(
+            channel_slug,
+            variant,
+            country_code=country_code,
+            include_shipping_zones=include_shipping_zones,
+        )
         if not stocks:
             raise InsufficientStock(
                 [
@@ -149,6 +153,7 @@ def check_stock_and_preorder_quantity_bulk(
     existing_lines: list["CheckoutLineInfo"] | None = None,
     replace: bool = False,
     check_reservations: bool = False,
+    include_shipping_zones: bool = True,
 ):
     """Validate if products are available for stocks/preorder.
 
@@ -173,6 +178,7 @@ def check_stock_and_preorder_quantity_bulk(
             existing_lines,
             replace,
             check_reservations,
+            include_shipping_zones=include_shipping_zones,
         )
     if preorder_variants:
         check_preorder_threshold_bulk(
@@ -242,6 +248,7 @@ def check_stock_quantity_bulk(
     replace=False,
     check_reservations: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    include_shipping_zones: bool = True,
 ):
     """Validate if there is stock available for given variants in given country.
 
@@ -251,26 +258,35 @@ def check_stock_quantity_bulk(
     if additional_filter_lookup is not None:
         filter_lookup.update(additional_filter_lookup)
 
-    # in case when the delivery method is not set yet, we should check the stock
-    # quantity in standard warehouses available in a given channel and country, and
-    # in the collection point warehouses for the channel
-    include_cc_warehouses = (
-        not delivery_method_info.delivery_method if delivery_method_info else True
-    )
-    # in case of click and collect order, we need to check local or global stock
-    # regardless of the country code
-    collection_point = (
-        delivery_method_info.warehouse_pk if delivery_method_info else None
-    )
-    stocks = (
-        Stock.objects.using(database_connection_name).for_channel_and_click_and_collect(
-            channel_slug
+    if include_shipping_zones:
+        # in case when the delivery method is not set yet, we should check the stock
+        # quantity in standard warehouses available in a given channel and country, and
+        # in the collection point warehouses for the channel
+        include_cc_warehouses = (
+            not delivery_method_info.delivery_method if delivery_method_info else True
         )
-        if collection_point
-        else Stock.objects.using(database_connection_name).for_channel_and_country(
-            channel_slug, country_code, include_cc_warehouses
+        # in case of click and collect order, we need to check local or global stock
+        # regardless of the country code
+        collection_point = (
+            delivery_method_info.warehouse_pk if delivery_method_info else None
         )
-    )
+        stocks = (
+            Stock.objects.using(
+                database_connection_name
+            ).for_channel_and_click_and_collect(channel_slug)
+            if collection_point
+            else Stock.objects.using(database_connection_name).for_channel_or_country(
+                channel_slug,
+                country_code,
+                include_shipping_zones=True,
+                include_cc_warehouses=include_cc_warehouses,
+            )
+        )
+    else:
+        stocks = Stock.objects.using(database_connection_name).for_channel_or_country(
+            channel_slug,
+            include_shipping_zones=False,
+        )
 
     all_variants_stocks = stocks.filter(**filter_lookup).annotate_available_quantity()
 
@@ -524,10 +540,14 @@ def get_available_quantity(
     channel_slug: str,
     checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
+    include_shipping_zones: bool = True,
 ) -> int:
-    """Return available quantity for given product in given country."""
-    stocks = Stock.objects.get_variant_stocks_for_country(
-        country_code, channel_slug, variant
+    """Return available quantity for given product in given channel."""
+    stocks = Stock.objects.get_variant_stocks(
+        channel_slug,
+        variant,
+        country_code=country_code,
+        include_shipping_zones=include_shipping_zones,
     )
     if not stocks:
         return 0
@@ -535,11 +555,17 @@ def get_available_quantity(
 
 
 def is_product_in_stock(
-    product: "Product", country_code: str, channel_slug: str
+    product: "Product",
+    country_code: str,
+    channel_slug: str,
+    include_shipping_zones: bool = True,
 ) -> bool:
-    """Check if there is any variant of given product available in given country."""
-    stocks = Stock.objects.get_product_stocks_for_country_and_channel(
-        country_code, channel_slug, product
+    """Check if there is any variant of given product available in given channel."""
+    stocks = Stock.objects.get_product_stocks(
+        channel_slug,
+        product,
+        country_code=country_code,
+        include_shipping_zones=include_shipping_zones,
     ).annotate_available_quantity()
     return any(stocks.values_list("available_quantity", flat=True))
 

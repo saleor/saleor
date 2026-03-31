@@ -248,6 +248,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
 def test_check_stock_quantity_bulk_no_channel_shipping_zones(
     variant_with_many_stocks, channel_USD
 ):
+    # given
     variant = variant_with_many_stocks
     country_code = "US"
     available_quantity = _get_available_quantity(variant.stocks.all())
@@ -255,6 +256,7 @@ def test_check_stock_quantity_bulk_no_channel_shipping_zones(
 
     channel_USD.shipping_zones.clear()
 
+    # when / then - with legacy flag, clearing shipping zones makes stock unavailable
     with pytest.raises(InsufficientStock):
         check_stock_quantity_bulk(
             [variant_with_many_stocks],
@@ -263,6 +265,31 @@ def test_check_stock_quantity_bulk_no_channel_shipping_zones(
             channel_USD.slug,
             global_quantity_limit,
         )
+
+
+def test_check_stock_quantity_bulk_no_channel_shipping_zones_flag_disabled(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    variant = variant_with_many_stocks
+    country_code = "US"
+    available_quantity = _get_available_quantity(variant.stocks.all())
+    global_quantity_limit = 50
+
+    channel_USD.shipping_zones.clear()
+
+    # when / then - with flag disabled, shipping zones don't affect availability
+    assert (
+        check_stock_quantity_bulk(
+            [variant_with_many_stocks],
+            country_code,
+            [available_quantity],
+            channel_USD.slug,
+            global_quantity_limit,
+            include_shipping_zones=False,
+        )
+        is None
+    )
 
 
 def test_check_stock_quantity_bulk_with_reservations(
@@ -318,6 +345,107 @@ def test_check_stock_quantity_bulk_with_reservations(
             global_quantity_limit,
             existing_lines=checkout_lines,
             check_reservations=True,
+        )
+        is None
+    )
+
+
+def test_check_stock_quantity_no_shipping_zones_raises_with_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+
+    # when / then - legacy behavior: no shipping zones means no stock
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 1
+        )
+
+
+def test_check_stock_quantity_no_shipping_zones_succeeds_without_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+
+    # when / then - flag disabled: shipping zones ignored, stock found
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            7,
+            include_shipping_zones=False,
+        )
+        is None
+    )
+
+
+def test_get_available_quantity_no_shipping_zones_returns_zero_with_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+
+    # when
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+    )
+
+    # then - legacy behavior: no shipping zones means no stock
+    assert available_quantity == 0
+
+
+def test_get_available_quantity_no_shipping_zones_returns_quantity_without_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+
+    # when
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=False,
+    )
+
+    # then - flag disabled: shipping zones ignored, stock found
+    assert available_quantity == 7
+
+
+def test_check_stock_quantity_country_not_in_zone_raises_with_flag(
+    variant_with_many_stocks, channel_USD, shipping_zone
+):
+    # given - restrict shipping zone to PL only
+    shipping_zone.countries = ["PL"]
+    shipping_zone.save(update_fields=["countries"])
+    non_matching_country = "DE"
+
+    # when / then - legacy behavior: country not in zone means no stock
+    with pytest.raises(InsufficientStock):
+        check_stock_quantity(
+            variant_with_many_stocks, non_matching_country, channel_USD.slug, 1
+        )
+
+
+def test_check_stock_quantity_country_not_in_zone_succeeds_without_flag(
+    variant_with_many_stocks, channel_USD, shipping_zone
+):
+    # given - restrict shipping zone to PL only
+    shipping_zone.countries = ["PL"]
+    shipping_zone.save(update_fields=["countries"])
+    non_matching_country = "DE"
+
+    # when / then - flag disabled: country/zone ignored, stock found
+    assert (
+        check_stock_quantity(
+            variant_with_many_stocks,
+            non_matching_country,
+            channel_USD.slug,
+            7,
+            include_shipping_zones=False,
         )
         is None
     )

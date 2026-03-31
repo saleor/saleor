@@ -451,57 +451,68 @@ class StockQuerySet(models.QuerySet["Stock"]):
             Exists(warehouse_channels.filter(warehouse_id=OuterRef("warehouse_id")))
         )
 
-    def get_variant_stocks_for_channel(
-        self, channel_slug: str, product_variant: ProductVariant
+    def for_channel_or_country(
+        self,
+        channel_slug: str,
+        country_code: str | None = None,
+        include_shipping_zones: bool = True,
+        include_cc_warehouses: bool = False,
     ):
-        """Return stock information for a variant in the given channel."""
+        """Get stocks based on the include_shipping_zones flag.
+
+        When include_shipping_zones is True, filters through shipping zones
+        and country (legacy behavior). When False, returns all stocks from
+        warehouses linked to the channel.
+        """
+        if include_shipping_zones:
+            return self.for_channel_and_country(
+                channel_slug, country_code, include_cc_warehouses
+            )
+        return self.for_channel(channel_slug)
+
+    def get_variant_stocks(
+        self,
+        channel_slug: str,
+        product_variant: ProductVariant,
+        country_code: str | None = None,
+        include_shipping_zones: bool = True,
+    ):
+        """Return stock information for a variant, respecting the shipping zone flag."""
+        if include_shipping_zones:
+            return self.for_channel_and_country(channel_slug, country_code).filter(
+                product_variant=product_variant
+            )
         return self.for_channel(channel_slug).filter(product_variant=product_variant)
 
-    def get_variants_stocks_for_channel(
+    def get_variants_stocks(
         self,
         channel_slug: str,
         products_variants: Iterable[ProductVariant],
+        country_code: str | None = None,
+        include_shipping_zones: bool = True,
     ):
-        """Return stock information for multiple variants in the given channel."""
+        """Return stock information for multiple variants, respecting the flag."""
+        if include_shipping_zones:
+            return self.for_channel_and_country(channel_slug, country_code).filter(
+                product_variant__in=products_variants
+            )
         return self.for_channel(channel_slug).filter(
             product_variant__in=products_variants
         )
 
-    def get_product_stocks_for_channel(self, channel_slug: str, product: Product):
-        """Return stock information for all variants of a product in the channel."""
-        return self.for_channel(channel_slug).filter(
-            product_variant__product_id=product.pk
-        )
-
-    def get_variant_stocks_for_country(
-        self, country_code: str, channel_slug: str, product_variant: ProductVariant
-    ):
-        """Return the stock information about the a stock for a given country.
-
-        Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
-        """
-        return self.for_channel_and_country(channel_slug, country_code).filter(
-            product_variant=product_variant
-        )
-
-    def get_variants_stocks_for_country(
+    def get_product_stocks(
         self,
-        country_code: str,
         channel_slug: str,
-        products_variants: Iterable[ProductVariant],
+        product: Product,
+        country_code: str | None = None,
+        include_shipping_zones: bool = True,
     ):
-        """Return the stock information about the a stock for a given country.
-
-        Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
-        """
-        return self.for_channel_and_country(channel_slug, country_code).filter(
-            product_variant__in=products_variants
-        )
-
-    def get_product_stocks_for_country_and_channel(
-        self, country_code: str, channel_slug: str, product: Product
-    ):
-        return self.for_channel_and_country(channel_slug, country_code).filter(
+        """Return stock information for all variants of a product."""
+        if include_shipping_zones:
+            return self.for_channel_and_country(channel_slug, country_code).filter(
+                product_variant__product_id=product.pk
+            )
+        return self.for_channel(channel_slug).filter(
             product_variant__product_id=product.pk
         )
 

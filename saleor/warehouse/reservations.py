@@ -94,6 +94,7 @@ def reserve_stocks(
     reserved_until: datetime.datetime,
     *,
     replace: bool = True,
+    include_shipping_zones: bool = True,
 ):
     """Reserve stocks for given `checkout_lines` in given country."""
     variants_ids = [line.variant_id for line in checkout_lines]
@@ -108,7 +109,12 @@ def reserve_stocks(
 
     stocks = list(
         stock_qs_select_for_update()
-        .get_variants_stocks_for_country(country_code, channel.slug, variants)
+        .get_variants_stocks(
+            channel.slug,
+            variants,
+            country_code=country_code,
+            include_shipping_zones=include_shipping_zones,
+        )
         .order_by("pk")
         .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )

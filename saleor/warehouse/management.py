@@ -87,6 +87,7 @@ def allocate_stocks(
     additional_filter_lookup: dict[str, Any] | None = None,
     check_reservations: bool = False,
     checkout_lines: Iterable["CheckoutLine"] | None = None,
+    include_shipping_zones: bool = True,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -113,11 +114,14 @@ def allocate_stocks(
 
     # in case of click and collect order, we need to check local or global stock
     # regardless of the country code
-    stocks = (
-        Stock.objects.for_channel_and_click_and_collect(channel_slug)
-        if collection_point_pk
-        else Stock.objects.for_channel_and_country(channel_slug, country_code)
-    )
+    if collection_point_pk:
+        stocks = Stock.objects.for_channel_and_click_and_collect(channel_slug)
+    else:
+        stocks = Stock.objects.for_channel_or_country(
+            channel_slug,
+            country_code,
+            include_shipping_zones=include_shipping_zones,
+        )
 
     stocks = list(
         stock_select_for_update_for_existing_qs(stocks)
