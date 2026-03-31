@@ -437,6 +437,42 @@ class StockQuerySet(models.QuerySet["Stock"]):
             | Exists(cc_warehouses.filter(id=OuterRef("warehouse_id")))
         )
 
+    def for_channel(self, channel_slug: str):
+        """Return stocks for all warehouses assigned to the given channel."""
+        WarehouseChannel = Channel.warehouses.through
+
+        channels = Channel.objects.filter(slug=channel_slug).values("pk")
+
+        warehouse_channels = WarehouseChannel.objects.filter(
+            Exists(channels.filter(pk=OuterRef("channel_id")))
+        ).values("warehouse_id")
+
+        return self.select_related("product_variant").filter(
+            Exists(warehouse_channels.filter(warehouse_id=OuterRef("warehouse_id")))
+        )
+
+    def get_variant_stocks_for_channel(
+        self, channel_slug: str, product_variant: ProductVariant
+    ):
+        """Return stock information for a variant in the given channel."""
+        return self.for_channel(channel_slug).filter(product_variant=product_variant)
+
+    def get_variants_stocks_for_channel(
+        self,
+        channel_slug: str,
+        products_variants: Iterable[ProductVariant],
+    ):
+        """Return stock information for multiple variants in the given channel."""
+        return self.for_channel(channel_slug).filter(
+            product_variant__in=products_variants
+        )
+
+    def get_product_stocks_for_channel(self, channel_slug: str, product: Product):
+        """Return stock information for all variants of a product in the channel."""
+        return self.for_channel(channel_slug).filter(
+            product_variant__product_id=product.pk
+        )
+
     def get_variant_stocks_for_country(
         self, country_code: str, channel_slug: str, product_variant: ProductVariant
     ):
