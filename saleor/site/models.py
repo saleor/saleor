@@ -78,6 +78,10 @@ class SiteSettings(ModelWithMetadata):
         default=False,
         db_default=False,
     )
+    include_shipping_zones_in_stock_availability = models.BooleanField(
+        default=True,
+        db_default=True,
+    )
 
     # Duration in minutes
     reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)

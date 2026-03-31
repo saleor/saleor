@@ -15069,6 +15069,13 @@ type Shop implements ObjectWithMetadata {
   chargeTaxesOnShipping: Boolean! @deprecated(reason: "Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
 
   """
+  When enabled, stock availability is filtered by shipping zones and the destination address (legacy behavior). When disabled, stock availability is determined only by the direct warehouse-channel link, ignoring shipping zones.
+  
+  Added in Saleor 3.23.
+  """
+  includeShippingZonesInStockAvailability: Boolean!
+
+  """
   Use legacy update webhook emission. When enabled, update webhooks (e.g. `customerUpdated`,`productVariantUpdated`) are sent even when only metadata changes. When disabled, update webhooks are not sent for metadata-only changes; only metadata-specific webhooks (e.g., `customerMetadataUpdated`, `productVariantMetadataUpdated`) are sent.
   
   Added in Saleor 3.22.
@@ -22992,6 +22999,13 @@ input ShopSettingsInput {
   Added in Saleor 3.23.
   """
   passwordLoginMode: PasswordLoginModeEnum
+
+  """
+  When enabled, stock availability is filtered by shipping zones and the destination address (legacy behavior). When disabled, stock availability is determined only by the direct warehouse-channel link, ignoring shipping zones.
+  
+  Added in Saleor 3.23.
+  """
+  includeShippingZonesInStockAvailability: Boolean
 
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean @deprecated(reason: "Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.")
