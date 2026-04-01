@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.sites.models import Site
 from django.db.models import Exists, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
@@ -116,11 +117,28 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         .values_list(Sum("quantity_reserved"))
     )
     reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
-    warehouse_pks = list(
-        Warehouse.objects.using(qs.db)
-        .for_channel_with_active_shipping_zone_or_cc(channel_slug)
-        .values_list("pk", flat=True)
+
+    include_shipping_zones = (
+        Site.objects.get_current().settings.include_shipping_zones_in_stock_availability
     )
+
+    if include_shipping_zones:
+        warehouse_pks = list(
+            Warehouse.objects.using(qs.db)
+            .for_channel_with_active_shipping_zone_or_cc(channel_slug)
+            .values_list("pk", flat=True)
+        )
+    else:
+        channel = Channel.objects.using(qs.db).filter(slug=channel_slug).first()
+        warehouse_pks = (
+            list(
+                Warehouse.objects.using(qs.db)
+                .for_channel(channel.id)
+                .values_list("pk", flat=True)
+            )
+            if channel
+            else []
+        )
     stocks = (
         Stock.objects.using(qs.db)
         .filter(
