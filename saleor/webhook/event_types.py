@@ -431,7 +431,6 @@ class WebhookEventAsyncType:
         FULFILLMENT_CREATED: {
             "name": "Fulfillment created",
             "permission": OrderPermissions.MANAGE_ORDERS,
-            "is_deferred_payload": True,
         },
         FULFILLMENT_CANCELED: {
             "name": "Fulfillment cancelled",
@@ -441,7 +440,6 @@ class WebhookEventAsyncType:
         FULFILLMENT_APPROVED: {
             "name": "Fulfillment approved",
             "permission": OrderPermissions.MANAGE_ORDERS,
-            "is_deferred_payload": True,
         },
         FULFILLMENT_METADATA_UPDATED: {
             "name": "Fulfillment metadata updated",
