@@ -20,7 +20,9 @@ from ...core.dataloaders import DataLoader
 from ...product.dataloaders import (
     ProductChannelListingByProductIdAndChannelSlugLoader,
 )
+from ...site.dataloaders import get_site_promise
 from ...warehouse.dataloaders import (
+    StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from .checkout_delivery import CheckoutDeliveryByIdLoader
@@ -37,14 +39,26 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
     context_key = "checkout_lines_problems_by_checkout_id"
 
     def batch_load(self, keys):
-        stock_dataloader = (
-            StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
-                self.context
-            )
-        )
-
         def _resolve_problems(data):
-            checkout_infos, checkout_lines = data
+            checkout_infos, checkout_lines, site = data
+
+            include_shipping_zones = (
+                site.settings.include_shipping_zones_in_stock_availability
+            )
+            stock_dataloader: (
+                StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader
+                | StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader
+            )
+            if include_shipping_zones:
+                stock_dataloader = StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
+                    self.context
+                )
+            else:
+                stock_dataloader = (
+                    StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
+                        self.context
+                    )
+                )
             variant_data_set: set[
                 tuple[
                     VARIANT_ID,
@@ -115,12 +129,20 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
                     )
                 return [problems.get(key, []) for key in keys]
 
-            variant_stocks = stock_dataloader.load_many(
-                [
-                    (variant_id, country_code, channel_slug)
-                    for variant_id, channel_slug, country_code in variant_data_list
-                ]
-            )
+            if include_shipping_zones:
+                variant_stocks = stock_dataloader.load_many(
+                    [
+                        (variant_id, country_code, channel_slug)
+                        for variant_id, channel_slug, country_code in variant_data_list
+                    ]
+                )
+            else:
+                variant_stocks = stock_dataloader.load_many(
+                    [
+                        (variant_id, channel_slug)
+                        for variant_id, channel_slug, _country_code in variant_data_list
+                    ]
+                )
             product_channel_listings = (
                 ProductChannelListingByProductIdAndChannelSlugLoader(
                     self.context
@@ -133,7 +155,8 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
 
         checkout_infos = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
-        return Promise.all([checkout_infos, lines]).then(_resolve_problems)
+        site = get_site_promise(self.context)
+        return Promise.all([checkout_infos, lines, site]).then(_resolve_problems)
 
 
 class CheckoutProblemsByCheckoutIdDataloader(

@@ -124,9 +124,11 @@ from ...translations.types import ProductTranslation, ProductVariantTranslation
 from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
+    AvailableQuantityByProductVariantIdAndChannelSlugLoader,
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
     PreorderQuantityReservedByVariantChannelListingIdLoader,
     StocksByProductVariantIdLoader,
+    StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
 from ...warehouse.types import Stock
@@ -476,20 +478,30 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         return root.channel_slug
 
     @staticmethod
+    @load_site_callback
     def resolve_stocks(
         root: ChannelContext[models.ProductVariant],
         info,
+        site,
         address=None,
         country_code=None,
     ):
         if address is not None:
             country_code = address.country
-        channle_slug = root.channel_slug
-        if channle_slug or country_code:
+        channel_slug = root.channel_slug
+        if not channel_slug and not country_code:
+            return StocksByProductVariantIdLoader(info.context).load(root.node.id)
+
+        include_shipping_zones = (
+            site.settings.include_shipping_zones_in_stock_availability
+        )
+        if include_shipping_zones:
             return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
                 info.context
             ).load((root.node.id, country_code, root.channel_slug))
-        return StocksByProductVariantIdLoader(info.context).load(root.node.id)
+        return StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
+            info.context
+        ).load((root.node.id, str(channel_slug)))
 
     @staticmethod
     @load_site_callback
@@ -606,9 +618,16 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         if not root.node.track_inventory:
             return global_quantity_limit_per_checkout
 
-        return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
+        include_shipping_zones = (
+            site.settings.include_shipping_zones_in_stock_availability
+        )
+        if include_shipping_zones:
+            return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
+                info.context
+            ).load((root.node.id, country_code, channel_slug))
+        return AvailableQuantityByProductVariantIdAndChannelSlugLoader(
             info.context
-        ).load((root.node.id, country_code, channel_slug))
+        ).load((root.node.id, channel_slug))
 
     @classmethod
     def resolve_assigned_attribute(
@@ -1304,8 +1323,9 @@ class Product(ChannelContextType[models.Product]):
 
     @staticmethod
     @traced_resolver
+    @load_site_callback
     def resolve_is_available(
-        root: ChannelContext[models.Product], info, *, address=None
+        root: ChannelContext[models.Product], info, site, *, address=None
     ):
         if not root.channel_slug:
             return None
@@ -1325,11 +1345,24 @@ class Product(ChannelContextType[models.Product]):
                     return True
             return False
 
+        include_shipping_zones = (
+            site.settings.include_shipping_zones_in_stock_availability
+        )
+
         def load_variants_availability(variants):
-            keys = [(variant.id, country_code, channel_slug) for variant in variants]
-            return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
+            if include_shipping_zones:
+                country_keys = [
+                    (variant.id, country_code, channel_slug) for variant in variants
+                ]
+                return (
+                    AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
+                        info.context
+                    ).load_many(country_keys)
+                )
+            channel_keys = [(variant.id, channel_slug) for variant in variants]
+            return AvailableQuantityByProductVariantIdAndChannelSlugLoader(
                 info.context
-            ).load_many(keys)
+            ).load_many(channel_keys)
 
         def check_variant_availability():
             if has_required_permissions and not channel_slug:

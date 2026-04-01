@@ -567,6 +567,183 @@ class StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
         return warehouse_ids_by_country_and_channel_map
 
 
+VariantIdChannelSlug = tuple[int, str]
+
+
+class AvailableQuantityByProductVariantIdAndChannelSlugLoader(
+    DataLoader[VariantIdChannelSlug, int]
+):
+    """Calculate available variant quantity using only the channel-warehouse link.
+
+    This is the simplified loader used when include_shipping_zones_in_stock_availability
+    is False. It ignores shipping zones entirely and sums stock from all warehouses
+    assigned to the channel.
+    """
+
+    context_key = "available_quantity_by_productvariant_and_channel"
+
+    def prepare_stocks_reservations_map(self, variant_ids):
+        """Prepare stock id to quantity reserved map for provided variant ids."""
+        stocks_reservations: defaultdict[int, int] = defaultdict(int)
+        site = get_site_promise(self.context).get()
+        if is_reservation_enabled(site.settings):
+            reservations_qs = (
+                Stock.objects.using(self.database_connection_name)
+                .filter(product_variant_id__in=variant_ids)
+                .annotate_reserved_quantity()
+                .order_by("pk")
+                .values_list("id", "reserved_quantity")
+            )
+            for stock_id, quantity_reserved in reservations_qs:
+                stocks_reservations[stock_id] = quantity_reserved
+        return stocks_reservations
+
+    def batch_load(self, keys: Iterable[VariantIdChannelSlug]):
+        channel_slugs = list({channel_slug for _, channel_slug in keys})
+
+        def with_channels_and_site(data):
+            channels, site = data
+
+            def with_warehouses(warehouses_by_channel):
+                warehouses_by_channel_map = {
+                    channel.slug: {warehouse.id for warehouse in warehouses}
+                    for channel, warehouses in zip(
+                        channels, warehouses_by_channel, strict=False
+                    )
+                }
+
+                all_warehouse_ids = {
+                    warehouse_id
+                    for warehouse_ids in warehouses_by_channel_map.values()
+                    for warehouse_id in warehouse_ids
+                }
+                all_variant_ids = list({variant_id for variant_id, _ in keys})
+
+                stocks = (
+                    Stock.objects.using(self.database_connection_name)
+                    .filter(
+                        product_variant_id__in=all_variant_ids,
+                        warehouse_id__in=all_warehouse_ids,
+                    )
+                    .annotate_available_quantity()
+                    .order_by("pk")
+                )
+
+                stocks_reservations = self.prepare_stocks_reservations_map(
+                    all_variant_ids
+                )
+
+                # Sum quantities per (variant_id, channel_slug)
+                quantity_map: defaultdict[VariantIdChannelSlug, int] = defaultdict(int)
+                for stock in stocks:
+                    reserved = stocks_reservations[stock.id]
+                    quantity = stock.available_quantity - reserved
+                    if stock.available_quantity > 0:
+                        quantity = max(0, quantity)
+
+                    for (
+                        channel_slug,
+                        warehouse_ids,
+                    ) in warehouses_by_channel_map.items():
+                        if stock.warehouse_id in warehouse_ids:
+                            quantity_map[(stock.product_variant_id, channel_slug)] += (
+                                quantity
+                            )
+
+                global_quantity_limit = site.settings.limit_quantity_per_checkout
+
+                return [
+                    max(
+                        0,
+                        min(
+                            quantity_map[key],
+                            global_quantity_limit or sys.maxsize,
+                        ),
+                    )
+                    for key in keys
+                ]
+
+            channel_ids = [channel.id for channel in channels]
+            return (
+                WarehousesByChannelIdLoader(self.context)
+                .load_many(channel_ids)
+                .then(with_warehouses)
+            )
+
+        channels_promise = ChannelBySlugLoader(self.context).load_many(channel_slugs)
+        site_promise = get_site_promise(self.context)
+        return Promise.all([channels_promise, site_promise]).then(
+            with_channels_and_site
+        )
+
+
+class StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
+    DataLoader[VariantIdChannelSlug, Iterable[Stock]]
+):
+    """Return stocks with available quantity using only the channel-warehouse link.
+
+    This is the simplified loader used when include_shipping_zones_in_stock_availability
+    is False.
+    """
+
+    context_key = "stocks_with_available_quantity_by_productvariant_and_channel"
+
+    def batch_load(self, keys: Iterable[VariantIdChannelSlug]):
+        channel_slugs = list({channel_slug for _, channel_slug in keys})
+
+        def with_channels(channels):
+            def with_warehouses(warehouses_by_channel):
+                warehouses_by_channel_map = {
+                    channel.slug: {warehouse.id for warehouse in warehouses}
+                    for channel, warehouses in zip(
+                        channels, warehouses_by_channel, strict=False
+                    )
+                }
+
+                all_warehouse_ids = {
+                    warehouse_id
+                    for warehouse_ids in warehouses_by_channel_map.values()
+                    for warehouse_id in warehouse_ids
+                }
+                all_variant_ids = list({variant_id for variant_id, _ in keys})
+
+                stocks_qs = (
+                    Stock.objects.using(self.database_connection_name)
+                    .filter(
+                        product_variant_id__in=all_variant_ids,
+                        warehouse_id__in=all_warehouse_ids,
+                    )
+                    .annotate_available_quantity()
+                    .order_by("pk")
+                )
+
+                results = []
+                for variant_id, channel_slug in keys:
+                    warehouse_ids = warehouses_by_channel_map.get(channel_slug, set())
+                    stocks = [
+                        stock
+                        for stock in stocks_qs
+                        if stock.product_variant_id == variant_id
+                        and stock.warehouse_id in warehouse_ids
+                    ]
+                    results.append(stocks)
+
+                return results
+
+            channel_ids = [channel.id for channel in channels]
+            return (
+                WarehousesByChannelIdLoader(self.context)
+                .load_many(channel_ids)
+                .then(with_warehouses)
+            )
+
+        return (
+            ChannelBySlugLoader(self.context)
+            .load_many(channel_slugs)
+            .then(with_channels)
+        )
+
+
 class StocksReservationsByCheckoutTokenLoader(DataLoader):
     context_key = "stock_reservations_by_checkout_token"
 

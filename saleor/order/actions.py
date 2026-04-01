@@ -1077,6 +1077,7 @@ def _create_fulfillment_lines(
     manager: "PluginsManager",
     should_decrease_stock: bool = True,
     allow_stock_to_be_exceeded: bool = False,
+    include_shipping_zones: bool = True,
 ) -> list[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 
@@ -1099,6 +1100,9 @@ def _create_fulfillment_lines(
         should_decrease_stock (Bool): Stocks will get decreased if this is True.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
             Default value is set to `False`.
+        include_shipping_zones (bool): If `True`, stock is filtered by shipping
+            zones (legacy behavior). If `False`, all warehouse stocks in the
+            channel are used regardless of shipping zones.
 
     Return:
         List[FulfillmentLine]: Unsaved fulfillment lines created for this fulfillment
@@ -1111,7 +1115,9 @@ def _create_fulfillment_lines(
     lines = [line_data["order_line"] for line_data in lines_data]
     variants = [line.variant for line in lines if line.variant]
     stocks = (
-        Stock.objects.for_channel(channel_slug)
+        Stock.objects.for_channel_or_country(
+            channel_slug, include_shipping_zones=include_shipping_zones
+        )
         .filter(warehouse_id=warehouse_pk, product_variant__in=variants)
         .select_related("product_variant")
     )
@@ -1280,6 +1286,7 @@ def create_fulfillments(
                     manager,
                     should_decrease_stock=auto_approved,
                     allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
+                    include_shipping_zones=site_settings.include_shipping_zones_in_stock_availability,
                 )
             )
             if tracking_number:
