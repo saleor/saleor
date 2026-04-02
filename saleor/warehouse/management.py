@@ -462,7 +462,10 @@ def _reduce_quantity_allocated_for_stocks(
 
 @traced_atomic_transaction()
 def increase_allocations(
-    lines_info: list["OrderLineInfo"], channel: "Channel", manager: PluginsManager
+    lines_info: list["OrderLineInfo"],
+    channel: "Channel",
+    manager: PluginsManager,
+    include_shipping_zones: bool = True,
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -500,6 +503,7 @@ def increase_allocations(
         country_code,
         channel,
         manager,
+        include_shipping_zones=include_shipping_zones,
     )
 
 

@@ -69,6 +69,7 @@ def check_stock_and_preorder_quantity(
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    include_shipping_zones: bool = True,
 ):
     """Validate if there is stock/preorder available for given variant.
 
@@ -94,6 +95,7 @@ def check_stock_and_preorder_quantity(
             check_reservations,
             order_line,
             database_connection_name,
+            include_shipping_zones=include_shipping_zones,
         )
 
 

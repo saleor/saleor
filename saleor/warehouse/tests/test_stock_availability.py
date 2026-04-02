@@ -4,9 +4,11 @@ from ...checkout.fetch import fetch_checkout_lines
 from ...core.exceptions import InsufficientStock
 from ..availability import (
     _get_available_quantity,
+    check_stock_and_preorder_quantity,
     check_stock_quantity,
     check_stock_quantity_bulk,
     get_available_quantity,
+    is_product_in_stock,
 )
 from ..models import Allocation
 
@@ -449,3 +451,65 @@ def test_check_stock_quantity_country_not_in_zone_succeeds_without_flag(
         )
         is None
     )
+
+
+def test_check_stock_and_preorder_quantity_no_shipping_zones_raises_with_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+
+    # when / then - legacy: no shipping zones means no stock
+    with pytest.raises(InsufficientStock):
+        check_stock_and_preorder_quantity(
+            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 1
+        )
+
+
+def test_check_stock_and_preorder_quantity_no_shipping_zones_succeeds_without_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+
+    # when / then - flag disabled: shipping zones ignored, stock found
+    assert (
+        check_stock_and_preorder_quantity(
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            7,
+            include_shipping_zones=False,
+        )
+        is None
+    )
+
+
+def test_is_product_in_stock_no_shipping_zones_returns_false_with_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+    product = variant_with_many_stocks.product
+
+    # when
+    result = is_product_in_stock(product, COUNTRY_CODE, channel_USD.slug)
+
+    # then - legacy: no shipping zones means not in stock
+    assert result is False
+
+
+def test_is_product_in_stock_no_shipping_zones_returns_true_without_flag(
+    variant_with_many_stocks, channel_USD
+):
+    # given
+    channel_USD.shipping_zones.clear()
+    product = variant_with_many_stocks.product
+
+    # when
+    result = is_product_in_stock(
+        product, COUNTRY_CODE, channel_USD.slug, include_shipping_zones=False
+    )
+
+    # then - flag disabled: shipping zones ignored, product in stock
+    assert result is True

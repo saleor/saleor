@@ -306,3 +306,53 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
             channel_USD,
             timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
         )
+
+
+def test_reserve_stocks_no_shipping_zones_raises_with_flag(checkout_line, channel_USD):
+    # given
+    checkout_line.quantity = 5
+    checkout_line.save()
+
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    stock.quantity = 10
+    stock.save(update_fields=["quantity"])
+
+    channel_USD.shipping_zones.clear()
+
+    # when / then - legacy: no shipping zones means no stock to reserve
+    with pytest.raises(InsufficientStock):
+        reserve_stocks(
+            [checkout_line],
+            [checkout_line.variant],
+            COUNTRY_CODE,
+            channel_USD,
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+        )
+
+
+def test_reserve_stocks_no_shipping_zones_succeeds_without_flag(
+    checkout_line, channel_USD
+):
+    # given
+    checkout_line.quantity = 5
+    checkout_line.save()
+
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    stock.quantity = 10
+    stock.save(update_fields=["quantity"])
+
+    channel_USD.shipping_zones.clear()
+
+    # when - flag disabled: shipping zones ignored
+    reserve_stocks(
+        [checkout_line],
+        [checkout_line.variant],
+        COUNTRY_CODE,
+        channel_USD,
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+        include_shipping_zones=False,
+    )
+
+    # then - reservation created
+    reservation = Reservation.objects.get(checkout_line=checkout_line, stock=stock)
+    assert reservation.quantity_reserved == 5
