@@ -269,7 +269,7 @@ def test_check_stock_quantity_bulk_no_channel_shipping_zones(
         )
 
 
-def test_check_stock_quantity_bulk_no_channel_shipping_zones_flag_disabled(
+def test_check_stock_quantity_bulk_no_channel_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -352,7 +352,7 @@ def test_check_stock_quantity_bulk_with_reservations(
     )
 
 
-def test_check_stock_quantity_no_shipping_zones_raises_with_flag(
+def test_check_stock_quantity_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -365,7 +365,7 @@ def test_check_stock_quantity_no_shipping_zones_raises_with_flag(
         )
 
 
-def test_check_stock_quantity_no_shipping_zones_succeeds_without_flag(
+def test_check_stock_quantity_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -384,7 +384,7 @@ def test_check_stock_quantity_no_shipping_zones_succeeds_without_flag(
     )
 
 
-def test_get_available_quantity_no_shipping_zones_returns_zero_with_flag(
+def test_get_available_quantity_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -399,7 +399,7 @@ def test_get_available_quantity_no_shipping_zones_returns_zero_with_flag(
     assert available_quantity == 0
 
 
-def test_get_available_quantity_no_shipping_zones_returns_quantity_without_flag(
+def test_get_available_quantity_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -417,7 +417,7 @@ def test_get_available_quantity_no_shipping_zones_returns_quantity_without_flag(
     assert available_quantity == 7
 
 
-def test_check_stock_quantity_country_not_in_zone_raises_with_flag(
+def test_check_stock_quantity_country_not_in_zone_include_shipping_zones(
     variant_with_many_stocks, channel_USD, shipping_zone
 ):
     # given - restrict shipping zone to PL only
@@ -432,7 +432,7 @@ def test_check_stock_quantity_country_not_in_zone_raises_with_flag(
         )
 
 
-def test_check_stock_quantity_country_not_in_zone_succeeds_without_flag(
+def test_check_stock_quantity_country_not_in_zone_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD, shipping_zone
 ):
     # given - restrict shipping zone to PL only
@@ -453,7 +453,7 @@ def test_check_stock_quantity_country_not_in_zone_succeeds_without_flag(
     )
 
 
-def test_check_stock_and_preorder_quantity_no_shipping_zones_raises_with_flag(
+def test_check_stock_and_preorder_quantity_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -466,7 +466,7 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_raises_with_flag(
         )
 
 
-def test_check_stock_and_preorder_quantity_no_shipping_zones_succeeds_without_flag(
+def test_check_stock_and_preorder_quantity_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -485,7 +485,7 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_succeeds_without_fl
     )
 
 
-def test_is_product_in_stock_no_shipping_zones_returns_false_with_flag(
+def test_is_product_in_stock_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -499,7 +499,7 @@ def test_is_product_in_stock_no_shipping_zones_returns_false_with_flag(
     assert result is False
 
 
-def test_is_product_in_stock_no_shipping_zones_returns_true_without_flag(
+def test_is_product_in_stock_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given

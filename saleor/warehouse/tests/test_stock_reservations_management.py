@@ -308,7 +308,7 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
         )
 
 
-def test_reserve_stocks_no_shipping_zones_raises_with_flag(checkout_line, channel_USD):
+def test_reserve_stocks_no_shipping_zones_included(checkout_line, channel_USD):
     # given
     checkout_line.quantity = 5
     checkout_line.save()
@@ -330,9 +330,7 @@ def test_reserve_stocks_no_shipping_zones_raises_with_flag(checkout_line, channe
         )
 
 
-def test_reserve_stocks_no_shipping_zones_succeeds_without_flag(
-    checkout_line, channel_USD
-):
+def test_reserve_stocks_no_shipping_zones_excluded(checkout_line, channel_USD):
     # given
     checkout_line.quantity = 5
     checkout_line.save()

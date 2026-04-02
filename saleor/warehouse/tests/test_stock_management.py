@@ -418,7 +418,7 @@ def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_US
         )
 
 
-def test_allocate_stocks_no_channel_shipping_zones_flag_disabled(
+def test_allocate_stocks_no_channel_shipping_zones_excluded(
     order_line, stock, channel_USD
 ):
     # given

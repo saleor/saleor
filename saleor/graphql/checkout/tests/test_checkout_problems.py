@@ -592,7 +592,7 @@ def test_checkout_problem_insufficient_stock_warehouse_without_shipping_zones(
     assert len(insufficient_stock_problems) > 0
 
 
-def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones_flag_disabled(
+def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones_excluded(
     api_client, checkout_with_items_and_shipping, site_settings
 ):
     # given

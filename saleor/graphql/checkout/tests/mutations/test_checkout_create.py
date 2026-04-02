@@ -1107,7 +1107,7 @@ def test_checkout_create_no_channel_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
-def test_checkout_create_no_channel_shipping_zones_flag_disabled(
+def test_checkout_create_no_channel_shipping_zones_excluded(
     api_client, stock, graphql_address_data, channel_USD, site_settings
 ):
     # given

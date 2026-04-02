@@ -287,7 +287,7 @@ def check_stock_quantity_bulk(
     else:
         stocks = Stock.objects.using(database_connection_name).for_channel_or_country(
             channel_slug,
-            include_shipping_zones=False,
+            include_shipping_zones=include_shipping_zones,
         )
 
     all_variants_stocks = stocks.filter(**filter_lookup).annotate_available_quantity()

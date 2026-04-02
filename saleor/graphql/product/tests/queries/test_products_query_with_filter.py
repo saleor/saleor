@@ -1790,7 +1790,7 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
     assert products[0]["node"]["id"] == product_id
 
 
-def test_products_filter_stock_availability_without_shipping_zones_flag_disabled(
+def test_products_filter_stock_availability_without_shipping_zones_excluded(
     staff_api_client,
     product,
     permission_manage_products,

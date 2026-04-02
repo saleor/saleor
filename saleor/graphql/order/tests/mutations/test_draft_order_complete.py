@@ -704,7 +704,7 @@ def test_draft_order_complete_channel_without_shipping_zones(
     assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
-def test_draft_order_complete_channel_without_shipping_zones_flag_disabled(
+def test_draft_order_complete_channel_without_shipping_zones_excluded(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,

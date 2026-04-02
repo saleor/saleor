@@ -1198,7 +1198,7 @@ def test_checkout_lines_update_channel_without_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
-def test_checkout_lines_update_channel_without_shipping_zones_flag_disabled(
+def test_checkout_lines_update_channel_without_shipping_zones_excluded(
     user_api_client, checkout_with_item, site_settings
 ):
     # given

@@ -501,7 +501,7 @@ def test_checkout_shipping_address_update_channel_without_shipping_zones(
     assert checkout.last_change == previous_last_change
 
 
-def test_checkout_shipping_address_update_channel_without_shipping_zones_flag_disabled(
+def test_checkout_shipping_address_update_channel_without_shipping_zones_excluded(
     user_api_client,
     checkout_with_item,
     graphql_address_data,

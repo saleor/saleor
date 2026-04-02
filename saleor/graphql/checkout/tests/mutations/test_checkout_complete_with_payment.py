@@ -6335,7 +6335,7 @@ def test_checkout_complete_warehouse_without_shipping_zones(
 
 @patch("saleor.order.calculations._recalculate_with_plugins")
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
-def test_checkout_complete_warehouse_without_shipping_zones_flag_disabled(
+def test_checkout_complete_warehouse_without_shipping_zones_excluded(
     order_confirmed_mock,
     recalculate_with_plugins_mock,
     user_api_client,

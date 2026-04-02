@@ -1517,7 +1517,7 @@ def test_products_filter_by_stock_availability_channel_without_shipping_zones(
     assert products[0]["node"]["id"] == product_id
 
 
-def test_products_filter_by_stock_availability_channel_without_shipping_zones_flag_disabled(
+def test_products_filter_by_stock_availability_channel_without_shipping_zones_excluded(
     api_client,
     product,
     channel_USD,
@@ -1585,7 +1585,7 @@ def test_products_filter_by_stock_availability_only_stock_in_cc_warehouse(
     )
 
 
-def test_products_filter_by_stock_availability_as_user_flag_disabled(
+def test_products_filter_by_stock_availability_as_user_shipping_zones_excluded(
     user_api_client,
     product_list,
     order_line,

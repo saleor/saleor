@@ -6058,7 +6058,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
     assert data["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
 
 
-def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_flag_disabled(
+def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_excluded(
     user_api_client,
     checkout_with_gift_card,
     gift_card,
