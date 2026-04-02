@@ -572,6 +572,7 @@ def _create_lines_for_order(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
+    site_settings: "SiteSettings",
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
 
@@ -611,9 +612,7 @@ def _create_lines_for_order(
     additional_warehouse_lookup = (
         checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
-    include_shipping_zones = (
-        Site.objects.get_current().settings.include_shipping_zones_in_stock_availability
-    )
+    include_shipping_zones = site_settings.include_shipping_zones_in_stock_availability
     check_stock_and_preorder_quantity_bulk(
         variants,
         country_code,
@@ -660,6 +659,7 @@ def _prepare_order_data(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
+    site_settings: "SiteSettings",
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -711,6 +711,7 @@ def _prepare_order_data(
         checkout_info,
         lines,
         prices_entered_with_tax,
+        site_settings=site_settings,
     )
     undiscounted_total = (
         sum(
@@ -1031,6 +1032,7 @@ def _get_order_data(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=prices_entered_with_tax,
+            site_settings=site_settings,
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
@@ -1242,12 +1244,14 @@ def _create_order_lines_from_checkout_lines(
     manager: "PluginsManager",
     order_pk: str | UUID,
     prices_entered_with_tax: bool,
+    site_settings: "SiteSettings",
 ) -> list[OrderLineInfo]:
     order_lines_info = _create_lines_for_order(
         manager,
         checkout_info,
         lines,
         prices_entered_with_tax,
+        site_settings=site_settings,
     )
     order_lines = []
     order_line_discounts: list[OrderLineDiscount] = []
@@ -1492,6 +1496,7 @@ def _create_order_from_checkout(
         manager=manager,
         order_pk=order.pk,
         prices_entered_with_tax=prices_entered_with_tax,
+        site_settings=site_settings,
     )
 
     # update undiscounted order total
