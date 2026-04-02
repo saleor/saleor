@@ -501,6 +501,41 @@ def test_checkout_shipping_address_update_channel_without_shipping_zones(
     assert checkout.last_change == previous_last_change
 
 
+def test_checkout_shipping_address_update_channel_without_shipping_zones_flag_disabled(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+    site_settings,
+):
+    # given
+    site_settings.include_shipping_zones_in_stock_availability = False
+    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+
+    checkout = checkout_with_item
+    checkout.channel.shipping_zones.clear()
+
+    shipping_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": shipping_address,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    stock_errors = [
+        e
+        for e in data["errors"]
+        if e["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    ]
+    assert not stock_errors
+
+
 def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
     user_api_client, checkout_with_item, graphql_address_data
 ):

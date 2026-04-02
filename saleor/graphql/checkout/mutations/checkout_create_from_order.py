@@ -327,6 +327,7 @@ class CheckoutCreateFromOrder(BaseMutation):
                 order.channel.slug,
                 site.settings.limit_quantity_per_checkout,
                 check_reservations=is_reservation_enabled(site.settings),
+                include_shipping_zones=site.settings.include_shipping_zones_in_stock_availability,
             )
             valid_order_lines = available_order_lines
         except InsufficientStock as e:
