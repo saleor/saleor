@@ -611,6 +611,9 @@ def _create_lines_for_order(
     additional_warehouse_lookup = (
         checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
+    include_shipping_zones = (
+        Site.objects.get_current().settings.include_shipping_zones_in_stock_availability
+    )
     check_stock_and_preorder_quantity_bulk(
         variants,
         country_code,
@@ -622,6 +625,7 @@ def _create_lines_for_order(
         existing_lines=lines,
         replace=True,
         check_reservations=True,
+        include_shipping_zones=include_shipping_zones,
     )
     voucher = checkout_info.voucher
     voucher_channel_listing = None
@@ -844,6 +848,7 @@ def _create_order(
         additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
+        include_shipping_zones=site_settings.include_shipping_zones_in_stock_availability,
     )
     allocate_preorders(
         order_lines_info,
@@ -1265,6 +1270,7 @@ def _handle_allocations_of_order_lines(
     order_lines_info: list[OrderLineInfo],
     manager: "PluginsManager",
     reservation_enabled: bool,
+    include_shipping_zones: bool = True,
 ):
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
@@ -1279,6 +1285,7 @@ def _handle_allocations_of_order_lines(
         additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
+        include_shipping_zones=include_shipping_zones,
     )
     allocate_preorders(
         order_lines_info,
@@ -1514,6 +1521,7 @@ def _create_order_from_checkout(
         order_lines_info=order_lines_info,
         manager=manager,
         reservation_enabled=reservation_enabled,
+        include_shipping_zones=site_settings.include_shipping_zones_in_stock_availability,
     )
 
     # giftcards
