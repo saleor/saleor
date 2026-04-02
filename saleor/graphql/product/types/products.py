@@ -181,6 +181,20 @@ destination_address_argument = graphene.Argument(
     ),
 )
 
+deprecated_destination_address_argument = graphene.Argument(
+    account_types.AddressInput,
+    description=(
+        "Destination address used to find warehouses where stock availability "
+        "for this product is checked. If address is empty, uses "
+        "`Shop.companyAddress` or fallbacks to server's "
+        "`settings.DEFAULT_COUNTRY` configuration. "
+        "When `Shop.includeShippingZonesInStockAvailability` is disabled, "
+        "this argument is ignored — stock availability is determined by the "
+        "direct warehouse-channel link instead of shipping zones."
+        + DEPRECATED_IN_3X_INPUT
+    ),
+)
+
 
 class BasePricingInfo(BaseObjectType):
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
@@ -410,7 +424,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     stocks = PermissionsField(
         NonNullList(Stock),
         description="Stocks for the product variant.",
-        address=destination_address_argument,
+        address=deprecated_destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
             description=(
@@ -431,7 +445,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             "no `limitQuantityPerCheckout` in global settings has been set, and "
             "`productVariant` stocks are not tracked."
         ),
-        address=destination_address_argument,
+        address=deprecated_destination_address_argument,
         country_code=graphene.Argument(
             CountryCodeEnum,
             description=(
@@ -953,7 +967,7 @@ class Product(ChannelContextType[models.Product]):
         ),
     )
     is_available = graphene.Boolean(
-        address=destination_address_argument,
+        address=deprecated_destination_address_argument,
         description=(
             "Whether the product is in stock, set as available for purchase in the "
             "given channel, and published."
