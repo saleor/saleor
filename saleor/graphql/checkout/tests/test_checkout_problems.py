@@ -563,3 +563,56 @@ def test_checkout_problems_without_delivery_method(
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
     assert len(content["data"]["checkout"]["problems"]) == 0
+
+
+def test_checkout_problem_insufficient_stock_warehouse_without_shipping_zones(
+    api_client, checkout_with_items_and_shipping
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_id = to_global_id_or_none(checkout)
+
+    # Clear shipping zones from warehouses, not from channel
+    for line in checkout.lines.all():
+        for stock in line.variant.stocks.all():
+            stock.warehouse.shipping_zones.clear()
+
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then - legacy: warehouse has no shipping zones, stock not found
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    problems = content["data"]["checkout"]["problems"]
+    insufficient_stock_problems = [
+        p for p in problems if p["__typename"] == "CheckoutLineProblemInsufficientStock"
+    ]
+    assert len(insufficient_stock_problems) > 0
+
+
+def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones_flag_disabled(
+    api_client, checkout_with_items_and_shipping, site_settings
+):
+    # given
+    site_settings.include_shipping_zones_in_stock_availability = False
+    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+
+    checkout = checkout_with_items_and_shipping
+    checkout_id = to_global_id_or_none(checkout)
+
+    # Clear shipping zones from warehouses, not from channel
+    for line in checkout.lines.all():
+        for stock in line.variant.stocks.all():
+            stock.warehouse.shipping_zones.clear()
+
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then - flag disabled: no insufficient stock problems
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert not content["data"]["checkout"]["problems"]
