@@ -99,6 +99,7 @@ def check_lines_quantity(
     existing_lines=None,
     replace=False,
     check_reservations=False,
+    include_shipping_zones=True,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 
@@ -139,6 +140,7 @@ def check_lines_quantity(
             existing_lines=existing_lines,
             replace=replace,
             check_reservations=check_reservations,
+            include_shipping_zones=include_shipping_zones,
         )
     except InsufficientStock as e:
         errors = [

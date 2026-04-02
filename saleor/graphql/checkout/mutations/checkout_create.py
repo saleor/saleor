@@ -280,6 +280,9 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             variants, checkout_lines_data
         )
 
+        include_shipping_zones_in_stock_availability = (
+            site.settings.include_shipping_zones_in_stock_availability
+        )
         check_lines_quantity(
             variants,
             quantities,
@@ -287,6 +290,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             channel.slug,
             site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(site.settings),
+            include_shipping_zones=include_shipping_zones_in_stock_availability,
         )
         return variants, checkout_lines_data
 

@@ -1785,6 +1785,33 @@ def test_checkout_lines_add_no_channel_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
+def test_checkout_lines_add_no_channel_shipping_zones_flag_disabled(
+    user_api_client, checkout_with_item, stock, site_settings
+):
+    # given
+    site_settings.include_shipping_zones_in_stock_availability = False
+    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+
+    variant = stock.product_variant
+    checkout = checkout_with_item
+    checkout.channel.shipping_zones.clear()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
+
+
 def test_checkout_lines_add_with_unpublished_product(
     user_api_client, checkout_with_item, stock, channel_USD
 ):

@@ -106,6 +106,7 @@ class CheckoutLinesAdd(BaseMutation):
             delivery_method_info=delivery_method_info,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(site.settings),
+            include_shipping_zones=site.settings.include_shipping_zones_in_stock_availability,
         )
 
     @classmethod
