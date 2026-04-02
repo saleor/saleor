@@ -78,10 +78,6 @@ class SiteSettings(ModelWithMetadata):
         default=False,
         db_default=False,
     )
-    include_shipping_zones_in_stock_availability = models.BooleanField(
-        default=True,
-        db_default=True,
-    )
 
     # Duration in minutes
     reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)
@@ -136,6 +132,10 @@ class SiteSettings(ModelWithMetadata):
             "only metadata-specific webhooks (e.g., `customerMetadataUpdated`, "
             "`productVariantMetadataUpdated`) are sent."
         ),
+    )
+    include_shipping_zones_in_stock_availability = models.BooleanField(
+        default=False,
+        db_default=True,
     )
 
     class Meta:

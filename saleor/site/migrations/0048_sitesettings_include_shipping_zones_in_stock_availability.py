@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="sitesettings",
             name="include_shipping_zones_in_stock_availability",
-            field=models.BooleanField(db_default=True, default=True),
+            field=models.BooleanField(db_default=True, default=False),
         ),
     ]
