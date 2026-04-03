@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django.contrib.sites.models import Site
 from graphene import Node
 
 from .....checkout import calculations
@@ -420,13 +419,12 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(90):
+    with django_assert_num_queries(88):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
 
     Checkout.objects.all().delete()
-    Site.objects.clear_cache()
 
     test_email = "test@example.com"
     shipping_address = graphql_address_data
@@ -439,7 +437,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(90):
+    with django_assert_num_queries(88):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
