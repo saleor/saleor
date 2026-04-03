@@ -123,9 +123,7 @@ def test_invalid_request_body_with_debug(client):
 
 
 @pytest.mark.parametrize("debug", [True, False])
-def test_invalid_request_body_does_not_log_unhandled_error(
-    client, caplog, settings, debug
-):
+def test_invalid_request_body_error_is_not_logged(client, caplog, settings, debug):
     # given
     settings.DEBUG = debug
     data = "invalid-data"
