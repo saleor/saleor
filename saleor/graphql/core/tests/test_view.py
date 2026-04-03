@@ -126,16 +126,39 @@ def test_invalid_request_body_with_debug(client):
 def test_invalid_request_body_does_not_log_unhandled_error(
     client, caplog, settings, debug
 ):
-    # Given
+    # given
     settings.DEBUG = debug
     data = "invalid-data"
 
-    # When
+    # when
     with caplog.at_level(logging.ERROR, logger="saleor.graphql.errors.unhandled"):
         client.post(API_PATH, data, content_type="application/json")
 
-    # Then
+    # then
     assert caplog.records == []
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        '""',
+        "123",
+        "1.5",
+        "true",
+        "false",
+        "null",
+    ],
+)
+def test_unexpected_types_in_json_request_body(client, data):
+    # when
+    response = client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert response.status_code == 400
+    errors = content.get("errors")
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Unable to parse query."
 
 
 def test_invalid_query(api_client):

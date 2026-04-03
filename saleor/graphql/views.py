@@ -490,8 +490,11 @@ class GraphQLView(View):
         if content_type == "application/graphql":
             return {"query": request.body.decode("utf-8")}
         if content_type == "application/json":
-            body = request.body
-            return orjson.loads(body)
+            body = orjson.loads(request.body)
+            if isinstance(body, dict) or isinstance(body, list):
+                return body
+
+            raise ValueError("Invalid query.")
         if content_type in ["application/x-www-form-urlencoded", "multipart/form-data"]:
             return request.POST
         return {}
