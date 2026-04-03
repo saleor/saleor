@@ -34,6 +34,7 @@ def reserve_stocks_and_preorders(
     channel: "Channel",
     length_in_minutes: int,
     *,
+    include_shipping_zones: bool,
     replace: bool = True,
 ):
     stock_variants, stock_lines = [], []
@@ -61,6 +62,7 @@ def reserve_stocks_and_preorders(
             channel,
             reserved_until,
             replace=replace,
+            include_shipping_zones=include_shipping_zones,
         )
 
         # Refresh reserved_until for already existing lines
@@ -94,7 +96,7 @@ def reserve_stocks(
     reserved_until: datetime.datetime,
     *,
     replace: bool = True,
-    include_shipping_zones: bool = True,
+    include_shipping_zones: bool,
 ):
     """Reserve stocks for given `checkout_lines` in given country."""
     variants_ids = [line.variant_id for line in checkout_lines]

@@ -498,6 +498,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
                     reservation_length=get_reservation_length(
                         site=site, user=info.context.user
                     ),
+                    include_shipping_zones=site.settings.include_shipping_zones_in_stock_availability,
                 )
 
             # Save addresses

@@ -1075,9 +1075,10 @@ def _create_fulfillment_lines(
     channel_slug: str,
     gift_card_lines_info: list[GiftCardLineData],
     manager: "PluginsManager",
+    *,
+    include_shipping_zones: bool,
     should_decrease_stock: bool = True,
     allow_stock_to_be_exceeded: bool = False,
-    include_shipping_zones: bool = True,
 ) -> list[FulfillmentLine]:
     """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
 

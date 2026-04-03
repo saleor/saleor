@@ -65,11 +65,12 @@ def check_stock_and_preorder_quantity(
     country_code: str,
     channel_slug: str,
     quantity: int,
+    *,
+    include_shipping_zones: bool,
     checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    include_shipping_zones: bool = True,
 ):
     """Validate if there is stock/preorder available for given variant.
 
@@ -91,11 +92,11 @@ def check_stock_and_preorder_quantity(
             country_code,
             channel_slug,
             quantity,
-            checkout_lines,
-            check_reservations,
-            order_line,
-            database_connection_name,
             include_shipping_zones=include_shipping_zones,
+            checkout_lines=checkout_lines,
+            check_reservations=check_reservations,
+            order_line=order_line,
+            database_connection_name=database_connection_name,
         )
 
 
@@ -104,11 +105,12 @@ def check_stock_quantity(
     country_code: str,
     channel_slug: str,
     quantity: int,
+    *,
+    include_shipping_zones: bool,
     checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
     order_line: Optional["OrderLine"] = None,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    include_shipping_zones: bool = True,
 ):
     """Validate if there is stock available for given variant in given channel.
 
@@ -150,12 +152,13 @@ def check_stock_and_preorder_quantity_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     global_quantity_limit: int | None,
+    *,
+    include_shipping_zones: bool,
     delivery_method_info: Optional["DeliveryMethodBase"] = None,
     additional_filter_lookup: dict[str, Any] | None = None,
     existing_lines: list["CheckoutLineInfo"] | None = None,
     replace: bool = False,
     check_reservations: bool = False,
-    include_shipping_zones: bool = True,
 ):
     """Validate if products are available for stocks/preorder.
 
@@ -175,12 +178,12 @@ def check_stock_and_preorder_quantity_bulk(
             stock_quantities,
             channel_slug,
             global_quantity_limit,
-            delivery_method_info,
-            additional_filter_lookup,
-            existing_lines,
-            replace,
-            check_reservations,
             include_shipping_zones=include_shipping_zones,
+            delivery_method_info=delivery_method_info,
+            additional_filter_lookup=additional_filter_lookup,
+            existing_lines=existing_lines,
+            replace=replace,
+            check_reservations=check_reservations,
         )
     if preorder_variants:
         check_preorder_threshold_bulk(
@@ -244,13 +247,14 @@ def check_stock_quantity_bulk(
     quantities: Iterable[int],
     channel_slug: str,
     global_quantity_limit: int | None,
+    *,
+    include_shipping_zones: bool,
     delivery_method_info: Optional["DeliveryMethodBase"] = None,
     additional_filter_lookup: dict[str, Any] | None = None,
     existing_lines: list["CheckoutLineInfo"] | None = None,
     replace=False,
     check_reservations: bool = False,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    include_shipping_zones: bool = True,
 ):
     """Validate if there is stock available for given variants in given country.
 
@@ -540,9 +544,10 @@ def get_available_quantity(
     variant: "ProductVariant",
     country_code: str,
     channel_slug: str,
+    *,
+    include_shipping_zones: bool,
     checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
-    include_shipping_zones: bool = True,
 ) -> int:
     """Return available quantity for given product in given channel."""
     stocks = Stock.objects.get_variant_stocks(
@@ -560,7 +565,7 @@ def is_product_in_stock(
     product: "Product",
     country_code: str,
     channel_slug: str,
-    include_shipping_zones: bool = True,
+    include_shipping_zones: bool,
 ) -> bool:
     """Check if there is any variant of given product available in given channel."""
     stocks = Stock.objects.get_product_stocks(

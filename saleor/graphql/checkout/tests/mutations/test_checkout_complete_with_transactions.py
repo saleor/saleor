@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.test import override_settings
@@ -6074,6 +6075,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_exc
     # given
     site_settings.include_shipping_zones_in_stock_availability = False
     site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    Site.objects.clear_cache()
 
     checkout = checkout_with_gift_card
     checkout.shipping_address = address

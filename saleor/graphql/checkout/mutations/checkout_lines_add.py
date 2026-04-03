@@ -134,6 +134,7 @@ class CheckoutLinesAdd(BaseMutation):
                         site=site, user=info.context.user
                     ),
                     raise_error_for_missing_lines=raise_error_for_missing_lines,
+                    include_shipping_zones=site.settings.include_shipping_zones_in_stock_availability,
                 )
             except NonExistingCheckout as e:
                 graphql_id = graphene.Node.to_global_id("Checkout", e.checkout_token)

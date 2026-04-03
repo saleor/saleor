@@ -18,7 +18,11 @@ COUNTRY_CODE = "US"
 def test_check_stock_quantity(variant_with_many_stocks, channel_USD):
     assert (
         check_stock_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 7
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            7,
+            include_shipping_zones=True,
         )
         is None
     )
@@ -27,7 +31,11 @@ def test_check_stock_quantity(variant_with_many_stocks, channel_USD):
 def test_check_stock_quantity_out_of_stock(variant_with_many_stocks, channel_USD):
     with pytest.raises(InsufficientStock):
         check_stock_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 8
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            8,
+            include_shipping_zones=True,
         )
 
 
@@ -39,7 +47,11 @@ def test_check_stock_quantity_with_allocations(
 ):
     assert (
         check_stock_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 3
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            3,
+            include_shipping_zones=True,
         )
         is None
     )
@@ -50,7 +62,11 @@ def test_check_stock_quantity_with_allocations_out_of_stock(
 ):
     with pytest.raises(InsufficientStock):
         check_stock_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 5
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            5,
+            include_shipping_zones=True,
         )
 
 
@@ -66,6 +82,7 @@ def test_check_stock_quantity_with_reservations(
             COUNTRY_CODE,
             channel_USD.slug,
             2,
+            include_shipping_zones=True,
             check_reservations=True,
         )
         is None
@@ -84,10 +101,11 @@ def test_check_stock_quantity_with_reservations_excluding_given_checkout_lines(
             COUNTRY_CODE,
             channel_USD.slug,
             7,
-            [
+            checkout_lines=[
                 checkout_line_with_reservation_in_many_stocks,
                 checkout_line_with_one_reservation,
             ],
+            include_shipping_zones=True,
             check_reservations=True,
         )
         is None
@@ -98,7 +116,11 @@ def test_check_stock_quantity_without_stocks(variant_with_many_stocks, channel_U
     variant_with_many_stocks.stocks.all().delete()
     with pytest.raises(InsufficientStock):
         check_stock_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 1
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            1,
+            include_shipping_zones=True,
         )
 
 
@@ -106,7 +128,11 @@ def test_check_stock_quantity_without_one_stock(variant_with_many_stocks, channe
     variant_with_many_stocks.stocks.get(quantity=3).delete()
     assert (
         check_stock_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 4
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            4,
+            include_shipping_zones=True,
         )
         is None
     )
@@ -114,7 +140,10 @@ def test_check_stock_quantity_without_one_stock(variant_with_many_stocks, channe
 
 def test_get_available_quantity(variant_with_many_stocks, channel_USD):
     available_quantity = get_available_quantity(
-        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=True,
     )
     assert available_quantity == 7
 
@@ -122,7 +151,10 @@ def test_get_available_quantity(variant_with_many_stocks, channel_USD):
 def test_get_available_quantity_without_allocation(order_line, stock, channel_USD):
     assert not Allocation.objects.filter(order_line=order_line, stock=stock).exists()
     available_quantity = get_available_quantity(
-        order_line.variant, COUNTRY_CODE, channel_USD.slug
+        order_line.variant,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=True,
     )
     assert available_quantity == stock.quantity
 
@@ -134,7 +166,10 @@ def test_get_available_quantity_with_allocations(
     channel_USD,
 ):
     available_quantity = get_available_quantity(
-        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=True,
     )
     assert available_quantity == 3
 
@@ -149,6 +184,7 @@ def test_get_available_quantity_with_reservations(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
+        include_shipping_zones=True,
         check_reservations=True,
     )
     assert available_quantity == 2
@@ -164,6 +200,7 @@ def test_get_available_quantity_with_allocations_and_reservations(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
+        include_shipping_zones=True,
         check_reservations=True,
     )
     assert available_quantity == 4
@@ -179,10 +216,11 @@ def test_get_available_quantity_with_reservations_excluding_given_checkout_lines
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        [
+        checkout_lines=[
             checkout_line_with_reservation_in_many_stocks,
             checkout_line_with_one_reservation,
         ],
+        include_shipping_zones=True,
         check_reservations=True,
     )
     assert available_quantity == 7
@@ -191,7 +229,10 @@ def test_get_available_quantity_with_reservations_excluding_given_checkout_lines
 def test_get_available_quantity_without_stocks(variant_with_many_stocks, channel_USD):
     variant_with_many_stocks.stocks.all().delete()
     available_quantity = get_available_quantity(
-        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=True,
     )
     assert available_quantity == 0
 
@@ -210,6 +251,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
             [available_quantity],
             channel_USD.slug,
             global_quantity_limit,
+            include_shipping_zones=True,
         )
         is None
     )
@@ -222,6 +264,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
             [available_quantity + 1],
             channel_USD,
             global_quantity_limit,
+            include_shipping_zones=True,
         )
 
     # test that it raises an error if no stocks are found
@@ -233,6 +276,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
             [available_quantity],
             channel_USD.slug,
             global_quantity_limit,
+            include_shipping_zones=True,
         )
 
     # test that it doesn't raise an error if variant.track_inventory is False
@@ -244,6 +288,7 @@ def test_check_stock_quantity_bulk(variant_with_many_stocks, channel_USD):
         [available_quantity],
         channel_USD.slug,
         global_quantity_limit,
+        include_shipping_zones=True,
     )
 
 
@@ -266,6 +311,7 @@ def test_check_stock_quantity_bulk_no_channel_shipping_zones(
             [available_quantity],
             channel_USD.slug,
             global_quantity_limit,
+            include_shipping_zones=True,
         )
 
 
@@ -306,6 +352,7 @@ def test_check_stock_quantity_bulk_with_reservations(
         variant,
         country_code,
         channel_USD.slug,
+        include_shipping_zones=True,
         check_reservations=True,
     )
     global_quantity_limit = 50
@@ -318,6 +365,7 @@ def test_check_stock_quantity_bulk_with_reservations(
             [available_quantity],
             channel_USD.slug,
             global_quantity_limit,
+            include_shipping_zones=True,
             check_reservations=True,
         )
         is None
@@ -331,6 +379,7 @@ def test_check_stock_quantity_bulk_with_reservations(
             [available_quantity + 1],
             channel_USD.slug,
             global_quantity_limit,
+            include_shipping_zones=True,
             check_reservations=True,
         )
 
@@ -345,6 +394,7 @@ def test_check_stock_quantity_bulk_with_reservations(
             [available_quantity + 1],
             channel_USD.slug,
             global_quantity_limit,
+            include_shipping_zones=True,
             existing_lines=checkout_lines,
             check_reservations=True,
         )
@@ -361,7 +411,11 @@ def test_check_stock_quantity_no_shipping_zones_included(
     # when / then - legacy behavior: no shipping zones means no stock
     with pytest.raises(InsufficientStock):
         check_stock_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 1
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            1,
+            include_shipping_zones=True,
         )
 
 
@@ -392,7 +446,10 @@ def test_get_available_quantity_no_shipping_zones_included(
 
     # when
     available_quantity = get_available_quantity(
-        variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=True,
     )
 
     # then - legacy behavior: no shipping zones means no stock
@@ -428,7 +485,11 @@ def test_check_stock_quantity_country_not_in_zone_include_shipping_zones(
     # when / then - legacy behavior: country not in zone means no stock
     with pytest.raises(InsufficientStock):
         check_stock_quantity(
-            variant_with_many_stocks, non_matching_country, channel_USD.slug, 1
+            variant_with_many_stocks,
+            non_matching_country,
+            channel_USD.slug,
+            1,
+            include_shipping_zones=True,
         )
 
 
@@ -462,7 +523,11 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_included(
     # when / then - legacy: no shipping zones means no stock
     with pytest.raises(InsufficientStock):
         check_stock_and_preorder_quantity(
-            variant_with_many_stocks, COUNTRY_CODE, channel_USD.slug, 1
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            1,
+            include_shipping_zones=True,
         )
 
 
@@ -493,7 +558,9 @@ def test_is_product_in_stock_no_shipping_zones_included(
     product = variant_with_many_stocks.product
 
     # when
-    result = is_product_in_stock(product, COUNTRY_CODE, channel_USD.slug)
+    result = is_product_in_stock(
+        product, COUNTRY_CODE, channel_USD.slug, include_shipping_zones=True
+    )
 
     # then - legacy: no shipping zones means not in stock
     assert result is False

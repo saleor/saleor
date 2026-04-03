@@ -83,11 +83,12 @@ def allocate_stocks(
     country_code: str,
     channel: "Channel",
     manager: PluginsManager,
+    *,
+    include_shipping_zones: bool,
     collection_point_pk: UUID | None = None,
     additional_filter_lookup: dict[str, Any] | None = None,
     check_reservations: bool = False,
     checkout_lines: Iterable["CheckoutLine"] | None = None,
-    include_shipping_zones: bool = True,
 ):
     """Allocate stocks for given `order_lines` in given country.
 
@@ -465,7 +466,7 @@ def increase_allocations(
     lines_info: list["OrderLineInfo"],
     channel: "Channel",
     manager: PluginsManager,
-    include_shipping_zones: bool = True,
+    include_shipping_zones: bool,
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]

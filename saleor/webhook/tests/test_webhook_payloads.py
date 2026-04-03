@@ -8,6 +8,7 @@ from unittest.mock import ANY, patch, sentinel
 
 import graphene
 import pytest
+from django.contrib.sites.models import Site
 from django.core.serializers.json import DjangoJSONEncoder
 from freezegun import freeze_time
 from prices import Money
@@ -2511,6 +2512,7 @@ def test_generate_checkout_payload_warehouse_without_shipping_zones_excluded(
     # given
     site_settings.include_shipping_zones_in_stock_availability = False
     site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    Site.objects.clear_cache()
 
     checkout = checkout_with_prices
     checkout.channel.shipping_zones.clear()

@@ -177,8 +177,9 @@ def validate_order_lines(
     channel: "Channel",
     country: str,
     errors: T_ERRORS,
+    *,
+    include_shipping_zones: bool,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-    include_shipping_zones: bool = True,
 ):
     for line in lines:
         if line.variant is None:
@@ -405,8 +406,8 @@ def validate_draft_order(
         channel,
         country,
         errors,
-        database_connection_name,
         include_shipping_zones=include_shipping_zones,
+        database_connection_name=database_connection_name,
     )
     validate_channel_is_active(channel, errors)
     validate_product_is_published(channel, lines, errors, database_connection_name)

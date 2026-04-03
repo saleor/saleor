@@ -455,7 +455,8 @@ class StockQuerySet(models.QuerySet["Stock"]):
         self,
         channel_slug: str,
         country_code: str | None = None,
-        include_shipping_zones: bool = True,
+        *,
+        include_shipping_zones: bool,
         include_cc_warehouses: bool = False,
     ):
         """Get stocks based on the include_shipping_zones flag.
@@ -475,7 +476,8 @@ class StockQuerySet(models.QuerySet["Stock"]):
         channel_slug: str,
         product_variant: ProductVariant,
         country_code: str | None = None,
-        include_shipping_zones: bool = True,
+        *,
+        include_shipping_zones: bool,
     ):
         """Return stock information for a variant, respecting the shipping zone flag."""
         if include_shipping_zones:
@@ -489,7 +491,8 @@ class StockQuerySet(models.QuerySet["Stock"]):
         channel_slug: str,
         products_variants: Iterable[ProductVariant],
         country_code: str | None = None,
-        include_shipping_zones: bool = True,
+        *,
+        include_shipping_zones: bool,
     ):
         """Return stock information for multiple variants, respecting the flag."""
         if include_shipping_zones:
@@ -505,7 +508,8 @@ class StockQuerySet(models.QuerySet["Stock"]):
         channel_slug: str,
         product: Product,
         country_code: str | None = None,
-        include_shipping_zones: bool = True,
+        *,
+        include_shipping_zones: bool,
     ):
         """Return stock information for all variants of a product."""
         if include_shipping_zones:

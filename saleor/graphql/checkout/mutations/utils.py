@@ -94,12 +94,13 @@ def check_lines_quantity(
     country,
     channel_slug,
     global_quantity_limit,
+    *,
+    include_shipping_zones: bool,
     delivery_method_info=None,
     allow_zero_quantity=False,
     existing_lines=None,
     replace=False,
     check_reservations=False,
-    include_shipping_zones=True,
 ):
     """Clean quantities and check if stock is sufficient for each checkout line.
 

@@ -49,6 +49,7 @@ def test_change_quantity_generates_proper_event(
     removed_count,
     order_with_lines,
     staff_user,
+    site_settings,
 ):
     assert not OrderEvent.objects.exists()
     order_with_lines.status = status
@@ -76,6 +77,7 @@ def test_change_quantity_generates_proper_event(
         new_quantity,
         order_with_lines,
         get_plugins_manager(allow_replica=False),
+        site_settings,
         allocate_stock=order_with_lines.is_unconfirmed(),
     )
 
@@ -106,8 +108,7 @@ def test_change_quantity_generates_proper_event(
 
 
 def test_change_quantity_update_line_fields(
-    order_with_lines,
-    staff_user,
+    order_with_lines, staff_user, site_settings
 ):
     # given
     line = order_with_lines.lines.last()
@@ -129,6 +130,7 @@ def test_change_quantity_update_line_fields(
         new_quantity,
         order_with_lines,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
 
     # then
@@ -183,6 +185,7 @@ def test_add_variant_to_order(
     customer_user,
     variant,
     catalogue_promotion_with_single_rule,
+    site_settings,
 ):
     # given
     manager = get_plugins_manager(allow_replica=False)
@@ -216,6 +219,7 @@ def test_add_variant_to_order(
         customer_user,
         None,
         manager,
+        site_settings,
     )
 
     # then

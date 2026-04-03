@@ -420,6 +420,7 @@ class CheckoutCreateFromOrder(BaseMutation):
                 reservation_length=get_reservation_length(
                     site=site, user=info.context.user
                 ),
+                include_shipping_zones=site.settings.include_shipping_zones_in_stock_availability,
             )
         apply_gift_reward_if_applicable_on_checkout_creation(checkout)
         return CheckoutCreateFromOrder(

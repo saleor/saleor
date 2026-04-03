@@ -469,6 +469,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     order.shipping_address = None
@@ -527,6 +528,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     order.shipping_address = None
