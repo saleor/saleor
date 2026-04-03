@@ -171,7 +171,11 @@ class GraphQLView(View):
             data = self.parse_body(request)
         except ValueError:
             return JsonResponse(
-                data={"errors": [self.format_error("Unable to parse query.")]},
+                data={
+                    "errors": [
+                        self.format_error(GraphQLError("Unable to parse query."))
+                    ]
+                },
                 status=400,
             )
 
