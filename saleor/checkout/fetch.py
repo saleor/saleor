@@ -179,6 +179,20 @@ class CheckoutInfo:
             return self.user.email
         return None
 
+    def __repr__(self) -> str:
+        discounts_listed = (
+            [discount.id for discount in self.discounts] if self.discounts else []
+        )
+        line_ids = [line.line.id for line in self.lines]
+        return (
+            "<CheckoutInfo: "
+            f"token={self.checkout.token}, "
+            f"user_id={self.user.id if self.user else None}, "
+            f"channel_slug={self.channel.slug}, "
+            f"discounts={discounts_listed}, "
+            f"line_ids={line_ids}>"
+        )
+
 
 def fetch_checkout_lines(
     checkout: "Checkout",
