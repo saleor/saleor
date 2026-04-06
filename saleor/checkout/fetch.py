@@ -111,6 +111,19 @@ class CheckoutLineInfo(LineInfo):
             return self.variant.get_prior_price_amount(self.channel_listing)
         return self.line.prior_unit_price_amount
 
+    def __repr__(self) -> str:
+        discounts_listed = (
+            [discount.id for discount in self.discounts] if self.discounts else []
+        )
+        return (
+            "<CheckoutLineInfo: "
+            f"line_id={self.line.id}, "
+            f"product_name={self.product.name}, "
+            f"variant={self.variant}, "
+            f"quantity={self.line.quantity}, "
+            f"discount={discounts_listed}>"
+        )
+
 
 @dataclass
 class CheckoutInfo:
