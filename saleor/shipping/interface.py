@@ -52,6 +52,15 @@ class ShippingMethodData:
             return self.id
         return graphene.Node.to_global_id("ShippingMethod", self.id)
 
+    def __repr__(self) -> str:
+        return (
+            "<ShippingMethodData: "
+            f"id={self.id}, "
+            f"is_external={self.is_external}, "
+            f"type={self.type}, "
+            f"price={self.price}>"
+        )
+
 
 @dataclass
 class ExcludedShippingMethod:
