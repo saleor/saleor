@@ -1715,8 +1715,13 @@ def test_checkout_lines_add_with_reserved_insufficient_stock(
     ],
 )
 def test_checkout_lines_for_click_and_collect_insufficient_stock(
-    user_api_client, checkout_with_item_for_cc, warehouse_for_cc, cc_option
+    user_api_client,
+    checkout_with_item_for_cc,
+    warehouse_for_cc,
+    cc_option,
+    site_settings,
 ):
+    assert site_settings.include_shipping_zones_in_stock_availability is True
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
 
@@ -1760,9 +1765,10 @@ def test_checkout_lines_add_with_zero_quantity(
     assert errors[0]["field"] == "quantity"
 
 
-def test_checkout_lines_add_no_channel_shipping_zones(
-    user_api_client, checkout_with_item, stock
+def test_checkout_lines_add_no_channel_shipping_zones_included_in_stock_calculations(
+    user_api_client, checkout_with_item, stock, site_settings
 ):
+    assert site_settings.include_shipping_zones_in_stock_availability is True
     variant = stock.product_variant
     checkout = checkout_with_item
     checkout.channel.shipping_zones.clear()
@@ -1785,7 +1791,7 @@ def test_checkout_lines_add_no_channel_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
-def test_checkout_lines_add_no_channel_shipping_zones_excluded(
+def test_checkout_lines_add_no_channel_shipping_zones_excluded_from_stock_calculations(
     user_api_client, checkout_with_item, stock, site_settings
 ):
     # given
@@ -1794,6 +1800,7 @@ def test_checkout_lines_add_no_channel_shipping_zones_excluded(
 
     variant = stock.product_variant
     checkout = checkout_with_item
+
     checkout.channel.shipping_zones.clear()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 

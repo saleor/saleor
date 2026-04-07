@@ -45,20 +45,6 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
             include_shipping_zones = (
                 site.settings.include_shipping_zones_in_stock_availability
             )
-            stock_dataloader: (
-                StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader
-                | StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader
-            )
-            if include_shipping_zones:
-                stock_dataloader = StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
-                    self.context
-                )
-            else:
-                stock_dataloader = (
-                    StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
-                        self.context
-                    )
-                )
             variant_data_set: set[
                 tuple[
                     VARIANT_ID,
@@ -129,7 +115,14 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
                     )
                 return [problems.get(key, []) for key in keys]
 
+            stock_dataloader: (
+                StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader
+                | StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader
+            )
             if include_shipping_zones:
+                stock_dataloader = StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
+                    self.context
+                )
                 variant_stocks = stock_dataloader.load_many(
                     [
                         (variant_id, country_code, channel_slug)
@@ -137,6 +130,11 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
                     ]
                 )
             else:
+                stock_dataloader = (
+                    StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
+                        self.context
+                    )
+                )
                 variant_stocks = stock_dataloader.load_many(
                     [
                         (variant_id, channel_slug)

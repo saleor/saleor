@@ -290,7 +290,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             channel.slug,
             site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(site.settings),
-            include_shipping_zones=include_shipping_zones_in_stock_availability,
+            calculate_stocks_with_shipping_zones=include_shipping_zones_in_stock_availability,
         )
         return variants, checkout_lines_data
 

@@ -528,12 +528,7 @@ def test_checkout_shipping_address_update_channel_without_shipping_zones_exclude
 
     # then - no INSUFFICIENT_STOCK error when flag is disabled
     data = content["data"]["checkoutShippingAddressUpdate"]
-    stock_errors = [
-        e
-        for e in data["errors"]
-        if e["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
-    ]
-    assert not stock_errors
+    assert not data["errors"]
 
 
 def test_checkout_shipping_address_with_invalid_phone_number_returns_error(

@@ -573,19 +573,21 @@ VariantIdChannelSlug = tuple[int, str]
 class AvailableQuantityByProductVariantIdAndChannelSlugLoader(
     DataLoader[VariantIdChannelSlug, int]
 ):
-    """Calculate available variant quantity using only the channel-warehouse link.
+    """Calculate available variant quantity for a variant and channel.
 
-    This is the simplified loader used when include_shipping_zones_in_stock_availability
-    is False. It ignores shipping zones entirely and sums stock from all warehouses
-    assigned to the channel.
+    Fetches all warehouses assigned to the given channel, collects stocks
+    for the requested variants from those warehouses, subtracts reserved quantities
+    when reservations are enabled, and sums the remaining quantity per
+    (variant_id, channel_slug) pair.
+
+    The final value is capped by the site's maximum quantity allowed per checkout.
     """
 
     context_key = "available_quantity_by_productvariant_and_channel"
 
-    def prepare_stocks_reservations_map(self, variant_ids):
+    def prepare_stocks_reservations_map(self, variant_ids, site):
         """Prepare stock id to quantity reserved map for provided variant ids."""
         stocks_reservations: defaultdict[int, int] = defaultdict(int)
-        site = get_site_promise(self.context).get()
         if is_reservation_enabled(site.settings):
             reservations_qs = (
                 Stock.objects.using(self.database_connection_name)
@@ -630,7 +632,7 @@ class AvailableQuantityByProductVariantIdAndChannelSlugLoader(
                 )
 
                 stocks_reservations = self.prepare_stocks_reservations_map(
-                    all_variant_ids
+                    all_variant_ids, site
                 )
 
                 # Sum quantities per (variant_id, channel_slug)
@@ -682,8 +684,7 @@ class StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
 ):
     """Return stocks with available quantity using only the channel-warehouse link.
 
-    This is the simplified loader used when include_shipping_zones_in_stock_availability
-    is False.
+    For each variant and channel return stocks with available quantity.
     """
 
     context_key = "stocks_with_available_quantity_by_productvariant_and_channel"
@@ -718,18 +719,24 @@ class StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
                 )
 
                 all_stocks = list(stocks_qs)
-                stocks_by_variant: defaultdict[int, list] = defaultdict(list)
+                stocks_by_variant_and_warehouse: defaultdict[tuple, list] = defaultdict(
+                    list
+                )
                 for stock in all_stocks:
-                    stocks_by_variant[stock.product_variant_id].append(stock)
+                    stocks_by_variant_and_warehouse[
+                        (stock.product_variant_id, stock.warehouse_id)
+                    ].append(stock)
 
                 results = []
                 for variant_id, channel_slug in keys:
                     warehouse_ids = warehouses_by_channel_map.get(channel_slug, set())
-                    stocks = [
-                        stock
-                        for stock in stocks_by_variant.get(variant_id, [])
-                        if stock.warehouse_id in warehouse_ids
-                    ]
+                    stocks = []
+                    for warehouse_id in warehouse_ids:
+                        stocks.extend(
+                            stocks_by_variant_and_warehouse.get(
+                                (variant_id, warehouse_id), []
+                            )
+                        )
                     results.append(stocks)
 
                 return results

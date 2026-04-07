@@ -4,7 +4,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
-from ....warehouse.models import Allocation, Reservation
+from ....warehouse.models import Allocation, Reservation, Warehouse
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
 
@@ -566,16 +566,16 @@ def test_checkout_problems_without_delivery_method(
 
 
 def test_checkout_problem_insufficient_stock_warehouse_without_shipping_zones(
-    api_client, checkout_with_items_and_shipping
+    api_client, checkout_with_items_and_shipping, site_settings
 ):
     # given
     checkout = checkout_with_items_and_shipping
     checkout_id = to_global_id_or_none(checkout)
 
-    # Clear shipping zones from warehouses, not from channel
-    for line in checkout.lines.all():
-        for stock in line.variant.stocks.all():
-            stock.warehouse.shipping_zones.clear()
+    assert site_settings.include_shipping_zones_in_stock_availability is True
+
+    # Clear shipping zones from warehouses
+    Warehouse.shipping_zones.through.objects.all().delete()
 
     variables = {"id": checkout_id, "channel": checkout.channel.slug}
 
@@ -586,10 +586,9 @@ def test_checkout_problem_insufficient_stock_warehouse_without_shipping_zones(
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
     problems = content["data"]["checkout"]["problems"]
-    insufficient_stock_problems = [
-        p for p in problems if p["__typename"] == "CheckoutLineProblemInsufficientStock"
-    ]
-    assert len(insufficient_stock_problems) > 0
+    assert len(problems) == checkout.lines.count()
+    problem_types = {problem["__typename"] for problem in problems}
+    assert problem_types == {"CheckoutLineProblemInsufficientStock"}
 
 
 def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones_excluded(
@@ -602,10 +601,8 @@ def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones
     checkout = checkout_with_items_and_shipping
     checkout_id = to_global_id_or_none(checkout)
 
-    # Clear shipping zones from warehouses, not from channel
-    for line in checkout.lines.all():
-        for stock in line.variant.stocks.all():
-            stock.warehouse.shipping_zones.clear()
+    # Clear shipping zones from warehouses
+    Warehouse.shipping_zones.through.objects.all().delete()
 
     variables = {"id": checkout_id, "channel": checkout.channel.slug}
 

@@ -406,6 +406,7 @@ def test_check_stock_quantity_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = True
     channel_USD.shipping_zones.clear()
 
     # when / then - legacy behavior: no shipping zones means no stock
@@ -415,7 +416,7 @@ def test_check_stock_quantity_no_shipping_zones_included(
             COUNTRY_CODE,
             channel_USD.slug,
             1,
-            include_shipping_zones=True,
+            include_shipping_zones=include_shipping_zones,
         )
 
 
@@ -423,6 +424,7 @@ def test_check_stock_quantity_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = False
     channel_USD.shipping_zones.clear()
 
     # when / then - flag disabled: shipping zones ignored, stock found
@@ -432,7 +434,7 @@ def test_check_stock_quantity_no_shipping_zones_excluded(
             COUNTRY_CODE,
             channel_USD.slug,
             7,
-            include_shipping_zones=False,
+            include_shipping_zones=include_shipping_zones,
         )
         is None
     )
@@ -442,6 +444,7 @@ def test_get_available_quantity_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = True
     channel_USD.shipping_zones.clear()
 
     # when
@@ -449,7 +452,7 @@ def test_get_available_quantity_no_shipping_zones_included(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=True,
+        include_shipping_zones=include_shipping_zones,
     )
 
     # then - legacy behavior: no shipping zones means no stock
@@ -460,6 +463,7 @@ def test_get_available_quantity_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = False
     channel_USD.shipping_zones.clear()
 
     # when
@@ -467,7 +471,7 @@ def test_get_available_quantity_no_shipping_zones_excluded(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=False,
+        include_shipping_zones=include_shipping_zones,
     )
 
     # then - flag disabled: shipping zones ignored, stock found
@@ -478,6 +482,7 @@ def test_check_stock_quantity_country_not_in_zone_include_shipping_zones(
     variant_with_many_stocks, channel_USD, shipping_zone
 ):
     # given - restrict shipping zone to PL only
+    include_shipping_zones = True
     shipping_zone.countries = ["PL"]
     shipping_zone.save(update_fields=["countries"])
     non_matching_country = "DE"
@@ -489,7 +494,7 @@ def test_check_stock_quantity_country_not_in_zone_include_shipping_zones(
             non_matching_country,
             channel_USD.slug,
             1,
-            include_shipping_zones=True,
+            include_shipping_zones=include_shipping_zones,
         )
 
 
@@ -497,6 +502,7 @@ def test_check_stock_quantity_country_not_in_zone_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD, shipping_zone
 ):
     # given - restrict shipping zone to PL only
+    include_shipping_zones = False
     shipping_zone.countries = ["PL"]
     shipping_zone.save(update_fields=["countries"])
     non_matching_country = "DE"
@@ -508,7 +514,7 @@ def test_check_stock_quantity_country_not_in_zone_shipping_zones_excluded(
             non_matching_country,
             channel_USD.slug,
             7,
-            include_shipping_zones=False,
+            include_shipping_zones=include_shipping_zones,
         )
         is None
     )
@@ -518,6 +524,7 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = True
     channel_USD.shipping_zones.clear()
 
     # when / then - legacy: no shipping zones means no stock
@@ -527,7 +534,7 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_included(
             COUNTRY_CODE,
             channel_USD.slug,
             1,
-            include_shipping_zones=True,
+            include_shipping_zones=include_shipping_zones,
         )
 
 
@@ -535,6 +542,7 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = False
     channel_USD.shipping_zones.clear()
 
     # when / then - flag disabled: shipping zones ignored, stock found
@@ -544,7 +552,7 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_excluded(
             COUNTRY_CODE,
             channel_USD.slug,
             7,
-            include_shipping_zones=False,
+            include_shipping_zones=include_shipping_zones,
         )
         is None
     )
@@ -554,12 +562,16 @@ def test_is_product_in_stock_no_shipping_zones_included(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = True
     channel_USD.shipping_zones.clear()
     product = variant_with_many_stocks.product
 
     # when
     result = is_product_in_stock(
-        product, COUNTRY_CODE, channel_USD.slug, include_shipping_zones=True
+        product,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=include_shipping_zones,
     )
 
     # then - legacy: no shipping zones means not in stock
@@ -570,12 +582,16 @@ def test_is_product_in_stock_no_shipping_zones_excluded(
     variant_with_many_stocks, channel_USD
 ):
     # given
+    include_shipping_zones = False
     channel_USD.shipping_zones.clear()
     product = variant_with_many_stocks.product
 
     # when
     result = is_product_in_stock(
-        product, COUNTRY_CODE, channel_USD.slug, include_shipping_zones=False
+        product,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        include_shipping_zones=include_shipping_zones,
     )
 
     # then - flag disabled: shipping zones ignored, product in stock

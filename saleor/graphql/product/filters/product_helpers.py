@@ -118,6 +118,30 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     )
     reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
 
+    warehouse_pks = get_available_warehouse_pks_for_product(qs, channel_slug)
+    stocks = (
+        Stock.objects.using(qs.db)
+        .filter(
+            warehouse_id__in=warehouse_pks,
+            quantity__gt=Coalesce(allocated_subquery, 0)
+            + Coalesce(reservation_subquery, 0),
+        )
+        .values("product_variant_id")
+    )
+
+    variants = (
+        ProductVariant.objects.using(qs.db)
+        .filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
+        .values("product_id")
+    )
+    if stock_availability == StockAvailability.IN_STOCK.value:  # type: ignore[attr-defined]
+        qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+    if stock_availability == StockAvailability.OUT_OF_STOCK.value:  # type: ignore[attr-defined]
+        qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+    return qs
+
+
+def get_available_warehouse_pks_for_product(qs, channel_slug):
     include_shipping_zones = (
         Site.objects.get_current().settings.include_shipping_zones_in_stock_availability
     )
@@ -139,26 +163,7 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
             if channel
             else []
         )
-    stocks = (
-        Stock.objects.using(qs.db)
-        .filter(
-            warehouse_id__in=warehouse_pks,
-            quantity__gt=Coalesce(allocated_subquery, 0)
-            + Coalesce(reservation_subquery, 0),
-        )
-        .values("product_variant_id")
-    )
-
-    variants = (
-        ProductVariant.objects.using(qs.db)
-        .filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
-        .values("product_id")
-    )
-    if stock_availability == StockAvailability.IN_STOCK.value:  # type: ignore[attr-defined]
-        qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    if stock_availability == StockAvailability.OUT_OF_STOCK.value:  # type: ignore[attr-defined]
-        qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
-    return qs
+    return warehouse_pks
 
 
 def filter_categories(qs, _, value):

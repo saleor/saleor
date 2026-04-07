@@ -669,7 +669,7 @@ def test_draft_order_complete_with_unavailable_variant(
     assert data["errors"][0]["variants"] == [variant_id]
 
 
-def test_draft_order_complete_channel_without_shipping_zones(
+def test_draft_order_complete_channel_without_shipping_zones_assigned(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,
@@ -704,7 +704,7 @@ def test_draft_order_complete_channel_without_shipping_zones(
     assert {error["field"] for error in data["errors"]} == {"shipping", "lines"}
 
 
-def test_draft_order_complete_channel_without_shipping_zones_excluded(
+def test_draft_order_complete_channel_with_shipping_zones_excluded_from_stock_calculation(
     staff_api_client,
     permission_group_manage_orders,
     staff_user,

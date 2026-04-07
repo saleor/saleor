@@ -6012,6 +6012,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
     checkout_delivery,
     shipping_method,
     warehouse,
+    site_settings,
 ):
     """When warehouse has no shipping zones, stock is not found (legacy behavior)."""
     # given
@@ -6021,12 +6022,11 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
     checkout.billing_address = address
     checkout.save()
 
+    assert site_settings.include_shipping_zones_in_stock_availability is True
+
     # Clear shipping zones from warehouse, not from channel
     warehouse.shipping_zones.clear()
-
-    channel = checkout.channel
-    channel.automatically_confirm_all_new_orders = True
-    channel.save()
+    assert checkout.channel.shipping_zones.exists()
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
@@ -6062,7 +6062,6 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
 def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_excluded(
     user_api_client,
     checkout_with_gift_card,
-    gift_card,
     transaction_item_generator,
     address,
     customer_user,
@@ -6086,10 +6085,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_exc
 
     # Clear shipping zones from warehouse, not from channel
     warehouse.shipping_zones.clear()
-
-    channel = checkout.channel
-    channel.automatically_confirm_all_new_orders = True
-    channel.save()
+    assert checkout.channel.shipping_zones.exists()
 
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)

@@ -358,9 +358,16 @@ def test_shop_settings_update_include_shipping_zones_in_stock_availability_disab
     staff_api_client, site_settings, permission_manage_settings
 ):
     # given
-    new_value = False
-    assert site_settings.include_shipping_zones_in_stock_availability is not new_value
-    variables = {"input": {"includeShippingZonesInStockAvailability": new_value}}
+    include_shipping_zones_in_stock_availability_value = False
+    assert (
+        site_settings.include_shipping_zones_in_stock_availability
+        is not include_shipping_zones_in_stock_availability_value
+    )
+    variables = {
+        "input": {
+            "includeShippingZonesInStockAvailability": include_shipping_zones_in_stock_availability_value
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -373,20 +380,30 @@ def test_shop_settings_update_include_shipping_zones_in_stock_availability_disab
     # then
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
-    assert data["shop"]["includeShippingZonesInStockAvailability"] is new_value
+    assert (
+        data["shop"]["includeShippingZonesInStockAvailability"]
+        is include_shipping_zones_in_stock_availability_value
+    )
     site_settings.refresh_from_db()
-    assert site_settings.include_shipping_zones_in_stock_availability is new_value
+    assert (
+        site_settings.include_shipping_zones_in_stock_availability
+        == include_shipping_zones_in_stock_availability_value
+    )
 
 
 def test_shop_settings_update_include_shipping_zones_in_stock_availability_enable(
     staff_api_client, site_settings, permission_manage_settings
 ):
     # given
-    new_value = True
+    include_shipping_zones_in_stock_availability_value = True
     site_settings.include_shipping_zones_in_stock_availability = False
     site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
 
-    variables = {"input": {"includeShippingZonesInStockAvailability": new_value}}
+    variables = {
+        "input": {
+            "includeShippingZonesInStockAvailability": include_shipping_zones_in_stock_availability_value
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(
@@ -399,9 +416,15 @@ def test_shop_settings_update_include_shipping_zones_in_stock_availability_enabl
     # then
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
-    assert data["shop"]["includeShippingZonesInStockAvailability"] is new_value
+    assert (
+        data["shop"]["includeShippingZonesInStockAvailability"]
+        == include_shipping_zones_in_stock_availability_value
+    )
     site_settings.refresh_from_db()
-    assert site_settings.include_shipping_zones_in_stock_availability is new_value
+    assert (
+        site_settings.include_shipping_zones_in_stock_availability
+        == include_shipping_zones_in_stock_availability_value
+    )
 
 
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """

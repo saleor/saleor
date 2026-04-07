@@ -2355,9 +2355,10 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
 
 
 def test_get_best_gift_reward_warehouse_without_shipping_zones(
-    gift_promotion_rule, channel_USD, warehouse
+    gift_promotion_rule, channel_USD, warehouse, site_settings
 ):
     # given
+    assert site_settings.include_shipping_zones_in_stock_availability is True
     warehouse.shipping_zones.clear()
 
     rules = [gift_promotion_rule]
@@ -2387,5 +2388,5 @@ def test_get_best_gift_reward_warehouse_without_shipping_zones_excluded(
     rule, listing = _get_best_gift_reward(rules, channel_USD, country)
 
     # then - shipping zones excluded: gift is available
-    assert rule is not None
+    assert rule == gift_promotion_rule
     assert listing is not None

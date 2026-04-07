@@ -1107,7 +1107,7 @@ def test_checkout_create_no_channel_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
-def test_checkout_create_no_channel_shipping_zones_excluded(
+def test_checkout_create_no_channel_shipping_zones_excluded_from_stock_calculations(
     api_client, stock, graphql_address_data, channel_USD, site_settings
 ):
     # given
@@ -1135,7 +1135,7 @@ def test_checkout_create_no_channel_shipping_zones_excluded(
     # then - no INSUFFICIENT_STOCK error when flag is disabled
     errors = content["errors"]
     assert not errors
-    assert Checkout.objects.exists()
+    assert content["checkout"]
 
 
 def test_checkout_create_multiple_warehouse(
