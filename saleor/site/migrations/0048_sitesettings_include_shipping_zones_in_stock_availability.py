@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="sitesettings",
-            name="include_shipping_zones_in_stock_availability",
+            name="use_legacy_shipping_zone_stock_availability",
             field=models.BooleanField(db_default=True, default=False),
         ),
     ]

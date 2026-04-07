@@ -1111,8 +1111,8 @@ def test_checkout_create_no_channel_shipping_zones_excluded_from_stock_calculati
     api_client, stock, graphql_address_data, channel_USD, site_settings
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     channel_USD.shipping_zones.clear()
     variant = stock.product_variant

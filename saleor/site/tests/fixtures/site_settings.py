@@ -32,7 +32,7 @@ def site_settings(db, settings) -> SiteSettings:
     )[0]
     obj.top_menu = main_menu
     obj.bottom_menu = secondary_menu
-    obj.include_shipping_zones_in_stock_availability = True
+    obj.use_legacy_shipping_zone_stock_availability = True
     obj.save()
     return obj
 

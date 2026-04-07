@@ -612,7 +612,7 @@ def _create_lines_for_order(
     additional_warehouse_lookup = (
         checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
-    include_shipping_zones = site_settings.include_shipping_zones_in_stock_availability
+    include_shipping_zones = site_settings.use_legacy_shipping_zone_stock_availability
     check_stock_and_preorder_quantity_bulk(
         variants,
         country_code,
@@ -845,7 +845,7 @@ def _create_order(
         country_code,
         checkout_info.channel,
         manager,
-        include_shipping_zones=site_settings.include_shipping_zones_in_stock_availability,
+        include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
         collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         additional_filter_lookup=additional_warehouse_lookup,
         check_reservations=True,
@@ -1526,7 +1526,7 @@ def _create_order_from_checkout(
         order_lines_info=order_lines_info,
         manager=manager,
         reservation_enabled=reservation_enabled,
-        include_shipping_zones=site_settings.include_shipping_zones_in_stock_availability,
+        include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
     )
 
     # giftcards
@@ -1879,7 +1879,7 @@ def complete_checkout_with_payment(
         _reserve_stocks_without_availability_check(
             checkout_info,
             lines,
-            site_settings.include_shipping_zones_in_stock_availability,
+            site_settings.use_legacy_shipping_zone_stock_availability,
         )
 
     # Process payments out of transaction to unlock stock rows for another user,

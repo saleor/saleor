@@ -1625,8 +1625,8 @@ def test_products_query_with_filter_stock_availability_as_staff(
     site_settings,
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = include_shipping_zones
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     for product in product_list:
         stock = product.variants.first().stocks.first()
@@ -1667,8 +1667,8 @@ def test_products_query_with_filter_stock_availability_including_reservations(
     site_settings,
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = include_shipping_zones
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     stocks = [product.variants.first().stocks.first() for product in product_list]
     stock.quantity = 50
@@ -1730,8 +1730,8 @@ def test_products_query_with_filter_stock_availability_as_user(
     site_settings,
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = include_shipping_zones
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     for product in product_list:
         stock = product.variants.first().stocks.first()
@@ -1798,8 +1798,8 @@ def test_products_filter_stock_availability_without_shipping_zones_excluded(
     site_settings,
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     channel_USD.shipping_zones.clear()
     variables = {
@@ -1831,8 +1831,8 @@ def test_products_query_with_filter_stock_availability_only_stock_in_cc_warehous
     site_settings,
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = include_shipping_zones
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     variant = product.variants.first()
     variant.stocks.all().delete()

@@ -880,8 +880,8 @@ def test_checkout_create_from_order_channel_without_shipping_zones_excluded(
     user_api_client, order_with_lines, site_settings
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     order_with_lines.user = user_api_client.user
     order_with_lines.save()

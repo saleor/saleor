@@ -392,7 +392,7 @@ class Shop(graphene.ObjectType):
         "the taxes will be calculated, otherwise no tax rate will be applied.",
         required=True,
     )
-    include_shipping_zones_in_stock_availability = graphene.Boolean(
+    use_legacy_shipping_zone_stock_availability = graphene.Boolean(
         description=(
             "When enabled, stock availability is filtered by shipping zones "
             "and the destination address (legacy behavior). "
@@ -685,8 +685,8 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_include_shipping_zones_in_stock_availability(_, _info, site):
-        return site.settings.include_shipping_zones_in_stock_availability
+    def resolve_use_legacy_shipping_zone_stock_availability(_, _info, site):
+        return site.settings.use_legacy_shipping_zone_stock_availability
 
     @staticmethod
     @load_site_callback

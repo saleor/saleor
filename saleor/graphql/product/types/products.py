@@ -188,7 +188,7 @@ deprecated_destination_address_argument = graphene.Argument(
         "for this product is checked. If address is empty, uses "
         "`Shop.companyAddress` or fallbacks to server's "
         "`settings.DEFAULT_COUNTRY` configuration. "
-        "When `Shop.includeShippingZonesInStockAvailability` is disabled, "
+        "When `Shop.useLegacyShippingZoneStockAvailability` is disabled, "
         "this argument is ignored — stock availability is determined by the "
         "direct warehouse-channel link instead of shipping zones."
         + DEPRECATED_IN_3X_INPUT
@@ -507,7 +507,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             return StocksByProductVariantIdLoader(info.context).load(root.node.id)
 
         include_shipping_zones = (
-            site.settings.include_shipping_zones_in_stock_availability
+            site.settings.use_legacy_shipping_zone_stock_availability
         )
         if include_shipping_zones:
             return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
@@ -633,7 +633,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             return global_quantity_limit_per_checkout
 
         include_shipping_zones = (
-            site.settings.include_shipping_zones_in_stock_availability
+            site.settings.use_legacy_shipping_zone_stock_availability
         )
         if include_shipping_zones:
             return AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader(
@@ -1360,7 +1360,7 @@ class Product(ChannelContextType[models.Product]):
             return False
 
         include_shipping_zones = (
-            site.settings.include_shipping_zones_in_stock_availability
+            site.settings.use_legacy_shipping_zone_stock_availability
         )
 
         def load_variants_availability(variants):

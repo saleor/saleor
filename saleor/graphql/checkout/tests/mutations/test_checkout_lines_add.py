@@ -1721,7 +1721,7 @@ def test_checkout_lines_for_click_and_collect_insufficient_stock(
     cc_option,
     site_settings,
 ):
-    assert site_settings.include_shipping_zones_in_stock_availability is True
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
 
@@ -1768,7 +1768,7 @@ def test_checkout_lines_add_with_zero_quantity(
 def test_checkout_lines_add_no_channel_shipping_zones_included_in_stock_calculations(
     user_api_client, checkout_with_item, stock, site_settings
 ):
-    assert site_settings.include_shipping_zones_in_stock_availability is True
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
     variant = stock.product_variant
     checkout = checkout_with_item
     checkout.channel.shipping_zones.clear()
@@ -1795,8 +1795,8 @@ def test_checkout_lines_add_no_channel_shipping_zones_excluded_from_stock_calcul
     user_api_client, checkout_with_item, stock, site_settings
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     variant = stock.product_variant
     checkout = checkout_with_item

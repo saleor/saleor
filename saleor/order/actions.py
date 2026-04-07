@@ -1287,7 +1287,7 @@ def create_fulfillments(
                     manager,
                     should_decrease_stock=auto_approved,
                     allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
-                    include_shipping_zones=site_settings.include_shipping_zones_in_stock_availability,
+                    include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
                 )
             )
             if tracking_number:

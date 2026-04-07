@@ -133,7 +133,7 @@ class SiteSettings(ModelWithMetadata):
             "`productVariantMetadataUpdated`) are sent."
         ),
     )
-    include_shipping_zones_in_stock_availability = models.BooleanField(
+    use_legacy_shipping_zone_stock_availability = models.BooleanField(
         default=False,
         db_default=True,
     )

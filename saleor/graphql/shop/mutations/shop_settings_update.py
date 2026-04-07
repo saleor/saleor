@@ -97,7 +97,7 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Controls whether password-based authentication is allowed."
         + ADDED_IN_323,
     )
-    include_shipping_zones_in_stock_availability = graphene.Boolean(
+    use_legacy_shipping_zone_stock_availability = graphene.Boolean(
         description=(
             "When enabled, stock availability is filtered by shipping zones "
             "and the destination address (legacy behavior). "

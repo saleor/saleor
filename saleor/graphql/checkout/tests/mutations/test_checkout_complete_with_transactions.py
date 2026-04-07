@@ -6022,7 +6022,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
     checkout.billing_address = address
     checkout.save()
 
-    assert site_settings.include_shipping_zones_in_stock_availability is True
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
 
     # Clear shipping zones from warehouse, not from channel
     warehouse.shipping_zones.clear()
@@ -6072,8 +6072,8 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_exc
 ):
     """When flag is disabled, warehouse shipping zones don't matter for stock."""
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
     Site.objects.clear_cache()
 
     checkout = checkout_with_gift_card

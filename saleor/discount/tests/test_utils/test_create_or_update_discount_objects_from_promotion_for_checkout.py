@@ -2358,7 +2358,7 @@ def test_get_best_gift_reward_warehouse_without_shipping_zones(
     gift_promotion_rule, channel_USD, warehouse, site_settings
 ):
     # given
-    assert site_settings.include_shipping_zones_in_stock_availability is True
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
     warehouse.shipping_zones.clear()
 
     rules = [gift_promotion_rule]
@@ -2376,8 +2376,8 @@ def test_get_best_gift_reward_warehouse_without_shipping_zones_excluded(
     gift_promotion_rule, channel_USD, warehouse, site_settings
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     warehouse.shipping_zones.clear()
 

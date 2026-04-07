@@ -508,8 +508,8 @@ def test_checkout_shipping_address_update_channel_without_shipping_zones_exclude
     site_settings,
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     checkout = checkout_with_item
     checkout.channel.shipping_zones.clear()

@@ -572,7 +572,7 @@ def test_checkout_problem_insufficient_stock_warehouse_without_shipping_zones(
     checkout = checkout_with_items_and_shipping
     checkout_id = to_global_id_or_none(checkout)
 
-    assert site_settings.include_shipping_zones_in_stock_availability is True
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
 
     # Clear shipping zones from warehouses
     Warehouse.shipping_zones.through.objects.all().delete()
@@ -595,8 +595,8 @@ def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones
     api_client, checkout_with_items_and_shipping, site_settings
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     checkout = checkout_with_items_and_shipping
     checkout_id = to_global_id_or_none(checkout)

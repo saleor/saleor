@@ -43,7 +43,7 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
             checkout_infos, checkout_lines, site = data
 
             include_shipping_zones = (
-                site.settings.include_shipping_zones_in_stock_availability
+                site.settings.use_legacy_shipping_zone_stock_availability
             )
             variant_data_set: set[
                 tuple[

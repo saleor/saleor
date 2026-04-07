@@ -1054,13 +1054,13 @@ def test_quantity_available_ignores_shipping_zones_excluded(
     variant_with_many_stocks_different_shipping_zones,
     site_settings,
 ):
-    # When include_shipping_zones_in_stock_availability is False, quantityAvailable
+    # When use_legacy_shipping_zone_stock_availability is False, quantityAvailable
     # returns the sum of all stocks from channel warehouses, ignoring shipping zones
     # and country code.
 
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     query = """
         query ProductVariant($id: ID!, $channel: String!, $country: CountryCode) {
@@ -1096,11 +1096,11 @@ def test_stocks_resolver_ignores_shipping_zones_excluded(
     site_settings,
     permission_manage_products,
 ):
-    # When include_shipping_zones_in_stock_availability is False, stocks resolver
+    # When use_legacy_shipping_zone_stock_availability is False, stocks resolver
     # returns stocks from all channel warehouses regardless of shipping zones or address.
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     query = """
     query ProductVariant($id: ID!, $channel: String!, $country: CountryCode) {

@@ -712,8 +712,8 @@ def test_draft_order_complete_channel_with_shipping_zones_excluded_from_stock_ca
     site_settings,
 ):
     # given
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order

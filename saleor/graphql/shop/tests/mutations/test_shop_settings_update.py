@@ -24,7 +24,7 @@ SHOP_SETTINGS_UPDATE_MUTATION = """
                 allowLoginWithoutConfirmation
                 useLegacyUpdateWebhookEmission
                 preserveAllAddressFields
-                includeShippingZonesInStockAvailability
+                useLegacyShippingZoneStockAvailability
             }
             errors {
                 field
@@ -80,7 +80,7 @@ def test_shop_settings_mutation(
     assert site_settings.allow_login_without_confirmation is True
     assert site_settings.use_legacy_update_webhook_emission is False
     assert site_settings.preserve_all_address_fields is False
-    assert site_settings.include_shipping_zones_in_stock_availability is True
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
 
 
 def test_shop_reservation_settings_mutation(
@@ -338,11 +338,11 @@ def test_shop_settings_update_preserve_all_address_fields_disable(
     assert site_settings.preserve_all_address_fields is False
 
 
-MUTATION_UPDATE_INCLUDE_SHIPPING_ZONES_IN_STOCK_AVAILABILITY = """
+MUTATION_UPDATE_use_legacy_shipping_zone_stock_availability = """
     mutation updateSettings($input: ShopSettingsInput!) {
         shopSettingsUpdate(input: $input) {
             shop {
-                includeShippingZonesInStockAvailability
+                useLegacyShippingZoneStockAvailability
             }
             errors {
                 field
@@ -354,24 +354,24 @@ MUTATION_UPDATE_INCLUDE_SHIPPING_ZONES_IN_STOCK_AVAILABILITY = """
 """
 
 
-def test_shop_settings_update_include_shipping_zones_in_stock_availability_disable(
+def test_shop_settings_update_use_legacy_shipping_zone_stock_availability_disable(
     staff_api_client, site_settings, permission_manage_settings
 ):
     # given
-    include_shipping_zones_in_stock_availability_value = False
+    use_legacy_shipping_zone_stock_availability_value = False
     assert (
-        site_settings.include_shipping_zones_in_stock_availability
-        is not include_shipping_zones_in_stock_availability_value
+        site_settings.use_legacy_shipping_zone_stock_availability
+        is not use_legacy_shipping_zone_stock_availability_value
     )
     variables = {
         "input": {
-            "includeShippingZonesInStockAvailability": include_shipping_zones_in_stock_availability_value
+            "useLegacyShippingZoneStockAvailability": use_legacy_shipping_zone_stock_availability_value
         }
     }
 
     # when
     response = staff_api_client.post_graphql(
-        MUTATION_UPDATE_INCLUDE_SHIPPING_ZONES_IN_STOCK_AVAILABILITY,
+        MUTATION_UPDATE_use_legacy_shipping_zone_stock_availability,
         variables,
         permissions=[permission_manage_settings],
     )
@@ -381,33 +381,33 @@ def test_shop_settings_update_include_shipping_zones_in_stock_availability_disab
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
     assert (
-        data["shop"]["includeShippingZonesInStockAvailability"]
-        is include_shipping_zones_in_stock_availability_value
+        data["shop"]["useLegacyShippingZoneStockAvailability"]
+        is use_legacy_shipping_zone_stock_availability_value
     )
     site_settings.refresh_from_db()
     assert (
-        site_settings.include_shipping_zones_in_stock_availability
-        == include_shipping_zones_in_stock_availability_value
+        site_settings.use_legacy_shipping_zone_stock_availability
+        == use_legacy_shipping_zone_stock_availability_value
     )
 
 
-def test_shop_settings_update_include_shipping_zones_in_stock_availability_enable(
+def test_shop_settings_update_use_legacy_shipping_zone_stock_availability_enable(
     staff_api_client, site_settings, permission_manage_settings
 ):
     # given
-    include_shipping_zones_in_stock_availability_value = True
-    site_settings.include_shipping_zones_in_stock_availability = False
-    site_settings.save(update_fields=["include_shipping_zones_in_stock_availability"])
+    use_legacy_shipping_zone_stock_availability_value = True
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
 
     variables = {
         "input": {
-            "includeShippingZonesInStockAvailability": include_shipping_zones_in_stock_availability_value
+            "useLegacyShippingZoneStockAvailability": use_legacy_shipping_zone_stock_availability_value
         }
     }
 
     # when
     response = staff_api_client.post_graphql(
-        MUTATION_UPDATE_INCLUDE_SHIPPING_ZONES_IN_STOCK_AVAILABILITY,
+        MUTATION_UPDATE_use_legacy_shipping_zone_stock_availability,
         variables,
         permissions=[permission_manage_settings],
     )
@@ -417,13 +417,13 @@ def test_shop_settings_update_include_shipping_zones_in_stock_availability_enabl
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
     assert (
-        data["shop"]["includeShippingZonesInStockAvailability"]
-        == include_shipping_zones_in_stock_availability_value
+        data["shop"]["useLegacyShippingZoneStockAvailability"]
+        == use_legacy_shipping_zone_stock_availability_value
     )
     site_settings.refresh_from_db()
     assert (
-        site_settings.include_shipping_zones_in_stock_availability
-        == include_shipping_zones_in_stock_availability_value
+        site_settings.use_legacy_shipping_zone_stock_availability
+        == use_legacy_shipping_zone_stock_availability_value
     )
 
 

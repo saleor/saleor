@@ -197,7 +197,7 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        include_shipping_zones = Site.objects.get_current().settings.include_shipping_zones_in_stock_availability
+        include_shipping_zones = Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
         check_stock_and_preorder_quantity(
             variant,
             checkout.get_country(),

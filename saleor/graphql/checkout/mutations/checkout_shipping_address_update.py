@@ -121,7 +121,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             replace=True,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(site.settings),
-            calculate_stocks_with_shipping_zones=site.settings.include_shipping_zones_in_stock_availability,
+            calculate_stocks_with_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
         )
 
     @classmethod
