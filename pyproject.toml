@@ -24,7 +24,7 @@ dependencies = [
     "cryptography>=44.0.2,<47",
     "dj-database-url>=2,<3",
     "dj-email-url>=1,<2",
-    "django[bcrypt]~=5.2.11",
+    "django[bcrypt]~=5.2.13",
     "django-cache-url>=3.1.2,<4",
     "django-celery-beat>=2.8.1,<3",
     "django-countries~=7.2",
@@ -142,6 +142,7 @@ exclude-newer = "3 weeks"
 [tool.uv.exclude-newer-package]
 # To customize on a per-package basis, for example you can do this:
 # setuptools = "30 days"
+django = "2026-04-07T14:30:00Z"
 
 # Allow more recent pyjwt version due to https://github.com/jpadilla/pyjwt/security/advisories/GHSA-752w-5fwx-jx9f
 pyjwt = "10 days"
