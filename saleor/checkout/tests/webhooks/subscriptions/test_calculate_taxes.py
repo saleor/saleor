@@ -4,12 +4,12 @@ from unittest.mock import ANY
 import pytest
 from freezegun import freeze_time
 
-from ....discount.models import PromotionRule
-from ....graphql.core.utils import to_global_id_or_none
-from ....tax import TaxableObjectDiscountType
-from ...event_types import WebhookEventSyncType
-from ...models import Webhook
-from ...transport.synchronous.transport import (
+from .....discount.models import PromotionRule
+from .....graphql.core.utils import to_global_id_or_none
+from .....tax import TaxableObjectDiscountType
+from .....webhook.event_types import WebhookEventSyncType
+from .....webhook.models import Webhook
+from .....webhook.transport.synchronous.transport import (
     create_delivery_for_subscription_sync_event,
 )
 
