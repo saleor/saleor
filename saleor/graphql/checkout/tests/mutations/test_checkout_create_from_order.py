@@ -876,7 +876,7 @@ def test_checkout_create_from_order_channel_without_shipping_zones(
     assert len(data["unavailableVariants"]) == order_with_lines.lines.count()
 
 
-def test_checkout_create_from_order_channel_without_shipping_zones_excluded(
+def test_checkout_create_from_order_channel_without_shipping_zones_excluded_from_stock_calculations(
     user_api_client, order_with_lines, site_settings
 ):
     # given

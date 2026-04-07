@@ -1048,7 +1048,7 @@ def test_stock_quantity_is_sum_of_quantities_from_warehouses_that_support_countr
     assert content["data"]["productVariant"]["quantityAvailable"] == sum_quantities
 
 
-def test_quantity_available_ignores_shipping_zones_excluded(
+def test_quantity_available_ignores_shipping_zones_excluded_from_stock_calculations(
     api_client,
     channel_USD,
     variant_with_many_stocks_different_shipping_zones,
@@ -1089,7 +1089,7 @@ def test_quantity_available_ignores_shipping_zones_excluded(
     assert content["data"]["productVariant"]["quantityWithoutCountry"] == total_quantity
 
 
-def test_stocks_resolver_ignores_shipping_zones_excluded(
+def test_stocks_resolver_ignores_shipping_zones_excluded_from_stock_calculations(
     staff_api_client,
     channel_USD,
     variant_with_many_stocks_different_shipping_zones,

@@ -2506,7 +2506,7 @@ def test_generate_checkout_payload_warehouse_without_shipping_zones(
     assert payload["warehouse_address"] is None
 
 
-def test_generate_checkout_payload_warehouse_without_shipping_zones_excluded(
+def test_generate_checkout_payload_warehouse_without_shipping_zones_excluded_from_stock_calculations(
     checkout_with_prices, customer_user, site_settings
 ):
     # given

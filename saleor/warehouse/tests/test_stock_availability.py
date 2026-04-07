@@ -315,7 +315,7 @@ def test_check_stock_quantity_bulk_no_channel_shipping_zones(
         )
 
 
-def test_check_stock_quantity_bulk_no_channel_shipping_zones_excluded(
+def test_check_stock_quantity_bulk_no_channel_shipping_zones_excluded_from_stock_calculations(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -420,7 +420,7 @@ def test_check_stock_quantity_no_shipping_zones_included(
         )
 
 
-def test_check_stock_quantity_no_shipping_zones_excluded(
+def test_check_stock_quantity_no_shipping_zones_excluded_from_stock_calculations(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -459,7 +459,7 @@ def test_get_available_quantity_no_shipping_zones_included(
     assert available_quantity == 0
 
 
-def test_get_available_quantity_no_shipping_zones_excluded(
+def test_get_available_quantity_no_shipping_zones_excluded_from_stock_calculations(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -498,7 +498,7 @@ def test_check_stock_quantity_country_not_in_zone_include_shipping_zones(
         )
 
 
-def test_check_stock_quantity_country_not_in_zone_shipping_zones_excluded(
+def test_check_stock_quantity_country_not_in_zone_shipping_zones_excluded_from_stock_calculations(
     variant_with_many_stocks, channel_USD, shipping_zone
 ):
     # given - restrict shipping zone to PL only
@@ -538,7 +538,7 @@ def test_check_stock_and_preorder_quantity_no_shipping_zones_included(
         )
 
 
-def test_check_stock_and_preorder_quantity_no_shipping_zones_excluded(
+def test_check_stock_and_preorder_quantity_no_shipping_zones_excluded_from_stock_calculations(
     variant_with_many_stocks, channel_USD
 ):
     # given
@@ -578,7 +578,7 @@ def test_is_product_in_stock_no_shipping_zones_included(
     assert result is False
 
 
-def test_is_product_in_stock_no_shipping_zones_excluded(
+def test_is_product_in_stock_no_shipping_zones_excluded_from_stock_calculations(
     variant_with_many_stocks, channel_USD
 ):
     # given

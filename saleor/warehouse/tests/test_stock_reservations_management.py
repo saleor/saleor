@@ -341,7 +341,9 @@ def test_reserve_stocks_no_shipping_zones_included(checkout_line, channel_USD):
         )
 
 
-def test_reserve_stocks_no_shipping_zones_excluded(checkout_line, channel_USD):
+def test_reserve_stocks_no_shipping_zones_excluded_from_stock_calculations(
+    checkout_line, channel_USD
+):
     # given
     checkout_line.quantity = 5
     checkout_line.save()

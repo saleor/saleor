@@ -1153,7 +1153,7 @@ def test_order_fulfill_channel_without_shipping_zones(
     assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
 
 
-def test_order_fulfill_channel_without_shipping_zones_excluded(
+def test_order_fulfill_channel_without_shipping_zones_excluded_from_stock_calculations(
     staff_api_client,
     order_with_lines,
     permission_group_manage_orders,

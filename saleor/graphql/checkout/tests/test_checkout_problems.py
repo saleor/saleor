@@ -591,7 +591,7 @@ def test_checkout_problem_insufficient_stock_warehouse_without_shipping_zones(
     assert problem_types == {"CheckoutLineProblemInsufficientStock"}
 
 
-def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones_excluded(
+def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones_excluded_from_stock_calculations(
     api_client, checkout_with_items_and_shipping, site_settings
 ):
     # given

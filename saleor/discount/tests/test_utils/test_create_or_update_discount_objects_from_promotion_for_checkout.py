@@ -2372,7 +2372,7 @@ def test_get_best_gift_reward_warehouse_without_shipping_zones(
     assert listing is None
 
 
-def test_get_best_gift_reward_warehouse_without_shipping_zones_excluded(
+def test_get_best_gift_reward_warehouse_without_shipping_zones_excluded_from_stock_calculations(
     gift_promotion_rule, channel_USD, warehouse, site_settings
 ):
     # given

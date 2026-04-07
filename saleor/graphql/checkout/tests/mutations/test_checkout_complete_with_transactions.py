@@ -6059,7 +6059,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
     assert data["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
 
 
-def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_excluded(
+def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_excluded_from_stock_calculations(
     user_api_client,
     checkout_with_gift_card,
     transaction_item_generator,
