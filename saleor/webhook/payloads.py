@@ -555,12 +555,12 @@ def generate_checkout_payload(
     include_shipping_zones = (
         Site.objects.get_current().settings.include_shipping_zones_in_stock_availability
     )
-    if include_shipping_zones and checkout.shipping_address:
-        if include_shipping_zones:
+    if include_shipping_zones:
+        if checkout.shipping_address:
             warehouse = Warehouse.objects.for_country_and_channel(
                 checkout.shipping_address.country.code, checkout.channel_id
             ).first()
-    elif not include_shipping_zones:
+    else:
         warehouse = Warehouse.objects.for_channel(checkout.channel_id).first()
 
     shipping_method = None

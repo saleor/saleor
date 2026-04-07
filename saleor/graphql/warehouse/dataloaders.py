@@ -717,14 +717,18 @@ class StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
                     .order_by("pk")
                 )
 
+                all_stocks = list(stocks_qs)
+                stocks_by_variant: defaultdict[int, list] = defaultdict(list)
+                for stock in all_stocks:
+                    stocks_by_variant[stock.product_variant_id].append(stock)
+
                 results = []
                 for variant_id, channel_slug in keys:
                     warehouse_ids = warehouses_by_channel_map.get(channel_slug, set())
                     stocks = [
                         stock
-                        for stock in stocks_qs
-                        if stock.product_variant_id == variant_id
-                        and stock.warehouse_id in warehouse_ids
+                        for stock in stocks_by_variant.get(variant_id, [])
+                        if stock.warehouse_id in warehouse_ids
                     ]
                     results.append(stocks)
 
