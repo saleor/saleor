@@ -139,7 +139,11 @@ class GraphQLView(View):
             data = self.parse_body(request)
         except ValueError:
             return JsonResponse(
-                data={"errors": [self.format_error("Unable to parse query.")]},
+                data={
+                    "errors": [
+                        self.format_error(GraphQLError("Unable to parse query."))
+                    ]
+                },
                 status=400,
             )
 
@@ -365,8 +369,11 @@ class GraphQLView(View):
         if content_type == "application/graphql":
             return {"query": request.body.decode("utf-8")}
         if content_type == "application/json":
-            body = request.body.decode("utf-8")
-            return json.loads(body)
+            body = json.loads(request.body.decode("utf-8"))
+            if isinstance(body, dict) or isinstance(body, list):
+                return body
+
+            raise ValueError("Invalid query.")
         if content_type in ["application/x-www-form-urlencoded", "multipart/form-data"]:
             return request.POST
         return {}
