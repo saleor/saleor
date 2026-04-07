@@ -204,10 +204,8 @@ def test_checkout_shipping_method_update_external_shipping_method(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     fetch_checkout_data(
-        checkout_info,
-        manager,
-        lines,
-    )
+        checkout_info, manager, lines, requestor=staff_api_client.user
+    ).get()
     errors = data["errors"]
     assert not errors
     assert data["checkout"]["token"] == str(checkout_with_item.token)
@@ -383,10 +381,8 @@ def test_checkout_shipping_method_update_with_not_all_required_shipping_address_
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     fetch_checkout_data(
-        checkout_info,
-        manager,
-        lines,
-    )
+        checkout_info, manager, lines, requestor=staff_api_client.user
+    ).get()
 
     assert not data["errors"]
     assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
@@ -432,10 +428,8 @@ def test_checkout_shipping_method_update_with_not_valid_shipping_address_data(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     fetch_checkout_data(
-        checkout_info,
-        manager,
-        lines,
-    )
+        checkout_info, manager, lines, requestor=staff_api_client.user
+    ).get()
 
     assert not data["errors"]
     assert checkout.assigned_delivery.shipping_method_id == str(shipping_method.id)
@@ -503,10 +497,8 @@ def test_checkout_shipping_method_update_shipping_zone_without_channel(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     fetch_checkout_data(
-        checkout_info,
-        manager,
-        lines,
-    )
+        checkout_info, manager, lines, requestor=staff_api_client.user
+    ).get()
 
     errors = data["errors"]
     assert len(errors) == 1

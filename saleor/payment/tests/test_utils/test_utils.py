@@ -110,7 +110,6 @@ def get_expected_checkout_payment_lines(manager, checkout_info, lines, address):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     ).gross.amount
 
     return PaymentLinesData(

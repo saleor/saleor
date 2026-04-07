@@ -4,18 +4,17 @@ from unittest.mock import ANY
 
 import pytest
 from freezegun import freeze_time
+from promise import Promise
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.webhooks import calculate_taxes as checkout_calculate_taxes
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery
 from ....core.taxes import TaxDataError
-from ....graphql.webhook.utils import get_subscription_query_hash
 from ....plugins.manager import get_plugins_manager
 from ....tax.webhooks.parser import parse_tax_data
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
-from ....webhook.transport.synchronous import trigger_taxes_all_webhooks_sync
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -31,7 +30,9 @@ def test_get_taxes_no_permission(
     app_identifier = None
 
     # when
-    tax_data = checkout_calculate_taxes.get_taxes(checkout_info, lines, app_identifier)
+    tax_data = checkout_calculate_taxes.get_taxes(
+        checkout_info, lines, app_identifier
+    ).get()
 
     # then
     assert mock_request.call_count == 0
@@ -42,7 +43,7 @@ def test_get_taxes_no_permission(
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_get_taxes_with_sync_subscription(
     mock_generate_payload,
@@ -59,14 +60,16 @@ def test_get_taxes_with_sync_subscription(
         checkout, [], get_plugins_manager(allow_replica=False)
     )
     mock_request.return_value = tax_data_response
-    mock_generate_payload.return_value = expected_payload
+    mock_generate_payload.return_value = Promise.resolve(expected_payload)
     webhook = tax_app.webhooks.get(name="tax-webhook-1")
     webhook.subscription_query = subscription_query
     webhook.save(update_fields=["subscription_query"])
     app_identifier = None
 
     # when
-    tax_data = checkout_calculate_taxes.get_taxes(checkout_info, [], app_identifier)
+    tax_data = checkout_calculate_taxes.get_taxes(
+        checkout_info, [], app_identifier
+    ).get()
 
     # then
     mock_generate_payload.assert_called_once_with(
@@ -75,62 +78,6 @@ def test_get_taxes_with_sync_subscription(
         subscription_query=subscription_query,
         request=ANY,  # SaleorContext,
     )
-    mock_request.assert_called_once()
-    assert not EventDelivery.objects.exists()
-
-    delivery = mock_request.mock_calls[0].args[0]
-    assert delivery.payload.get_payload() == json.dumps(expected_payload)
-    assert delivery.status == EventDeliveryStatus.PENDING
-    assert delivery.event_type == WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    assert delivery.webhook == webhook
-    mock_fetch.assert_not_called()
-    assert tax_data == parse_tax_data(
-        WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-        tax_data_response,
-        checkout.lines.count(),
-    )
-
-
-@freeze_time()
-@mock.patch("saleor.checkout.calculations.fetch_checkout_data")
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-@mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
-)
-def test_get_taxes_with_sync_subscription_with_pregenerated_payload(
-    mock_generate_payload,
-    mock_request,
-    mock_fetch,
-    tax_data_response,
-    checkout,
-    tax_app,
-):
-    # given
-    subscription_query = "subscription{event{... on CalculateTaxes{taxBase{currency}}}}"
-    subscription_query_hash = get_subscription_query_hash(subscription_query)
-    expected_payload = {"taxBase": {"currency": "USD"}}
-    checkout_info = fetch_checkout_info(
-        checkout, [], get_plugins_manager(allow_replica=False)
-    )
-    mock_request.return_value = tax_data_response
-    webhook = tax_app.webhooks.get(name="tax-webhook-1")
-    webhook.subscription_query = subscription_query
-    webhook.save(update_fields=["subscription_query"])
-    app_identifier = None
-    pregenerated_subscription_payloads = {
-        webhook.app.id: {subscription_query_hash: expected_payload}
-    }
-
-    # when
-    tax_data = checkout_calculate_taxes.get_taxes(
-        checkout_info,
-        [],
-        app_identifier,
-        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-    )
-
-    # then
-    mock_generate_payload.assert_not_called()
     mock_request.assert_called_once()
     assert not EventDelivery.objects.exists()
 
@@ -155,7 +102,7 @@ def test_get_taxes_with_app_identifier_app_missing(checkout_info):
     with pytest.raises(TaxDataError, match="Configured tax app doesn't exist."):
         checkout_calculate_taxes.get_taxes(
             checkout_info, checkout_info.lines, app_identifier
-        )
+        ).get()
 
 
 def test_get_taxes_with_app_identifier_webhook_is_missing(checkout_info, app):
@@ -166,13 +113,13 @@ def test_get_taxes_with_app_identifier_webhook_is_missing(checkout_info, app):
     ):
         checkout_calculate_taxes.get_taxes(
             checkout_info, checkout_info.lines, app.identifier
-        )
+        ).get()
 
 
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_get_taxes_with_app_identifier_invalid_response(
     mock_generate_payload,
@@ -189,7 +136,7 @@ def test_get_taxes_with_app_identifier_invalid_response(
         checkout, [], get_plugins_manager(allow_replica=False)
     )
     mock_request.return_value = tax_data_response_factory(shipping_tax_rate=-10)
-    mock_generate_payload.return_value = expected_payload
+    mock_generate_payload.return_value = Promise.resolve(expected_payload)
     webhook = tax_app.webhooks.get(name="tax-webhook-1")
     webhook.subscription_query = subscription_query
     webhook.save(update_fields=["subscription_query"])
@@ -197,14 +144,14 @@ def test_get_taxes_with_app_identifier_invalid_response(
 
     # when
     with pytest.raises(TaxDataError):
-        checkout_calculate_taxes.get_taxes(checkout_info, [], app_identifier)
+        checkout_calculate_taxes.get_taxes(checkout_info, [], app_identifier).get()
 
 
 @freeze_time()
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_get_taxes_with_app_identifier(
     mock_generate_payload,
@@ -221,14 +168,16 @@ def test_get_taxes_with_app_identifier(
         checkout, [], get_plugins_manager(allow_replica=False)
     )
     mock_request.return_value = tax_data_response
-    mock_generate_payload.return_value = expected_payload
+    mock_generate_payload.return_value = Promise.resolve(expected_payload)
     webhook = tax_app.webhooks.get(name="tax-webhook-1")
     webhook.subscription_query = subscription_query
     webhook.save(update_fields=["subscription_query"])
     app_identifier = tax_app.identifier
 
     # when
-    tax_data = checkout_calculate_taxes.get_taxes(checkout_info, [], app_identifier)
+    tax_data = checkout_calculate_taxes.get_taxes(
+        checkout_info, [], app_identifier
+    ).get()
 
     # then
     mock_generate_payload.assert_called_once_with(
@@ -257,7 +206,7 @@ def test_get_taxes_with_app_identifier(
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
-    "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
+    "saleor.webhook.transport.synchronous.transport.generate_payload_promise_from_subscription"
 )
 def test_get_taxes_with_app_identifier_empty_response(
     mock_generate_payload,
@@ -274,7 +223,7 @@ def test_get_taxes_with_app_identifier_empty_response(
         checkout, [], get_plugins_manager(allow_replica=False)
     )
     mock_request.return_value = None
-    mock_generate_payload.return_value = expected_payload
+    mock_generate_payload.return_value = Promise.resolve(expected_payload)
     webhook = tax_app.webhooks.get(name="tax-webhook-1")
     webhook.subscription_query = subscription_query
     webhook.save(update_fields=["subscription_query"])
@@ -282,7 +231,7 @@ def test_get_taxes_with_app_identifier_empty_response(
 
     # when & then
     with pytest.raises(TaxDataError):
-        checkout_calculate_taxes.get_taxes(checkout_info, [], app_identifier)
+        checkout_calculate_taxes.get_taxes(checkout_info, [], app_identifier).get()
 
 
 @pytest.fixture
@@ -310,110 +259,3 @@ def tax_checkout_webhooks(tax_app):
             events__event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
         )
     )
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_trigger_tax_webhook_sync(
-    mock_request,
-    tax_app,
-    tax_data_response,
-):
-    # given
-    mock_request.return_value = tax_data_response
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    data = '{"key": "value"}'
-    webhook = tax_app.webhooks.get(name="tax-webhook-1")
-    webhook.subscription_query = None
-    webhook.save(update_fields=["subscription_query"])
-    lines_count = len(tax_data_response["lines"])
-
-    # when
-    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, lines_count)
-
-    # then
-    mock_request.assert_called_once()
-    assert not EventDelivery.objects.exists()
-    delivery = mock_request.mock_calls[0].args[0]
-
-    assert delivery.payload.get_payload() == data
-    assert delivery.status == EventDeliveryStatus.PENDING
-    assert delivery.event_type == event_type
-    assert delivery.webhook == webhook
-    assert tax_data == parse_tax_data(event_type, tax_data_response, lines_count)
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_trigger_tax_webhook_sync_multiple_webhooks_first(
-    mock_request,
-    tax_checkout_webhooks,
-    tax_data_response,
-):
-    # given
-    mock_request.side_effect = [tax_data_response, {}, {}]
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    data = '{"key": "value"}'
-    lines_count = len(tax_data_response["lines"])
-
-    # when
-    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, lines_count)
-
-    # then
-    successful_webhook = tax_checkout_webhooks[0]
-    mock_request.assert_called_once()
-    assert not EventDelivery.objects.exists()
-    delivery = mock_request.mock_calls[0].args[0]
-    assert delivery.payload.get_payload() == data
-    assert delivery.status == EventDeliveryStatus.PENDING
-    assert delivery.event_type == event_type
-    assert delivery.webhook == successful_webhook
-    assert tax_data == parse_tax_data(event_type, tax_data_response, lines_count)
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_trigger_tax_webhook_sync_multiple_webhooks_last(
-    mock_request,
-    tax_checkout_webhooks,
-    tax_data_response,
-):
-    # given
-    mock_request.side_effect = [{}, {}, tax_data_response]
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    data = '{"key": "value"}'
-    lines_count = len(tax_data_response["lines"])
-
-    # when
-    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, lines_count)
-
-    # then
-    assert mock_request.call_count == 3
-    assert not EventDelivery.objects.exists()
-
-    for call, webhook in zip(
-        mock_request.mock_calls, tax_checkout_webhooks, strict=False
-    ):
-        delivery = call.args[0]
-        assert delivery.status == EventDeliveryStatus.PENDING
-        assert delivery.event_type == event_type
-        assert delivery.payload.get_payload() == data
-        assert delivery.webhook == webhook
-
-    assert tax_data == parse_tax_data(event_type, tax_data_response, lines_count)
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_trigger_tax_webhook_sync_invalid_webhooks(
-    mock_request,
-    tax_checkout_webhooks,
-    tax_data_response,
-):
-    # given
-    mock_request.return_value = {}
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    data = '{"key": "value"}'
-
-    # when
-    tax_data = trigger_taxes_all_webhooks_sync(event_type, lambda: data, 0)
-
-    # then
-    assert mock_request.call_count == len(tax_checkout_webhooks)
-    assert tax_data is None

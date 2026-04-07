@@ -9,6 +9,7 @@ from freezegun import freeze_time
 
 from .....core.prices import quantize_price
 from .....discount import DiscountType, DiscountValueType, VoucherType
+from .....webhook.serializers import serialize_variant_full_name
 from ....webhooks.order_calculate_taxes import (
     generate_order_payload_for_tax_calculation,
 )
@@ -120,7 +121,9 @@ def test_generate_order_payload_for_tax_calculation(
                 "variant_name": line.variant_name,
                 "quantity": line.quantity,
                 "variant_id": line.product_variant_id,
-                "full_name": line.variant.display_product() if line.variant else None,
+                "full_name": (
+                    serialize_variant_full_name(line.variant) if line.variant else None
+                ),
                 "product_metadata": (
                     line.variant.product.metadata if line.variant else {}
                 ),
@@ -347,7 +350,7 @@ def test_order_lines_for_tax_calculation_have_all_required_fields(
         "type": "OrderLine",
         "id": line_id,
         "variant_id": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "full_name": variant.display_product(),
+        "full_name": serialize_variant_full_name(variant),
         "product_name": line.product_name,
         "variant_name": line.variant_name,
         "product_metadata": {"product_meta": "value"},
