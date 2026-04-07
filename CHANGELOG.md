@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
   Important: digital products are still fully supported in Saleor. Only the legacy,
   undocumented digital content API has been removed, the supported approach is documented here: https://docs.saleor.io/recipes/digital-products
 - Product media images from external URLs are now fetched asynchronously via background tasks in `productMediaCreate` and `productBulkCreate` mutations, improving response times. During download, the API returns HTTP 503 for the media image.
+- Shipping-zone-based stock filtering is deprecated and will be removed in a future release. A new `useLegacyShippingZoneStockAvailability` shop setting controls the behavior: when disabled, stock availability across checkouts, orders, and product queries is resolved via the direct warehouse-channel link instead of shipping zones.
 
 ### GraphQL API
 
@@ -106,6 +107,15 @@ Validation is now performed on the frontend (Dashboard). This change increases v
   - Accent-insensitive search: queries automatically normalize diacritical marks, allowing searches to match regardless of accents (e.g., "cafe" matches "café")
   - Relevance-based ranking: exact matches score higher than prefix matches and appear first by default (can be overridden with `sortBy` parameter)
   - New `RANK` sort field available when using search filters to sort by relevance score
+
+### Direct warehouse-channel stock availability
+
+- Added `useLegacyShippingZoneStockAvailability` setting to `Shop` and `ShopSettingsInput`. When enabled (default for existing installations), stock availability is filtered through shipping zones and the destination address. When disabled stock availability is determined by the direct warehouse-channel link, ignoring shipping zones.
+- Checkout mutations (`checkoutCreate`, `checkoutLinesAdd`, `checkoutLinesUpdate`, `checkoutShippingAddressUpdate`, `checkoutCreateFromOrder`) now respect the new setting during stock validation and reservation.
+- Order mutations (`draftOrderCreate`, `draftOrderComplete`, `orderLinesCreate`, `orderLineUpdate`) and the fulfillment flow now respect the setting during stock allocation.
+- Product filtering by stock availability and `Product.isAvailable` resolver now respect the setting.
+- Webhook payloads for checkout and fulfillment events select the warehouse based on the setting.
+- Deprecated the `address` argument on `ProductVariant.stocks`, `ProductVariant.quantityAvailable`, and `Product.isAvailable`. When `useLegacyShippingZoneStockAvailability` is disabled, the address argument is ignored.
 
 ### Deprecations
 
