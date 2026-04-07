@@ -1715,7 +1715,6 @@ def test_transaction_amounts_for_checkout_updated_without_price_recalculation_co
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    address = checkout.shipping_address or checkout.billing_address
 
     assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
     assert checkout.charge_status == CheckoutChargeStatus.NONE

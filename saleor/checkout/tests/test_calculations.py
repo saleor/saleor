@@ -1378,7 +1378,6 @@ def test_fetch_checkout_data_considers_gift_cards_balance_when_updating_checkout
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    address = checkout.shipping_address or checkout.billing_address
 
     assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
     assert checkout.charge_status == CheckoutChargeStatus.NONE
