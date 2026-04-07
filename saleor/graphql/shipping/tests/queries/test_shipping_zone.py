@@ -4,7 +4,10 @@ import graphene
 from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
+from .....channel.models import Channel
+from .....core.db.connection import allow_writer
 from .....core.units import WeightUnits
+from .....tests import race_condition
 from ....shipping.resolvers import resolve_price_range
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
@@ -222,3 +225,43 @@ def test_shipping_method_tax_class_query_by_staff(
     content = get_graphql_content(response)
     data = content["data"]
     assert data["shippingZone"]["shippingMethods"][0]["taxClass"]["id"]
+
+
+SHIPPING_ZONE_CHANNELS_QUERY = """
+    query ShippingZone($id: ID!) {
+        shippingZone(id: $id) {
+            channels {
+                slug
+            }
+        }
+    }
+"""
+
+
+def test_query_channels_when_channel_deleted_during_load(
+    staff_api_client, shipping_zone, channel_USD, permission_manage_shipping
+):
+    """Channel is deleted after the first query fetches channel-zone pairs but before ChannelByIdLoader loads the channel."""
+    # given
+    zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
+    channel_id = channel_USD.id
+
+    def delete_channel(*args, **kwargs):
+        with allow_writer():
+            Channel.objects.filter(pk=channel_id).delete()
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.channel.dataloaders.by_self.ChannelByIdLoader.batch_load",
+        delete_channel,
+    ):
+        response = staff_api_client.post_graphql(
+            SHIPPING_ZONE_CHANNELS_QUERY,
+            {"id": zone_id},
+            permissions=[permission_manage_shipping],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    channels = content["data"]["shippingZone"]["channels"]
+    assert channels == []
