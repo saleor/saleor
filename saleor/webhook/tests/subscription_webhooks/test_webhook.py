@@ -11,7 +11,7 @@ from ...transport.asynchronous.transport import (
     WebhookPayloadData,
     trigger_webhooks_async_for_multiple_objects,
 )
-from ...transport.synchronous import trigger_webhook_sync
+from ...transport.synchronous.transport import trigger_webhook_sync_promise
 from ...transport.utils import get_sqs_message_group_id
 from .payloads import generate_payment_payload
 
@@ -143,13 +143,13 @@ def test_trigger_webhook_sync_with_subscription(
     data = '{"key": "value"}'
     expected_payment_payload = generate_payment_payload(payment, payment_app)
     # when
-    trigger_webhook_sync(
-        WebhookEventSyncType.PAYMENT_AUTHORIZE,
-        data,
-        payment_app.webhooks.first(),
-        False,
-        payment,
-    )
+    trigger_webhook_sync_promise(
+        event_type=WebhookEventSyncType.PAYMENT_AUTHORIZE,
+        static_payload=data,
+        webhook=payment_app.webhooks.first(),
+        allow_replica=False,
+        subscribable_object=payment,
+    ).get()
 
     # then
     mock_request.assert_called_once()

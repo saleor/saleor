@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import graphene
 from django.conf import settings
+from django.utils.functional import LazyObject
+from promise import Promise
 from pydantic import ValidationError
 
 from ...app.models import App
@@ -21,15 +23,11 @@ from ...core.taxes import TaxType
 from ...core.telemetry import get_task_context
 from ...core.utils import build_absolute_uri, get_domain
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...core.utils.lazyobjects import unwrap_lazy
 from ...csv.notifications import get_default_export_payload
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import (
-    generate_payload_promise_from_subscription,
     initialize_request,
-)
-from ...graphql.webhook.utils import (
-    get_pregenerated_subscription_payload,
-    get_subscription_query_hash,
 )
 from ...order.models import Order
 from ...payment import PaymentError, TransactionKind
@@ -110,8 +108,8 @@ from ...webhook.transport.payment import (
 )
 from ...webhook.transport.synchronous.transport import (
     trigger_transaction_request,
-    trigger_webhook_sync,
-    trigger_webhook_sync_if_not_cached,
+    trigger_webhook_sync_promise,
+    trigger_webhook_sync_promise_if_not_cached,
 )
 from ...webhook.transport.utils import (
     delivery_update,
@@ -2702,6 +2700,12 @@ class WebhookPlugin(BasePlugin):
         )
         return previous_value
 
+    def _unwrap_requestor(self) -> Union["User", "App", None]:
+        """Unwrap the requestor from lazy layer."""
+        if isinstance(self.requestor, LazyObject):
+            return unwrap_lazy(self.requestor)
+        return self.requestor
+
     def stored_payment_method_request_delete(
         self,
         request_delete_data: "StoredPaymentMethodRequestDeleteData",
@@ -2732,19 +2736,20 @@ class WebhookPlugin(BasePlugin):
             }
         )
 
-        response_data = trigger_webhook_sync(
-            event_type,
-            payload,
-            webhook,
-            False,
+        response_data = trigger_webhook_sync_promise(
+            event_type=event_type,
+            static_payload=payload,
+            webhook=webhook,
+            allow_replica=False,
             subscribable_object=StoredPaymentMethodRequestDeleteData(
                 payment_method_id=app_data.name,
                 user=request_delete_data.user,
                 channel=request_delete_data.channel,
             ),
             timeout=WEBHOOK_SYNC_TIMEOUT,
-            requestor=self.requestor,
-        )
+            requestor=self._unwrap_requestor(),
+        ).get()
+
         if response_data:
             invalidate_cache_for_stored_payment_methods(
                 request_delete_data.user.id,
@@ -2764,25 +2769,8 @@ class WebhookPlugin(BasePlugin):
 
         event_type = WebhookEventSyncType.LIST_STORED_PAYMENT_METHODS
 
-        if webhooks := get_webhooks_for_event(event_type):
-            payload_dict = get_list_stored_payment_methods_data_dict(
-                list_payment_method_data.user.id, list_payment_method_data.channel.slug
-            )
-            payload = self._serialize_payload(payload_dict)
-            for webhook in webhooks:
-                if not webhook.app.identifier:
-                    continue
-                response_data = trigger_webhook_sync_if_not_cached(
-                    event_type,
-                    payload,
-                    webhook,
-                    payload_dict,
-                    self.allow_replica,
-                    subscribable_object=list_payment_method_data,
-                    request_timeout=WEBHOOK_SYNC_TIMEOUT,
-                    cache_timeout=WEBHOOK_CACHE_DEFAULT_TTL,
-                    requestor=self.requestor,
-                )
+        def process_response(data) -> list["PaymentMethodData"]:
+            for webhook, response_data in zip(webhooks, data, strict=True):
                 if response_data:
                     previous_value.extend(
                         get_list_stored_payment_methods_from_response(
@@ -2791,7 +2779,33 @@ class WebhookPlugin(BasePlugin):
                             list_payment_method_data.channel.currency_code,
                         )
                     )
-        return previous_value
+            return previous_value
+
+        promised_data = []
+        requestor = self._unwrap_requestor()
+        if webhooks := get_webhooks_for_event(event_type):
+            payload_dict = get_list_stored_payment_methods_data_dict(
+                list_payment_method_data.user.id, list_payment_method_data.channel.slug
+            )
+            payload = self._serialize_payload(payload_dict)
+
+            for webhook in webhooks:
+                if not webhook.app.identifier:
+                    continue
+                promised_data.append(
+                    trigger_webhook_sync_promise_if_not_cached(
+                        event_type=event_type,
+                        static_payload=payload,
+                        webhook=webhook,
+                        cache_data=payload_dict,
+                        allow_replica=self.allow_replica,
+                        subscribable_object=list_payment_method_data,
+                        request_timeout=WEBHOOK_SYNC_TIMEOUT,
+                        cache_timeout=WEBHOOK_CACHE_DEFAULT_TTL,
+                        requestor=requestor,
+                    )
+                )
+        return Promise.all(promised_data).then(process_response).get()
 
     def _handle_payment_tokenization_request(
         self,
@@ -2809,16 +2823,15 @@ class WebhookPlugin(BasePlugin):
             payload_data.update(additional_legacy_payload_data)
 
         payload = self._serialize_payload(payload_data)
-        response_data = trigger_webhook_sync(
-            event_type,
-            payload,
-            webhook,
-            False,
+        return trigger_webhook_sync_promise(
+            event_type=event_type,
+            static_payload=payload,
+            webhook=webhook,
+            allow_replica=False,
             subscribable_object=request_data,
             timeout=WEBHOOK_SYNC_TIMEOUT,
-            requestor=self.requestor,
-        )
-        return response_data
+            requestor=self._unwrap_requestor(),
+        ).get()
 
     def payment_gateway_initialize_tokenization(
         self,
@@ -3041,14 +3054,14 @@ class WebhookPlugin(BasePlugin):
             webhook = get_webhooks_for_event(event_type, app.webhooks.all()).first()
             if not webhook:
                 raise PaymentError(f"No payment webhook found for event: {event_type}.")
-            response_data = trigger_webhook_sync(
-                event_type,
-                webhook_payload,
-                webhook,
-                False,
+            response_data = trigger_webhook_sync_promise(
+                event_type=event_type,
+                static_payload=webhook_payload,
+                webhook=webhook,
+                allow_replica=False,
                 subscribable_object=payment,
-                requestor=self.requestor,
-            )
+                requestor=self._unwrap_requestor(),
+            ).get()
             if response_data is None:
                 continue
 
@@ -3069,24 +3082,20 @@ class WebhookPlugin(BasePlugin):
         amount: Decimal,
         source_object: Union["Order", "Checkout"],
         request: SaleorContext,
-        pregenerated_subscription_payloads: dict | None = None,
-    ):
-        if pregenerated_subscription_payloads is None:
-            pregenerated_subscription_payloads = {}
-
+    ) -> Promise[None]:
         if not webhook.app.identifier:
             logger.debug(
                 "Skipping app with id %s as identifier is not provided.",
                 webhook.app.pk,
             )
-            return
+            return Promise.resolve(None)
 
         if webhook.app.identifier in response_gateway:
             logger.debug(
                 "Skipping next call for %s as app has been already processed.",
                 webhook.app.identifier,
             )
-            return
+            return Promise.resolve(None)
 
         gateway = gateways.get(webhook.app.identifier)
         gateway_data = None
@@ -3099,40 +3108,41 @@ class WebhookPlugin(BasePlugin):
         payload = {"id": source_object_id, "data": gateway_data, "amount": amount}
         subscribable_object = (source_object, gateway_data, amount)
 
-        pregenerated_subscription_payload = get_pregenerated_subscription_payload(
-            webhook, pregenerated_subscription_payloads
-        )
-        response_data = trigger_webhook_sync(
+        def process_response(response_data):
+            error_msg = None
+            if response_data is None:
+                error_msg = "Unable to process a payment gateway response."
+
+            response_data_model = None
+            if response_data:
+                try:
+                    response_data_model = (
+                        PaymentGatewayInitializeSessionSchema.model_validate(
+                            response_data
+                        )
+                    )
+                except ValidationError as e:
+                    response_data = None
+                    error_msg = str(e)
+
+            data = response_data_model.data if response_data_model else None
+            data = cast(JSONValue, data)
+            response_gateway[webhook.app.identifier] = PaymentGatewayData(
+                app_identifier=webhook.app.identifier,
+                data=data,
+                error=error_msg,
+            )
+
+        promised_response = trigger_webhook_sync_promise(
             event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
-            payload=json.dumps(payload, cls=CustomJsonEncoder),
+            static_payload=json.dumps(payload, cls=CustomJsonEncoder),
             webhook=webhook,
             allow_replica=False,
             subscribable_object=subscribable_object,
             request=request,
-            requestor=self.requestor,
-            pregenerated_subscription_payload=pregenerated_subscription_payload,
+            requestor=self._unwrap_requestor(),
         )
-        error_msg = None
-        if response_data is None:
-            error_msg = "Unable to process a payment gateway response."
-
-        response_data_model = None
-        if response_data:
-            try:
-                response_data_model = (
-                    PaymentGatewayInitializeSessionSchema.model_validate(response_data)
-                )
-            except ValidationError as e:
-                response_data = None
-                error_msg = str(e)
-
-        data = response_data_model.data if response_data_model else None
-        data = cast(JSONValue, data)
-        response_gateway[webhook.app.identifier] = PaymentGatewayData(
-            app_identifier=webhook.app.identifier,
-            data=data,
-            error=error_msg,
-        )
+        return promised_response.then(process_response)
 
     def payment_gateway_initialize_session(
         self,
@@ -3155,56 +3165,9 @@ class WebhookPlugin(BasePlugin):
 
         webhooks = get_webhooks_for_event(event_type, apps_identifier=apps_identifiers)
 
-        pregenerated_subscription_payloads: dict[int, dict[str, dict[str, Any]]] = (
-            defaultdict(lambda: defaultdict(dict))
-        )
-
         promises = []
         dataloaders: dict[str, type[DataLoader]] = {}
         request_map: dict[int, SaleorContext] = {}
-
-        for webhook in webhooks:
-            request = request_map.get(webhook.app_id)
-            if not request:
-                request = initialize_request(
-                    app=webhook.app,
-                    requestor=self.requestor,
-                    sync_event=True,
-                    event_type=event_type,
-                    dataloaders=dataloaders,
-                )
-                request_map[webhook.app_id] = request
-
-            if not webhook.subscription_query:
-                continue
-
-            query_hash = get_subscription_query_hash(webhook.subscription_query)
-            app = webhook.app
-
-            gateway = gateways.get(app.identifier)
-            gateway_data = None
-            if gateway:
-                gateway_data = gateway.data
-
-            subscribable_object = (source_object, gateway_data, amount)
-
-            promise_payload = generate_payload_promise_from_subscription(
-                event_type=event_type,
-                subscribable_object=subscribable_object,
-                subscription_query=webhook.subscription_query,
-                request=request,
-            )
-            promises.append(promise_payload)
-
-            def store_payload(
-                payload,
-                app_id=app.pk,
-                query_hash=query_hash,
-            ):
-                if payload:
-                    pregenerated_subscription_payloads[app_id][query_hash] = payload
-
-            promise_payload.then(store_payload)
 
         for webhook in webhooks:
             request = request_map.get(webhook.pk)
@@ -3216,15 +3179,18 @@ class WebhookPlugin(BasePlugin):
                     event_type=event_type,
                     dataloaders=dataloaders,
                 )
-            self._payment_gateway_initialize_session_for_single_webhook(
-                webhook=webhook,
-                gateways=gateways,
-                response_gateway=response_gateway,
-                amount=amount,
-                source_object=source_object,
-                request=request,
-                pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+            promises.append(
+                self._payment_gateway_initialize_session_for_single_webhook(
+                    webhook=webhook,
+                    gateways=gateways,
+                    response_gateway=response_gateway,
+                    amount=amount,
+                    source_object=source_object,
+                    request=request,
+                )
             )
+        # Force to resolve all promises, to get results
+        Promise.all(promises).get()
         return list(response_gateway.values())
 
     def _transaction_session_base(
@@ -3258,33 +3224,14 @@ class WebhookPlugin(BasePlugin):
             transaction_session_data.payment_gateway_data,
         )
 
-        pregenerated_subscription_payload: dict[str, Any] = {}
-        if webhook.subscription_query:
-            app = webhook.app
-            request = initialize_request(
-                app=app,
-                requestor=self.requestor,
-                sync_event=True,
-                event_type=webhook_event,
-            )
-            promise_payload = generate_payload_promise_from_subscription(
-                event_type=webhook_event,
-                subscribable_object=transaction_session_data,
-                subscription_query=webhook.subscription_query,
-                request=request,
-            )
-            if promise_payload:
-                pregenerated_subscription_payload = promise_payload.get() or {}
-
-        response_data = trigger_webhook_sync(
+        response_data = trigger_webhook_sync_promise(
             event_type=webhook_event,
-            payload=payload,
+            static_payload=payload,
             webhook=webhook,
             allow_replica=False,
             subscribable_object=transaction_session_data,
-            requestor=self.requestor,
-            pregenerated_subscription_payload=pregenerated_subscription_payload,
-        )
+            requestor=self._unwrap_requestor(),
+        ).get()
         error_msg = None
         if response_data is None:
             error_msg = "Unable to parse a transaction initialize response."
@@ -3330,48 +3277,55 @@ class WebhookPlugin(BasePlugin):
             checkout = checkout_info.checkout
         event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
         webhooks = get_webhooks_for_event(event_type)
+        promises = []
+
         for webhook in webhooks:
             if not webhook:
                 raise PaymentError(f"No payment webhook found for event: {event_type}.")
 
-            response_data = trigger_webhook_sync(
-                event_type=event_type,
-                payload=generate_list_gateways_payload(currency, checkout),
-                webhook=webhook,
-                allow_replica=False,
-                subscribable_object=checkout,
-                requestor=self.requestor,
-            )
-            if response_data:
-                app_gateways = parse_list_payment_gateways_response(
-                    response_data, webhook.app
+            promises.append(
+                trigger_webhook_sync_promise(
+                    event_type=event_type,
+                    static_payload=generate_list_gateways_payload(currency, checkout),
+                    webhook=webhook,
+                    allow_replica=False,
+                    subscribable_object=checkout,
+                    requestor=self._unwrap_requestor(),
                 )
-                if currency:
-                    app_gateways = [
-                        gtw for gtw in app_gateways if currency in gtw.currencies
-                    ]
-                gateways.extend(app_gateways)
-        currency = checkout.currency if checkout else currency
-        if currency:
-            webhooks = get_webhooks_for_event(
-                WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
             )
-            for webhook in webhooks:
-                app = webhook.app
-                if not app or not app.identifier:
-                    continue
-                name = app.name or ""
-                gateways.append(
-                    PaymentGateway(
-                        id=app.identifier,
-                        name=name,
-                        currencies=[
-                            currency,
-                        ],
-                        config=[],
+
+        def process_responses(data):
+            for webhook, response_data in zip(webhooks, data, strict=True):
+                if response_data:
+                    app_gateways = parse_list_payment_gateways_response(
+                        response_data, webhook.app
                     )
+                    if currency:
+                        app_gateways = [
+                            gtw for gtw in app_gateways if currency in gtw.currencies
+                        ]
+                    gateways.extend(app_gateways)
+            checkout_currency = checkout.currency if checkout else currency
+            if checkout_currency:
+                tr_init_webhooks = get_webhooks_for_event(
+                    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
                 )
-        return gateways
+                for webhook in tr_init_webhooks:
+                    app = webhook.app
+                    if not app or not app.identifier:
+                        continue
+                    name = app.name or ""
+                    gateways.append(
+                        PaymentGateway(
+                            id=app.identifier,
+                            name=name,
+                            currencies=[checkout_currency],
+                            config=[],
+                        )
+                    )
+            return gateways
+
+        return Promise.all(promises).then(process_responses).get()
 
     def transaction_item_metadata_updated(
         self, transaction_item: "TransactionItem", previous_value: None
