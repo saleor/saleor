@@ -35,7 +35,6 @@ from ...translations import error_codes as translatable_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
-from .descriptions import DEPRECATED_IN_3X_ENUM_VALUE
 from .doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
@@ -402,17 +401,18 @@ ProductVariantBulkErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 ProductVariantBulkErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
 
-def collection_error_description(enum):
+def collection_error_deprecation_reason(enum):
     if enum == CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT:
         return (
             "Products without variants can now be assigned to collections. "
-            "This error will never be returned." + DEPRECATED_IN_3X_ENUM_VALUE
+            "This error will never be returned."
         )
     return None
 
 
 CollectionErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    product_error_codes.CollectionErrorCode, description=collection_error_description
+    product_error_codes.CollectionErrorCode,
+    deprecation_reason=collection_error_deprecation_reason,
 )
 CollectionErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
