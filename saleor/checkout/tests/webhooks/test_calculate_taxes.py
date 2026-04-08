@@ -3,7 +3,6 @@ from unittest import mock
 from unittest.mock import ANY
 
 import pytest
-from freezegun import freeze_time
 from promise import Promise
 
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -39,7 +38,6 @@ def test_get_taxes_no_permission(
     assert tax_data is None
 
 
-@freeze_time()
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
@@ -147,7 +145,6 @@ def test_get_taxes_with_app_identifier_invalid_response(
         checkout_calculate_taxes.get_taxes(checkout_info, [], app_identifier).get()
 
 
-@freeze_time()
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
@@ -202,7 +199,6 @@ def test_get_taxes_with_app_identifier(
     )
 
 
-@freeze_time()
 @mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
