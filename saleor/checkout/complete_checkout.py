@@ -572,6 +572,7 @@ def _create_lines_for_order(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
+    site_settings: "SiteSettings",
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
 
@@ -611,6 +612,7 @@ def _create_lines_for_order(
     additional_warehouse_lookup = (
         checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
+    include_shipping_zones = site_settings.use_legacy_shipping_zone_stock_availability
     check_stock_and_preorder_quantity_bulk(
         variants,
         country_code,
@@ -622,6 +624,7 @@ def _create_lines_for_order(
         existing_lines=lines,
         replace=True,
         check_reservations=True,
+        include_shipping_zones=include_shipping_zones,
     )
     voucher = checkout_info.voucher
     voucher_channel_listing = None
@@ -656,6 +659,7 @@ def _prepare_order_data(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
+    site_settings: "SiteSettings",
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
@@ -707,6 +711,7 @@ def _prepare_order_data(
         checkout_info,
         lines,
         prices_entered_with_tax,
+        site_settings=site_settings,
     )
     undiscounted_total = (
         sum(
@@ -840,8 +845,9 @@ def _create_order(
         country_code,
         checkout_info.channel,
         manager,
-        checkout_info.get_delivery_method_info().warehouse_pk,
-        additional_warehouse_lookup,
+        include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
+        collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
+        additional_filter_lookup=additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
     )
@@ -1026,6 +1032,7 @@ def _get_order_data(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=prices_entered_with_tax,
+            site_settings=site_settings,
         )
     except InsufficientStock as e:
         error = prepare_insufficient_stock_checkout_validation_error(e)
@@ -1237,12 +1244,14 @@ def _create_order_lines_from_checkout_lines(
     manager: "PluginsManager",
     order_pk: str | UUID,
     prices_entered_with_tax: bool,
+    site_settings: "SiteSettings",
 ) -> list[OrderLineInfo]:
     order_lines_info = _create_lines_for_order(
         manager,
         checkout_info,
         lines,
         prices_entered_with_tax,
+        site_settings=site_settings,
     )
     order_lines = []
     order_line_discounts: list[OrderLineDiscount] = []
@@ -1265,6 +1274,7 @@ def _handle_allocations_of_order_lines(
     order_lines_info: list[OrderLineInfo],
     manager: "PluginsManager",
     reservation_enabled: bool,
+    include_shipping_zones: bool,
 ):
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
@@ -1275,8 +1285,9 @@ def _handle_allocations_of_order_lines(
         country_code,
         checkout_info.channel,
         manager,
-        checkout_info.get_delivery_method_info().warehouse_pk,
-        additional_warehouse_lookup,
+        include_shipping_zones=include_shipping_zones,
+        collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
+        additional_filter_lookup=additional_warehouse_lookup,
         check_reservations=True,
         checkout_lines=[line.line for line in checkout_lines],
     )
@@ -1485,6 +1496,7 @@ def _create_order_from_checkout(
         manager=manager,
         order_pk=order.pk,
         prices_entered_with_tax=prices_entered_with_tax,
+        site_settings=site_settings,
     )
 
     # update undiscounted order total
@@ -1514,6 +1526,7 @@ def _create_order_from_checkout(
         order_lines_info=order_lines_info,
         manager=manager,
         reservation_enabled=reservation_enabled,
+        include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
     )
 
     # giftcards
@@ -1853,6 +1866,7 @@ def complete_checkout_with_payment(
         checkout_info = fetch_checkout_info(checkout, lines, manager)
         assign_checkout_user(user, checkout_info)
 
+        site_settings = site_settings or Site.objects.get_current().settings
         payment, customer_id, order_data = complete_checkout_pre_payment_part(
             manager=manager,
             checkout_info=checkout_info,
@@ -1862,7 +1876,11 @@ def complete_checkout_with_payment(
             redirect_url=redirect_url,
         )
 
-        _reserve_stocks_without_availability_check(checkout_info, lines)
+        _reserve_stocks_without_availability_check(
+            checkout_info,
+            lines,
+            site_settings.use_legacy_shipping_zone_stock_availability,
+        )
 
     # Process payments out of transaction to unlock stock rows for another user,
     # who potentially can order the same product variants.
@@ -1954,6 +1972,7 @@ def complete_checkout_with_payment(
 def _reserve_stocks_without_availability_check(
     checkout_info: CheckoutInfo,
     lines: list[CheckoutLineInfo],
+    include_shipping_zones: bool,
 ):
     """Add additional temporary reservation for stock.
 
@@ -1961,10 +1980,11 @@ def _reserve_stocks_without_availability_check(
     ordering the same product, in the same time, which is out of stock.
     """
     variants = [line.variant for line in lines]
-    stocks = Stock.objects.get_variants_stocks_for_country(
-        country_code=checkout_info.get_country(),
+    stocks = Stock.objects.get_variants_stocks(
         channel_slug=checkout_info.channel.slug,
         products_variants=variants,
+        country_code=checkout_info.get_country(),
+        include_shipping_zones=include_shipping_zones,
     )
     variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}
 

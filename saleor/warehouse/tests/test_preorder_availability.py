@@ -26,11 +26,17 @@ def test_check_stock_and_preorder_quantity(
     preorder_variant_channel_threshold,
     channel_USD,
 ):
-    check_stock_and_preorder_quantity(variant, "US", channel_USD.slug, 1)
+    check_stock_and_preorder_quantity(
+        variant, "US", channel_USD.slug, 1, include_shipping_zones=True
+    )
     mock_check_stock_quantity.assert_called_once()
 
     check_stock_and_preorder_quantity(
-        preorder_variant_channel_threshold, "US", channel_USD.slug, 1
+        preorder_variant_channel_threshold,
+        "US",
+        channel_USD.slug,
+        1,
+        include_shipping_zones=True,
     )
     mock_check_preorder_threshold.assert_called_once()
     assert (
@@ -68,6 +74,7 @@ def test_check_stock_and_preorder_quantity_bulk(
             [stock_variant_quantity, preorder_quantity, stock_variant_quantity],
             channel_USD.slug,
             global_quantity_limit=global_quantity_limit,
+            include_shipping_zones=True,
         )
 
     mock_check_stock_quantity_bulk.assert_called_once()

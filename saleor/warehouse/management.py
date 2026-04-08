@@ -83,6 +83,8 @@ def allocate_stocks(
     country_code: str,
     channel: "Channel",
     manager: PluginsManager,
+    *,
+    include_shipping_zones: bool,
     collection_point_pk: UUID | None = None,
     additional_filter_lookup: dict[str, Any] | None = None,
     check_reservations: bool = False,
@@ -113,11 +115,14 @@ def allocate_stocks(
 
     # in case of click and collect order, we need to check local or global stock
     # regardless of the country code
-    stocks = (
-        Stock.objects.for_channel_and_click_and_collect(channel_slug)
-        if collection_point_pk
-        else Stock.objects.for_channel_and_country(channel_slug, country_code)
-    )
+    if collection_point_pk:
+        stocks = Stock.objects.for_channel_and_click_and_collect(channel_slug)
+    else:
+        stocks = Stock.objects.for_channel_or_country(
+            channel_slug,
+            country_code,
+            include_shipping_zones=include_shipping_zones,
+        )
 
     stocks = list(
         stock_select_for_update_for_existing_qs(stocks)
@@ -458,7 +463,10 @@ def _reduce_quantity_allocated_for_stocks(
 
 @traced_atomic_transaction()
 def increase_allocations(
-    lines_info: list["OrderLineInfo"], channel: "Channel", manager: PluginsManager
+    lines_info: list["OrderLineInfo"],
+    channel: "Channel",
+    manager: PluginsManager,
+    include_shipping_zones: bool,
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -496,6 +504,7 @@ def increase_allocations(
         country_code,
         channel,
         manager,
+        include_shipping_zones=include_shipping_zones,
     )
 
 

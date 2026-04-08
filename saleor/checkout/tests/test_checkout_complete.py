@@ -84,6 +84,7 @@ def test_create_order_captured_payment_creates_expected_events(
                 checkout_info=checkout_info,
                 lines=lines,
                 prices_entered_with_tax=True,
+                site_settings=site_settings,
             ),
             user=customer_user,
             app=None,
@@ -247,6 +248,7 @@ def test_create_order_captured_payment_creates_expected_events_anonymous_user(
                 checkout_info=checkout_info,
                 lines=lines,
                 prices_entered_with_tax=True,
+                site_settings=site_settings,
             ),
             user=None,
             app=None,
@@ -405,6 +407,7 @@ def test_create_order_preauth_payment_creates_expected_events(
                 checkout_info=checkout_info,
                 lines=lines,
                 prices_entered_with_tax=True,
+                site_settings=site_settings,
             ),
             user=customer_user,
             app=None,
@@ -520,6 +523,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
                 checkout_info=checkout_info,
                 lines=lines,
                 prices_entered_with_tax=True,
+                site_settings=site_settings,
             ),
             user=None,
             app=None,
@@ -590,7 +594,7 @@ def test_create_order_preauth_payment_creates_expected_events_anonymous_user(
 
 
 def test_create_order_insufficient_stock(
-    checkout, customer_user, product_without_shipping
+    checkout, customer_user, product_without_shipping, site_settings
 ):
     variant = product_without_shipping.variants.get()
     manager = get_plugins_manager(allow_replica=False)
@@ -610,12 +614,14 @@ def test_create_order_insufficient_stock(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         )
 
 
 def test_create_order_doesnt_duplicate_order(
     checkout_with_item,
     customer_user,
+    site_settings,
 ):
     checkout = checkout_with_item
     checkout.user = customer_user
@@ -633,6 +639,7 @@ def test_create_order_doesnt_duplicate_order(
         checkout_info=checkout_info,
         lines=lines,
         prices_entered_with_tax=True,
+        site_settings=site_settings,
     )
 
     order_1 = _create_order(
@@ -658,7 +665,7 @@ def test_create_order_doesnt_duplicate_order(
 
 @pytest.mark.parametrize("is_anonymous_user", [True, False])
 def test_create_order_with_gift_card(
-    checkout_with_gift_card, customer_user, is_anonymous_user
+    checkout_with_gift_card, customer_user, is_anonymous_user, site_settings
 ):
     checkout_user = None if is_anonymous_user else customer_user
     checkout = checkout_with_gift_card
@@ -698,6 +705,7 @@ def test_create_order_with_gift_card(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -717,6 +725,7 @@ def test_create_order_with_gift_card_partial_use(
     checkout_with_item,
     gift_card_used,
     customer_user,
+    site_settings,
 ):
     checkout = checkout_with_item
     checkout.user = customer_user
@@ -749,6 +758,7 @@ def test_create_order_with_gift_card_partial_use(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user,
         app=None,
@@ -774,6 +784,7 @@ def test_create_order_with_many_gift_cards(
     gift_card_created_by_staff,
     gift_card,
     customer_user,
+    site_settings,
 ):
     checkout = checkout_with_item
     checkout.user = customer_user
@@ -810,6 +821,7 @@ def test_create_order_with_many_gift_cards(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user,
         app=None,
@@ -838,6 +850,7 @@ def test_create_order_with_many_gift_cards(
 def test_create_order_gift_card_bought(
     send_notification_mock,
     checkout_with_gift_card_items,
+    site_settings,
     payment_txn_captured,
     customer_user,
     is_anonymous_user,
@@ -898,6 +911,7 @@ def test_create_order_gift_card_bought(
                 checkout_info=checkout_info,
                 lines=lines,
                 prices_entered_with_tax=True,
+                site_settings=site_settings,
             ),
             user=customer_user if not is_anonymous_user else None,
             app=None,
@@ -931,6 +945,7 @@ def test_create_order_gift_card_bought(
 def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
     send_notification_mock,
     checkout_with_gift_card_items,
+    site_settings,
     customer_user,
     is_anonymous_user,
     django_capture_on_commit_callbacks,
@@ -974,6 +989,7 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
                 checkout_info=checkout_info,
                 lines=lines,
                 prices_entered_with_tax=True,
+                site_settings=site_settings,
             ),
             user=customer_user if not is_anonymous_user else None,
             app=None,
@@ -994,6 +1010,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     shippable_gift_card_product,
     customer_user,
     is_anonymous_user,
+    site_settings,
 ):
     checkout_user = None if is_anonymous_user else customer_user
     checkout_info = fetch_checkout_info(
@@ -1035,6 +1052,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -1093,6 +1111,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user if not is_anonymous_user else None,
         app=None,
@@ -1103,7 +1122,9 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
     assert not GiftCard.objects.all()
 
 
-def test_note_in_created_order(checkout_with_item, address, customer_user):
+def test_note_in_created_order(
+    checkout_with_item, address, customer_user, site_settings
+):
     checkout_with_item.shipping_address = address
     checkout_with_item.note = "test_note"
     checkout_with_item.tracking_code = "tracking_code"
@@ -1120,6 +1141,7 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user,
         app=None,
@@ -1129,7 +1151,7 @@ def test_note_in_created_order(checkout_with_item, address, customer_user):
 
 
 def test_create_order_with_variant_tracking_false(
-    checkout, customer_user, variant_without_inventory_tracking
+    checkout, customer_user, variant_without_inventory_tracking, site_settings
 ):
     variant = variant_without_inventory_tracking
     checkout.user = customer_user
@@ -1148,6 +1170,7 @@ def test_create_order_with_variant_tracking_false(
         checkout_info=checkout_info,
         lines=lines,
         prices_entered_with_tax=True,
+        site_settings=site_settings,
     )
 
     order_1 = _create_order(
@@ -1165,6 +1188,7 @@ def test_create_order_with_variant_tracking_false(
 def test_create_order_use_translations(
     checkout_with_item,
     customer_user,
+    site_settings,
 ):
     translated_product_name = "French name"
     translated_variant_name = "French variant name"
@@ -1201,6 +1225,7 @@ def test_create_order_use_translations(
         checkout_info=checkout_info,
         lines=lines,
         prices_entered_with_tax=True,
+        site_settings=site_settings,
     )
     order_line = order_data["lines"][0].line
 
@@ -1992,7 +2017,9 @@ def test_process_user_data_for_order_do_not_store_customer_address_saving_addres
     assert not customer_user.addresses.filter(**new_address_data).exists()
 
 
-def test_create_order_update_display_gross_prices(checkout_with_item, customer_user):
+def test_create_order_update_display_gross_prices(
+    checkout_with_item, customer_user, site_settings
+):
     # given
     checkout = checkout_with_item
     channel = checkout.channel
@@ -2010,6 +2037,7 @@ def test_create_order_update_display_gross_prices(checkout_with_item, customer_u
         checkout_info=checkout_info,
         lines=lines,
         prices_entered_with_tax=True,
+        site_settings=site_settings,
     )
 
     # when
@@ -2027,7 +2055,7 @@ def test_create_order_update_display_gross_prices(checkout_with_item, customer_u
 
 
 def test_create_order_store_shipping_prices(
-    checkout_with_items_and_shipping, customer_user
+    checkout_with_items_and_shipping, customer_user, site_settings
 ):
     # given
     checkout = checkout_with_items_and_shipping
@@ -2059,6 +2087,7 @@ def test_create_order_store_shipping_prices(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user,
         app=None,
@@ -2085,6 +2114,7 @@ def test_create_order_store_shipping_prices(
 def test_create_order_store_shipping_prices_with_free_shipping_voucher(
     checkout_with_voucher_free_shipping,
     customer_user,
+    site_settings,
 ):
     # given
     checkout = checkout_with_voucher_free_shipping
@@ -2114,6 +2144,7 @@ def test_create_order_store_shipping_prices_with_free_shipping_voucher(
             checkout_info=checkout_info,
             lines=lines,
             prices_entered_with_tax=True,
+            site_settings=site_settings,
         ),
         user=customer_user,
         app=None,

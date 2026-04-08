@@ -8,6 +8,7 @@ from unittest.mock import ANY, patch, sentinel
 
 import graphene
 import pytest
+from django.contrib.sites.models import Site
 from django.core.serializers.json import DjangoJSONEncoder
 from freezegun import freeze_time
 from prices import Money
@@ -2489,3 +2490,35 @@ def test_generate_product_media_payload(product_media_image):
 
     # then
     assert payload == expected_payload
+
+
+def test_generate_checkout_payload_warehouse_without_shipping_zones(
+    checkout_with_prices, customer_user, site_settings
+):
+    # given
+    checkout = checkout_with_prices
+    checkout.channel.shipping_zones.clear()
+
+    # when
+    payload = json.loads(generate_checkout_payload(checkout, customer_user))[0]
+
+    # then - legacy behavior: no shipping zones means no warehouse
+    assert payload["warehouse_address"] is None
+
+
+def test_generate_checkout_payload_warehouse_without_shipping_zones_excluded_from_stock_calculations(
+    checkout_with_prices, customer_user, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    Site.objects.clear_cache()
+
+    checkout = checkout_with_prices
+    checkout.channel.shipping_zones.clear()
+
+    # when
+    payload = json.loads(generate_checkout_payload(checkout, customer_user))[0]
+
+    # then - flag disabled: warehouse found via channel link despite no shipping zones
+    assert payload["warehouse_address"] is not None

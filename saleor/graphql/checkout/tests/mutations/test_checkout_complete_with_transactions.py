@@ -4,6 +4,7 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models.aggregates import Sum
 from django.test import override_settings
@@ -6000,3 +6001,118 @@ def test_complete_refreshes_shipping_methods_when_stale_and_invalid(
 
     assert Order.objects.count() == 0
     assert mocked_get_or_fetch_checkout_deliveries.called
+
+
+def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    transaction_item_generator,
+    address,
+    checkout_delivery,
+    shipping_method,
+    warehouse,
+    site_settings,
+):
+    """When warehouse has no shipping zones, stock is not found (legacy behavior)."""
+    # given
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.billing_address = address
+    checkout.save()
+
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
+
+    # Clear shipping zones from warehouse, not from channel
+    warehouse.shipping_zones.clear()
+    assert checkout.channel.shipping_zones.exists()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=total.gross.amount
+    )
+    update_checkout_payment_statuses(
+        checkout=checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then - legacy: warehouse has no shipping zones, stock not found
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+
+
+def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_excluded_from_stock_calculations(
+    user_api_client,
+    checkout_with_gift_card,
+    transaction_item_generator,
+    address,
+    customer_user,
+    checkout_delivery,
+    shipping_method,
+    warehouse,
+    site_settings,
+):
+    """When flag is disabled, warehouse shipping zones don't matter for stock."""
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    Site.objects.clear_cache()
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.billing_address = address
+    checkout.user = customer_user
+    checkout.save()
+
+    # Clear shipping zones from warehouse, not from channel
+    warehouse.shipping_zones.clear()
+    assert checkout.channel.shipping_zones.exists()
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+
+    transaction_item_generator(
+        checkout_id=checkout.pk, authorized_value=total.gross.amount
+    )
+    update_checkout_payment_statuses(
+        checkout=checkout,
+        checkout_total_gross=total.gross,
+        checkout_has_lines=bool(lines),
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then - flag disabled: order created despite warehouse having no shipping zones
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert data["order"]

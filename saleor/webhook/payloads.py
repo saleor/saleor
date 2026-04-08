@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 import graphene
+from django.contrib.sites.models import Site
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
@@ -551,10 +552,16 @@ def generate_checkout_payload(
 
     # todo use the most appropriate warehouse
     warehouse = None
-    if checkout.shipping_address:
-        warehouse = Warehouse.objects.for_country_and_channel(
-            checkout.shipping_address.country.code, checkout.channel_id
-        ).first()
+    include_shipping_zones = (
+        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+    )
+    if include_shipping_zones:
+        if checkout.shipping_address:
+            warehouse = Warehouse.objects.for_country_and_channel(
+                checkout.shipping_address.country.code, checkout.channel_id
+            ).first()
+    else:
+        warehouse = Warehouse.objects.for_channel(checkout.channel_id).first()
 
     shipping_method = None
     if checkout.assigned_delivery and not checkout.assigned_delivery.is_external:
@@ -1003,9 +1010,13 @@ def generate_fulfillment_payload(
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        warehouse = Warehouse.objects.for_country_and_channel(
-            order_country, order.channel_id
-        ).first()
+        include_shipping_zones = Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+        if include_shipping_zones:
+            warehouse = Warehouse.objects.for_country_and_channel(
+                order_country, order.channel_id
+            ).first()
+        else:
+            warehouse = Warehouse.objects.for_channel(order.channel_id).first()
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,

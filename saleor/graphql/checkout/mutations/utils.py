@@ -94,6 +94,8 @@ def check_lines_quantity(
     country,
     channel_slug,
     global_quantity_limit,
+    *,
+    calculate_stocks_with_shipping_zones: bool,
     delivery_method_info=None,
     allow_zero_quantity=False,
     existing_lines=None,
@@ -139,6 +141,7 @@ def check_lines_quantity(
             existing_lines=existing_lines,
             replace=replace,
             check_reservations=check_reservations,
+            include_shipping_zones=calculate_stocks_with_shipping_zones,
         )
     except InsufficientStock as e:
         errors = [

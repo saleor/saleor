@@ -1715,8 +1715,13 @@ def test_checkout_lines_add_with_reserved_insufficient_stock(
     ],
 )
 def test_checkout_lines_for_click_and_collect_insufficient_stock(
-    user_api_client, checkout_with_item_for_cc, warehouse_for_cc, cc_option
+    user_api_client,
+    checkout_with_item_for_cc,
+    warehouse_for_cc,
+    cc_option,
+    site_settings,
 ):
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
 
@@ -1760,9 +1765,10 @@ def test_checkout_lines_add_with_zero_quantity(
     assert errors[0]["field"] == "quantity"
 
 
-def test_checkout_lines_add_no_channel_shipping_zones(
-    user_api_client, checkout_with_item, stock
+def test_checkout_lines_add_no_channel_shipping_zones_included_in_stock_calculations(
+    user_api_client, checkout_with_item, stock, site_settings
 ):
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
     variant = stock.product_variant
     checkout = checkout_with_item
     checkout.channel.shipping_zones.clear()
@@ -1783,6 +1789,34 @@ def test_checkout_lines_add_no_channel_shipping_zones(
     assert len(errors) == 1
     assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
     assert errors[0]["field"] == "quantity"
+
+
+def test_checkout_lines_add_no_channel_shipping_zones_excluded_from_stock_calculations(
+    user_api_client, checkout_with_item, stock, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    variant = stock.product_variant
+    checkout = checkout_with_item
+
+    checkout.channel.shipping_zones.clear()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
 
 
 def test_checkout_lines_add_with_unpublished_product(

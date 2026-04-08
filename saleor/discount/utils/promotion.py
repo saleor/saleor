@@ -9,6 +9,7 @@ from uuid import UUID
 
 import graphene
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
 from prices import Money
@@ -335,6 +336,9 @@ def _get_best_gift_reward(
     if not variants:
         return None, None
 
+    include_shipping_zones = (
+        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+    )
     try:
         check_stock_quantity_bulk(
             variants,
@@ -343,6 +347,7 @@ def _get_best_gift_reward(
             channel.slug,
             None,
             database_connection_name=database_connection_name,
+            include_shipping_zones=include_shipping_zones,
         )
     except InsufficientStock as error:
         variant_ids_with_insufficient_stock = {

@@ -1046,3 +1046,100 @@ def test_stock_quantity_is_sum_of_quantities_from_warehouses_that_support_countr
     content = get_graphql_content(response)
 
     assert content["data"]["productVariant"]["quantityAvailable"] == sum_quantities
+
+
+def test_quantity_available_ignores_shipping_zones_excluded_from_stock_calculations(
+    api_client,
+    channel_USD,
+    variant_with_many_stocks_different_shipping_zones,
+    site_settings,
+):
+    # When use_legacy_shipping_zone_stock_availability is False, quantityAvailable
+    # returns the sum of all stocks from channel warehouses, ignoring shipping zones
+    # and country code.
+
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    query = """
+        query ProductVariant($id: ID!, $channel: String!, $country: CountryCode) {
+            productVariant(id: $id, channel: $channel) {
+                quantityWithCountry: quantityAvailable(address: { country: $country })
+                quantityWithoutCountry: quantityAvailable
+            }
+        }
+    """
+
+    variant = variant_with_many_stocks_different_shipping_zones
+    total_quantity = sum(stock.quantity for stock in variant.stocks.all())
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+        "country": "PL",
+    }
+
+    # when
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then - both return the same total, country is ignored
+    assert content["data"]["productVariant"]["quantityWithCountry"] == total_quantity
+    assert content["data"]["productVariant"]["quantityWithoutCountry"] == total_quantity
+
+
+def test_stocks_resolver_ignores_shipping_zones_excluded_from_stock_calculations(
+    staff_api_client,
+    channel_USD,
+    variant_with_many_stocks_different_shipping_zones,
+    site_settings,
+    permission_manage_products,
+):
+    # When use_legacy_shipping_zone_stock_availability is False, stocks resolver
+    # returns stocks from all channel warehouses regardless of shipping zones or address.
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    query = """
+    query ProductVariant($id: ID!, $channel: String!, $country: CountryCode) {
+        productVariant(id: $id, channel: $channel) {
+            stocksWithCountry: stocks(address: { country: $country }) {
+                quantity
+                warehouse {
+                    slug
+                }
+            }
+            stocksWithoutCountry: stocks {
+                quantity
+                warehouse {
+                    slug
+                }
+            }
+        }
+    }
+    """
+
+    variant = variant_with_many_stocks_different_shipping_zones
+    expected_stock_count = variant.stocks.filter(
+        warehouse__channels=channel_USD
+    ).count()
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+        "country": "PL",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then - both return the same stocks, address is ignored
+    stocks_with_country = content["data"]["productVariant"]["stocksWithCountry"]
+    stocks_without_country = content["data"]["productVariant"]["stocksWithoutCountry"]
+    assert len(stocks_with_country) == expected_stock_count
+    assert len(stocks_without_country) == expected_stock_count

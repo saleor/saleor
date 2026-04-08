@@ -106,6 +106,7 @@ class CheckoutLinesAdd(BaseMutation):
             delivery_method_info=delivery_method_info,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(site.settings),
+            calculate_stocks_with_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
         )
 
     @classmethod
@@ -133,6 +134,7 @@ class CheckoutLinesAdd(BaseMutation):
                         site=site, user=info.context.user
                     ),
                     raise_error_for_missing_lines=raise_error_for_missing_lines,
+                    include_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
                 )
             except NonExistingCheckout as e:
                 graphql_id = graphene.Node.to_global_id("Checkout", e.checkout_token)

@@ -1107,6 +1107,37 @@ def test_checkout_create_no_channel_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
+def test_checkout_create_no_channel_shipping_zones_excluded_from_stock_calculations(
+    api_client, stock, graphql_address_data, channel_USD, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    channel_USD.shipping_zones.clear()
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    errors = content["errors"]
+    assert not errors
+    assert content["checkout"]
+
+
 def test_checkout_create_multiple_warehouse(
     api_client, variant_with_many_stocks, graphql_address_data, channel_USD
 ):

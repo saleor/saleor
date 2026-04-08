@@ -392,6 +392,15 @@ class Shop(graphene.ObjectType):
         "the taxes will be calculated, otherwise no tax rate will be applied.",
         required=True,
     )
+    use_legacy_shipping_zone_stock_availability = graphene.Boolean(
+        description=(
+            "When enabled, stock availability is filtered by shipping zones "
+            "and the destination address (legacy behavior). "
+            "When disabled, stock availability is determined only by the direct "
+            "warehouse-channel link, ignoring shipping zones." + ADDED_IN_323
+        ),
+        required=True,
+    )
 
     # legacy settings
     use_legacy_update_webhook_emission = graphene.Boolean(
@@ -673,6 +682,11 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_password_login_mode(_, _info, site):
         return site.settings.password_login_mode
+
+    @staticmethod
+    @load_site_callback
+    def resolve_use_legacy_shipping_zone_stock_availability(_, _info, site):
+        return site.settings.use_legacy_shipping_zone_stock_availability
 
     @staticmethod
     @load_site_callback

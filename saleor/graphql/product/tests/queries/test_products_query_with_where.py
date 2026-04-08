@@ -1385,7 +1385,9 @@ def test_products_filter_by_stock_availability(
     assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
+@pytest.mark.parametrize("include_shipping_zones", [True, False])
 def test_products_filter_by_stock_availability_including_reservations(
+    include_shipping_zones,
     api_client,
     product_list,
     order_line,
@@ -1393,8 +1395,12 @@ def test_products_filter_by_stock_availability_including_reservations(
     channel_USD,
     warehouse_JPY,
     stock,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
     stocks = [product.variants.first().stocks.first() for product in product_list]
     stock.quantity = 50
     stock.product_variant = stocks[2].product_variant
@@ -1443,13 +1449,19 @@ def test_products_filter_by_stock_availability_including_reservations(
     )
 
 
+@pytest.mark.parametrize("include_shipping_zones", [True, False])
 def test_products_filter_by_stock_availability_as_user(
+    include_shipping_zones,
     user_api_client,
     product_list,
     order_line,
     channel_USD,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
     for product in product_list:
         stock = product.variants.first().stocks.first()
         Allocation.objects.create(
@@ -1505,14 +1517,48 @@ def test_products_filter_by_stock_availability_channel_without_shipping_zones(
     assert products[0]["node"]["id"] == product_id
 
 
+def test_products_filter_by_stock_availability_channel_without_shipping_zones_excluded_from_stock_calculations(
+    api_client,
+    product,
+    channel_USD,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    channel_USD.shipping_zones.clear()
+    variables = {
+        "where": {"stockAvailability": "IN_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then - with flag disabled, product is still in stock despite no shipping zones
+    products = content["data"]["products"]["edges"]
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+
+
+@pytest.mark.parametrize("include_shipping_zones", [True, False])
 def test_products_filter_by_stock_availability_only_stock_in_cc_warehouse(
+    include_shipping_zones,
     api_client,
     product,
     order_line,
     channel_USD,
     warehouse_for_cc,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
     variant = product.variants.first()
     variant.stocks.all().delete()
 
@@ -1537,6 +1583,46 @@ def test_products_filter_by_stock_availability_only_stock_in_cc_warehouse(
     assert products[0]["node"]["id"] == graphene.Node.to_global_id(
         "Product", product.id
     )
+
+
+def test_products_filter_by_stock_availability_as_user_shipping_zones_excluded_from_stock_calculations(
+    user_api_client,
+    product_list,
+    order_line,
+    channel_USD,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    for product in product_list:
+        stock = product.variants.first().stocks.first()
+        Allocation.objects.create(
+            order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+        )
+    product = product_list[0]
+    product.variants.first().channel_listings.filter(channel=channel_USD).update(
+        price_amount=None
+    )
+    variables = {
+        "where": {"stockAvailability": "OUT_OF_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then - same result as with flag enabled: allocations make products out of stock
+    product_id = graphene.Node.to_global_id("Product", product_list[1].id)
+    second_product_id = graphene.Node.to_global_id("Product", product_list[2].id)
+
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 2
+    assert products[0]["node"]["id"] == product_id
+    assert products[1]["node"]["id"] == second_product_id
 
 
 @pytest.mark.parametrize(

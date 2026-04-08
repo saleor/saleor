@@ -27,6 +27,7 @@ def test_reserve_stocks(checkout_line, channel_USD):
         COUNTRY_CODE,
         channel_USD,
         timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+        include_shipping_zones=True,
     )
 
     stock.refresh_from_db()
@@ -47,6 +48,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             channel_USD,
             timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
             replace=False,
+            include_shipping_zones=True,
         )
 
     with assert_num_queries(4):
@@ -56,6 +58,7 @@ def test_stocks_reservation_skips_prev_reservation_delete_if_replace_is_disabled
             COUNTRY_CODE,
             channel_USD,
             timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+            include_shipping_zones=True,
         )
 
 
@@ -89,6 +92,7 @@ def test_multiple_stocks_reserved_if_single_stock_is_not_enough_highest_stock_st
         COUNTRY_CODE,
         channel_USD,
         timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+        include_shipping_zones=True,
     )
 
     stock.refresh_from_db()
@@ -158,6 +162,7 @@ def test_multiple_stocks_reserved_if_single_stock_is_not_enough_sorting_order_st
         COUNTRY_CODE,
         channel_USD,
         timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+        include_shipping_zones=True,
     )
 
     # then
@@ -200,6 +205,7 @@ def test_stocks_reservation_removes_previous_reservations_for_checkout(
         COUNTRY_CODE,
         channel_USD,
         timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+        include_shipping_zones=True,
     )
 
     with pytest.raises(Reservation.DoesNotExist):
@@ -223,6 +229,7 @@ def test_stock_reservation_fails_if_there_is_not_enough_stock_available(
             COUNTRY_CODE,
             channel_USD,
             timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+            include_shipping_zones=True,
         )
 
 
@@ -239,6 +246,7 @@ def test_stock_reservation_fails_if_there_is_no_stock(checkout_line, channel_USD
             COUNTRY_CODE,
             channel_USD,
             RESERVATION_LENGTH,
+            include_shipping_zones=True,
         )
 
 
@@ -263,6 +271,7 @@ def test_stock_reservation_accounts_for_order_allocations(
             COUNTRY_CODE,
             channel_USD,
             timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+            include_shipping_zones=True,
         )
 
 
@@ -305,4 +314,56 @@ def test_stock_reservation_accounts_for_order_allocations_and_reservations(
             COUNTRY_CODE,
             channel_USD,
             timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+            include_shipping_zones=True,
         )
+
+
+def test_reserve_stocks_no_shipping_zones_included(checkout_line, channel_USD):
+    # given
+    checkout_line.quantity = 5
+    checkout_line.save()
+
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    stock.quantity = 10
+    stock.save(update_fields=["quantity"])
+
+    channel_USD.shipping_zones.clear()
+
+    # when / then - legacy: no shipping zones means no stock to reserve
+    with pytest.raises(InsufficientStock):
+        reserve_stocks(
+            [checkout_line],
+            [checkout_line.variant],
+            COUNTRY_CODE,
+            channel_USD,
+            timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+            include_shipping_zones=True,
+        )
+
+
+def test_reserve_stocks_no_shipping_zones_excluded_from_stock_calculations(
+    checkout_line, channel_USD
+):
+    # given
+    checkout_line.quantity = 5
+    checkout_line.save()
+
+    stock = Stock.objects.get(product_variant=checkout_line.variant)
+    stock.quantity = 10
+    stock.save(update_fields=["quantity"])
+
+    channel_USD.shipping_zones.clear()
+
+    # when - flag disabled: shipping zones ignored
+    reserve_stocks(
+        [checkout_line],
+        [checkout_line.variant],
+        COUNTRY_CODE,
+        channel_USD,
+        timezone.now() + datetime.timedelta(minutes=RESERVATION_LENGTH),
+        include_shipping_zones=False,
+    )
+
+    # then - reservation created
+    reservation = Reservation.objects.get(checkout_line=checkout_line, stock=stock)
+    assert reservation.quantity_reserved == 5

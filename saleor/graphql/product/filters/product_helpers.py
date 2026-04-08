@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.sites.models import Site
 from django.db.models import Exists, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
@@ -116,11 +117,8 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         .values_list(Sum("quantity_reserved"))
     )
     reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
-    warehouse_pks = list(
-        Warehouse.objects.using(qs.db)
-        .for_channel_with_active_shipping_zone_or_cc(channel_slug)
-        .values_list("pk", flat=True)
-    )
+
+    warehouse_pks = get_available_warehouse_pks_for_product(qs, channel_slug)
     stocks = (
         Stock.objects.using(qs.db)
         .filter(
@@ -141,6 +139,31 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     if stock_availability == StockAvailability.OUT_OF_STOCK.value:  # type: ignore[attr-defined]
         qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
     return qs
+
+
+def get_available_warehouse_pks_for_product(qs, channel_slug):
+    include_shipping_zones = (
+        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+    )
+
+    if include_shipping_zones:
+        warehouse_pks = list(
+            Warehouse.objects.using(qs.db)
+            .for_channel_with_active_shipping_zone_or_cc(channel_slug)
+            .values_list("pk", flat=True)
+        )
+    else:
+        channel = Channel.objects.using(qs.db).filter(slug=channel_slug).first()
+        warehouse_pks = (
+            list(
+                Warehouse.objects.using(qs.db)
+                .for_channel(channel.id)
+                .values_list("pk", flat=True)
+            )
+            if channel
+            else []
+        )
+    return warehouse_pks
 
 
 def filter_categories(qs, _, value):

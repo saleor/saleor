@@ -2352,3 +2352,41 @@ def test_create_checkout_line_discount_objects_for_catalogue_promotions_race_con
 
     # then
     assert CheckoutLineDiscount.objects.count() == 1
+
+
+def test_get_best_gift_reward_warehouse_without_shipping_zones(
+    gift_promotion_rule, channel_USD, warehouse, site_settings
+):
+    # given
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
+    warehouse.shipping_zones.clear()
+
+    rules = [gift_promotion_rule]
+    country = "US"
+
+    # when
+    rule, listing = _get_best_gift_reward(rules, channel_USD, country)
+
+    # then - legacy: warehouse has no shipping zones, gift not available
+    assert rule is None
+    assert listing is None
+
+
+def test_get_best_gift_reward_warehouse_without_shipping_zones_excluded_from_stock_calculations(
+    gift_promotion_rule, channel_USD, warehouse, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    warehouse.shipping_zones.clear()
+
+    rules = [gift_promotion_rule]
+    country = "US"
+
+    # when
+    rule, listing = _get_best_gift_reward(rules, channel_USD, country)
+
+    # then - shipping zones excluded: gift is available
+    assert rule == gift_promotion_rule
+    assert listing is not None

@@ -4,7 +4,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
-from ....warehouse.models import Allocation, Reservation
+from ....warehouse.models import Allocation, Reservation, Warehouse
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
 
@@ -563,3 +563,53 @@ def test_checkout_problems_without_delivery_method(
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
     assert len(content["data"]["checkout"]["problems"]) == 0
+
+
+def test_checkout_problem_insufficient_stock_warehouse_without_shipping_zones(
+    api_client, checkout_with_items_and_shipping, site_settings
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_id = to_global_id_or_none(checkout)
+
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
+
+    # Clear shipping zones from warehouses
+    Warehouse.shipping_zones.through.objects.all().delete()
+
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then - legacy: warehouse has no shipping zones, stock not found
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    problems = content["data"]["checkout"]["problems"]
+    assert len(problems) == checkout.lines.count()
+    problem_types = {problem["__typename"] for problem in problems}
+    assert problem_types == {"CheckoutLineProblemInsufficientStock"}
+
+
+def test_checkout_problem_no_insufficient_stock_warehouse_without_shipping_zones_excluded_from_stock_calculations(
+    api_client, checkout_with_items_and_shipping, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    checkout = checkout_with_items_and_shipping
+    checkout_id = to_global_id_or_none(checkout)
+
+    # Clear shipping zones from warehouses
+    Warehouse.shipping_zones.through.objects.all().delete()
+
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then - flag disabled: no insufficient stock problems
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert not content["data"]["checkout"]["problems"]

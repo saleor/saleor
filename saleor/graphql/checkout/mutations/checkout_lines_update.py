@@ -134,6 +134,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             existing_lines=lines,
             replace=True,
             check_reservations=is_reservation_enabled(site.settings),
+            calculate_stocks_with_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
         )
 
     @classmethod

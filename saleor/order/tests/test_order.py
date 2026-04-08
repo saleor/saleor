@@ -85,6 +85,7 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -97,6 +98,7 @@ def test_add_variant_to_order_adds_line_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     line = order.lines.last()
@@ -117,6 +119,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
     product,
     anonymous_plugins,
     catalogue_promotion_without_rules,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -169,6 +172,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -195,6 +199,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -216,6 +221,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -232,6 +238,7 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     variant = product.variants.get()
     stock = Stock.objects.get(product_variant=variant)
@@ -245,6 +252,7 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     stock.refresh_from_db()
@@ -252,7 +260,9 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-    order_with_lines, anonymous_plugins
+    order_with_lines,
+    anonymous_plugins,
+    site_settings,
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -268,6 +278,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     existing_line.refresh_from_db()
@@ -278,7 +289,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
 
 
 def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
-    order_with_lines, anonymous_plugins
+    order_with_lines, anonymous_plugins, site_settings
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -296,6 +307,7 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     stock.refresh_from_db()
@@ -306,9 +318,7 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
 
 
 def test_add_variant_to_order_adds_line_empty_product_translation(
-    order_with_lines,
-    product,
-    anonymous_plugins,
+    order_with_lines, product, anonymous_plugins, site_settings
 ):
     # given
     order = order_with_lines
@@ -324,6 +334,7 @@ def test_add_variant_to_order_adds_line_empty_product_translation(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -648,7 +659,9 @@ def test_calculate_order_weight(order_with_lines):
     assert calculated_weight == order_weight
 
 
-def test_order_weight_add_more_variant(order_with_lines, anonymous_plugins):
+def test_order_weight_add_more_variant(
+    order_with_lines, anonymous_plugins, site_settings
+):
     variant = order_with_lines.lines.first().variant
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
 
@@ -658,6 +671,7 @@ def test_order_weight_add_more_variant(order_with_lines, anonymous_plugins):
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -670,6 +684,7 @@ def test_order_weight_add_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     variant = product.variants.first()
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
@@ -680,6 +695,7 @@ def test_order_weight_add_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -688,7 +704,7 @@ def test_order_weight_add_new_variant(
     )
 
 
-def test_order_weight_change_line_quantity(staff_user, lines_info):
+def test_order_weight_change_line_quantity(staff_user, lines_info, site_settings):
     app = None
     line_info = lines_info[0]
     new_quantity = line_info.quantity + 2
@@ -701,6 +717,7 @@ def test_order_weight_change_line_quantity(staff_user, lines_info):
         line_info.quantity,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     assert order.weight == _calculate_order_weight_from_lines(order)
 
@@ -716,6 +733,7 @@ def test_get_order_weight_non_existing_product(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     # Removing product should not affect order's weight
     order = order_with_lines
@@ -728,6 +746,7 @@ def test_get_order_weight_non_existing_product(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
     old_weight = order.weight
 
@@ -778,7 +797,9 @@ def test_validate_voucher_in_order_without_voucher(
     mock_validate_voucher.assert_not_called()
 
 
-def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
+def test_ordered_item_change_quantity(
+    staff_user, transactional_db, lines_info, site_settings
+):
     app = None
     order = lines_info[0].line.order
     assert not order.events.count()
@@ -790,6 +811,7 @@ def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
         0,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     change_order_line_quantity(
         staff_user,
@@ -799,12 +821,13 @@ def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
         0,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     assert order.get_total_quantity() == 0
 
 
 def test_change_order_line_quantity_changes_total_prices(
-    staff_user, transactional_db, lines_info
+    staff_user, transactional_db, lines_info, site_settings
 ):
     app = None
     order = lines_info[0].line.order
@@ -819,6 +842,7 @@ def test_change_order_line_quantity_changes_total_prices(
         new_quantity,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     assert line_info.line.total_price == line_info.line.unit_price * new_quantity
 
@@ -1146,6 +1170,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
     product,
     anonymous_plugins,
     catalogue_promotion_without_rules,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -1200,6 +1225,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -1227,6 +1253,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -1247,6 +1274,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -1276,6 +1304,7 @@ def test_add_variant_to_order_adds_translations_in_order_language(
     variant_translation_fr,
     settings,
     anonymous_plugins,
+    site_settings,
 ):
     # given
     language_code = "fr"
@@ -1294,6 +1323,7 @@ def test_add_variant_to_order_adds_translations_in_order_language(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
