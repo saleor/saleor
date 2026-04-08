@@ -1,12 +1,9 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from .....core.tracing import traced_atomic_transaction
 from .....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.error_codes import CollectionErrorCode
-from .....product.utils import get_products_ids_without_variants
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -49,7 +46,6 @@ class CollectionAddProducts(BaseMutation):
             Product,
             qs=models.Product.objects.all(),
         )
-        cls.clean_products(products)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             collection.products.add(*products)
@@ -66,18 +62,3 @@ class CollectionAddProducts(BaseMutation):
         return CollectionAddProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )
-
-    @classmethod
-    def clean_products(cls, products):
-        products_ids_without_variants = get_products_ids_without_variants(products)
-        if products_ids_without_variants:
-            code = CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.value
-            raise ValidationError(
-                {
-                    "products": ValidationError(
-                        "Cannot manage products without variants.",
-                        code=code,
-                        params={"products": products_ids_without_variants},
-                    )
-                }
-            )
