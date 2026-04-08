@@ -23838,6 +23838,12 @@ enum CollectionErrorCode @doc(category: "Products") {
   NOT_FOUND
   REQUIRED
   UNIQUE
+
+  """
+  Products without variants can now be assigned to collections. This error will never be returned.
+  
+  DEPRECATED: this enum value will be removed.
+  """
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
 }
 

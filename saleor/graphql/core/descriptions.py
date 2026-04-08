@@ -9,6 +9,7 @@ DEPRECATED_IN_3X_INPUT = "\n\nDEPRECATED: this field will be removed."
 DEPRECATED_IN_3X_TYPE = "\n\nDEPRECATED: this type will be removed."
 
 DEPRECATED_IN_3X_EVENT = "\n\nDEPRECATED: this event will be removed."
+DEPRECATED_IN_3X_ENUM_VALUE = "\n\nDEPRECATED: this enum value will be removed."
 
 ADDED_IN_318 = "\n\nAdded in Saleor 3.18."
 ADDED_IN_319 = "\n\nAdded in Saleor 3.19."

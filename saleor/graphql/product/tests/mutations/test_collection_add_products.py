@@ -3,7 +3,6 @@ from unittest.mock import patch
 import graphene
 
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
-from .....product.error_codes import CollectionErrorCode
 from ....tests.utils import (
     get_graphql_content,
 )
@@ -101,6 +100,7 @@ def test_add_products_to_collection_on_sale_trigger_discounted_price_recalculati
 def test_add_products_to_collection_with_product_without_variants(
     staff_api_client, collection, product_list, permission_manage_products
 ):
+    # given
     query = COLLECTION_ADD_PRODUCTS_MUTATION
     product_list[0].variants.all().delete()
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
@@ -108,13 +108,14 @@ def test_add_products_to_collection_with_product_without_variants(
         graphene.Node.to_global_id("Product", product.pk) for product in product_list
     ]
     variables = {"id": collection_id, "products": product_ids}
+    products_before = collection.products.count()
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-    error = content["data"]["collectionAddProducts"]["errors"][0]
 
-    assert (
-        error["code"] == CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
-    )
-    assert error["message"] == "Cannot manage products without variants."
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["collectionAddProducts"]["collection"]
+    assert data["products"]["totalCount"] == products_before + len(product_ids)
