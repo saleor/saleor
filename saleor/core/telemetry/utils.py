@@ -37,6 +37,7 @@ class Unit(Enum):
     COST = "{cost}"
     EVENT = "{event}"
     CALL = "{call}"
+    COUNT = "{count}"  # generic unit
 
 
 UNIT_CONVERSIONS: dict[tuple[Unit, Unit], float] = {
