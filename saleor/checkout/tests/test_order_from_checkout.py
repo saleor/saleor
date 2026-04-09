@@ -28,7 +28,8 @@ from ...tests import race_condition
 from .. import CheckoutAuthorizeStatus, calculations
 from ..complete_checkout import create_order_from_checkout
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
-from ..utils import add_variant_to_checkout, add_voucher_to_checkout
+from ..utils import add_voucher_to_checkout
+from .utils import add_variant_to_checkout
 
 
 def test_create_order_insufficient_stock(

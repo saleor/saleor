@@ -45,7 +45,7 @@ from ...channel.models import Channel
 from ...checkout import AddressType
 from ...checkout.fetch import fetch_checkout_info
 from ...checkout.models import Checkout
-from ...checkout.utils import add_variant_to_checkout
+from ...checkout.tests.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, RewardValueType, VoucherType
 from ...discount.models import (

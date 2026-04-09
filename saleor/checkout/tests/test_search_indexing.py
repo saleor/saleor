@@ -21,7 +21,7 @@ from ..search.loaders import (
     CheckoutLineData,
     TransactionData,
 )
-from ..utils import add_variant_to_checkout
+from .utils import add_variant_to_checkout
 
 
 @pytest.fixture

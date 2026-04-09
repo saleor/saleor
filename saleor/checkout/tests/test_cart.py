@@ -11,10 +11,10 @@ from ...product.models import Category
 from .. import calculations, utils
 from ..models import Checkout
 from ..utils import (
-    add_variant_to_checkout,
     calculate_checkout_quantity,
     calculate_checkout_weight,
 )
+from .utils import add_variant_to_checkout
 
 
 @pytest.fixture

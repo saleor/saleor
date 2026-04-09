@@ -42,7 +42,8 @@ from ..complete_checkout import (
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
 from ..payment_utils import update_checkout_payment_statuses
-from ..utils import add_variant_to_checkout, add_voucher_to_checkout
+from ..utils import add_voucher_to_checkout
+from .utils import add_variant_to_checkout
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")

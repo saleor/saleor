@@ -8,7 +8,7 @@ from django.utils import timezone
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.utils import add_variant_to_checkout
+from .....checkout.tests.utils import add_variant_to_checkout
 from .....payment import StorePaymentMethod
 from .....payment.error_codes import PaymentErrorCode
 from .....payment.interface import StorePaymentMethodEnum

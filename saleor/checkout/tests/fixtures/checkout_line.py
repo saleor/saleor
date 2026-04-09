@@ -6,7 +6,7 @@ from django.utils import timezone
 from ....plugins.manager import get_plugins_manager
 from ....warehouse.models import PreorderReservation, Reservation
 from ...fetch import fetch_checkout_info
-from ...utils import add_variant_to_checkout
+from ..utils import add_variant_to_checkout
 
 
 @pytest.fixture

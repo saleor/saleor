@@ -9,7 +9,8 @@ from prices import Money, TaxedMoney
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
+from ....checkout.tests.utils import add_variant_to_checkout
+from ....checkout.utils import calculate_checkout_quantity
 from ....discount.utils.promotion import get_active_catalogue_promotion_rules
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine

@@ -11,8 +11,8 @@ from .....checkout import base_calculations
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.tests.utils import add_variant_to_checkout
 from .....checkout.utils import (
-    add_variant_to_checkout,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
     invalidate_checkout,
