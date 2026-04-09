@@ -43,7 +43,7 @@ jobs:
       - name: Trigger staging deployment for tagged release
         env:
           GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ needs.publish.outputs.version }}
         run: |
           payload=$(
               jq --arg version "$VERSION" --null-input '
