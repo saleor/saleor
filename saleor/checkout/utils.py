@@ -180,7 +180,7 @@ def check_variant_in_stock(
     channel_slug: str,
     quantity: int = 1,
     *,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
     replace: bool = False,
     check_quantity: bool = True,
     checkout_lines: list["CheckoutLine"] | None = None,
@@ -203,7 +203,7 @@ def check_variant_in_stock(
             checkout.get_country(),
             channel_slug,
             new_quantity,
-            include_shipping_zones=include_shipping_zones,
+            include_shipping_zones=calculate_stocks_with_shipping_zones,
             checkout_lines=checkout_lines,
             check_reservations=check_reservations,
         )
@@ -252,7 +252,7 @@ def add_variant_to_checkout(
         quantity=quantity,
         replace=replace,
         check_quantity=check_quantity,
-        include_shipping_zones=calculate_stocks_with_shipping_zones,
+        calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
     )
 
     if force_new_line:
@@ -403,7 +403,7 @@ def add_variants_to_checkout(
                 country_code,
                 channel,
                 reservation_length,
-                include_shipping_zones=calculate_stocks_with_shipping_zones,
+                calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
                 replace=replace_reservations,
             )
 

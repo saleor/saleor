@@ -545,7 +545,7 @@ def get_available_quantity(
     country_code: str,
     channel_slug: str,
     *,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
     checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
 ) -> int:
@@ -554,7 +554,7 @@ def get_available_quantity(
         channel_slug,
         variant,
         country_code=country_code,
-        include_shipping_zones=include_shipping_zones,
+        include_shipping_zones=calculate_stocks_with_shipping_zones,
     )
     if not stocks:
         return 0
@@ -565,14 +565,14 @@ def is_product_in_stock(
     product: "Product",
     country_code: str,
     channel_slug: str,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
 ) -> bool:
     """Check if there is any variant of given product available in given channel."""
     stocks = Stock.objects.get_product_stocks(
         channel_slug,
         product,
         country_code=country_code,
-        include_shipping_zones=include_shipping_zones,
+        include_shipping_zones=calculate_stocks_with_shipping_zones,
     ).annotate_available_quantity()
     return any(stocks.values_list("available_quantity", flat=True))
 

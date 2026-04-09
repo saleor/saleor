@@ -42,7 +42,7 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
         def _resolve_problems(data):
             checkout_infos, checkout_lines, site = data
 
-            include_shipping_zones = (
+            calculate_stocks_with_shipping_zones = (
                 site.settings.use_legacy_shipping_zone_stock_availability
             )
             variant_data_set: set[
@@ -119,7 +119,7 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
                 StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader
                 | StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader
             )
-            if include_shipping_zones:
+            if calculate_stocks_with_shipping_zones:
                 stock_dataloader = StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
                     self.context
                 )

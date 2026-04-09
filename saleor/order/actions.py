@@ -1076,7 +1076,7 @@ def _create_fulfillment_lines(
     gift_card_lines_info: list[GiftCardLineData],
     manager: "PluginsManager",
     *,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
     should_decrease_stock: bool = True,
     allow_stock_to_be_exceeded: bool = False,
 ) -> list[FulfillmentLine]:
@@ -1101,8 +1101,8 @@ def _create_fulfillment_lines(
         should_decrease_stock (Bool): Stocks will get decreased if this is True.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
             Default value is set to `False`.
-        include_shipping_zones (bool): If `True`, stock is filtered by shipping
-            zones (legacy behavior). If `False`, all warehouse stocks in the
+        calculate_stocks_with_shipping_zones (bool): If `True`, stock is filtered by
+            shipping zones (legacy behavior). If `False`, all warehouse stocks in the
             channel are used regardless of shipping zones.
 
     Return:
@@ -1117,7 +1117,7 @@ def _create_fulfillment_lines(
     variants = [line.variant for line in lines if line.variant]
     stocks = (
         Stock.objects.for_channel_or_country(
-            channel_slug, include_shipping_zones=include_shipping_zones
+            channel_slug, include_shipping_zones=calculate_stocks_with_shipping_zones
         )
         .filter(warehouse_id=warehouse_pk, product_variant__in=variants)
         .select_related("product_variant")
@@ -1287,7 +1287,7 @@ def create_fulfillments(
                     manager,
                     should_decrease_stock=auto_approved,
                     allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
-                    include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
+                    calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
                 )
             )
             if tracking_number:

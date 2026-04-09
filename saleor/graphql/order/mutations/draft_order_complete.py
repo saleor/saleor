@@ -219,7 +219,7 @@ class DraftOrderComplete(BaseMutation):
                                 check_reservations=is_reservation_enabled(
                                     site_settings
                                 ),
-                                include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
+                                calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
                             )
                             allocate_preorders(
                                 [line_data],

@@ -555,8 +555,10 @@ def generate_checkout_payload(
     warehouse = None
     context = SaleorContext()
     site = get_site_promise(context).get()
-    include_shipping_zones = site.settings.use_legacy_shipping_zone_stock_availability
-    if include_shipping_zones:
+    calculate_stocks_with_shipping_zones = (
+        site.settings.use_legacy_shipping_zone_stock_availability
+    )
+    if calculate_stocks_with_shipping_zones:
         if checkout.shipping_address:
             warehouse = Warehouse.objects.for_country_and_channel(
                 checkout.shipping_address.country.code, checkout.channel_id
@@ -1013,10 +1015,10 @@ def generate_fulfillment_payload(
     else:
         context = SaleorContext()
         site = get_site_promise(context).get()
-        include_shipping_zones = (
+        calculate_stocks_with_shipping_zones = (
             site.settings.use_legacy_shipping_zone_stock_availability
         )
-        if include_shipping_zones:
+        if calculate_stocks_with_shipping_zones:
             warehouse = Warehouse.objects.for_country_and_channel(
                 order_country, order.channel_id
             ).first()
