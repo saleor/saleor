@@ -9,7 +9,6 @@ from uuid import UUID
 
 import graphene
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
 from prices import Money
@@ -24,6 +23,8 @@ from ...checkout.models import Checkout, CheckoutLine
 from ...core.db.connection import allow_writer
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money
+from ...graphql.core.context import SaleorContext
+from ...graphql.site.dataloaders import get_site_promise
 from ...order.fetch import EditableOrderLineInfo
 from ...order.lock_objects import (
     order_lines_qs_select_for_update,
@@ -336,9 +337,13 @@ def _get_best_gift_reward(
     if not variants:
         return None, None
 
+    context = SaleorContext()
     include_shipping_zones = (
-        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+        get_site_promise(context)
+        .get()
+        .settings.use_legacy_shipping_zone_stock_availability
     )
+
     try:
         check_stock_quantity_bulk(
             variants,

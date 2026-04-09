@@ -822,7 +822,7 @@ def test_update_checkout_lines_with_reservations(
         channel_USD,
         replace_reservations=True,
         reservation_length=5,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     user_api_client.ensure_access_token()
@@ -1321,7 +1321,7 @@ def test_add_checkout_lines_gift_discount_applies(
 
     # when
     user_api_client.ensure_access_token()
-    with django_assert_num_queries(142):
+    with django_assert_num_queries(144):
         response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
 
     # then

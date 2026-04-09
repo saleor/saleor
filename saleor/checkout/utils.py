@@ -7,7 +7,6 @@ from uuid import UUID
 
 import graphene
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -180,6 +179,8 @@ def check_variant_in_stock(
     variant: product_models.ProductVariant,
     channel_slug: str,
     quantity: int = 1,
+    *,
+    include_shipping_zones: bool,
     replace: bool = False,
     check_quantity: bool = True,
     checkout_lines: list["CheckoutLine"] | None = None,
@@ -197,7 +198,6 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        include_shipping_zones = Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
         check_stock_and_preorder_quantity(
             variant,
             checkout.get_country(),
@@ -219,6 +219,7 @@ def add_variant_to_checkout(
     replace: bool = False,
     check_quantity: bool = True,
     force_new_line: bool = False,
+    calculate_stocks_with_shipping_zones: bool = True,
 ):
     """Add a product variant to checkout.
 
@@ -251,6 +252,7 @@ def add_variant_to_checkout(
         quantity=quantity,
         replace=replace,
         check_quantity=check_quantity,
+        include_shipping_zones=calculate_stocks_with_shipping_zones,
     )
 
     if force_new_line:
@@ -304,7 +306,7 @@ def add_variants_to_checkout(
     reservation_length: int | None = None,
     raise_error_for_missing_lines=False,
     *,
-    include_shipping_zones,
+    calculate_stocks_with_shipping_zones: bool,
 ):
     """Add variants to checkout.
 
@@ -401,7 +403,7 @@ def add_variants_to_checkout(
                 country_code,
                 channel,
                 reservation_length,
-                include_shipping_zones=include_shipping_zones,
+                include_shipping_zones=calculate_stocks_with_shipping_zones,
                 replace=replace_reservations,
             )
 
