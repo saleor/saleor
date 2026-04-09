@@ -26,6 +26,6 @@ class AliasCountLimitRule(ValidationRule):
             self.context.report_error(
                 GraphQLError(f"Number of aliases exceed the limit of {self.limit}")
             )
-        else:
+        elif self.alias_count_seen > 0:
             # We only want to record successful requests
             record_graphql_alias_count(self.alias_count_seen)

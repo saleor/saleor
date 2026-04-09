@@ -113,6 +113,8 @@ def test_limits_number_of_aliases(
             """,
             None,
         ),
+        # Shouldn't measure queries without any aliases
+        ("{__typename}", None),
     ],
 )
 def test_metric_recorded(
