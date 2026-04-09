@@ -400,8 +400,19 @@ ProductVariantBulkErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 ProductVariantBulkErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
+
+def collection_error_deprecation_reason(enum):
+    if enum == CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT:
+        return (
+            "Products without variants can now be assigned to collections. "
+            "This error will never be returned."
+        )
+    return None
+
+
 CollectionErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    product_error_codes.CollectionErrorCode
+    product_error_codes.CollectionErrorCode,
+    deprecation_reason=collection_error_deprecation_reason,
 )
 CollectionErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
