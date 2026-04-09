@@ -7,7 +7,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 import graphene
-from django.contrib.sites.models import Site
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
@@ -28,6 +27,8 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..discount.utils.voucher import is_order_level_voucher
+from ..graphql.core.context import SaleorContext
+from ..graphql.site.dataloaders import get_site_promise
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -552,9 +553,9 @@ def generate_checkout_payload(
 
     # todo use the most appropriate warehouse
     warehouse = None
-    include_shipping_zones = (
-        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
-    )
+    context = SaleorContext()
+    site = get_site_promise(context).get()
+    include_shipping_zones = site.settings.use_legacy_shipping_zone_stock_availability
     if include_shipping_zones:
         if checkout.shipping_address:
             warehouse = Warehouse.objects.for_country_and_channel(
@@ -1010,7 +1011,11 @@ def generate_fulfillment_payload(
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        include_shipping_zones = Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+        context = SaleorContext()
+        site = get_site_promise(context).get()
+        include_shipping_zones = (
+            site.settings.use_legacy_shipping_zone_stock_availability
+        )
         if include_shipping_zones:
             warehouse = Warehouse.objects.for_country_and_channel(
                 order_country, order.channel_id
