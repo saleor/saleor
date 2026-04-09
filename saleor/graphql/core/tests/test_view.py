@@ -12,11 +12,13 @@ from graphql.execution.base import ExecutionResult
 from opentelemetry.trace import StatusCode
 
 from .... import __version__ as saleor_version
-from ....graphql.api import backend, schema
-from ....graphql.utils import INTERNAL_ERROR_MESSAGE
-from ....tests.utils import get_span_by_name
+from ....core.telemetry import Scope, Unit
+from ....tests.utils import get_metric_data, get_span_by_name
+from ...api import backend, schema
+from ...metrics import METRIC_GRAPHQL_BATCH_SIZE
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
+from ...utils import INTERNAL_ERROR_MESSAGE
 from ...views import GraphQLView, generate_cache_key
 
 
@@ -101,6 +103,49 @@ def test_rejects_based_on_number_batch_queries(api_client, settings):
         ]
     }
     assert resp.status_code == 400
+
+
+@pytest.mark.parametrize(
+    ("data", "expected_count"),
+    [
+        (
+            [{"query": "{__typename}"}] * 3,
+            3,
+        ),
+        (
+            # Sending too many batched queries should cause the metric to not be recorded
+            [{"query": "{__typename}"}] * 4,
+            None,
+        ),
+        (
+            # Sending only 1 query in a batch shouldn't be recorded as it's effectively
+            # *not* using batch queries
+            [{"query": "{__typename}"}],
+            None,
+        ),
+    ],
+)
+def test_batch_query_size_metric_is_recorded(
+    get_test_metrics_data, rf, settings, data: list[dict], expected_count: int | None
+):
+    settings.GRAPHQL_BATCH_MAX_COUNT = 3
+
+    # Send the request
+    request = rf.post(path="/graphql/", data=data, content_type="application/json")
+    GraphQLView.as_view(backend=backend, schema=schema)(request)
+
+    # Check the metric
+    metrics_data = get_test_metrics_data()
+    metric = get_metric_data(metrics_data, METRIC_GRAPHQL_BATCH_SIZE, scope=Scope.CORE)
+
+    if expected_count is None:
+        assert metric is None, "shouldn't have recorded the metric"
+    else:
+        assert metric is not None, "should have found a metric"
+        data_point = metric.data.data_points[0]
+        assert metric.unit == Unit.COUNT.value
+        assert data_point.attributes == {}
+        assert data_point.max == expected_count
 
 
 def test_graphql_view_query_with_invalid_object_type(
