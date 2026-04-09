@@ -1288,7 +1288,7 @@ def test_fetch_checkout_with_prior_price_change(
         manager=manager,
         lines=lines_info,
         requestor=None,
-    )
+    ).get()
 
     # then
     line.refresh_from_db()
