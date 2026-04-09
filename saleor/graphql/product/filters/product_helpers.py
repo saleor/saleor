@@ -1,6 +1,5 @@
 import datetime
 
-from django.contrib.sites.models import Site
 from django.db.models import Exists, OuterRef, Q, Subquery, Sum
 from django.db.models.expressions import ExpressionWrapper
 from django.db.models.fields import IntegerField
@@ -19,6 +18,8 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ....warehouse.models import Allocation, Reservation, Stock, Warehouse
+from ...core.context import SaleorContext
+from ...site.dataloaders import get_site_promise
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.filters import (
     filter_range_field,
@@ -142,8 +143,11 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
 
 
 def get_available_warehouse_pks_for_product(qs, channel_slug):
+    context = SaleorContext()
     include_shipping_zones = (
-        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+        get_site_promise(context)
+        .get()
+        .settings.use_legacy_shipping_zone_stock_availability
     )
 
     if include_shipping_zones:
