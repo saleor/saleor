@@ -223,7 +223,9 @@ def test_checkout_complete_0_total_value_no_payment(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
     )
     orders_count = Order.objects.count()
     variables = {
@@ -288,7 +290,7 @@ def test_checkout_complete_0_total_value_from_voucher(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     orders_count = Order.objects.count()
     variables = {
@@ -350,7 +352,9 @@ def test_checkout_complete_0_total_value_from_giftcard(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
     )
     orders_count = Order.objects.count()
     variables = {

@@ -7,17 +7,31 @@ import graphene
 from prices import Money
 
 from ..attribute import AttributeEntityType, AttributeInputType
-from ..checkout import base_calculations
 from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
 from ..product.models import Product
-from ..tax.utils import get_charge_taxes_for_checkout
 
 if TYPE_CHECKING:
     # pylint: disable=unused-import
-    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..product.models import ProductVariant
+
+
+def serialize_variant_full_name(
+    variant: "ProductVariant", product: Product | None = None
+) -> str:
+    if product:
+        assert product.id == variant.product_id, (
+            "Product does not belong to provided variant."
+        )
+    else:
+        product = variant.product
+
+    variant_display = str(variant)
+    product_display = (
+        f"{product} ({variant_display})" if variant_display else str(product)
+    )
+    return product_display
 
 
 def serialize_checkout_lines(checkout: "Checkout") -> list[dict]:
@@ -47,52 +61,13 @@ def serialize_checkout_lines(checkout: "Checkout") -> list[dict]:
                 "quantity": line_info.line.quantity,
                 "base_price": str(quantize_price(base_price.amount, currency)),
                 "currency": currency,
-                "full_name": variant.display_product(),
+                "full_name": serialize_variant_full_name(variant),
                 "product_name": product.name,
                 "variant_name": variant.name,
                 "attributes": serialize_variant_attributes(variant),
             }
         )
     return data
-
-
-def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> dict[str, Any]:
-    line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
-    variant = line_info.variant
-    product = variant.product
-    return {
-        "id": line_id,
-        "sku": variant.sku,
-        "variant_id": variant.get_global_id(),
-        "quantity": line_info.line.quantity,
-        "full_name": variant.display_product(),
-        "product_name": product.name,
-        "variant_name": variant.name,
-        "product_metadata": line_info.product.metadata,
-        "product_type_metadata": line_info.product_type.metadata,
-    }
-
-
-def serialize_checkout_lines_for_tax_calculation(
-    checkout_info: "CheckoutInfo",
-    lines: list["CheckoutLineInfo"],
-) -> list[dict]:
-    charge_taxes = get_charge_taxes_for_checkout(checkout_info)
-    return [
-        {
-            **_get_checkout_line_payload_data(line_info),
-            "charge_taxes": charge_taxes,
-            "unit_amount": quantize_price(
-                base_calculations.calculate_base_line_unit_price(line_info).amount,
-                checkout_info.checkout.currency,
-            ),
-            "total_amount": quantize_price(
-                base_calculations.calculate_base_line_total_price(line_info).amount,
-                checkout_info.checkout.currency,
-            ),
-        }
-        for line_info in lines
-    ]
 
 
 def serialize_product_attributes(product: "Product") -> list[dict]:

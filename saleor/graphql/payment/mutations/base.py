@@ -13,6 +13,7 @@ from ....order import models as order_models
 from ...core.enums import TransactionInitializeErrorCode
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
+from ...utils import get_user_or_app_from_context
 
 if TYPE_CHECKING:
     from ....plugins.manager import PluginsManager
@@ -58,7 +59,12 @@ class TransactionSessionBase(BaseMutation):
             if source_object:
                 lines, _ = fetch_checkout_lines(source_object)
                 checkout_info = fetch_checkout_info(source_object, lines, manager)
-                checkout_info, _ = fetch_checkout_data(checkout_info, manager, lines)
+                checkout_info, _ = fetch_checkout_data(
+                    checkout_info,
+                    manager,
+                    lines,
+                    requestor=get_user_or_app_from_context(info.context),
+                ).get()
                 source_object = checkout_info.checkout
         else:
             source_object = (

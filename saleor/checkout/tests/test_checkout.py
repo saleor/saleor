@@ -1172,7 +1172,6 @@ def test_recalculate_checkout_discount_with_promotion(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            address=checkout.shipping_address,
         ).gross.amount
         == discounted_subtotal - voucher_discount
     )
@@ -1346,7 +1345,6 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     ).gross + Money("10.00", "USD")
     checkout.assigned_delivery.save()
 
@@ -1362,13 +1360,11 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert checkout_total == checkout_subtotal
 
@@ -1388,7 +1384,6 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     ).gross - Money("10.00", "USD")
     checkout.assigned_delivery.save()
 
@@ -1404,13 +1399,11 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert checkout_total == checkout_subtotal
 
@@ -1753,7 +1746,6 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1775,7 +1767,6 @@ def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1805,7 +1796,6 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = payment_dummy
     payment.is_active = True

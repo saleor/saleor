@@ -1143,7 +1143,9 @@ def test_checkout_fully_paid(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -1208,7 +1210,9 @@ def test_checkout_fully_paid_pending(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -1282,7 +1286,9 @@ def test_checkout_fully_authorized(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -1347,7 +1353,9 @@ def test_checkout_fully_authorized_pending(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -1845,10 +1853,8 @@ def test_updates_checkout_last_transaction_modified_at(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(
-        checkout_info,
-        plugins_manager,
-        lines,
-    )
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -2529,7 +2535,9 @@ def test_lock_checkout_during_updating_checkout_amounts(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -2590,7 +2598,9 @@ def test_transaction_initialize_checkout_completed_race_condition(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()

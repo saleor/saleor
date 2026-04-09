@@ -630,18 +630,20 @@ def test_automatic_checkout_completion_transaction_flow(
     ).exists()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    assert len(caplog.records) == 2
+    assert len(caplog.records) == 3
     assert caplog.records[0].message == (
         f"Automatic checkout completion triggered for checkout: {checkout_id}."
     )
     assert caplog.records[0].checkout_id == checkout_id
     assert caplog.records[0].levelno == logging.INFO
 
-    assert caplog.records[1].message == (
+    assert "Missing tax configuration for channel" in caplog.records[1].message
+
+    assert caplog.records[2].message == (
         f"Automatic checkout completion succeeded for checkout: {checkout_id}."
     )
-    assert caplog.records[1].checkout_id == checkout_id
-    assert caplog.records[1].levelno == logging.INFO
+    assert caplog.records[2].checkout_id == checkout_id
+    assert caplog.records[2].levelno == logging.INFO
 
 
 def test_automatic_checkout_completion_payment_flow(
@@ -675,18 +677,21 @@ def test_automatic_checkout_completion_payment_flow(
     ).exists()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    assert len(caplog.records) == 2
+
+    assert len(caplog.records) == 3
     assert caplog.records[0].message == (
         f"Automatic checkout completion triggered for checkout: {checkout_id}."
     )
     assert caplog.records[0].checkout_id == checkout_id
     assert caplog.records[0].levelno == logging.INFO
 
-    assert caplog.records[1].message == (
+    assert "Missing tax configuration for channel" in caplog.records[1].message
+
+    assert caplog.records[2].message == (
         f"Automatic checkout completion succeeded for checkout: {checkout_id}."
     )
-    assert caplog.records[1].checkout_id == checkout_id
-    assert caplog.records[1].levelno == logging.INFO
+    assert caplog.records[2].checkout_id == checkout_id
+    assert caplog.records[2].levelno == logging.INFO
 
 
 def test_automatic_checkout_completion_missing_checkout(checkout, caplog):
@@ -819,19 +824,21 @@ def test_automatic_checkout_completion_error_raised(
     # then
     assert Checkout.objects.filter(pk=checkout_pk).exists()
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
-    assert len(caplog.records) == 2
+    assert len(caplog.records) == 3
     assert caplog.records[0].message == (
         f"Automatic checkout completion triggered for checkout: {checkout_id}."
     )
     assert caplog.records[0].checkout_id == checkout_id
     assert caplog.records[0].levelno == logging.INFO
 
-    assert caplog.records[1].message == (
+    assert "Missing tax configuration for channel" in caplog.records[1].message
+
+    assert caplog.records[2].message == (
         f"Automatic checkout completion failed for checkout: {checkout_id}."
     )
-    assert caplog.records[1].checkout_id == checkout_id
-    assert caplog.records[1].error
-    assert caplog.records[1].levelno == logging.WARNING
+    assert caplog.records[2].checkout_id == checkout_id
+    assert caplog.records[2].error
+    assert caplog.records[2].levelno == logging.WARNING
 
 
 def test_automatic_checkout_completion_missing_lines(

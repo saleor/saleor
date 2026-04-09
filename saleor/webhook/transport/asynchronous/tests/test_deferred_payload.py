@@ -38,6 +38,7 @@ def fetch_kwargs(checkout_with_items, plugins_manager):
         ),
         "manager": plugins_manager,
         "lines": lines,
+        "requestor": None,
     }
 
 
@@ -93,7 +94,7 @@ def test_generate_deferred_payload(
 ):
     # given
     checkout = checkout_with_item
-    fetch_checkout_data(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs).get()
     deferred_request_time = datetime.datetime(2020, 10, 5, tzinfo=datetime.UTC)
 
     event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
@@ -149,7 +150,7 @@ def test_generate_deferred_payload_waits_for_replica_to_sync(
 ):
     # given
     checkout = checkout_with_item
-    fetch_checkout_data(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs).get()
     deferred_request_time = datetime.datetime(2020, 10, 5, tzinfo=datetime.UTC)
 
     event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
@@ -195,7 +196,7 @@ def test_generate_deferred_payload_triggers_for_existing_deliveries(
 ):
     # given
     checkout = checkout_with_item
-    fetch_checkout_data(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs).get()
     deferred_request_time = datetime.datetime(2020, 10, 5, tzinfo=datetime.UTC)
 
     event_type = WebhookEventAsyncType.CHECKOUT_UPDATED

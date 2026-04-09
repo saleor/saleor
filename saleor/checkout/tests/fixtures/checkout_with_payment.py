@@ -33,7 +33,6 @@ def checkout_with_charged_payment(checkout_with_billing_address):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy",
@@ -68,7 +67,6 @@ def checkout_with_charged_payment_for_cc(checkout_with_billing_address_for_cc):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy",
@@ -111,7 +109,6 @@ def checkout_preorder_with_charged_payment(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = Payment.objects.create(
         gateway="mirumee.payments.dummy",

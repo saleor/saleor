@@ -667,15 +667,10 @@ def _prepare_order_data(
     """
     checkout = checkout_info.checkout
     order_data = {}
-    address = (
-        checkout_info.shipping_address or checkout_info.billing_address
-    )  # FIXME: check which address we need here
-
     taxed_total = calculations.calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
 
     undiscounted_base_shipping_price = base_checkout_undiscounted_delivery_price(
@@ -686,13 +681,11 @@ def _prepare_order_data(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     shipping_tax_rate = calculations.checkout_shipping_tax_rate(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     order_data.update(
         _process_shipping_data_for_order(
@@ -751,7 +744,6 @@ def _prepare_order_data(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     ).gross
 
     try:
@@ -1096,7 +1088,8 @@ def complete_checkout_pre_payment_part(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
-    user,
+    user: Optional["User"],
+    app: Optional["App"],
     site_settings=None,
     redirect_url=None,
 ) -> tuple[Payment | None, str | None, dict]:
@@ -1109,7 +1102,7 @@ def complete_checkout_pre_payment_part(
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_data(checkout_info, manager, lines)
+    fetch_checkout_data(checkout_info, manager, lines, requestor=app or user).get()
 
     checkout = checkout_info.checkout
     payment = checkout.get_last_active_payment()
@@ -1393,8 +1386,6 @@ def _create_order_from_checkout(
 
     site_settings = Site.objects.get_current().settings
 
-    address = checkout_info.shipping_address or checkout_info.billing_address
-
     reservation_enabled = is_reservation_enabled(site_settings)
     tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -1404,7 +1395,6 @@ def _create_order_from_checkout(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,
-        address=address,
         force_update=force_update,
     )
 
@@ -1425,13 +1415,11 @@ def _create_order_from_checkout(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,
-        address=address,
     )
     shipping_tax_rate = calculations.checkout_shipping_tax_rate(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,
-        address=address,
     )
 
     # status
@@ -1534,7 +1522,6 @@ def _create_order_from_checkout(
         manager=manager,
         checkout_info=checkout_info,
         lines=checkout_lines_info,
-        address=address,
     ).gross
     add_gift_cards_to_order(checkout_info, order, total_without_giftcard, user, app)
 
@@ -1724,11 +1711,8 @@ def complete_checkout(
 
     force_update = checkout_info.checkout.tax_error is not None
     fetch_checkout_data(
-        checkout_info,
-        manager,
-        lines,
-        force_update=force_update,
-    )
+        checkout_info, manager, lines, force_update=force_update, requestor=app or user
+    ).get()
     if checkout_info.checkout.tax_error is not None:
         raise ValidationError(
             "Configured Tax App returned invalid response.",
@@ -1872,6 +1856,7 @@ def complete_checkout_with_payment(
             checkout_info=checkout_info,
             lines=lines,
             user=user,
+            app=app,
             site_settings=site_settings,
             redirect_url=redirect_url,
         )

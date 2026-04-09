@@ -202,7 +202,7 @@ def test_me_query_checkouts_do_not_trigger_sync_tax_webhooks(
         force_update=False,
         lines=lines,
         manager=mock.ANY,
-        pregenerated_subscription_payloads=mock.ANY,
+        requestor=user,
     )
 
 
@@ -254,7 +254,7 @@ def test_me_query_checkouts_calculate_flat_taxes(
         force_update=False,
         lines=lines,
         manager=mock.ANY,
-        pregenerated_subscription_payloads=mock.ANY,
+        requestor=user,
     )
 
 

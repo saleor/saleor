@@ -414,10 +414,7 @@ def test_handle_successful_payment_intent_checkout_with_voucher_ongoing_completi
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    address = customer_user.default_billing_address
-    total = calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
-    )
+    total = calculate_checkout_total_with_gift_cards(manager, checkout_info, lines)
 
     # set voucher usage limit to 1
     voucher_free_shipping.usage_limit = 1

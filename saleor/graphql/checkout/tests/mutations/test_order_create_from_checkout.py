@@ -10,6 +10,7 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
+from promise import Promise
 
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
@@ -184,7 +185,7 @@ def test_order_from_checkout(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -425,7 +426,7 @@ def test_order_from_checkout_with_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -495,7 +496,7 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -600,7 +601,7 @@ def test_order_from_checkout_gift_card_bought(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     amount = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     ).gross.amount
 
     payment_txn_captured.order = None
@@ -1615,7 +1616,7 @@ def test_order_from_checkout_without_inventory_tracking(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     orders_count = Order.objects.count()
@@ -1987,7 +1988,7 @@ def test_order_from_checkout_0_total_value(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     orders_count = Order.objects.count()
@@ -2242,7 +2243,7 @@ def test_order_from_draft_create_with_preorder_variant(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -2616,7 +2617,7 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -2675,7 +2676,7 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -2708,8 +2709,8 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
 
 
 @patch(
-    "saleor.checkout.calculations._get_taxes_for_checkout",
-    side_effect=TaxDataError("Invalid data"),
+    "saleor.checkout.calculations._get_promised_taxes_for_checkout",
+    return_value=Promise.reject(TaxDataError("Invalid data")),
 )
 def test_order_from_checkout_tax_error(
     mocked_get_taxes_for_order,
