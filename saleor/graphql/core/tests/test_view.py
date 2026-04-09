@@ -5,11 +5,14 @@ from unittest import mock
 import graphene
 import pytest
 from django.test import override_settings
+from freezegun import freeze_time
 from graphql.execution.base import ExecutionResult
+from opentelemetry.trace import StatusCode
 
 from .... import __version__ as saleor_version
 from ....graphql.api import backend, schema
 from ....graphql.utils import INTERNAL_ERROR_MESSAGE
+from ....tests.utils import get_span_by_name
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...views import GraphQLView, generate_cache_key
@@ -428,3 +431,39 @@ def test_graphql_view_clears_context(rf, staff_user, product, channel_USD):
     assert json_data["data"]["product"]["category"]["name"] == product.category.name
     assert response.status_code == 200
     assert request.dataloaders == {}
+
+
+def test_marks_slow_queries(rf, get_test_spans):
+    request = rf.post(
+        path="/graphql/",
+        data={"query": "{__typename}"},
+        content_type="application/json",
+    )
+    view = GraphQLView(backend=backend, schema=schema)
+
+    with freeze_time("2025-10-13 12:00:00") as frozen_time:
+        original_handle_query = view._handle_query
+
+        def _inner_handle_query(*args, **kwargs):
+            """Artificially increases the current time by 31 seconds.
+
+            Executes once the GraphQL query is executed so that it
+            is incremented in the middle of the HTTP request (rather than
+            too soon or too late as otherwise it will not measure the duration properly).
+            """
+            frozen_time.tick(delta=31.0)
+            return original_handle_query(*args, **kwargs)
+
+        with patch.object(
+            view, "_handle_query", wraps=_inner_handle_query
+        ) as mocked_handle_query:
+            view.handle_query(request)
+
+    # Sanity check: should have ticked the time
+    mocked_handle_query.assert_called_once()
+    span = get_span_by_name(get_test_spans(), "/graphql/")
+
+    assert span.status.status_code == StatusCode.ERROR
+    assert (
+        span.status.description == "Slow request. Exceeded time limit of 30.0 seconds."
+    )
