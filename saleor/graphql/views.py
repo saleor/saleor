@@ -1,6 +1,7 @@
 import hashlib
 import importlib
 import json
+import time
 from inspect import isclass
 from typing import Any
 from urllib.parse import urljoin
@@ -175,6 +176,7 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
+        request_start_time = time.monotonic()
         with (
             tracer.extract_context(request.headers) as context,
             tracer.start_as_current_span(
@@ -224,6 +226,18 @@ class GraphQLView(View):
             with observability.report_api_call(request) as api_call:
                 api_call.response = response
                 api_call.report()
+
+            request_duration = time.monotonic() - request_start_time
+
+            if request_duration > settings.GRAPHQL_SPANS_MARK_SLOW_AFTER:
+                error_description = f"Slow request. Exceeded time limit of {settings.GRAPHQL_SPANS_MARK_SLOW_AFTER} seconds."
+                error = RuntimeError(error_description)
+                # We want to mark this span as an error to indicate that the user may
+                # have received an HTTP 504 or a poor experience. This increases the
+                # chance of the trace being retained as it is less likely to be dropped
+                # by sampling.
+                span.set_status(status=StatusCode.ERROR, description=error_description)
+                span.record_exception(error)
             return response
 
     def get_response(
