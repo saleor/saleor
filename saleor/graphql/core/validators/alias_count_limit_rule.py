@@ -6,6 +6,8 @@ from graphql.language.ast import Field
 from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
+from ...metrics import record_graphql_alias_count
+
 
 class AliasCountLimitRule(ValidationRule):
     """Limits the number of aliases that can be sent within a query."""
@@ -24,3 +26,6 @@ class AliasCountLimitRule(ValidationRule):
             self.context.report_error(
                 GraphQLError(f"Number of aliases exceed the limit of {self.limit}")
             )
+        elif self.alias_count_seen > 0:
+            # We only want to record successful requests
+            record_graphql_alias_count(self.alias_count_seen)
