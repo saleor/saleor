@@ -1,5 +1,11 @@
 import pytest
 
+from .....core.telemetry import Scope, Unit
+from .....tests.utils import get_metric_data
+from ....api import backend, schema
+from ....metrics import METRIC_GRAPHQL_ALIAS_COUNT
+from ....views import GraphQLView
+
 
 @pytest.mark.parametrize(
     ("_case", "is_valid", "query"),
@@ -80,3 +86,56 @@ def test_limits_number_of_aliases(
             ]
         }
         assert resp.status_code == 400
+
+
+@pytest.mark.parametrize(
+    ("query", "expected_count"),
+    [
+        (
+            """
+                {
+                    alias1: __typename
+                    alias2: __typename
+                    alias3: __typename
+                }
+        """,
+            3,
+        ),
+        (
+            # Sending too many aliases should cause the metric to not be recorded
+            """
+                {
+                    alias1: __typename
+                    alias2: __typename
+                    alias3: __typename
+                    alias4: __typename
+                }
+            """,
+            None,
+        ),
+        # Shouldn't measure queries without any aliases
+        ("{__typename}", None),
+    ],
+)
+def test_metric_recorded(
+    get_test_metrics_data, rf, settings, query: str, expected_count: int | None
+):
+    settings.GRAPHQL_ALIAS_COUNT_LIMIT = 3
+
+    # Send the request
+    data = {"query": query}
+    request = rf.post(path="/graphql/", data=data, content_type="application/json")
+    GraphQLView.as_view(backend=backend, schema=schema)(request)
+
+    # Check the metric
+    metrics_data = get_test_metrics_data()
+    metric = get_metric_data(metrics_data, METRIC_GRAPHQL_ALIAS_COUNT, scope=Scope.CORE)
+
+    if expected_count is None:
+        assert metric is None, "shouldn't have recorded the metric"
+    else:
+        assert metric is not None, "should have found a metric"
+        data_point = metric.data.data_points[0]
+        assert metric.unit == Unit.COUNT.value
+        assert data_point.attributes == {}
+        assert data_point.max == expected_count

@@ -39,6 +39,7 @@ from .context import clear_context, get_context_value
 from .core.validators import validate_query
 from .error import clear_errors
 from .metrics import (
+    record_graphql_batch_size,
     record_graphql_query_cost,
     record_graphql_query_count,
     record_graphql_query_duration,
@@ -182,7 +183,8 @@ class GraphQLView(View):
 
         result: GraphQLOperationResult | None | list[GraphQLOperationResult | None]
         if isinstance(data, list):
-            if len(data) > settings.GRAPHQL_BATCH_MAX_COUNT:
+            batch_size = len(data)
+            if batch_size > settings.GRAPHQL_BATCH_MAX_COUNT:
                 return JsonResponse(
                     data={
                         "errors": [
@@ -193,6 +195,9 @@ class GraphQLView(View):
                     },
                     status=400,
                 )
+            # We only want to record successful requests
+            if batch_size > 1:
+                record_graphql_batch_size(batch_size)
 
             responses = [self.get_response(request, entry) for entry in data]
             result = [response for response, code in responses]
