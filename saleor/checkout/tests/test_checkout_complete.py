@@ -677,13 +677,11 @@ def test_create_order_with_gift_card(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross_without_gift_cards = (
         subtotal.gross + shipping_price.gross - checkout.discount
@@ -734,7 +732,6 @@ def test_create_order_with_gift_card_partial_use(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     gift_card_balance_before_order = gift_card_used.current_balance_amount
 
@@ -791,7 +788,6 @@ def test_create_order_with_many_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     gift_cards_balance_before_order = (
         gift_card_created_by_staff.current_balance.amount
@@ -859,7 +855,9 @@ def test_create_order_gift_card_bought(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     amount = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, customer_user.default_billing_address
+        manager,
+        checkout_info,
+        lines,
     ).gross.amount
 
     payment_txn_captured.order = None
@@ -878,13 +876,11 @@ def test_create_order_gift_card_bought(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
@@ -954,13 +950,11 @@ def test_create_order_gift_card_bought_order_not_captured_gift_cards_not_sent(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
@@ -1017,13 +1011,11 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
@@ -1075,13 +1067,11 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
@@ -1707,7 +1697,7 @@ def test_complete_checkout_checkout_limited_use_voucher_multiple_thread(
     voucher_free_shipping.save(update_fields=["usage_limit"])
 
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     Payment.objects.create(
@@ -1775,7 +1765,7 @@ def test_complete_checkout_checkout_completed_in_the_meantime(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     Payment.objects.create(
@@ -2498,7 +2488,6 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     checkout_with_item,
     checkout_delivery,
     app,
-    address,
     payment_dummy,
 ):
     # given
@@ -2517,7 +2506,7 @@ def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_pa
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     calculation_call_count = mocked_get_tax_calculation_strategy_for_checkout.call_count
 
@@ -2804,8 +2793,8 @@ def test_checkout_complete_with_voucher_0_total(
         voucher_percentage.codes.first(),
     )
     checkout_info, lines = calculations.fetch_checkout_data(
-        checkout_info, manager, lines, force_status_update=True
-    )
+        checkout_info, manager, lines, force_status_update=True, requestor=None
+    ).get()
 
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
     channel.allow_unpaid_orders = True

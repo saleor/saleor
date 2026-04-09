@@ -1,26 +1,22 @@
 import logging
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import graphene
-from django.conf import settings
+from promise import Promise
 
 from ...app.models import App
 from ...core.db.connection import allow_writer
 from ...core.prices import quantize_price
-from ...core.taxes import TaxData, TaxDataError
+from ...core.taxes import TaxData
 from ...discount.utils.voucher import is_order_level_voucher
-from ...graphql.webhook.subscription_payload import initialize_request
-from ...graphql.webhook.utils import get_pregenerated_subscription_payload
-from ...tax.webhooks.parser import parse_tax_data
+from ...tax.utils import get_charge_taxes_for_checkout
+from ...tax.webhooks import shared
 from ...webhook import traced_payload_generator
 from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.payload_serializers import PayloadSerializer
-from ...webhook.serializers import serialize_checkout_lines_for_tax_calculation
-from ...webhook.transport.synchronous.transport import (
-    trigger_taxes_all_webhooks_sync,
-    trigger_webhook_sync,
+from ...webhook.serializers import (
+    serialize_variant_full_name,
 )
-from ...webhook.utils import get_webhooks_for_event
 from .. import base_calculations
 from ..utils import get_checkout_metadata
 
@@ -44,6 +40,45 @@ ADDRESS_FIELDS = (
     "phone",
 )
 CHANNEL_FIELDS = ("slug", "currency_code")
+
+
+def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> dict[str, Any]:
+    line_id = graphene.Node.to_global_id("CheckoutLine", line_info.line.pk)
+    variant = line_info.variant
+    product = line_info.product
+    return {
+        "id": line_id,
+        "sku": variant.sku,
+        "variant_id": variant.get_global_id(),
+        "quantity": line_info.line.quantity,
+        "full_name": serialize_variant_full_name(variant, product=product),
+        "product_name": product.name,
+        "variant_name": variant.name,
+        "product_metadata": line_info.product.metadata,
+        "product_type_metadata": line_info.product_type.metadata,
+    }
+
+
+def serialize_checkout_lines_for_tax_calculation(
+    checkout_info: "CheckoutInfo",
+    lines: list["CheckoutLineInfo"],
+) -> list[dict]:
+    charge_taxes = get_charge_taxes_for_checkout(checkout_info)
+    return [
+        {
+            **_get_checkout_line_payload_data(line_info),
+            "charge_taxes": charge_taxes,
+            "unit_amount": quantize_price(
+                base_calculations.calculate_base_line_unit_price(line_info).amount,
+                checkout_info.checkout.currency,
+            ),
+            "total_amount": quantize_price(
+                base_calculations.calculate_base_line_total_price(line_info).amount,
+                checkout_info.checkout.currency,
+            ),
+        }
+        for line_info in lines
+    ]
 
 
 @allow_writer()
@@ -135,92 +170,19 @@ def generate_checkout_payload_for_tax_calculation(
     return checkout_data
 
 
-def trigger_tax_webhook(
-    app_identifier: str,
-    payload: str,
-    expected_lines_count: int,
-    subscriptable_object=None,
-    requestor: Union["App", "User", None] = None,
-    pregenerated_subscription_payloads: dict | None = None,
-) -> TaxData:
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-
-    if pregenerated_subscription_payloads is None:
-        pregenerated_subscription_payloads = {}
-    app = (
-        App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(
-            identifier=app_identifier,
-            is_active=True,
-        )
-        .order_by("-created_at")
-        .first()
-    )
-    if app is None:
-        msg = "Configured tax app doesn't exist."
-        logger.warning(msg)
-        raise TaxDataError(msg)
-    webhook = get_webhooks_for_event(event_type, apps_ids=[app.id]).first()
-    if webhook is None:
-        msg = "Configured tax app's webhook for taxes calculation doesn't exists."
-        logger.warning(msg)
-        raise TaxDataError(msg)
-
-    request_context = initialize_request(
-        app=app,
-        requestor=requestor,
-        sync_event=event_type in WebhookEventSyncType.ALL,
-        allow_replica=False,
-        event_type=event_type,
-    )
-
-    pregenerated_subscription_payload = get_pregenerated_subscription_payload(
-        webhook, pregenerated_subscription_payloads
-    )
-    response = trigger_webhook_sync(
-        event_type=event_type,
-        webhook=webhook,
-        payload=payload,
-        allow_replica=False,
-        subscribable_object=subscriptable_object,
-        request=request_context,
-        requestor=requestor,
-        pregenerated_subscription_payload=pregenerated_subscription_payload,
-    )
-    return parse_tax_data(event_type, response, expected_lines_count)
-
-
 def get_taxes(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     app_identifier: str | None,
     requestor: Union["App", "User", None] = None,
-    pregenerated_subscription_payloads: dict | None = None,
-) -> TaxData | None:
-    if pregenerated_subscription_payloads is None:
-        pregenerated_subscription_payloads = {}
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    lines_count = len(lines)
-    if app_identifier:
-        return trigger_tax_webhook(
-            app_identifier=app_identifier,
-            payload=generate_checkout_payload_for_tax_calculation(checkout_info, lines),
-            expected_lines_count=lines_count,
-            subscriptable_object=checkout_info.checkout,
-            pregenerated_subscription_payloads=pregenerated_subscription_payloads,
-        )
-
-    # This is deprecated flow, kept to maintain backward compatibility.
-    # In Saleor 4.0 `tax_app_identifier` should be required and the flow should
-    # be dropped.
-    return trigger_taxes_all_webhooks_sync(
-        event_type,
-        lambda: generate_checkout_payload_for_tax_calculation(
-            checkout_info,
-            lines,
+) -> Promise[TaxData | None]:
+    return shared.get_taxes(
+        taxable_object=checkout_info.checkout,
+        event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+        app_identifier=app_identifier,
+        static_payload=generate_checkout_payload_for_tax_calculation(
+            checkout_info, lines
         ),
-        lines_count,
-        checkout_info.checkout,
-        requestor,
-        pregenerated_subscription_payloads=pregenerated_subscription_payloads,
+        lines_count=len(lines),
+        requestor=requestor,
     )

@@ -2718,7 +2718,9 @@ def test_transaction_update_for_checkout_fully_paid(
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -2775,7 +2777,9 @@ def test_transaction_update_for_checkout_fully_authorized(
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -3725,7 +3729,9 @@ def test_lock_checkout_during_updating_checkout_amounts(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     assert checkout.channel.automatically_complete_fully_paid_checkouts is False
 
@@ -3775,7 +3781,9 @@ def test_transaction_update_checkout_completed_race_condition(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     assert checkout.channel.automatically_complete_fully_paid_checkouts is False
 

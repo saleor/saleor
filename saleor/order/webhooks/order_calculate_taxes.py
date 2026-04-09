@@ -17,6 +17,7 @@ from ...tax.webhooks import shared
 from ...webhook import traced_payload_generator
 from ...webhook.event_types import WebhookEventSyncType
 from ...webhook.payload_serializers import PayloadSerializer
+from ...webhook.serializers import serialize_variant_full_name
 from ..models import Order, OrderLine
 
 if TYPE_CHECKING:
@@ -40,7 +41,9 @@ def _generate_order_lines_payload_for_tax_calculation(lines: QuerySet[OrderLine]
         extra_dict_data={
             "variant_id": (lambda line: line.product_variant_id),
             "full_name": (
-                lambda line: line.variant.display_product() if line.variant else None
+                lambda line: (
+                    serialize_variant_full_name(line.variant) if line.variant else None
+                )
             ),
             "product_metadata": (
                 lambda line: line.variant.product.metadata if line.variant else {}

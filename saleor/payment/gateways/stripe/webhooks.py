@@ -195,7 +195,6 @@ def _finalize_checkout(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address or checkout.billing_address,
     )
 
     try:

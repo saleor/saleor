@@ -608,7 +608,7 @@ def test_query_checkouts_do_not_trigger_sync_tax_webhooks_when_variant_not_avail
         force_update=False,
         lines=lines,
         manager=mock.ANY,
-        pregenerated_subscription_payloads=mock.ANY,
+        requestor=staff_api_client.user,
     )
 
 
@@ -715,7 +715,7 @@ def test_query_checkouts_do_not_trigger_sync_tax_webhooks_when_out_of_stock(
         force_update=False,
         lines=lines,
         manager=mock.ANY,
-        pregenerated_subscription_payloads=mock.ANY,
+        requestor=staff_api_client.user,
     )
 
 

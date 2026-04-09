@@ -54,7 +54,7 @@ def test_checkout_add_payment_without_shipping_method_and_not_shipping_required(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     # when
@@ -97,7 +97,7 @@ def test_checkout_add_payment_without_shipping_method_with_shipping_required(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -137,7 +137,7 @@ def test_checkout_add_payment_with_shipping_method_and_shipping_required(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -182,7 +182,7 @@ def test_checkout_add_payment(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     return_url = "https://www.example.com"
     variables = {
@@ -229,7 +229,7 @@ def test_checkout_add_payment_default_amount(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     variables = {
@@ -265,7 +265,7 @@ def test_checkout_add_payment_bad_amount(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     variables = {
@@ -300,7 +300,7 @@ def test_checkout_add_payment_no_checkout_email(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     return_url = "https://www.example.com"
     variables = {
@@ -411,7 +411,7 @@ def test_use_checkout_billing_address_as_payment_billing(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -464,7 +464,7 @@ def test_create_payment_for_checkout_with_active_payments(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -517,7 +517,7 @@ def test_create_payment_with_store(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -551,7 +551,7 @@ def test_create_payment_with_store_as_none(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -587,7 +587,7 @@ def test_create_payment_with_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -625,7 +625,7 @@ def test_checkout_add_payment_no_variant_channel_listings(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     return_url = "https://www.example.com"
     variables = {
@@ -671,7 +671,7 @@ def test_checkout_add_payment_no_product_channel_listings(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     return_url = "https://www.example.com"
     variables = {
@@ -716,7 +716,7 @@ def test_checkout_add_payment_checkout_without_lines(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     return_url = "https://www.example.com"
     variables = {
@@ -754,7 +754,7 @@ def test_checkout_add_payment_run_multiple_times(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -832,7 +832,7 @@ def test_checkout_payment_create_checkout_locked(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     return_url = "https://www.example.com"
     variables = {
@@ -872,7 +872,7 @@ def test_checkout_payment_create_checkout_locked_time_pass(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     return_url = "https://www.example.com"
     variables = {
@@ -910,7 +910,7 @@ def test_checkout_payment_create_is_not_allowed_when_checkout_has_transaction(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     transaction_item_generator(

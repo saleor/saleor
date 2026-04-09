@@ -1,5 +1,4 @@
 import datetime
-from collections import defaultdict
 from unittest import mock
 
 from django.test import override_settings
@@ -328,7 +327,7 @@ def test_pregenerated_payload_with_all_apps_price_entered_without_tax(
     "saleor.webhook.transport.synchronous.transport.generate_payload_from_subscription"
 )
 @mock.patch(
-    "saleor.checkout.calculations.fetch_checkout_data",
+    "saleor.graphql.checkout.dataloaders.calculations.fetch_checkout_data",
     wraps=fetch_checkout_data,
 )
 def test_pregenerated_payload_skipped_when_checkout_not_expired(
@@ -378,6 +377,3 @@ def test_pregenerated_payload_skipped_when_checkout_not_expired(
     mock_generate_payload.assert_not_called()
     mock_request.assert_not_called()
     mock_fetch_checkout_data.assert_called_once()
-    assert mock_fetch_checkout_data.call_args.kwargs[
-        "pregenerated_subscription_payloads"
-    ] == defaultdict(dict)
