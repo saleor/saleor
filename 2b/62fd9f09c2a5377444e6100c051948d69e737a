@@ -1,0 +1,23 @@
+.github/workflows/dispatch-release-pr-manually.yml
+  7293f3133815504c 4-5,7-8,23-24,46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.6",
+  "base_commit_sha": "2b62fd9f09c2a5377444e6100c051948d69e737a",
+  "prompts": {
+    "7293f3133815504c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f51593ec-e3be-46b8-b35d-80630d76fe37",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 8,
+      "total_deletions": 3,
+      "accepted_lines": 7,
+      "overriden_lines": 1
+    }
+  }
+}
