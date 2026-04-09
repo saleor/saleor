@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from promise import Promise
 
@@ -178,7 +177,7 @@ def validate_order_lines(
     country: str,
     errors: T_ERRORS,
     *,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ):
     for line in lines:
@@ -198,7 +197,7 @@ def validate_order_lines(
                     line.quantity,
                     order_line=line,
                     database_connection_name=database_connection_name,
-                    include_shipping_zones=include_shipping_zones,
+                    include_shipping_zones=calculate_stocks_with_shipping_zones,
                 )
             except InsufficientStock as exc:
                 errors["lines"].extend(
@@ -367,6 +366,8 @@ def validate_draft_order(
     lines: Iterable["OrderLine"],
     country: str,
     requestor: Union["App", "User", None],
+    *,
+    calculate_stocks_with_shipping_zones: bool,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     allow_sync_webhooks: bool = True,
 ) -> Promise[None]:
@@ -397,16 +398,13 @@ def validate_draft_order(
             allow_sync_webhooks=allow_sync_webhooks,
         )
     validate_total_quantity(lines, errors)
-    include_shipping_zones = (
-        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
-    )
     validate_order_lines(
         order,
         lines,
         channel,
         country,
         errors,
-        include_shipping_zones=include_shipping_zones,
+        calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         database_connection_name=database_connection_name,
     )
     validate_channel_is_active(channel, errors)
