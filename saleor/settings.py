@@ -869,6 +869,10 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
     ignore_logger("graphql.execution.executor")
 
 
+# Number of seconds after which GraphQL requests will marked
+# as slow (error status)
+GRAPHQL_SPANS_MARK_SLOW_AFTER: float = 30.0
+
 GRAPHQL_PAGINATION_LIMIT = 100
 GRAPHQL_MIDDLEWARE: list[str] = []
 GRAPHQL_BATCH_MAX_COUNT: int = int(os.environ.get("GRAPHQL_BATCH_MAX_COUNT", 1))
