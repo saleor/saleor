@@ -70,3 +70,19 @@ def get_multipart_request_body_with_multiple_files(query, variables, files, map_
         "map": json.dumps(map_dict, cls=DjangoJSONEncoder),
         **{index: file for index, file in enumerate(files)},
     }
+
+
+def get_graphql_span(spans):
+    return next(get_graphql_spans(spans))
+
+
+def get_graphql_spans(spans):
+    return filter(lambda item: item.tags.get("graphql.query_fingerprint"), spans)
+
+
+def get_spans_by_tag(spans, tag_name: str, value: str):
+    return filter(lambda item: item.tags.get(tag_name) == value, spans)
+
+
+def get_first_span_by_tag(spans, tag_name: str, value: str):
+    return next(get_spans_by_tag(spans, tag_name, value))

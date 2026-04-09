@@ -230,13 +230,17 @@ class GraphQLView(View):
 
             if request_duration > settings.GRAPHQL_SPANS_MARK_SLOW_AFTER:
                 error_description = f"Slow request. Exceeded time limit of {settings.GRAPHQL_SPANS_MARK_SLOW_AFTER} seconds."
-                error = RuntimeError(error_description)
                 # We want to mark this span as an error to indicate that the user may
                 # have received an HTTP 504 or a poor experience. This increases the
                 # chance of the trace being retained as it is less likely to be dropped
                 # by sampling.
-                span.set_status(status=StatusCode.ERROR, description=error_description)
-                span.record_exception(error)
+                span.set_tag(opentracing.tags.ERROR, True)
+                span.log_kv(
+                    {
+                        "event": "error",
+                        "message": error_description,
+                    }
+                )
             return response
 
     def get_response(

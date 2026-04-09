@@ -5,13 +5,7 @@ import graphene
 import pytest
 from opentracing.mocktracer import MockTracer
 
-
-def _get_graphql_span(spans):
-    return next(_get_graphql_spans(spans))
-
-
-def _get_graphql_spans(spans):
-    return filter(lambda item: item.tags.get("graphql.query_fingerprint"), spans)
+from .utils import get_graphql_span, get_graphql_spans
 
 
 @patch("saleor.graphql.views.opentracing.global_tracer")
@@ -39,7 +33,7 @@ def test_tracing_query_hashing(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
@@ -77,7 +71,7 @@ def test_tracing_query_hashing_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
@@ -116,7 +110,7 @@ def test_tracing_query_hashing_different_vars_same_checksum(
     fingerprints = list(
         map(
             lambda span: span.tags["graphql.query_fingerprint"],
-            _get_graphql_spans(tracer.finished_spans()),
+            get_graphql_spans(tracer.finished_spans()),
         )
     )
     assert len(fingerprints) == QUERIES
@@ -148,7 +142,7 @@ def test_tracing_query_hashing_unnamed_query(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
@@ -180,7 +174,7 @@ def test_tracing_query_hashing_unnamed_query_no_query_spec(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
@@ -218,7 +212,7 @@ def test_tracing_mutation_hashing(
     staff_api_client.post_graphql(
         mutation, variables, permissions=[permission_manage_orders]
     )
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     hash = hashlib.md5(span.tags["graphql.query"].encode("utf-8")).hexdigest()
@@ -257,7 +251,7 @@ def test_tracing_query_identifier_for_query(
     """
     staff_api_client.user.user_permissions.add(permission_manage_products)
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
     assert span.tags["graphql.query_identifier"] == "me, products"
 
 
@@ -291,7 +285,7 @@ def test_tracing_query_identifier_with_fragment(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     assert span.tags["graphql.query_identifier"] == "products"
@@ -315,7 +309,7 @@ def test_tracing_query_identifier_for_unnamed_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     assert span.tags["graphql.query_identifier"] == "tokenCreate"
@@ -339,7 +333,7 @@ def test_tracing_query_identifier_for_named_mutation(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     assert span.tags["graphql.query_identifier"] == "tokenCreate"
@@ -370,7 +364,7 @@ def test_tracing_query_identifier_for_many_mutations(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     assert span.tags["graphql.query_identifier"] == "deleteWarehouse, tokenCreate"
@@ -394,7 +388,7 @@ def test_tracing_query_identifier_undefined(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     assert span.tags["graphql.query_identifier"] == "undefined"
@@ -425,7 +419,7 @@ def test_tracing_dont_have_app_data_staff_as_requestor(
 
     # when
     staff_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     assert "app.name" not in span.tags
@@ -458,7 +452,7 @@ def test_tracing_have_app_data_app_as_requestor(
 
     # when
     app_api_client.post_graphql(query)
-    span = _get_graphql_span(tracer.finished_spans())
+    span = get_graphql_span(tracer.finished_spans())
 
     # then
     assert span.tags["app.name"] == app.name
