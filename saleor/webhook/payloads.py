@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 import graphene
+from django.contrib.sites.models import Site
 from django.db.models import F, QuerySet, Sum
 from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case
@@ -27,8 +28,6 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..discount.utils.voucher import is_order_level_voucher
-from ..graphql.core.context import SaleorContext
-from ..graphql.site.dataloaders import get_site_promise
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -553,8 +552,10 @@ def generate_checkout_payload(
 
     # todo use the most appropriate warehouse
     warehouse = None
-    context = SaleorContext()
-    site = get_site_promise(context).get()
+
+    # refetch the site to make sure that we have the latest settings
+    Site.objects.clear_cache()
+    site = Site.objects.get_current()
     calculate_stocks_with_shipping_zones = (
         site.settings.use_legacy_shipping_zone_stock_availability
     )
