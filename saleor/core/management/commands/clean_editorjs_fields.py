@@ -23,7 +23,7 @@ from ....product.models import (
     ProductTranslation,
 )
 from ....shipping.models import ShippingMethod, ShippingMethodTranslation
-from ...utils.editorjs import clean_editor_js
+from ...editorjs import clean_editorjs
 
 # ((<model class>, <field to clean>), ...)
 MODELS: tuple[tuple[type[models.Model], str], ...] = (
@@ -199,12 +199,12 @@ class Command(BaseCommand):
                 continue
 
             # Dump to string before cleaning as the object will be mutated
-            before = json.dumps(contents, indent=2)
+            before = json.dumps(contents, indent=2, sort_keys=True)
 
             # Perform the cleaning
 
             try:
-                cleaned = clean_editor_js(contents)
+                cleaned = clean_editorjs(contents)
             except (KeyError, ValidationError, ValueError) as exc:
                 msg = f"Found invalid data for row #{row.pk} ({table_name})"
                 if self.stop_on_error is True:
@@ -217,7 +217,7 @@ class Command(BaseCommand):
                 )
                 continue
 
-            after = json.dumps(cleaned, indent=2)
+            after = json.dumps(cleaned, indent=2, sort_keys=True)
 
             if after == before:
                 continue

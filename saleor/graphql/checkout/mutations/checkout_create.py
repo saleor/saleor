@@ -280,6 +280,9 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             variants, checkout_lines_data
         )
 
+        use_legacy_shipping_zone_stock_availability = (
+            site.settings.use_legacy_shipping_zone_stock_availability
+        )
         check_lines_quantity(
             variants,
             quantities,
@@ -287,6 +290,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             channel.slug,
             site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(site.settings),
+            calculate_stocks_with_shipping_zones=use_legacy_shipping_zone_stock_availability,
         )
         return variants, checkout_lines_data
 
@@ -494,6 +498,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
                     reservation_length=get_reservation_length(
                         site=site, user=info.context.user
                     ),
+                    include_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
                 )
 
             # Save addresses

@@ -220,7 +220,7 @@ def test_update_product(
     expected_other_description_json = other_description_json
     text = expected_other_description_json["blocks"][0]["data"]["text"]
     expected_other_description_json["blocks"][0]["data"]["text"] = strip_tags(text)
-    other_description_json = json.dumps(other_description_json)
+    other_description_json = json.dumps(other_description_json, sort_keys=True)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
@@ -276,7 +276,9 @@ def test_update_product(
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
     assert data["product"]["slug"] == product_slug
-    assert data["product"]["description"] == json.dumps(expected_other_description_json)
+    assert data["product"]["description"] == json.dumps(
+        expected_other_description_json, sort_keys=True
+    )
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert not data["product"]["category"]["name"] == category.name

@@ -1231,7 +1231,6 @@ PRODUCT_VARIANT_UPDATED = """
     }
 """
 
-
 PRODUCT_VARIANT_DELETED = """
     subscription{
       event{
@@ -1289,6 +1288,36 @@ PRODUCT_VARIANT_STOCK_UPDATED = """
           }
           warehouse{
             id
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = """
+    subscription{
+      event{
+        ...on ProductVariantDiscountedPriceUpdated{
+          productVariant{
+            id
+            pricing{
+              price{
+                gross{
+                  amount
+                }
+              }
+            }
+          }
+          channel{
+            slug
+          }
+          previousPrice{
+            amount
+            currency
+          }
+          newPrice{
+            amount
+            currency
           }
         }
       }

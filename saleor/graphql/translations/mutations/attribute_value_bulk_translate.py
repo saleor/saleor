@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
 
 from ....attribute import AttributeInputType, models
-from ....core.utils.editorjs import clean_editor_js
+from ....core.editorjs import editorjs_to_text
 from ....core.utils.text import safe_truncate
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValueTranslation
@@ -138,7 +138,7 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
             attribute = instance.attribute_value.attribute
             if attribute.input_type == AttributeInputType.RICH_TEXT:
                 input_data["name"] = safe_truncate(
-                    clean_editor_js(input_data["rich_text"], to_string=True), 250
+                    editorjs_to_text(input_data["rich_text"]), 250
                 )
             elif attribute.input_type == AttributeInputType.PLAIN_TEXT:
                 input_data["name"] = safe_truncate(input_data["plain_text"], 250)

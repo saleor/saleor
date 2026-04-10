@@ -606,19 +606,13 @@ def description_json():
     return {
         "blocks": [
             {
-                "key": "",
                 "data": {
                     "text": "E-commerce for the PWA era",
                     "level": 2,
                 },
-                "text": "E-commerce for the PWA era",
                 "type": "header",
-                "depth": 0,
-                "entityRanges": [],
-                "inlineStyleRanges": [],
             },
             {
-                "key": "",
                 "data": {
                     "text": (
                         "A modular, high performance e-commerce storefront "
@@ -626,21 +620,14 @@ def description_json():
                     )
                 },
                 "type": "paragraph",
-                "depth": 0,
-                "entityRanges": [],
-                "inlineStyleRanges": [],
             },
             {
-                "key": "",
-                "data": {},
-                "text": "",
+                "data": {
+                    "text": "",
+                },
                 "type": "paragraph",
-                "depth": 0,
-                "entityRanges": [],
-                "inlineStyleRanges": [],
             },
             {
-                "key": "",
                 "data": {
                     "text": (
                         "Saleor is a rapidly-growing open source e-commerce platform "
@@ -653,36 +640,18 @@ def description_json():
                     ),
                 },
                 "type": "paragraph",
-                "depth": 0,
-                "entityRanges": [],
-                "inlineStyleRanges": [],
             },
             {
-                "key": "",
                 "data": {"text": ""},
                 "type": "paragraph",
-                "depth": 0,
-                "entityRanges": [],
-                "inlineStyleRanges": [],
             },
             {
-                "key": "",
                 "data": {
                     "text": "Get Saleor today!",
                 },
                 "type": "paragraph",
-                "depth": 0,
-                "entityRanges": [{"key": 0, "length": 17, "offset": 0}],
-                "inlineStyleRanges": [],
             },
         ],
-        "entityMap": {
-            "0": {
-                "data": {"href": "https://github.com/mirumee/saleor"},
-                "type": "LINK",
-                "mutability": "MUTABLE",
-            }
-        },
     }
 
 
@@ -691,21 +660,15 @@ def other_description_json():
     return {
         "blocks": [
             {
-                "key": "",
                 "data": {
                     "text": (
                         "A GRAPHQL-FIRST <b>ECOMMERCE</b> PLATFORM FOR PERFECTIONISTS"
                     ),
                     "level": 2,
                 },
-                "text": "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS",
                 "type": "header",
-                "depth": 0,
-                "entityRanges": [],
-                "inlineStyleRanges": [],
             },
             {
-                "key": "",
                 "data": {
                     "text": (
                         "Saleor is powered by a GraphQL server running on "
@@ -713,12 +676,8 @@ def other_description_json():
                     ),
                 },
                 "type": "paragraph",
-                "depth": 0,
-                "entityRanges": [],
-                "inlineStyleRanges": [],
             },
         ],
-        "entityMap": {},
     }
 
 

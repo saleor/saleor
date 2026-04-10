@@ -207,11 +207,14 @@ class ChannelsByShippingZoneIdLoader(DataLoader):
             shipping_zone_channel_map[zone_id].append(channel_id)
 
         def map_channels(channels):
-            channel_map = {channel.pk: channel for channel in channels}
+            channel_map = {
+                channel.pk: channel for channel in channels if channel is not None
+            }
             return [
                 [
                     channel_map[channel_id]
                     for channel_id in shipping_zone_channel_map.get(zone_id, [])
+                    if channel_id in channel_map
                 ]
                 for zone_id in keys
             ]

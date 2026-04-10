@@ -11,6 +11,7 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
+from ....product.interface import VariantDiscountedPriceChange
 from ....product.models import Category
 from ....shipping.models import (
     ShippingMethod,
@@ -1546,6 +1547,57 @@ def test_product_variant_stock_updated(
     )
 
     assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_variant_discounted_price_updated(
+    variant_with_many_stocks,
+    channel_USD,
+    subscription_product_variant_discounted_price_updated_webhook,
+):
+    # given
+    webhooks = [subscription_product_variant_discounted_price_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    previous_price = Decimal("10.00")
+    new_price = Decimal("8.00")
+    currency = channel_USD.currency_code
+
+    price_info = VariantDiscountedPriceChange(
+        variant_id=variant.id,
+        channel_slug=channel_USD.slug,
+        previous_price_amount=previous_price,
+        new_price_amount=new_price,
+        currency=currency,
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, price_info, webhooks)
+
+    # then
+    payload = json.loads(deliveries[0].payload.get_payload())
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    assert payload == {
+        "productVariant": {
+            "id": variant_id,
+            "pricing": {
+                "price": {
+                    "gross": {
+                        "amount": variant_channel_listing.discounted_price_amount,
+                    }
+                }
+            },
+        },
+        "channel": {"slug": channel_USD.slug},
+        "previousPrice": {
+            "amount": previous_price,
+            "currency": currency,
+        },
+        "newPrice": {"amount": new_price, "currency": currency},
+    }
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

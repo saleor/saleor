@@ -121,7 +121,7 @@ def test_unable_to_query_nor_mutate_sale_updated_by_promotion_translations_CORE_
     assert promotion_translation_data["language"]["code"] == "PL"
     assert promotion_translation_data["name"] == "Promocja Testowa"
     assert promotion_translation_data["description"] == json.dumps(
-        promotion_translated_description
+        promotion_translated_description, sort_keys=True
     )
 
     # Step 3 - Run mutation saleChannelListingUpdate

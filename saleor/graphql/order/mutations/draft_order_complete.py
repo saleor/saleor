@@ -204,7 +204,7 @@ class DraftOrderComplete(BaseMutation):
                         line=line, quantity=line.quantity, variant=line.variant
                     )
                     order_lines_info.append(line_data)
-                    site = get_site_promise(info.context).get()
+                    site_settings = get_site_promise(info.context).get().settings
                     try:
                         with traced_atomic_transaction():
                             allocate_stocks(
@@ -213,14 +213,15 @@ class DraftOrderComplete(BaseMutation):
                                 channel,
                                 manager,
                                 check_reservations=is_reservation_enabled(
-                                    site.settings
+                                    site_settings
                                 ),
+                                include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
                             )
                             allocate_preorders(
                                 [line_data],
                                 channel.slug,
                                 check_reservations=is_reservation_enabled(
-                                    site.settings
+                                    site_settings
                                 ),
                             )
                     except InsufficientStock as e:

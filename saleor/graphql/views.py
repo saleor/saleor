@@ -1,6 +1,7 @@
 import decimal
 import hashlib
 import importlib
+import time
 from inspect import isclass
 from typing import Any, cast
 from urllib.parse import urljoin
@@ -35,9 +36,10 @@ from ..webhook import observability
 from . import GraphQLOperationResult
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
-from .core.validators.query_cost import validate_query_cost
+from .core.validators import validate_query
 from .error import clear_errors
 from .metrics import (
+    record_graphql_batch_size,
     record_graphql_query_cost,
     record_graphql_query_count,
     record_graphql_query_duration,
@@ -171,12 +173,32 @@ class GraphQLView(View):
             data = self.parse_body(request)
         except ValueError:
             return JsonResponse(
-                data={"errors": [self.format_error("Unable to parse query.")]},
+                data={
+                    "errors": [
+                        self.format_error(GraphQLError("Unable to parse query."))
+                    ]
+                },
                 status=400,
             )
 
         result: GraphQLOperationResult | None | list[GraphQLOperationResult | None]
         if isinstance(data, list):
+            batch_size = len(data)
+            if batch_size > settings.GRAPHQL_BATCH_MAX_COUNT:
+                return JsonResponse(
+                    data={
+                        "errors": [
+                            self.format_error(
+                                GraphQLError("Number of batch queries exceeded.")
+                            )
+                        ]
+                    },
+                    status=400,
+                )
+            # We only want to record successful requests
+            if batch_size > 1:
+                record_graphql_batch_size(batch_size)
+
             responses = [self.get_response(request, entry) for entry in data]
             result = [response for response, code in responses]
             status_code = max((code for response, code in responses), default=200)
@@ -185,6 +207,7 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
+        request_start_time = time.monotonic()
         with (
             tracer.extract_context(request.headers) as context,
             tracer.start_as_current_span(
@@ -234,6 +257,18 @@ class GraphQLView(View):
             with observability.report_api_call(request) as api_call:
                 api_call.response = response
                 api_call.report()
+
+            request_duration = time.monotonic() - request_start_time
+
+            if request_duration > settings.GRAPHQL_SPANS_MARK_SLOW_AFTER:
+                error_description = f"Slow request. Exceeded time limit of {settings.GRAPHQL_SPANS_MARK_SLOW_AFTER} seconds."
+                error = RuntimeError(error_description)
+                # We want to mark this span as an error to indicate that the user may
+                # have received an HTTP 504 or a poor experience. This increases the
+                # chance of the trace being retained as it is less likely to be dropped
+                # by sampling.
+                span.set_status(status=StatusCode.ERROR, description=error_description)
+                span.record_exception(error)
             return response
 
     def get_response(
@@ -379,12 +414,11 @@ class GraphQLView(View):
                     saleor_attributes.SALEOR_SOURCE_SERVICE_NAME, source_service_name
                 )
 
-            query_cost, cost_errors = validate_query_cost(
-                schema,
-                document,
-                variables,
-                COST_MAP,
-                settings.GRAPHQL_QUERY_MAX_COMPLEXITY,
+            query_cost, cost_errors = validate_query(
+                schema=schema,
+                document_ast=document.document_ast,
+                variables=variables,
+                cost_map=COST_MAP,
             )
             span.set_attribute(saleor_attributes.GRAPHQL_OPERATION_COST, query_cost)
 
@@ -486,8 +520,11 @@ class GraphQLView(View):
         if content_type == "application/graphql":
             return {"query": request.body.decode("utf-8")}
         if content_type == "application/json":
-            body = request.body
-            return orjson.loads(body)
+            body = orjson.loads(request.body)
+            if isinstance(body, dict) or isinstance(body, list):
+                return body
+
+            raise ValueError("Invalid query.")
         if content_type in ["application/x-www-form-urlencoded", "multipart/form-data"]:
             return request.POST
         return {}

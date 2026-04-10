@@ -1374,7 +1374,7 @@ def test_update_variant_with_rich_text_attribute(
         "id": variant_id,
         "sku": sku,
         "attributes": [
-            {"id": attr_id, "richText": json.dumps(rich_text)},
+            {"id": attr_id, "richText": json.dumps(rich_text, sort_keys=True)},
         ],
     }
     rich_text_attribute_value.slug = f"{variant.id}_{rich_text_attribute.id}"
@@ -1394,7 +1394,9 @@ def test_update_variant_with_rich_text_attribute(
     assert not content["errors"]
     assert data["sku"] == sku
     assert data["attributes"][-1]["attribute"]["slug"] == rich_text_attribute.slug
-    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(rich_text)
+    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(
+        rich_text, sort_keys=True
+    )
 
     assigned_attributes = data["assignedAttributes"]
     expected_assigned_attribute = {

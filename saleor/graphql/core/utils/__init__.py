@@ -2,16 +2,13 @@ import binascii
 import os
 import secrets
 from dataclasses import dataclass
-from io import BytesIO
 from typing import Literal, NoReturn, overload
 
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from graphene import ObjectType
 from graphql import GraphQLError
-from requests import Response
 
 from ....plugins.const import APP_ID_PREFIX
 from ....thumbnail import FILE_NAME_MAX_LENGTH
@@ -170,22 +167,6 @@ def message_webhook_events(webhook_events: list[WebhookEventInfo]) -> str:
         if event.description:
             description += f": {event.description}"
     return description
-
-
-def create_file_from_response(response: Response, filename: str) -> File:
-    """Create a Django File object from an HTTP response.
-
-    HTTP response should contain the file content. Response should use streaming.
-    https://requests.readthedocs.io/en/latest/user/advanced/#body-content-workflow
-    """
-    # Create a BytesIO object to store the file content
-    file_data = BytesIO()
-    # Write the response content to the BytesIO object
-    file_data.write(response.content)
-    # Move the cursor to the beginning of the BytesIO object
-    file_data.seek(0)
-    # Create a Django File object from the BytesIO object
-    return File(file_data, filename)
 
 
 def validate_and_apply_search_rank_sorting(

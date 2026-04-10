@@ -5,6 +5,7 @@
 !.github
 !.gitignore
 !.vscode
+!.semgrep/
 *.log
 *.pot
 *.pyc

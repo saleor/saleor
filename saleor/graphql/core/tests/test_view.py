@@ -7,17 +7,24 @@ import graphene
 import pytest
 from django.shortcuts import render
 from django.test import override_settings
+from freezegun import freeze_time
 from graphql.execution.base import ExecutionResult
+from opentelemetry.trace import StatusCode
 
 from .... import __version__ as saleor_version
-from ....graphql.api import backend, schema
-from ....graphql.utils import INTERNAL_ERROR_MESSAGE
+from ....core.telemetry import Scope, Unit
+from ....tests.utils import get_metric_data, get_span_by_name
+from ...api import backend, schema
+from ...metrics import METRIC_GRAPHQL_BATCH_SIZE
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
+from ...utils import INTERNAL_ERROR_MESSAGE
 from ...views import GraphQLView, generate_cache_key
 
 
-def test_batch_queries(category, product, api_client, channel_USD):
+def test_batch_queries(category, product, api_client, channel_USD, settings):
+    settings.GRAPHQL_BATCH_MAX_COUNT = 2
+
     query_product = """
         query GetProduct($id: ID!, $channel: String) {
             product(id: $id, channel: $channel) {
@@ -63,6 +70,84 @@ def test_batch_queries(category, product, api_client, channel_USD):
     assert data["category"]["name"] == category.name
 
 
+def test_rejects_based_on_number_batch_queries(api_client, settings):
+    """Verifies the behavior when sending multiple batch queries."""
+
+    # By default, we expect Saleor to disallow batch queries
+    assert settings.GRAPHQL_BATCH_MAX_COUNT == 1
+
+    query = {"query": "{__typename}"}
+    queries = [query]
+
+    # When sending a batch with only 1 query, it should allow it
+    resp = api_client.post(data=queries)
+    resp_data = resp.json()
+    assert isinstance(resp_data, list)
+    assert len(resp_data) == 1
+    resp_data[0].pop("extensions")
+    assert resp_data[0] == {"data": {"__typename": "Query"}}
+
+    # When sending more than 1 query, it should reject
+    queries.append(query)
+    resp = api_client.post(data=queries)
+    assert resp.json() == {
+        "errors": [
+            {
+                "extensions": {
+                    "exception": {
+                        "code": "GraphQLError",
+                    },
+                },
+                "message": "Number of batch queries exceeded.",
+            },
+        ]
+    }
+    assert resp.status_code == 400
+
+
+@pytest.mark.parametrize(
+    ("data", "expected_count"),
+    [
+        (
+            [{"query": "{__typename}"}] * 3,
+            3,
+        ),
+        (
+            # Sending too many batched queries should cause the metric to not be recorded
+            [{"query": "{__typename}"}] * 4,
+            None,
+        ),
+        (
+            # Sending only 1 query in a batch shouldn't be recorded as it's effectively
+            # *not* using batch queries
+            [{"query": "{__typename}"}],
+            None,
+        ),
+    ],
+)
+def test_batch_query_size_metric_is_recorded(
+    get_test_metrics_data, rf, settings, data: list[dict], expected_count: int | None
+):
+    settings.GRAPHQL_BATCH_MAX_COUNT = 3
+
+    # Send the request
+    request = rf.post(path="/graphql/", data=data, content_type="application/json")
+    GraphQLView.as_view(backend=backend, schema=schema)(request)
+
+    # Check the metric
+    metrics_data = get_test_metrics_data()
+    metric = get_metric_data(metrics_data, METRIC_GRAPHQL_BATCH_SIZE, scope=Scope.CORE)
+
+    if expected_count is None:
+        assert metric is None, "shouldn't have recorded the metric"
+    else:
+        assert metric is not None, "should have found a metric"
+        data_point = metric.data.data_points[0]
+        assert metric.unit == Unit.COUNT.value
+        assert data_point.attributes == {}
+        assert data_point.max == expected_count
+
+
 def test_graphql_view_query_with_invalid_object_type(
     staff_api_client, product, permission_manage_orders, graphql_log_handler
 ):
@@ -96,12 +181,17 @@ def test_graphql_view_not_allowed(method, client):
     assert response.status_code == 405
 
 
+@override_settings(DEBUG=False)
 def test_invalid_request_body_non_debug(client):
     data = "invalid-data"
     response = client.post(API_PATH, data, content_type="application/json")
     assert response.status_code == 400
     content = get_graphql_content_from_response(response)
-    assert "errors" in content
+    errors = content.get("errors")
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Unable to parse query."
+    assert errors[0]["extensions"]["exception"]["code"] == "GraphQLError"
+    assert "stacktrace" not in errors[0]["extensions"]["exception"]
 
 
 @override_settings(DEBUG=True)
@@ -111,12 +201,47 @@ def test_invalid_request_body_with_debug(client):
     assert response.status_code == 400
     content = get_graphql_content_from_response(response)
     errors = content.get("errors")
-    assert errors == [
-        {
-            "extensions": {"exception": {"code": "str", "stacktrace": []}},
-            "message": "Unable to parse query.",
-        }
-    ]
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Unable to parse query."
+    assert errors[0]["extensions"]["exception"]["code"] == "GraphQLError"
+    assert "stacktrace" in errors[0]["extensions"]["exception"]
+
+
+@pytest.mark.parametrize("debug", [True, False])
+def test_invalid_request_body_error_is_not_logged(client, caplog, settings, debug):
+    # given
+    settings.DEBUG = debug
+    data = "invalid-data"
+
+    # when
+    with caplog.at_level(logging.ERROR, logger="saleor.graphql.errors.unhandled"):
+        client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    assert caplog.records == []
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        '""',
+        "123",
+        "1.5",
+        "true",
+        "false",
+        "null",
+    ],
+)
+def test_unexpected_types_in_json_request_body(client, data):
+    # when
+    response = client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert response.status_code == 400
+    errors = content.get("errors")
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Unable to parse query."
 
 
 def test_invalid_query(api_client):
@@ -414,4 +539,40 @@ def test_playground_is_rendered_with_proper_api_url_if_public_url_is_set(
             "api_url": f"{expected_url_base}/graphql/",
             "plugins_url": f"{expected_url_base}/plugins/",
         },
+    )
+
+
+def test_marks_slow_queries(rf, get_test_spans):
+    request = rf.post(
+        path="/graphql/",
+        data={"query": "{__typename}"},
+        content_type="application/json",
+    )
+    view = GraphQLView(backend=backend, schema=schema)
+
+    with freeze_time("2025-10-13 12:00:00") as frozen_time:
+        original_handle_query = view._handle_query
+
+        def _inner_handle_query(*args, **kwargs):
+            """Artificially increases the current time by 31 seconds.
+
+            Executes once the GraphQL query is executed so that it
+            is incremented in the middle of the HTTP request (rather than
+            too soon or too late as otherwise it will not measure the duration properly).
+            """
+            frozen_time.tick(delta=31.0)
+            return original_handle_query(*args, **kwargs)
+
+        with patch.object(
+            view, "_handle_query", wraps=_inner_handle_query
+        ) as mocked_handle_query:
+            view.handle_query(request)
+
+    # Sanity check: should have ticked the time
+    mocked_handle_query.assert_called_once()
+    span = get_span_by_name(get_test_spans(), "/graphql/")
+
+    assert span.status.status_code == StatusCode.ERROR
+    assert (
+        span.status.description == "Slow request. Exceeded time limit of 30.0 seconds."
     )

@@ -133,6 +133,10 @@ class SiteSettings(ModelWithMetadata):
             "`productVariantMetadataUpdated`) are sent."
         ),
     )
+    use_legacy_shipping_zone_stock_availability = models.BooleanField(
+        default=False,
+        db_default=True,
+    )
 
     class Meta:
         permissions = (

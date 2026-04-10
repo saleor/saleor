@@ -2177,6 +2177,60 @@ def test_query_product_media_by_id_zero_size_value_original_image_returned(
     )
 
 
+def test_query_product_media_by_id_without_image_returns_thumbnail_proxy_url(
+    user_api_client, product, channel_USD
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product.media.create(image=None)
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"https://example.com/thumbnail/{media_id}/128/"
+    )
+
+
+def test_query_product_media_by_id_without_image_zero_size_returns_original_image_proxy_url(
+    user_api_client, product, channel_USD
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product.media.create(image=None)
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 0,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"https://example.com/image/{media_id}/"
+    )
+
+
 QUERY_PRODUCT_IN_FEDERATION = """
 query GetProductInFederation($representations: [_Any!]!) {
   _entities(representations: $representations) {

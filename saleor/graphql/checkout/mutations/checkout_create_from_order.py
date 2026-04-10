@@ -327,6 +327,7 @@ class CheckoutCreateFromOrder(BaseMutation):
                 order.channel.slug,
                 site.settings.limit_quantity_per_checkout,
                 check_reservations=is_reservation_enabled(site.settings),
+                include_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
             )
             valid_order_lines = available_order_lines
         except InsufficientStock as e:
@@ -419,6 +420,7 @@ class CheckoutCreateFromOrder(BaseMutation):
                 reservation_length=get_reservation_length(
                     site=site, user=info.context.user
                 ),
+                include_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
             )
         apply_gift_reward_if_applicable_on_checkout_creation(checkout)
         return CheckoutCreateFromOrder(

@@ -2137,7 +2137,10 @@ def test_create_variant_invalid_variant_attributes(
                     "id": size_attr_id,
                     "values": [non_existent_attr_value, size_value_slug],
                 },
-                {"id": rich_text_attr_id, "richText": json.dumps(dummy_editorjs(" "))},
+                {
+                    "id": rich_text_attr_id,
+                    "richText": json.dumps(dummy_editorjs(" "), sort_keys=True),
+                },
             ],
             "trackInventory": True,
         }
@@ -2311,7 +2314,9 @@ def test_create_variant_with_rich_text_attribute(
     assert not content["errors"]
     assert data["name"] == sku
     assert data["sku"] == sku
-    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(rich_text)
+    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(
+        rich_text, sort_keys=True
+    )
 
     assigned_attributes = data["assignedAttributes"]
     expected_assigned_attribute = {

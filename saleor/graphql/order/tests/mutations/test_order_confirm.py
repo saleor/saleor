@@ -698,6 +698,7 @@ def test_order_confirm_triggers_webhooks(
                         "requestor_model_name": "account.user",
                         "requestor_object_id": staff_api_client.user.pk,
                         "request_time": None,
+                        "subscribable_object_data": None,
                     },
                     "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
                     "telemetry_context": ANY,

@@ -1,29 +1,19 @@
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 
-from .....core.exceptions import UnsupportedMediaProviderException
-from .....core.http_client import HTTPClient
-from .....core.utils.validators import get_oembed_data
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
-from .....thumbnail.utils import get_filename_from_url
+from .....product.tasks import fetch_product_media_image_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
-from ....core.utils import create_file_from_response
-from ....core.validators.file import (
-    clean_image_file,
-    get_mime_type,
-    is_image_mimetype,
-    is_valid_image_content_type,
-)
+from ....core.validators.file import clean_image_file
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import ALT_CHAR_LIMIT
+from ...utils import probe_media_url, validate_media_input
 
 
 class ProductMediaCreateInput(BaseInputObjectType):
@@ -64,36 +54,13 @@ class ProductMediaCreate(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def validate_input(cls, data):
-        image = data.get("image")
-        media_url = data.get("media_url")
-        alt = data.get("alt")
-
-        if not image and not media_url:
+    def validate_input(cls, input):
+        if not input.get("product"):
             raise ValidationError(
                 {
-                    "input": ValidationError(
-                        "Image or external URL is required.",
+                    "product": ValidationError(
+                        "Product ID is required.",
                         code=ProductErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-        if image and media_url:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "Either image or external URL is required.",
-                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    )
-                }
-            )
-
-        if alt and len(alt) > ALT_CHAR_LIMIT:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
-                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
@@ -103,6 +70,22 @@ class ProductMediaCreate(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, input
     ):
         cls.validate_input(input)
+
+        image = input.get("image")
+        media_url = input.get("media_url")
+        alt = input.get("alt") or ""
+
+        if error := validate_media_input(image, media_url, alt, ProductErrorCode):
+            error_message, error_code, _ = error
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        error_message,
+                        code=error_code,
+                    )
+                }
+            )
+
         product = cls.get_node_or_error(
             info,
             input["product"],
@@ -111,63 +94,31 @@ class ProductMediaCreate(BaseMutation):
             qs=models.Product.objects.all(),
         )
 
-        # Replace null alt value with an empty string to satisfy DB constraints
-        alt = input.get("alt") or ""
-        media_url = input.get("media_url")
         media = None
-        if img_data := input.get("image"):
-            input["image"] = info.context.FILES.get(img_data)
+        if image:
+            input["image"] = info.context.FILES.get(image)
             image_data = clean_image_file(input, "image", ProductErrorCode)
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
-        if media_url:
+        elif media_url:
             # Remote URLs can point to the images or oembed data.
-            # In case of images, file is downloaded. Otherwise we keep only
-            # URL to remote media.
-            with HTTPClient.send_request(
-                "GET",
-                media_url,
-                stream=True,
-                allow_redirects=False,
-                timeout=settings.COMMON_REQUESTS_TIMEOUT,
-            ) as image_data:
-                mime_type = get_mime_type(image_data.headers.get("content-type"))
-                if is_image_mimetype(mime_type):
-                    if not is_valid_image_content_type(mime_type):
-                        raise ValidationError(
-                            {
-                                "media_url": ValidationError(
-                                    "Invalid file type.",
-                                    code=ProductErrorCode.INVALID.value,
-                                )
-                            }
-                        )
-                    filename = get_filename_from_url(media_url, mime_type)
-                    image_file = create_file_from_response(image_data, filename)
-                    media = product.media.create(
-                        image=image_file,
-                        alt=alt,
-                        type=ProductMediaTypes.IMAGE,
-                    )
-            if media is None:
-                try:
-                    oembed_data, media_type = get_oembed_data(
-                        media_url,
-                    )
-                except UnsupportedMediaProviderException as exc:
-                    raise ValidationError(
-                        {
-                            "media_url": ValidationError(
-                                exc.message,
-                                code=ProductErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
-                            )
-                        }
-                    ) from exc
+            # In case of images, the image is fetched asynchronously by a task.
+            # Otherwise we keep only URL to remote media.
+            probe_result = probe_media_url(media_url, ProductErrorCode)
+            if probe_result.is_image:
+                media = product.media.create(
+                    external_url=media_url,
+                    alt=alt,
+                    type=ProductMediaTypes.IMAGE,
+                )
+                fetch_product_media_image_task.delay(media.pk)
+            else:
+                oembed_data = probe_result.oembed_data
                 media = product.media.create(
                     external_url=oembed_data["url"],
                     alt=oembed_data.get("title", alt),
-                    type=media_type,
+                    type=probe_result.media_type,
                     oembed_data=oembed_data,
                 )
         manager = get_plugin_manager_promise(info.context).get()

@@ -12,9 +12,9 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.db.fields import MoneyField, SanitizedJSONField
+from ..core.editorjs import clean_editorjs
 from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
-from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
 from ..permission.enums import ShippingPermissions
@@ -254,7 +254,7 @@ class ShippingMethod(ModelWithMetadata):
     excluded_products = models.ManyToManyField("product.Product", blank=True)
     maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     tax_class = models.ForeignKey(
         TaxClass,
         related_name="shipping_methods",
@@ -353,7 +353,7 @@ class ShippingMethodTranslation(Translation):
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name="translations", on_delete=models.CASCADE
     )
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
 
     class Meta:
         unique_together = (("language_code", "shipping_method"),)

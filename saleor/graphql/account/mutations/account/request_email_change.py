@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 
 from .....account import models, notifications
 from .....account.error_codes import AccountErrorCode
-from .....core.jwt import create_token
+from .....core.jwt import JWT_CONFIRM_CHANGE_EMAIL_TYPE, create_token
 from .....core.utils.url import prepare_url, validate_storefront_url
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
@@ -83,15 +83,6 @@ class RequestEmailChange(BaseMutation):
                     )
                 }
             )
-        if models.User.objects.filter(email=new_email).exists():
-            raise ValidationError(
-                {
-                    "new_email": ValidationError(
-                        "Email is used by other user.",
-                        code=AccountErrorCode.UNIQUE.value,
-                    )
-                }
-            )
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as e:
@@ -105,9 +96,13 @@ class RequestEmailChange(BaseMutation):
         token_payload = {
             "old_email": user.email,
             "new_email": new_email,
-            "user_pk": user.pk,
         }
-        token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
+        token = create_token(
+            token_payload,
+            exp_delta=settings.JWT_TTL_REQUEST_EMAIL_CHANGE,
+            user=user,
+            token_type=JWT_CONFIRM_CHANGE_EMAIL_TYPE,
+        )
         manager = get_plugin_manager_promise(info.context).get()
         params = urlencode({"token": token})
 
@@ -121,6 +116,11 @@ class RequestEmailChange(BaseMutation):
             channel_slug=channel_slug,
         )
 
+        # Note: we do not verify the user's existence in requestEmailChange()
+        # as it would reveal the user's existence (both through error message
+        # and through timings)
+        # However, we still send the email as it's better than not sending any
+        # as otherwise the user will think that the application isn't working.
         cls.call_event(
             manager.account_change_email_requested,
             user,

@@ -1,0 +1,57 @@
+name: Build and Publish Release manually
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 3.22.0, 3.22.0-a.01) - should be existing tag"
+        required: true
+        type: string
+
+
+permissions: {}
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-containers.yml
+
+    permissions:
+      contents: read
+      id-token: write # needed for AWS/ECR login (not used, but required permission)
+      packages: write # needed for GHCR
+
+    with:
+      version: ${{ inputs.version }}
+      ref: refs/tags/${{ inputs.version }}
+      notification-environment: notify-slack-releasing
+      publish-environment: publish-tag-workflow-dispatch
+    secrets: inherit
+
+  deploy:
+    runs-on: ubuntu-24.04
+    environment: release-deploy-workflow-dispatch
+    needs: [publish]
+    permissions: {}
+
+    steps:
+      - name: Get Token
+        id: get-token
+        uses: saleor/saleor-internal-actions/request-vault-token@49a069ae9731cfccf3a1033fe1da4e3da84f4f2a # v1.11.0
+        with:
+          vault-url: ${{ secrets.VAULT_URL }}
+          vault-jwt: ${{ secrets.VAULT_JWT }}
+
+      - name: Trigger staging deployment for tagged release
+        env:
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
+          VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          payload=$(
+              jq --arg version "$VERSION" --null-input '
+                {
+                  "event_type": "deploy-staging",
+                  "client_payload": {"version": $version}
+                }
+              '
+          )
+
+          gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< "$payload"

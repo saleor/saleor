@@ -7,6 +7,7 @@ from uuid import UUID
 
 import graphene
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import prefetch_related_objects
@@ -151,14 +152,16 @@ def delete_checkouts(checkout_pks_to_delete: list[UUID]) -> int:
     """Delete a checkouts with lock applied on them."""
     with transaction.atomic():
         CheckoutLine.objects.filter(
-            id__in=CheckoutLine.objects.order_by("id")
-            .select_for_update()
+            id__in=checkout_lines_qs_select_for_update()
             .filter(checkout_id__in=checkout_pks_to_delete)
             .values_list("id", flat=True)
         ).delete()
-        deleted_count, _ = Checkout.objects.filter(
-            pk__in=checkout_pks_to_delete
-        ).delete()
+        locked_pks = list(
+            checkout_qs_select_for_update()
+            .filter(pk__in=checkout_pks_to_delete)
+            .values_list("pk", flat=True)
+        )
+        deleted_count, _ = Checkout.objects.filter(pk__in=locked_pks).delete()
     return deleted_count
 
 
@@ -194,13 +197,15 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
+        include_shipping_zones = Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
         check_stock_and_preorder_quantity(
             variant,
             checkout.get_country(),
             channel_slug,
             new_quantity,
-            checkout_lines,
-            check_reservations,
+            include_shipping_zones=include_shipping_zones,
+            checkout_lines=checkout_lines,
+            check_reservations=check_reservations,
         )
 
     return new_quantity, line
@@ -298,6 +303,8 @@ def add_variants_to_checkout(
     replace_reservations=False,
     reservation_length: int | None = None,
     raise_error_for_missing_lines=False,
+    *,
+    include_shipping_zones,
 ):
     """Add variants to checkout.
 
@@ -394,6 +401,7 @@ def add_variants_to_checkout(
                 country_code,
                 channel,
                 reservation_length,
+                include_shipping_zones=include_shipping_zones,
                 replace=replace_reservations,
             )
 

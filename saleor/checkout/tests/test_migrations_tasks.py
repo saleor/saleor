@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 
 from ..migrations.tasks.saleor3_21 import (
@@ -5,7 +6,8 @@ from ..migrations.tasks.saleor3_21 import (
     SHIPPING_FIELD,
     fix_shared_address_instances_task,
 )
-from ..models import Checkout
+from ..migrations.tasks.saleor3_23 import propagate_checkout_deliveries_task
+from ..models import Checkout, CheckoutDelivery
 
 
 def test_fix_shared_billing_addresses(checkouts_list, order, address, address_usa):
@@ -155,3 +157,169 @@ def test_task_recursion(mock_delay, checkouts_list, order, address):
 
     # ensure it triggered next batch
     mock_delay.assert_called_once_with(field=BILLING_FIELD)
+
+
+@mock.patch(
+    "saleor.checkout.migrations.tasks.saleor3_23.propagate_checkout_deliveries_task.delay"
+)
+def test_propagate_checkout_built_in_delivery(
+    mocked_task_delay, checkout, shipping_method
+):
+    # given
+    expected_price = Decimal(10.00)
+    checkout.shipping_method = shipping_method
+    checkout.shipping_method_name = shipping_method.name
+    checkout.undiscounted_base_shipping_price_amount = expected_price
+    checkout.save()
+    assert not checkout.assigned_delivery_id
+
+    # when
+    propagate_checkout_deliveries_task()
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery
+    delivery = checkout.assigned_delivery
+    assert delivery.built_in_shipping_method_id == shipping_method.id
+    assert delivery.name == shipping_method.name
+    assert delivery.price_amount == expected_price
+    assert delivery.currency == checkout.currency
+    assert not delivery.is_external
+    assert delivery.active
+    assert delivery.tax_class_id == shipping_method.tax_class.id
+    assert delivery.tax_class_name == shipping_method.tax_class.name
+    assert mocked_task_delay.called
+
+
+@mock.patch(
+    "saleor.checkout.migrations.tasks.saleor3_23.propagate_checkout_deliveries_task.delay"
+)
+def test_propagate_checkout_external_delivery(
+    mocked_task_delay,
+    checkout,
+):
+    # given
+    external_shipping_method_id = "external-id"
+    external_shipping_name = "External shipping"
+    expected_price = Decimal(10.00)
+    checkout.external_shipping_method_id = external_shipping_method_id
+    checkout.shipping_method_name = external_shipping_name
+    checkout.undiscounted_base_shipping_price_amount = expected_price
+    checkout.save()
+    assert not checkout.assigned_delivery_id
+
+    # when
+    propagate_checkout_deliveries_task()
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery
+    delivery = checkout.assigned_delivery
+    assert delivery.external_shipping_method_id == external_shipping_method_id
+    assert delivery.name == external_shipping_name
+    assert delivery.price_amount == expected_price
+    assert delivery.currency == checkout.currency
+    assert delivery.is_external
+    assert delivery.active
+    assert mocked_task_delay.called
+
+
+@mock.patch(
+    "saleor.checkout.migrations.tasks.saleor3_23.propagate_checkout_deliveries_task.delay"
+)
+def test_propagate_checkout_delivery_handles_duplicated_deliveries(
+    mocked_task_delay, checkout, shipping_method, checkout_delivery
+):
+    # given
+    expected_price = Decimal(10.00)
+    checkout.shipping_method = shipping_method
+    checkout.shipping_method_name = shipping_method.name
+    checkout.undiscounted_base_shipping_price_amount = expected_price
+    checkout.save()
+    assert not checkout.assigned_delivery_id
+
+    # Cover the case when delivery was created in the background
+    checkout_delivery(checkout, shipping_method)
+    assert CheckoutDelivery.objects.get()
+
+    # when
+    propagate_checkout_deliveries_task()
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery
+    delivery = checkout.assigned_delivery
+    assert delivery.built_in_shipping_method_id == shipping_method.id
+    assert delivery.name == shipping_method.name
+    assert delivery.price_amount == expected_price
+    assert delivery.currency == checkout.currency
+    assert not delivery.is_external
+    assert delivery.active
+    assert delivery.tax_class_id == shipping_method.tax_class.id
+    assert delivery.tax_class_name == shipping_method.tax_class.name
+    assert mocked_task_delay.called
+
+
+@mock.patch(
+    "saleor.checkout.migrations.tasks.saleor3_23.propagate_checkout_deliveries_task.delay"
+)
+def test_propagate_checkout_delivery_built_in_when_no_valid_checkouts(
+    mocked_task_delay, checkout, shipping_method, checkout_delivery
+):
+    # given
+    expected_price = Decimal(10.00)
+    checkout.shipping_method = shipping_method
+    checkout.shipping_method_name = shipping_method.name
+    checkout.undiscounted_base_shipping_price_amount = expected_price
+    delivery = checkout_delivery(checkout, shipping_method)
+    checkout.assigned_delivery = delivery
+    checkout.save()
+
+    assert not Checkout.objects.filter(
+        shipping_method_id__isnull=False, assigned_delivery__isnull=True
+    ).exists()
+
+    # when
+    propagate_checkout_deliveries_task()
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery == delivery
+    assert not mocked_task_delay.called
+
+
+@mock.patch(
+    "saleor.checkout.migrations.tasks.saleor3_23.propagate_checkout_deliveries_task.delay"
+)
+def test_propagate_checkout_delivery_external_when_no_valid_checkouts(
+    mocked_task_delay, checkout, shipping_method, checkout_delivery
+):
+    # given
+    external_shipping_method_id = "external-id"
+    external_shipping_name = "External shipping"
+    expected_price = Decimal(10.00)
+    checkout.external_shipping_method_id = external_shipping_method_id
+    checkout.shipping_method_name = external_shipping_name
+    checkout.undiscounted_base_shipping_price_amount = expected_price
+    delivery = CheckoutDelivery.objects.create(
+        external_shipping_method_id=external_shipping_method_id,
+        name=external_shipping_name,
+        price_amount=expected_price,
+        currency=checkout.currency,
+        is_external=True,
+        checkout=checkout,
+    )
+    checkout.assigned_delivery = delivery
+    checkout.save()
+
+    assert not Checkout.objects.filter(
+        external_shipping_method_id__isnull=False, assigned_delivery__isnull=True
+    ).exists()
+
+    # when
+    propagate_checkout_deliveries_task()
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery == delivery
+    assert not mocked_task_delay.called

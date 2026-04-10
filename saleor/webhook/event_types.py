@@ -142,6 +142,9 @@ class WebhookEventAsyncType:
     PRODUCT_VARIANT_OUT_OF_STOCK = "product_variant_out_of_stock"
     PRODUCT_VARIANT_BACK_IN_STOCK = "product_variant_back_in_stock"
     PRODUCT_VARIANT_STOCK_UPDATED = "product_variant_stock_updated"
+    PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = (
+        "product_variant_discounted_price_updated"
+    )
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
@@ -428,7 +431,6 @@ class WebhookEventAsyncType:
         FULFILLMENT_CREATED: {
             "name": "Fulfillment created",
             "permission": OrderPermissions.MANAGE_ORDERS,
-            "is_deferred_payload": True,
         },
         FULFILLMENT_CANCELED: {
             "name": "Fulfillment cancelled",
@@ -438,7 +440,6 @@ class WebhookEventAsyncType:
         FULFILLMENT_APPROVED: {
             "name": "Fulfillment approved",
             "permission": OrderPermissions.MANAGE_ORDERS,
-            "is_deferred_payload": True,
         },
         FULFILLMENT_METADATA_UPDATED: {
             "name": "Fulfillment metadata updated",
@@ -615,6 +616,11 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_STOCK_UPDATED: {
             "name": "Product variant stock updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+        },
+        PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: {
+            "name": "Product variant discounted price updated",
+            "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_CREATED: {
             "name": "Checkout created",

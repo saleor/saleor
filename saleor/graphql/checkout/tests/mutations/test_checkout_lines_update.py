@@ -1198,6 +1198,33 @@ def test_checkout_lines_update_channel_without_shipping_zones(
     assert errors[0]["field"] == "quantity"
 
 
+def test_checkout_lines_update_channel_without_shipping_zones_excluded_from_stock_calculations(
+    user_api_client, checkout_with_item, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    checkout = checkout_with_item
+    checkout.channel.shipping_zones.clear()
+    line = checkout.lines.first()
+    variant = line.variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+
+
 def test_checkout_lines_update_variant_quantity_over_avability_stock(
     user_api_client, checkout_with_item
 ):
@@ -1636,6 +1663,7 @@ def test_checkout_lines_update_triggers_webhooks(
                 "requestor_model_name": None,
                 "requestor_object_id": None,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,

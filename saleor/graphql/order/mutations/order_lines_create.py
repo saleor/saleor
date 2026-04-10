@@ -20,6 +20,7 @@ from ....order.utils import (
 from ....permission.enums import OrderPermissions
 from ....plugins.manager import PluginsManager
 from ....product import models as product_models
+from ....site.models import SiteSettings
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -28,6 +29,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
+from ...site.dataloaders import get_site_promise
 from ..types import Order, OrderLine
 from ..utils import (
     OrderLineData,
@@ -151,6 +153,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         user: User | None,
         app: App | None,
         manager: PluginsManager,
+        site_settings: SiteSettings,
     ):
         added_lines: list[order_models.OrderLine] = []
         try:
@@ -161,6 +164,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     user,
                     app,
                     manager,
+                    site_settings,
                     allocate_stock=order.is_unconfirmed(),
                 )
                 added_lines.append(line)
@@ -193,6 +197,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         cls.validate_variants(order, variants)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
+        site = get_site_promise(info.context).get()
         with traced_atomic_transaction():
             added_lines = cls.add_lines_to_order(
                 order,
@@ -200,6 +205,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 info.context.user,
                 app,
                 manager,
+                site.settings,
             )
 
             # Create the products added event

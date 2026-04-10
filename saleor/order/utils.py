@@ -73,6 +73,7 @@ if TYPE_CHECKING:
     from ..graphql.order.utils import OrderLineData
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
+    from ..site.models import SiteSettings
 
 
 logger = logging.getLogger(__name__)
@@ -230,6 +231,7 @@ def create_order_line(
     order,
     line_data,
     manager,
+    site_settings,
     allocate_stock=False,
 ) -> OrderLine:
     channel = order.channel
@@ -336,6 +338,9 @@ def create_order_line(
             ],
             channel,
             manager=manager,
+            include_shipping_zones=(
+                site_settings.use_legacy_shipping_zone_stock_availability
+            ),
         )
 
     if is_line_level_voucher(order.voucher):
@@ -353,6 +358,7 @@ def add_variant_to_order(
     user: Optional["User"],
     app: Optional["App"],
     manager: "PluginsManager",
+    site_settings: "SiteSettings",
     allocate_stock: bool = False,
 ) -> OrderLine:
     """Add total_quantity of variant to order.
@@ -380,6 +386,7 @@ def add_variant_to_order(
             new_quantity,
             order,
             manager=manager,
+            site_settings=site_settings,
             send_event=False,
             update_fields=update_fields,
             allocate_stock=allocate_stock,
@@ -394,6 +401,7 @@ def add_variant_to_order(
         order,
         line_data,
         manager,
+        site_settings,
         allocate_stock,
     )
 
@@ -523,6 +531,7 @@ def _update_allocations_for_line(
     new_quantity: int,
     channel: "Channel",
     manager: "PluginsManager",
+    site_settings: "SiteSettings",
 ):
     if old_quantity == new_quantity:
         return
@@ -531,7 +540,12 @@ def _update_allocations_for_line(
         if not get_order_lines_with_track_inventory([line_info]):
             return
         line_info.quantity = new_quantity - old_quantity
-        increase_allocations([line_info], channel, manager)
+        include_shipping_zones = (
+            site_settings.use_legacy_shipping_zone_stock_availability
+        )
+        increase_allocations(
+            [line_info], channel, manager, include_shipping_zones=include_shipping_zones
+        )
     else:
         line_info.quantity = old_quantity - new_quantity
         decrease_allocations([line_info], manager)
@@ -545,6 +559,7 @@ def change_order_line_quantity(
     new_quantity: int,
     order: "Order",
     manager: "PluginsManager",
+    site_settings: "SiteSettings",
     send_event: bool = True,
     update_fields: list[str] | None = None,
     allocate_stock: bool = False,
@@ -556,7 +571,7 @@ def change_order_line_quantity(
     if new_quantity:
         if allocate_stock:
             _update_allocations_for_line(
-                line_info, old_quantity, new_quantity, channel, manager
+                line_info, old_quantity, new_quantity, channel, manager, site_settings
             )
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount

@@ -342,7 +342,7 @@ def test_query_promotion_rule_translation(
         ):
             assert rule["translation"]["name"] == promotion_rule_translation_fr.name
             assert rule["translation"]["description"] == json.dumps(
-                promotion_rule_translation_fr.description
+                promotion_rule_translation_fr.description, sort_keys=True
             )
             assert rule["translation"]["language"]["code"] == "FR"
         else:

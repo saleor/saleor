@@ -3,7 +3,7 @@
 from django.db import migrations
 
 import saleor.core.db.fields
-import saleor.core.utils.editorjs
+import saleor.core.editorjs
 
 
 def update_empty_description_field(apps, schema_editor):
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.AlterField(
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.AlterField(
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.AlterField(
@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.AlterField(
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.AlterField(
@@ -84,7 +84,7 @@ class Migration(migrations.Migration):
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,
                 null=True,
-                sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                sanitizer=saleor.core.editorjs.clean_editorjs,
             ),
         ),
         migrations.RunPython(

@@ -14,16 +14,35 @@ from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
+from ..core.http_client import HTTPClient
+from ..core.utils.events import call_event
+from ..core.utils.validators import get_mime_type
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
+from ..product import ProductMediaTypes
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
+from .interface import VariantDiscountedPriceChange
 from .lock_objects import product_qs_select_for_update
-from .models import Product, ProductChannelListing, ProductType, ProductVariant
+from .models import (
+    Product,
+    ProductChannelListing,
+    ProductMedia,
+    ProductType,
+    ProductVariant,
+)
 from .search import update_products_search_vector
 from .utils.product import mark_products_in_channels_as_dirty
+from .utils.tasks_utils import (
+    create_image,
+    update_product_media,
+    validate_content_type_header,
+    validate_image_exif,
+    validate_image_mime_type,
+    validate_status_code,
+)
 from .utils.variant_prices import update_discounted_prices_for_promotion
 from .utils.variants import (
     fetch_variants_for_promotion_rules,
@@ -230,6 +249,25 @@ def update_products_discounted_prices_for_promotion_task(
     PromotionRule.objects.filter(variants_dirty=False).update(variants_dirty=True)
 
 
+def _send_variant_price_updated_webhooks(
+    changed_prices: list[VariantDiscountedPriceChange],
+) -> None:
+    if not changed_prices:
+        return
+    webhooks = get_webhooks_for_event(
+        WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
+    )
+    if not webhooks:
+        return
+    manager = get_plugins_manager(allow_replica=True)
+    for price_info in changed_prices:
+        call_event(
+            manager.product_variant_discounted_price_updated,
+            price_info,
+            webhooks=webhooks,
+        )
+
+
 @app.task
 @allow_writer()
 def recalculate_discounted_price_for_products_task():
@@ -249,7 +287,10 @@ def recalculate_discounted_price_for_products_task():
         products = Product.objects.using(
             settings.DATABASE_CONNECTION_REPLICA_NAME
         ).filter(id__in=products_ids)
-        update_discounted_prices_for_promotion(products, only_dirty_products=True)
+        changed_prices = update_discounted_prices_for_promotion(
+            products, only_dirty_products=True
+        )
+        _send_variant_price_updated_webhooks(changed_prices)
         with transaction.atomic():
             channel_listings_ids = list(
                 ProductChannelListing.objects.select_for_update(of=("self",))
@@ -341,3 +382,73 @@ def collection_product_updated_task(product_ids):
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_UPDATED)
     for product in products:
         manager.product_updated(product, webhooks=webhooks)
+
+
+def on_failure_fetch_product_media_image_task(self, exc, task_id, args, kwargs, einfo):
+    product_media_id = args[0]
+    logger.warning(
+        "Failed to fetch image for product media with id: %s. Removing product media.",
+        product_media_id,
+    )
+    ProductMedia.objects.filter(
+        pk=product_media_id, type=ProductMediaTypes.IMAGE
+    ).delete()
+
+
+@app.task(
+    queue=settings.FETCH_IMAGES_QUEUE_NAME,
+    max_retries=5,
+    retry_backoff=True,
+    default_retry_delay=1,
+    autoretry_for=(IOError,),
+    on_failure=on_failure_fetch_product_media_image_task,
+    throws=(
+        IOError,
+        ValueError,
+    ),
+)
+@allow_writer()
+def fetch_product_media_image_task(product_media_id: int):
+    try:
+        product_media = ProductMedia.objects.get(
+            pk=product_media_id, type=ProductMediaTypes.IMAGE
+        )
+    except ProductMedia.DoesNotExist:
+        logger.warning(
+            "Product media with id: %s with type: %s does not exist.",
+            product_media_id,
+            ProductMediaTypes.IMAGE,
+        )
+        return
+
+    if product_media.image:
+        logger.error(
+            "Product media with id: %s already has an image.",
+            product_media_id,
+        )
+        return
+
+    if not product_media.external_url:
+        logger.error(
+            "Product media with id: %s has neither an external "
+            "URL nor an image. The object is in an invalid state and cannot be "
+            "processed.",
+            product_media_id,
+        )
+        return
+
+    with HTTPClient.send_request(
+        "GET",
+        product_media.external_url,
+        stream=True,
+        allow_redirects=False,
+        timeout=settings.COMMON_REQUESTS_TIMEOUT,
+    ) as response:
+        validate_status_code(response.status_code)
+        mime_type = get_mime_type(response.headers.get("content-type"))
+        validate_content_type_header(product_media, mime_type)
+        image = create_image(product_media, mime_type, response)
+
+    validate_image_mime_type(image)
+    validate_image_exif(image)
+    update_product_media(product_media, image)

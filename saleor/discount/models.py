@@ -15,8 +15,8 @@ from prices import Money, fixed_discount, percentage_discount
 from ..app.models import App
 from ..channel.models import Channel
 from ..core.db.fields import MoneyField, SanitizedJSONField
+from ..core.editorjs import clean_editorjs
 from ..core.models import ModelWithMetadata
-from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
 from ..permission.enums import DiscountPermissions
@@ -326,7 +326,7 @@ class Promotion(ModelWithMetadata):
         choices=PromotionType.CHOICES,
         default=PromotionType.CATALOGUE,
     )
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
@@ -363,7 +363,7 @@ class Promotion(ModelWithMetadata):
 
 class PromotionTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     promotion = models.ForeignKey(
         Promotion, related_name="translations", on_delete=models.CASCADE
     )
@@ -381,7 +381,7 @@ class PromotionTranslation(Translation):
 class PromotionRule(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255, blank=True, null=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     promotion = models.ForeignKey(
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
@@ -454,7 +454,7 @@ class PromotionRule_Variants(models.Model):
 
 class PromotionRuleTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     promotion_rule = models.ForeignKey(
         PromotionRule, related_name="translations", on_delete=models.CASCADE
     )

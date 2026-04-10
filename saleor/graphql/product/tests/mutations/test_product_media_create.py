@@ -1,13 +1,13 @@
 import json
 import os
-from io import BytesIO
 from unittest.mock import Mock, patch
 
 import graphene
-import PIL
 import pytest
 from django.conf import settings
-from PIL import Image
+from requests import RequestException
+from requests.exceptions import InvalidSchema
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
 from .....product import ProductMediaTypes
@@ -38,6 +38,7 @@ PRODUCT_MEDIA_CREATE_QUERY = """
             errors {
                 code
                 field
+                message
             }
         }
     }
@@ -109,7 +110,7 @@ def test_product_media_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+@patch("saleor.graphql.product.utils.HTTPClient")
 @pytest.mark.vcr
 def test_product_media_create_mutation_with_media_url(
     mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
@@ -204,7 +205,7 @@ def test_product_media_create_mutation_with_both_url_and_image(
     assert errors[0]["field"] == "input"
 
 
-@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+@patch("saleor.graphql.product.utils.HTTPClient")
 def test_product_media_create_mutation_with_unknown_url(
     mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
 ):
@@ -274,7 +275,7 @@ def test_invalid_product_media_create_mutation(
     assert product.media.count() == 0
 
 
-@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+@patch("saleor.graphql.product.utils.HTTPClient")
 def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
     mock_HTTPClient, staff_api_client, product, permission_manage_products
 ):
@@ -322,9 +323,16 @@ def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
     mock_response.headers.get.assert_called_once_with("content-type")
 
 
+@patch(
+    "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
+)
 @pytest.mark.vcr
 def test_product_media_create_mutation_valid_image_file_is_fetched_once(
-    staff_api_client, product, permission_manage_products, media_root
+    mock_fetch_product_media_image_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     # given
     expected_file_name = "icon-dark.png"
@@ -348,40 +356,33 @@ def test_product_media_create_mutation_valid_image_file_is_fetched_once(
     # then
     data = content["data"]["productMediaCreate"]
     assert data["errors"] == []
-    assert data["product"]["media"][0]["url"] is not None
     assert data["product"]["media"][0]["type"] == ProductMediaTypes.IMAGE
     assert data["product"]["media"][0]["alt"] == expected_alt
+    assert data["product"]["media"][0]["url"] != url
 
-    # Validate the image file
     product.refresh_from_db()
     product_image = product.media.last()
-    assert product_image.image.file
-    img_name, format = os.path.splitext(expected_file_name)
-    file_name = product_image.image.name
-    assert file_name != expected_file_name
-    assert file_name.startswith(f"products/{img_name}")
-    assert file_name.endswith(format)
 
-    # Open the image and validate its content
-    image_path = product_image.image.path
-    with Image.open(image_path) as img:
-        assert img.format == "PNG"  # Ensure the image format is PNG
-        assert img.size[0] > 0  # Ensure the image has dimensions
-        assert img.size[1] > 0  # Ensure the image has dimensions
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
 
 
-@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+@patch(
+    "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
+)
+@patch("saleor.graphql.product.utils.HTTPClient")
 def test_product_media_create_mutation_with_no_extension_media_url(
-    mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
+    mock_HTTPClient,
+    mock_fetch_product_media_image_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     # given
     mock_response = Mock()
     mock_response.headers.get = Mock(return_value="image/png")
-    # generate PNG image content
-    image_content = BytesIO()
-    PIL.Image.new("RGB", size=(100, 100)).save(image_content, format="PNG")
-    image_content = image_content.read()
-    mock_response.content = image_content
     mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
@@ -400,12 +401,11 @@ def test_product_media_create_mutation_with_no_extension_media_url(
 
     # then
     assert not content["errors"]
-    # validate image file
     product_image = product.media.last()
-    assert product_image.image.name.startswith("products/image-path_")
-    assert product_image.image.name.endswith(".png")
-    with product_image.image.open("rb") as img:
-        assert img.read() == image_content
+
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
 
 
 def test_product_media_create_mutation_alt_character_limit(
@@ -464,9 +464,17 @@ def test_product_media_create_when_alt_is_null(
     assert content["product"]["media"][0]["alt"] == ""
 
 
-@patch("saleor.graphql.product.mutations.product.product_media_create.HTTPClient")
+@patch(
+    "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
+)
+@patch("saleor.graphql.product.utils.HTTPClient")
 def test_product_media_create_with_media_url_when_alt_is_null(
-    mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
+    mock_HTTPClient,
+    mock_fetch_product_media_image_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
 ):
     # given
     image_file, _ = create_image()
@@ -492,3 +500,70 @@ def test_product_media_create_with_media_url_when_alt_is_null(
     # then
     assert not content["errors"]
     assert content["product"]["media"][0]["alt"] == ""
+
+    product_media = product.media.last()
+    mock_fetch_product_media_image_task.assert_called_once_with(product_media.pk)
+
+
+@pytest.mark.parametrize(
+    "exception",
+    [
+        RequestException("Connection refused"),
+        InvalidIPAddress("10.0.0.1"),
+        InvalidSchema("No adapters found for url"),
+    ],
+)
+@patch("saleor.graphql.product.utils.HTTPClient")
+def test_product_media_create_mutation_request_exception(
+    mock_HTTPClient,
+    exception,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    mock_HTTPClient.send_request.side_effect = exception
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.example.com/image.jpg",
+        "alt": "some media",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["productMediaCreate"]["errors"]) == 1
+    error = content["data"]["productMediaCreate"]["errors"][0]
+    assert error["code"] == ProductErrorCode.INVALID.name
+    assert error["field"] == "mediaUrl"
+    assert error["message"] == "Failed to fetch media from URL."
+
+
+def test_product_media_create_mutation_with_empty_product_id(
+    staff_api_client, permission_manage_products
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variables = {
+        "product": "",
+        "mediaUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "product"
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name

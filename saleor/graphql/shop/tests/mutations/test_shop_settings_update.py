@@ -24,6 +24,7 @@ SHOP_SETTINGS_UPDATE_MUTATION = """
                 allowLoginWithoutConfirmation
                 useLegacyUpdateWebhookEmission
                 preserveAllAddressFields
+                useLegacyShippingZoneStockAvailability
             }
             errors {
                 field
@@ -78,6 +79,8 @@ def test_shop_settings_mutation(
     assert site_settings.enable_account_confirmation_by_email is False
     assert site_settings.allow_login_without_confirmation is True
     assert site_settings.use_legacy_update_webhook_emission is False
+    assert site_settings.preserve_all_address_fields is False
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
 
 
 def test_shop_reservation_settings_mutation(
@@ -333,6 +336,95 @@ def test_shop_settings_update_preserve_all_address_fields_disable(
     assert data["shop"]["preserveAllAddressFields"] is False
     site_settings.refresh_from_db()
     assert site_settings.preserve_all_address_fields is False
+
+
+MUTATION_UPDATE_use_legacy_shipping_zone_stock_availability = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop {
+                useLegacyShippingZoneStockAvailability
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_shop_settings_update_use_legacy_shipping_zone_stock_availability_disable(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    use_legacy_shipping_zone_stock_availability_value = False
+    assert (
+        site_settings.use_legacy_shipping_zone_stock_availability
+        is not use_legacy_shipping_zone_stock_availability_value
+    )
+    variables = {
+        "input": {
+            "useLegacyShippingZoneStockAvailability": use_legacy_shipping_zone_stock_availability_value
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_use_legacy_shipping_zone_stock_availability,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert (
+        data["shop"]["useLegacyShippingZoneStockAvailability"]
+        is use_legacy_shipping_zone_stock_availability_value
+    )
+    site_settings.refresh_from_db()
+    assert (
+        site_settings.use_legacy_shipping_zone_stock_availability
+        == use_legacy_shipping_zone_stock_availability_value
+    )
+
+
+def test_shop_settings_update_use_legacy_shipping_zone_stock_availability_enable(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    use_legacy_shipping_zone_stock_availability_value = True
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    variables = {
+        "input": {
+            "useLegacyShippingZoneStockAvailability": use_legacy_shipping_zone_stock_availability_value
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_use_legacy_shipping_zone_stock_availability,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert (
+        data["shop"]["useLegacyShippingZoneStockAvailability"]
+        == use_legacy_shipping_zone_stock_availability_value
+    )
+    site_settings.refresh_from_db()
+    assert (
+        site_settings.use_legacy_shipping_zone_stock_availability
+        == use_legacy_shipping_zone_stock_availability_value
+    )
 
 
 MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """

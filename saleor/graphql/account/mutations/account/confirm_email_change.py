@@ -1,3 +1,4 @@
+import logging
 from typing import cast
 
 import graphene
@@ -6,7 +7,7 @@ from django.core.exceptions import ValidationError
 
 from .....account import models, notifications, search
 from .....account.error_codes import AccountErrorCode
-from .....core.jwt import jwt_decode
+from .....core.jwt import JWT_CONFIRM_CHANGE_EMAIL_TYPE, jwt_decode
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....permission.auth_filters import AuthorizationFilters
@@ -19,6 +20,8 @@ from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
+
+logger = logging.getLogger(__name__)
 
 
 class ConfirmEmailChange(BaseMutation):
@@ -71,6 +74,16 @@ class ConfirmEmailChange(BaseMutation):
             ) from e
         return payload
 
+    @staticmethod
+    def reject_token():
+        raise ValidationError(
+            {
+                "token": ValidationError(
+                    "Invalid token.", code=AccountErrorCode.JWT_INVALID_TOKEN.value
+                )
+            }
+        )
+
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, channel=None, token
@@ -79,12 +92,34 @@ class ConfirmEmailChange(BaseMutation):
         user = cast(models.User, user)
 
         payload = cls.get_token_payload(token)
+
+        if (tok_type := payload.get("type")) != JWT_CONFIRM_CHANGE_EMAIL_TYPE:
+            logger.info(
+                "Received an invalid token type for email confirmation: %s", tok_type
+            )
+            return cls.reject_token()
+
+        payload_user_pk = payload.get("user_id")
+        if not payload_user_pk or payload_user_pk != graphene.Node.to_global_id(
+            "User", user.id
+        ):
+            logger.info("The token user_id claim is mismatching (%s)", user.pk)
+            return cls.reject_token()
+
         new_email = payload["new_email"].lower()
         old_email = payload["old_email"]
+
+        if user.email != old_email:
+            logger.info("User's old email address is mismatching (%s)", user.pk)
+            return cls.reject_token()
 
         if models.User.objects.filter(email=new_email).exists():
             raise ValidationError(
                 {
+                    # Note: revealing the user's existence isn't an issue here as the
+                    #       person who is calling this mutation already verified that
+                    #       they are who they are claiming to be as they had to click
+                    #       a unique link that was sent to 'new_email'
                     "new_email": ValidationError(
                         "Email is used by other user.",
                         code=AccountErrorCode.UNIQUE.value,

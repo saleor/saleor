@@ -11,7 +11,7 @@ def fix_shared_address_instances(apps, schema_editor):
     def on_migrations_complete(sender=None, **kwargs):
         fix_shared_address_instances_task.delay()
 
-    sender = registry.get_app_config("order")
+    sender = registry.get_app_config("checkout")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 

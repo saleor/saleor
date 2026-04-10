@@ -41,6 +41,7 @@ from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 from ..utils import (
     OrderLineData,
@@ -369,7 +370,7 @@ class DraftOrderCreate(
         cleaned_input["lines_data"] = grouped_lines_data
 
     @staticmethod
-    def _save_lines(info, instance, lines_data, app, manager):
+    def _save_lines(info, instance, lines_data, app, manager, site_settings):
         lines = []
         if lines_data:
             for line_data in lines_data:
@@ -377,6 +378,7 @@ class DraftOrderCreate(
                     instance,
                     line_data,
                     manager,
+                    site_settings,
                 )
                 lines.append(new_line)
 
@@ -392,6 +394,7 @@ class DraftOrderCreate(
     def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
+        site = get_site_promise(info.context).get()
 
         with traced_atomic_transaction():
             # Process addresses
@@ -400,7 +403,12 @@ class DraftOrderCreate(
             try:
                 # Process any lines to add
                 cls._save_lines(
-                    info, instance, cleaned_input.get("lines_data"), app, manager
+                    info,
+                    instance,
+                    cleaned_input.get("lines_data"),
+                    app,
+                    manager,
+                    site.settings,
                 )
             except TaxError as e:
                 raise ValidationError(

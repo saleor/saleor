@@ -1,28 +1,28 @@
 default_language_version:
-    python: python3.12
+  python: python3.12
 
 exclude: ^(.semgrep|vendored)/
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # frozen: v6.0.0
     hooks:
       - id: trailing-whitespace
         exclude: ^templates/templated_email/compiled/
-        exclude_types: [svg,graphql]
+        exclude_types: [svg, graphql]
       - id: end-of-file-fixer
         exclude: ^templates/templated_email/compiled/
         exclude_types: [svg]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.11
+    rev: db90487f48a9dd992d243ef63c156eaffddeaf28 # frozen: v0.12.11
     hooks:
       - id: ruff
-        args: [ --fix ]
+        args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: 412de98d50e846f31ea6f4b0ad036f2c24a7a024 # frozen: v1.17.1
     hooks:
       - id: mypy
         args: [--cache-dir=/dev/null] # Disable cache to avoid issues with pre-commit
@@ -30,34 +30,34 @@ repos:
         exclude: (tests|vendored)/
 
   - repo: https://github.com/fpgmaas/deptry.git
-    rev: "0.23.1"
+    rev: "709204b084da50f87d049b92da8d995b2d71786b" # frozen: 0.23.1
     hooks:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: v1.153.0
+    rev: a4a84e81e8cde78eb4893def4b971f8597a0aed8 # frozen: v1.153.0
     hooks:
-    - id: semgrep
-      exclude_types:
-        - yaml
-      args:
-        - scan
-        - --config
-        - .semgrep/
-        # Do not try to scan '.semgrep/' directories as they contain test files
-        # thus they will trigger findings.
-        - --exclude=.semgrep/
-        # Set the exit code to non-zero if there are findings.
-        - --error
-        # Do not check for version updates, it slows down the execution.
-        - --disable-version-check
-        # Quiet mode in order to not pollute the pre-commit outputs.
-        # Replace --quiet with --verbose to debug issues.
-        - --quiet
+      - id: semgrep
+        exclude_types:
+          - yaml
+        args:
+          - scan
+          - --config
+          - .semgrep/
+          # Do not try to scan '.semgrep/' directories as they contain test files
+          # thus they will trigger findings.
+          - --exclude=.semgrep/
+          # Set the exit code to non-zero if there are findings.
+          - --error
+          # Do not check for version updates, it slows down the execution.
+          - --disable-version-check
+          # Quiet mode in order to not pollute the pre-commit outputs.
+          # Replace --quiet with --verbose to debug issues.
+          - --quiet
 
   - repo: https://github.com/astral-sh/uv-pre-commit
     # uv version.
-    rev: 0.8.14
+    rev: c0e017ba340d532c2eed9aaa4af5d0e7432020df # frozen: 0.10.8
     hooks:
       - id: uv-lock
 

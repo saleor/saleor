@@ -3,8 +3,8 @@ from typing import Union
 from django.db.models import QuerySet, Value
 
 from ..attribute import AttributeInputType
+from ..core.editorjs import editorjs_to_text
 from ..core.postgres import NoValidationSearchVector
-from ..core.utils.editorjs import clean_editor_js
 from .models import Attribute, AttributeValue
 
 
@@ -25,7 +25,7 @@ def get_search_vectors_for_attribute_values(
     elif input_type == AttributeInputType.RICH_TEXT:
         search_vectors += [
             NoValidationSearchVector(
-                Value(clean_editor_js(value.rich_text, to_string=True)),
+                Value(editorjs_to_text(value.rich_text)),
                 config="simple",
                 weight=weight,
             )

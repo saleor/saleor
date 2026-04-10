@@ -2051,6 +2051,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -2626,6 +2627,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
 
   """A new checkout is created."""
   CHECKOUT_CREATED
@@ -6823,9 +6825,9 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   """
   isAvailable(
     """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
     """
-    address: AddressInput
+    address: AddressInput @deprecated
   ): Boolean
 
   """A type of tax. Assigned by enabled tax gateway"""
@@ -8765,9 +8767,9 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
   """
   stocks(
     """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
     """
-    address: AddressInput
+    address: AddressInput @deprecated
 
     """Two-letter ISO 3166-1 country code."""
     countryCode: CountryCode @deprecated(reason: "Use `address` argument instead.")
@@ -8778,9 +8780,9 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
   """
   quantityAvailable(
     """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
     """
-    address: AddressInput
+    address: AddressInput @deprecated
 
     """
     Two-letter ISO 3166-1 country code. When provided, the exact quantity from a warehouse operating in shipping zones that contain this country will be returned. Otherwise, it will return the maximum quantity from all shipping zones.
@@ -14145,6 +14147,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
   PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_AUTHORIZED
@@ -15064,6 +15067,13 @@ type Shop implements ObjectWithMetadata {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean! @deprecated(reason: "Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
+
+  """
+  When enabled, stock availability is filtered by shipping zones and the destination address (legacy behavior). When disabled, stock availability is determined only by the direct warehouse-channel link, ignoring shipping zones.
+  
+  Added in Saleor 3.23.
+  """
+  useLegacyShippingZoneStockAvailability: Boolean!
 
   """
   Use legacy update webhook emission. When enabled, update webhooks (e.g. `customerUpdated`,`productVariantUpdated`) are sent even when only metadata changes. When disabled, update webhooks are not sent for metadata-only changes; only metadata-specific webhooks (e.g., `customerMetadataUpdated`, `productVariantMetadataUpdated`) are sent.
@@ -22990,6 +23000,13 @@ input ShopSettingsInput {
   """
   passwordLoginMode: PasswordLoginModeEnum
 
+  """
+  When enabled, stock availability is filtered by shipping zones and the destination address (legacy behavior). When disabled, stock availability is determined only by the direct warehouse-channel link, ignoring shipping zones.
+  
+  Added in Saleor 3.23.
+  """
+  useLegacyShippingZoneStockAvailability: Boolean
+
   """Include taxes in prices."""
   includeTaxesInPrices: Boolean @deprecated(reason: "Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.")
 
@@ -23165,7 +23182,7 @@ Requires one of the following permissions: MANAGE_SETTINGS.
 """
 type RefundSettingsUpdate @doc(category: "Shop") {
   """Refund settings."""
-  refundSettings: RefundSettings!
+  refundSettings: RefundSettings
   refundSettingsErrors: [RefundSettingsUpdateError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [RefundSettingsUpdateError!]!
 }
@@ -23835,7 +23852,7 @@ enum CollectionErrorCode @doc(category: "Products") {
   NOT_FOUND
   REQUIRED
   UNIQUE
-  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
+  CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT @deprecated(reason: "Products without variants can now be assigned to collections. This error will never be returned.")
 }
 
 """
@@ -33739,6 +33756,20 @@ type Subscription @doc(category: "Miscellaneous") {
     """
     channels: [String!]
   ): CheckoutMetadataUpdated @doc(category: "Checkout")
+
+  """
+  Event sent when product variant discounted price is recalculated.
+  
+  Added in Saleor 3.22.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  productVariantDiscountedPriceUpdated(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): ProductVariantDiscountedPriceUpdated @doc(category: "Products")
 }
 
 interface Event {
@@ -34125,6 +34156,37 @@ type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
 
   """The checkout the event relates to."""
   checkout: Checkout
+}
+
+"""
+Event sent when product variant discounted price is recalculated.
+
+Added in Saleor 3.22.
+"""
+type ProductVariantDiscountedPriceUpdated implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant: ProductVariant!
+
+  """The channel where the price changed."""
+  channel: Channel!
+
+  """The previous discounted price."""
+  previousPrice: Money!
+
+  """The new discounted price."""
+  newPrice: Money!
 }
 
 enum DistanceUnitsEnum {
