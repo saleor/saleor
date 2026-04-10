@@ -80,7 +80,11 @@ def test_create_fulfillments(
     mock_email_fulfillment.assert_called_once_with(
         order, order.fulfillments.get(), staff_user, None, manager
     )
-    mock_fulfillment_approved.assert_called_once_with(fulfillment, notify_customer)
+    mock_fulfillment_approved.assert_called_once_with(
+        fulfillment,
+        notify_customer,
+        site_settings.use_legacy_shipping_zone_stock_availability,
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
