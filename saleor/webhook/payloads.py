@@ -988,7 +988,9 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
 @allow_writer()
 @traced_payload_generator
 def generate_fulfillment_payload(
-    fulfillment: Fulfillment, requestor: Optional["RequestorOrLazyObject"] = None
+    fulfillment: Fulfillment,
+    requestor: Optional["RequestorOrLazyObject"] = None,
+    calculate_stocks_with_shipping_zones: bool = True,
 ):
     serializer = PayloadSerializer()
 
@@ -1013,11 +1015,6 @@ def generate_fulfillment_payload(
     if fulfillment_line and fulfillment_line.stock:
         warehouse = fulfillment_line.stock.warehouse
     else:
-        context = SaleorContext()
-        site = get_site_promise(context).get()
-        calculate_stocks_with_shipping_zones = (
-            site.settings.use_legacy_shipping_zone_stock_availability
-        )
         if calculate_stocks_with_shipping_zones:
             warehouse = Warehouse.objects.for_country_and_channel(
                 order_country, order.channel_id

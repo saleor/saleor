@@ -583,8 +583,16 @@ def order_fulfilled(
             auto=auto,
         )
         webhook_events = [WebhookEventAsyncType.ORDER_UPDATED]
+        calculate_stocks_with_shipping_zones = (
+            site_settings.use_legacy_shipping_zone_stock_availability
+        )
         for fulfillment in fulfillments:
-            call_event(manager.fulfillment_created, fulfillment, notify_customer)
+            call_event(
+                manager.fulfillment_created,
+                fulfillment,
+                notify_customer,
+                calculate_stocks_with_shipping_zones,
+            )
 
         order_fulfilled = order.status == OrderStatus.FULFILLED
         if order_fulfilled:
@@ -592,7 +600,12 @@ def order_fulfilled(
 
         if order_fulfilled or manually_approved:
             for fulfillment in fulfillments:
-                call_event(manager.fulfillment_approved, fulfillment, notify_customer)
+                call_event(
+                    manager.fulfillment_approved,
+                    fulfillment,
+                    notify_customer,
+                    calculate_stocks_with_shipping_zones,
+                )
 
         call_order_events(
             manager,
@@ -796,6 +809,8 @@ def cancel_fulfillment(
     app: Optional["App"],
     warehouse: Optional["Warehouse"],
     manager: "PluginsManager",
+    *,
+    calculate_stocks_with_shipping_zones: bool,
 ):
     """Cancel fulfillment.
 
@@ -821,7 +836,11 @@ def cancel_fulfillment(
         fulfillment.status = FulfillmentStatus.CANCELED
         fulfillment.save(update_fields=["status"])
         update_order_status(fulfillment.order)
-        call_event(manager.fulfillment_canceled, fulfillment)
+        call_event(
+            manager.fulfillment_canceled,
+            fulfillment,
+            calculate_stocks_with_shipping_zones,
+        )
         call_order_event(
             manager,
             WebhookEventAsyncType.ORDER_UPDATED,

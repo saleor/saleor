@@ -513,7 +513,12 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
     line_1, line_2 = fulfillment.lines.all()
 
     cancel_fulfillment(
-        fulfillment, None, None, warehouse, get_plugins_manager(allow_replica=False)
+        fulfillment,
+        None,
+        None,
+        warehouse,
+        get_plugins_manager(allow_replica=False),
+        calculate_stocks_with_shipping_zones=True,
     )
 
     fulfillment.refresh_from_db()
@@ -541,6 +546,7 @@ def test_cancel_fulfillment_waiting_for_approval(fulfilled_order):
         None,
         warehouse,
         manager=get_plugins_manager(allow_replica=False),
+        calculate_stocks_with_shipping_zones=True,
     )
 
     # then
@@ -562,7 +568,12 @@ def test_cancel_fulfillment_variant_without_inventory_tracking(
     stock_quantity_before = stock.quantity
 
     cancel_fulfillment(
-        fulfillment, None, None, warehouse, get_plugins_manager(allow_replica=False)
+        fulfillment,
+        None,
+        None,
+        warehouse,
+        get_plugins_manager(allow_replica=False),
+        calculate_stocks_with_shipping_zones=True,
     )
 
     fulfillment.refresh_from_db()

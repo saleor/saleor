@@ -670,7 +670,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    fulfillment_created: Callable[["Fulfillment", bool, Any], Any]
+    fulfillment_created: Callable[["Fulfillment", bool, Any, Any], Any]
 
     # Trigger when fulfillment is cancelled.
     #
@@ -679,7 +679,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    fulfillment_canceled: Callable[["Fulfillment", Any], Any]
+    fulfillment_canceled: Callable[["Fulfillment", Any, Any], Any]
 
     # Trigger when fulfillment is approved.
     #
@@ -688,7 +688,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    fulfillment_approved: Callable[["Fulfillment", Any], Any]
+    fulfillment_approved: Callable[["Fulfillment", Any, Any], Any]
 
     # Trigger when fulfillment metadata is updated.
     #

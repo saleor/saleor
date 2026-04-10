@@ -16,6 +16,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, Order
 
@@ -112,7 +113,18 @@ class FulfillmentCancel(BaseMutation):
 
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-        fulfillment = cancel_fulfillment(fulfillment, user, app, warehouse, manager)
+        site_settings = get_site_promise(info.context).get().settings
+        calculate_stocks_with_shipping_zones = (
+            site_settings.use_legacy_shipping_zone_stock_availability
+        )
+        fulfillment = cancel_fulfillment(
+            fulfillment,
+            user,
+            app,
+            warehouse,
+            manager,
+            calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
+        )
         fulfillment_response = SyncWebhookControlContext(node=fulfillment)
         order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(
