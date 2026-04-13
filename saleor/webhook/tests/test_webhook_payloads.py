@@ -349,7 +349,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
     )
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
-        get_plugins_manager(allow_replica=False),
+        requestor=None,
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
 
@@ -397,7 +397,7 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
-        get_plugins_manager(allow_replica=False),
+        requestor=None,
     )
 
     # when

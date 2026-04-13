@@ -79,7 +79,10 @@ def test_stocks_bulk_update_using_ids(
 @patch(
     "saleor.graphql.warehouse.bulk_mutations.stock_bulk_update.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_stocks_updated")
+@patch(
+    "saleor.graphql.warehouse.bulk_mutations.stock_bulk_update."
+    "trigger_product_variant_stocks_updated"
+)
 def test_stocks_bulk_update_send_stock_updated_event(
     product_variant_stocks_update_webhook,
     mocked_get_webhooks_for_event,
@@ -118,14 +121,17 @@ def test_stocks_bulk_update_send_stock_updated_event(
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
     product_variant_stocks_update_webhook.assert_called_once_with(
-        [stock], webhooks=[any_webhook]
+        [stock], webhooks=[any_webhook], requestor=staff_api_client.user
     )
 
 
 @patch(
     "saleor.graphql.warehouse.bulk_mutations.stock_bulk_update.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_stocks_updated")
+@patch(
+    "saleor.graphql.warehouse.bulk_mutations.stock_bulk_update."
+    "trigger_product_variant_stocks_updated"
+)
 def test_stocks_bulk_update_send_stock_updated_event_only_for_changed_stocks(
     product_variant_stocks_update_webhook,
     mocked_get_webhooks_for_event,
@@ -177,7 +183,7 @@ def test_stocks_bulk_update_send_stock_updated_event_only_for_changed_stocks(
     assert not data["results"][0]["errors"]
     assert data["count"] == 2
     product_variant_stocks_update_webhook.assert_called_once_with(
-        [modified_stock], webhooks=[any_webhook]
+        [modified_stock], webhooks=[any_webhook], requestor=staff_api_client.user
     )
 
 

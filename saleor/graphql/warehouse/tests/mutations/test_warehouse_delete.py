@@ -87,7 +87,10 @@ def test_delete_warehouse_mutation_trigger_webhook(
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch(
+    "saleor.graphql.warehouse.mutations.warehouse_delete."
+    "trigger_product_variant_out_of_stock"
+)
 def test_delete_warehouse_mutation_with_webhooks(
     product_variant_out_of_stock_webhook,
     staff_api_client,
@@ -114,10 +117,15 @@ def test_delete_warehouse_mutation_with_webhooks(
     assert len(errors) == 0
     assert Warehouse.objects.count() == 2
     assert Stock.objects.count() == 2
-    product_variant_out_of_stock_webhook.assert_called_once_with(old_first_stock)
+    product_variant_out_of_stock_webhook.assert_called_once_with(
+        old_first_stock, requestor=staff_api_client.user
+    )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch(
+    "saleor.graphql.warehouse.mutations.warehouse_delete."
+    "trigger_product_variant_out_of_stock"
+)
 def test_delete_warehouse_mutation_with_webhooks_for_many_product_variants(
     product_variant_out_of_stock_webhook,
     staff_api_client,
