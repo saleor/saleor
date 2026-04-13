@@ -23728,6 +23728,7 @@ enum ProductErrorCode @doc(category: "Products") {
   PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
   INVALID_FILE_TYPE
   UNSUPPORTED_MIME_TYPE
+  FILE_SIZE_LIMIT_EXCEEDED
 }
 
 input ProductAttributeAssignInput @doc(category: "Products") {
@@ -23939,6 +23940,7 @@ enum CollectionErrorCode @doc(category: "Products") {
   REQUIRED
   UNIQUE
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
+  FILE_SIZE_LIMIT_EXCEEDED
 }
 
 """
@@ -24403,6 +24405,7 @@ enum ProductBulkCreateErrorCode @doc(category: "Products") {
   UNIQUE
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
+  FILE_SIZE_LIMIT_EXCEEDED
 }
 
 input ProductBulkCreateInput @doc(category: "Products") {
@@ -32624,6 +32627,7 @@ enum AccountErrorCode @doc(category: "Users") {
   ACCOUNT_NOT_CONFIRMED
   LOGIN_ATTEMPT_DELAYED
   UNKNOWN_IP_ADDRESS
+  FILE_SIZE_LIMIT_EXCEEDED
 }
 
 """

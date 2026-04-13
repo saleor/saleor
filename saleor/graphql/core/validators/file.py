@@ -132,7 +132,7 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
                 img_field_name: ValidationError(
                     f"File size exceeds the maximum allowed size "
                     f"of {settings.MAX_IMAGE_FILE_SIZE / (1024 * 1024):.0f}MB.",
-                    code=error_class.INVALID,
+                    code=error_class.FILE_SIZE_LIMIT_EXCEEDED,
                 )
             }
         )
