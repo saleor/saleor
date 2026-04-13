@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING
 from ...account.models import User
 from ...app.models import App
 from ...webhook.event_types import WebhookEventAsyncType
-from ...webhook.payloads import generate_product_variant_with_stock_payload
 from ...webhook.transport.asynchronous.transport import (
     WebhookPayloadData,
     trigger_webhooks_async,
     trigger_webhooks_async_for_multiple_objects,
 )
 from ...webhook.utils import get_webhooks_for_event
+from .payloads import generate_product_variant_with_stock_payload
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet

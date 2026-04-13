@@ -38,6 +38,10 @@ from .models import (
     Stock,
     Warehouse,
 )
+from .webhooks.stock_events import (
+    trigger_product_variant_back_in_stock,
+    trigger_product_variant_out_of_stock,
+)
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -206,11 +210,6 @@ def allocate_stocks(
                 or 0
             )
             if not max(allocation.stock.quantity - allocated_stock, 0):
-                # Imported here to avoid circular import via webhook payloads.
-                from .webhooks.stock_events import (
-                    trigger_product_variant_out_of_stock,
-                )
-
                 transaction.on_commit(
                     lambda: trigger_product_variant_out_of_stock(
                         allocation.stock, requestor=requestor
@@ -396,11 +395,6 @@ def deallocate_stock(order_lines_data: list["OrderLineInfo"], requestor: T_REQUE
             allocation_before_update.stock_available_quantity <= 0
             and available_stock_now > 0
         ):
-            # Imported here to avoid circular import via webhook payloads.
-            from .webhooks.stock_events import (
-                trigger_product_variant_back_in_stock,
-            )
-
             transaction.on_commit(
                 lambda: trigger_product_variant_back_in_stock(
                     allocation_before_update.stock, requestor=requestor
@@ -729,8 +723,6 @@ def deallocate_stock_for_orders(orders_ids: list[UUID], requestor: T_REQUESTOR):
     allocations_for_back_in_stock = Allocation.objects.filter(
         id__in=[allocation.id for allocation in allocations]
     )
-    # Imported here to avoid circular import via webhook payloads.
-    from .webhooks.stock_events import trigger_product_variant_back_in_stock
 
     for allocation in allocations_for_back_in_stock.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
