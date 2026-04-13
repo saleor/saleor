@@ -81,11 +81,13 @@ def test_call_trigger_webhook_async_deferred_payload(
     assert delivery.webhook == checkout_updated_webhook
 
 
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 def test_generate_deferred_payload(
     mocked_send_webhook_request_async,
+    mocked_send_sync_webhook,
     checkout_with_item,
     setup_checkout_webhooks,
     staff_user,
@@ -97,7 +99,9 @@ def test_generate_deferred_payload(
     deferred_request_time = datetime.datetime(2020, 10, 5, tzinfo=datetime.UTC)
 
     event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
-    _, _, _, checkout_updated_webhook = setup_checkout_webhooks(event_type)
+    _, shipping_webhook, _, checkout_updated_webhook = setup_checkout_webhooks(
+        event_type
+    )
     deferred_payload_data = DeferredPayloadData(
         model_name="checkout.checkout",
         object_id=checkout.pk,
@@ -111,6 +115,8 @@ def test_generate_deferred_payload(
         status=EventDeliveryStatus.PENDING,
     )
     delivery.save()
+
+    mocked_send_sync_webhook.return_value = []
 
     # when
     generate_deferred_payloads.delay(
@@ -132,9 +138,13 @@ def test_generate_deferred_payload(
         data["checkout"]["totalPrice"]["gross"]["amount"] == checkout.total_gross_amount
     )
 
-    assert mocked_send_webhook_request_async.call_count == 1
     call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
     assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
+
+    assert mocked_send_webhook_request_async.call_count == 1
+    shipping_methods_call = mocked_send_sync_webhook.mock_calls[0]
+    shipping_methods_delivery = shipping_methods_call.args[0]
+    assert shipping_methods_delivery.webhook_id == shipping_webhook.id
 
 
 @mock.patch(
