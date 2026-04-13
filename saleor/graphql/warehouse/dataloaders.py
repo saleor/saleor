@@ -770,6 +770,22 @@ class ActiveReservationsByCheckoutLineIdLoader(DataLoader):
         return [reservations_by_checkout_line[key] for key in keys]
 
 
+class ActiveReservationsByStockIdLoader(DataLoader[int, list[Reservation]]):
+    context_key = "active_reservations_by_stock_id"
+
+    def batch_load(self, keys: Iterable[int]) -> list[list[Reservation]]:
+        reservations_by_stock: defaultdict[int, list[Reservation]] = defaultdict(list)
+        queryset = (
+            Reservation.objects.using(self.database_connection_name)
+            .filter(stock_id__in=keys)
+            .not_expired()
+            .select_related("checkout_line")
+        )
+        for reservation in queryset:
+            reservations_by_stock[reservation.stock_id].append(reservation)
+        return [reservations_by_stock[key] for key in keys]
+
+
 class PreorderQuantityReservedByVariantChannelListingIdLoader(DataLoader[int, int]):
     context_key = "preorder_quantity_reserved_by_variant_channel_listing_id"
 

@@ -3,6 +3,7 @@ import datetime
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ....checkout.models import Checkout, CheckoutLine
 from ....product.models import ProductChannelListing, ProductVariantChannelListing
 from ....warehouse.models import Allocation, Reservation, Warehouse
 from ...core.utils import to_global_id_or_none
@@ -174,6 +175,62 @@ def test_checkout_problems_with_reservation(api_client, checkout_with_items):
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
     assert content["data"]["checkout"]["problems"] == []
+
+
+def test_checkout_problems_with_reservation_from_other_checkout(
+    api_client,
+    checkout_with_items_and_shipping,
+    site_settings_with_reservations,
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_id = to_global_id_or_none(checkout)
+
+    checkout_line = checkout.lines.first()
+    variant = checkout_line.variant
+    line_quantity = checkout_line.quantity
+
+    # leave just enough stock for the current line — no headroom for any reservation
+    stocks = variant.stocks.all()
+    stocks.update(quantity=0)
+    stock = stocks.first()
+    stock.quantity = line_quantity
+    stock.save(update_fields=["quantity"])
+
+    # another, unrelated checkout reserves the entire stock for the same variant
+    other_checkout = Checkout.objects.create(
+        currency=checkout.currency,
+        channel=checkout.channel,
+        email="other@example.com",
+    )
+    other_checkout_line = CheckoutLine.objects.create(
+        checkout=other_checkout,
+        variant=variant,
+        quantity=line_quantity,
+        currency=checkout.currency,
+    )
+    Reservation.objects.create(
+        checkout_line=other_checkout_line,
+        stock=stock,
+        quantity_reserved=line_quantity,
+        reserved_until=timezone.now() + datetime.timedelta(minutes=5),
+    )
+
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    problems = content["data"]["checkout"]["problems"]
+    assert len(problems) == 1
+    problem = problems[0]
+    assert problem["__typename"] == "CheckoutLineProblemInsufficientStock"
+    assert problem["availableQuantity"] == 0
+    assert problem["line"]["id"] == to_global_id_or_none(checkout_line)
+    assert problem["variant"]["id"] == to_global_id_or_none(variant)
 
 
 def test_checkout_with_out_of_stock_with_allocations_and_not_enough_items(

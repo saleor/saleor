@@ -1,5 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
+from uuid import UUID
 
 from promise import Promise
 
@@ -16,12 +17,14 @@ from ....checkout.problems import (
 )
 from ....product.models import ProductChannelListing
 from ....warehouse.models import Stock
+from ....warehouse.reservations import is_reservation_enabled
 from ...core.dataloaders import DataLoader
 from ...product.dataloaders import (
     ProductChannelListingByProductIdAndChannelSlugLoader,
 )
 from ...site.dataloaders import get_site_promise
 from ...warehouse.dataloaders import (
+    ActiveReservationsByStockIdLoader,
     StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
 )
@@ -80,7 +83,7 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
             variant_data_list = list(variant_data_set)
             product_data_list = list(product_data_set)
 
-            def _prepare_problems(data):
+            def _with_stocks(data):
                 (
                     variant_stocks,
                     product_channel_listings,
@@ -101,19 +104,48 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
                     ProductChannelListing,
                 ] = dict(zip(product_data_set, product_channel_listings, strict=False))
 
-                problems = {}
+                stock_ids = list(
+                    {
+                        stock.id
+                        for stocks in variant_stock_map.values()
+                        for stock in stocks
+                    }
+                )
 
-                for checkout_info, lines in zip(
-                    checkout_infos, checkout_lines, strict=False
-                ):
-                    checkout_id = checkout_info.checkout.pk
-                    problems[checkout_id] = get_checkout_lines_problems(
-                        checkout_info,
-                        lines,
-                        variant_stock_map,
-                        product_channel_listings_map,
+                def _prepare_problems(reservations_per_stock):
+                    reservation_quantity_by_stock_and_checkout: dict[
+                        int, dict[UUID, int]
+                    ] = defaultdict(lambda: defaultdict(int))
+                    for stock_id, reservations in zip(
+                        stock_ids, reservations_per_stock, strict=False
+                    ):
+                        for reservation in reservations:
+                            checkout_id = reservation.checkout_line.checkout_id
+                            reservation_quantity_by_stock_and_checkout[stock_id][
+                                checkout_id
+                            ] += reservation.quantity_reserved
+
+                    problems = {}
+                    for checkout_info, lines in zip(
+                        checkout_infos, checkout_lines, strict=False
+                    ):
+                        checkout_id = checkout_info.checkout.pk
+                        problems[checkout_id] = get_checkout_lines_problems(
+                            checkout_info,
+                            lines,
+                            variant_stock_map,
+                            product_channel_listings_map,
+                            reservation_quantity_by_stock_and_checkout=reservation_quantity_by_stock_and_checkout,
+                        )
+                    return [problems.get(key, []) for key in keys]
+
+                if stock_ids and is_reservation_enabled(site.settings):
+                    return (
+                        ActiveReservationsByStockIdLoader(self.context)
+                        .load_many(stock_ids)
+                        .then(_prepare_problems)
                     )
-                return [problems.get(key, []) for key in keys]
+                return _prepare_problems([])
 
             stock_dataloader: (
                 StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader
@@ -148,7 +180,7 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
             )
 
             return Promise.all([variant_stocks, product_channel_listings]).then(
-                _prepare_problems
+                _with_stocks
             )
 
         checkout_infos = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)

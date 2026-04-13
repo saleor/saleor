@@ -2,6 +2,7 @@ import datetime
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
+from uuid import UUID
 
 from ..graphql.core.context import ChannelContext
 from ..product.models import ProductChannelListing, ProductVariant
@@ -61,8 +62,16 @@ def get_insufficient_stock_lines(
         Iterable[Stock],
     ],
     country_code: str,
+    reservation_quantity_by_stock_and_checkout: dict[int, dict[UUID, int]]
+    | None = None,
+    current_checkout_id: UUID | None = None,
 ) -> list[tuple["CheckoutLineInfo", int]]:
-    """Return checkout lines with insufficient stock."""
+    """Return checkout lines with insufficient stock.
+
+    Reservations belonging to ``current_checkout_id`` are not subtracted, so that the
+    user's own pending reservations don't block their own checkout.
+    """
+    reservations = reservation_quantity_by_stock_and_checkout or {}
     variant_to_quantity_map: dict[int, int] = defaultdict(int)
     variant_to_available_quantity_map: dict[int, int] = defaultdict(int)
     for line_info in lines:
@@ -70,12 +79,17 @@ def get_insufficient_stock_lines(
         variant_stocks = variant_stock_map.get(
             (line_info.variant.id, line_info.channel.slug, country_code), []
         )
-        variant_to_available_quantity_map[line_info.variant.id] = sum(
-            [
-                stock.available_quantity  # type: ignore[attr-defined]
-                for stock in variant_stocks
-            ]
-        )
+        total_available = 0
+        for stock in variant_stocks:
+            available = stock.available_quantity  # type: ignore[attr-defined]
+            stock_reservations = reservations.get(stock.id, {})
+            reserved_by_others = sum(
+                quantity
+                for checkout_id, quantity in stock_reservations.items()
+                if checkout_id != current_checkout_id
+            )
+            total_available += available - reserved_by_others
+        variant_to_available_quantity_map[line_info.variant.id] = total_available
     insufficient_stocks = []
     for line_info in lines:
         if not line_info.variant.track_inventory:
@@ -157,6 +171,8 @@ def get_checkout_lines_problems(
         ],
         ProductChannelListing,
     ],
+    reservation_quantity_by_stock_and_checkout: dict[int, dict[UUID, int]]
+    | None = None,
 ) -> dict[CHECKOUT_LINE_PK_TYPE, list[CHECKOUT_LINE_PROBLEM_TYPE]]:
     """Return a list of all problems with the checkout lines.
 
@@ -175,7 +191,11 @@ def get_checkout_lines_problems(
     lines = [line for line in lines if line not in not_available_lines]
 
     insufficient_stock = get_insufficient_stock_lines(
-        lines, variant_stock_map, checkout_info.checkout.country.code
+        lines,
+        variant_stock_map,
+        checkout_info.checkout.country.code,
+        reservation_quantity_by_stock_and_checkout=reservation_quantity_by_stock_and_checkout,
+        current_checkout_id=checkout_info.checkout.pk,
     )
     if insufficient_stock:
         for line_info, available_quantity in insufficient_stock:
