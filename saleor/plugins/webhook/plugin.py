@@ -1539,6 +1539,7 @@ class WebhookPlugin(BasePlugin):
         self,
         fulfillment: "Fulfillment",
         notify_customer: bool = True,
+        calculate_stocks_with_shipping_zones: bool = True,
         previous_value: None = None,
     ) -> None:
         if not self.active:
@@ -1546,7 +1547,10 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
         if webhooks := get_webhooks_for_event(event_type):
             fulfillment_data_generator = partial(
-                generate_fulfillment_payload, fulfillment, self.requestor
+                generate_fulfillment_payload,
+                fulfillment,
+                self.requestor,
+                calculate_stocks_with_shipping_zones,
             )
             self.trigger_webhooks_async(
                 None,
@@ -1562,14 +1566,20 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def fulfillment_canceled(
-        self, fulfillment: "Fulfillment", previous_value: None
+        self,
+        fulfillment: "Fulfillment",
+        calculate_stocks_with_shipping_zones: bool = True,
+        previous_value: None = None,
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.FULFILLMENT_CANCELED
         if webhooks := get_webhooks_for_event(event_type):
             fulfillment_data_generator = partial(
-                generate_fulfillment_payload, fulfillment, self.requestor
+                generate_fulfillment_payload,
+                fulfillment,
+                self.requestor,
+                calculate_stocks_with_shipping_zones,
             )
             self.trigger_webhooks_async(
                 None,
@@ -1585,6 +1595,7 @@ class WebhookPlugin(BasePlugin):
         self,
         fulfillment: "Fulfillment",
         notify_customer: bool | None = True,
+        calculate_stocks_with_shipping_zones: bool = True,
         previous_value: None = None,
     ) -> None:
         if not self.active:
@@ -1592,7 +1603,10 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventAsyncType.FULFILLMENT_APPROVED
         if webhooks := get_webhooks_for_event(event_type):
             fulfillment_data_generator = partial(
-                generate_fulfillment_payload, fulfillment, self.requestor
+                generate_fulfillment_payload,
+                fulfillment,
+                self.requestor,
+                calculate_stocks_with_shipping_zones,
             )
             self.trigger_webhooks_async(
                 None,
@@ -1618,13 +1632,18 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def tracking_number_updated(
-        self, fulfillment: "Fulfillment", previous_value: None
+        self,
+        fulfillment: "Fulfillment",
+        calculate_stocks_with_shipping_zones: bool = True,
+        previous_value: None = None,
     ) -> None:
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
-            fulfillment_data = generate_fulfillment_payload(fulfillment, self.requestor)
+            fulfillment_data = generate_fulfillment_payload(
+                fulfillment, self.requestor, calculate_stocks_with_shipping_zones
+            )
             self.trigger_webhooks_async(
                 fulfillment_data,
                 event_type,

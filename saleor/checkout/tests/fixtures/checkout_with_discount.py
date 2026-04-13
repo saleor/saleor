@@ -10,7 +10,8 @@ from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductVariantChannelListing
 from ...fetch import fetch_checkout_info, fetch_checkout_lines
 from ...models import CheckoutLine
-from ...utils import add_variant_to_checkout, add_voucher_to_checkout
+from ...utils import add_voucher_to_checkout
+from ..utils import add_variant_to_checkout
 
 
 @pytest.fixture

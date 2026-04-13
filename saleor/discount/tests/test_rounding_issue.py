@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...checkout.utils import add_variant_to_checkout
+from ...checkout.tests.utils import add_variant_to_checkout
 from ...discount.models import PromotionRule
 from ...plugins.manager import get_plugins_manager
 from ...product.models import Product, ProductVariantChannelListing

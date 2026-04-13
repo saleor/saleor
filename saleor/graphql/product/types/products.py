@@ -506,10 +506,10 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         if not channel_slug and not country_code:
             return StocksByProductVariantIdLoader(info.context).load(root.node.id)
 
-        include_shipping_zones = (
+        calculate_stocks_with_shipping_zones = (
             site.settings.use_legacy_shipping_zone_stock_availability
         )
-        if include_shipping_zones:
+        if calculate_stocks_with_shipping_zones:
             return StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(  # noqa: E501
                 info.context
             ).load((root.node.id, country_code, root.channel_slug))

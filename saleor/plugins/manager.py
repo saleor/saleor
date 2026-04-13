@@ -1287,7 +1287,10 @@ class PluginsManager(PaymentInterface):
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
     def fulfillment_created(
-        self, fulfillment: "Fulfillment", notify_customer: bool | None = True
+        self,
+        fulfillment: "Fulfillment",
+        notify_customer: bool | None = True,
+        calculate_stocks_with_shipping_zones: bool = True,
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1296,23 +1299,32 @@ class PluginsManager(PaymentInterface):
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
             notify_customer=notify_customer,
+            calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         )
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def fulfillment_canceled(self, fulfillment: "Fulfillment"):
+    def fulfillment_canceled(
+        self,
+        fulfillment: "Fulfillment",
+        calculate_stocks_with_shipping_zones: bool = True,
+    ):
         default_value = None
         return self.__run_method_on_plugins(
             "fulfillment_canceled",
             default_value,
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
+            calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         )
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
     def fulfillment_approved(
-        self, fulfillment: "Fulfillment", notify_customer: bool | None = True
+        self,
+        fulfillment: "Fulfillment",
+        notify_customer: bool | None = True,
+        calculate_stocks_with_shipping_zones: bool = True,
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1321,6 +1333,7 @@ class PluginsManager(PaymentInterface):
             fulfillment,
             channel_slug=fulfillment.order.channel.slug,
             notify_customer=notify_customer,
+            calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         )
 
     # Note: this method is deprecated and will be removed in a future release.

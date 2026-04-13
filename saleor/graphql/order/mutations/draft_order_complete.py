@@ -123,6 +123,7 @@ class DraftOrderComplete(BaseMutation):
         requestor = app or user
 
         manager = get_plugin_manager_promise(info.context).get()
+        site_settings = get_site_promise(info.context).get().settings
         order = cls.get_node_or_error(
             info,
             id,
@@ -143,7 +144,11 @@ class DraftOrderComplete(BaseMutation):
 
         country = get_order_country(order)
         validate_draft_order(
-            order, order.lines.all(), country, requestor=requestor
+            order,
+            order.lines.all(),
+            country,
+            requestor=requestor,
+            calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
         ).get()
         with traced_atomic_transaction():
             update_fields = [
@@ -204,7 +209,6 @@ class DraftOrderComplete(BaseMutation):
                         line=line, quantity=line.quantity, variant=line.variant
                     )
                     order_lines_info.append(line_data)
-                    site_settings = get_site_promise(info.context).get().settings
                     try:
                         with traced_atomic_transaction():
                             allocate_stocks(
@@ -215,7 +219,7 @@ class DraftOrderComplete(BaseMutation):
                                 check_reservations=is_reservation_enabled(
                                     site_settings
                                 ),
-                                include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
+                                calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
                             )
                             allocate_preorders(
                                 [line_data],

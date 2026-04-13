@@ -84,7 +84,7 @@ def allocate_stocks(
     channel: "Channel",
     manager: PluginsManager,
     *,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
     collection_point_pk: UUID | None = None,
     additional_filter_lookup: dict[str, Any] | None = None,
     check_reservations: bool = False,
@@ -121,7 +121,7 @@ def allocate_stocks(
         stocks = Stock.objects.for_channel_or_country(
             channel_slug,
             country_code,
-            include_shipping_zones=include_shipping_zones,
+            include_shipping_zones=calculate_stocks_with_shipping_zones,
         )
 
     stocks = list(
@@ -466,7 +466,7 @@ def increase_allocations(
     lines_info: list["OrderLineInfo"],
     channel: "Channel",
     manager: PluginsManager,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
 ):
     """Increase allocation for order lines with appropriate quantity."""
     line_pks = [info.line.pk for info in lines_info]
@@ -504,7 +504,7 @@ def increase_allocations(
         country_code,
         channel,
         manager,
-        include_shipping_zones=include_shipping_zones,
+        calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
     )
 
 

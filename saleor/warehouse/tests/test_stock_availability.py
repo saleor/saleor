@@ -143,7 +143,7 @@ def test_get_available_quantity(variant_with_many_stocks, channel_USD):
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
     assert available_quantity == 7
 
@@ -154,7 +154,7 @@ def test_get_available_quantity_without_allocation(order_line, stock, channel_US
         order_line.variant,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
     assert available_quantity == stock.quantity
 
@@ -169,7 +169,7 @@ def test_get_available_quantity_with_allocations(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
     assert available_quantity == 3
 
@@ -184,7 +184,7 @@ def test_get_available_quantity_with_reservations(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
     )
     assert available_quantity == 2
@@ -200,7 +200,7 @@ def test_get_available_quantity_with_allocations_and_reservations(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
     )
     assert available_quantity == 4
@@ -220,7 +220,7 @@ def test_get_available_quantity_with_reservations_excluding_given_checkout_lines
             checkout_line_with_reservation_in_many_stocks,
             checkout_line_with_one_reservation,
         ],
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
     )
     assert available_quantity == 7
@@ -232,7 +232,7 @@ def test_get_available_quantity_without_stocks(variant_with_many_stocks, channel
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
     assert available_quantity == 0
 
@@ -352,7 +352,7 @@ def test_check_stock_quantity_bulk_with_reservations(
         variant,
         country_code,
         channel_USD.slug,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
     )
     global_quantity_limit = 50
@@ -452,7 +452,7 @@ def test_get_available_quantity_no_shipping_zones_included(
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=include_shipping_zones,
+        calculate_stocks_with_shipping_zones=include_shipping_zones,
     )
 
     # then - legacy behavior: no shipping zones means no stock
@@ -471,7 +471,7 @@ def test_get_available_quantity_no_shipping_zones_excluded_from_stock_calculatio
         variant_with_many_stocks,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=include_shipping_zones,
+        calculate_stocks_with_shipping_zones=include_shipping_zones,
     )
 
     # then - flag disabled: shipping zones ignored, stock found
@@ -571,7 +571,7 @@ def test_is_product_in_stock_no_shipping_zones_included(
         product,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=include_shipping_zones,
+        calculate_stocks_with_shipping_zones=include_shipping_zones,
     )
 
     # then - legacy: no shipping zones means not in stock
@@ -591,7 +591,7 @@ def test_is_product_in_stock_no_shipping_zones_excluded_from_stock_calculations(
         product,
         COUNTRY_CODE,
         channel_USD.slug,
-        include_shipping_zones=include_shipping_zones,
+        calculate_stocks_with_shipping_zones=include_shipping_zones,
     )
 
     # then - flag disabled: shipping zones ignored, product in stock

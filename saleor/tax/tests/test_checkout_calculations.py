@@ -6,7 +6,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout import calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...checkout.utils import add_variant_to_checkout
+from ...checkout.tests.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
 from ...discount.utils.checkout import (

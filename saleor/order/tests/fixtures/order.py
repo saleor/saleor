@@ -1071,6 +1071,7 @@ def fulfilled_order_with_all_cancelled_fulfillments(
         None,
         warehouse,
         get_plugins_manager(allow_replica=False),
+        calculate_stocks_with_shipping_zones=True,
     )
     return fulfilled_order
 

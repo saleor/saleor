@@ -6,7 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from .....checkout.fetch import fetch_checkout_info
-from .....checkout.utils import add_variant_to_checkout
+from .....checkout.tests.utils import add_variant_to_checkout
 from .....plugins.manager import get_plugins_manager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductVariant, ProductVariantChannelListing

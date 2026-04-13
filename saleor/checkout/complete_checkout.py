@@ -845,7 +845,7 @@ def _create_order(
         country_code,
         checkout_info.channel,
         manager,
-        include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
+        calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
         collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         additional_filter_lookup=additional_warehouse_lookup,
         check_reservations=True,
@@ -1274,7 +1274,7 @@ def _handle_allocations_of_order_lines(
     order_lines_info: list[OrderLineInfo],
     manager: "PluginsManager",
     reservation_enabled: bool,
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
 ):
     country_code = checkout_info.get_country()
     additional_warehouse_lookup = (
@@ -1285,7 +1285,7 @@ def _handle_allocations_of_order_lines(
         country_code,
         checkout_info.channel,
         manager,
-        include_shipping_zones=include_shipping_zones,
+        calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         additional_filter_lookup=additional_warehouse_lookup,
         check_reservations=True,
@@ -1526,7 +1526,7 @@ def _create_order_from_checkout(
         order_lines_info=order_lines_info,
         manager=manager,
         reservation_enabled=reservation_enabled,
-        include_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
+        calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
     )
 
     # giftcards
@@ -1972,7 +1972,7 @@ def complete_checkout_with_payment(
 def _reserve_stocks_without_availability_check(
     checkout_info: CheckoutInfo,
     lines: list[CheckoutLineInfo],
-    include_shipping_zones: bool,
+    calculate_stocks_with_shipping_zones: bool,
 ):
     """Add additional temporary reservation for stock.
 
@@ -1984,7 +1984,7 @@ def _reserve_stocks_without_availability_check(
         channel_slug=checkout_info.channel.slug,
         products_variants=variants,
         country_code=checkout_info.get_country(),
-        include_shipping_zones=include_shipping_zones,
+        include_shipping_zones=calculate_stocks_with_shipping_zones,
     )
     variants_stocks_map = {stock.product_variant_id: stock for stock in stocks}
 

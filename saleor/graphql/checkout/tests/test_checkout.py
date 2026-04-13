@@ -30,8 +30,8 @@ from ....checkout.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
+from ....checkout.tests.utils import add_variant_to_checkout
 from ....checkout.utils import (
-    add_variant_to_checkout,
     add_voucher_to_checkout,
 )
 from ....core.db.connection import allow_writer

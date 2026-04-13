@@ -5,7 +5,7 @@ from ....payment.models import Payment
 from ....plugins.manager import get_plugins_manager
 from ... import calculations
 from ...fetch import fetch_checkout_info, fetch_checkout_lines
-from ...utils import add_variant_to_checkout
+from ..utils import add_variant_to_checkout
 
 
 @pytest.fixture

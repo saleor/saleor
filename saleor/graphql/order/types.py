@@ -143,6 +143,7 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
+from ..site.dataloaders import load_site_callback
 from ..tax.dataloaders import (
     TaxClassByIdLoader,
     TaxConfigurationByChannelId,
@@ -2455,8 +2456,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         return root.node.get_status_display()
 
     @staticmethod
+    @load_site_callback
     @traced_resolver
-    def resolve_can_finalize(root: SyncWebhookControlContext[models.Order], info):
+    def resolve_can_finalize(root: SyncWebhookControlContext[models.Order], info, site):
         order = root.node
         if order.status == OrderStatus.DRAFT:
 
@@ -2472,6 +2474,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                         requestor=get_user_or_app_from_context(info.context),
                         database_connection_name=database_connection_name,
                         allow_sync_webhooks=root.allow_sync_webhooks,
+                        calculate_stocks_with_shipping_zones=(
+                            site.settings.use_legacy_shipping_zone_stock_availability
+                        ),
                     )
                     .then(lambda _: True)
                     .catch(lambda _: False)
@@ -2730,8 +2735,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         return graphene.Node.to_global_id("Order", root.node.original_id)
 
     @staticmethod
+    @load_site_callback
     @traced_resolver
-    def resolve_errors(root: SyncWebhookControlContext[models.Order], info):
+    def resolve_errors(root: SyncWebhookControlContext[models.Order], info, site):
         order = root.node
         if order.status == OrderStatus.DRAFT:
 
@@ -2747,6 +2753,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                         requestor=get_user_or_app_from_context(info.context),
                         database_connection_name=database_connection_name,
                         allow_sync_webhooks=root.allow_sync_webhooks,
+                        calculate_stocks_with_shipping_zones=(
+                            site.settings.use_legacy_shipping_zone_stock_availability
+                        ),
                     )
                     .then(lambda _: [])
                     .catch(

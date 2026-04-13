@@ -822,7 +822,7 @@ def test_update_checkout_lines_with_reservations(
         channel_USD,
         replace_reservations=True,
         reservation_length=5,
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     user_api_client.ensure_access_token()

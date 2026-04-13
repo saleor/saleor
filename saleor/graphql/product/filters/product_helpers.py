@@ -142,6 +142,8 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
 
 
 def get_available_warehouse_pks_for_product(qs, channel_slug):
+    # refetch the site to make sure that we have the latest settings
+    Site.objects.clear_cache()
     include_shipping_zones = (
         Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
     )

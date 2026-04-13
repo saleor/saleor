@@ -36,7 +36,7 @@ def test_allocate_stocks(order_line, stock, channel_USD):
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     stock.refresh_from_db()
@@ -77,7 +77,7 @@ def test_allocate_stocks_multiple_lines_the_highest_stock_strategy(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     stock.refresh_from_db()
@@ -102,7 +102,7 @@ def test_allocate_stock_many_stocks_the_highest_stock_strategy(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     allocations = Allocation.objects.filter(order_line=order_line, stock__in=stocks)
@@ -135,7 +135,7 @@ def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         collection_point_pk=warehouse_for_cc.pk,
     )
 
@@ -176,7 +176,7 @@ def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     # then
@@ -238,7 +238,7 @@ def test_allocate_stock_prioritize_sorting_order_strategy_with_collection_point(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         collection_point_pk=warehouse_for_cc.pk,
     )
 
@@ -264,7 +264,7 @@ def test_allocate_stock_with_reservations_the_highest_stock_strategy(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
     )
 
@@ -311,7 +311,7 @@ def test_allocate_stock_with_reservations_prioritize_sorting_order_strategy(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
     )
 
@@ -342,7 +342,7 @@ def test_allocate_stock_insufficient_stock_due_to_reservations(
             COUNTRY_CODE,
             channel_USD,
             manager=get_plugins_manager(allow_replica=False),
-            include_shipping_zones=True,
+            calculate_stocks_with_shipping_zones=True,
             check_reservations=True,
         )
 
@@ -372,7 +372,7 @@ def test_allocate_stock_many_stocks_partially_allocated(
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     # then
@@ -402,7 +402,7 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
             COUNTRY_CODE,
             channel_USD,
             manager=get_plugins_manager(allow_replica=False),
-            include_shipping_zones=True,
+            calculate_stocks_with_shipping_zones=True,
         )
 
     assert not Allocation.objects.filter(
@@ -426,7 +426,7 @@ def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_US
             COUNTRY_CODE,
             channel_USD,
             manager=get_plugins_manager(allow_replica=False),
-            include_shipping_zones=True,
+            calculate_stocks_with_shipping_zones=True,
         )
 
 
@@ -447,7 +447,7 @@ def test_allocate_stocks_no_channel_shipping_zones_excluded_from_stock_calculati
         COUNTRY_CODE,
         channel_USD,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=False,
+        calculate_stocks_with_shipping_zones=False,
     )
 
 
@@ -464,7 +464,7 @@ def test_allocate_stock_insufficient_stocks(
             COUNTRY_CODE,
             channel_USD,
             manager=get_plugins_manager(allow_replica=False),
-            include_shipping_zones=True,
+            calculate_stocks_with_shipping_zones=True,
         )
 
     assert not Allocation.objects.filter(
@@ -503,7 +503,7 @@ def test_allocate_stock_insufficient_stocks_for_multiple_lines(
             COUNTRY_CODE,
             channel_USD,
             manager=get_plugins_manager(allow_replica=False),
-            include_shipping_zones=True,
+            calculate_stocks_with_shipping_zones=True,
         )
 
     assert {item.variant for item in exc._excinfo[1].items} == {variant, variant_2}
@@ -682,7 +682,7 @@ def test_increase_allocations(quantity, allocation):
         [order_line_info],
         order_line.order.channel,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     stock.refresh_from_db()
@@ -747,7 +747,7 @@ def test_increase_allocations_with_multiple_allocations_for_the_same_stock(
         [first_order_line_info, second_order_line_info],
         first_order_line.order.channel,
         manager=get_plugins_manager(allow_replica=False),
-        include_shipping_zones=True,
+        calculate_stocks_with_shipping_zones=True,
     )
 
     stock.refresh_from_db()
@@ -789,7 +789,7 @@ def test_increase_allocation_insufficient_stock(allocation):
             [order_line_info],
             order_line.order.channel,
             manager=get_plugins_manager(allow_replica=False),
-            include_shipping_zones=True,
+            calculate_stocks_with_shipping_zones=True,
         )
 
     stock.refresh_from_db()

@@ -339,6 +339,7 @@ def _get_best_gift_reward(
     include_shipping_zones = (
         Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
     )
+
     try:
         check_stock_quantity_bulk(
             variants,

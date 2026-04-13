@@ -73,7 +73,7 @@ def test_fulfillment_approve(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
-    mock_fulfillment_approved.assert_called_once_with(fulfillment, True)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, True, True)
 
 
 def test_fulfillment_approve_by_user_no_channel_access(
@@ -136,7 +136,7 @@ def test_fulfillment_approve_by_app(
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.app == app_api_client.app
     assert event.user is None
-    mock_fulfillment_approved.assert_called_once_with(fulfillment, True)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, True, True)
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
@@ -442,7 +442,7 @@ def test_fulfillment_approve_partial_order_fulfill(
 
     assert mock_email_fulfillment.call_count == 0
     mock_fulfillment_approved.assert_called_once_with(
-        partial_fulfillment_awaiting_approval, False
+        partial_fulfillment_awaiting_approval, False, True
     )
 
 

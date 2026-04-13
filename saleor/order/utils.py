@@ -338,7 +338,7 @@ def create_order_line(
             ],
             channel,
             manager=manager,
-            include_shipping_zones=(
+            calculate_stocks_with_shipping_zones=(
                 site_settings.use_legacy_shipping_zone_stock_availability
             ),
         )
@@ -540,11 +540,14 @@ def _update_allocations_for_line(
         if not get_order_lines_with_track_inventory([line_info]):
             return
         line_info.quantity = new_quantity - old_quantity
-        include_shipping_zones = (
+        calculate_stocks_with_shipping_zones = (
             site_settings.use_legacy_shipping_zone_stock_availability
         )
         increase_allocations(
-            [line_info], channel, manager, include_shipping_zones=include_shipping_zones
+            [line_info],
+            channel,
+            manager,
+            calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         )
     else:
         line_info.quantity = old_quantity - new_quantity
