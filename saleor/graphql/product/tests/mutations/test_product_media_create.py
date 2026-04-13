@@ -86,6 +86,35 @@ def test_product_media_create_mutation(
     product_media_created.assert_called_once_with(product_image)
 
 
+def test_product_media_create_mutation_file_size_exceeds_limit(
+    staff_api_client, product, permission_manage_products, media_root, settings
+):
+    # given
+    settings.MAX_IMAGE_FILE_SIZE = 1
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "",
+        "image": image_name,
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "image"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert "File size exceeds the maximum allowed size" in errors[0]["message"]
+    assert product.media.count() == 0
+
+
 def test_product_media_create_mutation_without_file(
     monkeypatch, staff_api_client, product, permission_manage_products, media_root
 ):

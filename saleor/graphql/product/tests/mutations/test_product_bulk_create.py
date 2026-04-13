@@ -818,6 +818,66 @@ def test_product_bulk_create_with_media_invalid_extension(
     assert len(error_2) == 1
 
 
+def test_product_bulk_create_with_media_file_size_exceeds_limit(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+    settings,
+):
+    # given
+    settings.MAX_IMAGE_FILE_SIZE = 1
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name = "test name"
+    base_product_slug = "product-test-slug"
+
+    image_file, image_name = create_image(image_name="prod_img")
+
+    media = {
+        "alt": "",
+        "image": image_name,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "media": [media],
+        },
+    ]
+
+    files = [image_file]
+    map_dict = {
+        0: ["variables.products.0.media.0.image"],
+    }
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}, files, map_dict
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert errors[0]["path"] == "media.0.image"
+    assert "File size exceeds the maximum allowed size" in errors[0]["message"]
+
+
 def test_product_bulk_create_with_media_invalid_media_type(
     staff_api_client,
     product_type,

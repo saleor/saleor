@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from PIL import Image
 
 from ....core.error_codes import UploadErrorCode
@@ -48,6 +49,39 @@ def test_clean_image_file():
     img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
 
     # when & then
+    clean_image_file({field: img}, field, ProductErrorCode)
+
+
+@override_settings(MAX_IMAGE_FILE_SIZE=1)
+def test_clean_image_file_file_size_exceeds_limit():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
+    field = "image"
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        clean_image_file({field: img}, field, ProductErrorCode)
+
+    # then
+    assert exc.value.args[0][field].code == ProductErrorCode.INVALID
+    assert (
+        "File size exceeds the maximum allowed size" in exc.value.args[0][field].message
+    )
+
+
+@override_settings(MAX_IMAGE_FILE_SIZE=10 * 1024 * 1024)
+def test_clean_image_file_file_size_within_limit():
+    # given
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="JPEG")
+    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
+    field = "image"
+
+    # when/then - should not raise
     clean_image_file({field: img}, field, ProductErrorCode)
 
 

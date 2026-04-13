@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 from django.core.files import File
 
+from ......account.error_codes import AccountErrorCode
 from ......product.tests.utils import create_image
 from ......thumbnail.models import Thumbnail
 from .....tests.utils import (
@@ -97,3 +98,46 @@ def test_user_avatar_update_mutation_image_exists(staff_api_client, media_root):
         "https://example.com/media/user-avatars/new_image"
     )
     assert not user.thumbnails.exists()
+
+
+USER_AVATAR_UPDATE_WITH_ERRORS_MUTATION = """
+    mutation userAvatarUpdate($image: Upload!) {
+        userAvatarUpdate(image: $image) {
+            user {
+                avatar(size: 0) {
+                    url
+                }
+            }
+            accountErrors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_user_avatar_update_mutation_file_size_exceeds_limit(
+    staff_api_client, media_root, settings
+):
+    # given
+    settings.MAX_IMAGE_FILE_SIZE = 1
+    image_file, image_name = create_image("avatar")
+    variables = {"image": image_name}
+    body = get_multipart_request_body(
+        USER_AVATAR_UPDATE_WITH_ERRORS_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["userAvatarUpdate"]["accountErrors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "image"
+    assert errors[0]["code"] == AccountErrorCode.INVALID.name
+    assert "File size exceeds the maximum allowed size" in errors[0]["message"]
+    staff_api_client.user.refresh_from_db()
+    assert not staff_api_client.user.avatar
