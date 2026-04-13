@@ -39,6 +39,7 @@ class AccountErrorCode(Enum):
     LOGIN_ATTEMPT_DELAYED = "login_attempt_delayed"
     DISABLED_AUTHENTICATION_METHOD = "disabled_authentication_method"
     UNKNOWN_IP_ADDRESS = "unknown_ip_address"
+    FILE_SIZE_LIMIT_EXCEEDED = "file_size_limit_exceeded"
 
 
 class CustomerBulkUpdateErrorCode(Enum):

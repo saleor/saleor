@@ -240,6 +240,6 @@ def test_create_collection_file_size_exceeds_limit(
     errors = content["data"]["collectionCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "backgroundImage"
-    assert errors[0]["code"] == CollectionErrorCode.INVALID.name
+    assert errors[0]["code"] == CollectionErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
     assert not Collection.objects.filter(name=collection_name).exists()

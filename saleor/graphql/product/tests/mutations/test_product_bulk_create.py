@@ -873,7 +873,7 @@ def test_product_bulk_create_with_media_file_size_exceeds_limit(
     assert data["count"] == 0
     errors = data["results"][0]["errors"]
     assert len(errors) == 1
-    assert errors[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert errors[0]["path"] == "media.0.image"
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
 
