@@ -38,6 +38,7 @@ class AccountErrorCode(Enum):
     ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
     LOGIN_ATTEMPT_DELAYED = "login_attempt_delayed"
     UNKNOWN_IP_ADDRESS = "unknown_ip_address"
+    FILE_SIZE_LIMIT_EXCEEDED = "file_size_limit_exceeded"
 
 
 class CustomerBulkUpdateErrorCode(Enum):

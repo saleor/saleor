@@ -106,7 +106,7 @@ def test_product_media_create_mutation_file_size_exceeds_limit(
     errors = content["data"]["productMediaCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "image"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
     assert product.media.count() == 0
 

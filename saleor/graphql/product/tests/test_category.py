@@ -619,7 +619,7 @@ def test_category_create_mutation_file_size_exceeds_limit(
     errors = content["data"]["categoryCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "backgroundImage"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
     assert not Category.objects.filter(name=category_name).exists()
 
