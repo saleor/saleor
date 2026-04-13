@@ -114,11 +114,8 @@ class AccountRegister(DeprecatedModelMutation):
             response.user.NEWLY_CREATED_USER = True
         return response
 
-    @classmethod
-    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        site = get_site_promise(info.context).get()
-        if not site.settings.enable_account_confirmation_by_email:
-            return super().clean_input(info, instance, data, **kwargs)
+    @staticmethod
+    def clean_redirect_url(data: dict) -> None:
         if not data.get("redirect_url"):
             raise ValidationError(
                 {
@@ -139,9 +136,16 @@ class AccountRegister(DeprecatedModelMutation):
                 }
             ) from e
 
-        data["channel"] = clean_channel(
-            data.get("channel"), error_class=AccountErrorCode, allow_replica=False
-        ).slug
+    @classmethod
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        site = get_site_promise(info.context).get()
+
+        if site.settings.enable_account_confirmation_by_email:
+            cls.clean_redirect_url(data)
+
+            data["channel"] = clean_channel(
+                data.get("channel"), error_class=AccountErrorCode, allow_replica=False
+            ).slug
 
         data["email"] = data["email"].lower()
 
