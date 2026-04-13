@@ -70,7 +70,7 @@ def clean_channel(
     else:
         try:
             channel = get_default_channel(allow_replica)
-        except ChannelNotDefined:
+        except (ChannelNotDefined, NoDefaultChannel):
             raise ValidationError(
                 {
                     "channel": ValidationError(
