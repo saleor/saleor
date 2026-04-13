@@ -141,7 +141,7 @@ def test_user_avatar_update_mutation_file_size_exceeds_limit(
     errors = content["data"]["userAvatarUpdate"]["accountErrors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "image"
-    assert errors[0]["code"] == AccountErrorCode.INVALID.name
+    assert errors[0]["code"] == AccountErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
     staff_api_client.user.refresh_from_db()
     assert not staff_api_client.user.avatar
