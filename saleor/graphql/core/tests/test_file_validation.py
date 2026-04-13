@@ -66,7 +66,7 @@ def test_clean_image_file_file_size_exceeds_limit():
         clean_image_file({field: img}, field, ProductErrorCode)
 
     # then
-    assert exc.value.args[0][field].code == ProductErrorCode.INVALID
+    assert exc.value.args[0][field].code == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED
     assert (
         "File size exceeds the maximum allowed size" in exc.value.args[0][field].message
     )
