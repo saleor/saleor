@@ -6023,7 +6023,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     transaction_item_generator(
@@ -6082,7 +6082,7 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_exc
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     transaction_item_generator(

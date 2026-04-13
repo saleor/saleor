@@ -6310,7 +6310,7 @@ def test_checkout_complete_warehouse_without_shipping_zones(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -6368,7 +6368,7 @@ def test_checkout_complete_warehouse_without_shipping_zones_excluded_from_stock_
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
