@@ -2125,3 +2125,33 @@ def test_collections_query_return_error_with_sort_by_rank_without_search(
     )
     assert len(errors) == 1
     assert errors[0]["message"] == expected_message
+
+
+def test_create_collection_file_size_exceeds_limit(
+    staff_api_client, permission_manage_products, media_root, settings
+):
+    # given
+    settings.MAX_IMAGE_FILE_SIZE = 1
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    collection_name = "Test collection"
+    image_file, image_name = create_image()
+    variables = {
+        "name": collection_name,
+        "backgroundImage": image_name,
+        "backgroundImageAlt": "Alt text",
+    }
+    body = get_multipart_request_body(
+        CREATE_COLLECTION_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["collectionCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "backgroundImage"
+    assert errors[0]["code"] == CollectionErrorCode.INVALID.name
+    assert "File size exceeds the maximum allowed size" in errors[0]["message"]
+    assert not Collection.objects.filter(name=collection_name).exists()

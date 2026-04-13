@@ -2042,3 +2042,33 @@ def test_fetch_product_from_category_query(
     variant_cost = variant_channel_data["costPrice"]["amount"]
 
     assert variant_channel_listing.cost_price.amount == variant_cost
+
+
+def test_category_create_mutation_file_size_exceeds_limit(
+    staff_api_client, permission_manage_products, media_root, settings
+):
+    # given
+    settings.MAX_IMAGE_FILE_SIZE = 1
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    category_name = "Test category"
+    image_file, image_name = create_image()
+    variables = {
+        "name": category_name,
+        "backgroundImage": image_name,
+        "backgroundImageAlt": "Alt text",
+    }
+    body = get_multipart_request_body(
+        CATEGORY_CREATE_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["categoryCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "backgroundImage"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert "File size exceeds the maximum allowed size" in errors[0]["message"]
+    assert not Category.objects.filter(name=category_name).exists()
