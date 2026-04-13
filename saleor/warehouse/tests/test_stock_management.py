@@ -1231,9 +1231,7 @@ def test_increase_stock_with_back_in_stock_webhook_not_triggered_with_allocation
     product_variant_back_in_stock_webhook.assert_not_called()
 
 
-@mock.patch(
-    "saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock"
-)
+@mock.patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_decrease_stock_with_out_of_stock_webhook_triggered(
     product_variant_out_of_stock_webhook_mock,
     allocation,

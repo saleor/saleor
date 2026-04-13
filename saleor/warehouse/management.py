@@ -588,9 +588,6 @@ def decrease_stock(
         allow_stock_to_be_exceeded,
     )
 
-    # Imported here to avoid circular import via webhook payloads.
-    from .webhooks.stock_events import trigger_product_variant_out_of_stock
-
     stock_ids = (s.id for s in stocks)
     for stock in Stock.objects.filter(id__in=stock_ids).annotate_available_quantity():
         if stock.available_quantity <= 0:
