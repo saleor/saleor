@@ -242,3 +242,23 @@ def test_request_email_change_send_event(
     account_change_email_requested_mock.assert_called_once_with(
         customer_user, channel_PLN.slug, "token", change_email_url, new_email
     )
+
+
+def test_request_email_change_but_no_channels_exist(user_api_client, customer_user):
+    """It should return an error when no channel exist in DB."""
+    variables = {
+        "password": "password",
+        "new_email": "new_email@example.com",
+        "redirect_url": "http://www.example.com",
+    }
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestEmailChange"]
+    assert not data["user"]
+    assert data["errors"] == [
+        {
+            "code": "MISSING_CHANNEL_SLUG",
+            "message": "You need to provide channel slug.",
+            "field": "channel",
+        }
+    ]
