@@ -493,6 +493,9 @@ COUNTRIES_OVERRIDE = {
 }
 
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
+MAX_IMAGE_FILE_SIZE = int(
+    os.environ.get("MAX_IMAGE_FILE_SIZE", 10 * 1024 * 1024)
+)  # 10MB
 
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
