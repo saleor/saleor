@@ -20,10 +20,13 @@ if TYPE_CHECKING:
     from ..models import Stock
 
 
+T_REQUESTOR = User | App | None
+
+
 def trigger_product_variant_out_of_stock(
     stock: "Stock",
+    requestor: T_REQUESTOR,
     webhooks: "QuerySet[Webhook] | None" = None,
-    requestor: App | User | None = None,
 ) -> None:
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
     if webhooks is None:
@@ -45,8 +48,8 @@ def trigger_product_variant_out_of_stock(
 
 def trigger_product_variant_back_in_stock(
     stock: "Stock",
+    requestor: T_REQUESTOR,
     webhooks: "QuerySet[Webhook] | None" = None,
-    requestor: App | User | None = None,
 ) -> None:
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
     if webhooks is None:
@@ -68,8 +71,8 @@ def trigger_product_variant_back_in_stock(
 
 def trigger_product_variant_stocks_updated(
     stocks: Iterable["Stock"],
+    requestor: T_REQUESTOR,
     webhooks: "QuerySet[Webhook] | None" = None,
-    requestor: App | User | None = None,
 ) -> None:
     event_type = WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
     if webhooks is None:
