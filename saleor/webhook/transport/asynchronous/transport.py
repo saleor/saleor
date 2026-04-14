@@ -816,13 +816,12 @@ def trigger_send_webhooks_async_for_apps(
 ):
     domain = get_domain()
 
-    event_deliveries_to_process_qs = (
-        EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(
-            status=EventDeliveryStatus.PENDING,
-            payload__isnull=False,
-            webhook__app_id=OuterRef("id"),
-        )
+    event_deliveries_to_process_qs = EventDelivery.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(
+        status=EventDeliveryStatus.PENDING,
+        payload__isnull=False,
+        webhook__app_id=OuterRef("id"),
     )
 
     webhook_apps = (
