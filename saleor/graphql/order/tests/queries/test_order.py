@@ -5,13 +5,13 @@ import pytest
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from .....checkout.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....discount import DiscountType
 from .....giftcard import GiftCardEvents, events
 from .....giftcard.models import GiftCardEvent
 from .....order import FulfillmentStatus, OrderOrigin, OrderStatus
+from .....order.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....order.events import transaction_event
 from .....order.models import Order, OrderGrantedRefund
 from .....order.utils import (

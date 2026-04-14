@@ -26,7 +26,6 @@ from ....checkout.checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
-from ....checkout.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
@@ -494,10 +493,6 @@ def test_query_checkout_empty_address_with_shipping_method_without_exclude_webho
 ):
     # given checkout without address
     # and checkout in channel with available shipping methods
-
-    checkout_with_item.metadata_storage.private_metadata = {
-        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
-    }
     checkout_with_item.shipping_address = None
     checkout_with_item.billing_address = None
 
@@ -525,10 +520,6 @@ def test_query_checkout_with_address_with_shipping_method_without_exclude_webhoo
 ):
     # GIVEN checkout with address
     # AND checkout in channel with available shipping methods
-
-    checkout_with_item.metadata_storage.private_metadata = {
-        PRIVATE_META_APP_SHIPPING_ID: "TEST_METHOD"
-    }
     checkout_with_item.shipping_address = address
     checkout_with_item.billing_address = address
 

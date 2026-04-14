@@ -37,9 +37,6 @@ if TYPE_CHECKING:
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
-PRIVATE_META_APP_SHIPPING_ID = "external_app_shipping_id"
-
-
 @dataclass(frozen=True)
 class DeliveryMethodBase:
     delivery_method: Union["ShippingMethodData", "Warehouse"] | None = None
@@ -252,20 +249,6 @@ def get_valid_collection_points_for_checkout(
     )
 
 
-def _remove_external_shipping_from_metadata(checkout: Checkout):
-    from .utils import get_checkout_metadata
-
-    metadata = get_checkout_metadata(checkout)
-    if not metadata:
-        return
-
-    field_deleted = metadata.delete_value_from_private_metadata(
-        PRIVATE_META_APP_SHIPPING_ID
-    )
-    if field_deleted:
-        metadata.save(update_fields=["private_metadata"])
-
-
 def _remove_undiscounted_base_shipping_price(checkout: Checkout):
     if checkout.undiscounted_base_shipping_price_amount:
         checkout.undiscounted_base_shipping_price_amount = Decimal(0)
@@ -297,10 +280,6 @@ def assign_shipping_method_to_checkout(
     if checkout.assigned_delivery_id != checkout_delivery.id:
         checkout.assigned_delivery = checkout_delivery
         fields_to_update.append("assigned_delivery_id")
-
-    # make sure that we don't have obsolete data for shipping methods stored in
-    # private metadata
-    _remove_external_shipping_from_metadata(checkout=checkout)
 
     if checkout.shipping_method_name != checkout_delivery.name:
         checkout.shipping_method_name = checkout_delivery.name
