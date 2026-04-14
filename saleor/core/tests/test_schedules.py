@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 from celery.schedules import BaseSchedule
+from django.test import override_settings
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from freezegun import freeze_time
@@ -588,6 +589,7 @@ def test_checkout_search_update_schedule_not_dirty(checkout):
 
 
 @freeze_time("2020-10-10 12:00:00")
+@override_settings(WEBHOOK_LEGACY_MODE=False)
 def test_async_webhooks_schedule_remaining_estimate_initial_state():
     # given
     schedule = async_webhooks_schedule()
@@ -600,6 +602,7 @@ def test_async_webhooks_schedule_remaining_estimate_initial_state():
 
 
 @freeze_time("2020-10-10 12:00:00")
+@override_settings(WEBHOOK_LEGACY_MODE=False)
 def test_async_webhooks_schedule_remaining_estimate():
     # given
     schedule = async_webhooks_schedule()
@@ -612,6 +615,7 @@ def test_async_webhooks_schedule_remaining_estimate():
     assert remaining == schedule.initial_timedelta - time_delta
 
 
+@override_settings(WEBHOOK_LEGACY_MODE=False)
 def test_async_webhooks_schedule_not_dirty_no_deliveries():
     # given
     schedule = async_webhooks_schedule()
@@ -626,6 +630,7 @@ def test_async_webhooks_schedule_not_dirty_no_deliveries():
     assert next_run == schedule.initial_timedelta.total_seconds()
 
 
+@override_settings(WEBHOOK_LEGACY_MODE=False)
 def test_async_webhooks_schedule_not_dirty_no_pending_delivery(event_delivery):
     # given
     schedule = async_webhooks_schedule()
@@ -642,6 +647,7 @@ def test_async_webhooks_schedule_not_dirty_no_pending_delivery(event_delivery):
     assert next_run == schedule.initial_timedelta.total_seconds()
 
 
+@override_settings(WEBHOOK_LEGACY_MODE=False)
 def test_async_webhooks_schedule_not_dirty_no_pending_delivery_with_payload(
     event_delivery,
 ):
@@ -661,6 +667,7 @@ def test_async_webhooks_schedule_not_dirty_no_pending_delivery_with_payload(
     assert next_run == schedule.initial_timedelta.total_seconds()
 
 
+@override_settings(WEBHOOK_LEGACY_MODE=False)
 def test_async_webhooks_schedule_are_dirty(event_delivery):
     # given
     schedule = async_webhooks_schedule()

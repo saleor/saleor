@@ -815,7 +815,6 @@ def trigger_send_webhooks_async_for_apps(
     domain = get_domain()
     app_ids = (
         EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .select_related("webhook__app_id")
         .order_by()
         .filter(status=EventDeliveryStatus.PENDING, payload__isnull=False)
         .values_list("webhook__app_id", flat=True)
@@ -829,7 +828,6 @@ def trigger_send_webhooks_async_for_apps(
             },
             queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
             MessageGroupId=get_sqs_message_group_id(domain, app_id),
-            bind=True,
         )
 
 
@@ -872,21 +870,33 @@ def process_async_webhooks_for_app(
 
         webhook = delivery.webhook
 
+        # When the task calling this function gets SCHEDULED there will be at least ONE
+        # event delivery with ready payload.
+        # Other event delivers that could be added in meantime may not have
+        # payload ready yet.
         try:
             if not delivery.payload:
+                # If the payload is not ready and event delivery is still pending it
+                # means the payload has to be generated yet.
+                # For this reason the loop is exitted and task will be scheduled again
+                # once event delivery for this app has payload ready.
                 if is_delivery_still_pending(delivery_id):
                     task_logger.info(
                         "[Webhook ID:%r] Event delivery id: %r has no payload.",
                         webhook.id,
                         delivery.id,
                     )
-                    break  # Stop processing deliveries, wait for next task iteration
+                    break
+
+                # If event delivery is not pending it can either be succeeded or failed.
+                # In both cases this event delivery does not need to be processed
+                # therefore is skipped.
                 task_logger.warning(
                     "[Webhook ID:%r] Event delivery id: %r has no payload and is no longer pending.",
                     webhook.id,
                     delivery.id,
                 )
-                continue  # Skip processing this delivery if it's no longer pending
+                continue
 
             data = delivery.payload.get_payload()
             # Convert payload to bytes if it's not already.
