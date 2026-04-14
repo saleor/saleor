@@ -20,6 +20,11 @@ USER_AVATAR_UPDATE_MUTATION = """
                     url
                 }
             }
+            accountErrors {
+                field
+                code
+                message
+            }
         }
     }
 """
@@ -104,24 +109,6 @@ def test_user_avatar_update_mutation_image_exists(
     assert not user.thumbnails.exists()
 
 
-USER_AVATAR_UPDATE_WITH_ERRORS_MUTATION = """
-    mutation userAvatarUpdate($image: Upload!) {
-        userAvatarUpdate(image: $image) {
-            user {
-                avatar(size: 0) {
-                    url
-                }
-            }
-            accountErrors {
-                field
-                code
-                message
-            }
-        }
-    }
-"""
-
-
 def test_user_avatar_update_mutation_file_size_exceeds_limit(
     staff_api_client, media_root, settings
 ):
@@ -130,7 +117,7 @@ def test_user_avatar_update_mutation_file_size_exceeds_limit(
     image_file, image_name = create_image("avatar")
     variables = {"image": image_name}
     body = get_multipart_request_body(
-        USER_AVATAR_UPDATE_WITH_ERRORS_MUTATION, variables, image_file, image_name
+        USER_AVATAR_UPDATE_MUTATION, variables, image_file, image_name
     )
 
     # when
