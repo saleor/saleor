@@ -127,7 +127,7 @@ def test_fulfillment_refund_products_with_action_requested_by_app(
 
 
 @patch("saleor.payment.gateway.refund")
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_fulfillment_refund_products_with_back_in_stock_webhook(
     back_in_stock_webhook_trigger,
     mock_refunded,

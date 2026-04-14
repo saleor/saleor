@@ -96,7 +96,7 @@ ORDER_LINE_UPDATE_MUTATION = """
 """
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scenario(
     out_of_stock_mock,
     order_with_lines,
@@ -130,7 +130,7 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
     )
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_line_update_with_out_of_stock_webhook_success_scenario(
     out_of_stock_mock,
     order_with_lines,
@@ -155,7 +155,7 @@ def test_order_line_update_with_out_of_stock_webhook_success_scenario(
     )
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
     product_variant_back_in_stock_webhook_mock,
     order_with_lines,
@@ -178,7 +178,7 @@ def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
     product_variant_back_in_stock_webhook_mock.assert_not_called()
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenario(
     back_in_stock_mock,
     order_with_lines,
@@ -206,7 +206,7 @@ def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenar
     )
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scenario(
     product_variant_back_in_stock_webhook_mock,
     order_with_lines,

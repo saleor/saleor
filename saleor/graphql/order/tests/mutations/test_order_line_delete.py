@@ -45,7 +45,7 @@ ORDER_LINE_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_remove_with_back_in_stock_webhook(
     back_in_stock_webhook_mock,
     order_with_lines,

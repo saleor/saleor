@@ -43,7 +43,7 @@ ORDER_FULFILL_MUTATION = """
 
 
 @patch("saleor.order.actions.order_fulfilled", wraps=order_fulfilled)
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_fulfill_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhooks,
     wrapped_order_fulfilled,

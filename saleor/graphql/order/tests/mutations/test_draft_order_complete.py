@@ -104,7 +104,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
     "saleor.graphql.order.mutations.draft_order_complete.order_created",
     wraps=order_created,
 )
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete(
     product_variant_out_of_stock_webhook_mock,
     order_created_mock,
@@ -238,7 +238,7 @@ def test_draft_order_complete_by_user_no_channel_access(
     assert_no_permission(response)
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_by_app(
     product_variant_out_of_stock_webhook_mock,
     app_api_client,
@@ -268,7 +268,7 @@ def test_draft_order_complete_by_app(
     assert order.search_vector
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_with_voucher(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -409,7 +409,7 @@ def test_draft_order_complete_with_voucher_once_per_customer(
     ).exists()
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_0_total(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -477,7 +477,7 @@ def test_draft_order_complete_0_total(
     )
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_without_sku(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -533,7 +533,7 @@ def test_draft_order_complete_without_sku(
     )
 
 
-@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
