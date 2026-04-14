@@ -13,9 +13,11 @@ from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 from opentelemetry.trace import StatusCode
 from promise import Promise
 
+from ....app.models import App
 from ....app.utils import acquire_webhook_lock
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -813,21 +815,29 @@ def trigger_send_webhooks_async_for_apps(
     telemetry_context: TelemetryTaskContext,
 ):
     domain = get_domain()
-    app_ids = (
+
+    event_deliveries_to_process_qs = (
         EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .order_by()
-        .filter(status=EventDeliveryStatus.PENDING, payload__isnull=False)
-        .values_list("webhook__app_id", flat=True)
-        .distinct()
+        .filter(
+            status=EventDeliveryStatus.PENDING,
+            payload__isnull=False,
+            webhook__app_id=OuterRef("id"),
+        )
     )
-    for app_id in app_ids:
+
+    webhook_apps = (
+        App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(Exists(event_deliveries_to_process_qs))
+        .only("id", "identifier")
+    )
+    for webhook_app in webhook_apps:
         send_webhooks_async_for_app.apply_async(
             kwargs={
-                "app_id": app_id,
+                "app_id": webhook_app.id,
                 "telemetry_context": telemetry_context.to_dict(),
             },
             queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
-            MessageGroupId=get_sqs_message_group_id(domain, app_id),
+            MessageGroupId=get_sqs_message_group_id(domain, webhook_app),
         )
 
 
