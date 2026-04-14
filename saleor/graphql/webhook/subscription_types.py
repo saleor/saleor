@@ -55,6 +55,7 @@ from ..core.descriptions import (
     ADDED_IN_320,
     ADDED_IN_321,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -86,6 +87,7 @@ from ..warehouse.dataloaders import WarehouseByIdLoader
 if TYPE_CHECKING:
     from ...channel.models import Channel
     from ...product.interface import VariantDiscountedPriceChange
+    from ...warehouse.interface import VariantChannelStockInfo
 
 TRANSLATIONS_TYPES_MAP = {
     ProductTranslation: translation_types.ProductTranslation,
@@ -1125,6 +1127,93 @@ class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType):
     ) -> Money:
         _, price_info = root
         return Money(amount=price_info.new_price_amount, currency=price_info.currency)
+
+
+class ProductVariantChannelStockBase(SubscriptionObjectType):
+    product_variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        description="The product variant the event relates to.",
+        required=True,
+    )
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="The channel the stock availability changed in.",
+        required=True,
+    )
+
+    class Meta:
+        abstract = True
+
+    @staticmethod
+    def resolve_product_variant(
+        root: tuple[str, "VariantChannelStockInfo"],
+        info: ResolveInfo,
+    ) -> Promise["ChannelContext"]:
+        _, stock_info = root
+        channel_slug = stock_info.channel_slug
+        return (
+            ProductVariantByIdLoader(info.context)
+            .load(stock_info.variant_id)
+            .then(
+                lambda variant: ChannelContext(node=variant, channel_slug=channel_slug)
+            )
+        )
+
+    @staticmethod
+    def resolve_channel(
+        root: tuple[str, "VariantChannelStockInfo"],
+        info: ResolveInfo,
+    ) -> Promise["Channel"]:
+        _, stock_info = root
+        return ChannelBySlugLoader(info.context).load(stock_info.channel_slug)
+
+
+class ProductVariantOutOfStockInChannel(ProductVariantChannelStockBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when a product variant becomes out of stock across all "
+            "non click-and-collect warehouses in a channel." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class ProductVariantBackInStockInChannel(ProductVariantChannelStockBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when a product variant becomes available again across "
+            "non click-and-collect warehouses in a channel." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class ProductVariantOutOfStockForClickAndCollect(ProductVariantChannelStockBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when a product variant becomes out of stock across all "
+            "click-and-collect warehouses in a channel." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class ProductVariantBackInStockForClickAndCollect(ProductVariantChannelStockBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when a product variant becomes available again across "
+            "click-and-collect warehouses in a channel." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductExportCompleted(SubscriptionObjectType):
@@ -2914,6 +3003,54 @@ class Subscription(SubscriptionObjectType):
         channels=channels_argument,
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
+    product_variant_out_of_stock_in_channel = BaseField(
+        ProductVariantOutOfStockInChannel,
+        description=(
+            "Event sent when a product variant becomes out of stock across all "
+            "non click-and-collect warehouses in a channel."
+            + ADDED_IN_323
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+    product_variant_back_in_stock_in_channel = BaseField(
+        ProductVariantBackInStockInChannel,
+        description=(
+            "Event sent when a product variant becomes available again across "
+            "non click-and-collect warehouses in a channel."
+            + ADDED_IN_323
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+    product_variant_out_of_stock_for_click_and_collect = BaseField(
+        ProductVariantOutOfStockForClickAndCollect,
+        description=(
+            "Event sent when a product variant becomes out of stock across all "
+            "click-and-collect warehouses in a channel."
+            + ADDED_IN_323
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+    product_variant_back_in_stock_for_click_and_collect = BaseField(
+        ProductVariantBackInStockForClickAndCollect,
+        description=(
+            "Event sent when a product variant becomes available again across "
+            "click-and-collect warehouses in a channel."
+            + ADDED_IN_323
+            + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_MISC
@@ -3095,6 +3232,10 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK: ProductVariantBackInStock,
     WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: ProductVariantStockUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: ProductVariantDiscountedPriceUpdated,
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL: ProductVariantOutOfStockInChannel,
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL: ProductVariantBackInStockInChannel,
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT: ProductVariantOutOfStockForClickAndCollect,
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT: ProductVariantBackInStockForClickAndCollect,
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: ProductVariantDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED: (
         ProductVariantMetadataUpdated

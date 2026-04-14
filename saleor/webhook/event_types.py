@@ -138,12 +138,22 @@ class WebhookEventAsyncType:
     PRODUCT_VARIANT_UPDATED = "product_variant_updated"
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
     PRODUCT_VARIANT_METADATA_UPDATED = "product_variant_metadata_updated"
+    PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = (
+        "product_variant_discounted_price_updated"
+    )
 
     PRODUCT_VARIANT_OUT_OF_STOCK = "product_variant_out_of_stock"
     PRODUCT_VARIANT_BACK_IN_STOCK = "product_variant_back_in_stock"
     PRODUCT_VARIANT_STOCK_UPDATED = "product_variant_stock_updated"
-    PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = (
-        "product_variant_discounted_price_updated"
+    PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL = "product_variant_out_of_stock_in_channel"
+    PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL = (
+        "product_variant_back_in_stock_in_channel"
+    )
+    PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT = (
+        "product_variant_out_of_stock_for_click_and_collect"
+    )
+    PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT = (
+        "product_variant_back_in_stock_for_click_and_collect"
     )
 
     CHECKOUT_CREATED = "checkout_created"
@@ -616,6 +626,26 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_STOCK_UPDATED: {
             "name": "Product variant stock updated",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+        },
+        PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL: {
+            "name": "Product variant out of stock in channel",
+            "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
+        },
+        PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL: {
+            "name": "Product variant back in stock in channel",
+            "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
+        },
+        PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT: {
+            "name": "Product variant out of stock for click and collect",
+            "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
+        },
+        PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT: {
+            "name": "Product variant back in stock for click and collect",
+            "permission": ProductPermissions.MANAGE_PRODUCTS,
+            "is_deferred_payload": True,
         },
         PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: {
             "name": "Product variant discounted price updated",

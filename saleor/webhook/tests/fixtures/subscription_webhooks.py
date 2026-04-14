@@ -489,6 +489,42 @@ def subscription_product_variant_discounted_price_updated_webhook(subscription_w
 
 
 @pytest.fixture
+def subscription_product_variant_out_of_stock_in_channel_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
+        WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
+    )
+
+
+@pytest.fixture
+def subscription_product_variant_back_in_stock_in_channel_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL,
+        WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL,
+    )
+
+
+@pytest.fixture
+def subscription_product_variant_out_of_stock_for_click_and_collect_webhook(
+    subscription_webhook,
+):
+    return subscription_webhook(
+        queries.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT,
+        WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT,
+    )
+
+
+@pytest.fixture
+def subscription_product_variant_back_in_stock_for_click_and_collect_webhook(
+    subscription_webhook,
+):
+    return subscription_webhook(
+        queries.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT,
+        WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT,
+    )
+
+
+@pytest.fixture
 def subscription_order_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_CREATED, WebhookEventAsyncType.ORDER_CREATED

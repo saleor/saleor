@@ -1324,6 +1324,50 @@ PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED = """
     }
 """
 
+PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL = """
+    subscription{
+      event{
+        ...on ProductVariantOutOfStockInChannel{
+          productVariant{ id }
+          channel{ slug }
+        }
+      }
+    }
+"""
+
+PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL = """
+    subscription{
+      event{
+        ...on ProductVariantBackInStockInChannel{
+          productVariant{ id }
+          channel{ slug }
+        }
+      }
+    }
+"""
+
+PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT = """
+    subscription{
+      event{
+        ...on ProductVariantOutOfStockForClickAndCollect{
+          productVariant{ id }
+          channel{ slug }
+        }
+      }
+    }
+"""
+
+PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT = """
+    subscription{
+      event{
+        ...on ProductVariantBackInStockForClickAndCollect{
+          productVariant{ id }
+          channel{ slug }
+        }
+      }
+    }
+"""
+
 ORDER_CREATED = """
     subscription{
       event{
