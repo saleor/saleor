@@ -2051,9 +2051,25 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+
+  """
+  A product variant becomes out of stock across all non click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes available again across non click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes out of stock across all click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+
+  """
+  A product variant becomes available again across click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
   PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
 
@@ -2631,9 +2647,25 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+
+  """
+  A product variant becomes out of stock across all non click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes available again across non click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes out of stock across all click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+
+  """
+  A product variant becomes available again across click-and-collect warehouses in a channel.
+  """
   PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
   PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
 
