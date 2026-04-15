@@ -131,7 +131,7 @@ def get_groups_which_user_can_manage(
     )
 
     editable_groups: list[Group] = []
-    for group in groups.iterator():
+    for group in groups.iterator(chunk_size=1000):
         out_of_scope_permissions = set(group.group_perms) - user_permission_pks
         out_of_scope_permissions.discard(None)
         if not out_of_scope_permissions:
@@ -293,8 +293,9 @@ def get_group_to_permissions_and_users_mapping():
                     "permissions__codename",
                 ),
                 filter=Q(permissions__isnull=False),
+                default=[],
             ),
-            users=ArrayAgg("user", filter=Q(user__is_active=True)),
+            users=ArrayAgg("user", filter=Q(user__is_active=True), default=[]),
         )
         .values("pk", "perm_codenames", "users")
     )

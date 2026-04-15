@@ -58,7 +58,7 @@ class PageTypeUpdate(PageTypeMixin, DeprecatedModelMutation):
                 instance, "name", cleaned_input
             )
         except ValidationError as error:
-            error.code = PageErrorCode.REQUIRED
+            error.code = PageErrorCode.REQUIRED.value
             errors["slug"].append(error)
 
         add_attributes = cleaned_input.get("add_attributes")

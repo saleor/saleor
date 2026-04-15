@@ -687,7 +687,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                             tax_class_id
                         )
                         if tax_class_id
-                        else []
+                        else Promise.resolve([])
                     )
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
                         country_code
@@ -1200,7 +1200,7 @@ class Product(ChannelContextType[models.Product]):
                             tax_class_id
                         )
                         if tax_class_id
-                        else []
+                        else Promise.resolve([])
                     )
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
                         country_code

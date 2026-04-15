@@ -116,7 +116,9 @@ def mark_products_in_channels_as_dirty(
         product_id__in=product_ids, channel_id__in=channels
     ).values_list("id", "product_id", "channel_id")
 
-    for id, product_id, channel_id in product_channel_listings.iterator():
+    for id, product_id, channel_id in product_channel_listings.iterator(
+        chunk_size=1000
+    ):
         product_ids = channel_to_product_ids.get(channel_id, set())
         if product_id in product_ids:
             listing_ids_to_update.append(id)

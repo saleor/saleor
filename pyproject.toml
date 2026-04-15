@@ -80,7 +80,7 @@ package-mode = false
   dj-database-url = "^2"
   dj-email-url = "^1"
   django-cache-url = "^3.1.2"
-  django-celery-beat = "^2.2.1"
+  django-celery-beat = "^2.8.0"
   django-countries = "^7.2"
   django-filter = "^24.3"
   django-measurement = "^3.0"
@@ -139,7 +139,7 @@ package-mode = false
     version = "^5.5.4"
 
     [tool.poetry.dependencies.django]
-    version = "^4.2.30"
+    version = "^5.2"
     extras = [ "bcrypt" ]
 
     [tool.poetry.dependencies.uvicorn]

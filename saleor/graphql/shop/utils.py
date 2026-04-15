@@ -19,7 +19,9 @@ def get_countries_codes_list(
     all_countries_codes = {country[0] for country in countries}
     if attached_to_shipping_zones is not None:
         covered_countries_codes = set()
-        for zone in ShippingZone.objects.using(database_connection_name).iterator():
+        for zone in ShippingZone.objects.using(database_connection_name).iterator(
+            chunk_size=1000
+        ):
             covered_countries_codes.update({country.code for country in zone.countries})
 
         if attached_to_shipping_zones:

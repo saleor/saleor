@@ -42,6 +42,7 @@ class Migration(migrations.Migration):
                         blank=True,
                         related_name="collections",
                         through="product.CollectionProduct",
+                        through_fields=("collection", "product"),
                         to="product.Product",
                     ),
                 ),

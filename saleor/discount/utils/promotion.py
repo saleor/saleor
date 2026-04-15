@@ -540,7 +540,7 @@ def get_variants_to_promotion_rules_map(
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
 
-    for promotion_rule_variant in promotion_rule_variants.iterator():
+    for promotion_rule_variant in promotion_rule_variants.iterator(chunk_size=1000):
         rule_id = promotion_rule_variant.promotionrule_id
         rule = rules_in_bulk.get(rule_id)
         # there is no rule when it is a part of inactive promotion
@@ -581,7 +581,7 @@ def fetch_promotion_rules_for_checkout_or_order(
     qs = instance._meta.model.objects.using(database_connection_name).filter(  # type: ignore[attr-defined] # noqa: E501
         pk=instance.pk
     )
-    for rule in rules.iterator():
+    for rule in rules.iterator(chunk_size=1000):
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
         if channel_id not in rule_channel_ids:
             continue

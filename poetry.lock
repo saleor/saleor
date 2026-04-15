@@ -1113,18 +1113,18 @@ files = [
 
 [[package]]
 name = "django"
-version = "4.2.30"
+version = "5.2.13"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "django-4.2.30-py3-none-any.whl", hash = "sha256:4d07aaf1c62f9984842b67c2874ebbf7056a17be253860299b93ae1881faad65"},
-    {file = "django-4.2.30.tar.gz", hash = "sha256:4ebc7a434e3819db6cf4b399fb5b3f536310a30e8486f08b66886840be84b37c"},
+    {file = "django-5.2.13-py3-none-any.whl", hash = "sha256:5788fce61da23788a8ce6f02583765ab060d396720924789f97fa42119d37f7a"},
+    {file = "django-5.2.13.tar.gz", hash = "sha256:a31589db5188d074c63f0945c3888fad104627dfcc236fb2b97f71f89da33bc4"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.6.0,<4"
+asgiref = ">=3.8.1"
 bcrypt = {version = "*", optional = true, markers = "extra == \"bcrypt\""}
 sqlparse = ">=0.3.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
@@ -6112,4 +6112,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "cd480708bc59eea21ecb8e0055df9a1c7906be05008268fab3d8b96292999ca3"
+content-hash = "16575a5ac4e89c547820c6e257b0da96f94c6d6331ccc17d4017131f918a2a14"
