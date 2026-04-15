@@ -1,0 +1,27 @@
+saleor/graphql/account/tests/mutations/staff/test_staff_update.py
+  1adf0f292aa792dd 237-250
+saleor/graphql/meta/tests/mutations/test_account.py
+  1adf0f292aa792dd 9,19,136-139,142-145,149,542-562,1329-1347
+saleor/graphql/meta/tests/queries/test_account.py
+  1adf0f292aa792dd 78-110,196-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "d0d59354135ddfce446d26443eded9e483c53ce3",
+  "prompts": {
+    "1adf0f292aa792dd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "294f5512-309b-44e6-9c07-66b59d2f53db",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 119,
+      "total_deletions": 4,
+      "accepted_lines": 118,
+      "overriden_lines": 0
+    }
+  }
+}
