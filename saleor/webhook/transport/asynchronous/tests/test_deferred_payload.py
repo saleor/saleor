@@ -16,11 +16,13 @@ from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
 from .....core.telemetry import get_task_context
 from .....product.interface import VariantDiscountedPriceChange
-from .....warehouse.webhooks.channel_stock_events import VariantChannelStockInfo
+from .....warehouse.interface import VariantChannelStockInfo
+from .....warehouse.tests.webhooks.subscriptions.test_channel_stock_events import (
+    PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
+)
 from ....event_types import WebhookEventAsyncType
 from ....tests.subscription_webhooks.subscription_queries import (
     PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED,
-    PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
 )
 from ....utils import get_webhooks_for_event
 from ..transport import (
