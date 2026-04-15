@@ -1,0 +1,23 @@
+saleor/graphql/meta/tests/mutations/test_account.py
+  3fb712d43b1a27bb 9,1339-1438
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "413f1de01a5097dc6fee487a27275e10fd5e43b6",
+  "prompts": {
+    "3fb712d43b1a27bb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "09615f21-e6a3-4969-98d3-4e556f72d333",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 219,
+      "total_deletions": 37,
+      "accepted_lines": 101,
+      "overriden_lines": 0
+    }
+  }
+}
