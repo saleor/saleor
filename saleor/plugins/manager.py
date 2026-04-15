@@ -80,7 +80,7 @@ if TYPE_CHECKING:
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..thumbnail.models import Thumbnail
-    from ..warehouse.models import Stock, Warehouse
+    from ..warehouse.models import Warehouse
     from .base_plugin import BasePlugin
 
 NotifyEventTypeChoice = str
@@ -886,42 +886,6 @@ class PluginsManager(PaymentInterface):
             "product_variant_deleted",
             default_value,
             product_variant,
-            webhooks=webhooks,
-            channel_slug=None,
-        )
-
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def product_variant_out_of_stock(self, stock: "Stock", webhooks=None):
-        default_value = None
-        self.__run_method_on_plugins(
-            "product_variant_out_of_stock",
-            default_value,
-            stock,
-            webhooks=webhooks,
-            channel_slug=None,
-        )
-
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def product_variant_back_in_stock(self, stock: "Stock", webhooks=None):
-        default_value = None
-        self.__run_method_on_plugins(
-            "product_variant_back_in_stock",
-            default_value,
-            stock,
-            webhooks=webhooks,
-            channel_slug=None,
-        )
-
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def product_variant_stocks_updated(self, stocks: list["Stock"], webhooks=None):
-        default_value = None
-        self.__run_method_on_plugins(
-            "product_variant_stocks_updated",
-            default_value,
-            stocks,
             webhooks=webhooks,
             channel_slug=None,
         )

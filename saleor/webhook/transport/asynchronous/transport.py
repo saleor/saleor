@@ -33,7 +33,6 @@ from ....graphql.webhook.subscription_payload import (
     get_pre_save_payload_key,
     initialize_request,
 )
-from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
@@ -107,6 +106,8 @@ def create_deliveries_for_multiple_subscription_objects(
     :return: List of event deliveries to send via webhook tasks.
     :param allow_replica: use replica database.
     """
+    from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
+
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type

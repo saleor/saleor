@@ -96,7 +96,7 @@ ORDER_LINE_UPDATE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scenario(
     out_of_stock_mock,
     order_with_lines,
@@ -125,10 +125,12 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
 
     # then
     assert out_of_stock_mock.call_count == 2
-    out_of_stock_mock.assert_called_with(Stock.objects.last())
+    out_of_stock_mock.assert_called_with(
+        Stock.objects.last(), requestor=staff_api_client.user
+    )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_line_update_with_out_of_stock_webhook_success_scenario(
     out_of_stock_mock,
     order_with_lines,
@@ -148,10 +150,12 @@ def test_order_line_update_with_out_of_stock_webhook_success_scenario(
     variables = {"lineId": line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
 
-    out_of_stock_mock.assert_called_once_with(Stock.objects.first())
+    out_of_stock_mock.assert_called_once_with(
+        Stock.objects.first(), requestor=staff_api_client.user
+    )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
     product_variant_back_in_stock_webhook_mock,
     order_with_lines,
@@ -174,7 +178,7 @@ def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
     product_variant_back_in_stock_webhook_mock.assert_not_called()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenario(
     back_in_stock_mock,
     order_with_lines,
@@ -197,10 +201,12 @@ def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenar
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     staff_api_client.post_graphql(query, variables)
-    back_in_stock_mock.assert_called_once_with(first_allocated.stock)
+    back_in_stock_mock.assert_called_once_with(
+        first_allocated.stock, requestor=staff_api_client.user
+    )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scenario(
     product_variant_back_in_stock_webhook_mock,
     order_with_lines,
@@ -229,7 +235,9 @@ def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scena
     staff_api_client.post_graphql(query, variables)
 
     assert product_variant_back_in_stock_webhook_mock.call_count == 2
-    product_variant_back_in_stock_webhook_mock.assert_called_with(Stock.objects.last())
+    product_variant_back_in_stock_webhook_mock.assert_called_with(
+        Stock.objects.last(), requestor=staff_api_client.user
+    )
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])

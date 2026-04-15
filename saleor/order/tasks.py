@@ -166,7 +166,7 @@ def _expire_orders(manager, now):
         )
         _bulk_release_voucher_usage(ids_batch)
         _order_expired_events(ids_batch)
-        deallocate_stock_for_orders(ids_batch, manager)
+        deallocate_stock_for_orders(ids_batch, requestor=None)
         _call_expired_order_events(ids_batch, manager)
 
 

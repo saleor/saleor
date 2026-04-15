@@ -104,7 +104,7 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
     "saleor.graphql.order.mutations.draft_order_complete.order_created",
     wraps=order_created,
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete(
     product_variant_out_of_stock_webhook_mock,
     order_created_mock,
@@ -163,7 +163,7 @@ def test_draft_order_complete(
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.last()
+        Stock.objects.last(), requestor=staff_api_client.user
     )
     assert order_created_mock.called
     store_user_addresses_from_draft_order_mock.assert_called_once()
@@ -238,7 +238,7 @@ def test_draft_order_complete_by_user_no_channel_access(
     assert_no_permission(response)
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_by_app(
     product_variant_out_of_stock_webhook_mock,
     app_api_client,
@@ -268,7 +268,7 @@ def test_draft_order_complete_by_app(
     assert order.search_vector
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_with_voucher(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -346,7 +346,7 @@ def test_draft_order_complete_with_voucher(
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.last()
+        Stock.objects.last(), requestor=staff_user
     )
     assert not VoucherCustomer.objects.filter(
         voucher_code=code_instance, customer_email=order.get_customer_email()
@@ -409,7 +409,7 @@ def test_draft_order_complete_with_voucher_once_per_customer(
     ).exists()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_0_total(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -473,11 +473,11 @@ def test_draft_order_complete_0_total(
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.last()
+        Stock.objects.last(), requestor=staff_user
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_without_sku(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -529,11 +529,11 @@ def test_draft_order_complete_without_sku(
     assert matching_events[0].type != matching_events[1].type
     assert not OrderEvent.objects.exclude(**event_params).exists()
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.last()
+        Stock.objects.last(), requestor=staff_user
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_draft_order_complete_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     staff_api_client,
@@ -562,7 +562,9 @@ def test_draft_order_complete_with_out_of_stock_webhook(
     )["quantity_allocated__sum"]
     assert total_stock == total_allocation
     assert product_variant_out_of_stock_webhook_mock.call_count == 2
-    product_variant_out_of_stock_webhook_mock.assert_called_with(Stock.objects.last())
+    product_variant_out_of_stock_webhook_mock.assert_called_with(
+        Stock.objects.last(), requestor=staff_api_client.user
+    )
 
 
 def test_draft_order_from_reissue_complete(

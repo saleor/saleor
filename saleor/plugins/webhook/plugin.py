@@ -81,7 +81,6 @@ from ...webhook.payloads import (
     generate_product_media_payload,
     generate_product_payload,
     generate_product_variant_payload,
-    generate_product_variant_with_stock_payload,
     generate_requestor,
     generate_sale_payload,
     generate_sale_toggle_payload,
@@ -150,7 +149,7 @@ if TYPE_CHECKING:
     from ...shipping.models import ShippingMethod, ShippingZone
     from ...site.models import SiteSettings
     from ...tax.models import TaxClass
-    from ...warehouse.models import Stock, Warehouse
+    from ...warehouse.models import Warehouse
     from ...webhook.models import Webhook
 
 
@@ -2023,73 +2022,6 @@ class WebhookPlugin(BasePlugin):
         self._trigger_metadata_updated_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED, product_variant
         )
-        return previous_value
-
-    def product_variant_out_of_stock(
-        self, stock: "Stock", previous_value: None, webhooks=None
-    ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data_generator = partial(
-                generate_product_variant_with_stock_payload, [stock]
-            )
-            self.trigger_webhooks_async(
-                None,
-                event_type,
-                webhooks,
-                stock,
-                self.requestor,
-                legacy_data_generator=product_variant_data_generator,
-            )
-        return previous_value
-
-    def product_variant_back_in_stock(
-        self, stock: "Stock", previous_value: None, webhooks=None
-    ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            product_variant_data_generator = partial(
-                generate_product_variant_with_stock_payload, [stock], self.requestor
-            )
-            self.trigger_webhooks_async(
-                None,
-                event_type,
-                webhooks,
-                stock,
-                self.requestor,
-                legacy_data_generator=product_variant_data_generator,
-            )
-        return previous_value
-
-    def product_variant_stocks_updated(
-        self, stocks: list["Stock"], previous_value: None, webhooks=None
-    ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
-        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
-            webhook_payload_details = []
-            for stock in stocks:
-                product_variant_data_generator = partial(
-                    generate_product_variant_with_stock_payload, [stock], self.requestor
-                )
-                webhook_payload_details.append(
-                    WebhookPayloadData(
-                        subscribable_object=stock,
-                        legacy_data_generator=product_variant_data_generator,
-                        data=None,
-                    )
-                )
-            trigger_webhooks_async_for_multiple_objects(
-                event_type,
-                webhooks,
-                webhook_payloads_data=webhook_payload_details,
-                requestor=self.requestor,
-            )
         return previous_value
 
     def checkout_created(

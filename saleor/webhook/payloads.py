@@ -9,10 +9,7 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 import graphene
 from django.contrib.sites.models import Site
 from django.db.models import F, QuerySet, Sum
-from django.utils import timezone
-from graphene.utils.str_converters import to_camel_case
 
-from .. import __version__
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
 from ..checkout import base_calculations
@@ -39,9 +36,10 @@ from ..product.models import Collection, Product, ProductMedia, ProductVariant
 from ..shipping.models import ShippingMethod
 from ..tax.models import TaxClassCountryRate
 from ..thumbnail.models import Thumbnail
-from ..warehouse.models import Stock, Warehouse
+from ..warehouse.models import Warehouse
 from . import traced_payload_generator
 from .event_types import WebhookEventAsyncType
+from .payload_helpers import generate_meta, generate_requestor
 from .payload_serializers import PayloadSerializer
 from .serializers import (
     serialize_checkout_lines,
@@ -107,33 +105,6 @@ ORDER_PRICE_FIELDS = (
     "undiscounted_total_net_amount",
     "undiscounted_total_gross_amount",
 )
-
-
-def generate_requestor(requestor: Optional["RequestorOrLazyObject"] = None):
-    if not requestor:
-        return {"id": None, "type": None}
-    if isinstance(requestor, User):
-        return {"id": graphene.Node.to_global_id("User", requestor.id), "type": "user"}
-    return {"id": requestor.name, "type": "app"}  # type: ignore[union-attr]
-
-
-def generate_meta(*, requestor_data: dict[str, Any], camel_case=False, **kwargs):
-    meta_result = {
-        "issued_at": timezone.now().isoformat(),
-        "version": __version__,
-        "issuing_principal": requestor_data,
-    }
-
-    meta_result.update(kwargs)
-
-    if camel_case:
-        meta = {}
-        for key, value in meta_result.items():
-            meta[to_camel_case(key)] = value
-    else:
-        meta = meta_result
-
-    return meta
 
 
 @allow_writer()
@@ -842,28 +813,6 @@ def generate_product_variant_media_payload(product_variant):
         }
         for media_obj in product_variant.variant_media.all()
     ]
-
-
-@allow_writer()
-@traced_payload_generator
-def generate_product_variant_with_stock_payload(
-    stocks: Iterable["Stock"], requestor: Optional["RequestorOrLazyObject"] = None
-):
-    serializer = PayloadSerializer()
-    extra_dict_data = {
-        "product_id": lambda v: graphene.Node.to_global_id(
-            "Product", v.product_variant.product_id
-        ),
-        "product_variant_id": lambda v: graphene.Node.to_global_id(
-            "ProductVariant", v.product_variant_id
-        ),
-        "warehouse_id": lambda v: graphene.Node.to_global_id(
-            "Warehouse", v.warehouse_id
-        ),
-        "product_slug": lambda v: v.product_variant.product.slug,
-        "meta": generate_meta(requestor_data=generate_requestor(requestor)),
-    }
-    return serializer.serialize(stocks, fields=[], extra_dict_data=extra_dict_data)
 
 
 @allow_writer()

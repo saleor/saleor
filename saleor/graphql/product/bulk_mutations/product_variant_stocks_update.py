@@ -4,10 +4,16 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....warehouse import models as warehouse_models
 from ....warehouse.management import stock_bulk_update
+from ....warehouse.webhooks.stock_events import (
+    trigger_product_variant_back_in_stock,
+    trigger_product_variant_out_of_stock,
+    trigger_product_variant_stocks_updated,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
@@ -15,7 +21,7 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BulkStockError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..mutations.product.product_create import StockInput
@@ -77,8 +83,8 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 warehouse_ids, "warehouse", only_type=Warehouse
             )
 
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
+            requestor = get_user_or_app_from_context(info.context)
+            cls.update_or_create_variant_stocks(variant, stocks, warehouses, requestor)
 
         StocksByProductVariantIdLoader(info.context).clear(variant.id)
 
@@ -87,7 +93,9 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
     @classmethod
     @traced_atomic_transaction()
-    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses, manager):
+    def update_or_create_variant_stocks(
+        cls, variant, stocks_data, warehouses, requestor
+    ):
         stocks = []
         webhooks_stock_in = get_webhooks_for_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
@@ -107,27 +115,30 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 <= 0
                 < stock_data["quantity"]
             ):
-                cls.call_event(
-                    manager.product_variant_back_in_stock,
+                call_event(
+                    trigger_product_variant_back_in_stock,
                     stock,
                     webhooks=webhooks_stock_in,
+                    requestor=requestor,
                 )
 
             if stock_data["quantity"] <= 0 or (
                 stock_data["quantity"] - stock.quantity_allocated <= 0
             ):
-                cls.call_event(
-                    manager.product_variant_out_of_stock,
+                call_event(
+                    trigger_product_variant_out_of_stock,
                     stock,
                     webhooks=webhooks_stock_out,
+                    requestor=requestor,
                 )
 
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
-        cls.call_event(
-            manager.product_variant_stocks_updated,
+        call_event(
+            trigger_product_variant_stocks_updated,
             stocks,
             webhooks=webhooks_stock_update,
+            requestor=requestor,
         )
 
         stock_bulk_update(stocks, ["quantity"])

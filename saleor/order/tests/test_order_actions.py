@@ -1413,7 +1413,7 @@ def test_fulfill_order_lines(order_with_lines):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        get_plugins_manager(allow_replica=False),
+        None,
     )
 
     stock.refresh_from_db()
@@ -1452,7 +1452,7 @@ def test_fulfill_order_lines_multiple_lines(order_with_lines):
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        get_plugins_manager(allow_replica=False),
+        None,
     )
 
     stock_1.refresh_from_db()
@@ -1476,7 +1476,7 @@ def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
 
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity)],
-        get_plugins_manager(allow_replica=False),
+        None,
     )
 
 
@@ -1501,7 +1501,7 @@ def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        get_plugins_manager(allow_replica=False),
+        None,
     )
 
     stock.refresh_from_db()

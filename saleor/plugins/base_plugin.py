@@ -64,7 +64,7 @@ if TYPE_CHECKING:
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
-    from ..warehouse.models import Stock, Warehouse
+    from ..warehouse.models import Warehouse
 
 PluginConfigurationType = list[dict]
 RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
@@ -1346,33 +1346,6 @@ class BasePlugin:
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
-
-    # Trigger when product variant is out of stock.
-    #
-    # Overwrite this method if you need to trigger specific logic after a product
-    # variant is out of stock.
-    #
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    product_variant_out_of_stock: Callable[["Stock", None, None], Any]
-
-    # Trigger when product variant is back in stock.
-    #
-    # Overwrite this method if you need to trigger specific logic after a product
-    # variant is back in stock.
-    #
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    product_variant_back_in_stock: Callable[["Stock", None, None], Any]
-
-    # Trigger when product variant stock is updated.
-    #
-    # Overwrite this method if you need to trigger specific logic after a product
-    # variant stock is updated.
-    #
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    product_variant_stocks_updated: Callable[[list["Stock"], None, None], Any]
 
     # Trigger when a product export is completed.
     #

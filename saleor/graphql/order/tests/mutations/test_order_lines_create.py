@@ -118,7 +118,7 @@ ORDER_LINES_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_lines_create_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     order_with_lines,
@@ -147,11 +147,11 @@ def test_order_lines_create_with_out_of_stock_webhook(
     ]
     assert quantity_allocated == stock_quantity
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.first()
+        Stock.objects.first(), requestor=staff_api_client.user
     )
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_lines_create_for_variant_with_many_stocks_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     order_with_lines,
@@ -172,14 +172,14 @@ def test_order_lines_create_for_variant_with_many_stocks_with_out_of_stock_webho
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.post_graphql(query, variables)
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.all()[3]
+        Stock.objects.all()[3], requestor=staff_api_client.user
     )
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_lines_create(
     product_variant_out_of_stock_webhook_mock,
     order_updated_webhook_mock,
@@ -327,7 +327,7 @@ def test_order_lines_create_by_app(
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_lines_create_for_just_published_product(
     product_variant_out_of_stock_webhook_mock,
     order_updated_webhook_mock,
@@ -920,7 +920,7 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
     draft_order_update_webhook_mock.assert_not_called()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_order_lines_create_without_sku(
     product_variant_out_of_stock_webhook_mock,

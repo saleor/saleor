@@ -8,7 +8,6 @@ from .....order.actions import fulfill_order_lines
 from .....order.error_codes import OrderErrorCode
 from .....order.fetch import OrderLineInfo
 from .....order.models import OrderLine
-from .....plugins.manager import get_plugins_manager
 from .....product.models import Product
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -270,7 +269,7 @@ def test_fulfillment_approve_gift_cards_created(
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        manager=get_plugins_manager(allow_replica=False),
+        requestor=None,
     )
 
     query = APPROVE_FULFILLMENT_MUTATION

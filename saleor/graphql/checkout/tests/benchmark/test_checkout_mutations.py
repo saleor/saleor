@@ -1643,7 +1643,7 @@ def test_complete_checkout(api_client, checkout_with_charged_payment, count_quer
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_complete_checkout_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     api_client,
@@ -1659,7 +1659,7 @@ def test_complete_checkout_with_out_of_stock_webhook(
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.last()
+        Stock.objects.last(), requestor=api_client.app
     )
 
 
