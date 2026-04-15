@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 from celery.schedules import BaseSchedule
+from django.test import override_settings
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from freezegun import freeze_time
@@ -9,7 +10,9 @@ from freezegun import freeze_time
 from ...checkout import CheckoutAuthorizeStatus
 from ...checkout.models import Checkout
 from ...discount.models import Promotion
+from ..models import EventDeliveryStatus
 from ..schedules import (
+    async_webhooks_schedule,
     checkout_automatic_completion_schedule,
     checkout_search_update_schedule,
     gift_card_search_update_schedule,
@@ -582,4 +585,98 @@ def test_checkout_search_update_schedule_not_dirty(checkout):
 
     # then
     assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@freeze_time("2020-10-10 12:00:00")
+@override_settings(WEBHOOK_LEGACY_MODE=False)
+def test_async_webhooks_schedule_remaining_estimate_initial_state():
+    # given
+    schedule = async_webhooks_schedule()
+
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now())
+
+    # then
+    assert remaining == schedule.initial_timedelta
+
+
+@freeze_time("2020-10-10 12:00:00")
+@override_settings(WEBHOOK_LEGACY_MODE=False)
+def test_async_webhooks_schedule_remaining_estimate():
+    # given
+    schedule = async_webhooks_schedule()
+    time_delta = datetime.timedelta(seconds=1)
+
+    # when
+    remaining = schedule.remaining_estimate(last_run_at=timezone.now() - time_delta)
+
+    # then
+    assert remaining == schedule.initial_timedelta - time_delta
+
+
+@override_settings(WEBHOOK_LEGACY_MODE=False)
+def test_async_webhooks_schedule_not_dirty_no_deliveries():
+    # given
+    schedule = async_webhooks_schedule()
+
+    # when
+    is_due, next_run = schedule.is_due(
+        last_run_at=timezone.now() - datetime.timedelta(seconds=2)
+    )
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@override_settings(WEBHOOK_LEGACY_MODE=False)
+def test_async_webhooks_schedule_not_dirty_no_pending_delivery(event_delivery):
+    # given
+    schedule = async_webhooks_schedule()
+    event_delivery.status = EventDeliveryStatus.SUCCESS
+    event_delivery.save(update_fields=["status"])
+
+    # when
+    is_due, next_run = schedule.is_due(
+        last_run_at=timezone.now() - datetime.timedelta(seconds=2)
+    )
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@override_settings(WEBHOOK_LEGACY_MODE=False)
+def test_async_webhooks_schedule_not_dirty_no_pending_delivery_with_payload(
+    event_delivery,
+):
+    # given
+    schedule = async_webhooks_schedule()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    event_delivery.payload = None
+    event_delivery.save(update_fields=["payload"])
+
+    # when
+    is_due, next_run = schedule.is_due(
+        last_run_at=timezone.now() - datetime.timedelta(seconds=2)
+    )
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@override_settings(WEBHOOK_LEGACY_MODE=False)
+def test_async_webhooks_schedule_are_dirty(event_delivery):
+    # given
+    schedule = async_webhooks_schedule()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert event_delivery.payload is not None
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(seconds=2))
+
+    # then
+    assert is_due is True
     assert next_run == schedule.initial_timedelta.total_seconds()
