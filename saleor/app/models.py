@@ -128,6 +128,15 @@ class App(ModelWithMetadata):
         return perm_value in self.get_permissions()
 
 
+class AppWebhookMutex(models.Model):
+    app = models.ForeignKey(
+        App,
+        unique=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
+
+
 class AppTokenManager(models.Manager["AppToken"]):
     def create(self, *, app, name="", auth_token=None, **extra_fields):  # type: ignore[override]
         """Create an app token with the given name."""

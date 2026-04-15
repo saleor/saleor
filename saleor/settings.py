@@ -34,6 +34,7 @@ from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
 from .core.schedules import (
+    initiated_async_webhooks_schedule,
     initiated_checkout_automatic_completion_schedule,
     initiated_checkout_search_update_schedule,
     initiated_gift_card_search_update_schedule,
@@ -759,6 +760,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.checkout.tasks.trigger_automatic_checkout_completion_task",
         "schedule": initiated_checkout_automatic_completion_schedule,
     },
+    "async-webhooks": {
+        "task": "saleor.webhook.transport.asynchronous.transport.trigger_send_webhooks_async_for_apps",
+        "schedule": initiated_async_webhooks_schedule,
+    },
 }
 
 # The maximum wait time between each is_due() call on schedulers
@@ -1034,6 +1039,9 @@ patch_executor()
 UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
     "UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME", None
 )
+
+WEBHOOK_LEGACY_MODE = get_bool_from_env("WEBHOOK_LEGACY_MODE", True)
+
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 
@@ -1054,7 +1062,6 @@ CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
 ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME = os.environ.get(
     "ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME", WEBHOOK_CELERY_QUEUE_NAME
 )
-
 
 # Queue name for execution of collection product_updated events
 COLLECTION_PRODUCT_UPDATED_QUEUE_NAME = os.environ.get(

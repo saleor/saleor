@@ -315,6 +315,29 @@ class checkout_search_update_schedule(TimeBaseSchedule):
         )
 
 
+class async_webhooks_schedule(TimeBaseSchedule):
+    def __init__(self, initial_timedelta=2, nowfun=None, app=None):
+        # initial_timedelta defaults to 2 seconds, as referencing settings.py variables
+        # would require rebuilding the schedule. settings depends on this class instance,
+        # leading to a circular import if accessed directly.
+        import_path = "saleor.core.schedules.initiated_async_webhooks_schedule"
+        super().__init__(import_path, initial_timedelta, nowfun, app)
+
+    def are_dirty(self) -> bool:
+        from django.conf import settings
+
+        if settings.WEBHOOK_LEGACY_MODE:
+            return False
+
+        from .models import EventDelivery, EventDeliveryStatus
+
+        return (
+            EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(status=EventDeliveryStatus.PENDING, payload__isnull=False)
+            .exists()
+        )
+
+
 initiated_promotion_webhook_schedule = promotion_webhook_schedule()
 initiated_checkout_automatic_completion_schedule = (
     checkout_automatic_completion_schedule()
@@ -323,3 +346,4 @@ initiated_gift_card_search_update_schedule = gift_card_search_update_schedule()
 initiated_page_search_update_schedule = page_search_update_schedule()
 initiated_product_search_update_schedule = product_search_update_schedule()
 initiated_checkout_search_update_schedule = checkout_search_update_schedule()
+initiated_async_webhooks_schedule = async_webhooks_schedule()
