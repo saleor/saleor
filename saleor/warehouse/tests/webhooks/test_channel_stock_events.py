@@ -1,5 +1,7 @@
+import json
 from unittest import mock
 
+import graphene
 import pytest
 
 from ....webhook.event_types import WebhookEventAsyncType
@@ -65,6 +67,13 @@ def test_trigger_dispatches(
     assert args[2] == [any_webhook]
     assert kwargs["subscribable_object"] is stock_info
     assert kwargs["requestor"] is None
+    legacy_payload = json.loads(kwargs["legacy_data_generator"]())
+    assert legacy_payload == {
+        "product_variant_id": graphene.Node.to_global_id(
+            "ProductVariant", stock_info.variant_id
+        ),
+        "channel": {"slug": stock_info.channel_slug},
+    }
 
 
 @mock.patch("saleor.warehouse.webhooks.channel_stock_events.trigger_webhooks_async")

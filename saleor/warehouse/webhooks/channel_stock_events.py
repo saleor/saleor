@@ -1,4 +1,7 @@
+import json
 from typing import TYPE_CHECKING
+
+import graphene
 
 from ...account.models import User
 from ...app.models import App
@@ -15,6 +18,17 @@ if TYPE_CHECKING:
 
 
 T_REQUESTOR = User | App | None
+
+
+def _build_legacy_payload(stock_info: VariantChannelStockInfo) -> str:
+    return json.dumps(
+        {
+            "product_variant_id": graphene.Node.to_global_id(
+                "ProductVariant", stock_info.variant_id
+            ),
+            "channel": {"slug": stock_info.channel_slug},
+        }
+    )
 
 
 def _trigger(
@@ -39,6 +53,7 @@ def _trigger(
         channel_webhooks,
         subscribable_object=stock_info,
         requestor=requestor,
+        legacy_data_generator=lambda: _build_legacy_payload(stock_info),
     )
 
 
