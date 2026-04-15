@@ -326,7 +326,7 @@ class async_webhooks_schedule(TimeBaseSchedule):
     def are_dirty(self) -> bool:
         from django.conf import settings
 
-        if settings.WEBHOOK_LEGACY_MODE:
+        if settings.WEBHOOK_ASYNC_LEGACY_MODE:
             return False
 
         from .models import EventDelivery, EventDeliveryStatus

@@ -104,4 +104,5 @@ TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.tests.TestTracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.tests.TestMeter"
 
 # Enable legacy webhook mode to avoid tests adaptation before the new fair webhook system is fully implemented.
-WEBHOOK_LEGACY_MODE = True
+WEBHOOK_ASYNC_LEGACY_MODE = True
+WEBHOOK_ASYNC_MAX_CONCURRENCY = 1
