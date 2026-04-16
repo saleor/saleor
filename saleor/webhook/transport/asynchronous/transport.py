@@ -4,6 +4,7 @@ import logging
 from collections import defaultdict
 from collections.abc import Callable, Hashable, Sequence
 from dataclasses import asdict, dataclass
+from queue import Empty as QueueEmpty
 from threading import Thread
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -986,8 +987,11 @@ def execute_webhook_requests(
     *,
     telemetry_context: TelemetryTaskContext,
 ):
-    while not queue.empty():
-        request = queue.get()
+    while True:
+        try:
+            request = queue.get(block=False)
+        except QueueEmpty:
+            break
 
         attempt = request.attempt
         delivery = request.delivery
