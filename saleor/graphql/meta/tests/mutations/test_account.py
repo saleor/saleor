@@ -1282,6 +1282,24 @@ def test_add_public_metadata_for_staff_as_app(
     assert {"key": PUBLIC_KEY, "value": PUBLIC_VALUE} in item["metadata"]
 
 
+def test_add_public_metadata_for_staff_as_app_no_permission(app_api_client, admin_user):
+    # given
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+    variables = {
+        "id": admin_id,
+        "input": [{"key": PUBLIC_KEY, "value": PUBLIC_VALUE}],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % "User",
+        variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 def test_add_private_metadata_for_staff_as_app(
     app_api_client, permission_manage_staff, admin_user
 ):
@@ -1304,6 +1322,26 @@ def test_add_private_metadata_for_staff_as_app(
     item = content["data"]["updatePrivateMetadata"]["item"]
     assert item["id"] == admin_id
     assert {"key": PRIVATE_KEY, "value": PRIVATE_VALUE} in item["privateMetadata"]
+
+
+def test_add_private_metadata_for_staff_as_app_no_permission(
+    app_api_client, admin_user
+):
+    # given
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+    variables = {
+        "id": admin_id,
+        "input": [{"key": PRIVATE_KEY, "value": PRIVATE_VALUE}],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % "User",
+        variables,
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_delete_public_metadata_for_staff_as_app(
@@ -1332,6 +1370,28 @@ def test_delete_public_metadata_for_staff_as_app(
     assert not any(m["key"] == PUBLIC_KEY for m in item["metadata"])
 
 
+def test_delete_public_metadata_for_staff_as_app_no_permission(
+    app_api_client, admin_user
+):
+    # given
+    admin_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    admin_user.save(update_fields=["metadata"])
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+    variables = {
+        "id": admin_id,
+        "keys": [PUBLIC_KEY],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        DELETE_PUBLIC_METADATA_MUTATION % "User",
+        variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
 def test_delete_private_metadata_for_staff_as_app(
     app_api_client, permission_manage_staff, admin_user
 ):
@@ -1356,6 +1416,28 @@ def test_delete_private_metadata_for_staff_as_app(
     item = content["data"]["deletePrivateMetadata"]["item"]
     assert item["id"] == admin_id
     assert not any(m["key"] == PRIVATE_KEY for m in item["privateMetadata"])
+
+
+def test_delete_private_metadata_for_staff_as_app_no_permission(
+    app_api_client, admin_user
+):
+    # given
+    admin_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    admin_user.save(update_fields=["private_metadata"])
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+    variables = {
+        "id": admin_id,
+        "keys": [PRIVATE_KEY],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        DELETE_PRIVATE_METADATA_MUTATION % "User",
+        variables,
+    )
+
+    # then
+    assert_no_permission(response)
 
 
 def test_add_private_metadata_for_myself_as_customer_no_permission(user_api_client):
