@@ -1,0 +1,23 @@
+saleor/graphql/meta/tests/mutations/test_account.py
+  5a2da8452ac41da3 132,136,138,147,150-152,369,373,375,384,387-389,935,938,941,949,952-954,1616,1619,1622,1630,1633-1635
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "aa816223a79ca1c7c3ba51e51ea1d31aa7490448",
+  "prompts": {
+    "5a2da8452ac41da3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3594bf78-fdc9-4e35-8073-438abb067fc6",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 28,
+      "total_deletions": 103,
+      "accepted_lines": 28,
+      "overriden_lines": 0
+    }
+  }
+}
