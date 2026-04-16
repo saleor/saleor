@@ -495,10 +495,12 @@ def prepare_event_delivery_request_callback(
         )
         callback = lambda: send_prepared_webhook_request_using_http(session, prepared)  # noqa: E731
     elif scheme == WebhookSchemes.AWS_SQS:
+        # TODO (ENG-1475): Group AWS SQS webhooks by target queue and send in batches
         callback = lambda: send_webhook_using_aws_sqs(  # noqa: E731
             target_url, message, domain, signature, event_type
         )
     elif scheme == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
+        # TODO (ENG-1476): Group Google Cloud Pub/Sub webhooks by target topic and send in batches
         callback = lambda: send_webhook_using_google_cloud_pubsub(  # noqa: E731
             target_url, message, domain, signature, event_type
         )

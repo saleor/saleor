@@ -936,6 +936,8 @@ def send_webhooks_async_for_app(
             thread.start()
             threads.append(thread)
 
+        # TODO: Group non-HTTP requests by targets and send them in batches
+        # instead of sending them sequentially in a single thread.
         if not other_requests.empty():
             thread_id = max_workers
             thread = Thread(
