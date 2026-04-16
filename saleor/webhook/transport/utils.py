@@ -7,6 +7,7 @@ from collections.abc import Callable, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
+from functools import wraps
 from queue import Queue
 from time import time
 from typing import Optional
@@ -584,6 +585,7 @@ def get_delivery_for_webhook(
 
 
 def http_session(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         with HTTPClient.get_session() as session:
             return func(*args, session=session, **kwargs)
@@ -675,9 +677,9 @@ def get_pending_delivery_requests(
         )
 
         if scheme in (WebhookSchemes.HTTP, WebhookSchemes.HTTPS):
-            http_delivery_requests._put(request)
+            http_delivery_requests.put(request)
         else:
-            other_delivery_requests._put(request)
+            other_delivery_requests.put(request)
 
     return http_delivery_requests, other_delivery_requests
 

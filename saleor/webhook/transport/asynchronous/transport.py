@@ -914,8 +914,12 @@ def send_webhooks_async_for_app(
             logger.info("No pending deliveries found for App ID: %s", app_id)
             return
 
+        # Determine workers count based on the number of pending deliveries,
+        # but without exceeding the max concurrency setting.
+        # Accessing _qsize directly is acceptable before threads start
         deliveries_count = http_requests._qsize()
         max_workers = min(deliveries_count, settings.WEBHOOK_ASYNC_MAX_CONCURRENCY)
+
         task_logger.info(
             "Processing %d pending deliveries for App ID: %s with %d worker(s).",
             deliveries_count,
@@ -1064,6 +1068,10 @@ def execute_webhook_requests(
                 delivery.id,
                 extra=log_extra_details,
             )
+            # In case of max concurrency of 1 we process deliveries sequentially in chronological order,
+            # so we need to break the loop and start next iteration from retrying last failed delivery.
+            # In case of higher concurrency we can continue processing next deliveries,
+            # as they are processed in parallel and not necessarily in chronological order.
             if settings.WEBHOOK_ASYNC_MAX_CONCURRENCY > 1:
                 continue
             break
