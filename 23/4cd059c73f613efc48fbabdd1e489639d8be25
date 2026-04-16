@@ -1,0 +1,23 @@
+saleor/permission/utils.py
+  18c71219aa2e70d4 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "234cd059c73f613efc48fbabdd1e489639d8be25",
+  "prompts": {
+    "18c71219aa2e70d4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e606bf0-6c21-46a5-a85c-099ae27727b4",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 10,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
