@@ -1461,3 +1461,241 @@ def test_allocate_preorders_with_global_reservations(
         check_reservations=True,
         checkout_lines=[checkout_line_with_reserved_preorder_item],
     )
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events"
+)
+def test_allocate_stocks_triggers_channel_out_of_stock_event_when_stock_runs_out(
+    mocked_trigger,
+    order_line,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - allocation will drain the entire stock to 0 available
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock.quantity = 50
+    stock.quantity_allocated = 0
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    mocked_trigger.assert_called_once()
+    fired_stock, fired_settings = mocked_trigger.call_args.args
+    assert fired_stock.pk == stock.pk
+    assert fired_settings is site_settings
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events"
+)
+def test_allocate_stocks_does_not_trigger_channel_event_when_stock_remains(
+    mocked_trigger,
+    order_line,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - allocation only takes a fraction of the available stock
+    stock.quantity = 100
+    stock.quantity_allocated = 0
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=10)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events"
+)
+def test_allocate_stocks_skips_channel_event_when_legacy_flag_enabled(
+    mocked_trigger,
+    order_line,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - legacy flag is on; channel events should be skipped entirely
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock.quantity = 50
+    stock.quantity_allocated = 0
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events"
+)
+def test_deallocate_stock_triggers_channel_back_in_stock_event_when_stock_returns(
+    mocked_trigger,
+    allocation,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - all of the stock is currently allocated (available = 0); deallocating
+    # frees it back up
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock = allocation.stock
+    stock.quantity = allocation.quantity_allocated
+    stock.save(update_fields=["quantity"])
+    line_info = OrderLineInfo(
+        line=allocation.order_line,
+        variant=stock.product_variant,
+        quantity=allocation.quantity_allocated,
+        warehouse_pk=stock.warehouse_id,
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock(
+            [line_info],
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+        )
+
+    # then
+    mocked_trigger.assert_called_once()
+    fired_stock, fired_settings = mocked_trigger.call_args.args
+    assert fired_stock.pk == stock.pk
+    assert fired_settings is site_settings
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events"
+)
+def test_deallocate_stock_skips_channel_event_when_legacy_flag_enabled(
+    mocked_trigger,
+    allocation,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - legacy flag is on
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock = allocation.stock
+    stock.quantity = allocation.quantity_allocated
+    stock.save(update_fields=["quantity"])
+    line_info = OrderLineInfo(
+        line=allocation.order_line,
+        variant=stock.product_variant,
+        quantity=allocation.quantity_allocated,
+        warehouse_pk=stock.warehouse_id,
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock(
+            [line_info],
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events"
+)
+def test_deallocate_stock_for_orders_triggers_channel_back_in_stock_event(
+    mocked_trigger,
+    order_line_with_allocation_in_many_stocks,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - drive every allocated stock down to zero available so the deallocation
+    # qualifies as "back in stock"
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    order_line = order_line_with_allocation_in_many_stocks
+    order = order_line.order
+    for allocation in Allocation.objects.filter(order_line__order=order):
+        stock = allocation.stock
+        stock.quantity = allocation.quantity_allocated
+        stock.save(update_fields=["quantity"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock_for_orders(
+            [order.id],
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+        )
+
+    # then
+    assert mocked_trigger.call_count >= 1
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events"
+)
+def test_deallocate_stock_for_orders_skips_channel_event_when_legacy_flag_enabled(
+    mocked_trigger,
+    order_line_with_allocation_in_many_stocks,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - legacy flag is on
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    order_line = order_line_with_allocation_in_many_stocks
+    order = order_line.order
+    for allocation in Allocation.objects.filter(order_line__order=order):
+        stock = allocation.stock
+        stock.quantity = allocation.quantity_allocated
+        stock.save(update_fields=["quantity"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock_for_orders(
+            [order.id],
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
