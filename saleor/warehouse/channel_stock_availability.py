@@ -41,16 +41,25 @@ def trigger_out_of_stock_in_channel_events(
     OUT_OF_STOCK_IN_CHANNEL (for regular warehouses) or
     OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (for C&C warehouses) when no other
     warehouse of the same kind in that channel has remaining availability.
+
     Call after `stock` has just reached 0 available.
     """
-    _trigger_channel_stock_events(
-        stock,
-        site_settings,
-        requestor,
-        webhooks,
-        cc_trigger=trigger_product_variant_out_of_stock_for_click_and_collect,
-        non_cc_trigger=trigger_product_variant_out_of_stock_in_channel,
-    )
+    is_cc = _is_click_and_collect_warehouse(stock)
+    # trigger for channel where there is no availability in other warehouses of
+    # the same kind (C&C or non-C&C)
+    for channel_slug in _get_channels_without_other_available_warehouses(stock, is_cc):
+        stock_info = VariantChannelStockInfo(
+            variant_id=stock.product_variant_id,
+            channel_slug=channel_slug,
+        )
+        if is_cc:
+            trigger_product_variant_out_of_stock_for_click_and_collect(
+                stock_info, site_settings, requestor=requestor, webhooks=webhooks
+            )
+        else:
+            trigger_product_variant_out_of_stock_in_channel(
+                stock_info, site_settings, requestor=requestor, webhooks=webhooks
+            )
 
 
 def trigger_back_in_stock_in_channel_events(
@@ -65,39 +74,26 @@ def trigger_back_in_stock_in_channel_events(
     BACK_IN_STOCK_IN_CHANNEL (for regular warehouses) or
     BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (for C&C warehouses) when no other
     warehouse of the same kind in that channel has availability — i.e. `stock`
-    is the first one back. Call after `stock` has just risen above 0 available.
+    is the first one back.
+
+    Call after `stock` has just risen above 0 available.
     """
-    _trigger_channel_stock_events(
-        stock,
-        site_settings,
-        requestor,
-        webhooks,
-        cc_trigger=trigger_product_variant_back_in_stock_for_click_and_collect,
-        non_cc_trigger=trigger_product_variant_back_in_stock_in_channel,
-    )
-
-
-def _trigger_channel_stock_events(
-    stock: Stock,
-    site_settings: "SiteSettings",
-    requestor: "User | App | None",
-    webhooks: "QuerySet[Webhook] | None",
-    cc_trigger,
-    non_cc_trigger,
-) -> None:
     is_cc = _is_click_and_collect_warehouse(stock)
-    trigger = cc_trigger if is_cc else non_cc_trigger
-    channel_slugs = _get_channels_without_other_available_warehouses(stock, is_cc)
-    for channel_slug in channel_slugs:
-        trigger(
-            VariantChannelStockInfo(
-                variant_id=stock.product_variant_id,
-                channel_slug=channel_slug,
-            ),
-            site_settings,
-            requestor=requestor,
-            webhooks=webhooks,
+    # when no other warehouse of the same kind (C&C or non-C&C) in that channel
+    # has stock availability is the first one back, and event should be triggered
+    for channel_slug in _get_channels_without_other_available_warehouses(stock, is_cc):
+        stock_info = VariantChannelStockInfo(
+            variant_id=stock.product_variant_id,
+            channel_slug=channel_slug,
         )
+        if is_cc:
+            trigger_product_variant_back_in_stock_for_click_and_collect(
+                stock_info, site_settings, requestor=requestor, webhooks=webhooks
+            )
+        else:
+            trigger_product_variant_back_in_stock_in_channel(
+                stock_info, site_settings, requestor=requestor, webhooks=webhooks
+            )
 
 
 def _is_click_and_collect_warehouse(stock: Stock) -> bool:
