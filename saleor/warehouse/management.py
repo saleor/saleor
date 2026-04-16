@@ -24,6 +24,10 @@ from ..order.fetch import OrderLineInfo
 from ..order.models import OrderLine
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
+from .channel_stock_availability import (
+    trigger_back_in_stock_in_channel_events,
+    trigger_out_of_stock_in_channel_events,
+)
 from .lock_objects import (
     allocation_with_stock_qs_select_for_update,
     stock_qs_select_for_update,
@@ -102,11 +106,6 @@ def allocate_stocks(
     for order line, until allocated all required quantity for the order line.
     If there is less quantity in stocks then rise InsufficientStock exception.
     """
-    # local import: channel_stock_availability transitively pulls in the
-    # webhook transport + graphql subscription types, which would create a
-    # circular import at `warehouse.management` top-level load time.
-    from .channel_stock_availability import trigger_out_of_stock_in_channel_events
-
     # allocation only applied to order lines with variants with track inventory
     # set to True
     order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
@@ -355,11 +354,6 @@ def deallocate_stock(
     quantity for the order line. If there is less quantity in stocks then
     raise an exception.
     """
-    # local import: channel_stock_availability transitively pulls in the
-    # webhook transport + graphql subscription types, which would create a
-    # circular import at `warehouse.management` top-level load time.
-    from .channel_stock_availability import trigger_back_in_stock_in_channel_events
-
     lines = [line_info.line for line_info in order_lines_data]
     lines_allocations = allocation_with_stock_qs_select_for_update().filter(
         order_line__in=lines
@@ -748,12 +742,6 @@ def deallocate_stock_for_orders(
     site_settings: "SiteSettings",
 ):
     """Remove all allocations for given orders."""
-
-    # local import: channel_stock_availability transitively pulls in the
-    # webhook transport + graphql subscription types, which would create a
-    # circular import at `warehouse.management` top-level load time.
-    from .channel_stock_availability import trigger_back_in_stock_in_channel_events
-
     lines = OrderLine.objects.filter(order_id__in=orders_ids)
     allocations = allocation_with_stock_qs_select_for_update().filter(
         Exists(lines.filter(id=OuterRef("order_line_id"))), quantity_allocated__gt=0
