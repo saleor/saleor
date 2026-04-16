@@ -5,6 +5,7 @@ import pytest
 from .....app.models import AppWebhookMutex
 from .....core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
 from ..transport import (
+    MAX_WEBHOOK_RETRIES,
     WebhookResponse,
     send_webhooks_async_for_app,
 )
@@ -240,7 +241,7 @@ def test_send_webhooks_async_for_app_last_retry_failed(
             EventDeliveryAttempt(
                 delivery=event_delivery, status=EventDeliveryStatus.FAILED
             )
-            for _ in range(5)
+            for _ in range(MAX_WEBHOOK_RETRIES)
         ]
     )
     mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
@@ -256,5 +257,36 @@ def test_send_webhooks_async_for_app_last_retry_failed(
     assert len(deliveries) == 1
     assert deliveries[0].status == EventDeliveryStatus.FAILED
     assert (
-        len(EventDeliveryAttempt.objects.filter(status=EventDeliveryStatus.FAILED)) == 6
+        len(EventDeliveryAttempt.objects.filter(status=EventDeliveryStatus.FAILED))
+        == MAX_WEBHOOK_RETRIES + 1
     )
+
+
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_send_webhooks_async_for_app_last_retry_succeeds(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_delivery,
+):
+    # given
+    assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
+    EventDeliveryAttempt.objects.bulk_create(
+        [
+            EventDeliveryAttempt(
+                delivery=event_delivery, status=EventDeliveryStatus.FAILED
+            )
+            for _ in range(MAX_WEBHOOK_RETRIES)
+        ]
+    )
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="", status=EventDeliveryStatus.SUCCESS
+    )
+
+    # when
+    send_webhooks_async_for_app(app_id=app.id)
+
+    # then
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
+
+    assert not EventDelivery.objects.exists()
+    assert not EventDeliveryAttempt.objects.exists()

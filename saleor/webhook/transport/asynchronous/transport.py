@@ -964,12 +964,11 @@ def process_executed_delivery_requests(
             successful_deliveries.append(delivery)
         elif attempt.status == EventDeliveryStatus.FAILED:
             attempts_to_save.append(attempt)
+            if request.prev_attempts_count >= MAX_WEBHOOK_RETRIES:
+                delivery.status = EventDeliveryStatus.FAILED
+                deliveries_to_update.append(delivery)
         else:
             continue
-
-        if request.prev_attempts_count >= MAX_WEBHOOK_RETRIES:
-            delivery.status = EventDeliveryStatus.FAILED
-            deliveries_to_update.append(delivery)
 
     if attempts_to_save:
         EventDeliveryAttempt.objects.bulk_create(attempts_to_save)
