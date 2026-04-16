@@ -407,3 +407,32 @@ def test_query_promotion_events(
             event_data["ruleId"] = db_event.parameters.get("rule_id")
 
         assert event_data in events
+
+
+def test_query_promotion_event_created_by_hidden_for_app_with_only_manage_staff(
+    promotion_events,
+    app_api_client,
+    permission_manage_discounts,
+    permission_manage_staff,
+):
+    # given
+    # MANAGE_STAFF must NOT, on its own, expose a PromotionEvent's createdBy
+    # user to an app caller. The resolver returns None when the requestor is
+    # not the owner and lacks an effective MANAGE_STAFF scope (apps cannot
+    # use MANAGE_STAFF as a general-purpose pass-through).
+    promotion = promotion_events[0].promotion
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    variables = {"id": promotion_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_PROMOTION_BY_ID_WITH_EVENTS,
+        variables,
+        permissions=(permission_manage_discounts, permission_manage_staff),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["promotion"]["events"]
+    assert len(events) == promotion.events.count()
+    assert all(event["createdBy"] is None for event in events)

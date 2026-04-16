@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Union
 
 from .auth_filters import AuthorizationFilters, resolve_authorization_filter_fn
-from .enums import BasePermissionEnum
+from .enums import AccountPermissions, BasePermissionEnum
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -87,6 +87,9 @@ def permission_required(
     if isinstance(requestor, User):
         return requestor.has_perms(perms)
     if requestor:
+        # for now MANAGE_STAFF permission for app is not supported
+        if AccountPermissions.MANAGE_STAFF in perms:
+            return False
         return requestor.has_perms(perms)
     return False
 
