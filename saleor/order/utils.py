@@ -338,6 +338,7 @@ def create_order_line(
             ],
             channel,
             manager=manager,
+            site_settings=site_settings,
             calculate_stocks_with_shipping_zones=(
                 site_settings.use_legacy_shipping_zone_stock_availability
             ),
@@ -547,11 +548,12 @@ def _update_allocations_for_line(
             [line_info],
             channel,
             manager,
+            site_settings,
             calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         )
     else:
         line_info.quantity = old_quantity - new_quantity
-        decrease_allocations([line_info], manager)
+        decrease_allocations([line_info], manager, site_settings)
 
 
 def change_order_line_quantity(
@@ -620,7 +622,7 @@ def change_order_line_quantity(
             )
 
     else:
-        delete_order_line(line_info, manager)
+        delete_order_line(line_info, manager, site_settings)
 
     quantity_diff = old_quantity - new_quantity
 
@@ -647,10 +649,10 @@ def create_order_event(line, user, app, quantity_diff):
         )
 
 
-def delete_order_line(line_info, manager):
+def delete_order_line(line_info, manager, site_settings: "SiteSettings"):
     """Delete an order line from an order."""
     if line_info.line.order.is_unconfirmed():
-        decrease_allocations([line_info], manager)
+        decrease_allocations([line_info], manager, site_settings)
     line_info.line.delete()
 
 

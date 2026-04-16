@@ -14,6 +14,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 
 
@@ -53,12 +54,14 @@ class OrderCancel(BaseMutation):
         user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
+        site = get_site_promise(info.context).get()
         with traced_atomic_transaction():
             cancel_order(
                 order=order,
                 user=user,
                 app=app,
                 manager=manager,
+                site_settings=site.settings,
             )
             deactivate_order_gift_cards(order.id, user, app)
         return OrderCancel(order=SyncWebhookControlContext(order))

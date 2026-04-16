@@ -722,10 +722,12 @@ def test_order_weight_change_line_quantity(staff_user, lines_info, site_settings
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 
-def test_order_weight_delete_line(lines_info):
+def test_order_weight_delete_line(lines_info, site_settings):
     order = lines_info[0].line.order
     line_info = lines_info[0]
-    delete_order_line(line_info, get_plugins_manager(allow_replica=False))
+    delete_order_line(
+        line_info, get_plugins_manager(allow_replica=False), site_settings
+    )
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 

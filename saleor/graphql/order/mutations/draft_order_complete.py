@@ -216,6 +216,7 @@ class DraftOrderComplete(BaseMutation):
                                 country,
                                 channel,
                                 manager,
+                                site_settings,
                                 check_reservations=is_reservation_enabled(
                                     site_settings
                                 ),
