@@ -610,7 +610,7 @@ def get_checkout_tax_data(
         data, str(checkout_info.checkout.token), config
     )
 
-    if response is None:
+    if not response:
         return response
 
     # Convert `lines` to dict as we can send multiple lines with the same itemCode
