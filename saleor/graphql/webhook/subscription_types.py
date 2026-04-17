@@ -1175,7 +1175,9 @@ class ProductVariantOutOfStockInChannel(ProductVariantChannelStockBase):
         interfaces = (Event,)
         description = (
             "Event sent when a product variant becomes out of stock across all "
-            "non click-and-collect warehouses in a channel." + ADDED_IN_323
+            "non click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323
         )
         doc_category = DOC_CATEGORY_PRODUCTS
 
@@ -1187,7 +1189,9 @@ class ProductVariantBackInStockInChannel(ProductVariantChannelStockBase):
         interfaces = (Event,)
         description = (
             "Event sent when a product variant becomes available again across "
-            "non click-and-collect warehouses in a channel." + ADDED_IN_323
+            "non click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323
         )
         doc_category = DOC_CATEGORY_PRODUCTS
 
@@ -1199,7 +1203,9 @@ class ProductVariantOutOfStockForClickAndCollect(ProductVariantChannelStockBase)
         interfaces = (Event,)
         description = (
             "Event sent when a product variant becomes out of stock across all "
-            "click-and-collect warehouses in a channel." + ADDED_IN_323
+            "click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323
         )
         doc_category = DOC_CATEGORY_PRODUCTS
 
@@ -1211,7 +1217,9 @@ class ProductVariantBackInStockForClickAndCollect(ProductVariantChannelStockBase
         interfaces = (Event,)
         description = (
             "Event sent when a product variant becomes available again across "
-            "click-and-collect warehouses in a channel." + ADDED_IN_323
+            "click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323
         )
         doc_category = DOC_CATEGORY_PRODUCTS
 
@@ -3008,8 +3016,8 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when a product variant becomes out of stock across all "
             "non click-and-collect warehouses in a channel."
-            + ADDED_IN_323
-            + PREVIEW_FEATURE
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
@@ -3020,8 +3028,8 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when a product variant becomes available again across "
             "non click-and-collect warehouses in a channel."
-            + ADDED_IN_323
-            + PREVIEW_FEATURE
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
@@ -3032,8 +3040,8 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when a product variant becomes out of stock across all "
             "click-and-collect warehouses in a channel."
-            + ADDED_IN_323
-            + PREVIEW_FEATURE
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
@@ -3044,8 +3052,8 @@ class Subscription(SubscriptionObjectType):
         description=(
             "Event sent when a product variant becomes available again across "
             "click-and-collect warehouses in a channel."
-            + ADDED_IN_323
-            + PREVIEW_FEATURE
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
