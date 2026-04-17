@@ -48,4 +48,4 @@ The following releases of Saleor are currently supported.
 | Version | Supported          |
 | ------- | ------------------ |
 | ≥ 3.20  | :white_check_mark: |
-| < 3.20  | :x:                |
+| < 3.21  | :x:                |
