@@ -1464,7 +1464,7 @@ def test_allocate_preorders_with_global_reservations(
 
 
 @mock.patch(
-    "saleor.warehouse.management.trigger_out_of_stock_in_channel_events_for_stocks"
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
 )
 def test_allocate_stocks_triggers_channel_out_of_stock_event_when_stock_runs_out(
     mocked_trigger,
@@ -1502,7 +1502,7 @@ def test_allocate_stocks_triggers_channel_out_of_stock_event_when_stock_runs_out
 
 
 @mock.patch(
-    "saleor.warehouse.management.trigger_out_of_stock_in_channel_events_for_stocks"
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
 )
 def test_allocate_stocks_does_not_trigger_channel_event_when_stock_remains(
     mocked_trigger,
@@ -1534,7 +1534,7 @@ def test_allocate_stocks_does_not_trigger_channel_event_when_stock_remains(
 
 
 @mock.patch(
-    "saleor.warehouse.management.trigger_out_of_stock_in_channel_events_for_stocks"
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
 )
 def test_allocate_stocks_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger,
@@ -1568,7 +1568,7 @@ def test_allocate_stocks_skips_channel_event_when_legacy_flag_enabled(
 
 
 @mock.patch(
-    "saleor.warehouse.management.trigger_back_in_stock_in_channel_events_for_stocks"
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
 )
 def test_deallocate_stock_triggers_channel_back_in_stock_event_when_stock_returns(
     mocked_trigger,
@@ -1607,7 +1607,7 @@ def test_deallocate_stock_triggers_channel_back_in_stock_event_when_stock_return
 
 
 @mock.patch(
-    "saleor.warehouse.management.trigger_back_in_stock_in_channel_events_for_stocks"
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
 )
 def test_deallocate_stock_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger,
@@ -1641,7 +1641,7 @@ def test_deallocate_stock_skips_channel_event_when_legacy_flag_enabled(
 
 
 @mock.patch(
-    "saleor.warehouse.management.trigger_back_in_stock_in_channel_events_for_stocks"
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
 )
 def test_deallocate_stock_for_orders_triggers_channel_back_in_stock_event(
     mocked_trigger,
@@ -1677,7 +1677,7 @@ def test_deallocate_stock_for_orders_triggers_channel_back_in_stock_event(
 
 
 @mock.patch(
-    "saleor.warehouse.management.trigger_back_in_stock_in_channel_events_for_stocks"
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
 )
 def test_deallocate_stock_for_orders_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger,
