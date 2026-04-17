@@ -70,12 +70,15 @@ def trigger_out_of_stock_in_channel_events_for_stocks(
         if not grouped_stocks:
             continue
 
-        for stock, channel_slug in _get_channels_without_other_available_warehouses(
+        for (
+            variant_id,
+            channel_slug,
+        ) in _get_channels_without_other_available_warehouses(
             grouped_stocks, cc_options
         ):
             trigger(
                 VariantChannelStockInfo(
-                    variant_id=stock.product_variant_id,
+                    variant_id=variant_id,
                     channel_slug=channel_slug,
                 ),
                 site_settings,
@@ -128,12 +131,15 @@ def trigger_back_in_stock_in_channel_events_for_stocks(
         if not grouped_stocks:
             continue
 
-        for stock, channel_slug in _get_channels_without_other_available_warehouses(
+        for (
+            variant_id,
+            channel_slug,
+        ) in _get_channels_without_other_available_warehouses(
             grouped_stocks, cc_options
         ):
             trigger(
                 VariantChannelStockInfo(
-                    variant_id=stock.product_variant_id,
+                    variant_id=variant_id,
                     channel_slug=channel_slug,
                 ),
                 site_settings,
@@ -148,13 +154,13 @@ def _is_click_and_collect_warehouse(stock: Stock) -> bool:
 
 def _get_channels_without_other_available_warehouses(
     stocks: list[Stock], cc_options: list[str]
-) -> list[tuple[Stock, str]]:
-    """Return (stock, channel_slug) pairs with no other same-kind warehouse availability.
+) -> set[tuple[int, str]]:
+    """Return unique (variant_id, channel_slug) pairs with no other same-kind warehouse availability.
 
     For each stock, checks every channel its warehouse belongs to. If no other
     warehouse of the same kind (C&C or non-C&C) in that channel has available
-    quantity for the stock's variant, the (stock, channel_slug) pair is included
-    in the result.
+    quantity for the stock's variant, the pair is included. Deduplicated so that
+    multiple stocks for the same variant produce only one entry per channel.
     """
     stock_ids = [stock.id for stock in stocks]
     warehouse_ids = list({stock.warehouse_id for stock in stocks})
@@ -221,15 +227,16 @@ def _get_channels_without_other_available_warehouses(
                     available_quantity
                 )
 
-    # Return (stock, channel_slug) for channels where no other warehouse has
-    # availability for the stock's variant.
-    result: list[tuple[Stock, str]] = []
+    # Return unique (variant_id, channel_slug) pairs for channels where no other
+    # warehouse has availability. Deduplicated so that multiple stocks for the
+    # same variant in different warehouses produce only one event per channel.
+    result: set[tuple[int, str]] = set()
     for stock in stocks:
         for channel_id, channel_slug in warehouse_id_to_channels_map.get(
             stock.warehouse_id, []
         ):
             if channel_available_per_stock.get((stock.id, channel_id), 0) == 0:
-                result.append((stock, channel_slug))
+                result.add((stock.product_variant_id, channel_slug))
 
     return result
 

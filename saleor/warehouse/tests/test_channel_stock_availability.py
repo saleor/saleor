@@ -445,9 +445,10 @@ def test_bulk_stocks_from_different_warehouses_in_same_channel(
     # when - both stocks passed together
     trigger_out_of_stock_in_channel_events_for_stocks([stock_a, stock_b], site_settings)
 
-    # then - both fire because there is no OTHER warehouse with availability
-    # (each warehouse only sees the other, which is also at 0)
-    assert mocked_out.call_count == 2
+    # then - fires once per (variant, channel), not once per stock
+    mocked_out.assert_called_once()
+    assert mocked_out.call_args.args[0].variant_id == variant.id
+    assert mocked_out.call_args.args[0].channel_slug == channel_USD.slug
 
 
 def test_bulk_warehouse_a_is_other_for_warehouse_b_stock(
@@ -561,3 +562,115 @@ def test_bulk_empty_list_does_not_fire(site_settings, mocker):
 
     # then
     mocked_out.assert_not_called()
+
+
+def test_bulk_two_different_variants_both_out_of_stock_fires_for_each(
+    product_with_two_variants, warehouse, channel_USD, site_settings, mocker
+):
+    # given - two different variants in the same warehouse, both at 0, no other
+    # warehouse in the channel
+    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    stocks = list(
+        Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
+    )
+    for stock in stocks:
+        stock.quantity = 0
+    Stock.objects.bulk_update(stocks, ["quantity"])
+
+    # when
+    trigger_out_of_stock_in_channel_events_for_stocks(stocks, site_settings)
+
+    # then - one event per variant (not per stock), both in the same channel
+    assert mocked_out.call_count == 2
+    fired_pairs = {
+        (call.args[0].variant_id, call.args[0].channel_slug)
+        for call in mocked_out.call_args_list
+    }
+    assert fired_pairs == {
+        (variants[0].id, channel_USD.slug),
+        (variants[1].id, channel_USD.slug),
+    }
+
+
+def test_bulk_deduplicates_when_same_variant_has_multiple_stocks_across_warehouses(
+    variant, warehouse, channel_USD, channel_PLN, address, site_settings, mocker
+):
+    # given - same variant in two warehouses, both in two channels, both at 0
+    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    warehouse.channels.add(channel_PLN)
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="other",
+        slug="other",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    other_warehouse.channels.add(channel_USD, channel_PLN)
+    stock_a, stock_b = Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=0),
+            Stock(product_variant=variant, warehouse=other_warehouse, quantity=0),
+        ]
+    )
+
+    # when
+    trigger_out_of_stock_in_channel_events_for_stocks([stock_a, stock_b], site_settings)
+
+    # then - fires once per channel (2 channels), not once per stock (4 would
+    # be stock_a×2channels + stock_b×2channels without dedup)
+    assert mocked_out.call_count == 2
+    fired_slugs = {call.args[0].channel_slug for call in mocked_out.call_args_list}
+    assert fired_slugs == {channel_USD.slug, channel_PLN.slug}
+
+
+def test_bulk_different_variants_partial_coverage_by_other_warehouse(
+    product_with_two_variants,
+    warehouse,
+    channel_USD,
+    channel_PLN,
+    address,
+    site_settings,
+    mocker,
+):
+    # given - variant X is covered by other warehouse in USD but not PLN
+    #         variant Y has no coverage in either channel
+    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    variant_x, variant_y = variants[0], variants[1]
+
+    warehouse.channels.add(channel_PLN)
+    stocks = list(
+        Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
+    )
+    for stock in stocks:
+        stock.quantity = 0
+    Stock.objects.bulk_update(stocks, ["quantity"])
+
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="other",
+        slug="other",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    # other warehouse only in USD, only has stock for variant X
+    other_warehouse.channels.add(channel_USD)
+    Stock.objects.create(
+        product_variant=variant_x, warehouse=other_warehouse, quantity=5
+    )
+
+    # when
+    trigger_out_of_stock_in_channel_events_for_stocks(stocks, site_settings)
+
+    # then
+    # variant X: covered in USD (other warehouse has stock) → fires only for PLN
+    # variant Y: no coverage anywhere → fires for both USD and PLN
+    assert mocked_out.call_count == 3
+    fired_pairs = {
+        (call.args[0].variant_id, call.args[0].channel_slug)
+        for call in mocked_out.call_args_list
+    }
+    assert fired_pairs == {
+        (variant_x.id, channel_PLN.slug),
+        (variant_y.id, channel_USD.slug),
+        (variant_y.id, channel_PLN.slug),
+    }
