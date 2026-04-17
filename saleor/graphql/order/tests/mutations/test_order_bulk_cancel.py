@@ -59,6 +59,7 @@ def test_order_bulk_cancel(
             user=staff_api_client.user,
             app=None,
             manager=ANY,
+            site_settings=ANY,
             webhook_event_map=webhook_event_map,
         )
         for order in orders
@@ -154,6 +155,7 @@ def test_order_bulk_cancel_as_app(
             user=None,
             app=app_api_client.app,
             manager=ANY,
+            site_settings=ANY,
             webhook_event_map=webhook_event_map,
         )
         for order in orders
@@ -205,6 +207,7 @@ def test_order_bulk_cancel_without_sku(
             user=staff_api_client.user,
             app=None,
             manager=ANY,
+            site_settings=ANY,
             webhook_event_map=webhook_event_map,
         )
         for order in orders

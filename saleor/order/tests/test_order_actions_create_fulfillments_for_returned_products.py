@@ -23,6 +23,7 @@ def test_create_return_fulfillment_only_order_lines(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -49,6 +50,7 @@ def test_create_return_fulfillment_only_order_lines(
             ],
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -101,6 +103,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -128,6 +131,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
             order_lines=order_lines_to_refund,
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
             refund=True,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -181,6 +185,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -208,6 +213,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
             order_lines=order_lines_to_refund,
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
             refund=True,
             refund_shipping_costs=True,
         )
@@ -267,6 +273,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -304,6 +311,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
             order_lines=order_lines_data,
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -402,6 +410,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
@@ -421,6 +430,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
                 for line in fulfillment_lines
             ],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -453,6 +463,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
@@ -479,6 +490,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
             order_lines=[],
             fulfillment_lines=fulfillment_lines_to_return,
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -567,6 +579,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     variant,
     warehouse,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
@@ -626,6 +639,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
             order_lines=[],
             fulfillment_lines=fulfillment_lines_to_process,
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
             refund=True,
         )
 
@@ -677,6 +691,7 @@ def test_create_return_fulfillment_only_order_lines_with_old_ids(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -705,6 +720,7 @@ def test_create_return_fulfillment_only_order_lines_with_old_ids(
             ],
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 

@@ -988,7 +988,7 @@ def order_events(order):
 
 
 @pytest.fixture
-def fulfilled_order(order_with_lines):
+def fulfilled_order(order_with_lines, site_settings):
     order = order_with_lines
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
@@ -1015,6 +1015,7 @@ def fulfilled_order(order_with_lines):
             ),
         ],
         manager=get_plugins_manager(allow_replica=False),
+        site_settings=site_settings,
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -1032,6 +1033,7 @@ def unconfirmed_order_with_lines(order_with_lines):
 @pytest.fixture
 def fulfilled_order_without_inventory_tracking(
     order_with_line_without_inventory_tracking,
+    site_settings,
 ):
     order = order_with_line_without_inventory_tracking
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -1042,6 +1044,7 @@ def fulfilled_order_without_inventory_tracking(
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
         get_plugins_manager(allow_replica=False),
+        site_settings=site_settings,
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])

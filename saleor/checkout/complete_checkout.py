@@ -845,6 +845,7 @@ def _create_order(
         country_code,
         checkout_info.channel,
         manager,
+        site_settings,
         calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
         collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         additional_filter_lookup=additional_warehouse_lookup,
@@ -1273,6 +1274,7 @@ def _handle_allocations_of_order_lines(
     checkout_lines: list[CheckoutLineInfo],
     order_lines_info: list[OrderLineInfo],
     manager: "PluginsManager",
+    site_settings: "SiteSettings",
     reservation_enabled: bool,
     calculate_stocks_with_shipping_zones: bool,
 ):
@@ -1285,6 +1287,7 @@ def _handle_allocations_of_order_lines(
         country_code,
         checkout_info.channel,
         manager,
+        site_settings,
         calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         additional_filter_lookup=additional_warehouse_lookup,
@@ -1525,6 +1528,7 @@ def _create_order_from_checkout(
         checkout_lines=checkout_lines_info,
         order_lines_info=order_lines_info,
         manager=manager,
+        site_settings=site_settings,
         reservation_enabled=reservation_enabled,
         calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
     )

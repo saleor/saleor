@@ -1,6 +1,7 @@
 import math
 from collections import defaultdict
 from collections.abc import Iterable
+from functools import partial
 from typing import TYPE_CHECKING, Any, NamedTuple, cast
 from uuid import UUID
 
@@ -23,6 +24,10 @@ from ..order.fetch import OrderLineInfo
 from ..order.models import OrderLine
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
+from .channel_stock_availability import (
+    trigger_back_in_stock_in_channel_events,
+    trigger_out_of_stock_in_channel_events,
+)
 from .lock_objects import (
     allocation_with_stock_qs_select_for_update,
     stock_qs_select_for_update,
@@ -40,6 +45,7 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
+    from ..site.models import SiteSettings
 
 
 class StockData(NamedTuple):
@@ -83,6 +89,7 @@ def allocate_stocks(
     country_code: str,
     channel: "Channel",
     manager: PluginsManager,
+    site_settings: "SiteSettings",
     *,
     calculate_stocks_with_shipping_zones: bool,
     collection_point_pk: UUID | None = None,
@@ -194,6 +201,9 @@ def allocate_stocks(
 
         Stock.objects.bulk_update(stocks_to_update_map.values(), ["quantity_allocated"])
 
+        legacy_stock_availability = (
+            site_settings.use_legacy_shipping_zone_stock_availability
+        )
         for allocation in allocations:
             allocated_stock = (
                 Allocation.objects.filter(stock_id=allocation.stock_id).aggregate(
@@ -205,6 +215,14 @@ def allocate_stocks(
                 transaction.on_commit(
                     lambda: manager.product_variant_out_of_stock(allocation.stock)
                 )
+                if not legacy_stock_availability:
+                    transaction.on_commit(
+                        partial(
+                            trigger_out_of_stock_in_channel_events,
+                            allocation.stock,
+                            site_settings,
+                        )
+                    )
 
 
 def _prepare_stock_to_reserved_quantity_map(
@@ -323,7 +341,11 @@ def _create_allocations(
     return [], allocations
 
 
-def deallocate_stock(order_lines_data: list["OrderLineInfo"], manager: PluginsManager):
+def deallocate_stock(
+    order_lines_data: list["OrderLineInfo"],
+    manager: PluginsManager,
+    site_settings: "SiteSettings",
+):
     """Deallocate stocks for given `order_lines`.
 
     Function lock for update stocks and allocations related to given `order_lines`.
@@ -377,6 +399,9 @@ def deallocate_stock(order_lines_data: list["OrderLineInfo"], manager: PluginsMa
 
     Allocation.objects.bulk_update(allocations_to_update, ["quantity_allocated"])
 
+    legacy_stock_availability = (
+        site_settings.use_legacy_shipping_zone_stock_availability
+    )
     for allocation_before_update in allocations_before_update:
         available_stock_now = Allocation.objects.available_quantity_for_stock(
             allocation_before_update.stock
@@ -390,6 +415,14 @@ def deallocate_stock(order_lines_data: list["OrderLineInfo"], manager: PluginsMa
                     allocation_before_update.stock
                 )
             )
+            if not legacy_stock_availability:
+                transaction.on_commit(
+                    partial(
+                        trigger_back_in_stock_in_channel_events,
+                        allocation_before_update.stock,
+                        site_settings,
+                    )
+                )
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
@@ -466,6 +499,7 @@ def increase_allocations(
     lines_info: list["OrderLineInfo"],
     channel: "Channel",
     manager: PluginsManager,
+    site_settings: "SiteSettings",
     calculate_stocks_with_shipping_zones: bool,
 ):
     """Increase allocation for order lines with appropriate quantity."""
@@ -504,17 +538,22 @@ def increase_allocations(
         country_code,
         channel,
         manager,
+        site_settings,
         calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
     )
 
 
-def decrease_allocations(lines_info: list["OrderLineInfo"], manager):
+def decrease_allocations(
+    lines_info: list["OrderLineInfo"],
+    manager,
+    site_settings: "SiteSettings",
+):
     """Decrease allocations for provided order lines."""
     lines_to_deallocate = get_order_lines_to_deallocate(lines_info)
     if not lines_to_deallocate:
         return
     try:
-        deallocate_stock(lines_info, manager)
+        deallocate_stock(lines_info, manager, site_settings)
     except AllocationError as exc:
         Allocation.objects.order_by("stock_id").filter(
             order_line__in=exc.order_lines
@@ -525,6 +564,7 @@ def decrease_allocations(lines_info: list["OrderLineInfo"], manager):
 def decrease_stock(
     order_lines_info: list["OrderLineInfo"],
     manager,
+    site_settings: "SiteSettings",
     allow_stock_to_be_exceeded: bool = False,
 ):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
@@ -536,7 +576,7 @@ def decrease_stock(
     function decrease it by given value.
     If allow_stock_to_be_exceeded flag is True then quantity could be < 0.
     """
-    decrease_allocations(order_lines_info, manager)
+    decrease_allocations(order_lines_info, manager, site_settings)
 
     order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
     if not order_lines_info:
@@ -696,7 +736,11 @@ def get_order_lines_to_deallocate(
 
 
 @traced_atomic_transaction()
-def deallocate_stock_for_orders(orders_ids: list[UUID], manager: PluginsManager):
+def deallocate_stock_for_orders(
+    orders_ids: list[UUID],
+    manager: PluginsManager,
+    site_settings: "SiteSettings",
+):
     """Remove all allocations for given orders."""
     lines = OrderLine.objects.filter(order_id__in=orders_ids)
     allocations = allocation_with_stock_qs_select_for_update().filter(
@@ -708,11 +752,23 @@ def deallocate_stock_for_orders(orders_ids: list[UUID], manager: PluginsManager)
     allocations_for_back_in_stock = Allocation.objects.filter(
         id__in=[allocation.id for allocation in allocations]
     )
+
+    legacy_stock_availability = (
+        site_settings.use_legacy_shipping_zone_stock_availability
+    )
     for allocation in allocations_for_back_in_stock.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
             transaction.on_commit(
                 lambda: manager.product_variant_back_in_stock(allocation.stock)
             )
+            if not legacy_stock_availability:
+                transaction.on_commit(
+                    partial(
+                        trigger_back_in_stock_in_channel_events,
+                        allocation.stock,
+                        site_settings,
+                    )
+                )
 
     allocations.update(quantity_allocated=0)
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
