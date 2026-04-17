@@ -152,10 +152,6 @@ class BaseMetadataMutation(BaseMutation):
         return graphene_type._meta.model
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):  # type: ignore[override]
-        return super().check_permissions(context, permissions)
-
-    @classmethod
     @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         try:
