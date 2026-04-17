@@ -306,6 +306,14 @@ def test_query_export_file_user_field_denied_for_app_with_only_manage_staff(
     assert data["user"] is None
     assert len(data["events"]) == 1
     assert data["events"][0]["user"] is None
-    error_paths = {tuple(error["path"]) for error in content["errors"]}
-    assert ("exportFile", "user") in error_paths
-    assert ("exportFile", "events", 0, "user") in error_paths
+
+    permission_denied_msg = (
+        "To access this path, you need one of the following permissions: "
+        "MANAGE_STAFF, OWNER"
+    )
+    errors = content["errors"]
+    user_errors = [e for e in errors if e["path"][-1] == "user"]
+    assert len(user_errors) == 2
+    for error in user_errors:
+        assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+        assert error["message"] == permission_denied_msg
