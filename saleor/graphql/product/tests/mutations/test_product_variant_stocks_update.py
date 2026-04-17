@@ -1,3 +1,4 @@
+from unittest import mock
 from unittest.mock import patch
 
 import graphene
@@ -6,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum
 
 from .....plugins.manager import get_plugins_manager
+from .....warehouse import WarehouseClickAndCollectOption
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import get_graphql_content
@@ -222,7 +224,7 @@ def test_create_stocks_failed(product_with_single_variant, warehouse):
         create_stocks(variant, stocks_data, warehouses)
 
 
-def test_update_or_create_variant_stocks(variant, warehouses):
+def test_update_or_create_variant_stocks(variant, warehouses, site_settings):
     Stock.objects.create(
         product_variant=variant,
         warehouse=warehouses[0],
@@ -234,7 +236,11 @@ def test_update_or_create_variant_stocks(variant, warehouses):
     ]
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, stocks_data, warehouses, get_plugins_manager(allow_replica=False)
+        variant,
+        stocks_data,
+        warehouses,
+        get_plugins_manager(allow_replica=False),
+        site_settings,
     )
 
     variant.refresh_from_db()
@@ -261,6 +267,7 @@ def test_update_or_create_variant_stocks_when_stock_out_of_quantity(
     warehouses,
     any_webhook,
     settings,
+    site_settings,
     django_capture_on_commit_callbacks,
 ):
     # given
@@ -275,7 +282,11 @@ def test_update_or_create_variant_stocks_when_stock_out_of_quantity(
 
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, warehouses, get_plugins_manager(allow_replica=False)
+            variant,
+            stocks_data,
+            warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
         )
 
     variant.refresh_from_db()
@@ -290,7 +301,9 @@ def test_update_or_create_variant_stocks_when_stock_out_of_quantity(
     assert variant.stocks.all()[0].quantity == 10
 
 
-def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
+def test_update_or_create_variant_stocks_empty_stocks_data(
+    variant, warehouses, site_settings
+):
     Stock.objects.create(
         product_variant=variant,
         warehouse=warehouses[0],
@@ -298,7 +311,7 @@ def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
     )
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, [], warehouses, get_plugins_manager(allow_replica=False)
+        variant, [], warehouses, get_plugins_manager(allow_replica=False), site_settings
     )
 
     variant.refresh_from_db()
@@ -321,6 +334,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     product_variant_stocks_updated_webhook,
     mocked_get_webhooks_for_event,
     settings,
+    site_settings,
     variant,
     warehouses,
     any_webhook,
@@ -342,7 +356,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
 
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, warehouses, plugins
+            variant, stocks_data, warehouses, plugins, site_settings
         )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
@@ -370,6 +384,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     product_variant_stocks_update_webhook,
     mocked_get_webhooks_for_event,
     settings,
+    site_settings,
     variant,
     warehouses,
     any_webhook,
@@ -392,7 +407,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
 
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, warehouses, plugins
+            variant, stocks_data, warehouses, plugins, site_settings
         )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
@@ -421,6 +436,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_with_allocations(
     product_variant_stocks_updated_webhook,
     mocked_get_webhooks_for_event,
     settings,
+    site_settings,
     variant,
     warehouse,
     any_webhook,
@@ -444,7 +460,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_with_allocations(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, [warehouse], plugins
+            variant, stocks_data, [warehouse], plugins, site_settings
         )
     # then
     product_variant_back_in_stock_webhook.assert_called_once_with(
@@ -469,6 +485,7 @@ def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
     product_variant_stocks_updated_webhook,
     mocked_get_webhooks_for_event,
     settings,
+    site_settings,
     variant,
     warehouse,
     any_webhook,
@@ -492,7 +509,7 @@ def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, [warehouse], plugins
+            variant, stocks_data, [warehouse], plugins, site_settings
         )
     # then
     product_variant_stock_out_of_stock_webhook.assert_called_once_with(
@@ -517,6 +534,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     product_variant_stocks_update_webhook,
     mocked_get_webhooks_for_event,
     settings,
+    site_settings,
     variant,
     warehouses,
     any_webhook,
@@ -542,7 +560,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, warehouses, plugins
+            variant, stocks_data, warehouses, plugins, site_settings
         )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2
@@ -618,3 +636,314 @@ def test_invalidate_stocks_dataloader_on_update_stocks(
 
     # stock is updated in the second mutation
     assert update_stocks_data["stocks"][0]["quantity"] == new_quantity
+
+
+# --- Channel stock event tests ---
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_in_channel"
+)
+def test_update_stocks_triggers_back_in_stock_in_channel_for_non_cc_warehouses(
+    mocked_trigger,
+    variant,
+    warehouses,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - two stocks in non-C&C warehouses, both at 0; update sets positive
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouses[0], quantity=0),
+            Stock(product_variant=variant, warehouse=warehouses[1], quantity=0),
+        ]
+    )
+    warehouses[0].channels.add(channel_USD)
+    warehouses[1].channels.add(channel_USD)
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 5, "warehouse": "321"},
+    ]
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        ProductVariantStocksUpdate.update_or_create_variant_stocks(
+            variant,
+            stocks_data,
+            warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+        )
+
+    # then - fires once per (variant, channel), dedup across the two warehouses
+    mocked_trigger.assert_called_once()
+    stock_info = mocked_trigger.call_args.args[0]
+    assert stock_info.variant_id == variant.id
+    assert stock_info.channel_slug == channel_USD.slug
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_for_click_and_collect"
+)
+def test_update_stocks_triggers_back_in_stock_for_click_and_collect(
+    mocked_trigger,
+    variant,
+    channel_USD,
+    address,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - two C&C warehouses with stocks at 0; update sets positive
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    cc_warehouses = Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="cc-1",
+                slug="cc-1",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="cc-2",
+                slug="cc-2",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+        ]
+    )
+    for warehouse in cc_warehouses:
+        warehouse.channels.add(channel_USD)
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=cc_warehouses[0], quantity=0),
+            Stock(product_variant=variant, warehouse=cc_warehouses[1], quantity=0),
+        ]
+    )
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 5, "warehouse": "321"},
+    ]
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        ProductVariantStocksUpdate.update_or_create_variant_stocks(
+            variant,
+            stocks_data,
+            cc_warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+        )
+
+    # then - only the C&C event fires
+    mocked_trigger.assert_called_once()
+    stock_info = mocked_trigger.call_args.args[0]
+    assert stock_info.variant_id == variant.id
+    assert stock_info.channel_slug == channel_USD.slug
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_out_of_stock_in_channel"
+)
+def test_update_stocks_triggers_out_of_stock_in_channel_for_non_cc_warehouses(
+    mocked_trigger,
+    variant,
+    warehouses,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - two stocks with availability; update sets both to 0
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouses[0], quantity=10),
+            Stock(product_variant=variant, warehouse=warehouses[1], quantity=5),
+        ]
+    )
+    warehouses[0].channels.add(channel_USD)
+    warehouses[1].channels.add(channel_USD)
+    stocks_data = [
+        {"quantity": 0, "warehouse": "123"},
+        {"quantity": 0, "warehouse": "321"},
+    ]
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        ProductVariantStocksUpdate.update_or_create_variant_stocks(
+            variant,
+            stocks_data,
+            warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+        )
+
+    # then
+    mocked_trigger.assert_called_once()
+    stock_info = mocked_trigger.call_args.args[0]
+    assert stock_info.variant_id == variant.id
+    assert stock_info.channel_slug == channel_USD.slug
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_out_of_stock_for_click_and_collect"
+)
+def test_update_stocks_triggers_out_of_stock_for_click_and_collect(
+    mocked_trigger,
+    variant,
+    channel_USD,
+    address,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - two C&C warehouses with availability; update sets to 0
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    cc_warehouses = Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="cc-1",
+                slug="cc-1",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="cc-2",
+                slug="cc-2",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+        ]
+    )
+    for warehouse in cc_warehouses:
+        warehouse.channels.add(channel_USD)
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=cc_warehouses[0], quantity=10),
+            Stock(product_variant=variant, warehouse=cc_warehouses[1], quantity=5),
+        ]
+    )
+    stocks_data = [
+        {"quantity": 0, "warehouse": "123"},
+        {"quantity": 0, "warehouse": "321"},
+    ]
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        ProductVariantStocksUpdate.update_or_create_variant_stocks(
+            variant,
+            stocks_data,
+            cc_warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+        )
+
+    # then
+    mocked_trigger.assert_called_once()
+    stock_info = mocked_trigger.call_args.args[0]
+    assert stock_info.variant_id == variant.id
+    assert stock_info.channel_slug == channel_USD.slug
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_out_of_stock_in_channel"
+)
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_in_channel"
+)
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_out_of_stock_for_click_and_collect"
+)
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_for_click_and_collect"
+)
+def test_update_stocks_skips_channel_events_when_legacy_flag_enabled(
+    mocked_back_cc,
+    mocked_out_cc,
+    mocked_back,
+    mocked_out,
+    variant,
+    warehouses,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - legacy flag is on; two stocks at 0 updated to positive
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouses[0], quantity=0),
+            Stock(product_variant=variant, warehouse=warehouses[1], quantity=0),
+        ]
+    )
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 5, "warehouse": "321"},
+    ]
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        ProductVariantStocksUpdate.update_or_create_variant_stocks(
+            variant,
+            stocks_data,
+            warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+        )
+
+    # then
+    mocked_out.assert_not_called()
+    mocked_back.assert_not_called()
+    mocked_out_cc.assert_not_called()
+    mocked_back_cc.assert_not_called()
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_out_of_stock_in_channel"
+)
+def test_update_stocks_does_not_trigger_out_of_stock_when_quantity_remains(
+    mocked_trigger,
+    variant,
+    warehouses,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - two stocks with availability; update reduces but keeps positive
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouses[0], quantity=10),
+            Stock(product_variant=variant, warehouse=warehouses[1], quantity=8),
+        ]
+    )
+    stocks_data = [
+        {"quantity": 5, "warehouse": "123"},
+        {"quantity": 3, "warehouse": "321"},
+    ]
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        ProductVariantStocksUpdate.update_or_create_variant_stocks(
+            variant,
+            stocks_data,
+            warehouses,
+            get_plugins_manager(allow_replica=False),
+            site_settings,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
