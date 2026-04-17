@@ -549,11 +549,16 @@ def test_query_gift_card_event_user_field_denied_for_app_with_only_manage_staff(
     events_data = content["data"]["giftCard"]["events"]
     assert len(events_data) == gift_card.events.count()
     assert all(event["user"] is None for event in events_data)
-    error_paths = {tuple(error["path"]) for error in content["errors"]}
-    assert any(
-        path[:2] == ("giftCard", "events") and path[-1] == "user"
-        for path in error_paths
+
+    permission_denied_msg = (
+        "To access this path, you need one of the following permissions: "
+        "MANAGE_USERS, MANAGE_STAFF, OWNER"
     )
+    user_errors = [e for e in content["errors"] if e["path"][-1] == "user"]
+    assert len(user_errors) == len(events_data)
+    for error in user_errors:
+        assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+        assert error["message"] == permission_denied_msg
 
 
 def test_query_gift_card_event_with_removed_app(
