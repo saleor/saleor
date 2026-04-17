@@ -324,14 +324,14 @@ def test_trigger_forwards_site_settings_requestor_and_webhooks(
     assert kwargs["webhooks"] is None
 
 
-# --- Multi-stock (bulk) tests ---
+# --- Multi-stock (bulk) tests: out of stock ---
 
 
-def test_bulk_fires_for_multiple_stocks_in_same_warehouse(
+def test_bulk_out_of_stock_fires_for_multiple_stocks_in_same_warehouse(
     product_with_two_variants, warehouse, channel_USD, site_settings, mocker
 ):
     # given - two variants in the same warehouse, both at 0
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     variants = list(product_with_two_variants.variants.all())
     stocks = list(
         Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
@@ -343,13 +343,15 @@ def test_bulk_fires_for_multiple_stocks_in_same_warehouse(
     # when
     trigger_out_of_stock_in_channel_events_for_stocks(stocks, site_settings)
 
-    # then - one event per (stock, channel) pair
-    assert mocked_out.call_count == 2
-    fired_variant_ids = {call.args[0].variant_id for call in mocked_out.call_args_list}
+    # then - one event per (variant, channel) pair
+    assert mocked_trigger.call_count == 2
+    fired_variant_ids = {
+        call.args[0].variant_id for call in mocked_trigger.call_args_list
+    }
     assert fired_variant_ids == {variants[0].id, variants[1].id}
 
 
-def test_bulk_does_not_fire_when_other_warehouse_covers_all_variants(
+def test_bulk_out_of_stock_does_not_fire_when_other_warehouse_covers_all_variants(
     product_with_two_variants,
     warehouse,
     channel_USD,
@@ -358,7 +360,7 @@ def test_bulk_does_not_fire_when_other_warehouse_covers_all_variants(
     mocker,
 ):
     # given - another non-C&C warehouse in the same channel has stock for both
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     variants = list(product_with_two_variants.variants.all())
     stocks = list(
         Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
@@ -383,11 +385,11 @@ def test_bulk_does_not_fire_when_other_warehouse_covers_all_variants(
     # when
     trigger_out_of_stock_in_channel_events_for_stocks(stocks, site_settings)
 
-    # then - neither fires, the other warehouse covers both variants
-    mocked_out.assert_not_called()
+    # then
+    mocked_trigger.assert_not_called()
 
 
-def test_bulk_fires_selectively_when_other_warehouse_covers_only_one_variant(
+def test_bulk_out_of_stock_fires_selectively_when_other_warehouse_covers_only_one_variant(
     product_with_two_variants,
     warehouse,
     channel_USD,
@@ -396,7 +398,7 @@ def test_bulk_fires_selectively_when_other_warehouse_covers_only_one_variant(
     mocker,
 ):
     # given - another warehouse has stock only for variants[0], not variants[1]
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     variants = list(product_with_two_variants.variants.all())
     stocks = list(
         Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
@@ -418,16 +420,16 @@ def test_bulk_fires_selectively_when_other_warehouse_covers_only_one_variant(
     # when
     trigger_out_of_stock_in_channel_events_for_stocks(stocks, site_settings)
 
-    # then - only variants[1] fires (variants[0] is covered by other_warehouse)
-    mocked_out.assert_called_once()
-    assert mocked_out.call_args.args[0].variant_id == variants[1].id
+    # then
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].variant_id == variants[1].id
 
 
-def test_bulk_stocks_from_different_warehouses_in_same_channel(
+def test_bulk_out_of_stock_deduplicates_same_variant_across_warehouses_in_channel(
     variant, warehouse, channel_USD, address, site_settings, mocker
 ):
-    # given - two warehouses in the same channel, both stocks for same variant at 0
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    # given - two warehouses in the same channel, same variant, both at 0
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     other_warehouse = Warehouse.objects.create(
         address=address.get_copy(),
         name="other",
@@ -442,16 +444,16 @@ def test_bulk_stocks_from_different_warehouses_in_same_channel(
         ]
     )
 
-    # when - both stocks passed together
+    # when
     trigger_out_of_stock_in_channel_events_for_stocks([stock_a, stock_b], site_settings)
 
-    # then - fires once per (variant, channel), not once per stock
-    mocked_out.assert_called_once()
-    assert mocked_out.call_args.args[0].variant_id == variant.id
-    assert mocked_out.call_args.args[0].channel_slug == channel_USD.slug
+    # then - fires once per (variant, channel)
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].variant_id == variant.id
+    assert mocked_trigger.call_args.args[0].channel_slug == channel_USD.slug
 
 
-def test_bulk_warehouse_a_is_other_for_warehouse_b_stock(
+def test_bulk_out_of_stock_warehouse_a_is_other_for_warehouse_b_stock(
     product_with_two_variants,
     warehouse,
     channel_USD,
@@ -459,11 +461,11 @@ def test_bulk_warehouse_a_is_other_for_warehouse_b_stock(
     site_settings,
     mocker,
 ):
-    # given - warehouse A has variant X at 0 and variant Y at 5
+    # given - warehouse A has variant X (at 0) and variant Y (qty 5)
     #         warehouse B has variant Y at 0
     # For variant X in warehouse A: warehouse B has no stock → fires
-    # For variant Y in warehouse B: warehouse A has stock (qty=5) → does not fire
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    # For variant Y in warehouse B: warehouse A has stock → does not fire
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     variants = list(product_with_two_variants.variants.all())
     variant_x, variant_y = variants[0], variants[1]
 
@@ -489,18 +491,17 @@ def test_bulk_warehouse_a_is_other_for_warehouse_b_stock(
         [stock_a_x, stock_b_y], site_settings
     )
 
-    # then - only variant X fires (warehouse B has no stock for variant X)
-    # variant Y does not fire (warehouse A has availability for variant Y)
-    mocked_out.assert_called_once()
-    assert mocked_out.call_args.args[0].variant_id == variant_x.id
+    # then
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].variant_id == variant_x.id
 
 
-def test_bulk_mixed_cc_and_non_cc_stocks(
+def test_bulk_out_of_stock_mixed_cc_and_non_cc_stocks(
     variant, warehouse, channel_USD, address, site_settings, mocker
 ):
     # given - one non-C&C stock and one C&C stock, both at 0
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
-    mocked_out_cc = mocker.patch(OUT_CC)
+    mocked_non_cc = mocker.patch(OUT_IN_CHANNEL)
+    mocked_cc = mocker.patch(OUT_CC)
     cc_warehouse = Warehouse.objects.create(
         address=address.get_copy(),
         name="cc",
@@ -521,17 +522,17 @@ def test_bulk_mixed_cc_and_non_cc_stocks(
     )
 
     # then - each fires in its own event type
-    mocked_out.assert_called_once()
-    assert mocked_out.call_args.args[0].variant_id == variant.id
-    mocked_out_cc.assert_called_once()
-    assert mocked_out_cc.call_args.args[0].variant_id == variant.id
+    mocked_non_cc.assert_called_once()
+    assert mocked_non_cc.call_args.args[0].variant_id == variant.id
+    mocked_cc.assert_called_once()
+    assert mocked_cc.call_args.args[0].variant_id == variant.id
 
 
-def test_bulk_multi_channel_fires_per_channel_independently(
+def test_bulk_out_of_stock_multi_channel_fires_per_channel_independently(
     variant, warehouse, channel_USD, channel_PLN, address, site_settings, mocker
 ):
     # given - warehouse in both channels; another warehouse with stock only in USD
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     warehouse.channels.add(channel_PLN)
     stock = Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=0
@@ -549,27 +550,27 @@ def test_bulk_multi_channel_fires_per_channel_independently(
     trigger_out_of_stock_in_channel_events_for_stocks([stock], site_settings)
 
     # then - fires only for PLN (USD has other warehouse with stock)
-    mocked_out.assert_called_once()
-    assert mocked_out.call_args.args[0].channel_slug == channel_PLN.slug
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].channel_slug == channel_PLN.slug
 
 
-def test_bulk_empty_list_does_not_fire(site_settings, mocker):
+def test_bulk_out_of_stock_empty_list_does_not_fire(site_settings, mocker):
     # given
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
 
     # when
     trigger_out_of_stock_in_channel_events_for_stocks([], site_settings)
 
     # then
-    mocked_out.assert_not_called()
+    mocked_trigger.assert_not_called()
 
 
-def test_bulk_two_different_variants_both_out_of_stock_fires_for_each(
+def test_bulk_out_of_stock_two_different_variants_fires_for_each(
     product_with_two_variants, warehouse, channel_USD, site_settings, mocker
 ):
     # given - two different variants in the same warehouse, both at 0, no other
     # warehouse in the channel
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     variants = list(product_with_two_variants.variants.all())
     stocks = list(
         Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
@@ -581,11 +582,11 @@ def test_bulk_two_different_variants_both_out_of_stock_fires_for_each(
     # when
     trigger_out_of_stock_in_channel_events_for_stocks(stocks, site_settings)
 
-    # then - one event per variant (not per stock), both in the same channel
-    assert mocked_out.call_count == 2
+    # then
+    assert mocked_trigger.call_count == 2
     fired_pairs = {
         (call.args[0].variant_id, call.args[0].channel_slug)
-        for call in mocked_out.call_args_list
+        for call in mocked_trigger.call_args_list
     }
     assert fired_pairs == {
         (variants[0].id, channel_USD.slug),
@@ -593,11 +594,11 @@ def test_bulk_two_different_variants_both_out_of_stock_fires_for_each(
     }
 
 
-def test_bulk_deduplicates_when_same_variant_has_multiple_stocks_across_warehouses(
+def test_bulk_out_of_stock_deduplicates_same_variant_multiple_warehouses_and_channels(
     variant, warehouse, channel_USD, channel_PLN, address, site_settings, mocker
 ):
     # given - same variant in two warehouses, both in two channels, both at 0
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     warehouse.channels.add(channel_PLN)
     other_warehouse = Warehouse.objects.create(
         address=address.get_copy(),
@@ -616,14 +617,13 @@ def test_bulk_deduplicates_when_same_variant_has_multiple_stocks_across_warehous
     # when
     trigger_out_of_stock_in_channel_events_for_stocks([stock_a, stock_b], site_settings)
 
-    # then - fires once per channel (2 channels), not once per stock (4 would
-    # be stock_a×2channels + stock_b×2channels without dedup)
-    assert mocked_out.call_count == 2
-    fired_slugs = {call.args[0].channel_slug for call in mocked_out.call_args_list}
+    # then - fires once per channel (2 channels), not once per stock
+    assert mocked_trigger.call_count == 2
+    fired_slugs = {call.args[0].channel_slug for call in mocked_trigger.call_args_list}
     assert fired_slugs == {channel_USD.slug, channel_PLN.slug}
 
 
-def test_bulk_different_variants_partial_coverage_by_other_warehouse(
+def test_bulk_out_of_stock_different_variants_partial_coverage_by_other_warehouse(
     product_with_two_variants,
     warehouse,
     channel_USD,
@@ -634,7 +634,7 @@ def test_bulk_different_variants_partial_coverage_by_other_warehouse(
 ):
     # given - variant X is covered by other warehouse in USD but not PLN
     #         variant Y has no coverage in either channel
-    mocked_out = mocker.patch(OUT_IN_CHANNEL)
+    mocked_trigger = mocker.patch(OUT_IN_CHANNEL)
     variants = list(product_with_two_variants.variants.all())
     variant_x, variant_y = variants[0], variants[1]
 
@@ -662,12 +662,369 @@ def test_bulk_different_variants_partial_coverage_by_other_warehouse(
     trigger_out_of_stock_in_channel_events_for_stocks(stocks, site_settings)
 
     # then
-    # variant X: covered in USD (other warehouse has stock) → fires only for PLN
-    # variant Y: no coverage anywhere → fires for both USD and PLN
-    assert mocked_out.call_count == 3
+    # variant X: covered in USD, uncovered in PLN → fires only for PLN
+    # variant Y: uncovered everywhere → fires for both USD and PLN
+    assert mocked_trigger.call_count == 3
     fired_pairs = {
         (call.args[0].variant_id, call.args[0].channel_slug)
-        for call in mocked_out.call_args_list
+        for call in mocked_trigger.call_args_list
+    }
+    assert fired_pairs == {
+        (variant_x.id, channel_PLN.slug),
+        (variant_y.id, channel_USD.slug),
+        (variant_y.id, channel_PLN.slug),
+    }
+
+
+# --- Multi-stock (bulk) tests: back in stock ---
+
+
+def test_bulk_back_in_stock_fires_for_multiple_stocks_in_same_warehouse(
+    product_with_two_variants, warehouse, channel_USD, site_settings, mocker
+):
+    # given - two variants in the same warehouse, both back at positive qty
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    stocks = list(
+        Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
+    )
+    # stocks are already at qty 10 from the fixture
+    for stock in stocks:
+        stock.quantity = 10
+    Stock.objects.bulk_update(stocks, ["quantity"])
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(stocks, site_settings)
+
+    # then - one event per (variant, channel) pair
+    assert mocked_trigger.call_count == 2
+    fired_variant_ids = {
+        call.args[0].variant_id for call in mocked_trigger.call_args_list
+    }
+    assert fired_variant_ids == {variants[0].id, variants[1].id}
+
+
+def test_bulk_back_in_stock_does_not_fire_when_other_warehouse_covers_all_variants(
+    product_with_two_variants,
+    warehouse,
+    channel_USD,
+    address,
+    site_settings,
+    mocker,
+):
+    # given - another non-C&C warehouse in the same channel already has stock
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    stocks = list(
+        Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
+    )
+    for stock in stocks:
+        stock.quantity = 10
+    Stock.objects.bulk_update(stocks, ["quantity"])
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="other",
+        slug="other",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    other_warehouse.channels.add(channel_USD)
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variants[0], warehouse=other_warehouse, quantity=5),
+            Stock(product_variant=variants[1], warehouse=other_warehouse, quantity=3),
+        ]
+    )
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(stocks, site_settings)
+
+    # then - other warehouse already had stock, these aren't "first back"
+    mocked_trigger.assert_not_called()
+
+
+def test_bulk_back_in_stock_fires_selectively_when_other_warehouse_covers_only_one_variant(
+    product_with_two_variants,
+    warehouse,
+    channel_USD,
+    address,
+    site_settings,
+    mocker,
+):
+    # given - another warehouse has stock only for variants[0], not variants[1]
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    stocks = list(
+        Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
+    )
+    for stock in stocks:
+        stock.quantity = 10
+    Stock.objects.bulk_update(stocks, ["quantity"])
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="other",
+        slug="other",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    other_warehouse.channels.add(channel_USD)
+    Stock.objects.create(
+        product_variant=variants[0], warehouse=other_warehouse, quantity=5
+    )
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(stocks, site_settings)
+
+    # then - only variants[1] fires (variants[0] was already covered elsewhere)
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].variant_id == variants[1].id
+
+
+def test_bulk_back_in_stock_deduplicates_same_variant_across_warehouses_in_channel(
+    variant, warehouse, channel_USD, address, site_settings, mocker
+):
+    # given - two warehouses in the same channel, same variant, both back at positive
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="other",
+        slug="other",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    other_warehouse.channels.add(channel_USD)
+    stock_a, stock_b = Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=10),
+            Stock(product_variant=variant, warehouse=other_warehouse, quantity=10),
+        ]
+    )
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(
+        [stock_a, stock_b], site_settings
+    )
+
+    # then - fires once per (variant, channel)
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].variant_id == variant.id
+    assert mocked_trigger.call_args.args[0].channel_slug == channel_USD.slug
+
+
+def test_bulk_back_in_stock_warehouse_a_is_other_for_warehouse_b_stock(
+    product_with_two_variants,
+    warehouse,
+    channel_USD,
+    address,
+    site_settings,
+    mocker,
+):
+    # given - warehouse A has variant X back (qty 10) and variant Y with qty 5
+    #         warehouse B has variant Y back (qty 10)
+    # For variant X in warehouse A: warehouse B has no stock for X → fires
+    # For variant Y in warehouse B: warehouse A has stock for Y → does not fire
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    variant_x, variant_y = variants[0], variants[1]
+
+    stock_a_x = Stock.objects.get(product_variant=variant_x, warehouse=warehouse)
+    stock_a_x.quantity = 10
+    stock_a_y = Stock.objects.get(product_variant=variant_y, warehouse=warehouse)
+    stock_a_y.quantity = 5
+    Stock.objects.bulk_update([stock_a_x, stock_a_y], ["quantity"])
+
+    warehouse_b = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="warehouse-b",
+        slug="warehouse-b",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    warehouse_b.channels.add(channel_USD)
+    stock_b_y = Stock.objects.create(
+        product_variant=variant_y, warehouse=warehouse_b, quantity=10
+    )
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(
+        [stock_a_x, stock_b_y], site_settings
+    )
+
+    # then
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].variant_id == variant_x.id
+
+
+def test_bulk_back_in_stock_mixed_cc_and_non_cc_stocks(
+    variant, warehouse, channel_USD, address, site_settings, mocker
+):
+    # given - one non-C&C stock and one C&C stock, both back at positive qty
+    mocked_non_cc = mocker.patch(BACK_IN_CHANNEL)
+    mocked_cc = mocker.patch(BACK_CC)
+    cc_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="cc",
+        slug="cc",
+        click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+    )
+    cc_warehouse.channels.add(channel_USD)
+    stock_non_cc, stock_cc = Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=10),
+            Stock(product_variant=variant, warehouse=cc_warehouse, quantity=10),
+        ]
+    )
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(
+        [stock_non_cc, stock_cc], site_settings
+    )
+
+    # then - each fires in its own event type
+    mocked_non_cc.assert_called_once()
+    assert mocked_non_cc.call_args.args[0].variant_id == variant.id
+    mocked_cc.assert_called_once()
+    assert mocked_cc.call_args.args[0].variant_id == variant.id
+
+
+def test_bulk_back_in_stock_multi_channel_fires_per_channel_independently(
+    variant, warehouse, channel_USD, channel_PLN, address, site_settings, mocker
+):
+    # given - warehouse in both channels; another warehouse with stock only in USD
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    warehouse.channels.add(channel_PLN)
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=10
+    )
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="usd-only",
+        slug="usd-only",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    other_warehouse.channels.add(channel_USD)
+    Stock.objects.create(product_variant=variant, warehouse=other_warehouse, quantity=5)
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks([stock], site_settings)
+
+    # then - fires only for PLN (USD already has other warehouse with stock)
+    mocked_trigger.assert_called_once()
+    assert mocked_trigger.call_args.args[0].channel_slug == channel_PLN.slug
+
+
+def test_bulk_back_in_stock_empty_list_does_not_fire(site_settings, mocker):
+    # given
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks([], site_settings)
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+def test_bulk_back_in_stock_two_different_variants_fires_for_each(
+    product_with_two_variants, warehouse, channel_USD, site_settings, mocker
+):
+    # given - two different variants in the same warehouse, both back at positive,
+    # no other warehouse in the channel
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    stocks = list(
+        Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
+    )
+    for stock in stocks:
+        stock.quantity = 10
+    Stock.objects.bulk_update(stocks, ["quantity"])
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(stocks, site_settings)
+
+    # then
+    assert mocked_trigger.call_count == 2
+    fired_pairs = {
+        (call.args[0].variant_id, call.args[0].channel_slug)
+        for call in mocked_trigger.call_args_list
+    }
+    assert fired_pairs == {
+        (variants[0].id, channel_USD.slug),
+        (variants[1].id, channel_USD.slug),
+    }
+
+
+def test_bulk_back_in_stock_deduplicates_same_variant_multiple_warehouses_and_channels(
+    variant, warehouse, channel_USD, channel_PLN, address, site_settings, mocker
+):
+    # given - same variant in two warehouses, both in two channels, both back at positive
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    warehouse.channels.add(channel_PLN)
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="other",
+        slug="other",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    other_warehouse.channels.add(channel_USD, channel_PLN)
+    stock_a, stock_b = Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=10),
+            Stock(product_variant=variant, warehouse=other_warehouse, quantity=10),
+        ]
+    )
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(
+        [stock_a, stock_b], site_settings
+    )
+
+    # then - fires once per channel, not once per stock
+    assert mocked_trigger.call_count == 2
+    fired_slugs = {call.args[0].channel_slug for call in mocked_trigger.call_args_list}
+    assert fired_slugs == {channel_USD.slug, channel_PLN.slug}
+
+
+def test_bulk_back_in_stock_different_variants_partial_coverage_by_other_warehouse(
+    product_with_two_variants,
+    warehouse,
+    channel_USD,
+    channel_PLN,
+    address,
+    site_settings,
+    mocker,
+):
+    # given - variant X is covered by other warehouse in USD but not PLN
+    #         variant Y has no coverage in either channel
+    mocked_trigger = mocker.patch(BACK_IN_CHANNEL)
+    variants = list(product_with_two_variants.variants.all())
+    variant_x, variant_y = variants[0], variants[1]
+
+    warehouse.channels.add(channel_PLN)
+    stocks = list(
+        Stock.objects.filter(product_variant__in=variants, warehouse=warehouse)
+    )
+    for stock in stocks:
+        stock.quantity = 10
+    Stock.objects.bulk_update(stocks, ["quantity"])
+
+    other_warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="other",
+        slug="other",
+        click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+    )
+    # other warehouse only in USD, only has stock for variant X
+    other_warehouse.channels.add(channel_USD)
+    Stock.objects.create(
+        product_variant=variant_x, warehouse=other_warehouse, quantity=5
+    )
+
+    # when
+    trigger_back_in_stock_in_channel_events_for_stocks(stocks, site_settings)
+
+    # then
+    # variant X: USD already covered by other warehouse, PLN uncovered → fires only for PLN
+    # variant Y: uncovered everywhere → fires for both USD and PLN
+    assert mocked_trigger.call_count == 3
+    fired_pairs = {
+        (call.args[0].variant_id, call.args[0].channel_slug)
+        for call in mocked_trigger.call_args_list
     }
     assert fired_pairs == {
         (variant_x.id, channel_PLN.slug),
