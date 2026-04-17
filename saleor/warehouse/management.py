@@ -25,8 +25,8 @@ from ..order.models import OrderLine
 from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from .channel_stock_availability import (
-    trigger_back_in_stock_in_channel_events,
-    trigger_out_of_stock_in_channel_events,
+    trigger_back_in_stock_in_channel_events_for_stocks,
+    trigger_out_of_stock_in_channel_events_for_stocks,
 )
 from .lock_objects import (
     allocation_with_stock_qs_select_for_update,
@@ -204,6 +204,7 @@ def allocate_stocks(
         legacy_stock_availability = (
             site_settings.use_legacy_shipping_zone_stock_availability
         )
+        out_of_stock_stocks: list[Stock] = []
         for allocation in allocations:
             allocated_stock = (
                 Allocation.objects.filter(stock_id=allocation.stock_id).aggregate(
@@ -215,14 +216,15 @@ def allocate_stocks(
                 transaction.on_commit(
                     lambda: manager.product_variant_out_of_stock(allocation.stock)
                 )
-                if not legacy_stock_availability:
-                    transaction.on_commit(
-                        partial(
-                            trigger_out_of_stock_in_channel_events,
-                            allocation.stock,
-                            site_settings,
-                        )
-                    )
+                out_of_stock_stocks.append(allocation.stock)
+        if out_of_stock_stocks and not legacy_stock_availability:
+            transaction.on_commit(
+                partial(
+                    trigger_out_of_stock_in_channel_events_for_stocks,
+                    out_of_stock_stocks,
+                    site_settings,
+                )
+            )
 
 
 def _prepare_stock_to_reserved_quantity_map(
@@ -402,6 +404,7 @@ def deallocate_stock(
     legacy_stock_availability = (
         site_settings.use_legacy_shipping_zone_stock_availability
     )
+    back_in_stock_stocks: list[Stock] = []
     for allocation_before_update in allocations_before_update:
         available_stock_now = Allocation.objects.available_quantity_for_stock(
             allocation_before_update.stock
@@ -415,14 +418,15 @@ def deallocate_stock(
                     allocation_before_update.stock
                 )
             )
-            if not legacy_stock_availability:
-                transaction.on_commit(
-                    partial(
-                        trigger_back_in_stock_in_channel_events,
-                        allocation_before_update.stock,
-                        site_settings,
-                    )
-                )
+            back_in_stock_stocks.append(allocation_before_update.stock)
+    if back_in_stock_stocks and not legacy_stock_availability:
+        transaction.on_commit(
+            partial(
+                trigger_back_in_stock_in_channel_events_for_stocks,
+                back_in_stock_stocks,
+                site_settings,
+            )
+        )
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
@@ -756,19 +760,21 @@ def deallocate_stock_for_orders(
     legacy_stock_availability = (
         site_settings.use_legacy_shipping_zone_stock_availability
     )
+    back_in_stock_stocks: list[Stock] = []
     for allocation in allocations_for_back_in_stock.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
             transaction.on_commit(
                 lambda: manager.product_variant_back_in_stock(allocation.stock)
             )
-            if not legacy_stock_availability:
-                transaction.on_commit(
-                    partial(
-                        trigger_back_in_stock_in_channel_events,
-                        allocation.stock,
-                        site_settings,
-                    )
-                )
+            back_in_stock_stocks.append(allocation.stock)
+    if back_in_stock_stocks and not legacy_stock_availability:
+        transaction.on_commit(
+            partial(
+                trigger_back_in_stock_in_channel_events_for_stocks,
+                back_in_stock_stocks,
+                site_settings,
+            )
+        )
 
     allocations.update(quantity_allocated=0)
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
