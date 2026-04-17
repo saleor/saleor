@@ -1,0 +1,25 @@
+saleor/graphql/csv/tests/queries/test_export_file.py
+  a49429a6886f8d15 309-319
+saleor/graphql/giftcard/tests/queries/test_gift_card.py
+  a49429a6886f8d15 552-555,557-561
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.0",
+  "base_commit_sha": "c155e512f656fb1ad733c6e0225a3b53ef6944d9",
+  "prompts": {
+    "a49429a6886f8d15": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08150fe5-d43a-4860-845d-3b498220a2c4",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 23,
+      "total_deletions": 8,
+      "accepted_lines": 20,
+      "overriden_lines": 0
+    }
+  }
+}
