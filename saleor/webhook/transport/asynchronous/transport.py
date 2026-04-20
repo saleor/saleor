@@ -4,6 +4,7 @@ import logging
 from collections import defaultdict
 from collections.abc import Callable, Hashable, Sequence
 from dataclasses import asdict, dataclass
+from datetime import timedelta
 from queue import Empty as QueueEmpty
 from threading import Thread
 from typing import TYPE_CHECKING, Any
@@ -16,6 +17,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef
+from django.utils import timezone
 from opentelemetry.trace import StatusCode
 from promise import Promise
 
@@ -994,7 +996,10 @@ def execute_webhook_requests(
     *,
     telemetry_context: TelemetryTaskContext,
 ):
-    while True:
+    stop_after = timezone.now() + timedelta(
+        seconds=settings.WEBHHOK_ASYNC_BATCH_TIMEOUT
+    )
+    while timezone.now() < stop_after:
         try:
             request = queue.get(block=False)
         except QueueEmpty:
