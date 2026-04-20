@@ -4,7 +4,11 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
+from ....warehouse.channel_stock_availability import (
+    trigger_back_in_stock_in_channel_events_for_stocks,
+)
 from ....warehouse.error_codes import StockErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -14,6 +18,7 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..mutations.product.product_create import StockInput
@@ -65,6 +70,14 @@ class ProductVariantStocksCreate(BaseMutation):
             for stock in new_stocks:
                 cls.call_event(
                     manager.product_variant_back_in_stock, stock, webhooks=webhooks
+                )
+
+            site_settings = get_site_promise(info.context).get().settings
+            if not site_settings.use_legacy_shipping_zone_stock_availability:
+                call_event(
+                    trigger_back_in_stock_in_channel_events_for_stocks,
+                    new_stocks,
+                    site_settings,
                 )
 
         StocksByProductVariantIdLoader(info.context).clear(variant.id)

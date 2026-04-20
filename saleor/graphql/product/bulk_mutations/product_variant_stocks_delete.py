@@ -2,9 +2,13 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....warehouse import models as warehouse_models
+from ....warehouse.channel_stock_availability import (
+    trigger_out_of_stock_in_channel_events_for_stocks,
+)
 from ....warehouse.management import delete_stocks
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -15,6 +19,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..types import ProductVariant
@@ -77,11 +82,22 @@ class ProductVariantStocksDelete(BaseMutation):
         webhooks = get_webhooks_for_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
         )
-        for stock in stocks_to_delete:
+        stocks_to_delete_list = list(stocks_to_delete)
+        for stock in stocks_to_delete_list:
             cls.call_event(
                 manager.product_variant_out_of_stock, stock, webhooks=webhooks
             )
-        delete_stocks([stock.id for stock in stocks_to_delete])
+
+        site_settings = get_site_promise(info.context).get().settings
+        if not site_settings.use_legacy_shipping_zone_stock_availability:
+            # Channel-event queries run on_commit after the deletion is applied,
+            # but the in-memory stock objects are still safe to pass.
+            call_event(
+                trigger_out_of_stock_in_channel_events_for_stocks,
+                stocks_to_delete_list,
+                site_settings,
+            )
+        delete_stocks([stock.id for stock in stocks_to_delete_list])
 
         StocksByProductVariantIdLoader(info.context).clear(variant.id)
 

@@ -4,9 +4,14 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....warehouse import models as warehouse_models
+from ....warehouse.channel_stock_availability import (
+    trigger_back_in_stock_in_channel_events_for_stocks,
+    trigger_out_of_stock_in_channel_events_for_stocks,
+)
 from ....warehouse.management import stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -16,6 +21,7 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BulkStockError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..mutations.product.product_create import StockInput
@@ -78,7 +84,10 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             )
 
             manager = get_plugin_manager_promise(info.context).get()
-            cls.update_or_create_variant_stocks(variant, stocks, warehouses, manager)
+            site_settings = get_site_promise(info.context).get().settings
+            cls.update_or_create_variant_stocks(
+                variant, stocks, warehouses, manager, site_settings
+            )
 
         StocksByProductVariantIdLoader(info.context).clear(variant.id)
 
@@ -87,8 +96,12 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
 
     @classmethod
     @traced_atomic_transaction()
-    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses, manager):
+    def update_or_create_variant_stocks(
+        cls, variant, stocks_data, warehouses, manager, site_settings
+    ):
         stocks = []
+        back_in_stock_stocks: list[warehouse_models.Stock] = []
+        out_of_stock_stocks: list[warehouse_models.Stock] = []
         webhooks_stock_in = get_webhooks_for_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
         )
@@ -97,6 +110,9 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         )
         webhooks_stock_update = get_webhooks_for_event(
             WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
+        )
+        use_legacy_stock_availability = (
+            site_settings.use_legacy_shipping_zone_stock_availability
         )
         for stock_data, warehouse in zip(stocks_data, warehouses, strict=False):
             stock, is_created = warehouse_models.Stock.objects.get_or_create(
@@ -112,6 +128,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                     stock,
                     webhooks=webhooks_stock_in,
                 )
+                back_in_stock_stocks.append(stock)
 
             if stock_data["quantity"] <= 0 or (
                 stock_data["quantity"] - stock.quantity_allocated <= 0
@@ -121,6 +138,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                     stock,
                     webhooks=webhooks_stock_out,
                 )
+                out_of_stock_stocks.append(stock)
 
             stock.quantity = stock_data["quantity"]
             stocks.append(stock)
@@ -131,3 +149,17 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         )
 
         stock_bulk_update(stocks, ["quantity"])
+
+        if not use_legacy_stock_availability:
+            if back_in_stock_stocks:
+                call_event(
+                    trigger_back_in_stock_in_channel_events_for_stocks,
+                    back_in_stock_stocks,
+                    site_settings,
+                )
+            if out_of_stock_stocks:
+                call_event(
+                    trigger_out_of_stock_in_channel_events_for_stocks,
+                    out_of_stock_stocks,
+                    site_settings,
+                )

@@ -1463,7 +1463,9 @@ def test_allocate_preorders_with_global_reservations(
     )
 
 
-@mock.patch("saleor.warehouse.management.trigger_out_of_stock_in_channel_events")
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
+)
 def test_allocate_stocks_triggers_channel_out_of_stock_event_when_stock_runs_out(
     mocked_trigger,
     order_line,
@@ -1493,12 +1495,15 @@ def test_allocate_stocks_triggers_channel_out_of_stock_event_when_stock_runs_out
 
     # then
     mocked_trigger.assert_called_once()
-    fired_stock, fired_settings = mocked_trigger.call_args.args
-    assert fired_stock.pk == stock.pk
+    fired_stocks, fired_settings = mocked_trigger.call_args.args
+    assert len(fired_stocks) == 1
+    assert fired_stocks[0].pk == stock.pk
     assert fired_settings is site_settings
 
 
-@mock.patch("saleor.warehouse.management.trigger_out_of_stock_in_channel_events")
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
+)
 def test_allocate_stocks_does_not_trigger_channel_event_when_stock_remains(
     mocked_trigger,
     order_line,
@@ -1528,7 +1533,9 @@ def test_allocate_stocks_does_not_trigger_channel_event_when_stock_remains(
     mocked_trigger.assert_not_called()
 
 
-@mock.patch("saleor.warehouse.management.trigger_out_of_stock_in_channel_events")
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
+)
 def test_allocate_stocks_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger,
     order_line,
@@ -1560,7 +1567,9 @@ def test_allocate_stocks_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger.assert_not_called()
 
 
-@mock.patch("saleor.warehouse.management.trigger_back_in_stock_in_channel_events")
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
 def test_deallocate_stock_triggers_channel_back_in_stock_event_when_stock_returns(
     mocked_trigger,
     allocation,
@@ -1591,12 +1600,15 @@ def test_deallocate_stock_triggers_channel_back_in_stock_event_when_stock_return
 
     # then
     mocked_trigger.assert_called_once()
-    fired_stock, fired_settings = mocked_trigger.call_args.args
-    assert fired_stock.pk == stock.pk
+    fired_stocks, fired_settings = mocked_trigger.call_args.args
+    assert len(fired_stocks) == 1
+    assert fired_stocks[0].pk == stock.pk
     assert fired_settings is site_settings
 
 
-@mock.patch("saleor.warehouse.management.trigger_back_in_stock_in_channel_events")
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
 def test_deallocate_stock_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger,
     allocation,
@@ -1628,7 +1640,9 @@ def test_deallocate_stock_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger.assert_not_called()
 
 
-@mock.patch("saleor.warehouse.management.trigger_back_in_stock_in_channel_events")
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
 def test_deallocate_stock_for_orders_triggers_channel_back_in_stock_event(
     mocked_trigger,
     order_line_with_allocation_in_many_stocks,
@@ -1641,10 +1655,12 @@ def test_deallocate_stock_for_orders_triggers_channel_back_in_stock_event(
     site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
     order_line = order_line_with_allocation_in_many_stocks
     order = order_line.order
+    stocks = []
     for allocation in Allocation.objects.filter(order_line__order=order):
         stock = allocation.stock
         stock.quantity = allocation.quantity_allocated
         stock.save(update_fields=["quantity"])
+        stocks.append(stock)
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
@@ -1654,11 +1670,15 @@ def test_deallocate_stock_for_orders_triggers_channel_back_in_stock_event(
             site_settings=site_settings,
         )
 
-    # then
-    assert mocked_trigger.call_count >= 1
+    # then - fires once with all affected stocks (bulk)
+    mocked_trigger.assert_called_once()
+    fired_stocks = mocked_trigger.call_args.args[0]
+    assert len(fired_stocks) == len(stocks)
 
 
-@mock.patch("saleor.warehouse.management.trigger_back_in_stock_in_channel_events")
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
 def test_deallocate_stock_for_orders_skips_channel_event_when_legacy_flag_enabled(
     mocked_trigger,
     order_line_with_allocation_in_many_stocks,
