@@ -34,6 +34,8 @@ def trigger_out_of_stock_in_channel_events_for_stocks(
     site_settings: "SiteSettings",
     requestor: "User | App | None" = None,
     webhooks: "QuerySet[Webhook] | None" = None,
+    source_warehouse_to_channels: dict[UUID, list[tuple[int, str]]] | None = None,
+    source_warehouse_cc_option: str | None = None,
 ) -> None:
     """Fire channel-scoped OUT_OF_STOCK events for each `stock`'s variant.
 
@@ -41,11 +43,21 @@ def trigger_out_of_stock_in_channel_events_for_stocks(
     OUT_OF_STOCK_IN_CHANNEL (for regular warehouses) or
     OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (for C&C warehouses) when no other
     warehouse of the same kind in that channel has remaining availability.
+
+    `source_warehouse_to_channels` is an optional pre-fetched channel mapping
+    for the source warehouses, and `source_warehouse_cc_option` is the shared
+    click-and-collect option for all source stocks (they all come from the
+    same warehouse in this path). Pass both when the source warehouse (and
+    its `ChannelWarehouse` row) will no longer be reachable at event-fire
+    time — e.g. during `WarehouseDelete`, capture the snapshot before the
+    warehouse is deleted and forward via `call_event`.
     """
     if not stocks:
         return
 
-    cc_stocks, non_cc_stocks = _split_stocks_by_click_and_collect(stocks)
+    cc_stocks, non_cc_stocks = _split_stocks_by_click_and_collect(
+        stocks, source_warehouse_cc_option
+    )
 
     NON_CC_OPTIONS = [WarehouseClickAndCollectOption.DISABLED]
     stocks_trigger_cc_options = [
@@ -68,7 +80,7 @@ def trigger_out_of_stock_in_channel_events_for_stocks(
             VariantChannelStockInfo(variant_id=variant_id, channel_slug=channel_slug)
             for variant_id, channel_slug in (
                 _get_variant_channels_without_other_availability(
-                    grouped_stocks, cc_options
+                    grouped_stocks, cc_options, source_warehouse_to_channels=source_warehouse_to_channels,
                 )
             )
         ]
@@ -138,12 +150,22 @@ def trigger_back_in_stock_in_channel_events_for_stocks(
 
 def _split_stocks_by_click_and_collect(
     stocks: list[Stock],
+    source_warehouse_cc_option: str | None = None,
 ) -> tuple[list[Stock], list[Stock]]:
     """Partition stocks into (cc_stocks, non_cc_stocks) with a single DB query.
 
     Queries which warehouses among the stocks' warehouses are non-C&C
     (`click_and_collect_option=DISABLED`); everything else is treated as C&C.
+
+    When `source_warehouse_cc_option` is provided all stocks share a single
+    source warehouse with that C&C option and the split is resolved without
+    querying — needed when the source warehouse is already deleted.
     """
+    if source_warehouse_cc_option is not None:
+        if source_warehouse_cc_option == WarehouseClickAndCollectOption.DISABLED:
+            return [], list(stocks)
+        return list(stocks), []
+
     warehouse_ids = {stock.warehouse_id for stock in stocks}
     non_cc_warehouse_ids = set(
         Warehouse.objects.filter(
@@ -162,7 +184,9 @@ def _split_stocks_by_click_and_collect(
 
 
 def _get_variant_channels_without_other_availability(
-    stocks: list[Stock], cc_options: list[str]
+    stocks: list[Stock],
+    cc_options: list[str],
+    source_warehouse_to_channels: dict[UUID, list[tuple[int, str]]] | None = None,
 ) -> set[tuple[int, str]]:
     """Return (variant_id, channel_slug) pairs where the source stocks are the only availability.
 
@@ -170,19 +194,32 @@ def _get_variant_channels_without_other_availability(
     included when no other warehouse of the same kind (C&C or non-C&C) in that
     channel has available quantity for the stock's variant. Deduplicated so that
     multiple stocks for the same variant produce only one entry per channel.
+
+    When `source_warehouse_to_channels` is provided, it is used for the source
+    warehouses instead of querying `ChannelWarehouse` — needed when source
+    warehouses are already deleted by the time this runs.
     """
     source_warehouse_ids = {stock.warehouse_id for stock in stocks}
 
     available_by_warehouse_and_variant = (
-        _fetch_other_warehouses_availability_per_variant(stocks, cc_options)
+        _fetch_other_warehouses_availability_per_variant(
+            stocks, cc_options, source_warehouse_to_channels
+        )
     )
 
     availability_warehouse_ids = {
         warehouse_id for warehouse_id, _ in available_by_warehouse_and_variant
     }
-    warehouse_id_to_channels_map = _get_warehouse_to_channels_map(
-        list(availability_warehouse_ids | source_warehouse_ids)
-    )
+    if source_warehouse_to_channels is not None:
+        other_ids = availability_warehouse_ids - set(source_warehouse_to_channels)
+        warehouse_id_to_channels_map = {
+            **source_warehouse_to_channels,
+            **get_warehouse_to_channels_map(list(other_ids)),
+        }
+    else:
+        warehouse_id_to_channels_map = get_warehouse_to_channels_map(
+            list(availability_warehouse_ids | source_warehouse_ids)
+        )
 
     channel_available_per_stock = _sum_channel_availability_per_stock(
         stocks, available_by_warehouse_and_variant, warehouse_id_to_channels_map
@@ -200,7 +237,9 @@ def _get_variant_channels_without_other_availability(
 
 
 def _fetch_other_warehouses_availability_per_variant(
-    stocks: list[Stock], cc_options: list[str]
+    stocks: list[Stock],
+    cc_options: list[str],
+    source_warehouse_to_channels: dict[UUID, list[tuple[int, str]]] | None = None,
 ) -> dict[tuple[UUID, int], int]:
     """Fetch available quantity per (warehouse_id, variant_id) excluding source stocks.
 
@@ -208,18 +247,32 @@ def _fetch_other_warehouses_availability_per_variant(
     any source stock's warehouse. Source warehouses themselves are included in
     the scope because warehouse A may serve as "the other warehouse" for a stock
     in warehouse B. The source stock rows are excluded from the aggregation so
-    the returned map represents availability from everywhere *qexcept* the
+    the returned map represents availability from everywhere *except* the
     source stocks.
+
+    When `source_warehouse_to_channels` is provided, the source channel IDs are
+    derived from the snapshot instead of from `ChannelWarehouse` — needed when
+    source warehouses are already deleted.
     """
     stock_ids = [stock.id for stock in stocks]
     warehouse_ids = list({stock.warehouse_id for stock in stocks})
     variant_ids = list({stock.product_variant_id for stock in stocks})
 
-    source_channels = ChannelWarehouse.objects.filter(
-        warehouse_id__in=warehouse_ids,
-        channel_id=OuterRef("channel_id"),
-    )
-    channel_warehouses = ChannelWarehouse.objects.filter(Exists(source_channels))
+    if source_warehouse_to_channels is not None:
+        source_channel_ids = {
+            channel_id
+            for channels in source_warehouse_to_channels.values()
+            for channel_id, _ in channels
+        }
+        channel_warehouses = ChannelWarehouse.objects.filter(
+            channel_id__in=source_channel_ids
+        )
+    else:
+        source_channels = ChannelWarehouse.objects.filter(
+            warehouse_id__in=warehouse_ids,
+            channel_id=OuterRef("channel_id"),
+        )
+        channel_warehouses = ChannelWarehouse.objects.filter(Exists(source_channels))
     matching_warehouses = Warehouse.objects.filter(
         Exists(channel_warehouses.filter(warehouse_id=OuterRef("pk"))),
         click_and_collect_option__in=cc_options,
@@ -274,9 +327,15 @@ def _sum_channel_availability_per_stock(
     return channel_available_per_stock
 
 
-def _get_warehouse_to_channels_map(
+def get_warehouse_to_channels_map(
     warehouse_ids: list[UUID],
 ) -> dict[UUID, list[tuple[int, str]]]:
+    """Return `{warehouse_id: [(channel_id, channel_slug), ...]}` for given warehouses.
+
+    Call before a warehouse delete to capture the mapping, then pass the result
+    as `source_warehouse_to_channels` to
+    `trigger_out_of_stock_in_channel_events_for_stocks` via `call_event`.
+    """
     warehouse_to_channels: dict[UUID, list[tuple[int, str]]] = defaultdict(list)
     for channel_id, channel_slug, warehouse_id in ChannelWarehouse.objects.filter(
         warehouse_id__in=warehouse_ids
