@@ -5,7 +5,7 @@ from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ....warehouse.channel_stock_availability import (
-    get_warehouse_to_channels_map,
+    get_source_warehouses_data,
     trigger_out_of_stock_in_channel_events_for_stocks,
 )
 from ...core import ResolveInfo
@@ -47,8 +47,10 @@ class WarehouseDelete(ModelDeleteMutation):
         fire_stock_channel_events = bool(
             stocks and not site_settings.use_legacy_shipping_zone_stock_availability
         )
-        warehouse_to_channels_map = (
-            get_warehouse_to_channels_map([instance.id])
+        # Snapshot source warehouse channel + C&C data while the warehouse still
+        # exist.
+        source_warehouses_data = (
+            get_source_warehouses_data([instance.id])
             if fire_stock_channel_events
             else None
         )
@@ -77,8 +79,7 @@ class WarehouseDelete(ModelDeleteMutation):
                     trigger_out_of_stock_in_channel_events_for_stocks,
                     stocks,
                     site_settings,
-                    source_warehouse_to_channels=warehouse_to_channels_map,
-                    source_warehouse_cc_option=instance.click_and_collect_option,
+                    source_warehouses_data=source_warehouses_data,
                 )
         return cls.success_response(instance)
 
