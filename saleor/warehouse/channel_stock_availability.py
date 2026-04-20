@@ -100,8 +100,6 @@ def trigger_back_in_stock_in_channel_events_for_stocks(
     BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (for C&C warehouses) when no other
     warehouse of the same kind in that channel has availability — i.e. `stock`
     is the first one back.
-
-    Call after `stock` has just risen above 0 available.
     """
     if not stocks:
         return

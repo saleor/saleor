@@ -324,9 +324,6 @@ def test_trigger_forwards_site_settings_requestor_and_webhooks(
     assert kwargs["webhooks"] is None
 
 
-# --- Multi-stock (bulk) tests: out of stock ---
-
-
 def test_bulk_out_of_stock_fires_for_multiple_stocks_in_same_warehouse(
     product_with_two_variants, warehouse, channel_USD, site_settings, mocker
 ):

@@ -186,9 +186,6 @@ def test_invalidate_stocks_dataloader_on_removing_stocks(
     assert remove_stocks_data["stocks"] == []
 
 
-# --- Channel stock event tests ---
-
-
 @mock.patch(
     "saleor.warehouse.channel_stock_availability"
     ".trigger_product_variant_out_of_stock_in_channel"

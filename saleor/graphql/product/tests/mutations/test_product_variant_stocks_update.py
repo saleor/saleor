@@ -1,4 +1,3 @@
-from unittest import mock
 from unittest.mock import patch
 
 import graphene
@@ -7,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.db.models import Sum
 
 from .....plugins.manager import get_plugins_manager
-from .....warehouse import WarehouseClickAndCollectOption
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import get_graphql_content
@@ -638,246 +636,124 @@ def test_invalidate_stocks_dataloader_on_update_stocks(
     assert update_stocks_data["stocks"][0]["quantity"] == new_quantity
 
 
-# --- Channel stock event tests ---
-
-
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_back_in_stock_in_channel"
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+    ".trigger_back_in_stock_in_channel_events_for_stocks"
 )
-def test_update_stocks_triggers_back_in_stock_in_channel_for_non_cc_warehouses(
+def test_update_stocks_triggers_back_in_stock_channel_events(
     mocked_trigger,
+    staff_api_client,
     variant,
     warehouses,
-    channel_USD,
     site_settings,
-    django_capture_on_commit_callbacks,
+    permission_manage_products,
 ):
-    # given - two stocks in non-C&C warehouses, both at 0; update sets positive
+    # given - two stocks at 0; update sets both positive
     site_settings.use_legacy_shipping_zone_stock_availability = False
     site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
-    Stock.objects.bulk_create(
+    stocks = Stock.objects.bulk_create(
         [
             Stock(product_variant=variant, warehouse=warehouses[0], quantity=0),
             Stock(product_variant=variant, warehouse=warehouses[1], quantity=0),
         ]
     )
-    warehouses[0].channels.add(channel_USD)
-    warehouses[1].channels.add(channel_USD)
-    stocks_data = [
-        {"quantity": 10, "warehouse": "123"},
-        {"quantity": 5, "warehouse": "321"},
-    ]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "variantId": variant_id,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[0].pk),
+                "quantity": 10,
+            },
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[1].pk),
+                "quantity": 5,
+            },
+        ],
+    }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant,
-            stocks_data,
-            warehouses,
-            get_plugins_manager(allow_replica=False),
-            site_settings,
-        )
-
-    # then - fires once per (variant, channel), dedup across the two warehouses
-    mocked_trigger.assert_called_once()
-    stock_info = mocked_trigger.call_args.args[0]
-    assert stock_info.variant_id == variant.id
-    assert stock_info.channel_slug == channel_USD.slug
-
-
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_back_in_stock_for_click_and_collect"
-)
-def test_update_stocks_triggers_back_in_stock_for_click_and_collect(
-    mocked_trigger,
-    variant,
-    channel_USD,
-    address,
-    site_settings,
-    django_capture_on_commit_callbacks,
-):
-    # given - two C&C warehouses with stocks at 0; update sets positive
-    site_settings.use_legacy_shipping_zone_stock_availability = False
-    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
-    cc_warehouses = Warehouse.objects.bulk_create(
-        [
-            Warehouse(
-                address=address.get_copy(),
-                name="cc-1",
-                slug="cc-1",
-                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
-            ),
-            Warehouse(
-                address=address.get_copy(),
-                name="cc-2",
-                slug="cc-2",
-                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
-            ),
-        ]
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
     )
-    for warehouse in cc_warehouses:
-        warehouse.channels.add(channel_USD)
-    Stock.objects.bulk_create(
-        [
-            Stock(product_variant=variant, warehouse=cc_warehouses[0], quantity=0),
-            Stock(product_variant=variant, warehouse=cc_warehouses[1], quantity=0),
-        ]
-    )
-    stocks_data = [
-        {"quantity": 10, "warehouse": "123"},
-        {"quantity": 5, "warehouse": "321"},
-    ]
+    get_graphql_content(response)
 
-    # when
-    with django_capture_on_commit_callbacks(execute=True):
-        ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant,
-            stocks_data,
-            cc_warehouses,
-            get_plugins_manager(allow_replica=False),
-            site_settings,
-        )
-
-    # then - only the C&C event fires
+    # then
     mocked_trigger.assert_called_once()
-    stock_info = mocked_trigger.call_args.args[0]
-    assert stock_info.variant_id == variant.id
-    assert stock_info.channel_slug == channel_USD.slug
+    triggered_stocks, triggered_site_settings = mocked_trigger.call_args.args
+    assert {stock.pk for stock in triggered_stocks} == {stock.pk for stock in stocks}
+    assert triggered_site_settings == site_settings
 
 
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_out_of_stock_in_channel"
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+    ".trigger_out_of_stock_in_channel_events_for_stocks"
 )
-def test_update_stocks_triggers_out_of_stock_in_channel_for_non_cc_warehouses(
+def test_update_stocks_triggers_out_of_stock_channel_events(
     mocked_trigger,
+    staff_api_client,
     variant,
     warehouses,
-    channel_USD,
     site_settings,
-    django_capture_on_commit_callbacks,
+    permission_manage_products,
 ):
     # given - two stocks with availability; update sets both to 0
     site_settings.use_legacy_shipping_zone_stock_availability = False
     site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
-    Stock.objects.bulk_create(
+    stocks = Stock.objects.bulk_create(
         [
             Stock(product_variant=variant, warehouse=warehouses[0], quantity=10),
             Stock(product_variant=variant, warehouse=warehouses[1], quantity=5),
         ]
     )
-    warehouses[0].channels.add(channel_USD)
-    warehouses[1].channels.add(channel_USD)
-    stocks_data = [
-        {"quantity": 0, "warehouse": "123"},
-        {"quantity": 0, "warehouse": "321"},
-    ]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "variantId": variant_id,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[0].pk),
+                "quantity": 0,
+            },
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[1].pk),
+                "quantity": 0,
+            },
+        ],
+    }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant,
-            stocks_data,
-            warehouses,
-            get_plugins_manager(allow_replica=False),
-            site_settings,
-        )
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    get_graphql_content(response)
 
     # then
     mocked_trigger.assert_called_once()
-    stock_info = mocked_trigger.call_args.args[0]
-    assert stock_info.variant_id == variant.id
-    assert stock_info.channel_slug == channel_USD.slug
+    triggered_stocks, triggered_site_settings = mocked_trigger.call_args.args
+    assert {stock.pk for stock in triggered_stocks} == {stock.pk for stock in stocks}
+    assert triggered_site_settings == site_settings
 
 
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_out_of_stock_for_click_and_collect"
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+    ".trigger_out_of_stock_in_channel_events_for_stocks"
 )
-def test_update_stocks_triggers_out_of_stock_for_click_and_collect(
-    mocked_trigger,
-    variant,
-    channel_USD,
-    address,
-    site_settings,
-    django_capture_on_commit_callbacks,
-):
-    # given - two C&C warehouses with availability; update sets to 0
-    site_settings.use_legacy_shipping_zone_stock_availability = False
-    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
-    cc_warehouses = Warehouse.objects.bulk_create(
-        [
-            Warehouse(
-                address=address.get_copy(),
-                name="cc-1",
-                slug="cc-1",
-                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
-            ),
-            Warehouse(
-                address=address.get_copy(),
-                name="cc-2",
-                slug="cc-2",
-                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
-            ),
-        ]
-    )
-    for warehouse in cc_warehouses:
-        warehouse.channels.add(channel_USD)
-    Stock.objects.bulk_create(
-        [
-            Stock(product_variant=variant, warehouse=cc_warehouses[0], quantity=10),
-            Stock(product_variant=variant, warehouse=cc_warehouses[1], quantity=5),
-        ]
-    )
-    stocks_data = [
-        {"quantity": 0, "warehouse": "123"},
-        {"quantity": 0, "warehouse": "321"},
-    ]
-
-    # when
-    with django_capture_on_commit_callbacks(execute=True):
-        ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant,
-            stocks_data,
-            cc_warehouses,
-            get_plugins_manager(allow_replica=False),
-            site_settings,
-        )
-
-    # then
-    mocked_trigger.assert_called_once()
-    stock_info = mocked_trigger.call_args.args[0]
-    assert stock_info.variant_id == variant.id
-    assert stock_info.channel_slug == channel_USD.slug
-
-
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_out_of_stock_in_channel"
-)
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_back_in_stock_in_channel"
-)
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_out_of_stock_for_click_and_collect"
-)
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_back_in_stock_for_click_and_collect"
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+    ".trigger_back_in_stock_in_channel_events_for_stocks"
 )
 def test_update_stocks_skips_channel_events_when_legacy_flag_enabled(
-    mocked_back_cc,
-    mocked_out_cc,
     mocked_back,
     mocked_out,
+    staff_api_client,
     variant,
     warehouses,
     site_settings,
-    django_capture_on_commit_callbacks,
+    permission_manage_products,
 ):
     # given - legacy flag is on; two stocks at 0 updated to positive
     site_settings.use_legacy_shipping_zone_stock_availability = True
@@ -888,38 +764,50 @@ def test_update_stocks_skips_channel_events_when_legacy_flag_enabled(
             Stock(product_variant=variant, warehouse=warehouses[1], quantity=0),
         ]
     )
-    stocks_data = [
-        {"quantity": 10, "warehouse": "123"},
-        {"quantity": 5, "warehouse": "321"},
-    ]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "variantId": variant_id,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[0].pk),
+                "quantity": 10,
+            },
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[1].pk),
+                "quantity": 5,
+            },
+        ],
+    }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant,
-            stocks_data,
-            warehouses,
-            get_plugins_manager(allow_replica=False),
-            site_settings,
-        )
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    get_graphql_content(response)
 
     # then
-    mocked_out.assert_not_called()
     mocked_back.assert_not_called()
-    mocked_out_cc.assert_not_called()
-    mocked_back_cc.assert_not_called()
+    mocked_out.assert_not_called()
 
 
-@mock.patch(
-    "saleor.warehouse.channel_stock_availability"
-    ".trigger_product_variant_out_of_stock_in_channel"
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+    ".trigger_out_of_stock_in_channel_events_for_stocks"
 )
-def test_update_stocks_does_not_trigger_out_of_stock_when_quantity_remains(
-    mocked_trigger,
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+    ".trigger_back_in_stock_in_channel_events_for_stocks"
+)
+def test_update_stocks_does_not_trigger_channel_events_when_quantity_remains(
+    mocked_back,
+    mocked_out,
+    staff_api_client,
     variant,
     warehouses,
     site_settings,
-    django_capture_on_commit_callbacks,
+    permission_manage_products,
 ):
     # given - two stocks with availability; update reduces but keeps positive
     site_settings.use_legacy_shipping_zone_stock_availability = False
@@ -930,20 +818,29 @@ def test_update_stocks_does_not_trigger_out_of_stock_when_quantity_remains(
             Stock(product_variant=variant, warehouse=warehouses[1], quantity=8),
         ]
     )
-    stocks_data = [
-        {"quantity": 5, "warehouse": "123"},
-        {"quantity": 3, "warehouse": "321"},
-    ]
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "variantId": variant_id,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[0].pk),
+                "quantity": 5,
+            },
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[1].pk),
+                "quantity": 3,
+            },
+        ],
+    }
 
     # when
-    with django_capture_on_commit_callbacks(execute=True):
-        ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant,
-            stocks_data,
-            warehouses,
-            get_plugins_manager(allow_replica=False),
-            site_settings,
-        )
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    get_graphql_content(response)
 
     # then
-    mocked_trigger.assert_not_called()
+    mocked_back.assert_not_called()
+    mocked_out.assert_not_called()
