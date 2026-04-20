@@ -5,6 +5,7 @@ import pytest
 from .....app.models import AppWebhookMutex
 from .....core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
 from ..transport import (
+    MAX_WEBHOOK_RETRIES,
     WebhookResponse,
     send_webhooks_async_for_app,
 )
@@ -15,9 +16,7 @@ def app_webhook_mutex(app):
     return AppWebhookMutex.objects.create(app=app)
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 @patch("saleor.webhook.transport.asynchronous.transport.record_external_request")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
@@ -27,14 +26,14 @@ def test_send_webhooks_async_for_app(
     mock_webhooks_otel_trace,
     mock_record_first_delivery_attempt_delay,
     mock_record_external_request,
-    mock_send_webhook_using_scheme_method,
+    mock_send_prepared_webhook_request_using_http,
     app,
     app_webhook_mutex,
     event_delivery,
 ):
     # given
     assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
-    mock_send_webhook_using_scheme_method.return_value = WebhookResponse(
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
         content="", status=EventDeliveryStatus.SUCCESS
     )
 
@@ -43,7 +42,7 @@ def test_send_webhooks_async_for_app(
     app_webhook_mutex.refresh_from_db()
 
     # then
-    mock_send_webhook_using_scheme_method.assert_called_once()
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
     mock_record_external_request.assert_called_once()
     mock_record_first_delivery_attempt_delay.assert_called_once()
     mock_webhooks_otel_trace.assert_called_once()
@@ -52,11 +51,9 @@ def test_send_webhooks_async_for_app(
     assert not EventDelivery.objects.exists()
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 def test_send_webhooks_async_for_app_no_deliveries(
-    mock_send_webhook_using_scheme_method, settings, app
+    mock_send_prepared_webhook_request_using_http, settings, app
 ):
     # given
     assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
@@ -65,14 +62,12 @@ def test_send_webhooks_async_for_app_no_deliveries(
     send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
 
     # then
-    assert mock_send_webhook_using_scheme_method.called == 0
+    assert mock_send_prepared_webhook_request_using_http.called == 0
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 def test_send_webhooks_async_for_app_does_not_pick_failed(
-    mock_send_webhook_using_scheme_method,
+    mock_send_prepared_webhook_request_using_http,
     app,
     app_webhook_mutex,
     event_delivery,
@@ -86,14 +81,12 @@ def test_send_webhooks_async_for_app_does_not_pick_failed(
     send_webhooks_async_for_app(app_id=app.id)
 
     # then
-    assert mock_send_webhook_using_scheme_method.called == 0
+    assert mock_send_prepared_webhook_request_using_http.called == 0
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 def test_send_webhooks_async_for_app_no_payload(
-    mock_send_webhook_using_scheme_method,
+    mock_send_prepared_webhook_request_using_http,
     app,
     event_delivery,
 ):
@@ -107,24 +100,22 @@ def test_send_webhooks_async_for_app_no_payload(
     send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
 
     # then
-    mock_send_webhook_using_scheme_method.assert_not_called()
+    mock_send_prepared_webhook_request_using_http.assert_not_called()
     deliveries = EventDelivery.objects.all()
     assert len(deliveries) == 1
     assert deliveries[0].status == EventDeliveryStatus.PENDING
     assert not EventDeliveryAttempt.objects.exists()
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 def test_send_webhooks_async_for_app_failed_status(
-    mock_send_webhook_using_scheme_method,
+    mock_send_prepared_webhook_request_using_http,
     app,
     event_delivery,
 ):
     # given
     assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
-    mock_send_webhook_using_scheme_method.return_value = WebhookResponse(
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
         content="", status=EventDeliveryStatus.FAILED
     )
 
@@ -132,7 +123,7 @@ def test_send_webhooks_async_for_app_failed_status(
     send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
 
     # then
-    mock_send_webhook_using_scheme_method.assert_called_once()
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
     deliveries = EventDelivery.objects.all()
     assert len(deliveries) == 1
     assert deliveries[0].status == EventDeliveryStatus.PENDING
@@ -141,9 +132,7 @@ def test_send_webhooks_async_for_app_failed_status(
     ).exists()
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 @patch("saleor.webhook.transport.asynchronous.transport.record_external_request")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
@@ -153,13 +142,13 @@ def test_send_multiple_webhooks_async_for_app(
     mock_webhooks_otel_trace,
     mock_record_first_delivery_attempt_delay,
     mock_record_external_request,
-    mock_send_webhook_using_scheme_method,
+    mock_send_prepared_webhook_request_using_http,
     app,
     event_deliveries,
 ):
     # given
     assert len(EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING)) == 3
-    mock_send_webhook_using_scheme_method.return_value = WebhookResponse(
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
         content="", status=EventDeliveryStatus.SUCCESS
     )
 
@@ -167,7 +156,7 @@ def test_send_multiple_webhooks_async_for_app(
     send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
 
     # then
-    assert mock_send_webhook_using_scheme_method.call_count == 3
+    assert mock_send_prepared_webhook_request_using_http.call_count == 3
     assert mock_record_external_request.call_count == 3
     assert mock_record_first_delivery_attempt_delay.call_count == 3
     assert mock_webhooks_otel_trace.call_count == 3
@@ -176,9 +165,7 @@ def test_send_multiple_webhooks_async_for_app(
     assert not EventDelivery.objects.exists()
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 @patch("saleor.webhook.transport.asynchronous.transport.record_external_request")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.record_first_delivery_attempt_delay"
@@ -188,7 +175,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     mock_webhooks_otel_trace,
     mock_record_first_delivery_attempt_delay,
     mock_record_external_request,
-    mock_send_webhook_using_scheme_method,
+    mock_send_prepared_webhook_request_using_http,
     app,
     event_deliveries,
 ):
@@ -197,7 +184,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     assert len(deliveries) == 3
     assert all(d.status == EventDeliveryStatus.PENDING for d in deliveries)
 
-    mock_send_webhook_using_scheme_method.side_effect = [
+    mock_send_prepared_webhook_request_using_http.side_effect = [
         WebhookResponse(content="", status=EventDeliveryStatus.SUCCESS),
         WebhookResponse(content="", status=EventDeliveryStatus.FAILED),
         WebhookResponse(content="", status=EventDeliveryStatus.SUCCESS),
@@ -209,7 +196,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
 
     # then
     # execute only first two attempts (stop on failure during second attempt)
-    assert mock_send_webhook_using_scheme_method.call_count == 2
+    assert mock_send_prepared_webhook_request_using_http.call_count == 2
     assert mock_record_external_request.call_count == 2
     assert mock_record_first_delivery_attempt_delay.call_count == 2
     assert mock_webhooks_otel_trace.call_count == 2
@@ -233,7 +220,7 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
 
     # then
     # record all four webhooks calls
-    assert mock_send_webhook_using_scheme_method.call_count == 4
+    assert mock_send_prepared_webhook_request_using_http.call_count == 4
     assert mock_record_external_request.call_count == 4
     assert mock_webhooks_otel_trace.call_count == 4
 
@@ -241,11 +228,9 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     assert mock_record_first_delivery_attempt_delay.call_count == 3
 
 
-@patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
-)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 def test_send_webhooks_async_for_app_last_retry_failed(
-    mock_send_webhook_using_scheme_method,
+    mock_send_prepared_webhook_request_using_http,
     app,
     event_delivery,
 ):
@@ -256,10 +241,10 @@ def test_send_webhooks_async_for_app_last_retry_failed(
             EventDeliveryAttempt(
                 delivery=event_delivery, status=EventDeliveryStatus.FAILED
             )
-            for _ in range(5)
+            for _ in range(MAX_WEBHOOK_RETRIES)
         ]
     )
-    mock_send_webhook_using_scheme_method.return_value = WebhookResponse(
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
         content="", status=EventDeliveryStatus.FAILED
     )
 
@@ -267,10 +252,41 @@ def test_send_webhooks_async_for_app_last_retry_failed(
     send_webhooks_async_for_app(app_id=app.id)
 
     # then
-    mock_send_webhook_using_scheme_method.assert_called_once()
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
     deliveries = EventDelivery.objects.all()
     assert len(deliveries) == 1
     assert deliveries[0].status == EventDeliveryStatus.FAILED
     assert (
-        len(EventDeliveryAttempt.objects.filter(status=EventDeliveryStatus.FAILED)) == 6
+        len(EventDeliveryAttempt.objects.filter(status=EventDeliveryStatus.FAILED))
+        == MAX_WEBHOOK_RETRIES + 1
     )
+
+
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_send_webhooks_async_for_app_last_retry_succeeds(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_delivery,
+):
+    # given
+    assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
+    EventDeliveryAttempt.objects.bulk_create(
+        [
+            EventDeliveryAttempt(
+                delivery=event_delivery, status=EventDeliveryStatus.FAILED
+            )
+            for _ in range(MAX_WEBHOOK_RETRIES)
+        ]
+    )
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="", status=EventDeliveryStatus.SUCCESS
+    )
+
+    # when
+    send_webhooks_async_for_app(app_id=app.id)
+
+    # then
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
+
+    assert not EventDelivery.objects.exists()
+    assert not EventDeliveryAttempt.objects.exists()
