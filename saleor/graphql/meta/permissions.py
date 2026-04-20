@@ -48,7 +48,7 @@ def public_user_permissions(
 
     Customer have access to own public metadata.
     Staff user with `MANAGE_USERS` have access to customers public metadata.
-    Staff user with `MANAGE_STAFF` have access to staff users public metadata.
+    Staff user and apps with `MANAGE_STAFF` have access to staff users public metadata.
     """
     database_connection_name = get_database_connection_name(info.context)
     user = (
@@ -95,7 +95,7 @@ def public_address_permissions(
     Customer have access to the public metadata of their own addresses.
     Staff user with `MANAGE_USERS` have access to public metadata of customer
     addresses.
-    Staff user with `MANAGE_STAFF` have access to public metadata of staff user
+    Staff user and apps with `MANAGE_STAFF` have access to public metadata of staff user
     addresses.
     For now, updating warehouse and shop addresses is forbidden.
     """
