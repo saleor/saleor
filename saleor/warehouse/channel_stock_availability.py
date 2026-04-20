@@ -45,13 +45,7 @@ def trigger_out_of_stock_in_channel_events_for_stocks(
     if not stocks:
         return
 
-    cc_stocks: list[Stock] = []
-    non_cc_stocks: list[Stock] = []
-    for stock in stocks:
-        if _is_click_and_collect_warehouse(stock):
-            cc_stocks.append(stock)
-        else:
-            non_cc_stocks.append(stock)
+    cc_stocks, non_cc_stocks = _split_stocks_by_click_and_collect(stocks)
 
     NON_CC_OPTIONS = [WarehouseClickAndCollectOption.DISABLED]
     stocks_trigger_cc_options = [
@@ -104,13 +98,7 @@ def trigger_back_in_stock_in_channel_events_for_stocks(
     if not stocks:
         return
 
-    cc_stocks: list[Stock] = []
-    non_cc_stocks: list[Stock] = []
-    for stock in stocks:
-        if _is_click_and_collect_warehouse(stock):
-            cc_stocks.append(stock)
-        else:
-            non_cc_stocks.append(stock)
+    cc_stocks, non_cc_stocks = _split_stocks_by_click_and_collect(stocks)
 
     NON_CC_OPTIONS = [WarehouseClickAndCollectOption.DISABLED]
     stocks_trigger_cc_options = [
@@ -146,8 +134,29 @@ def trigger_back_in_stock_in_channel_events_for_stocks(
             )
 
 
-def _is_click_and_collect_warehouse(stock: Stock) -> bool:
-    return stock.warehouse.click_and_collect_option in CC_OPTIONS
+def _split_stocks_by_click_and_collect(
+    stocks: list[Stock],
+) -> tuple[list[Stock], list[Stock]]:
+    """Partition stocks into (cc_stocks, non_cc_stocks) with a single DB query.
+
+    Queries which warehouses among the stocks' warehouses are non-C&C
+    (`click_and_collect_option=DISABLED`); everything else is treated as C&C.
+    """
+    warehouse_ids = {stock.warehouse_id for stock in stocks}
+    non_cc_warehouse_ids = set(
+        Warehouse.objects.filter(
+            id__in=warehouse_ids,
+            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
+        ).values_list("id", flat=True)
+    )
+    cc_stocks: list[Stock] = []
+    non_cc_stocks: list[Stock] = []
+    for stock in stocks:
+        if stock.warehouse_id in non_cc_warehouse_ids:
+            non_cc_stocks.append(stock)
+        else:
+            cc_stocks.append(stock)
+    return cc_stocks, non_cc_stocks
 
 
 def _get_channels_without_other_available_warehouses(
