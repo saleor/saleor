@@ -67,7 +67,7 @@ def trigger_out_of_stock_in_channel_events_for_stocks(
         for (
             variant_id,
             channel_slug,
-        ) in _get_channels_without_other_available_warehouses(
+        ) in _get_variant_channels_without_other_availability(
             grouped_stocks, cc_options
         ):
             trigger(
@@ -120,7 +120,7 @@ def trigger_back_in_stock_in_channel_events_for_stocks(
         for (
             variant_id,
             channel_slug,
-        ) in _get_channels_without_other_available_warehouses(
+        ) in _get_variant_channels_without_other_availability(
             grouped_stocks, cc_options
         ):
             trigger(
@@ -159,22 +159,60 @@ def _split_stocks_by_click_and_collect(
     return cc_stocks, non_cc_stocks
 
 
-def _get_channels_without_other_available_warehouses(
+def _get_variant_channels_without_other_availability(
     stocks: list[Stock], cc_options: list[str]
 ) -> set[tuple[int, str]]:
-    """Return unique (variant_id, channel_slug) pairs with no other same-kind warehouse availability.
+    """Return (variant_id, channel_slug) pairs where the source stocks are the only availability.
 
-    For each stock, checks every channel its warehouse belongs to. If no other
-    warehouse of the same kind (C&C or non-C&C) in that channel has available
-    quantity for the stock's variant, the pair is included. Deduplicated so that
+    For each stock, inspects every channel its warehouse belongs to. A pair is
+    included when no other warehouse of the same kind (C&C or non-C&C) in that
+    channel has available quantity for the stock's variant. Deduplicated so that
     multiple stocks for the same variant produce only one entry per channel.
+    """
+    source_warehouse_ids = {stock.warehouse_id for stock in stocks}
+
+    available_by_warehouse_and_variant = (
+        _fetch_other_warehouses_availability_per_variant(stocks, cc_options)
+    )
+
+    availability_warehouse_ids = {
+        warehouse_id for warehouse_id, _ in available_by_warehouse_and_variant
+    }
+    warehouse_id_to_channels_map = _get_warehouse_to_channels_map(
+        list(availability_warehouse_ids | source_warehouse_ids)
+    )
+
+    channel_available_per_stock = _sum_channel_availability_per_stock(
+        stocks, available_by_warehouse_and_variant, warehouse_id_to_channels_map
+    )
+
+    result: set[tuple[int, str]] = set()
+    for stock in stocks:
+        for channel_id, channel_slug in warehouse_id_to_channels_map.get(
+            stock.warehouse_id, []
+        ):
+            if channel_available_per_stock.get((stock.id, channel_id), 0) == 0:
+                result.add((stock.product_variant_id, channel_slug))
+
+    return result
+
+
+def _fetch_other_warehouses_availability_per_variant(
+    stocks: list[Stock], cc_options: list[str]
+) -> dict[tuple[UUID, int], int]:
+    """Fetch available quantity per (warehouse_id, variant_id) excluding source stocks.
+
+    Considers only warehouses of the matching C&C kind in channels that contain
+    any source stock's warehouse. Source warehouses themselves are included in
+    the scope because warehouse A may serve as "the other warehouse" for a stock
+    in warehouse B. The source stock rows are excluded from the aggregation so
+    the returned map represents availability from everywhere *qexcept* the
+    source stocks.
     """
     stock_ids = [stock.id for stock in stocks]
     warehouse_ids = list({stock.warehouse_id for stock in stocks})
+    variant_ids = list({stock.product_variant_id for stock in stocks})
 
-    # Find all warehouses of the same C&C kind in channels that contain any of
-    # the source stocks' warehouses. Source warehouses are included because
-    # warehouse A may serve as "the other warehouse" for a stock in warehouse B.
     source_channels = ChannelWarehouse.objects.filter(
         warehouse_id__in=warehouse_ids,
         channel_id=OuterRef("channel_id"),
@@ -185,9 +223,6 @@ def _get_channels_without_other_available_warehouses(
         click_and_collect_option__in=cc_options,
     )
 
-    # Fetch available quantity per (warehouse, variant) for all relevant
-    # variants, excluding the source stocks themselves.
-    variant_ids = list({stock.product_variant_id for stock in stocks})
     available_rows = (
         Stock.objects.filter(
             Exists(matching_warehouses.filter(pk=OuterRef("warehouse_id"))),
@@ -199,27 +234,28 @@ def _get_channels_without_other_available_warehouses(
     )
 
     available_by_warehouse_variant: dict[tuple[UUID, int], int] = defaultdict(int)
-    availability_warehouse_ids: set[UUID] = set()
     for warehouse_id, variant_id, available_quantity in available_rows:
         available_by_warehouse_variant[(warehouse_id, variant_id)] += max(
             available_quantity, 0
         )
-        availability_warehouse_ids.add(warehouse_id)
+    return available_by_warehouse_variant
 
-    # Map warehouse ids back to their channels. Includes both the warehouses
-    # from the availability results and the source stocks' warehouses so the
-    # final loop can resolve channel slugs for each stock.
-    warehouse_id_to_channels_map = _get_warehouse_to_channels_map(
-        list(availability_warehouse_ids | set(warehouse_ids))
-    )
 
-    # Group stocks by variant so we can match availability rows to stocks.
+def _sum_channel_availability_per_stock(
+    stocks: list[Stock],
+    available_by_warehouse_variant: dict[tuple[UUID, int], int],
+    warehouse_id_to_channels_map: dict[UUID, list[tuple[int, str]]],
+) -> dict[tuple[int, int], int]:
+    """Sum available quantity per (stock_id, channel_id) from warehouses other than the stock's own.
+
+    For each availability row, distributes its quantity across the channels its
+    warehouse belongs to, attributing it to every stock of the same variant
+    except the stock located in the same warehouse.
+    """
     variant_id_to_stocks: dict[int, list[Stock]] = defaultdict(list)
     for stock in stocks:
         variant_id_to_stocks[stock.product_variant_id].append(stock)
 
-    # Accumulate available quantity per (stock, channel) from other warehouses.
-    # A warehouse is skipped for a stock when it is the stock's own warehouse.
     channel_available_per_stock: dict[tuple[int, int], int] = defaultdict(int)
     for (
         warehouse_id,
@@ -233,19 +269,7 @@ def _get_channels_without_other_available_warehouses(
                 channel_available_per_stock[(stock.id, channel_id)] += (
                     available_quantity
                 )
-
-    # Return unique (variant_id, channel_slug) pairs for channels where no other
-    # warehouse has availability. Deduplicated so that multiple stocks for the
-    # same variant in different warehouses produce only one event per channel.
-    result: set[tuple[int, str]] = set()
-    for stock in stocks:
-        for channel_id, channel_slug in warehouse_id_to_channels_map.get(
-            stock.warehouse_id, []
-        ):
-            if channel_available_per_stock.get((stock.id, channel_id), 0) == 0:
-                result.add((stock.product_variant_id, channel_slug))
-
-    return result
+    return channel_available_per_stock
 
 
 def _get_warehouse_to_channels_map(

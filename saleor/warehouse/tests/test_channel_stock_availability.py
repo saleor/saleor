@@ -673,9 +673,6 @@ def test_bulk_out_of_stock_different_variants_partial_coverage_by_other_warehous
     }
 
 
-# --- Multi-stock (bulk) tests: back in stock ---
-
-
 def test_bulk_back_in_stock_fires_for_multiple_stocks_in_same_warehouse(
     product_with_two_variants, warehouse, channel_USD, site_settings, mocker
 ):
