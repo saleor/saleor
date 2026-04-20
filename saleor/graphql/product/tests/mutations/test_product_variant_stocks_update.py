@@ -388,9 +388,10 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     any_webhook,
     django_capture_on_commit_callbacks,
 ):
+    # given — stocks currently have availability, update drops both to 0
     Stock.objects.bulk_create(
         [
-            Stock(product_variant=variant, warehouse=warehouse)
+            Stock(product_variant=variant, warehouse=warehouse, quantity=5)
             for warehouse in warehouses
         ]
     )
@@ -401,14 +402,16 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     stocks_data = [
         {"quantity": 0, "warehouse": "123"},
     ]
-    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
 
+    # when
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
             variant, stocks_data, warehouses, plugins, site_settings
         )
 
-    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 0
+    # then — updated stock transitioned from available (5) to out of stock (0)
+    assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 5
 
     stock = Stock.objects.all()[1]
     product_variant_back_in_stock_webhook.assert_not_called()
