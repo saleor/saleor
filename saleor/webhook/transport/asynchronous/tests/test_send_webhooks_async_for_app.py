@@ -38,7 +38,9 @@ def test_send_webhooks_async_for_app(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
     app_webhook_mutex.refresh_from_db()
 
     # then
@@ -59,7 +61,9 @@ def test_send_webhooks_async_for_app_no_deliveries(
     assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
 
     # then
     assert mock_send_prepared_webhook_request_using_http.called == 0
@@ -78,7 +82,7 @@ def test_send_webhooks_async_for_app_does_not_pick_failed(
     assert not EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
 
     # when
-    send_webhooks_async_for_app(app_id=app.id)
+    send_webhooks_async_for_app(app_id=app.id, concurrency=1)
 
     # then
     assert mock_send_prepared_webhook_request_using_http.called == 0
@@ -97,7 +101,9 @@ def test_send_webhooks_async_for_app_no_payload(
     assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
 
     # then
     mock_send_prepared_webhook_request_using_http.assert_not_called()
@@ -120,7 +126,9 @@ def test_send_webhooks_async_for_app_failed_status(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
 
     # then
     mock_send_prepared_webhook_request_using_http.assert_called_once()
@@ -153,7 +161,9 @@ def test_send_multiple_webhooks_async_for_app(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
 
     # then
     assert mock_send_prepared_webhook_request_using_http.call_count == 3
@@ -192,7 +202,9 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     ]
 
     # when
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
 
     # then
     # execute only first two attempts (stop on failure during second attempt)
@@ -216,7 +228,9 @@ def test_send_multiple_webhooks_async_for_app_retry_on_failure(
     assert attempts[0].delivery.id == deliveries[1].id
 
     # when retriggered
-    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
 
     # then
     # record all four webhooks calls
@@ -249,7 +263,7 @@ def test_send_webhooks_async_for_app_last_retry_failed(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id)
+    send_webhooks_async_for_app(app_id=app.id, concurrency=1)
 
     # then
     mock_send_prepared_webhook_request_using_http.assert_called_once()
@@ -283,7 +297,7 @@ def test_send_webhooks_async_for_app_last_retry_succeeds(
     )
 
     # when
-    send_webhooks_async_for_app(app_id=app.id)
+    send_webhooks_async_for_app(app_id=app.id, concurrency=1)
 
     # then
     mock_send_prepared_webhook_request_using_http.assert_called_once()

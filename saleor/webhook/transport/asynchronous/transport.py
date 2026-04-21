@@ -878,6 +878,7 @@ def trigger_send_webhooks_async_for_apps():
                 kwargs={
                     "app_id": webhook_app.id,
                     "telemetry_context": get_task_context().to_dict(),
+                    "concurrency": 1,  # TODO - will be loaded dynamically from App, value is not used by the task yet
                 },
                 queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
                 MessageGroupId=get_sqs_message_group_id(domain, webhook_app),
@@ -897,6 +898,7 @@ def send_webhooks_async_for_app(
     *,
     session: "HTTPSession",
     telemetry_context: TelemetryTaskContext,
+    concurrency: int,
 ) -> None:
     with acquire_webhook_lock(app_id) as acquired:
         if not acquired:
