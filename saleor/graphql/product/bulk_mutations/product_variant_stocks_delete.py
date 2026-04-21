@@ -10,6 +10,9 @@ from ....warehouse.channel_stock_availability import (
     trigger_out_of_stock_in_channel_events_for_stocks,
 )
 from ....warehouse.management import delete_stocks
+from ....warehouse.webhooks.stock_events import (
+    trigger_product_variant_out_of_stock,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
@@ -18,8 +21,8 @@ from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
+from ...utils import get_user_or_app_from_context
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..types import ProductVariant
@@ -57,8 +60,6 @@ class ProductVariantStocksDelete(BaseMutation):
         variant_id = data.get("variant_id")
         validate_one_of_args_is_in_mutation("sku", sku, "variant_id", variant_id)
 
-        manager = get_plugin_manager_promise(info.context).get()
-
         if variant_id:
             variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
         else:
@@ -83,9 +84,13 @@ class ProductVariantStocksDelete(BaseMutation):
             WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK
         )
         stocks_to_delete_list = list(stocks_to_delete)
+        requestor = get_user_or_app_from_context(info.context)
         for stock in stocks_to_delete_list:
-            cls.call_event(
-                manager.product_variant_out_of_stock, stock, webhooks=webhooks
+            call_event(
+                trigger_product_variant_out_of_stock,
+                stock,
+                webhooks=webhooks,
+                requestor=requestor,
             )
 
         site_settings = get_site_promise(info.context).get().settings

@@ -59,7 +59,6 @@ def test_adding_same_variant(checkout, product):
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            address=checkout.shipping_address,
         )
         == subtotal
     )

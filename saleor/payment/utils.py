@@ -185,7 +185,6 @@ def create_checkout_payment_lines_information(
     line_items = []
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
         unit_price = calculations.checkout_line_unit_price(
@@ -209,10 +208,7 @@ def create_checkout_payment_lines_information(
             )
         )
     shipping_amount = calculations.checkout_shipping_price(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
+        manager=manager, checkout_info=checkout_info, lines=lines
     ).gross.amount
     voucher_amount = -checkout.discount_amount
 

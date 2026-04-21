@@ -108,6 +108,16 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
                 )
             }
         )
+    if img_file.size > settings.MAX_IMAGE_FILE_SIZE:
+        raise ValidationError(
+            {
+                img_field_name: ValidationError(
+                    f"File size exceeds the maximum allowed size "
+                    f"of {settings.MAX_IMAGE_FILE_SIZE / (1024 * 1024):.0f}MB.",
+                    code=error_class.FILE_SIZE_LIMIT_EXCEEDED,
+                )
+            }
+        )
     if not is_supported_image_mimetype(img_file.content_type):
         raise ValidationError(
             {

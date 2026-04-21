@@ -43,7 +43,7 @@ ORDER_FULFILL_MUTATION = """
 
 
 @patch("saleor.order.actions.order_fulfilled", wraps=order_fulfilled)
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_order_fulfill_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhooks,
     wrapped_order_fulfilled,
@@ -75,7 +75,9 @@ def test_order_fulfill_with_out_of_stock_webhook(
     staff_api_client.post_graphql(query, variables)
 
     stock = order_line2.variant.stocks.filter(warehouse=warehouse).first()
-    product_variant_out_of_stock_webhooks.assert_called_once_with(stock)
+    product_variant_out_of_stock_webhooks.assert_called_once_with(
+        stock, requestor=staff_api_client.user
+    )
     assert wrapped_order_fulfilled.called
 
 

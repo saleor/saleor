@@ -160,7 +160,6 @@ def test_checkout_complete_with_inactive_channel(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -237,7 +236,7 @@ def test_checkout_complete(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -329,16 +328,18 @@ def test_checkout_complete(
     recalculate_with_plugins_mock.assert_not_called()
 
     assert not len(Reservation.objects.all())
-
+    gift_card_log = next(
+        rec for rec in caplog.records if "Gift card payment" in rec.message
+    )
     assert (
         graphene.Node.to_global_id("Checkout", checkout_info.checkout.pk)
-        == caplog.records[0].checkout_id
+        == gift_card_log.checkout_id
     )
     assert gift_card.initial_balance_amount == Decimal(
-        caplog.records[0].gift_card_compensation
+        gift_card_log.gift_card_compensation
     )
     assert total.gross.amount == Decimal(
-        caplog.records[0].total_after_gift_card_compensation
+        gift_card_log.total_after_gift_card_compensation
     )
 
     assert customer_user.addresses.count() == user_address_count + 2
@@ -382,7 +383,7 @@ def test_checkout_complete_with_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -459,7 +460,7 @@ def test_checkout_complete_with_metadata_updates_existing_keys(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -521,7 +522,7 @@ def test_checkout_complete_with_metadata_checkout_without_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -594,7 +595,7 @@ def test_checkout_complete_by_app(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -657,7 +658,7 @@ def test_checkout_complete_by_app_with_missing_permission(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -727,7 +728,7 @@ def test_checkout_complete_gift_card_bought(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -799,7 +800,7 @@ def test_checkout_complete_with_variant_without_sku(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -1003,7 +1004,7 @@ def test_checkout_with_voucher_complete(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1117,7 +1118,7 @@ def test_checkout_with_order_promotion_complete(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1244,7 +1245,7 @@ def test_checkout_complete_with_voucher_apply_once_per_order(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1398,7 +1399,6 @@ def test_checkout_with_voucher_complete_product_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1527,7 +1527,7 @@ def test_checkout_with_voucher_on_specific_product_complete(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1643,7 +1643,7 @@ def test_checkout_complete_with_voucher_single_use(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1753,7 +1753,7 @@ def test_checkout_complete_with_voucher_paid_with_gift_card_and_payment(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     gift_card_initial_balance = gift_card.initial_balance_amount
 
@@ -1875,7 +1875,7 @@ def test_checkout_complete_with_voucher_paid_by_gift_card(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total_without_gc = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     gift_card.initial_balance_amount = total_without_gc.gross.amount + Decimal(1)
@@ -1887,7 +1887,7 @@ def test_checkout_complete_with_voucher_paid_by_gift_card(
     )
 
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     shipping_price = shipping_method.channel_listings.get(
@@ -1997,7 +1997,7 @@ def test_checkout_complete_free_shipping_voucher_and_gift_card(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout.channel
@@ -2148,7 +2148,6 @@ def test_checkout_complete_product_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -2294,7 +2293,6 @@ def test_checkout_complete_product_on_promotion_deleted_promotion_instance(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -2393,7 +2391,7 @@ def test_checkout_complete_price_override(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -2529,7 +2527,6 @@ def test_checkout_complete_product_on_old_sale(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -2708,7 +2705,6 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_prom
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -2876,7 +2872,7 @@ def test_checkout_complete_without_inventory_tracking(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -2954,7 +2950,7 @@ def test_checkout_complete_checkout_without_lines(
     assert not lines
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -3016,7 +3012,7 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy_credit_card
     payment.is_active = True
@@ -3095,7 +3091,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     taxed_total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -3193,7 +3189,7 @@ def test_checkout_complete_confirmation_needed(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -3256,7 +3252,7 @@ def test_checkout_confirm(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_txn_to_confirm
     payment.is_active = True
@@ -3307,7 +3303,7 @@ def test_checkout_complete_insufficient_stock(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     payment = payment_dummy
@@ -3358,7 +3354,7 @@ def test_checkout_complete_insufficient_stock_payment_refunded(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     payment = payment_dummy
@@ -3420,7 +3416,7 @@ def test_checkout_complete_insufficient_stock_payment_voided(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     payment = payment_txn_preauth
@@ -3496,7 +3492,7 @@ def test_checkout_complete_insufficient_stock_reserved_by_other_user(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     payment = payment_dummy
@@ -3552,7 +3548,7 @@ def test_checkout_complete_own_reservation(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     payment = payment_dummy
@@ -3617,7 +3613,7 @@ def test_checkout_complete_without_redirect_url(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -3685,7 +3681,7 @@ def test_checkout_complete_payment_payment_total_different_than_checkout(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     payment = payment_dummy
@@ -3760,7 +3756,7 @@ def test_create_order_raises_insufficient_stock(
     )
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, checkout.shipping_address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -3823,7 +3819,7 @@ def test_checkout_complete_0_total_value(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -3900,7 +3896,7 @@ def test_complete_checkout_for_local_click_and_collect(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -3969,7 +3965,7 @@ def test_complete_checkout_for_global_click_and_collect(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -4081,7 +4077,7 @@ def test_comp_checkout_builds_order_for_all_warehouse_even_if_not_available_loca
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -4135,7 +4131,7 @@ def test_checkout_complete_raises_InsufficientStock_when_quantity_above_stock_su
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     payment = payment_dummy
@@ -4182,7 +4178,7 @@ def test_checkout_complete_raises_InvalidShippingMethod_when_warehouse_disabled(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     assert not checkout_info.valid_pick_up_points
@@ -4235,7 +4231,7 @@ def test_checkout_complete_with_preorder_variant(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -4345,7 +4341,7 @@ def test_checkout_complete_with_click_collect_preorder_fails_for_disabled_wareho
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     assert not checkout_info.valid_pick_up_points
@@ -4402,7 +4398,7 @@ def test_checkout_complete_variant_channel_listing_does_not_exist(
 
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     payment = payment_dummy
@@ -4471,7 +4467,7 @@ def test_checkout_complete_variant_channel_listing_no_price(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     payment = payment_dummy
@@ -4536,7 +4532,7 @@ def test_checkout_complete_product_channel_listing_does_not_exist(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     payment = payment_dummy
@@ -4608,7 +4604,7 @@ def test_checkout_complete_product_channel_listing_not_available_for_purchase(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     payment = payment_dummy
@@ -4673,7 +4669,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy_credit_card
     payment.is_active = True
@@ -4736,7 +4732,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy_credit_card
     payment.is_active = True
@@ -4798,7 +4794,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy_credit_card
     payment.is_active = True
@@ -4860,7 +4856,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy_credit_card
     payment.is_active = True
@@ -4927,7 +4923,7 @@ def test_checkout_complete_with_not_normalized_shipping_address(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -4990,7 +4986,7 @@ def test_checkout_complete_with_not_normalized_billing_address(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -5042,7 +5038,7 @@ def test_checkout_complete_check_reservations_create(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -5101,7 +5097,7 @@ def test_checkout_complete_reservations_drop(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -5151,7 +5147,7 @@ def test_checkout_complete_saving_addresses_off(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -5226,7 +5222,7 @@ def test_checkout_complete_saving_addresses_on(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -5309,7 +5305,7 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -5392,7 +5388,7 @@ def test_checkout_complete_payment_payment_deactivated_in_meantime(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -5458,7 +5454,7 @@ def test_checkout_complete_line_deleted_in_the_meantime(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -5541,7 +5537,7 @@ def test_checkout_complete_with_invalid_address(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -5599,7 +5595,7 @@ def test_checkout_complete_log_unknown_discount_reason(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -5626,8 +5622,10 @@ def test_checkout_complete_log_unknown_discount_reason(
     order = Order.objects.first()
     order_line = order.lines.first()
     assert not order_line.unit_discount_reason
-    assert "Unknown discount reason" in caplog.text
-    assert caplog.records[0].checkout_id == to_global_id_or_none(checkout)
+    unknown_discount_log = next(
+        rec for rec in caplog.records if "Unknown discount reason" in rec.message
+    )
+    assert unknown_discount_log.checkout_id == to_global_id_or_none(checkout)
 
 
 @patch("saleor.order.calculations._recalculate_with_plugins")
@@ -5673,7 +5671,7 @@ def test_checkout_complete_empty_product_translation(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -5817,7 +5815,7 @@ def test_checkout_complete_with_external_shipping(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -5951,7 +5949,7 @@ def test_checkout_complete_with_external_shipping_private_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -6010,7 +6008,7 @@ def test_checkout_complete_with_different_email_than_user_email(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -6057,7 +6055,7 @@ def test_checkout_complete_sets_product_type_id_for_all_order_lines(
     }
 
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -6312,7 +6310,7 @@ def test_checkout_complete_warehouse_without_shipping_zones(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True
@@ -6370,7 +6368,7 @@ def test_checkout_complete_warehouse_without_shipping_zones_excluded_from_stock_
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     payment = payment_dummy
     payment.is_active = True

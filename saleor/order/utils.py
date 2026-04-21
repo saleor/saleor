@@ -230,7 +230,7 @@ def determine_order_status(
 def create_order_line(
     order,
     line_data,
-    manager,
+    requestor,
     site_settings,
     allocate_stock=False,
 ) -> OrderLine:
@@ -337,8 +337,8 @@ def create_order_line(
                 )
             ],
             channel,
-            manager=manager,
             site_settings=site_settings,
+            requestor=requestor,
             calculate_stocks_with_shipping_zones=(
                 site_settings.use_legacy_shipping_zone_stock_availability
             ),
@@ -401,7 +401,7 @@ def add_variant_to_order(
     return create_order_line(
         order,
         line_data,
-        manager,
+        app or user,
         site_settings,
         allocate_stock,
     )
@@ -531,7 +531,7 @@ def _update_allocations_for_line(
     old_quantity: int,
     new_quantity: int,
     channel: "Channel",
-    manager: "PluginsManager",
+    requestor: "App | User | None",
     site_settings: "SiteSettings",
 ):
     if old_quantity == new_quantity:
@@ -547,13 +547,13 @@ def _update_allocations_for_line(
         increase_allocations(
             [line_info],
             channel,
-            manager,
             site_settings,
+            requestor,
             calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
         )
     else:
         line_info.quantity = old_quantity - new_quantity
-        decrease_allocations([line_info], manager, site_settings)
+        decrease_allocations([line_info], site_settings, requestor)
 
 
 def change_order_line_quantity(
@@ -575,8 +575,9 @@ def change_order_line_quantity(
     currency = channel.currency_code
     if new_quantity:
         if allocate_stock:
+            requestor = app or user
             _update_allocations_for_line(
-                line_info, old_quantity, new_quantity, channel, manager, site_settings
+                line_info, old_quantity, new_quantity, channel, requestor, site_settings
             )
         line.quantity = new_quantity
         total_price_net_amount = line.quantity * line.unit_price_net_amount
@@ -622,7 +623,7 @@ def change_order_line_quantity(
             )
 
     else:
-        delete_order_line(line_info, manager, site_settings)
+        delete_order_line(line_info, site_settings, app or user)
 
     quantity_diff = old_quantity - new_quantity
 
@@ -649,10 +650,12 @@ def create_order_event(line, user, app, quantity_diff):
         )
 
 
-def delete_order_line(line_info, manager, site_settings: "SiteSettings"):
+def delete_order_line(
+    line_info, site_settings: "SiteSettings", requestor: "App | User | None"
+):
     """Delete an order line from an order."""
     if line_info.line.order.is_unconfirmed():
-        decrease_allocations([line_info], manager, site_settings)
+        decrease_allocations([line_info], site_settings, requestor)
     line_info.line.delete()
 
 

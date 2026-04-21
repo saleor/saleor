@@ -2012,7 +2012,7 @@ def test_checkout_lines_update_with_new_metadata_merge_old(
     wraps=_calculate_and_add_tax,
 )
 @mock.patch(
-    "saleor.checkout.calculations.fetch_checkout_data",
+    "saleor.graphql.checkout.dataloaders.calculations.fetch_checkout_data",
     wraps=fetch_checkout_data,
 )
 def test_checkout_lines_update_checkout_updated_during_price_recalculation(
@@ -2039,8 +2039,8 @@ def test_checkout_lines_update_checkout_updated_during_price_recalculation(
         checkout_to_modify.email = expected_email
         checkout_to_modify.save(update_fields=["email", "last_change"])
 
-    with race_condition.RunAfter(
-        "saleor.checkout.calculations._calculate_and_add_tax", modify_checkout
+    with race_condition.RunBefore(
+        "saleor.checkout.calculations.checkout_qs_select_for_update", modify_checkout
     ):
         response = user_api_client.post_graphql(
             MUTATION_CHECKOUT_LINES_UPDATE, variables
@@ -2052,7 +2052,7 @@ def test_checkout_lines_update_checkout_updated_during_price_recalculation(
     assert not data["errors"]
 
     # Ensure that the checkout prices recalculation was triggered more than one time.
-    assert mock_fetch_checkout_data.call_count > 1
+    assert mock_fetch_checkout_data.call_count == 1
 
     # Ensure that the checkout price are recalculated only one time
     assert mock_calculate_and_add_tax.call_count == 1

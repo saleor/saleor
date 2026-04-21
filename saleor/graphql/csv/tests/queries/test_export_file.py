@@ -276,3 +276,44 @@ def test_query_export_file_with_invalid_object_type(
     )
     content = get_graphql_content(response)
     assert content["data"]["exportFile"] is None
+
+
+def test_query_export_file_user_field_denied_for_app_with_only_manage_staff(
+    app_api_client,
+    user_export_file,
+    user_export_event,
+    permission_manage_products,
+    permission_manage_staff,
+):
+    # given
+    # MANAGE_STAFF must NOT grant an app access to the user fields on
+    # ExportFile/ExportEvent. Only MANAGE_STAFF + MANAGE_USERS scopes for apps
+    # are allowed for staff metadata mutations; this guard prevents app
+    # callers from leaking the staff user identity through CSV export records.
+    query = EXPORT_FILE_QUERY
+    variables = {"id": graphene.Node.to_global_id("ExportFile", user_export_file.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_products, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["exportFile"]
+    assert data["user"] is None
+    assert len(data["events"]) == 1
+    assert data["events"][0]["user"] is None
+
+    permission_denied_msg = (
+        "To access this path, you need one of the following permissions: "
+        "MANAGE_STAFF, OWNER"
+    )
+    errors = content["errors"]
+    user_errors = [e for e in errors if e["path"][-1] == "user"]
+    assert len(user_errors) == 2
+    for error in user_errors:
+        assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+        assert error["message"] == permission_denied_msg

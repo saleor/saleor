@@ -623,7 +623,7 @@ def test_create_fulfillments_with_variant_without_inventory_tracking_and_without
     mock_email_fulfillment.assert_not_called()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 def test_create_fullfilment_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook,
     staff_user,
@@ -654,7 +654,7 @@ def test_create_fullfilment_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook.assert_called_once()
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch("saleor.warehouse.webhooks.stock_events.trigger_product_variant_out_of_stock")
 def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
     product_variant_out_of_stock_webhook,
     staff_user,

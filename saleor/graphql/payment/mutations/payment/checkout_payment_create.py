@@ -271,14 +271,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             manager, gateway, input, channel_slug=checkout_info.channel.slug
         )
 
-        address = (
-            checkout.shipping_address or checkout.billing_address
-        )  # FIXME: check which address we need here
         checkout_total = calculate_checkout_total_with_gift_cards(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            address=address,
         )
         amount = input.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)

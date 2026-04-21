@@ -1,6 +1,5 @@
 import json
 import logging
-from collections.abc import Callable
 from json import JSONDecodeError
 from typing import TYPE_CHECKING, Any, TypeVar, Union
 from urllib.parse import urlparse
@@ -15,7 +14,6 @@ from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
 from ....core.models import EventDelivery, EventPayload
-from ....core.taxes import TaxData, TaxDataError
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.events import call_event
@@ -26,7 +24,6 @@ from ....graphql.webhook.subscription_payload import (
     initialize_request,
 )
 from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
-from ....graphql.webhook.utils import get_pregenerated_subscription_payload
 from ....payment import PaymentError
 from ....payment.interface import TransactionActionData
 from ....payment.models import TransactionEvent
@@ -35,7 +32,6 @@ from ....payment.utils import (
     create_transaction_event_from_request_and_webhook_response,
     recalculate_refundable_for_checkout,
 )
-from ....tax.webhooks.parser import parse_tax_data
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
@@ -62,8 +58,6 @@ from ..utils import (
 if TYPE_CHECKING:
     from ....account.models import User
     from ....app.models import App
-    from ....graphql.core.context import SaleorContext
-    from ....graphql.core.dataloaders import DataLoader
     from ....webhook.models import Webhook
 
 R = TypeVar("R")
@@ -556,81 +550,6 @@ if breaker_board := initialize_breaker_board():
     trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
         trigger_webhook_sync_promise
     )
-
-
-def trigger_taxes_all_webhooks_sync(
-    event_type: str,
-    generate_payload: Callable,
-    expected_lines_count: int,
-    subscribable_object=None,
-    requestor=None,
-    pregenerated_subscription_payloads: dict | None = None,
-) -> TaxData | None:
-    """Send all synchronous webhook request for given event type.
-
-    Requests are send sequentially.
-    If the current webhook does not return expected response,
-    the next one is send.
-    If no webhook responds with expected response,
-    this function returns None.
-    """
-    if pregenerated_subscription_payloads is None:
-        pregenerated_subscription_payloads = {}
-
-    webhooks = get_webhooks_for_event(event_type)
-    request_context = None
-    event_payload = None
-
-    dataloaders: dict[str, type[DataLoader]] = {}
-    request_map: dict[int, SaleorContext] = {}
-    is_sync_event = event_type in WebhookEventSyncType.ALL
-
-    for webhook in webhooks:
-        if webhook.subscription_query:
-            request_context = request_map.get(webhook.app_id)
-            if not request_context:
-                request_context = initialize_request(
-                    app=webhook.app,
-                    requestor=requestor,
-                    sync_event=is_sync_event,
-                    event_type=event_type,
-                    dataloaders=dataloaders,
-                )
-
-            pregenerated_payload = get_pregenerated_subscription_payload(
-                webhook, pregenerated_subscription_payloads
-            )
-
-            delivery = create_delivery_for_subscription_sync_event(
-                event_type=event_type,
-                subscribable_object=subscribable_object,
-                webhook=webhook,
-                request=request_context,
-                requestor=requestor,
-                pregenerated_payload=pregenerated_payload,
-                with_save=False,
-            )
-            if not delivery:
-                return None
-        else:
-            if event_payload is None:
-                event_payload = EventPayload(payload=generate_payload())
-            delivery = EventDelivery(
-                status=EventDeliveryStatus.PENDING,
-                event_type=event_type,
-                payload=event_payload,
-                webhook=webhook,
-            )
-
-        response_data = send_webhook_request_sync(delivery)
-        try:
-            parsed_response = parse_tax_data(
-                event_type, response_data, expected_lines_count
-            )
-        except TaxDataError:
-            continue
-        return parsed_response
-    return None
 
 
 def trigger_transaction_request(

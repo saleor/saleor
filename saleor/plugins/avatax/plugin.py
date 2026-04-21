@@ -301,7 +301,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
         if response is None:
             return previous_value
 
-        currency = str(response.get("currencyCode"))
+        currency = response.get("currencyCode") or checkout_info.checkout.currency
         return self._calculate_checkout_shipping(
             checkout_info, currency, response.get("lines", {}), base_shipping_price.net
         )
@@ -502,7 +502,9 @@ class DeprecatedAvataxPlugin(BasePlugin):
         if not taxes_data or "error" in taxes_data:
             return base_value
 
-        currency = taxes_data.get("currencyCode")
+        currency = (
+            taxes_data.get("currencyCode") or base_value.price_with_discounts.currency
+        )
         line_price_with_discounts = None
 
         line = taxes_data.get("lines", {}).get(order_line_id)
@@ -601,7 +603,7 @@ class DeprecatedAvataxPlugin(BasePlugin):
 
     def _calculate_order_shipping(self, order, taxes_data) -> TaxedMoney:
         prices_entered_with_tax = partial(_get_prices_entered_with_tax_for_order, order)
-        currency = taxes_data.get("currencyCode")
+        currency = taxes_data.get("currencyCode") or order.currency
         line = taxes_data.get("lines", {}).get(SHIPPING_ITEM_CODE)
         if line:
             tax = Decimal(line.get("tax", 0.0))

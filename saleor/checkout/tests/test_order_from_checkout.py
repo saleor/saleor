@@ -6,6 +6,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
 from prices import Money, TaxedMoney
+from promise import Promise
 
 from ...channel import MarkAsPaidStrategy
 from ...checkout.models import Checkout, CheckoutLine
@@ -79,13 +80,11 @@ def test_create_order_with_gift_card(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross_without_gift_cards = (
         subtotal.gross + shipping_price.gross - checkout.discount
@@ -127,7 +126,6 @@ def test_create_order_with_gift_card_partial_use(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     gift_card_balance_before_order = gift_card_used.current_balance_amount
 
@@ -180,7 +178,6 @@ def test_create_order_with_many_gift_cards_worth_more_than_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     gift_card_2_old_balance = gift_card_2.current_balance.amount
     gift_card_2_balance_halved = gift_card_2_old_balance / 2
@@ -248,7 +245,6 @@ def test_create_order_with_many_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     gift_cards_balance_before_order = (
         gift_card_created_by_staff.current_balance.amount
@@ -316,13 +312,11 @@ def test_create_order_gift_card_bought(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
@@ -395,13 +389,11 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
@@ -447,13 +439,11 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     shipping_price = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     total_gross = subtotal.gross + shipping_price.gross - checkout.discount
 
@@ -976,8 +966,8 @@ def test_create_order_with_voucher_0_total(
         manager, checkout_info, lines, voucher_percentage, voucher_code
     )
     checkout_info, lines = calculations.fetch_checkout_data(
-        checkout_info, manager, lines, force_status_update=True
-    )
+        checkout_info, manager, lines, force_status_update=True, requestor=None
+    ).get()
 
     assert checkout_info.checkout.total == zero_taxed_money(
         checkout_info.checkout.currency
@@ -1027,7 +1017,9 @@ def test_create_order_from_checkout_update_tax_error(
     # given
     checkout = checkout_with_items_and_shipping
     lines, _ = fetch_checkout_lines(checkout)
-    _calculate_and_add_tax_mock.side_effect = TaxDataError(TaxDataErrorMessage.EMPTY)
+    _calculate_and_add_tax_mock.return_value = Promise.reject(
+        TaxDataError(TaxDataErrorMessage.EMPTY)
+    )
 
     manager = get_plugins_manager(allow_replica=False)
     checkout_info = fetch_checkout_info(checkout, lines, manager, [])

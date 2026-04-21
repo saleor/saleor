@@ -27,7 +27,7 @@ from ..core.models import (
     SortableModel,
 )
 from ..core.units import WeightUnits
-from ..core.utils.translations import Translation, get_translation
+from ..core.utils.translations import Translation
 from ..core.weight import zero_weight
 from ..discount.models import PromotionRule
 from ..permission.enums import (
@@ -441,18 +441,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     def is_gift_card(self) -> bool:
         return self.product.product_type.kind == ProductTypeKind.GIFT_CARD
-
-    def display_product(self, translated: bool = False) -> str:
-        if translated:
-            product = get_translation(self.product).name or ""
-            variant_display = get_translation(self).name
-        else:
-            variant_display = str(self)
-            product = self.product
-        product_display = (
-            f"{product} ({variant_display})" if variant_display else str(product)
-        )
-        return product_display
 
     def get_ordering_queryset(self):
         return self.product.variants.all()

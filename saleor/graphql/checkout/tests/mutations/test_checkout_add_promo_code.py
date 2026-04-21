@@ -96,10 +96,7 @@ def test_checkout_add_voucher_for_entire_order(api_client, checkout_with_item, v
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     taxed_total = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_item.shipping_address,
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     # when
@@ -279,7 +276,6 @@ def test_checkout_add_products_voucher_code_checkout_with_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     voucher_discount_value = (
@@ -308,7 +304,6 @@ def test_checkout_add_products_voucher_code_checkout_with_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + Money(
@@ -363,7 +358,6 @@ def test_checkout_add_voucher_code_checkout_on_promotion(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    address = checkout.shipping_address
 
     voucher_discount_value = (
         voucher_percentage.channel_listings.filter(channel=checkout.channel)
@@ -377,7 +371,6 @@ def test_checkout_add_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
 
     variables = {
@@ -429,7 +422,6 @@ def test_checkout_add_specific_product_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     variables = {
@@ -452,7 +444,6 @@ def test_checkout_add_specific_product_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + Money(
@@ -496,7 +487,6 @@ def test_checkout_add_collection_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     variables = {
@@ -519,7 +509,6 @@ def test_checkout_add_collection_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     assert not data["errors"]
@@ -559,7 +548,6 @@ def test_checkout_add_category_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -581,7 +569,6 @@ def test_checkout_add_category_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + Money(
@@ -704,7 +691,6 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     variables = {
@@ -882,10 +868,7 @@ def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     taxed_total = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_item.shipping_address,
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     total_with_gift_card = taxed_total.gross.amount - gift_card.current_balance_amount
 
@@ -911,7 +894,6 @@ def test_checkout_get_total_with_many_gift_card(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout_with_gift_card.shipping_address,
     )
     total_with_gift_card = (
         taxed_total.gross.amount - gift_card_created_by_staff.current_balance_amount

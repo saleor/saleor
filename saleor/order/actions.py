@@ -433,7 +433,7 @@ def cancel_order(
     # transaction ensures proper allocation and event triggering
     with traced_atomic_transaction():
         events.order_canceled_event(order=order, user=user, app=app)
-        deallocate_stock_for_orders([order.id], manager, site_settings)
+        deallocate_stock_for_orders([order.id], site_settings, app or user)
         order.status = OrderStatus.CANCELED
         order.save(update_fields=["status", "updated_at"])
         if not webhook_event_map:
@@ -921,8 +921,8 @@ def approve_fulfillment(
 
         decrease_stock(
             lines_to_fulfill,
-            manager,
             settings,
+            app or user,
             allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
         )
         order.refresh_from_db()
@@ -1074,8 +1074,8 @@ def _increase_order_line_quantity(order_lines_info):
 
 def fulfill_order_lines(
     order_lines_info: list["OrderLineInfo"],
-    manager: "PluginsManager",
     site_settings: "SiteSettings",
+    requestor: "App | User | None",
     allow_stock_to_be_exceeded: bool = False,
 ):
     """Fulfill order line with given quantity."""
@@ -1084,8 +1084,8 @@ def fulfill_order_lines(
     with traced_atomic_transaction():
         decrease_stock(
             order_lines_info,
-            manager,
             site_settings,
+            requestor,
             allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
         )
         _increase_order_line_quantity(order_lines_info)
@@ -1097,8 +1097,8 @@ def _create_fulfillment_lines(
     lines_data: list[OrderFulfillmentLineInfo],
     channel_slug: str,
     gift_card_lines_info: list[GiftCardLineData],
-    manager: "PluginsManager",
     site_settings: "SiteSettings",
+    requestor: "App | User | None",
     *,
     calculate_stocks_with_shipping_zones: bool,
     should_decrease_stock: bool = True,
@@ -1121,8 +1121,8 @@ def _create_fulfillment_lines(
         channel_slug (str): Channel for which fulfillment lines should be created.
         gift_card_lines_info (List): List with information required
             to create gift cards.
-        manager (PluginsManager): Plugin manager from given context.
         site_settings (SiteSettings): Site settings from given context.
+        requestor (App | User | None): The entity making the request.
         should_decrease_stock (Bool): Stocks will get decreased if this is True.
         allow_stock_to_be_exceeded (bool): If `True` then stock quantity could exceed.
             Default value is set to `False`.
@@ -1209,8 +1209,8 @@ def _create_fulfillment_lines(
         if should_decrease_stock:
             decrease_stock(
                 lines_info,
-                manager,
                 site_settings,
+                requestor,
                 allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
             )
 
@@ -1310,8 +1310,8 @@ def create_fulfillments(
                     fulfillment_lines_for_warehouses[warehouse_pk],
                     order.channel.slug,
                     gift_card_lines_info,
-                    manager,
                     site_settings,
+                    app or user,
                     should_decrease_stock=auto_approved,
                     allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
                     calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
@@ -1384,8 +1384,8 @@ def _get_fulfillment_line(
 def _move_order_lines_to_target_fulfillment(
     order_lines_to_move: list[OrderLineInfo],
     target_fulfillment: Fulfillment,
-    manager: "PluginsManager",
     site_settings: "SiteSettings",
+    requestor: "App | User | None",
 ) -> list[FulfillmentLine]:
     """Move order lines with given quantity to the target fulfillment."""
     fulfillment_lines_to_create: list[FulfillmentLine] = []
@@ -1424,7 +1424,7 @@ def _move_order_lines_to_target_fulfillment(
 
         if lines_to_dellocate:
             try:
-                deallocate_stock(lines_to_dellocate, manager, site_settings)
+                deallocate_stock(lines_to_dellocate, site_settings, requestor)
             except AllocationError as e:
                 lines = [str(line.pk) for line in e.order_lines]
                 logger.warning(
@@ -1550,8 +1550,8 @@ def create_refund_fulfillment(
         created_fulfillment_lines = _move_order_lines_to_target_fulfillment(
             order_lines_to_move=order_lines_to_refund,
             target_fulfillment=refunded_fulfillment,
-            manager=manager,
             site_settings=site_settings,
+            requestor=app or user,
         )
 
         _move_fulfillment_lines_to_target_fulfillment(
@@ -1682,8 +1682,8 @@ def _move_lines_to_return_fulfillment(
     order: "Order",
     total_refund_amount: Decimal | None,
     shipping_refund_amount: Decimal | None,
-    manager: "PluginsManager",
     site_settings: "SiteSettings",
+    requestor: "App | User | None",
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
         status=fulfillment_status,
@@ -1694,8 +1694,8 @@ def _move_lines_to_return_fulfillment(
     lines_in_target_fulfillment = _move_order_lines_to_target_fulfillment(
         order_lines_to_move=order_lines,
         target_fulfillment=target_fulfillment,
-        manager=manager,
         site_settings=site_settings,
+        requestor=requestor,
     )
 
     fulfillment_lines_already_refunded = FulfillmentLine.objects.filter(
@@ -1740,8 +1740,8 @@ def _move_lines_to_replace_fulfillment(
     order_lines_to_replace: list[OrderLineInfo],
     fulfillment_lines_to_replace: list[FulfillmentLineData],
     order: "Order",
-    manager: "PluginsManager",
     site_settings: "SiteSettings",
+    requestor: "App | User | None",
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
         status=FulfillmentStatus.REPLACED, order=order
@@ -1749,8 +1749,8 @@ def _move_lines_to_replace_fulfillment(
     lines_in_target_fulfillment = _move_order_lines_to_target_fulfillment(
         order_lines_to_move=order_lines_to_replace,
         target_fulfillment=target_fulfillment,
-        manager=manager,
         site_settings=site_settings,
+        requestor=requestor,
     )
     _move_fulfillment_lines_to_target_fulfillment(
         fulfillment_lines_to_move=fulfillment_lines_to_replace,
@@ -1768,7 +1768,6 @@ def create_return_fulfillment(
     fulfillment_lines: list[FulfillmentLineData],
     total_refund_amount: Decimal | None,
     shipping_refund_amount: Decimal | None,
-    manager: "PluginsManager",
     site_settings: "SiteSettings",
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
@@ -1782,8 +1781,8 @@ def create_return_fulfillment(
             order=order,
             total_refund_amount=total_refund_amount,
             shipping_refund_amount=shipping_refund_amount,
-            manager=manager,
             site_settings=site_settings,
+            requestor=app or user,
         )
         returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = {}
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
@@ -1836,8 +1835,8 @@ def process_replace(
             order_lines_to_replace=order_lines,
             fulfillment_lines_to_replace=fulfillment_lines,
             order=order,
-            manager=manager,
             site_settings=site_settings,
+            requestor=app or user,
         )
         new_order = create_replace_order(
             user=user,
@@ -1939,7 +1938,6 @@ def create_fulfillments_for_returned_products(
             fulfillment_lines=return_fulfillment_lines,
             total_refund_amount=total_refund_amount,
             shipping_refund_amount=shipping_refund_amount,
-            manager=manager,
             site_settings=site_settings,
         )
         Fulfillment.objects.filter(

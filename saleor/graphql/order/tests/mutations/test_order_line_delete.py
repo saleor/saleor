@@ -45,7 +45,7 @@ ORDER_LINE_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_line_remove_with_back_in_stock_webhook(
     back_in_stock_webhook_mock,
     order_with_lines,
@@ -92,7 +92,9 @@ def test_order_line_remove_with_back_in_stock_webhook(
             or 0
         )
     ) == 3
-    back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.first())
+    back_in_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.first(), requestor=staff_api_client.user
+    )
 
 
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])

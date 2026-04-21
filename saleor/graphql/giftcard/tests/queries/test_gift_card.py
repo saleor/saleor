@@ -518,6 +518,49 @@ def test_query_gift_card_events(
     assert events_data[1]["oldExpiryDate"] == parameters["old_expiry_date"].isoformat()
 
 
+def test_query_gift_card_event_user_field_denied_for_app_with_only_manage_staff(
+    app_api_client,
+    gift_card,
+    gift_card_event,
+    permission_manage_gift_card,
+    permission_manage_apps,
+    permission_manage_staff,
+):
+    # given
+    # MANAGE_STAFF must NOT, on its own, grant an app access to the user field
+    # on a GiftCardEvent. Only MANAGE_USERS (or being the owner) does.
+    # Without this guard, an app holding MANAGE_STAFF would leak the staff
+    # user that triggered the event.
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_GIFT_CARD_EVENTS,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_apps,
+            permission_manage_staff,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    events_data = content["data"]["giftCard"]["events"]
+    assert len(events_data) == gift_card.events.count()
+    assert all(event["user"] is None for event in events_data)
+
+    permission_denied_msg = (
+        "To access this path, you need one of the following permissions: "
+        "MANAGE_USERS, MANAGE_STAFF, OWNER"
+    )
+    user_errors = [e for e in content["errors"] if e["path"][-1] == "user"]
+    assert len(user_errors) == len(events_data)
+    for error in user_errors:
+        assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+        assert error["message"] == permission_denied_msg
+
+
 def test_query_gift_card_event_with_removed_app(
     staff_api_client,
     removed_app,

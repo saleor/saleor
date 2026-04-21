@@ -6,7 +6,7 @@ from django.test import override_settings
 
 from ...channel import MarkAsPaidStrategy
 from ...core.models import EventDelivery
-from ...core.utils.events import call_event_including_protected_events
+from ...core.utils.events import call_event
 from ...giftcard import GiftCardEvents
 from ...giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
 from ...giftcard.models import GiftCard, GiftCardEvent
@@ -1415,8 +1415,8 @@ def test_fulfill_order_lines(order_with_lines, site_settings):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        get_plugins_manager(allow_replica=False),
         site_settings=site_settings,
+        requestor=None,
     )
 
     stock.refresh_from_db()
@@ -1455,8 +1455,8 @@ def test_fulfill_order_lines_multiple_lines(order_with_lines, site_settings):
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        get_plugins_manager(allow_replica=False),
         site_settings=site_settings,
+        requestor=None,
     )
 
     stock_1.refresh_from_db()
@@ -1480,8 +1480,8 @@ def test_fulfill_order_lines_with_variant_deleted(order_with_lines, site_setting
 
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity)],
-        get_plugins_manager(allow_replica=False),
         site_settings=site_settings,
+        requestor=None,
     )
 
 
@@ -1508,8 +1508,8 @@ def test_fulfill_order_lines_without_inventory_tracking(
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        get_plugins_manager(allow_replica=False),
         site_settings=site_settings,
+        requestor=None,
     )
 
     stock.refresh_from_db()
@@ -2373,13 +2373,10 @@ def test_call_order_event_incorrect_webhook_event(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
-@patch(
-    "saleor.core.utils.events.call_event_including_protected_events",
-    wraps=call_event_including_protected_events,
-)
+@patch("saleor.order.actions.call_event", wraps=call_event)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_for_draft_order_deleted(
-    mocked_call_event_including_protected_events,
+    mocked_call_event,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
@@ -2435,7 +2432,7 @@ def test_call_order_for_draft_order_deleted(
     )
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    mocked_call_event_including_protected_events.assert_called_once_with(
+    mocked_call_event.assert_called_once_with(
         ANY, order_with_lines, webhooks={order_webhook}
     )
 
@@ -2536,13 +2533,10 @@ def test_call_order_events_incorrect_webhook_event(
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
-@patch(
-    "saleor.core.utils.events.call_event_including_protected_events",
-    wraps=call_event_including_protected_events,
-)
+@patch("saleor.order.actions.call_event", wraps=call_event)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_call_order_events_for_draft_order_deleted(
-    mocked_call_event_including_protected_events,
+    mocked_call_event,
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
     mocked_cache,
@@ -2602,7 +2596,7 @@ def test_call_order_events_for_draft_order_deleted(
     )
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
-    mocked_call_event_including_protected_events.assert_has_calls(
+    mocked_call_event.assert_has_calls(
         [
             call(
                 plugins_manager.draft_order_deleted,

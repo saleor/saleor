@@ -127,7 +127,7 @@ def test_fulfillment_refund_products_with_action_requested_by_app(
 
 
 @patch("saleor.payment.gateway.refund")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_fulfillment_refund_products_with_back_in_stock_webhook(
     back_in_stock_webhook_trigger,
     mock_refunded,
@@ -157,7 +157,9 @@ def test_fulfillment_refund_products_with_back_in_stock_webhook(
     errors = data["errors"]
     assert not errors
     assert refund_fulfillment["status"] == FulfillmentStatus.REFUNDED.upper()
-    back_in_stock_webhook_trigger.assert_called_once_with(Stock.objects.first())
+    back_in_stock_webhook_trigger.assert_called_once_with(
+        Stock.objects.first(), requestor=staff_api_client.user
+    )
 
 
 def test_fulfillment_refund_gift_card_products(

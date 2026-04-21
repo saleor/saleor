@@ -370,14 +370,14 @@ class DraftOrderCreate(
         cleaned_input["lines_data"] = grouped_lines_data
 
     @staticmethod
-    def _save_lines(info, instance, lines_data, app, manager, site_settings):
+    def _save_lines(info, instance, lines_data, app, requestor, site_settings):
         lines = []
         if lines_data:
             for line_data in lines_data:
                 new_line = create_order_line(
                     instance,
                     line_data,
-                    manager,
+                    requestor,
                     site_settings,
                 )
                 lines.append(new_line)
@@ -395,6 +395,7 @@ class DraftOrderCreate(
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
         site = get_site_promise(info.context).get()
+        requestor = app or info.context.user
 
         with traced_atomic_transaction():
             # Process addresses
@@ -407,7 +408,7 @@ class DraftOrderCreate(
                     instance,
                     cleaned_input.get("lines_data"),
                     app,
-                    manager,
+                    requestor,
                     site.settings,
                 )
             except TaxError as e:

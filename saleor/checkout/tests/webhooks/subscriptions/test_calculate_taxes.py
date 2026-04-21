@@ -4,12 +4,12 @@ from unittest.mock import ANY
 import pytest
 from freezegun import freeze_time
 
-from ....discount.models import PromotionRule
-from ....graphql.core.utils import to_global_id_or_none
-from ....tax import TaxableObjectDiscountType
-from ...event_types import WebhookEventSyncType
-from ...models import Webhook
-from ...transport.synchronous.transport import (
+from .....discount.models import PromotionRule
+from .....graphql.core.utils import to_global_id_or_none
+from .....tax import TaxableObjectDiscountType
+from .....webhook.event_types import WebhookEventSyncType
+from .....webhook.models import Webhook
+from .....webhook.transport.synchronous.transport import (
     create_delivery_for_subscription_sync_event,
 )
 
@@ -237,35 +237,6 @@ def test_checkout_calculate_taxes_with_free_shipping_voucher(
             },
         },
     }
-
-
-@freeze_time("2020-03-18 12:00:00")
-def test_checkout_calculate_taxes_with_pregenerated_payload(
-    checkout_with_voucher_free_shipping,
-    tax_app,
-):
-    # given
-    checkout = checkout_with_voucher_free_shipping
-    webhook = Webhook.objects.create(
-        name="Webhook",
-        app=tax_app,
-        target_url="http://www.example.com/any",
-        subscription_query=TAXES_SUBSCRIPTION_QUERY,
-    )
-    event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
-    webhook.events.create(event_type=event_type)
-    expected_payload = {"payload": "test"}
-
-    # when
-    deliveries = create_delivery_for_subscription_sync_event(
-        event_type,
-        checkout,
-        webhook,
-        pregenerated_payload=expected_payload,
-    )
-
-    # then
-    assert json.loads(deliveries.payload.get_payload()) == expected_payload
 
 
 @freeze_time("2020-03-18 12:00:00")

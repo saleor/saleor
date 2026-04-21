@@ -10,6 +10,8 @@ from django.db.models import F, Sum
 from django.db.models.expressions import Exists, OuterRef
 from django.db.models.functions import Coalesce
 
+from ..account.models import User
+from ..app.models import App
 from ..channel import AllocationStrategy
 from ..checkout.models import CheckoutLine
 from ..core.exceptions import (
@@ -22,7 +24,6 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.utils.country import get_active_country
 from ..order.fetch import OrderLineInfo
 from ..order.models import OrderLine
-from ..plugins.manager import PluginsManager
 from ..product.models import ProductVariant, ProductVariantChannelListing
 from .lock_objects import (
     allocation_with_stock_qs_select_for_update,
@@ -38,10 +39,17 @@ from .models import (
     Stock,
     Warehouse,
 )
+from .webhooks.stock_events import (
+    trigger_product_variant_back_in_stock,
+    trigger_product_variant_out_of_stock,
+)
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
     from ..site.models import SiteSettings
+
+
+T_REQUESTOR = App | User | None
 
 
 class StockData(NamedTuple):
@@ -84,8 +92,8 @@ def allocate_stocks(
     order_lines_info: list["OrderLineInfo"],
     country_code: str,
     channel: "Channel",
-    manager: PluginsManager,
     site_settings: "SiteSettings",
+    requestor: T_REQUESTOR,
     *,
     calculate_stocks_with_shipping_zones: bool,
     collection_point_pk: UUID | None = None,
@@ -217,7 +225,9 @@ def allocate_stocks(
             )
             if not max(allocation.stock.quantity - allocated_stock, 0):
                 transaction.on_commit(
-                    lambda: manager.product_variant_out_of_stock(allocation.stock)
+                    lambda: trigger_product_variant_out_of_stock(
+                        allocation.stock, requestor=requestor
+                    )
                 )
                 out_of_stock_stocks.append(allocation.stock)
         if out_of_stock_stocks and not legacy_stock_availability:
@@ -348,8 +358,8 @@ def _create_allocations(
 
 def deallocate_stock(
     order_lines_data: list["OrderLineInfo"],
-    manager: PluginsManager,
     site_settings: "SiteSettings",
+    requestor: T_REQUESTOR,
 ):
     """Deallocate stocks for given `order_lines`.
 
@@ -422,8 +432,8 @@ def deallocate_stock(
             and available_stock_now > 0
         ):
             transaction.on_commit(
-                lambda: manager.product_variant_back_in_stock(
-                    allocation_before_update.stock
+                lambda: trigger_product_variant_back_in_stock(
+                    allocation_before_update.stock, requestor=requestor
                 )
             )
             back_in_stock_stocks.append(allocation_before_update.stock)
@@ -510,8 +520,8 @@ def _reduce_quantity_allocated_for_stocks(
 def increase_allocations(
     lines_info: list["OrderLineInfo"],
     channel: "Channel",
-    manager: PluginsManager,
     site_settings: "SiteSettings",
+    requestor: T_REQUESTOR,
     calculate_stocks_with_shipping_zones: bool,
 ):
     """Increase allocation for order lines with appropriate quantity."""
@@ -549,23 +559,23 @@ def increase_allocations(
         lines_info,
         country_code,
         channel,
-        manager,
         site_settings,
+        requestor,
         calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
     )
 
 
 def decrease_allocations(
     lines_info: list["OrderLineInfo"],
-    manager,
     site_settings: "SiteSettings",
+    requestor: T_REQUESTOR,
 ):
     """Decrease allocations for provided order lines."""
     lines_to_deallocate = get_order_lines_to_deallocate(lines_info)
     if not lines_to_deallocate:
         return
     try:
-        deallocate_stock(lines_info, manager, site_settings)
+        deallocate_stock(lines_info, site_settings, requestor)
     except AllocationError as exc:
         Allocation.objects.order_by("stock_id").filter(
             order_line__in=exc.order_lines
@@ -575,8 +585,8 @@ def decrease_allocations(
 @traced_atomic_transaction()
 def decrease_stock(
     order_lines_info: list["OrderLineInfo"],
-    manager,
     site_settings: "SiteSettings",
+    requestor: T_REQUESTOR,
     allow_stock_to_be_exceeded: bool = False,
 ):
     """Decrease stocks quantities for given `order_lines` in given warehouses.
@@ -588,7 +598,7 @@ def decrease_stock(
     function decrease it by given value.
     If allow_stock_to_be_exceeded flag is True then quantity could be < 0.
     """
-    decrease_allocations(order_lines_info, manager, site_settings)
+    decrease_allocations(order_lines_info, site_settings, requestor)
 
     order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
     if not order_lines_info:
@@ -633,7 +643,9 @@ def decrease_stock(
     stock_ids = (s.id for s in stocks)
     for stock in Stock.objects.filter(id__in=stock_ids).annotate_available_quantity():
         if stock.available_quantity <= 0:
-            transaction.on_commit(lambda: manager.product_variant_out_of_stock(stock))
+            transaction.on_commit(
+                lambda: trigger_product_variant_out_of_stock(stock, requestor=requestor)
+            )
 
 
 def _decrease_stocks_quantity(
@@ -750,8 +762,8 @@ def get_order_lines_to_deallocate(
 @traced_atomic_transaction()
 def deallocate_stock_for_orders(
     orders_ids: list[UUID],
-    manager: PluginsManager,
     site_settings: "SiteSettings",
+    requestor: T_REQUESTOR,
 ):
     """Remove all allocations for given orders."""
     # local import: to be removed when all webhook logic will be moved outside plugin
@@ -777,7 +789,9 @@ def deallocate_stock_for_orders(
     for allocation in allocations_for_back_in_stock.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
             transaction.on_commit(
-                lambda: manager.product_variant_back_in_stock(allocation.stock)
+                lambda: trigger_product_variant_back_in_stock(
+                    allocation.stock, requestor=requestor
+                )
             )
             back_in_stock_stocks.append(allocation.stock)
     if back_in_stock_stocks and not legacy_stock_availability:

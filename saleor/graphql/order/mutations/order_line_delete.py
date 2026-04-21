@@ -22,6 +22,7 @@ from ...core.types import OrderError
 from ...core.utils import raise_validation_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
+from ...utils import get_user_or_app_from_context
 from ..types import Order, OrderLine
 from .utils import EditableOrderValidationMixin, call_event_by_order_status
 
@@ -48,6 +49,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
     ):
         manager = get_plugin_manager_promise(info.context).get()
         site = get_site_promise(info.context).get()
+        requestor = get_user_or_app_from_context(info.context)
         line = cls.get_node_or_error(
             info,
             id,
@@ -75,7 +77,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
                 variant=line.variant,
                 warehouse_pk=warehouse_pk,
             )
-            delete_order_line(line_info, manager, site.settings)
+            delete_order_line(line_info, site.settings, requestor)
             line.id = db_id
 
             updated_fields = []

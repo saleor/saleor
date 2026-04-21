@@ -497,6 +497,9 @@ COUNTRIES_OVERRIDE = {
 }
 
 MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
+MAX_IMAGE_FILE_SIZE = int(
+    os.environ.get("MAX_IMAGE_FILE_SIZE", 10 * 1024 * 1024)
+)  # 10MB
 
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
@@ -877,7 +880,7 @@ GRAPHQL_PAGINATION_LIMIT = 100
 GRAPHQL_MIDDLEWARE: list[str] = []
 GRAPHQL_ALIAS_COUNT_LIMIT: int = int(os.environ.get("GRAPHQL_ALIAS_COUNT_LIMIT", 100))
 GRAPHQL_MUTATION_COUNT_LIMIT: int = int(
-    os.environ.get("GRAPHQL_MUTATION_COUNT_LIMIT", 3)
+    os.environ.get("GRAPHQL_MUTATION_COUNT_LIMIT", 4)
 )
 GRAPHQL_BATCH_MAX_COUNT: int = int(os.environ.get("GRAPHQL_BATCH_MAX_COUNT", 1))
 
