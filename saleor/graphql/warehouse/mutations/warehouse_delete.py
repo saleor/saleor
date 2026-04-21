@@ -1,12 +1,18 @@
 import graphene
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
 from ....warehouse import models
+from ....warehouse.channel_stock_availability import (
+    get_source_warehouses_data,
+    trigger_out_of_stock_in_channel_events_for_stocks,
+)
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import WarehouseError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Warehouse
 
 
@@ -32,11 +38,22 @@ class WarehouseDelete(ModelDeleteMutation):
         if instance:
             cls.clean_instance(info, instance)
 
-        stocks = (stock for stock in instance.stock_set.only("product_variant"))
+        stocks = list(instance.stock_set.only("product_variant"))
         address_id = instance.address_id
         address = instance.address
 
         db_id = instance.id
+        site_settings = get_site_promise(info.context).get().settings
+        fire_stock_channel_events = bool(
+            stocks and not site_settings.use_legacy_shipping_zone_stock_availability
+        )
+        # Snapshot source warehouse channel + C&C data while the warehouse still
+        # exist.
+        source_warehouses_data = (
+            get_source_warehouses_data([instance.id])
+            if fire_stock_channel_events
+            else None
+        )
         with traced_atomic_transaction():
             instance.delete()
 
@@ -56,6 +73,14 @@ class WarehouseDelete(ModelDeleteMutation):
             cls.post_save_action(info, instance, None)
             for stock in stocks:
                 cls.call_event(manager.product_variant_out_of_stock, stock)
+
+            if fire_stock_channel_events:
+                call_event(
+                    trigger_out_of_stock_in_channel_events_for_stocks,
+                    stocks,
+                    site_settings,
+                    source_warehouses_data=source_warehouses_data,
+                )
         return cls.success_response(instance)
 
     @classmethod
