@@ -118,10 +118,11 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
             stock, is_created = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
-            if is_created or (
-                (stock.quantity - stock.quantity_allocated)
-                <= 0
-                < stock_data["quantity"]
+            old_available = stock.quantity - stock.quantity_allocated
+            new_available = stock_data["quantity"] - stock.quantity_allocated
+
+            if (is_created and new_available > 0) or (
+                old_available <= 0 < new_available
             ):
                 cls.call_event(
                     manager.product_variant_back_in_stock,
@@ -130,9 +131,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 )
                 back_in_stock_stocks.append(stock)
 
-            if stock_data["quantity"] <= 0 or (
-                stock_data["quantity"] - stock.quantity_allocated <= 0
-            ):
+            if old_available > 0 >= new_available:
                 cls.call_event(
                     manager.product_variant_out_of_stock,
                     stock,
