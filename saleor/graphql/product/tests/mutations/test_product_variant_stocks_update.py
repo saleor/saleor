@@ -5,7 +5,6 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
 
-from .....plugins.manager import get_plugins_manager
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import get_graphql_content
@@ -237,8 +236,8 @@ def test_update_or_create_variant_stocks(variant, warehouses, site_settings):
         variant,
         stocks_data,
         warehouses,
-        get_plugins_manager(allow_replica=False),
         site_settings,
+        None,
     )
 
     variant.refresh_from_db()
@@ -289,8 +288,8 @@ def test_update_or_create_variant_stocks_when_stock_out_of_quantity(
             variant,
             stocks_data,
             warehouses,
-            get_plugins_manager(allow_replica=False),
             site_settings,
+            None,
         )
 
     variant.refresh_from_db()
@@ -317,7 +316,7 @@ def test_update_or_create_variant_stocks_empty_stocks_data(
     )
 
     ProductVariantStocksUpdate.update_or_create_variant_stocks(
-        variant, [], warehouses, get_plugins_manager(allow_replica=False), site_settings
+        variant, [], warehouses, site_settings, None
     )
 
     variant.refresh_from_db()
@@ -363,7 +362,6 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
     )
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    plugins = get_plugins_manager(allow_replica=False)
     stocks_data = [
         {"quantity": 10, "warehouse": "123"},
     ]
@@ -371,7 +369,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_success(
 
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, warehouses, plugins, site_settings
+            variant, stocks_data, warehouses, site_settings, None
         )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
@@ -424,7 +422,6 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
 
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    plugins = get_plugins_manager(allow_replica=False)
     stocks_data = [
         {"quantity": 0, "warehouse": "123"},
     ]
@@ -433,7 +430,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_only_failed(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, warehouses, plugins, site_settings
+            variant, stocks_data, warehouses, site_settings, None
         )
 
     # then — updated stock transitioned from available (5) to out of stock (0)
@@ -486,7 +483,6 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_with_allocations(
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    plugins = get_plugins_manager(allow_replica=False)
     stock.quantity_allocated = stock_quantity
     stock.save(update_fields=["quantity_allocated"])
     stocks_data = [
@@ -496,7 +492,7 @@ def test_update_or_create_variant_with_back_in_stock_webhooks_with_allocations(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, [warehouse], plugins, site_settings
+            variant, stocks_data, [warehouse], site_settings, None
         )
     # then
     product_variant_back_in_stock_webhook.assert_called_once_with(
@@ -544,7 +540,6 @@ def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
-    plugins = get_plugins_manager(allow_replica=False)
     stock.quantity_allocated = stock_quantity - 1
     stock.save(update_fields=["quantity_allocated"])
     stocks_data = [
@@ -554,7 +549,7 @@ def test_update_or_create_variant_with_out_of_stock_webhooks_with_allocations(
     # when
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, [warehouse], plugins, site_settings
+            variant, stocks_data, [warehouse], site_settings, None
         )
     # then
     product_variant_stock_out_of_stock_webhook.assert_called_once_with(
@@ -604,8 +599,6 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    plugins = get_plugins_manager(allow_replica=False)
-
     stocks_data = [
         {"quantity": 0, "warehouse": "123"},
         {"quantity": 2, "warehouse": "321"},
@@ -614,7 +607,7 @@ def test_update_or_create_variant_stocks_with_out_of_stock_webhook_only(
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 10
     with django_capture_on_commit_callbacks(execute=True):
         ProductVariantStocksUpdate.update_or_create_variant_stocks(
-            variant, stocks_data, warehouses, plugins, site_settings
+            variant, stocks_data, warehouses, site_settings, None
         )
 
     assert variant.stocks.aggregate(Sum("quantity"))["quantity__sum"] == 2
