@@ -9,12 +9,12 @@ supported-markers = [
 ]
 
 [options]
-exclude-newer = "2026-03-17T14:10:57.981314838Z"
+exclude-newer = "2026-03-31T05:47:06.949972Z"
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
 django = "2026-04-07T14:30:00Z"
-pyjwt = { timestamp = "2026-03-28T14:10:57.981360004Z", span = "P10D" }
+pyjwt = { timestamp = "2026-04-11T05:47:06.951029Z", span = "P10D" }
 
 [[package]]
 name = "amqp"
@@ -89,17 +89,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/af/98/00d3dd826d46959ad
 wheels = [
     { url = "https://files.pythonhosted.org/packages/53/23/b65f568ed0c22f1efacb744d2db1a33c8068f384b8c9b482b52ebdbc3ef6/authlib-1.6.9-py2.py3-none-any.whl", hash = "sha256:f08b4c14e08f0861dc18a32357b33fbcfd2ea86cfe3fe149484b4d764c4a0ac3", size = 244197, upload-time = "2026-03-02T07:44:00.307Z" },
 ]
-
-[[package]]
-name = "authorizenet"
-version = "1.1.6"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "lxml", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "pyxb-x", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/32/7f/0e26284cd5c86c5b481dead1b1fb3d7e75a728d23bed11fc7b351f08d444/authorizenet-1.1.6.tar.gz", hash = "sha256:1e38ec9279817c24bc986a5cc72e1299e006cb617fef933c8e6f49e752d792f4", size = 161939, upload-time = "2025-04-28T06:35:38.08Z" }
 
 [[package]]
 name = "azure-common"
@@ -2364,15 +2353,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pyxb-x"
-version = "1.2.6.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/de/de/2556352e8e4092d835852af63c34500681ba5ab6a5a3047e5daabb6d9ca9/pyxb_x-1.2.6.3.tar.gz", hash = "sha256:bf401fa8d3e6bd6ea6648f49f02c7dc7ef460b4c61dc34bc2f1c4c3a952037b5", size = 1275136, upload-time = "2025-01-07T15:50:05.735Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/03/8154462b23ce8ed229d9be4eee17b8132b746e6a1f1dbfe57b72139ce5a0/PyXB_X-1.2.6.3-py3-none-any.whl", hash = "sha256:4c4a55d6b8c61c2d84ab4c2cb49ee74185599242bbfd1cf0bdd6be4a8a874006", size = 310097, upload-time = "2025-01-07T15:50:02.87Z" },
-]
-
-[[package]]
 name = "pyyaml"
 version = "6.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2525,7 +2505,6 @@ source = { virtual = "." }
 dependencies = [
     { name = "asgiref", marker = "platform_python_implementation != 'PyPy'" },
     { name = "authlib", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "authorizenet", marker = "platform_python_implementation != 'PyPy'" },
     { name = "azure-common", marker = "platform_python_implementation != 'PyPy'" },
     { name = "azure-storage-blob", marker = "platform_python_implementation != 'PyPy'" },
     { name = "azure-storage-common", marker = "platform_python_implementation != 'PyPy'" },
@@ -2637,7 +2616,6 @@ dev = [
 requires-dist = [
     { name = "asgiref", specifier = ">=3.7.2,<4" },
     { name = "authlib", specifier = ">=1.6.9,<2" },
-    { name = "authorizenet", specifier = ">=1.1.5,<2" },
     { name = "azure-common", specifier = ">=1.1.28,<2" },
     { name = "azure-storage-blob", specifier = ">=12.23.1,<13" },
     { name = "azure-storage-common", specifier = ">=2.1.0,<3" },

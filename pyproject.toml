@@ -13,7 +13,6 @@ license = "BSD-3-Clause"
 dependencies = [
     "asgiref>=3.7.2,<4",
     "authlib>=1.6.9,<2",
-    "authorizenet>=1.1.5,<2",
     "azure-common>=1.1.28,<2",
     "azure-storage-blob>=12.23.1,<13",
     "azure-storage-common>=2.1.0,<3",

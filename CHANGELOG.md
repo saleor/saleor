@@ -6,6 +6,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Removed the deprecated Authorize.Net payment gateway plugin (`mirumee.payments.authorize_net`).
+
 ### GraphQL API
 
 ### Webhooks
