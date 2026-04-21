@@ -24,7 +24,6 @@ from ...order.models import Order
 from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
-from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductVariant
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
