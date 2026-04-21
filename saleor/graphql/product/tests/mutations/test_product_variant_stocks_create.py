@@ -323,9 +323,10 @@ def test_create_stocks_triggers_back_in_stock_in_channel_for_non_cc_warehouses(
 
     # then - fires once per (variant, channel), dedup across the two warehouses
     mocked_trigger.assert_called_once()
-    stock_info = mocked_trigger.call_args.args[0]
-    assert stock_info.variant_id == variant.id
-    assert stock_info.channel_slug == channel_USD.slug
+    stock_infos = mocked_trigger.call_args.args[0]
+    assert len(stock_infos) == 1
+    assert stock_infos[0].variant_id == variant.id
+    assert stock_infos[0].channel_slug == channel_USD.slug
 
 
 @mock.patch(
@@ -385,9 +386,10 @@ def test_create_stocks_triggers_back_in_stock_for_click_and_collect(
 
     # then
     mocked_trigger.assert_called_once()
-    stock_info = mocked_trigger.call_args.args[0]
-    assert stock_info.variant_id == variant.id
-    assert stock_info.channel_slug == channel_USD.slug
+    stock_infos = mocked_trigger.call_args.args[0]
+    assert len(stock_infos) == 1
+    assert stock_infos[0].variant_id == variant.id
+    assert stock_infos[0].channel_slug == channel_USD.slug
 
 
 @mock.patch(

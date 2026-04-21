@@ -64,21 +64,22 @@ def trigger_out_of_stock_in_channel_events_for_stocks(
         if not grouped_stocks:
             continue
 
-        for (
-            variant_id,
-            channel_slug,
-        ) in _get_variant_channels_without_other_availability(
-            grouped_stocks, cc_options
-        ):
-            trigger(
-                VariantChannelStockInfo(
-                    variant_id=variant_id,
-                    channel_slug=channel_slug,
-                ),
-                site_settings,
-                requestor=requestor,
-                webhooks=webhooks,
+        stock_infos = [
+            VariantChannelStockInfo(variant_id=variant_id, channel_slug=channel_slug)
+            for variant_id, channel_slug in (
+                _get_variant_channels_without_other_availability(
+                    grouped_stocks, cc_options
+                )
             )
+        ]
+        if not stock_infos:
+            continue
+        trigger(
+            stock_infos,
+            site_settings,
+            requestor=requestor,
+            webhooks=webhooks,
+        )
 
 
 def trigger_back_in_stock_in_channel_events_for_stocks(
@@ -117,21 +118,22 @@ def trigger_back_in_stock_in_channel_events_for_stocks(
         if not grouped_stocks:
             continue
 
-        for (
-            variant_id,
-            channel_slug,
-        ) in _get_variant_channels_without_other_availability(
-            grouped_stocks, cc_options
-        ):
-            trigger(
-                VariantChannelStockInfo(
-                    variant_id=variant_id,
-                    channel_slug=channel_slug,
-                ),
-                site_settings,
-                requestor=requestor,
-                webhooks=webhooks,
+        stock_infos = [
+            VariantChannelStockInfo(variant_id=variant_id, channel_slug=channel_slug)
+            for variant_id, channel_slug in (
+                _get_variant_channels_without_other_availability(
+                    grouped_stocks, cc_options
+                )
             )
+        ]
+        if not stock_infos:
+            continue
+        trigger(
+            stock_infos,
+            site_settings,
+            requestor=requestor,
+            webhooks=webhooks,
+        )
 
 
 def _split_stocks_by_click_and_collect(
