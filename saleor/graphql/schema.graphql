@@ -2051,6 +2051,34 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+
+  """
+  A product variant becomes out of stock across all non click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes available again across non click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes out of stock across all click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+
+  """
+  A product variant becomes available again across click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
   PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
 
   """A new checkout is created."""
@@ -2627,6 +2655,34 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product variant stock is updated"""
   PRODUCT_VARIANT_STOCK_UPDATED
+
+  """
+  A product variant becomes out of stock across all non click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes available again across non click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
+
+  """
+  A product variant becomes out of stock across all click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+
+  """
+  A product variant becomes available again across click-and-collect warehouses in a channel. 
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  """
+  PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
   PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
 
   """A new checkout is created."""
@@ -14147,6 +14203,10 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
   PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
+  PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL
+  PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+  PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
   PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
@@ -33774,6 +33834,70 @@ type Subscription @doc(category: "Miscellaneous") {
     """
     channels: [String!]
   ): ProductVariantDiscountedPriceUpdated @doc(category: "Products")
+
+  """
+  Event sent when a product variant becomes out of stock across all non click-and-collect warehouses in a channel.
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  
+  Added in Saleor 3.23.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  productVariantOutOfStockInChannel(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): ProductVariantOutOfStockInChannel @doc(category: "Products")
+
+  """
+  Event sent when a product variant becomes available again across non click-and-collect warehouses in a channel.
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  
+  Added in Saleor 3.23.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  productVariantBackInStockInChannel(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): ProductVariantBackInStockInChannel @doc(category: "Products")
+
+  """
+  Event sent when a product variant becomes out of stock across all click-and-collect warehouses in a channel.
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  
+  Added in Saleor 3.23.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  productVariantOutOfStockForClickAndCollect(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): ProductVariantOutOfStockForClickAndCollect @doc(category: "Products")
+
+  """
+  Event sent when a product variant becomes available again across click-and-collect warehouses in a channel.
+  
+  Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  
+  Added in Saleor 3.23.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  productVariantBackInStockForClickAndCollect(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): ProductVariantBackInStockForClickAndCollect @doc(category: "Products")
 }
 
 interface Event {
@@ -34191,6 +34315,114 @@ type ProductVariantDiscountedPriceUpdated implements Event @doc(category: "Produ
 
   """The new discounted price."""
   newPrice: Money!
+}
+
+"""
+Event sent when a product variant becomes out of stock across all non click-and-collect warehouses in a channel.
+
+Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+
+Added in Saleor 3.23.
+"""
+type ProductVariantOutOfStockInChannel implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant: ProductVariant!
+
+  """The channel the stock availability changed in."""
+  channel: Channel!
+}
+
+"""
+Event sent when a product variant becomes available again across non click-and-collect warehouses in a channel.
+
+Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+
+Added in Saleor 3.23.
+"""
+type ProductVariantBackInStockInChannel implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant: ProductVariant!
+
+  """The channel the stock availability changed in."""
+  channel: Channel!
+}
+
+"""
+Event sent when a product variant becomes out of stock across all click-and-collect warehouses in a channel.
+
+Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+
+Added in Saleor 3.23.
+"""
+type ProductVariantOutOfStockForClickAndCollect implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant: ProductVariant!
+
+  """The channel the stock availability changed in."""
+  channel: Channel!
+}
+
+"""
+Event sent when a product variant becomes available again across click-and-collect warehouses in a channel.
+
+Note: Only triggered when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+
+Added in Saleor 3.23.
+"""
+type ProductVariantBackInStockForClickAndCollect implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant: ProductVariant!
+
+  """The channel the stock availability changed in."""
+  channel: Channel!
 }
 
 enum DistanceUnitsEnum {

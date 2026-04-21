@@ -152,3 +152,26 @@ def calculate_webhooks_for_multiple_events(
         if event not in active_event_map:
             active_event_map[event] = set()
     return active_event_map
+
+
+def filter_webhooks_for_channel(
+    webhooks: Iterable[Webhook],
+    channel_slug: str,
+) -> list[Webhook]:
+    """Return webhooks whose subscription query allows the given channel.
+
+    Webhooks without a subscription query, or whose subscription query has no
+    channel filter, are passed through unchanged.
+    """
+    filtered: list[Webhook] = []
+    for webhook in webhooks:
+        if not webhook.subscription_query:
+            filtered.append(webhook)
+            continue
+        filterable_channel_slugs = list(webhook.filterable_channel_slugs)
+        if not filterable_channel_slugs:
+            filtered.append(webhook)
+            continue
+        if channel_slug in filterable_channel_slugs:
+            filtered.append(webhook)
+    return filtered

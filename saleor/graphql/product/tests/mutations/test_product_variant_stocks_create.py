@@ -1,5 +1,8 @@
+from unittest import mock
+
 import graphene
 
+from .....warehouse import WarehouseClickAndCollectOption
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import get_graphql_content
@@ -277,3 +280,159 @@ def test_invalidate_stocks_dataloader_on_create_stocks(
 
     # stocks are returned in the second mutation, after dataloader invalidation
     assert len(create_stocks_data["stocks"]) == len(warehouse_ids)
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_in_channel"
+)
+def test_create_stocks_triggers_back_in_stock_in_channel_for_non_cc_warehouses(
+    mocked_trigger,
+    staff_api_client,
+    variant,
+    warehouses,
+    channel_USD,
+    site_settings,
+    permission_manage_products,
+):
+    # given - creating stocks in two non-C&C warehouses
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    warehouses[0].channels.add(channel_USD)
+    warehouses[1].channels.add(channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in warehouses
+    ]
+    variables = {
+        "variantId": variant_id,
+        "stocks": [
+            {"warehouse": warehouse_ids[0], "quantity": 10},
+            {"warehouse": warehouse_ids[1], "quantity": 5},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    get_graphql_content(response)
+
+    # then - fires once per (variant, channel), dedup across the two warehouses
+    mocked_trigger.assert_called_once()
+    stock_infos = mocked_trigger.call_args.args[0]
+    assert len(stock_infos) == 1
+    assert stock_infos[0].variant_id == variant.id
+    assert stock_infos[0].channel_slug == channel_USD.slug
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_for_click_and_collect"
+)
+def test_create_stocks_triggers_back_in_stock_for_click_and_collect(
+    mocked_trigger,
+    staff_api_client,
+    variant,
+    channel_USD,
+    address,
+    site_settings,
+    permission_manage_products,
+):
+    # given - creating stocks in two C&C warehouses
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    cc_warehouses = Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="cc-1",
+                slug="cc-1",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="cc-2",
+                slug="cc-2",
+                click_and_collect_option=WarehouseClickAndCollectOption.LOCAL_STOCK,
+            ),
+        ]
+    )
+    for warehouse in cc_warehouses:
+        warehouse.channels.add(channel_USD)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in cc_warehouses
+    ]
+    variables = {
+        "variantId": variant_id,
+        "stocks": [
+            {"warehouse": warehouse_ids[0], "quantity": 10},
+            {"warehouse": warehouse_ids[1], "quantity": 5},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    get_graphql_content(response)
+
+    # then
+    mocked_trigger.assert_called_once()
+    stock_infos = mocked_trigger.call_args.args[0]
+    assert len(stock_infos) == 1
+    assert stock_infos[0].variant_id == variant.id
+    assert stock_infos[0].channel_slug == channel_USD.slug
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_in_channel"
+)
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability"
+    ".trigger_product_variant_back_in_stock_for_click_and_collect"
+)
+def test_create_stocks_skips_channel_events_when_legacy_flag_enabled(
+    mocked_back_cc,
+    mocked_back,
+    staff_api_client,
+    variant,
+    warehouses,
+    site_settings,
+    permission_manage_products,
+):
+    # given - legacy flag is on; creating stocks in two warehouses
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in warehouses
+    ]
+    variables = {
+        "variantId": variant_id,
+        "stocks": [
+            {"warehouse": warehouse_ids[0], "quantity": 10},
+            {"warehouse": warehouse_ids[1], "quantity": 5},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    get_graphql_content(response)
+
+    # then
+    mocked_back.assert_not_called()
+    mocked_back_cc.assert_not_called()

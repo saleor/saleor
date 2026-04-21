@@ -3,6 +3,7 @@ import logging
 from collections import Counter
 
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
 from django.db.models.functions import Greatest
 from django.utils import timezone
@@ -140,7 +141,7 @@ def _order_expired_events(order_ids):
 
 
 @allow_writer()
-def _expire_orders(manager, now):
+def _expire_orders(manager, now, site_settings):
     time_diff_func_in_minutes = (
         Func(Value("day"), now - OuterRef("created_at"), function="DATE_PART") * 24
         + Func(Value("hour"), now - OuterRef("created_at"), function="DATE_PART") * 60
@@ -166,7 +167,7 @@ def _expire_orders(manager, now):
         )
         _bulk_release_voucher_usage(ids_batch)
         _order_expired_events(ids_batch)
-        deallocate_stock_for_orders(ids_batch, requestor=None)
+        deallocate_stock_for_orders(ids_batch, site_settings, requestor=None)
         _call_expired_order_events(ids_batch, manager)
 
 
@@ -174,7 +175,8 @@ def _expire_orders(manager, now):
 def expire_orders_task():
     now = timezone.now()
     manager = get_plugins_manager(allow_replica=True)
-    _expire_orders(manager, now)
+    site_settings = Site.objects.get_current().settings
+    _expire_orders(manager, now, site_settings)
 
 
 @app.task

@@ -14,6 +14,7 @@ from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Fulfillment, Order
 from .fulfillment_refund_and_return_product_base import (
     FulfillmentRefundAndReturnProductBase,
@@ -166,6 +167,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         order = cleaned_input["order"]
         cls.check_channel_permissions(info, [order.channel_id])
         manager = get_plugin_manager_promise(info.context).get()
+        site = get_site_promise(info.context).get()
         try:
             app = get_app_promise(info.context).get()
             response = create_fulfillments_for_returned_products(
@@ -176,6 +178,7 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
                 cleaned_input.get("order_lines", []),
                 cleaned_input.get("fulfillment_lines", []),
                 manager,
+                site.settings,
                 cleaned_input["refund"],
                 cleaned_input.get("amount_to_refund"),
                 cleaned_input["include_shipping_costs"],

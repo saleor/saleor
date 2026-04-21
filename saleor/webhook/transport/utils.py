@@ -41,6 +41,7 @@ from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...core.utils.url import sanitize_url_for_logging
 from ...product.interface import VariantDiscountedPriceChange
+from ...warehouse.interface import VariantChannelStockInfo
 from .. import observability
 from ..const import APP_ID_PREFIX
 from ..event_types import WebhookEventAsyncType
@@ -107,6 +108,18 @@ class DeferredPayloadData:
 DEFERRED_SUBSCRIBABLE_OBJECT_MAP: dict[str, type] = {
     WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: (
         VariantDiscountedPriceChange
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL: (
+        VariantChannelStockInfo
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL: (
+        VariantChannelStockInfo
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT: (
+        VariantChannelStockInfo
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT: (
+        VariantChannelStockInfo
     ),
 }
 

@@ -590,6 +590,7 @@ def test_cancel_order(
     send_order_canceled_confirmation_mock,
     fulfilled_order_with_all_cancelled_fulfillments,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     # given
     order = fulfilled_order_with_all_cancelled_fulfillments
@@ -601,7 +602,7 @@ def test_cancel_order(
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        cancel_order(order, None, None, manager)
+        cancel_order(order, None, None, manager, site_settings)
 
     # then
     order_event = order.events.last()
@@ -634,6 +635,7 @@ def test_cancel_order_dont_trigger_webhooks(
     order_with_lines,
     settings,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     # given
     plugins_manager = get_plugins_manager(False)
@@ -657,7 +659,7 @@ def test_cancel_order_dont_trigger_webhooks(
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
-        cancel_order(order, None, None, plugins_manager)
+        cancel_order(order, None, None, plugins_manager, site_settings)
 
     # then
     # confirm that event delivery was generated for each async webhook.
@@ -1396,7 +1398,7 @@ def test_order_charged_triggers_webhooks(
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
 
 
-def test_fulfill_order_lines(order_with_lines):
+def test_fulfill_order_lines(order_with_lines, site_settings):
     order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
@@ -1413,7 +1415,8 @@ def test_fulfill_order_lines(order_with_lines):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        None,
+        site_settings=site_settings,
+        requestor=None,
     )
 
     stock.refresh_from_db()
@@ -1421,7 +1424,7 @@ def test_fulfill_order_lines(order_with_lines):
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
-def test_fulfill_order_lines_multiple_lines(order_with_lines):
+def test_fulfill_order_lines_multiple_lines(order_with_lines, site_settings):
     order = order_with_lines
     lines = order.lines.all()
 
@@ -1452,7 +1455,8 @@ def test_fulfill_order_lines_multiple_lines(order_with_lines):
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        None,
+        site_settings=site_settings,
+        requestor=None,
     )
 
     stock_1.refresh_from_db()
@@ -1468,7 +1472,7 @@ def test_fulfill_order_lines_multiple_lines(order_with_lines):
     )
 
 
-def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
+def test_fulfill_order_lines_with_variant_deleted(order_with_lines, site_settings):
     line = order_with_lines.lines.first()
     line.variant.delete()
 
@@ -1476,11 +1480,14 @@ def test_fulfill_order_lines_with_variant_deleted(order_with_lines):
 
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity)],
-        None,
+        site_settings=site_settings,
+        requestor=None,
     )
 
 
-def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
+def test_fulfill_order_lines_without_inventory_tracking(
+    order_with_lines, site_settings
+):
     order = order_with_lines
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
@@ -1501,7 +1508,8 @@ def test_fulfill_order_lines_without_inventory_tracking(order_with_lines):
                 warehouse_pk=stock.warehouse.pk,
             )
         ],
-        None,
+        site_settings=site_settings,
+        requestor=None,
     )
 
     stock.refresh_from_db()

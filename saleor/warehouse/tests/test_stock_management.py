@@ -24,7 +24,7 @@ from ..models import Allocation, ChannelWarehouse, PreorderAllocation
 COUNTRY_CODE = "US"
 
 
-def test_allocate_stocks(order_line, stock, channel_USD):
+def test_allocate_stocks(order_line, stock, channel_USD, site_settings):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
 
@@ -34,6 +34,7 @@ def test_allocate_stocks(order_line, stock, channel_USD):
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
     )
@@ -46,7 +47,7 @@ def test_allocate_stocks(order_line, stock, channel_USD):
 
 
 def test_allocate_stocks_multiple_lines_the_highest_stock_strategy(
-    order_line, order, product, stock, channel_USD
+    order_line, order, product, stock, channel_USD, site_settings
 ):
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
@@ -75,6 +76,7 @@ def test_allocate_stocks_multiple_lines_the_highest_stock_strategy(
         [line_data_1, line_data_2],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
     )
@@ -90,7 +92,7 @@ def test_allocate_stocks_multiple_lines_the_highest_stock_strategy(
 
 
 def test_allocate_stock_many_stocks_the_highest_stock_strategy(
-    order_line, variant_with_many_stocks, channel_USD
+    order_line, variant_with_many_stocks, channel_USD, site_settings
 ):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
@@ -100,6 +102,7 @@ def test_allocate_stock_many_stocks_the_highest_stock_strategy(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
     )
@@ -110,7 +113,7 @@ def test_allocate_stock_many_stocks_the_highest_stock_strategy(
 
 
 def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
-    order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
+    order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc, site_settings
 ):
     """Test that collection points take precedence during stock allocation.
 
@@ -133,6 +136,7 @@ def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
         collection_point_pk=warehouse_for_cc.pk,
@@ -145,7 +149,7 @@ def test_allocate_stocks_the_highest_stock_strategy_with_collection_point(
 
 
 def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
-    order_line, variant_with_many_stocks, channel_USD
+    order_line, variant_with_many_stocks, channel_USD, site_settings
 ):
     # given
     channel_USD.allocation_strategy = AllocationStrategy.PRIORITIZE_SORTING_ORDER
@@ -174,6 +178,7 @@ def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
     )
@@ -197,7 +202,7 @@ def test_allocate_stock_many_stocks_prioritize_sorting_order_strategy(
 
 
 def test_allocate_stock_prioritize_sorting_order_strategy_with_collection_point(
-    order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc
+    order_line, variant_with_many_stocks, channel_USD, warehouse_for_cc, site_settings
 ):
     """Test that collection points take precedence during stock allocation.
 
@@ -236,6 +241,7 @@ def test_allocate_stock_prioritize_sorting_order_strategy_with_collection_point(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
         collection_point_pk=warehouse_for_cc.pk,
@@ -253,6 +259,7 @@ def test_allocate_stock_with_reservations_the_highest_stock_strategy(
     variant_with_many_stocks,
     channel_USD,
     checkout_line_with_one_reservation,
+    site_settings,
 ):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
@@ -262,6 +269,7 @@ def test_allocate_stock_with_reservations_the_highest_stock_strategy(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
@@ -277,6 +285,7 @@ def test_allocate_stock_with_reservations_prioritize_sorting_order_strategy(
     variant_with_many_stocks,
     channel_USD,
     checkout_line_with_one_reservation,
+    site_settings,
 ):
     # given
     # set the prioritize sorting order stratefy
@@ -309,6 +318,7 @@ def test_allocate_stock_with_reservations_prioritize_sorting_order_strategy(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
         check_reservations=True,
@@ -329,6 +339,7 @@ def test_allocate_stock_insufficient_stock_due_to_reservations(
     variant_with_many_stocks,
     channel_USD,
     checkout_line_with_reservation_in_many_stocks,
+    site_settings,
 ):
     variant = variant_with_many_stocks
     variant.stocks.all()
@@ -340,6 +351,7 @@ def test_allocate_stock_insufficient_stock_due_to_reservations(
             [line_data],
             COUNTRY_CODE,
             channel_USD,
+            site_settings=site_settings,
             requestor=None,
             calculate_stocks_with_shipping_zones=True,
             check_reservations=True,
@@ -353,6 +365,7 @@ def test_allocate_stock_many_stocks_partially_allocated(
     order_line_with_allocation_in_many_stocks,
     order_line_with_one_allocation,
     channel_USD,
+    site_settings,
 ):
     # given
     allocated_line = order_line_with_allocation_in_many_stocks
@@ -370,6 +383,7 @@ def test_allocate_stock_many_stocks_partially_allocated(
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
     )
@@ -388,7 +402,7 @@ def test_allocate_stock_many_stocks_partially_allocated(
 
 
 def test_allocate_stock_partially_allocated_insufficient_stocks(
-    order_line, order_line_with_allocation_in_many_stocks, channel_USD
+    order_line, order_line_with_allocation_in_many_stocks, channel_USD, site_settings
 ):
     allocated_line = order_line_with_allocation_in_many_stocks
     variant = allocated_line.variant
@@ -400,6 +414,7 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
             [line_data],
             COUNTRY_CODE,
             channel_USD,
+            site_settings=site_settings,
             requestor=None,
             calculate_stocks_with_shipping_zones=True,
         )
@@ -409,7 +424,9 @@ def test_allocate_stock_partially_allocated_insufficient_stocks(
     ).exists()
 
 
-def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_USD):
+def test_allocate_stocks_no_channel_shipping_zones(
+    order_line, stock, channel_USD, site_settings
+):
     # given
     channel_USD.shipping_zones.clear()
 
@@ -424,13 +441,14 @@ def test_allocate_stocks_no_channel_shipping_zones(order_line, stock, channel_US
             [line_data],
             COUNTRY_CODE,
             channel_USD,
+            site_settings=site_settings,
             requestor=None,
             calculate_stocks_with_shipping_zones=True,
         )
 
 
 def test_allocate_stocks_no_channel_shipping_zones_excluded_from_stock_calculations(
-    order_line, stock, channel_USD
+    order_line, stock, channel_USD, site_settings
 ):
     # given
     channel_USD.shipping_zones.clear()
@@ -445,13 +463,14 @@ def test_allocate_stocks_no_channel_shipping_zones_excluded_from_stock_calculati
         [line_data],
         COUNTRY_CODE,
         channel_USD,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=False,
     )
 
 
 def test_allocate_stock_insufficient_stocks(
-    order_line, variant_with_many_stocks, channel_USD
+    order_line, variant_with_many_stocks, channel_USD, site_settings
 ):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
@@ -462,6 +481,7 @@ def test_allocate_stock_insufficient_stocks(
             [line_data],
             COUNTRY_CODE,
             channel_USD,
+            site_settings=site_settings,
             requestor=None,
             calculate_stocks_with_shipping_zones=True,
         )
@@ -472,7 +492,7 @@ def test_allocate_stock_insufficient_stocks(
 
 
 def test_allocate_stock_insufficient_stocks_for_multiple_lines(
-    order_line, variant_with_many_stocks, product, channel_USD
+    order_line, variant_with_many_stocks, product, channel_USD, site_settings
 ):
     variant = variant_with_many_stocks
     stocks = variant.stocks.all()
@@ -501,6 +521,7 @@ def test_allocate_stock_insufficient_stocks_for_multiple_lines(
             [line_data_1, line_data_2],
             COUNTRY_CODE,
             channel_USD,
+            site_settings=site_settings,
             requestor=None,
             calculate_stocks_with_shipping_zones=True,
         )
@@ -512,7 +533,7 @@ def test_allocate_stock_insufficient_stocks_for_multiple_lines(
     ).exists()
 
 
-def test_deallocate_stock(allocation):
+def test_deallocate_stock(allocation, site_settings):
     stock = allocation.stock
     stock.quantity = 100
     stock.quantity_allocated = 80
@@ -526,6 +547,7 @@ def test_deallocate_stock(allocation):
                 line=allocation.order_line, quantity=80, variant=stock.product_variant
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -536,7 +558,7 @@ def test_deallocate_stock(allocation):
     assert allocation.quantity_allocated == 0
 
 
-def test_deallocate_stock_when_quantity_less_than_zero(allocation):
+def test_deallocate_stock_when_quantity_less_than_zero(allocation, site_settings):
     stock = allocation.stock
     stock.quantity = -10
     stock.save(update_fields=["quantity"])
@@ -549,6 +571,7 @@ def test_deallocate_stock_when_quantity_less_than_zero(allocation):
                 line=allocation.order_line, quantity=80, variant=stock.product_variant
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -558,7 +581,7 @@ def test_deallocate_stock_when_quantity_less_than_zero(allocation):
     assert allocation.quantity_allocated == 0
 
 
-def test_deallocate_stock_partially(allocation):
+def test_deallocate_stock_partially(allocation, site_settings):
     stock = allocation.stock
     stock.quantity = 100
     stock.quantity_allocated = 80
@@ -572,6 +595,7 @@ def test_deallocate_stock_partially(allocation):
                 line=allocation.order_line, quantity=50, variant=stock.product_variant
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -584,11 +608,13 @@ def test_deallocate_stock_partially(allocation):
 
 def test_deallocate_stock_many_allocations(
     order_line_with_allocation_in_many_stocks,
+    site_settings,
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
     deallocate_stock(
         [OrderLineInfo(line=order_line, quantity=3, variant=order_line.variant)],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -599,11 +625,13 @@ def test_deallocate_stock_many_allocations(
 
 def test_deallocate_stock_many_allocations_partially(
     order_line_with_allocation_in_many_stocks,
+    site_settings,
 ):
     order_line = order_line_with_allocation_in_many_stocks
 
     deallocate_stock(
         [OrderLineInfo(line=order_line, quantity=1, variant=order_line.variant)],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -661,7 +689,7 @@ def test_increase_stock_with_new_allocation(order_line, stock):
 
 
 @pytest.mark.parametrize("quantity", [19, 20])
-def test_increase_allocations(quantity, allocation):
+def test_increase_allocations(quantity, allocation, site_settings):
     order_line = allocation.order_line
     order_line_info = OrderLineInfo(
         line=order_line,
@@ -680,6 +708,7 @@ def test_increase_allocations(quantity, allocation):
     increase_allocations(
         [order_line_info],
         order_line.order.channel,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
     )
@@ -700,7 +729,7 @@ def test_increase_allocations(quantity, allocation):
     [(9, 20), (2, 19)],
 )
 def test_increase_allocations_with_multiple_allocations_for_the_same_stock(
-    first_quantity, second_quantity, allocations
+    first_quantity, second_quantity, allocations, site_settings
 ):
     # given
     first_allocation = allocations[0]
@@ -745,6 +774,7 @@ def test_increase_allocations_with_multiple_allocations_for_the_same_stock(
     increase_allocations(
         [first_order_line_info, second_order_line_info],
         first_order_line.order.channel,
+        site_settings=site_settings,
         requestor=None,
         calculate_stocks_with_shipping_zones=True,
     )
@@ -767,7 +797,7 @@ def test_increase_allocations_with_multiple_allocations_for_the_same_stock(
     )
 
 
-def test_increase_allocation_insufficient_stock(allocation):
+def test_increase_allocation_insufficient_stock(allocation, site_settings):
     order_line = allocation.order_line
     order_line_info = OrderLineInfo(
         line=order_line,
@@ -787,6 +817,7 @@ def test_increase_allocation_insufficient_stock(allocation):
         increase_allocations(
             [order_line_info],
             order_line.order.channel,
+            site_settings=site_settings,
             requestor=None,
             calculate_stocks_with_shipping_zones=True,
         )
@@ -822,7 +853,7 @@ def test_increase_stock_with_back_in_stock_webhook_triggered_without_allocation(
     product_variant_back_in_stock_webhook.assert_not_called()
 
 
-def test_decrease_stock(allocation):
+def test_decrease_stock(allocation, site_settings):
     stock = allocation.stock
     stock.quantity = 100
     stock.quantity_allocated = 80
@@ -840,6 +871,7 @@ def test_decrease_stock(allocation):
                 warehouse_pk=warehouse_pk,
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -851,7 +883,7 @@ def test_decrease_stock(allocation):
 
 
 @pytest.mark.parametrize(("quantity", "expected_allocated"), [(50, 30), (200, 0)])
-def test_decrease_allocations(quantity, expected_allocated, allocation):
+def test_decrease_allocations(quantity, expected_allocated, allocation, site_settings):
     stock = allocation.stock
     stock.quantity = 100
     stock.quantity_allocated = 80
@@ -869,6 +901,7 @@ def test_decrease_allocations(quantity, expected_allocated, allocation):
                 warehouse_pk=warehouse_pk,
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -879,7 +912,7 @@ def test_decrease_allocations(quantity, expected_allocated, allocation):
     assert allocation.quantity_allocated == expected_allocated
 
 
-def test_decrease_stock_multiple_lines(allocations):
+def test_decrease_stock_multiple_lines(allocations, site_settings):
     allocation_1 = allocations[0]
     allocation_2 = allocations[0]
 
@@ -909,6 +942,7 @@ def test_decrease_stock_multiple_lines(allocations):
                 warehouse_pk=warehouse_pk_2,
             ),
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -918,7 +952,9 @@ def test_decrease_stock_multiple_lines(allocations):
     assert allocation_1.quantity_allocated == 10
 
 
-def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(order_with_lines):
+def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(
+    order_with_lines, site_settings
+):
     """Test that stock deallocations are immune to errors.
 
     Ensure that when some of the lines raise an error during the deallocation
@@ -973,6 +1009,7 @@ def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(order_with_
                 warehouse_pk=warehouse_pk_2,
             ),
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -990,7 +1027,7 @@ def test_decrease_stock_multiple_lines_deallocate_stock_raises_error(order_with_
     assert allocation_2.quantity_allocated == allocation_2_qty_allocated - line_2_qty
 
 
-def test_decrease_stock_partially(allocation):
+def test_decrease_stock_partially(allocation, site_settings):
     stock = allocation.stock
     stock.quantity = 100
     stock.save(update_fields=["quantity"])
@@ -1007,6 +1044,7 @@ def test_decrease_stock_partially(allocation):
                 warehouse_pk=warehouse_pk,
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -1018,6 +1056,7 @@ def test_decrease_stock_partially(allocation):
 
 def test_decrease_stock_many_allocations(
     order_line_with_allocation_in_many_stocks,
+    site_settings,
 ):
     order_line = order_line_with_allocation_in_many_stocks
     allocations = order_line.allocations.all()
@@ -1032,6 +1071,7 @@ def test_decrease_stock_many_allocations(
                 warehouse_pk=warehouse_pk,
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -1043,6 +1083,7 @@ def test_decrease_stock_many_allocations(
 
 def test_decrease_stock_many_allocations_partially(
     order_line_with_allocation_in_many_stocks,
+    site_settings,
 ):
     order_line = order_line_with_allocation_in_many_stocks
     allocations = order_line.allocations.all()
@@ -1057,6 +1098,7 @@ def test_decrease_stock_many_allocations_partially(
                 warehouse_pk=warehouse_pk,
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -1068,6 +1110,7 @@ def test_decrease_stock_many_allocations_partially(
 
 def test_decrease_stock_more_then_allocated(
     order_line_with_allocation_in_many_stocks,
+    site_settings,
 ):
     order_line = order_line_with_allocation_in_many_stocks
     allocations = order_line.allocations.all()
@@ -1086,6 +1129,7 @@ def test_decrease_stock_more_then_allocated(
                 warehouse_pk=warehouse_pk,
             )
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 
@@ -1098,7 +1142,7 @@ def test_decrease_stock_more_then_allocated(
     assert allocations[1].stock.quantity == 3
 
 
-def test_decrease_stock_insufficient_stock(allocation):
+def test_decrease_stock_insufficient_stock(allocation, site_settings):
     stock = allocation.stock
     stock.quantity = 20
     stock.quantity_allocated = 80
@@ -1117,6 +1161,7 @@ def test_decrease_stock_insufficient_stock(allocation):
                     warehouse_pk=warehouse_pk,
                 )
             ],
+            site_settings=site_settings,
             requestor=None,
         )
 
@@ -1127,11 +1172,17 @@ def test_decrease_stock_insufficient_stock(allocation):
     assert allocation.quantity_allocated == 80
 
 
-def test_deallocate_stock_for_orders(order_line_with_allocation_in_many_stocks):
+def test_deallocate_stock_for_orders(
+    order_line_with_allocation_in_many_stocks, site_settings
+):
     order_line = order_line_with_allocation_in_many_stocks
     order = order_line.order
 
-    deallocate_stock_for_orders([order.id], requestor=None)
+    deallocate_stock_for_orders(
+        [order.id],
+        site_settings=site_settings,
+        requestor=None,
+    )
 
     allocations = order_line.allocations.all()
     assert (
@@ -1148,6 +1199,7 @@ def test_deallocate_stock_for_orders(order_line_with_allocation_in_many_stocks):
 
 def test_deallocate_stock_for_orders_with_multiple_allocations_from_the_same_stock(
     allocations,
+    site_settings,
 ):
     # given
     first_allocation = allocations[0]
@@ -1177,7 +1229,11 @@ def test_deallocate_stock_for_orders_with_multiple_allocations_from_the_same_sto
     assert first_allocation.stock_id == second_allocation.stock_id
 
     # when
-    deallocate_stock_for_orders([order.id], requestor=None)
+    deallocate_stock_for_orders(
+        [order.id],
+        site_settings=site_settings,
+        requestor=None,
+    )
 
     # then
     first_allocation.refresh_from_db()
@@ -1236,6 +1292,7 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
     product_variant_out_of_stock_webhook_mock,
     allocation,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     stock = allocation.stock
     stock.quantity = 50
@@ -1254,6 +1311,7 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
                     warehouse_pk=warehouse_pk,
                 )
             ],
+            site_settings=site_settings,
             requestor=None,
         )
 
@@ -1408,3 +1466,247 @@ def test_allocate_preorders_with_global_reservations(
         check_reservations=True,
         checkout_lines=[checkout_line_with_reserved_preorder_item],
     )
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
+)
+def test_allocate_stocks_triggers_channel_out_of_stock_event_when_stock_runs_out(
+    mocked_trigger,
+    order_line,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - allocation will drain the entire stock to 0 available
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock.quantity = 50
+    stock.quantity_allocated = 0
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    mocked_trigger.assert_called_once()
+    fired_stocks, fired_settings = mocked_trigger.call_args.args
+    assert len(fired_stocks) == 1
+    assert fired_stocks[0].pk == stock.pk
+    assert fired_settings is site_settings
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
+)
+def test_allocate_stocks_does_not_trigger_channel_event_when_stock_remains(
+    mocked_trigger,
+    order_line,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - allocation only takes a fraction of the available stock
+    stock.quantity = 100
+    stock.quantity_allocated = 0
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=10)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_out_of_stock_in_channel_events_for_stocks"
+)
+def test_allocate_stocks_skips_channel_event_when_legacy_flag_enabled(
+    mocked_trigger,
+    order_line,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - legacy flag is on; channel events should be skipped entirely
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock.quantity = 50
+    stock.quantity_allocated = 0
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
+def test_deallocate_stock_triggers_channel_back_in_stock_event_when_stock_returns(
+    mocked_trigger,
+    allocation,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - all of the stock is currently allocated (available = 0); deallocating
+    # frees it back up
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock = allocation.stock
+    stock.quantity = allocation.quantity_allocated
+    stock.save(update_fields=["quantity"])
+    line_info = OrderLineInfo(
+        line=allocation.order_line,
+        variant=stock.product_variant,
+        quantity=allocation.quantity_allocated,
+        warehouse_pk=stock.warehouse_id,
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock(
+            [line_info],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then
+    mocked_trigger.assert_called_once()
+    fired_stocks, fired_settings = mocked_trigger.call_args.args
+    assert len(fired_stocks) == 1
+    assert fired_stocks[0].pk == stock.pk
+    assert fired_settings is site_settings
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
+def test_deallocate_stock_skips_channel_event_when_legacy_flag_enabled(
+    mocked_trigger,
+    allocation,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - legacy flag is on
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    stock = allocation.stock
+    stock.quantity = allocation.quantity_allocated
+    stock.save(update_fields=["quantity"])
+    line_info = OrderLineInfo(
+        line=allocation.order_line,
+        variant=stock.product_variant,
+        quantity=allocation.quantity_allocated,
+        warehouse_pk=stock.warehouse_id,
+    )
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock(
+            [line_info],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
+def test_deallocate_stock_for_orders_triggers_channel_back_in_stock_event(
+    mocked_trigger,
+    order_line_with_allocation_in_many_stocks,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - drive every allocated stock down to zero available so the deallocation
+    # qualifies as "back in stock"
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    order_line = order_line_with_allocation_in_many_stocks
+    order = order_line.order
+    stocks = []
+    for allocation in Allocation.objects.filter(order_line__order=order):
+        stock = allocation.stock
+        stock.quantity = allocation.quantity_allocated
+        stock.save(update_fields=["quantity"])
+        stocks.append(stock)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock_for_orders(
+            [order.id],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then - fires once with all affected stocks (bulk)
+    mocked_trigger.assert_called_once()
+    fired_stocks = mocked_trigger.call_args.args[0]
+    assert len(fired_stocks) == len(stocks)
+
+
+@mock.patch(
+    "saleor.warehouse.channel_stock_availability.trigger_back_in_stock_in_channel_events_for_stocks"
+)
+def test_deallocate_stock_for_orders_skips_channel_event_when_legacy_flag_enabled(
+    mocked_trigger,
+    order_line_with_allocation_in_many_stocks,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - legacy flag is on
+    site_settings.use_legacy_shipping_zone_stock_availability = True
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+    order_line = order_line_with_allocation_in_many_stocks
+    order = order_line.order
+    for allocation in Allocation.objects.filter(order_line__order=order):
+        stock = allocation.stock
+        stock.quantity = allocation.quantity_allocated
+        stock.save(update_fields=["quantity"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock_for_orders(
+            [order.id],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then
+    mocked_trigger.assert_not_called()

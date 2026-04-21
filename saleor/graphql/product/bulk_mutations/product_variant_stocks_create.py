@@ -6,6 +6,9 @@ from django.core.exceptions import ValidationError
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
+from ....warehouse.channel_stock_availability import (
+    trigger_back_in_stock_in_channel_events_for_stocks,
+)
 from ....warehouse.error_codes import StockErrorCode
 from ....warehouse.webhooks.stock_events import (
     trigger_product_variant_back_in_stock,
@@ -17,6 +20,7 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
+from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
@@ -72,6 +76,14 @@ class ProductVariantStocksCreate(BaseMutation):
                     stock,
                     webhooks=webhooks,
                     requestor=requestor,
+                )
+
+            site_settings = get_site_promise(info.context).get().settings
+            if not site_settings.use_legacy_shipping_zone_stock_availability:
+                call_event(
+                    trigger_back_in_stock_in_channel_events_for_stocks,
+                    new_stocks,
+                    site_settings,
                 )
 
         StocksByProductVariantIdLoader(info.context).clear(variant.id)

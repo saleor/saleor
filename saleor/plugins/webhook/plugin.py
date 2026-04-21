@@ -120,7 +120,7 @@ from ...webhook.transport.utils import (
     get_meta_description_key,
     get_sqs_message_group_id,
 )
-from ...webhook.utils import get_webhooks_for_event
+from ...webhook.utils import filter_webhooks_for_channel, get_webhooks_for_event
 from ..base_plugin import BasePlugin
 
 if TYPE_CHECKING:
@@ -776,17 +776,7 @@ class WebhookPlugin(BasePlugin):
         """
         if webhooks is None:
             webhooks = get_webhooks_for_event(event_type)
-        filtered_webhooks = []
-        for webhook in webhooks:
-            if not webhook.subscription_query:
-                filtered_webhooks.append(webhook)
-                continue
-            filterable_channel_slugs = list(webhook.filterable_channel_slugs)
-            if not filterable_channel_slugs:
-                filtered_webhooks.append(webhook)
-                continue
-            if channel_slug in filterable_channel_slugs:
-                filtered_webhooks.append(webhook)
+        filtered_webhooks = filter_webhooks_for_channel(webhooks, channel_slug)
         return filtered_webhooks
 
     def order_created(

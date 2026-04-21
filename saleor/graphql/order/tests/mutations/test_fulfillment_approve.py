@@ -241,6 +241,7 @@ def test_fulfillment_approve_gift_cards_created(
     permission_group_manage_orders,
     gift_card_shippable_order_line,
     gift_card_non_shippable_order_line,
+    site_settings,
 ):
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment = full_fulfillment_awaiting_approval
@@ -269,6 +270,7 @@ def test_fulfillment_approve_gift_cards_created(
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
+        site_settings=site_settings,
         requestor=None,
     )
 

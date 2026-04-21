@@ -16,6 +16,10 @@ from .....core import EventDeliveryStatus
 from .....core.models import EventDelivery
 from .....core.telemetry import get_task_context
 from .....product.interface import VariantDiscountedPriceChange
+from .....warehouse.interface import VariantChannelStockInfo
+from .....warehouse.tests.webhooks.subscriptions.test_channel_stock_events import (
+    PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
+)
 from ....event_types import WebhookEventAsyncType
 from ....tests.subscription_webhooks.subscription_queries import (
     PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED,
@@ -465,6 +469,109 @@ def test_generate_deferred_payload_with_dataclass(
     assert payload["newPrice"] == {
         "amount": float(new_price),
         "currency": currency,
+    }
+
+    assert mocked_send_webhook_request_async.call_count == 1
+    call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
+    assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport"
+    ".generate_deferred_payloads.apply_async"
+)
+def test_call_trigger_webhook_async_deferred_payload_with_variant_channel_stock_info(
+    mocked_generate_deferred_payloads,
+    variant,
+    channel_USD,
+    subscription_webhook,
+    staff_user,
+):
+    # given
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
+    webhook = subscription_webhook(PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, event_type)
+    webhooks = get_webhooks_for_event(event_type)
+
+    stock_info = VariantChannelStockInfo(
+        variant_id=variant.id, channel_slug=channel_USD.slug
+    )
+
+    # when
+    trigger_webhooks_async(
+        data=None,
+        event_type=event_type,
+        webhooks=webhooks,
+        subscribable_object=stock_info,
+        requestor=staff_user,
+    )
+
+    # then
+    delivery = webhook.eventdelivery_set.first()
+    call_kwargs = mocked_generate_deferred_payloads.call_args.kwargs
+    deferred_payload_data = call_kwargs["kwargs"]["deferred_payload_data"]
+
+    assert deferred_payload_data["model_name"] is None
+    assert deferred_payload_data["object_id"] is None
+    assert deferred_payload_data["subscribable_object_data"] == {
+        "variant_id": variant.id,
+        "channel_slug": channel_USD.slug,
+    }
+    assert deferred_payload_data["requestor_model_name"] == "account.user"
+    assert deferred_payload_data["requestor_object_id"] == staff_user.pk
+    assert call_kwargs["kwargs"]["event_delivery_ids"] == [delivery.id]
+
+    assert delivery.event_type == event_type
+    assert delivery.payload is None
+    assert delivery.webhook == webhook
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport"
+    ".send_webhook_request_async.apply_async"
+)
+def test_generate_deferred_payload_with_variant_channel_stock_info(
+    mocked_send_webhook_request_async,
+    variant,
+    channel_USD,
+    subscription_webhook,
+    staff_user,
+):
+    # given
+    variant_global_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL
+
+    webhook = subscription_webhook(PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, event_type)
+
+    deferred_payload_data = DeferredPayloadData(
+        subscribable_object_data={
+            "variant_id": variant.id,
+            "channel_slug": channel_USD.slug,
+        },
+        requestor_model_name="account.user",
+        requestor_object_id=staff_user.pk,
+        request_time=None,
+    )
+    delivery = EventDelivery(
+        event_type=event_type,
+        webhook=webhook,
+        status=EventDeliveryStatus.PENDING,
+    )
+    delivery.save()
+
+    # when
+    generate_deferred_payloads(
+        event_delivery_ids=[delivery.pk],
+        deferred_payload_data=asdict(deferred_payload_data),
+    )
+
+    # then
+    delivery.refresh_from_db()
+    assert delivery.payload
+
+    payload = json.loads(delivery.payload.get_payload())
+    assert payload == {
+        "productVariant": {"id": variant_global_id},
+        "channel": {"slug": channel_USD.slug},
     }
 
     assert mocked_send_webhook_request_async.call_count == 1

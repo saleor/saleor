@@ -327,7 +327,7 @@ def test_generate_order_payload_no_user_email_but_user_set(
     assert payload["user_email"] == order.user.email
 
 
-def test_generate_fulfillment_lines_payload(order_with_lines):
+def test_generate_fulfillment_lines_payload(order_with_lines, site_settings):
     fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
     line = order_with_lines.lines.first()
     line.sale_id = graphene.Node.to_global_id("Sale", 1)
@@ -340,6 +340,7 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
     )
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        site_settings=site_settings,
         requestor=None,
     )
     payload = json.loads(generate_fulfillment_lines_payload(fulfillment))[0]
@@ -379,7 +380,9 @@ def test_generate_fulfillment_lines_payload(order_with_lines):
     }
 
 
-def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
+def test_generate_fulfillment_lines_payload_deleted_variant(
+    order_with_lines, site_settings
+):
     # given
     fulfillment = order_with_lines.fulfillments.create(tracking_number="123")
     line = order_with_lines.lines.first()
@@ -388,6 +391,7 @@ def test_generate_fulfillment_lines_payload_deleted_variant(order_with_lines):
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
+        site_settings=site_settings,
         requestor=None,
     )
 

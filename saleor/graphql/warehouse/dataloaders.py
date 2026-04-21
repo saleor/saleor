@@ -645,7 +645,9 @@ class StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader(
     context_key = "stocks_with_available_quantity_by_productvariant_and_channel"
 
     def batch_load(self, keys: Iterable[VariantIdChannelSlug]):
-        channel_slugs = list({channel_slug for _, channel_slug in keys})
+        channel_slugs = list(
+            {channel_slug for _, channel_slug in keys if channel_slug is not None}
+        )
 
         def with_channels(channels):
             def with_warehouses(warehouses_by_channel):

@@ -174,6 +174,30 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED: (
         "A product variant stock is updated"
     ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL: (
+        "A product variant becomes out of stock across all non click-and-collect "
+        "warehouses in a channel. "
+        "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+        "shop setting is disabled."
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL: (
+        "A product variant becomes available again across non click-and-collect "
+        "warehouses in a channel. "
+        "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+        "shop setting is disabled."
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT: (
+        "A product variant becomes out of stock across all click-and-collect "
+        "warehouses in a channel. "
+        "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+        "shop setting is disabled."
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT: (
+        "A product variant becomes available again across click-and-collect "
+        "warehouses in a channel. "
+        "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+        "shop setting is disabled."
+    ),
     WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: "A product export is completed.",
     WebhookEventAsyncType.SHIPPING_PRICE_CREATED: "A new shipping price is created.",
     WebhookEventAsyncType.SHIPPING_PRICE_UPDATED: "A shipping price is updated.",

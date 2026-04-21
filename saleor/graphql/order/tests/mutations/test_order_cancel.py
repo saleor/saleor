@@ -49,7 +49,11 @@ def test_order_cancel(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
-        order=order, user=staff_api_client.user, app=None, manager=ANY
+        order=order,
+        user=staff_api_client.user,
+        app=None,
+        manager=ANY,
+        site_settings=ANY,
     )
 
 
@@ -75,7 +79,11 @@ def test_order_cancel_as_app(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
-        order=order, user=None, app=app_api_client.app, manager=ANY
+        order=order,
+        user=None,
+        app=app_api_client.app,
+        manager=ANY,
+        site_settings=ANY,
     )
 
 
@@ -103,7 +111,11 @@ def test_order_cancel_with_bought_gift_cards(
 
     mock_clean_order_cancel.assert_called_once_with(order)
     mock_cancel_order.assert_called_once_with(
-        order=order, user=staff_api_client.user, app=None, manager=ANY
+        order=order,
+        user=staff_api_client.user,
+        app=None,
+        manager=ANY,
+        site_settings=ANY,
     )
 
     gift_card.refresh_from_db()
