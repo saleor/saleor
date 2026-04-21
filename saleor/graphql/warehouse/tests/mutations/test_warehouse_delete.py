@@ -289,8 +289,9 @@ def test_delete_warehouse_fires_out_of_stock_in_channel_per_variant(
         (s.product_variant_id, channel_USD.slug) for s in warehouse_stocks
     }
     fired_pairs = {
-        (call.args[0].variant_id, call.args[0].channel_slug)
+        (info.variant_id, info.channel_slug)
         for call in mocked_inner_trigger.call_args_list
+        for info in call.args[0]
     }
     assert fired_pairs == expected_pairs
 
