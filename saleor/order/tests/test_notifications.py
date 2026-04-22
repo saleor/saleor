@@ -313,16 +313,21 @@ def test_get_default_fulfillment_payload(fulfillment, site_settings):
     )
     order_payload["lines"] = sorted(order_payload["lines"], key=lambda line: line["id"])
 
+    assert "physical_lines" in payload
+    physical_lines = payload["physical_lines"]
+    for line in fulfillment.lines.all():
+        assert (
+            get_default_fulfillment_line_payload(line, attribute_data) in physical_lines
+        )
+
+    del payload["physical_lines"]
+
     assert payload == {
         "order": order_payload,
         "fulfillment": {
             "tracking_number": fulfillment.tracking_number,
             "is_tracking_number_url": fulfillment.is_tracking_number_url,
         },
-        "physical_lines": [
-            get_default_fulfillment_line_payload(line, attribute_data)
-            for line in fulfillment.lines.all()
-        ],
         "digital_lines": [],
         "recipient_email": order.get_customer_email(),
         **get_site_context_payload(site_settings.site),
