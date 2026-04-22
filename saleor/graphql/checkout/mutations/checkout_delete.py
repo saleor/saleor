@@ -33,7 +33,9 @@ class CheckoutDelete(BaseMutation):
         error_type_class = CheckoutDeleteError
 
     @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, *, id: str):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
         checkout = cls.get_node_or_error(
             info,
             id,
