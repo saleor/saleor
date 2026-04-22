@@ -999,7 +999,7 @@ def execute_webhook_requests(
     telemetry_context: TelemetryTaskContext,
 ):
     stop_after = timezone.now() + timedelta(
-        seconds=settings.WEBHHOK_ASYNC_BATCH_TIMEOUT
+        seconds=settings.WEBHOOK_ASYNC_BATCH_TIMEOUT
     )
     while timezone.now() < stop_after:
         try:
