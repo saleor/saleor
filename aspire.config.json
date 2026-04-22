@@ -1,0 +1,10 @@
+{
+  "appHost": {
+    "path": "apphost.py",
+    "language": "python"
+  },
+  "sdk": {
+    "version": "13.3.0-preview.1.26221.2"
+  },
+  "channel": "daily"
+}

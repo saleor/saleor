@@ -1,0 +1,10 @@
+created-by = 'Aspire'
+lock-version = '1.0'
+requires-python = '>=3.11'
+
+[[packages]]
+name = "aspire_app"
+editable = true
+
+[packages.directory]
+path = ".modules"

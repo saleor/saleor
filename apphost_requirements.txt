@@ -1,0 +1,2 @@
+# Aspire Python AppHost requirements
+-e .modules
