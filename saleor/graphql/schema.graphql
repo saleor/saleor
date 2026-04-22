@@ -20675,7 +20675,7 @@ type Mutation {
   """
   Deletes a checkout.
   
-  Added in Saleor 3.24. 
+  Added in Saleor 3.23. 
   
   Requires one of the following permissions: MANAGE_CHECKOUTS.
   """
@@ -20683,7 +20683,7 @@ type Mutation {
     """
     The checkout's ID.
     
-    Added in Saleor 3.24.
+    Added in Saleor 3.23.
     """
     id: ID!
   ): CheckoutDelete @doc(category: "Checkout")
@@ -30660,7 +30660,7 @@ type CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(as
 """
 Deletes a checkout.
 
-Added in Saleor 3.24. 
+Added in Saleor 3.23. 
 
 Requires one of the following permissions: MANAGE_CHECKOUTS.
 """
