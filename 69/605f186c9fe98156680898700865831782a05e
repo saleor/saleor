@@ -1,0 +1,25 @@
+saleor/graphql/app/tests/queries/test_app_extension.py
+  6cb4ce05712fb9b9 28,35,60
+saleor/app/migrations/0035_app_extensions_mount_target_settings_reshape.py
+  6cb4ce05712fb9b9 5,8-12,14-32,41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "69605f186c9fe98156680898700865831782a05e",
+  "prompts": {
+    "6cb4ce05712fb9b9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "70d0d0df-5121-4d94-be70-0a9c0ed74e4b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 29,
+      "total_deletions": 14,
+      "accepted_lines": 29,
+      "overriden_lines": 0
+    }
+  }
+}
