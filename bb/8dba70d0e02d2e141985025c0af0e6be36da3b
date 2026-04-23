@@ -1,0 +1,49 @@
+saleor/core/models.py
+  6eb48c1c8819524a 218-220
+saleor/graphql/app/tests/mutations/test_app_update.py
+  6eb48c1c8819524a 83,139
+saleor/graphql/app/tests/mutations/test_app_create.py
+  6eb48c1c8819524a 114,164
+saleor/plugins/webhook/plugin.py
+  6eb48c1c8819524a 123-127,403-408,418-423
+saleor/webhook/transport/asynchronous/transport.py
+  6eb48c1c8819524a 93,191,264,283,311,320,347,358-360,406,424,436,501,515-516,533
+saleor/webhook/utils.py
+  6eb48c1c8819524a 17-26,65,97-126
+saleor/core/migrations/0012_eventdelivery_bypass_app_active_check.py
+  6eb48c1c8819524a 1-7,9-12,15-17
+saleor/webhook/tests/test_utils.py
+  6eb48c1c8819524a 16-20,153-156,158-160,162-170,173,176-179,182-183,185-186,192,195-196,202,207-208,214,217-218,224-225,227-228,231-233,235,238-239,241-244
+saleor/plugins/webhook/tests/test_app_lifecycle_webhooks.py
+  6eb48c1c8819524a 16-17,20,125,135-211
+saleor/webhook/transport/tests/test_utils.py
+  6eb48c1c8819524a 257-292
+saleor/graphql/app/tests/mutations/test_app_deactivate.py
+  6eb48c1c8819524a 55,105
+saleor/graphql/app/tests/mutations/test_app_delete.py
+  6eb48c1c8819524a 59,108
+saleor/graphql/app/tests/mutations/test_app_activate.py
+  6eb48c1c8819524a 55,105
+saleor/webhook/transport/utils.py
+  6eb48c1c8819524a 523-524
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "bb8dba70d0e02d2e141985025c0af0e6be36da3b",
+  "prompts": {
+    "6eb48c1c8819524a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e78dc177-57e2-4043-95eb-00dc9a133192",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 289,
+      "total_deletions": 94,
+      "accepted_lines": 279,
+      "overriden_lines": 3
+    }
+  }
+}
