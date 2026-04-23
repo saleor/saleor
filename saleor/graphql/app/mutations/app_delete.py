@@ -1,8 +1,8 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 from ....app import models
+from ....app.actions import delete_app
 from ....app.error_codes import AppErrorCode
 from ....permission.enums import AppPermission
 from ....webhook.event_types import WebhookEventAsyncType
@@ -51,18 +51,11 @@ class AppDelete(DeprecatedModelMutation):
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.app_deleted, instance)
-
-    @classmethod
     def perform_mutation(cls, _root, info, /, **data):
         instance = cls.get_instance(info, **data)
         cls.clean_instance(info, instance)
 
-        instance.removed_at = timezone.now()
-        instance.is_active = False
-        instance.save(update_fields=["removed_at", "is_active"])
+        manager = get_plugin_manager_promise(info.context).get()
+        delete_app(instance, manager)
 
-        cls.post_save_action(info, instance, {})
         return cls.success_response(instance)

@@ -1,4 +1,5 @@
 import pytest
+from django.utils import timezone
 
 from ...app.models import App
 from ..event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -12,7 +13,11 @@ from ..observability.payload_schema import ObservabilityEventTypes
 from ..transport.utils import (
     generate_cache_key_for_webhook,
 )
-from ..utils import get_webhooks_for_event, get_webhooks_for_multiple_events
+from ..utils import (
+    get_webhooks_for_app_lifecycle_event,
+    get_webhooks_for_event,
+    get_webhooks_for_multiple_events,
+)
 
 
 @pytest.fixture
@@ -115,6 +120,128 @@ def test_get_webhook_for_event_not_returning_any_webhook_for_sync_event_types(
     webhooks = get_webhooks_for_event(sync_type)
 
     assert set(webhooks) == {sync_webhook}
+
+
+@pytest.fixture
+def app_lifecycle_app_factory(db):
+    """Create an app + webhook subscribed to an app lifecycle event.
+
+    The created app intentionally does NOT hold MANAGE_APPS, mirroring how
+    third-party apps cannot grant themselves admin-only permissions.
+    """
+
+    def create_app(
+        event_type=WebhookEventAsyncType.APP_DELETED,
+        active_app=True,
+        active_webhook=True,
+        removed=False,
+    ):
+        app = App.objects.create(name="Lifecycle App", is_active=active_app)
+        app.tokens.create(name="Default")
+        if removed:
+            app.removed_at = timezone.now()
+            app.save(update_fields=["removed_at"])
+        webhook = Webhook.objects.create(
+            name="lifecycle-webhook", app=app, is_active=active_webhook
+        )
+        webhook.events.create(event_type=event_type)
+        return app, webhook
+
+    return create_app
+
+
+def test_app_lifecycle_returns_self_webhook_without_manage_apps(
+    app_lifecycle_app_factory,
+):
+    affected_app, affected_webhook = app_lifecycle_app_factory()
+
+    webhooks = get_webhooks_for_app_lifecycle_event(
+        WebhookEventAsyncType.APP_DELETED, affected_app
+    )
+
+    assert set(webhooks) == {affected_webhook}
+
+
+def test_app_lifecycle_does_not_leak_to_other_apps(app_lifecycle_app_factory):
+    affected_app, _ = app_lifecycle_app_factory()
+    _, other_webhook = app_lifecycle_app_factory()
+
+    webhooks = get_webhooks_for_app_lifecycle_event(
+        WebhookEventAsyncType.APP_DELETED, affected_app
+    )
+
+    assert other_webhook not in set(webhooks)
+
+
+def test_app_lifecycle_ignores_manage_apps_holders(
+    app_lifecycle_app_factory, permission_manage_apps
+):
+    """An admin app with MANAGE_APPS must not receive events about other apps."""
+
+    affected_app, affected_webhook = app_lifecycle_app_factory()
+    admin_app, _ = app_lifecycle_app_factory()
+    admin_app.permissions.add(permission_manage_apps)
+
+    webhooks = get_webhooks_for_app_lifecycle_event(
+        WebhookEventAsyncType.APP_DELETED, affected_app
+    )
+
+    assert set(webhooks) == {affected_webhook}
+
+
+def test_app_lifecycle_includes_soft_deleted_app(app_lifecycle_app_factory):
+    affected_app, affected_webhook = app_lifecycle_app_factory(removed=True)
+
+    webhooks = get_webhooks_for_app_lifecycle_event(
+        WebhookEventAsyncType.APP_DELETED, affected_app
+    )
+
+    assert set(webhooks) == {affected_webhook}
+
+
+def test_app_lifecycle_includes_inactive_app(app_lifecycle_app_factory):
+    affected_app, affected_webhook = app_lifecycle_app_factory(
+        event_type=WebhookEventAsyncType.APP_STATUS_CHANGED, active_app=False
+    )
+
+    webhooks = get_webhooks_for_app_lifecycle_event(
+        WebhookEventAsyncType.APP_STATUS_CHANGED, affected_app
+    )
+
+    assert set(webhooks) == {affected_webhook}
+
+
+def test_app_lifecycle_excludes_inactive_webhook(app_lifecycle_app_factory):
+    affected_app, _ = app_lifecycle_app_factory(active_webhook=False)
+
+    webhooks = get_webhooks_for_app_lifecycle_event(
+        WebhookEventAsyncType.APP_DELETED, affected_app
+    )
+
+    assert set(webhooks) == set()
+
+
+def test_app_lifecycle_matches_any_subscription(app_lifecycle_app_factory):
+    """A webhook subscribed via ANY must also receive lifecycle events."""
+
+    affected_app, affected_webhook = app_lifecycle_app_factory(
+        event_type=WebhookEventAsyncType.ANY
+    )
+
+    webhooks = get_webhooks_for_app_lifecycle_event(
+        WebhookEventAsyncType.APP_DELETED, affected_app
+    )
+
+    assert set(webhooks) == {affected_webhook}
+
+
+def test_app_lifecycle_rejects_non_lifecycle_event(app_lifecycle_app_factory):
+    affected_app, _ = app_lifecycle_app_factory()
+
+    with pytest.raises(ValueError, match="not an app lifecycle event"):
+        get_webhooks_for_app_lifecycle_event(
+            WebhookEventAsyncType.ORDER_CREATED, affected_app
+        )
 
 
 @pytest.mark.parametrize(

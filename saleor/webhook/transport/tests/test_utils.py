@@ -254,6 +254,42 @@ def test_get_delivery_for_webhook_inactive_app(event_delivery, caplog):
     assert not_found is False
 
 
+def test_get_delivery_for_webhook_inactive_app_with_bypass_flag(event_delivery):
+    # given
+    event_delivery.webhook.app.is_active = False
+    event_delivery.webhook.app.save(update_fields=["is_active"])
+    event_delivery.bypass_app_active_check = True
+    event_delivery.save(update_fields=["bypass_app_active_check"])
+
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery == event_delivery
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert not_found is False
+
+
+def test_get_delivery_for_webhook_inactive_webhook_with_bypass_flag(
+    event_delivery, caplog
+):
+    # given
+    event_delivery.webhook.is_active = False
+    event_delivery.webhook.save(update_fields=["is_active"])
+    event_delivery.bypass_app_active_check = True
+    event_delivery.save(update_fields=["bypass_app_active_check"])
+
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery is None
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.FAILED
+    assert not_found is False
+
+
 def test_get_multiple_deliveries_for_webhooks(event_deliveries):
     # given
     all_deliveries = EventDelivery.objects.all()
