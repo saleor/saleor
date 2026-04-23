@@ -1,0 +1,25 @@
+saleor/graphql/core/tests/test_pagination.py
+  6bfc5d8d0fddcbc6 5,269-278
+saleor/graphql/core/connection.py
+  6bfc5d8d0fddcbc6 47-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "978685860f646650a894ab7352d2bcdd59c93fb3",
+  "prompts": {
+    "6bfc5d8d0fddcbc6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "81020578-30ac-4eee-a28c-a860456a1968",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 1,
+      "accepted_lines": 15,
+      "overriden_lines": 0
+    }
+  }
+}
