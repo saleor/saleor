@@ -56,7 +56,7 @@ def test_app_delete(
 
 
 @freeze_time("2022-05-12 12:00:00")
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_app_lifecycle_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_app_delete_trigger_webhook(
     mocked_webhook_trigger,
@@ -105,6 +105,7 @@ def test_app_delete_trigger_webhook(
         [any_webhook],
         app,
         SimpleLazyObject(lambda: staff_api_client.user),
+        bypass_app_active_check=True,
         allow_replica=False,
     )
 

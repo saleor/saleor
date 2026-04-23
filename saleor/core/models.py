@@ -215,6 +215,9 @@ class EventDelivery(models.Model):
         EventPayload, related_name="deliveries", null=True, on_delete=models.CASCADE
     )
     webhook = models.ForeignKey("webhook.Webhook", on_delete=models.CASCADE)
+    # Set for an app's own lifecycle events (APP_DELETED / APP_STATUS_CHANGED on
+    # deactivate); lets the worker bypass the delivery-time app.is_active gate.
+    bypass_app_active_check = models.BooleanField(default=False)
 
     class Meta:
         ordering = ("-created_at",)

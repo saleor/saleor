@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django.core.management import call_command
 from django.forms import ValidationError
+from django.utils import timezone
 from requests_hardened import HTTPSession
 
 from ... import schema_version
@@ -270,3 +271,84 @@ def test_creates_app_with_identifier():
     assert len(tokens) == 1
     assert app.uuid is not None
     assert app.identifier == "test.test"
+
+
+APP_DELETE_ALL_COMMAND_MODULE = "saleor.app.management.commands.app_delete_all"
+
+
+@pytest.fixture
+def _patched_app_delete_all():
+    with patch(f"{APP_DELETE_ALL_COMMAND_MODULE}.delete_app") as mocked_delete_app:
+        with patch(
+            f"{APP_DELETE_ALL_COMMAND_MODULE}.get_plugins_manager"
+        ) as mocked_get_manager:
+            mocked_manager = Mock()
+            mocked_get_manager.return_value = mocked_manager
+            yield mocked_delete_app, mocked_manager
+
+
+def test_app_delete_all_deletes_every_installed_app(db, _patched_app_delete_all):
+    # given
+    mocked_delete_app, mocked_manager = _patched_app_delete_all
+    app_a = App.objects.create(name="App A", identifier="a", is_active=True)
+    app_b = App.objects.create(name="App B", identifier="b", is_active=False)
+    app_c = App.objects.create(name="App C", identifier="c", is_active=True)
+
+    # when
+    call_command("app_delete_all")
+
+    # then
+    assert mocked_delete_app.call_count == 3
+    assert mocked_delete_app.call_args_list == [
+        call(app_a, mocked_manager, force_sync=False),
+        call(app_b, mocked_manager, force_sync=False),
+        call(app_c, mocked_manager, force_sync=False),
+    ]
+
+
+def test_app_delete_all_skips_already_removed_apps(db, _patched_app_delete_all):
+    # given
+    mocked_delete_app, mocked_manager = _patched_app_delete_all
+    active_app = App.objects.create(name="Active", identifier="active", is_active=True)
+    App.objects.create(
+        name="Removed",
+        identifier="removed",
+        is_active=False,
+        removed_at=timezone.now(),
+    )
+
+    # when
+    call_command("app_delete_all")
+
+    # then
+    assert mocked_delete_app.call_count == 1
+    mocked_delete_app.assert_called_once_with(
+        active_app, mocked_manager, force_sync=False
+    )
+
+
+def test_app_delete_all_with_no_apps(db, _patched_app_delete_all):
+    # given
+    mocked_delete_app, _ = _patched_app_delete_all
+
+    # when
+    call_command("app_delete_all")
+
+    # then
+    mocked_delete_app.assert_not_called()
+
+
+def test_app_delete_all_with_force_sync(db, _patched_app_delete_all):
+    # given
+    mocked_delete_app, mocked_manager = _patched_app_delete_all
+    app_a = App.objects.create(name="App A", identifier="a", is_active=True)
+    app_b = App.objects.create(name="App B", identifier="b", is_active=True)
+
+    # when
+    call_command("app_delete_all", force_sync=True)
+
+    # then
+    assert mocked_delete_app.call_args_list == [
+        call(app_a, mocked_manager, force_sync=True),
+        call(app_b, mocked_manager, force_sync=True),
+    ]

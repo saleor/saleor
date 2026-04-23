@@ -90,6 +90,7 @@ def create_deliveries_for_multiple_subscription_objects(
     allow_replica=False,
     pre_save_payloads: dict | None = None,
     request_time: datetime.datetime | None = None,
+    bypass_app_active_check: bool = False,
 ) -> Promise[list[EventDelivery]]:
     """Create event deliveries with payloads based on multiple subscription objects.
 
@@ -187,6 +188,7 @@ def create_deliveries_for_multiple_subscription_objects(
                 event_type=event_type,
                 payload=event_payload,
                 webhook=webhook,
+                bypass_app_active_check=bypass_app_active_check,
             )
             event_deliveries_for_bulk_update.append(event_delivery)
 
@@ -259,6 +261,7 @@ def create_deliveries_for_deferred_payload_subscriptions(
     requestor=None,
     allow_replica=False,
     request_time=None,
+    bypass_app_active_check: bool = False,
 ) -> dict[Hashable, list[tuple[EventDelivery, DeferredPayloadData]]]:
     deliveries_to_create = []
     deliveries_per_object: dict[
@@ -277,6 +280,7 @@ def create_deliveries_for_deferred_payload_subscriptions(
                 status=EventDeliveryStatus.PENDING,
                 event_type=event_type,
                 webhook=webhook,
+                bypass_app_active_check=bypass_app_active_check,
             )
             deliveries_to_create.append(delivery)
             deliveries_per_object[subscribable_object.pk].append(
@@ -304,6 +308,7 @@ def create_event_delivery_list_for_webhooks(
     webhooks: Sequence["Webhook"],
     event_payload: "EventPayload",
     event_type: str,
+    bypass_app_active_check: bool = False,
 ) -> list[EventDelivery]:
     event_deliveries = EventDelivery.objects.bulk_create(
         [
@@ -312,6 +317,7 @@ def create_event_delivery_list_for_webhooks(
                 event_type=event_type,
                 payload=event_payload,
                 webhook=webhook,
+                bypass_app_active_check=bypass_app_active_check,
             )
             for webhook in webhooks
         ]
@@ -338,6 +344,7 @@ def trigger_webhooks_async_for_multiple_objects(
     pre_save_payloads=None,
     request_time=None,
     queue=None,
+    bypass_app_active_check: bool = False,
 ):
     """Trigger async webhooks (regular and subscription) for each object in the list.
 
@@ -348,6 +355,9 @@ def trigger_webhooks_async_for_multiple_objects(
     :param requestor: used in subscription webhooks to generate metadata for payload.
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
+    :param bypass_app_active_check: when True, the resulting EventDelivery rows are
+    flagged so the worker-time app.is_active gate is skipped. Intended for an app's
+    own lifecycle events where the receiving app may be deactivated/soft-deleted.
     """
     if transaction.get_connection().in_atomic_block:
         # Async webhooks should be delivered after the transaction is committed.
@@ -393,6 +403,7 @@ def trigger_webhooks_async_for_multiple_objects(
                             webhooks=legacy_webhooks,
                             event_payload=payload,
                             event_type=event_type,
+                            bypass_app_active_check=bypass_app_active_check,
                         )
                     )
 
@@ -410,6 +421,7 @@ def trigger_webhooks_async_for_multiple_objects(
                     requestor=requestor,
                     allow_replica=allow_replica,
                     request_time=request_time,
+                    bypass_app_active_check=bypass_app_active_check,
                 )
             )
         else:
@@ -421,6 +433,7 @@ def trigger_webhooks_async_for_multiple_objects(
                 allow_replica=allow_replica,
                 pre_save_payloads=pre_save_payloads,
                 request_time=request_time,
+                bypass_app_active_check=bypass_app_active_check,
             )
 
     domain = get_domain()
@@ -485,6 +498,7 @@ def trigger_webhooks_async(
     pre_save_payloads=None,
     request_time=None,
     queue=None,
+    bypass_app_active_check: bool = False,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -498,6 +512,8 @@ def trigger_webhooks_async(
     :param legacy_data_generator: used to generate payload for regular webhooks.
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
+    :param bypass_app_active_check: flag EventDelivery rows so the worker-time
+    app.is_active gate is skipped. Intended for an app's own lifecycle events.
     """
     trigger_webhooks_async_for_multiple_objects(
         event_type=event_type,
@@ -514,6 +530,7 @@ def trigger_webhooks_async(
         pre_save_payloads=pre_save_payloads,
         request_time=request_time,
         queue=queue,
+        bypass_app_active_check=bypass_app_active_check,
     )
 
 
