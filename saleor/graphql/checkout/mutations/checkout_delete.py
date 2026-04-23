@@ -1,7 +1,9 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout as CheckoutModel
+from ....checkout.utils import delete_checkouts
 from ....permission.enums import CheckoutPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_323
@@ -43,5 +45,14 @@ class CheckoutDelete(BaseMutation):
             qs=CheckoutModel.objects,
             code=CheckoutErrorCode.NOT_FOUND.value,
         )
-        checkout.delete()
+        if checkout.payment_transactions.exists():
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot delete checkout with attached transactions.",
+                        code=CheckoutErrorCode.INVALID.value,
+                    )
+                }
+            )
+        delete_checkouts([checkout.pk])
         return CheckoutDelete()

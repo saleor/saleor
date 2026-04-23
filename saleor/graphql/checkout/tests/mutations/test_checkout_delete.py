@@ -3,6 +3,7 @@ import pytest
 
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.models import Checkout
+from .....payment.models import TransactionItem
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -166,3 +167,33 @@ def test_checkout_delete_with_id_of_different_type(
         f"Invalid ID: {fake_checkout_id}. Expected: Checkout, received: User."
     )
     assert Checkout.objects.filter(pk=checkout.pk).exists()
+
+
+def test_checkout_delete_with_attached_transaction(
+    staff_api_client,
+    checkout_with_items,
+    permission_manage_checkouts,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_items
+    checkout_id = to_global_id_or_none(checkout)
+    transaction = transaction_item_generator(checkout_id=checkout.pk)
+    variables = {"id": checkout_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CHECKOUT_DELETE,
+        variables,
+        permissions=[permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutDelete"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
+    assert errors[0]["message"] == "Cannot delete checkout with attached transactions."
+    assert Checkout.objects.filter(pk=checkout.pk).exists()
+    assert TransactionItem.objects.filter(pk=transaction.pk).exists()
