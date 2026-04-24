@@ -1,0 +1,27 @@
+saleor/plugins/webhook/tests/test_app_lifecycle_webhooks.py
+  3b900025832cb938 55,70,94,116,127,132,141,147,151,183
+saleor/webhook/utils.py
+  3b900025832cb938 83
+saleor/webhook/tests/test_utils.py
+  3b900025832cb938 147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "d6eb45112251287fc7653345dca7541a2f64961f",
+  "prompts": {
+    "3b900025832cb938": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f20d364b-f64e-4efa-80dd-05d910116be6",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 23,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
