@@ -327,11 +327,14 @@ class DraftOrderUpdate(
         old_voucher,
         old_voucher_code,
     ):
-        if "voucher" not in cleaned_input:
+        if "voucher" not in cleaned_input and "voucher_code" not in cleaned_input:
             return
 
-        voucher = cleaned_input["voucher"]
-        if voucher is None and old_voucher is None:
+        new_voucher = cleaned_input.get("voucher")
+        new_code_instance = cleaned_input.get("voucher_code_instance")
+        new_voucher_code = new_code_instance.code if new_code_instance else None
+
+        if new_voucher == old_voucher and new_voucher_code == old_voucher_code:
             return
 
         # create or update voucher discount object
@@ -344,20 +347,20 @@ class DraftOrderUpdate(
         # handle voucher usage
         user_email = get_customer_email_for_voucher_usage(instance)
 
-        if voucher:
-            code_instance = cleaned_input.pop("voucher_code_instance", None)
+        if old_voucher:
+            # handle removing voucher
+            old_code_instance = VoucherCode.objects.filter(code=old_voucher_code).first()
+            # user_email is None as we do not have anything to release in terms of
+            # apply once per customer
+            release_voucher_code_usage(old_code_instance, old_voucher, user_email=None)
+
+        if new_voucher and new_code_instance:
             increase_voucher_usage(
-                voucher,
-                code_instance,
+                new_voucher,
+                new_code_instance,
                 user_email,
                 increase_voucher_customer_usage=False,
             )
-        elif old_voucher:
-            # handle removing voucher
-            voucher_code = VoucherCode.objects.filter(code=old_voucher_code).first()
-            # user_email is None as we do not have anything to release in terms of
-            # apply once per customer
-            release_voucher_code_usage(voucher_code, old_voucher, user_email=None)
 
     @classmethod
     def handle_shipping(cls, cleaned_input, instance: models.Order, info):

@@ -124,6 +124,8 @@ class TransactionCreate(BaseMutation):
     def validate_external_url(cls, external_url: str | None, error_code: str):
         if external_url is None:
             return
+        if external_url.startswith("/"):
+            return
         validator = URLValidator()
         try:
             validator(external_url)

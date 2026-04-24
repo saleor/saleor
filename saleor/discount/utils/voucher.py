@@ -82,8 +82,7 @@ def increase_voucher_usage(
 
 def increase_voucher_code_usage_value(code: "VoucherCode") -> None:
     """Increase voucher code uses by 1."""
-    code.used = F("used") + 1
-    code.save(update_fields=["used"])
+    VoucherCode.objects.filter(pk=code.pk).update(used=F("used") + 1)
 
 
 def decrease_voucher_code_usage_value(code: "VoucherCode") -> None:
