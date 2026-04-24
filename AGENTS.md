@@ -1,5 +1,15 @@
 # Saleor
 
+## Cross-repo dev loop
+
+You are almost certainly being driven from the `saleor-demo/` control plane. When it brings up the stack in "dev mode" (`make up` in `saleor-demo/`, or `./scripts/dev-up` in `saleor-platform/`), this repo is bind-mounted into the Saleor `api` and `worker` containers at `/app/saleor`. Edits you make on disk are visible to the running containers.
+
+- Reload signal after a backend edit: `docker compose -f docker-compose.yml -f docker-compose.dev.yml restart api worker` from `../saleor-platform`, or simply re-run `make up` from `../saleor-demo/saleor-demo`.
+- Run ad-hoc Django code against the live api container via `../saleor-platform/scripts/api-shell` (wrapped as `make api-shell` from `saleor-demo`). It prepends `import django; django.setup()` and wires `PYTHONPATH`/`DJANGO_SETTINGS_MODULE`/`cwd` for you. **Do not** run Python locally against the Dockerized DB.
+- Get a superuser JWT via `../saleor-platform/scripts/api-token` (`make api-token`). Default creds are `admin@example.com` / `admin`.
+- After adding or changing a GraphQL mutation, run `make refresh-schema` from `saleor-demo` so the dashboard codegen picks up the new fields before you edit `../saleor-dashboard/src/**/mutations.ts`.
+- **Do not** invent new `docker-compose.override.yml` files or `docker cp` source into containers. The dev-mode overlay is the only supported way to get your edits into the stack.
+
 ## Graphql
 
 ###  API versioning
