@@ -1,0 +1,23 @@
+saleor/app/tests/test_installation_utils.py
+  c198e8288a96ca60 262
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "c11fd961d710559bbf2d0a7bfcb5efb8963e13bf",
+  "prompts": {
+    "c198e8288a96ca60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c125dd0f-3493-4594-b20a-378c3f50ddb9",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
