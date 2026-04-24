@@ -1,0 +1,31 @@
+saleor/app/tests/test_app_actions.py
+  661adc9875b4488e 1-4,27-87
+saleor/app/tests/test_app_commands.py
+  661adc9875b4488e 299,310-321,367,409-411,431-433,445-460
+saleor/app/management/commands/app_delete.py
+  661adc9875b4488e 32-37,61
+saleor/app/actions.py
+  661adc9875b4488e 1-3,7,9-12,16,20-24,29-57
+saleor/app/management/commands/app_delete_all.py
+  661adc9875b4488e 4,19-26,33,36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "d8b18b62cf5f6d035da496664148d330c2679216",
+  "prompts": {
+    "661adc9875b4488e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a86c9d16-fb1f-4c5e-9a9a-70336cc832ed",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 164,
+      "total_deletions": 14,
+      "accepted_lines": 162,
+      "overriden_lines": 0
+    }
+  }
+}
