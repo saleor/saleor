@@ -8,6 +8,7 @@ You are almost certainly being driven from the `saleor-demo/` control plane. Whe
 - Run ad-hoc Django code against the live api container via `../saleor-platform/scripts/api-shell` (wrapped as `make api-shell` from `saleor-demo`). It prepends `import django; django.setup()` and wires `PYTHONPATH`/`DJANGO_SETTINGS_MODULE`/`cwd` for you. **Do not** run Python locally against the Dockerized DB.
 - Get a superuser JWT via `../saleor-platform/scripts/api-token` (`make api-token`). Default creds are `admin@example.com` / `admin`.
 - After adding or changing a GraphQL mutation, run `make refresh-schema` from `saleor-demo` so the dashboard codegen picks up the new fields before you edit `../saleor-dashboard/src/**/mutations.ts`.
+- After adding a skill under `.agents/skills/<name>/`, symlink it into `../saleor-demo/saleor-demo/.agents/skills/<name>` if it's useful when driving from the demo control plane. See `../saleor-demo/saleor-demo/AGENTS.md` §Skill aggregation.
 - **Do not** invent new `docker-compose.override.yml` files or `docker cp` source into containers. The dev-mode overlay is the only supported way to get your edits into the stack.
 
 ## Graphql
