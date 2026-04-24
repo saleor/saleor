@@ -20,6 +20,7 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
@@ -52,6 +53,34 @@ class ProductVariantStocksDelete(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockError
         error_type_field = "stock_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK,
+                description=("A product variant stock is deleted from a warehouse."),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
+                description=(
+                    "A product variant is out of stock in a channel "
+                    "(non click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+            WebhookEventInfo(
+                type=(
+                    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+                ),
+                description=(
+                    "A product variant is out of stock in a channel "
+                    "(click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+        ]
 
     @classmethod
     @traced_atomic_transaction()

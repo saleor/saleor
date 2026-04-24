@@ -24,6 +24,7 @@ from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BulkStockError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
@@ -41,6 +42,70 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED,
+                description="A product variant stock is updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK,
+                description=(
+                    "A product variant stock transitioned from no availability "
+                    "to available quantity."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK,
+                description=(
+                    "A product variant stock transitioned from available "
+                    "quantity to no availability."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL,
+                description=(
+                    "A product variant is back in stock in a channel "
+                    "(non click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
+                description=(
+                    "A product variant is out of stock in a channel "
+                    "(non click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+            WebhookEventInfo(
+                type=(
+                    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
+                ),
+                description=(
+                    "A product variant is back in stock in a channel "
+                    "(click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+            WebhookEventInfo(
+                type=(
+                    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+                ),
+                description=(
+                    "A product variant is out of stock in a channel "
+                    "(click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+        ]
 
     class Arguments:
         variant_id = graphene.ID(

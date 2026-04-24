@@ -11,9 +11,11 @@ from ....warehouse.channel_stock_availability import (
 from ....warehouse.webhooks.stock_events import (
     trigger_product_variant_out_of_stock,
 )
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import WarehouseError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
@@ -28,6 +30,41 @@ class WarehouseDelete(ModelDeleteMutation):
         description = "Deletes selected warehouse."
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.WAREHOUSE_DELETED,
+                description="A warehouse is deleted.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK,
+                description=(
+                    "A product variant stock is removed together with the "
+                    "deleted warehouse."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
+                description=(
+                    "A product variant is out of stock in a channel "
+                    "(non click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+            WebhookEventInfo(
+                type=(
+                    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT
+                ),
+                description=(
+                    "A product variant is out of stock in a channel "
+                    "(click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+        ]
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to delete.", required=True)

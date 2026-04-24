@@ -17538,11 +17538,21 @@ type Mutation {
   Deletes selected warehouse. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - WAREHOUSE_DELETED (async): A warehouse is deleted.
+  - PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is removed together with the deleted warehouse.
+  - PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  - PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   deleteWarehouse(
     """ID of a warehouse to delete."""
     id: ID!
-  ): WarehouseDelete @doc(category: "Products")
+  ): WarehouseDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [WAREHOUSE_DELETED, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
 
   """
   Add shipping zone to given warehouse. 
@@ -18493,6 +18503,15 @@ type Mutation {
   Creates stocks for product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock is created in a warehouse.
+  - PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  - PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   productVariantStocksCreate(
     """Input list of stocks to create."""
@@ -18500,12 +18519,21 @@ type Mutation {
 
     """ID of a product variant for which stocks will be created."""
     variantId: ID!
-  ): ProductVariantStocksCreate @doc(category: "Products")
+  ): ProductVariantStocksCreate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
 
   """
   Deletes stocks from product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is deleted from a warehouse.
+  - PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  - PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   productVariantStocksDelete(
     """SKU of product variant for which stocks will be deleted."""
@@ -18516,12 +18544,29 @@ type Mutation {
 
     """Input list of warehouse IDs."""
     warehouseIds: [ID!]
-  ): ProductVariantStocksDelete @doc(category: "Products")
+  ): ProductVariantStocksDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
 
   """
   Updates stocks for product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock is updated.
+  - PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock transitioned from no availability to available quantity.
+  - PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock transitioned from available quantity to no availability.
+  - PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  - PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  - PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+  - PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
+  
+  Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
   """
   productVariantStocksUpdate(
     """SKU of product variant for which stocks will be updated."""
@@ -18532,7 +18577,7 @@ type Mutation {
 
     """ID of a product variant for which stocks will be updated."""
     variantId: ID
-  ): ProductVariantStocksUpdate @doc(category: "Products")
+  ): ProductVariantStocksUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED, PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
 
   """
   Updates an existing variant for product. 
@@ -22429,8 +22474,18 @@ input WarehouseUpdateInput @doc(category: "Products") {
 Deletes selected warehouse. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- WAREHOUSE_DELETED (async): A warehouse is deleted.
+- PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is removed together with the deleted warehouse.
+- PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+- PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type WarehouseDelete @doc(category: "Products") {
+type WarehouseDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [WAREHOUSE_DELETED, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
@@ -25398,8 +25453,17 @@ type ProductVariantBulkDelete @doc(category: "Products") {
 Creates stocks for product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock is created in a warehouse.
+- PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+- PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type ProductVariantStocksCreate @doc(category: "Products") {
+type ProductVariantStocksCreate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
   """Updated product variant."""
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -25432,8 +25496,17 @@ type BulkStockError @doc(category: "Products") {
 Deletes stocks from product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock is deleted from a warehouse.
+- PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+- PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type ProductVariantStocksDelete @doc(category: "Products") {
+type ProductVariantStocksDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
   """Updated product variant."""
   productVariant: ProductVariant
   stockErrors: [StockError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -25466,8 +25539,25 @@ enum StockErrorCode @doc(category: "Products") {
 Updates stocks for product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_STOCK_UPDATED (async): A product variant stock is updated.
+- PRODUCT_VARIANT_BACK_IN_STOCK (async): A product variant stock transitioned from no availability to available quantity.
+- PRODUCT_VARIANT_OUT_OF_STOCK (async): A product variant stock transitioned from available quantity to no availability.
+- PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL (async): A product variant is back in stock in a channel (non click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+- PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL (async): A product variant is out of stock in a channel (non click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+- PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is back in stock in a channel (click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
+- PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT (async): A product variant is out of stock in a channel (click-and-collect warehouses).
+
+Note: Triggered only when the `useLegacyShippingZoneStockAvailability` shop setting is disabled.
 """
-type ProductVariantStocksUpdate @doc(category: "Products") {
+type ProductVariantStocksUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_STOCK_UPDATED, PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_OUT_OF_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT, PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: []) {
   """Updated product variant."""
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]! @deprecated(reason: "Use `errors` field instead.")

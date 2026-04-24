@@ -20,6 +20,7 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
@@ -51,6 +52,34 @@ class ProductVariantStocksCreate(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK,
+                description=("A product variant stock is created in a warehouse."),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL,
+                description=(
+                    "A product variant is back in stock in a channel "
+                    "(non click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+            WebhookEventInfo(
+                type=(
+                    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
+                ),
+                description=(
+                    "A product variant is back in stock in a channel "
+                    "(click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+        ]
 
     @classmethod
     @traced_atomic_transaction()
