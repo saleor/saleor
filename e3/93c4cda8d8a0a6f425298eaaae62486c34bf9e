@@ -1,0 +1,25 @@
+saleor/app/manifest_validations.py
+  3acd186beb4a422f 103,109
+saleor/app/management/commands/utils.py
+  3acd186beb4a422f 18-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "e393c4cda8d8a0a6f425298eaaae62486c34bf9e",
+  "prompts": {
+    "3acd186beb4a422f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b639de76-9a0f-43c7-b74b-53b21b782230",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 8,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
