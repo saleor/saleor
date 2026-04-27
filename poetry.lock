@@ -4640,13 +4640,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "requests-hardened"
-version = "1.0.0"
+version = "1.2.1"
 description = "A library that overrides the default behaviors of the requests library, and adds new security features."
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "requests_hardened-1.0.0.tar.gz", hash = "sha256:28af548131883526e9c3047f86e56526d545140befa91be8bd678c5490cc9d79"},
+    {file = "requests_hardened-1.2.1-py3-none-any.whl", hash = "sha256:9bc1566c22c5e2674232a80987e4907f2e482e7d2ddf2afc85973e57cec6b335"},
+    {file = "requests_hardened-1.2.1.tar.gz", hash = "sha256:e15fb10f622bc54e843b97f58c297c64dc9d96132dc2f1f1eb158d4e55ea8bcc"},
 ]
 
 [package.dependencies]
@@ -6112,4 +6113,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.12"
-content-hash = "16575a5ac4e89c547820c6e257b0da96f94c6d6331ccc17d4017131f918a2a14"
+content-hash = "9e4d5408e64e270fce0429bb5bc1cceb9e7478cec11c2f4d9a71247cc44c2ff0"
