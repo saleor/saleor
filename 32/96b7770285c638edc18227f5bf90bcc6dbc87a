@@ -1,0 +1,25 @@
+saleor/app/tests/test_app_actions.py
+  c3a79c610de2f139 29,63,70
+saleor/app/actions.py
+  c3a79c610de2f139 11,51,53,57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "3296b7770285c638edc18227f5bf90bcc6dbc87a",
+  "prompts": {
+    "c3a79c610de2f139": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7cfa1a6e-42f9-47e4-a2c2-eaedf7e1ccd3",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 7,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    }
+  }
+}
