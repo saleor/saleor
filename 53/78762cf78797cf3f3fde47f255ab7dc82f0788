@@ -1,0 +1,25 @@
+saleor/core/models.py
+  446cfcc22831072e 220
+saleor/core/migrations/0012_eventdelivery_bypass_app_active_check.py
+  446cfcc22831072e 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "5378762cf78797cf3f3fde47f255ab7dc82f0788",
+  "prompts": {
+    "446cfcc22831072e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d75c8652-297d-4429-82e9-2cf80c0e5b29",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
