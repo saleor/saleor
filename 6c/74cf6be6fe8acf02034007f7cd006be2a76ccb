@@ -1,0 +1,31 @@
+saleor/plugins/webhook/tests/test_app_lifecycle_webhooks.py
+  405d52bdd4a0fa45 204-257
+saleor/plugins/webhook/plugin.py
+  405d52bdd4a0fa45 405-408,410-416,431
+saleor/graphql/app/tests/mutations/test_app_activate.py
+  405d52bdd4a0fa45 105
+saleor/graphql/app/tests/mutations/test_app_update.py
+  405d52bdd4a0fa45 139
+saleor/graphql/app/tests/mutations/test_app_create.py
+  405d52bdd4a0fa45 164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "6c74cf6be6fe8acf02034007f7cd006be2a76ccb",
+  "prompts": {
+    "405d52bdd4a0fa45": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "494ed5c4-4539-4a6d-b41d-0f54e736637e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 69,
+      "total_deletions": 7,
+      "accepted_lines": 69,
+      "overriden_lines": 0
+    }
+  }
+}
