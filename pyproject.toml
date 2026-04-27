@@ -58,7 +58,7 @@ dependencies = [
     "razorpay~=1.2",
     "redis>=5.0.1,<6",
     "requests~=2.32",
-    "requests-hardened>=1.0.0,<2.0.0",
+    "requests-hardened>=1.2.1,<2.0.0",
     "Rx>=1.6.3,<2",
     "semantic-version>=2.10.0,<3",
     "sendgrid>=6.7.1,<7",
@@ -142,6 +142,7 @@ exclude-newer = "3 weeks"
 # To customize on a per-package basis, for example you can do this:
 # setuptools = "30 days"
 django = "2026-04-07T14:30:00Z"
+requests-hardened = "2026-04-27T14:43:48Z"
 
 # Allow more recent pyjwt version due to https://github.com/jpadilla/pyjwt/security/advisories/GHSA-752w-5fwx-jx9f
 pyjwt = "10 days"

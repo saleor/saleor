@@ -9,12 +9,13 @@ supported-markers = [
 ]
 
 [options]
-exclude-newer = "2026-03-31T05:47:06.949972Z"
+exclude-newer = "2026-04-06T14:45:24.237680315Z"
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
+requests-hardened = "2026-04-27T14:43:48Z"
 django = "2026-04-07T14:30:00Z"
-pyjwt = { timestamp = "2026-04-11T05:47:06.951029Z", span = "P10D" }
+pyjwt = { timestamp = "2026-04-17T14:45:24.237717191Z", span = "P10D" }
 
 [[package]]
 name = "amqp"
@@ -2407,14 +2408,14 @@ wheels = [
 
 [[package]]
 name = "requests-hardened"
-version = "1.1.1"
+version = "1.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/fd/e4c407a88ed550fe4f81d6c66ddbb8d31d496058fe1ac018644a89c72d60/requests_hardened-1.1.1.tar.gz", hash = "sha256:42780d5f6d96f82bcc329c5aa203ff3e649f82cf9b7535e915bfe0383e35d4d9", size = 8794, upload-time = "2025-09-05T10:25:25.94Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/5f/903d91548f95f4690430d0af64507d53e7db2862f495bdcdcde5d1e59583/requests_hardened-1.2.1.tar.gz", hash = "sha256:e15fb10f622bc54e843b97f58c297c64dc9d96132dc2f1f1eb158d4e55ea8bcc", size = 7687, upload-time = "2026-04-27T14:43:46.563Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/c8/d9e3b4d2a594340308e1d2feb8610649d0c6368066cb80c1e86f4fb48e7f/requests_hardened-1.1.1-py3-none-any.whl", hash = "sha256:d83e4770db40cc7a9505a81402d800536bdbcf474dc08886574ee054b00c657f", size = 9160, upload-time = "2025-09-05T10:25:24.637Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/c1/afdbcc0da96f9229e3f2e263f9fb9b9c2006bd03ae40a81b7b4d09f64c48/requests_hardened-1.2.1-py3-none-any.whl", hash = "sha256:9bc1566c22c5e2674232a80987e4907f2e482e7d2ddf2afc85973e57cec6b335", size = 9654, upload-time = "2026-04-27T14:43:45.062Z" },
 ]
 
 [[package]]
@@ -2676,7 +2677,7 @@ requires-dist = [
     { name = "razorpay", specifier = "~=1.2" },
     { name = "redis", specifier = ">=5.0.1,<6" },
     { name = "requests", specifier = "~=2.32" },
-    { name = "requests-hardened", specifier = ">=1.0.0,<2.0.0" },
+    { name = "requests-hardened", specifier = ">=1.2.1,<2.0.0" },
     { name = "rx", specifier = ">=1.6.3,<2" },
     { name = "semantic-version", specifier = ">=2.10.0,<3" },
     { name = "sendgrid", specifier = ">=6.7.1,<7" },
