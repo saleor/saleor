@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="eventdelivery",
             name="bypass_app_active_check",
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(default=False, db_default=False),
         ),
     ]
