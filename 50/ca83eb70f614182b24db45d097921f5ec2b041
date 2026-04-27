@@ -1,0 +1,45 @@
+saleor/app/permissions.py
+  5db473dc7500fd76 1-17
+saleor/graphql/app/utils.py
+  5db473dc7500fd76 4,28-39
+saleor/app/tests/test_manifest_validations.py
+  5db473dc7500fd76 2,7,307-350
+saleor/graphql/app/tests/mutations/test_app_update.py
+  5db473dc7500fd76 460-490
+saleor/graphql/app/tests/mutations/test_app_create.py
+  5db473dc7500fd76 260-283
+saleor/app/tests/test_app_commands.py
+  5db473dc7500fd76 5,256-266
+saleor/graphql/app/mutations/app_create.py
+  5db473dc7500fd76 16,72
+saleor/graphql/app/mutations/app_install.py
+  5db473dc7500fd76 16,73
+saleor/graphql/app/mutations/app_update.py
+  5db473dc7500fd76 16,62
+saleor/graphql/app/tests/mutations/test_app_install.py
+  5db473dc7500fd76 240-261
+saleor/app/manifest_validations.py
+  5db473dc7500fd76 28,103-114,137
+saleor/app/management/commands/utils.py
+  5db473dc7500fd76 4,15-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "50ca83eb70f614182b24db45d097921f5ec2b041",
+  "prompts": {
+    "5db473dc7500fd76": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5648ad71-644a-4f5a-966f-1889b0184a5a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 258,
+      "total_deletions": 24,
+      "accepted_lines": 200,
+      "overriden_lines": 1
+    }
+  }
+}
