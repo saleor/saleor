@@ -20778,6 +20778,22 @@ type Mutation {
   ): CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
+  Deletes a checkout.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS.
+  """
+  checkoutDelete(
+    """
+    The checkout's ID.
+    
+    Added in Saleor 3.23.
+    """
+    id: ID!
+  ): CheckoutDelete @doc(category: "Checkout")
+
+  """
   Updates email address in the existing checkout object.
   
   Triggers the following webhook events:
@@ -30789,6 +30805,30 @@ type CheckoutCustomerNoteUpdate @doc(category: "Checkout") @webhookEventsInfo(as
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [CheckoutError!]!
+}
+
+"""
+Deletes a checkout.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_CHECKOUTS.
+"""
+type CheckoutDelete @doc(category: "Checkout") {
+  errors: [CheckoutDeleteError!]!
+}
+
+type CheckoutDeleteError @doc(category: "Checkout") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CheckoutErrorCode!
 }
 
 """
