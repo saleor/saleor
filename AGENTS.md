@@ -27,10 +27,36 @@ You are almost certainly being driven from the `saleor-demo/` control plane. Whe
 
 ## Running tests
 
-- Run tests using `pytest`
-- Attach `--reuse-db` argument to speed up tests by reusing the test database
-- Select tests to run by passing test file path as an argument
-- Enter virtual environment before executing tests
+**Never run pytest on the host.** The Saleor Postgres DB lives only inside Docker; `python -m pytest` on your Mac always fails with a connection error. All test execution must happen inside the `api` container, run from `../saleor-platform/`.
+
+### Fast command — use this during demos and development
+
+```bash
+# from saleor-platform/
+docker compose exec api pytest <path/to/test_file.py> -n0 --reuse-db -q
+```
+
+| Flag | Why |
+|------|-----|
+| `exec` (not `run --rm`) | Attaches to the already-running container. `run --rm` spins up a new one, adding ~5–10 s of overhead before any test runs. |
+| `-n0` | Disables xdist worker parallelism. The default `-n logical` spawns ~14 workers. For a handful of tests that startup cost dominates — single-threaded is faster. |
+| `--reuse-db` | Skips rebuilding the test database when the schema hasn't changed. |
+| `-q` | Quieter output; drop it when you want verbose test names. |
+| `-x` | (optional) Stop on first failure — useful when iterating. |
+
+### Full suite — CI-equivalent, pre-merge only
+
+```bash
+# from saleor-platform/
+docker compose run --rm api pytest -n logical --allow-hosts cache
+```
+
+Use `-n logical` only when you need to validate the whole suite before merging. It is the wrong default for a targeted file or feature.
+
+### Common test-authoring gotchas
+
+- **Permission tests**: `get_graphql_content()` asserts `"errors" not in response` by default and raises immediately on a permission-denied GQL response. Use `get_graphql_content(response, ignore_errors=True)` when the test expects a permission error, or use the `assert_no_permission(response)` helper from `saleor.graphql.tests.utils`, which does both the error-presence check and the `PermissionDenied` code assertion for you.
+- **JSON scalar fields** (e.g. `page.content`, `product.description`): The GQL response serialises `JSONString` fields as a plain Python `str`, not a dict. Compare with the Django model value using `json.loads(response_value)`, not a direct `==` against the model field.
 
 ## Writing tests
 
