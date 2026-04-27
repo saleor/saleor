@@ -11,6 +11,12 @@ def clean_permissions(required_permissions: list[str]):
                 f"Permission: {perm} doesn't exist in Saleor."
                 f" Available permissions: {all_permissions}"
             )
+    # Enforce the same "no app holds MANAGE_APPS" invariant that GraphQL mutations
+    # enforce. CLI commands bypass the GraphQL layer entirely, so without this
+    # guard `manage.py create_app foo --permission MANAGE_APPS` would silently
+    # produce an app that can manage other apps - a privilege-laundering primitive.
+    if "MANAGE_APPS" in required_permissions:
+        raise CommandError("Permission(s) cannot be granted to an app: MANAGE_APPS.")
     permissions = get_permissions(
         [all_permissions[perm] for perm in required_permissions]
     )

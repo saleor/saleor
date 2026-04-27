@@ -99,6 +99,16 @@ def _clean_permissions(
     return [p for p in saleor_permissions if p.codename in permissions]
 
 
+def _ensure_app_permissions_allowed(required_permissions: list[str]) -> None:
+    if "MANAGE_APPS" not in required_permissions:
+        return
+    raise ValidationError(
+        "MANAGE_APPS permission cannot be granted to an app.",
+        code=AppErrorCode.OUT_OF_SCOPE_PERMISSION.value,
+        params={"permissions": ["MANAGE_APPS"]},
+    )
+
+
 def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     # Structural validation: required fields, field types, URL formats, brand logo.
     try:
@@ -121,6 +131,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         formatted_codename=Concat("content_type__app_label", Value("."), "codename")
     )
     try:
+        _ensure_app_permissions_allowed(manifest_data.get("permissions", []))
         app_permissions = _clean_permissions(
             manifest_data.get("permissions", []), saleor_permissions
         )

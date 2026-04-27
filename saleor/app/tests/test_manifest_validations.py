@@ -1,8 +1,10 @@
 import pytest
+from django.core.exceptions import ValidationError
 from pydantic import ValidationError as PydanticValidationError
 
 from ..error_codes import AppErrorCode
 from ..manifest_schema import ICON_MIME_TYPES, ManifestSchema
+from ..manifest_validations import clean_manifest_data
 
 MINIMAL_MANIFEST = {
     "id": "app.example",
@@ -300,6 +302,50 @@ def test_manifest_schema_extra_fields_ignored():
 
     # then
     assert schema.id == MINIMAL_MANIFEST["id"]
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_manage_apps_permission():
+    # given - manifest declaring MANAGE_APPS must be rejected even though the
+    # permission name is valid, to prevent privilege laundering through an app
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "permissions": ["MANAGE_APPS"],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    errors = exc_info.value.message_dict
+    assert list(errors.keys()) == ["permissions"]
+    permission_errors = exc_info.value.error_dict["permissions"]
+    assert len(permission_errors) == 1
+    error = permission_errors[0]
+    assert error.code == AppErrorCode.OUT_OF_SCOPE_PERMISSION.value
+    assert error.params == {"permissions": ["MANAGE_APPS"]}
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_manage_apps_permission_alongside_others():
+    # given - mixing MANAGE_APPS with allowed permissions still rejects the whole
+    # manifest, leaving no partial-success path
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "permissions": ["MANAGE_PRODUCTS", "MANAGE_APPS"],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    permission_errors = exc_info.value.error_dict["permissions"]
+    assert len(permission_errors) == 1
+    error = permission_errors[0]
+    assert error.code == AppErrorCode.OUT_OF_SCOPE_PERMISSION.value
+    assert error.params == {"permissions": ["MANAGE_APPS"]}
 
 
 def test_manifest_schema_deprecated_fields_accepted():

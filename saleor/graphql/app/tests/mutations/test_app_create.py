@@ -257,3 +257,27 @@ def test_app_create_mutation_no_permissions(
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+
+def test_app_create_rejects_manage_apps_permission(superuser_api_client):
+    # given - even a superuser cannot grant MANAGE_APPS to an app
+    query = APP_CREATE_MUTATION
+    variables = {
+        "name": "Privileged integration",
+        "permissions": [PermissionEnum.MANAGE_APPS.name],
+    }
+
+    # when
+    response = superuser_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+    data = content["data"]["appCreate"]
+
+    # then
+    errors = data["errors"]
+    assert not data["app"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "permissions"
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
+    assert error["permissions"] == [PermissionEnum.MANAGE_APPS.name]
+    assert App.objects.count() == 0
