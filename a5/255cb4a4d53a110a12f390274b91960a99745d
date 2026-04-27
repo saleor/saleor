@@ -1,0 +1,26 @@
+saleor/app/tests/test_app_commands.py
+  c8559cd56b4323e8 7,274-275
+  350082b07ca99adb 276,279-287,295,298,301,309,312-317,321,324,330,332,335,338
+  661adc9875b4488e 277-278,288-289,291-293,296-297,299-300,302,306-308,310-311,318-320,322-323,328-329,331,333-334,336-337,303-305,325-327,339-354
+  95eadaab62578f69 294
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "a5255cb4a4d53a110a12f390274b91960a99745d",
+  "prompts": {
+    "95eadaab62578f69": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9e01672d-99cf-4900-9b59-105e0f02b911",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}

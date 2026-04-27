@@ -1,0 +1,38 @@
+saleor/graphql/app/tests/mutations/test_app_activate.py
+  6eb48c1c8819524a 55
+  405d52bdd4a0fa45 105
+saleor/plugins/webhook/plugin.py
+  6eb48c1c8819524a 121-125,401-402,407,424-428
+  405d52bdd4a0fa45 403-406,408-414,429
+saleor/graphql/app/tests/mutations/test_app_create.py
+  6eb48c1c8819524a 114
+  405d52bdd4a0fa45 164
+saleor/graphql/app/tests/mutations/test_app_update.py
+  6eb48c1c8819524a 83
+  405d52bdd4a0fa45 139
+saleor/plugins/webhook/tests/test_app_lifecycle_webhooks.py
+  f3592f725c1fcb2c 1-15,18-19,21-54,56-69,71-93,95-115,117-124
+  6eb48c1c8819524a 126,128-130,16-17,20,125,135-137,139-140,142,145,153,156,158-160,162-164,168,171-172,174,176-179,185,188,190,197,199,201-203
+  405d52bdd4a0fa45 131,133-134,138,143-144,146,148-150,152,154-155,157,161,165-167,169-170,173,175,180-182,184,186-187,189,191-196,198,200,151,183,204-257
+  3b900025832cb938 55,70,94,116,127,132,141,147
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "51e7b32eaa5b89c37439d069eb29732fd762cd60",
+  "prompts": {
+    "405d52bdd4a0fa45": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "494ed5c4-4539-4a6d-b41d-0f54e736637e",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 69,
+      "total_deletions": 7,
+      "accepted_lines": 69,
+      "overriden_lines": 0
+    }
+  }
+}

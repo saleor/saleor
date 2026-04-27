@@ -1,0 +1,40 @@
+saleor/app/management/commands/app_delete_all.py
+  350082b07ca99adb 1-12,16-25,27-34
+saleor/app/tests/test_app_commands.py
+  c8559cd56b4323e8 8,275-276
+  350082b07ca99adb 278-280,283,285-287,289-290,292,294-295,297-298,303,305-306,308-309,317-318,320,323,327,371,374-382,390,393,396,404,407-412,416,419,423,425,428,431
+  661adc9875b4488e 338-339,343,351-352,354-355,369-370,372-373,383-384,386-389,391-392,394-395,397,401-403,405-406,413-415,417-418,421-422,424,426-427,429-430
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "53ccc9b6b94394a97473792c8979ecd0380b82a8",
+  "prompts": {
+    "350082b07ca99adb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7ffa375-0147-42ac-99f1-5bed39c1c722",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 97,
+      "total_deletions": 0,
+      "accepted_lines": 56,
+      "overriden_lines": 0
+    },
+    "661adc9875b4488e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a86c9d16-fb1f-4c5e-9a9a-70336cc832ed",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 164,
+      "total_deletions": 14,
+      "accepted_lines": 32,
+      "overriden_lines": 0
+    }
+  }
+}

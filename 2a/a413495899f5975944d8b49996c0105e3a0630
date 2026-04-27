@@ -1,0 +1,47 @@
+saleor/app/actions.py
+  c8559cd56b4323e8 4-6,8,13-15,17-19,25-28
+  661adc9875b4488e 1-3,7,9-10,12,16,20-24,29-50,52,54-56
+saleor/app/management/commands/app_delete_all.py
+  350082b07ca99adb 1-3,5-13,17-18,27-32,34-35,37-44,26
+  661adc9875b4488e 4,19-25,33,36
+saleor/app/tests/test_app_actions.py
+  661adc9875b4488e 5,1-4,27-28,30-62,64-69,71-87
+  c8559cd56b4323e8 6-26
+saleor/app/tests/test_app_commands.py
+  c8559cd56b4323e8 8,275-276
+  350082b07ca99adb 278-280,283,285-287,289-290,292,294-295,297-298,303,305-306,308-309,328-329,331,334,338,382,385-393,401,404,407,415,418-423,427,430,436,438,441,444
+  661adc9875b4488e 349-350,354,362-363,365-366,380-381,383-384,394-395,397-400,402-403,405-406,408,412-414,416-417,424-426,428-429,434-435,437,439-440,442-443,311-312,314,316-317,319-320,409-411,431-433,445-460
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "2aa413495899f5975944d8b49996c0105e3a0630",
+  "prompts": {
+    "350082b07ca99adb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7ffa375-0147-42ac-99f1-5bed39c1c722",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 97,
+      "total_deletions": 0,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    },
+    "661adc9875b4488e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a86c9d16-fb1f-4c5e-9a9a-70336cc832ed",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 164,
+      "total_deletions": 14,
+      "accepted_lines": 140,
+      "overriden_lines": 0
+    }
+  }
+}
