@@ -13,7 +13,7 @@ from ...core.utils import WebhookEventInfo
 from ...decorators import staff_member_required
 from ...utils import get_user_or_app_from_context
 from ..types import AppInstallation
-from ..utils import ensure_can_manage_permissions
+from ..utils import ensure_app_permissions_allowed, ensure_can_manage_permissions
 
 
 class AppInstallInput(BaseInputObjectType):
@@ -70,6 +70,7 @@ class AppInstall(DeprecatedModelMutation):
         permissions = cleaned_input.pop("permissions", None)
         if permissions:
             requestor = get_user_or_app_from_context(info.context)
+            ensure_app_permissions_allowed(permissions)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input

@@ -2,7 +2,7 @@ from unittest.mock import ANY, Mock, call, patch
 
 import graphene
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.forms import ValidationError
 from requests_hardened import HTTPSession
 
@@ -251,6 +251,17 @@ def test_sends_data_to_target_url(monkeypatch):
         json={"auth_token": ANY},
         allow_redirects=False,
     )
+
+
+def test_create_app_command_rejects_manage_apps_permission():
+    # given - the create_app command must not be a backdoor for granting MANAGE_APPS
+    name = "Privileged App"
+
+    # when / then
+    with pytest.raises(CommandError, match="MANAGE_APPS"):
+        call_command("create_app", name, permission=["MANAGE_APPS"])
+
+    assert not App.objects.filter(name=name).exists()
 
 
 def test_creates_app_with_identifier():
