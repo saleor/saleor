@@ -1,0 +1,14 @@
+saleor/webhook/transport/utils.py
+  h_463c3d2f499c35 523-525
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "c1950e29bf8092f81056e7d909d86e307834bd10",
+  "prompts": {},
+  "humans": {
+    "h_463c3d2f499c35": {
+      "author": "Lukasz Ostrowski"
+    }
+  }
+}
