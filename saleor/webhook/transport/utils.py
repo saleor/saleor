@@ -617,7 +617,11 @@ def get_pending_delivery_requests(
 
     deliveries_qs = (
         EventDelivery.objects.select_related("payload", "webhook__app")
-        .filter(webhook__app_id=app_id, status=EventDeliveryStatus.PENDING)
+        .filter(
+            webhook__app_id=app_id,
+            webhook__is_active=True,
+            status=EventDeliveryStatus.PENDING,
+        )
         .order_by("created_at")
         .annotate(
             attempts_count=Count("attempts", distinct=True),

@@ -865,11 +865,13 @@ def trigger_send_webhooks_async_for_apps():
         ).filter(
             status=EventDeliveryStatus.PENDING,
             payload__isnull=False,
+            webhook__is_active=True,
             webhook__app_id=OuterRef("id"),
         )
 
         webhook_apps = (
             App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+            .filter(is_active=True)
             .filter(Exists(event_deliveries_to_process_qs))
             .only("id", "identifier")
         )

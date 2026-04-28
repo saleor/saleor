@@ -333,7 +333,12 @@ class async_webhooks_schedule(TimeBaseSchedule):
 
         return (
             EventDelivery.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-            .filter(status=EventDeliveryStatus.PENDING, payload__isnull=False)
+            .filter(
+                status=EventDeliveryStatus.PENDING,
+                payload__isnull=False,
+                webhook__is_active=True,
+                webhook__app__is_active=True,
+            )
             .exists()
         )
 
