@@ -44,7 +44,10 @@ def to_global_cursor(values):
 
 def from_global_cursor(cursor) -> list[str]:
     values = unbase64(cursor)
-    return orjson.loads(values)
+    parsed = orjson.loads(values)
+    if not isinstance(parsed, list):
+        raise ValueError("Cursor must decode to a JSON array.")
+    return parsed
 
 
 def get_field_value(instance: DjangoModel, field_name: str):
