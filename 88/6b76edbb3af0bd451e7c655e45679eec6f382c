@@ -1,0 +1,45 @@
+saleor/app/tests/test_app_commands.py
+  ea4ca8683b4ab80d 11
+  81f27223a19f1e0d 259,262-263
+saleor/graphql/app/utils.py
+  ea4ca8683b4ab80d 42-44
+saleor/app/manifest_validations.py
+  ea4ca8683b4ab80d 18,104-105,108,110
+saleor/app/management/commands/utils.py
+  ea4ca8683b4ab80d 3-7,18-24
+saleor/app/tests/test_manifest_validations.py
+  ea4ca8683b4ab80d 5,312,315,329,336,339,351
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "886b76edbb3af0bd451e7c655e45679eec6f382c",
+  "prompts": {
+    "81f27223a19f1e0d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "219a8792-b4dc-448a-8d49-4041500c9f3b",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 2,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    },
+    "ea4ca8683b4ab80d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e00c2c52-9766-423b-8992-dad98491df6d",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 34,
+      "total_deletions": 22,
+      "accepted_lines": 28,
+      "overriden_lines": 1
+    }
+  }
+}
