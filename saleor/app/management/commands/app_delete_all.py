@@ -23,8 +23,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args: Any, **options: Any) -> None:
-        apps = list(App.objects.not_removed().order_by("pk"))
-        if not apps:
+        apps = App.objects.not_removed().order_by("pk")
+        if not apps.exists():
             self.stdout.write("No active apps to delete.")
             return
 
