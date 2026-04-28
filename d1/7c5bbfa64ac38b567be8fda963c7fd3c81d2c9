@@ -1,0 +1,23 @@
+saleor/graphql/app/tests/mutations/test_app_fetch_manifest.py
+  7fbdab32d1dd56ee 390
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "d17c5bbfa64ac38b567be8fda963c7fd3c81d2c9",
+  "prompts": {
+    "7fbdab32d1dd56ee": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6b6c9db6-54bb-4530-9333-6f6ce9817e95",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
