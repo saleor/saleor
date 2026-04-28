@@ -387,7 +387,7 @@ def test_app_fetch_manifest_missing_extension_fields(
     ("app_permissions", "extension_permissions"),
     [
         ([], ["MANAGE_PRODUCTS"]),
-        (["MANAGE_PRODUCTS"], ["MANAGE_PRODUCTS", "MANAGE_APPS"]),
+        (["MANAGE_PRODUCTS"], ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]),
     ],
 )
 def test_app_fetch_manifest_extensions_permission_out_of_scope(
