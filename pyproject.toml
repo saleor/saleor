@@ -141,13 +141,14 @@ exclude-newer = "3 weeks"
 [tool.uv.exclude-newer-package]
 # To customize on a per-package basis, for example you can do this:
 # setuptools = "2026-04-07T14:30:00Z"
-# Note: the timestamp is the upload date but it doesn't need to be exactly the same
-#       as the one from PyPI but should be a few seconds or a minutes close
-#       to the actual PyPI publication time to reduce the risk of race conditions
-#       (i.e., someone uploading a malicious version during the provided time
-#       window)
-# Note: if you remove a package in this list and 'uv lock' doesn't update the lockfile,
-#       then try 'uv lock --refresh' this should force uv to detect the lockfile drift.
+# Note: the timestamp should correspond to the package's upload time on PyPI.
+#       It doesn't need to match exactly, it can be set slightly after the actual
+#       publication time (add a few more seconds, but no more than a few minutes).
+#       Setting the timestamp too far after the publication time increases the risk
+#       of a race condition (e.g., a malicious version being uploaded within that
+#       window).
+# Note: if you remove a package from this list and 'uv lock' does not update the
+#       lockfile, run 'uv lock --refresh' to force a refresh.
 django = "2026-04-07T14:30:00Z"
 requests-hardened = "2026-04-27T14:43:48Z"
 
