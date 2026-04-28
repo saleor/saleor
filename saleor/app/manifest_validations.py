@@ -15,6 +15,7 @@ from ..graphql.core.utils import str_to_enum
 from ..graphql.error import pydantic_to_validation_error
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
+    AppPermission,
     get_permissions,
     get_permissions_enum_list,
     split_permission_codename,
@@ -100,12 +101,13 @@ def _clean_permissions(
 
 
 def _ensure_app_permissions_allowed(required_permissions: list[str]) -> None:
-    if "MANAGE_APPS" not in required_permissions:
+    manage_apps = AppPermission.MANAGE_APPS.name
+    if manage_apps not in required_permissions:
         return
     raise ValidationError(
-        "MANAGE_APPS permission cannot be granted to an app.",
+        f"{manage_apps} permission cannot be granted to an app.",
         code=AppErrorCode.OUT_OF_SCOPE_PERMISSION.value,
-        params={"permissions": ["MANAGE_APPS"]},
+        params={"permissions": [manage_apps]},
     )
 
 

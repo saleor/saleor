@@ -39,7 +39,9 @@ def ensure_app_permissions_allowed(permission_items: list[str]):
     if manage_apps not in permission_items:
         return
 
-    error_msg = "MANAGE_APPS permission cannot be granted to an app."
+    error_msg = (
+        f"{AppPermission.MANAGE_APPS.name} permission cannot be granted to an app."
+    )
     code = AppErrorCode.OUT_OF_SCOPE_PERMISSION.value
     params = {"permissions": [manage_apps]}
     raise ValidationError(
