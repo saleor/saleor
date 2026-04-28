@@ -173,6 +173,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
 def _clean_extension_permissions(extension, app_permissions, errors):
     permissions_data = extension.get("permissions", [])
     try:
+        _ensure_app_permissions_allowed(permissions_data)
         extension_permissions = _clean_permissions(permissions_data, app_permissions)
     except ValidationError as e:
         if e.params is None:

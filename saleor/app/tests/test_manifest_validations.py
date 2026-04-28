@@ -351,6 +351,74 @@ def test_clean_manifest_data_rejects_manage_apps_permission_alongside_others():
     assert error.params == {"permissions": [manage_apps]}
 
 
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_manage_apps_permission_on_extension():
+    # given - extension declaring MANAGE_APPS must be rejected with the same
+    # explicit error as app-level MANAGE_APPS, even when app-level permissions
+    # are valid
+    manage_apps = AppPermission.MANAGE_APPS.name
+    extension_label = "Tools"
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "permissions": [ProductPermissions.MANAGE_PRODUCTS.name],
+        "extensions": [
+            {
+                "label": extension_label,
+                "url": "https://example.com/ext",
+                "mount": "PRODUCT_OVERVIEW_MORE_ACTIONS",
+                "target": "POPUP",
+                "permissions": [manage_apps],
+            }
+        ],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    extension_errors = exc_info.value.error_dict["extensions"]
+    assert len(extension_errors) == 1
+    error = extension_errors[0]
+    assert error.code == AppErrorCode.OUT_OF_SCOPE_PERMISSION.value
+    assert error.params == {"permissions": [manage_apps], "label": extension_label}
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_manage_apps_permission_on_extension_alongside_others():
+    # given - mixing MANAGE_APPS with allowed permissions on an extension still
+    # rejects, mirroring the app-level rule
+    manage_apps = AppPermission.MANAGE_APPS.name
+    extension_label = "Tools"
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "permissions": [ProductPermissions.MANAGE_PRODUCTS.name],
+        "extensions": [
+            {
+                "label": extension_label,
+                "url": "https://example.com/ext",
+                "mount": "PRODUCT_OVERVIEW_MORE_ACTIONS",
+                "target": "POPUP",
+                "permissions": [
+                    ProductPermissions.MANAGE_PRODUCTS.name,
+                    manage_apps,
+                ],
+            }
+        ],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    extension_errors = exc_info.value.error_dict["extensions"]
+    assert len(extension_errors) == 1
+    error = extension_errors[0]
+    assert error.code == AppErrorCode.OUT_OF_SCOPE_PERMISSION.value
+    assert error.params == {"permissions": [manage_apps], "label": extension_label}
+
+
 def test_manifest_schema_deprecated_fields_accepted():
     # given — deprecated fields are excluded from schema but must not cause a
     # validation error, and must remain accessible in the original dict so that
