@@ -179,7 +179,7 @@ def test_app_lifecycle_ignores_manage_apps_holders(
     """An admin app with MANAGE_APPS must not receive events about other apps."""
 
     affected_app, affected_webhook = app_lifecycle_app_factory()
-    admin_app, _ = app_lifecycle_app_factory()
+    admin_app, admin_webhook = app_lifecycle_app_factory()
     admin_app.permissions.add(permission_manage_apps)
 
     webhooks = get_webhooks_for_app_lifecycle_event(
@@ -187,6 +187,7 @@ def test_app_lifecycle_ignores_manage_apps_holders(
     )
 
     assert set(webhooks) == {affected_webhook}
+    assert admin_webhook not in set(webhooks)
 
 
 def test_app_lifecycle_includes_soft_deleted_app(app_lifecycle_app_factory):

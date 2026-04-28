@@ -1,4 +1,5 @@
 import json
+import logging
 
 import graphene
 from django.utils import timezone
@@ -11,6 +12,8 @@ from ..webhook.payloads import generate_meta, generate_requestor
 from ..webhook.transport.synchronous.transport import trigger_webhook_sync_promise
 from ..webhook.utils import get_webhooks_for_app_lifecycle_event
 from .models import App
+
+logger = logging.getLogger(__name__)
 
 
 def delete_app(app: App, manager: PluginsManager, *, force_sync: bool = False) -> None:
@@ -48,10 +51,18 @@ def _dispatch_app_deleted_sync(app: App) -> None:
         cls=CustomJsonEncoder,
     )
     for webhook in webhooks:
-        trigger_webhook_sync_promise(
-            event_type=event_type,
-            static_payload=payload,
-            webhook=webhook,
-            allow_replica=False,
-            subscribable_object=app,
-        ).get()
+        try:
+            trigger_webhook_sync_promise(
+                event_type=event_type,
+                static_payload=payload,
+                webhook=webhook,
+                allow_replica=False,
+                subscribable_object=app,
+            ).get()
+        except Exception:
+            logger.warning(
+                "Sync APP_DELETED dispatch failed for app pk=%s webhook pk=%s",
+                app.pk,
+                webhook.pk,
+                exc_info=True,
+            )
