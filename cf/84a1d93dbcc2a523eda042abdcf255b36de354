@@ -1,0 +1,34 @@
+saleor/app/actions.py
+  7cdfba62bb3c9691 2,17,54-68
+  h_463c3d2f499c35 16
+saleor/webhook/tests/test_utils.py
+  h_463c3d2f499c35 182
+  7cdfba62bb3c9691 190
+saleor/app/tests/test_app_commands.py
+  h_463c3d2f499c35 300-311
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "cf84a1d93dbcc2a523eda042abdcf255b36de354",
+  "prompts": {
+    "7cdfba62bb3c9691": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a536e43f-70ef-4518-ac26-2e7bfe58271c",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 19,
+      "total_deletions": 10,
+      "accepted_lines": 19,
+      "overriden_lines": 0
+    }
+  },
+  "humans": {
+    "h_463c3d2f499c35": {
+      "author": "Lukasz Ostrowski"
+    }
+  }
+}
