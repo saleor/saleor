@@ -7,11 +7,11 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - Removed the deprecated Authorize.Net payment gateway plugin (`mirumee.payments.authorize_net`).
-- Apps will be no longer to be grated with `MANAGE_APPS` permission. In certain cases, this permission was able to be assigned by the authorized user.
+- Apps will be no longer to be granted with `MANAGE_APPS` permission. In certain cases, this permission was able to be assigned by the authorized user.
   App with such permission was not able to *act* like an admin app, but permission technically was granted.
 
   From Saleor 3.24, this app installation with `MANAGE_APPS` permission will be rejected.
-  To safely upgrade, ensure that all installed apps do not have this permission
+  To safely upgrade, ensure that all installed apps do not have this permission.
 
 ### GraphQL API
 
