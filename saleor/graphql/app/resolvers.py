@@ -48,6 +48,11 @@ def resolve_access_token_for_app(info, root):
 
 
 def resolve_access_token_for_app_extension(info, root, app):
+    if app.has_perm(AppPermission.MANAGE_APPS):
+        raise GraphQLError(
+            "App must not have MANAGE_APPS permission, please remove it first."
+        )
+
     user = info.context.user
     if not user:
         return None
