@@ -668,6 +668,49 @@ def test_async_webhooks_schedule_not_dirty_no_pending_delivery_with_payload(
 
 
 @override_settings(WEBHOOK_ASYNC_LEGACY_MODE=False)
+def test_async_webhooks_schedule_not_dirty_when_webhook_inactive(
+    event_delivery,
+):
+    # given
+    schedule = async_webhooks_schedule()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+
+    webhook = event_delivery.webhook
+    webhook.is_active = False
+    webhook.save(update_fields=["is_active"])
+
+    # when
+    is_due, next_run = schedule.is_due(
+        last_run_at=timezone.now() - datetime.timedelta(seconds=2)
+    )
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@override_settings(WEBHOOK_ASYNC_LEGACY_MODE=False)
+def test_async_webhooks_schedule_not_dirty_when_app_inactive(
+    event_delivery,
+):
+    # given
+    schedule = async_webhooks_schedule()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert event_delivery.payload is not None
+
+    app = event_delivery.webhook.app
+    app.is_active = False
+    app.save(update_fields=["is_active"])
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(seconds=2))
+
+    # then
+    assert is_due is False
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@override_settings(WEBHOOK_ASYNC_LEGACY_MODE=False)
 def test_async_webhooks_schedule_are_dirty(event_delivery):
     # given
     schedule = async_webhooks_schedule()

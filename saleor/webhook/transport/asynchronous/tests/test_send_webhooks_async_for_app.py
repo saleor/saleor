@@ -70,7 +70,7 @@ def test_send_webhooks_async_for_app_no_deliveries(
 
 
 @patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
-def test_send_webhooks_async_for_app_does_not_pick_failed(
+def test_send_webhooks_async_for_app_skips_failed_deliveries(
     mock_send_prepared_webhook_request_using_http,
     app,
     app_webhook_mutex,
@@ -89,7 +89,7 @@ def test_send_webhooks_async_for_app_does_not_pick_failed(
 
 
 @patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
-def test_send_webhooks_async_for_app_no_payload(
+def test_send_webhooks_async_for_app_skips_deliveries_without_payload(
     mock_send_prepared_webhook_request_using_http,
     app,
     event_delivery,
@@ -97,6 +97,32 @@ def test_send_webhooks_async_for_app_no_payload(
     # given
     event_delivery.payload = None
     event_delivery.save()
+
+    assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
+
+    # when
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
+
+    # then
+    mock_send_prepared_webhook_request_using_http.assert_not_called()
+    deliveries = EventDelivery.objects.all()
+    assert len(deliveries) == 1
+    assert deliveries[0].status == EventDeliveryStatus.PENDING
+    assert not EventDeliveryAttempt.objects.exists()
+
+
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_send_webhooks_async_for_app_skips_inactive_webhooks(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_delivery,
+):
+    # given
+    webhook = event_delivery.webhook
+    webhook.is_active = False
+    webhook.save()
 
     assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).exists()
 
