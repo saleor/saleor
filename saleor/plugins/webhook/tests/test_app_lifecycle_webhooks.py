@@ -1,10 +1,9 @@
 """End-to-end tests for app lifecycle webhook self-receive.
 
 Confirms an app without MANAGE_APPS permission receives its own
-APP_INSTALLED, APP_UPDATED, APP_DELETED, APP_STATUS_CHANGED events.
-These tests exercise the real dispatch filter — they do not mock
-get_webhooks_for_event — so the bypass-on-affected-app path is
-covered end-to-end.
+APP_INSTALLED, APP_UPDATED, APP_DELETED, APP_STATUS_CHANGED events,
+and that the delivery-time gate keeps lifecycle deliveries when the
+receiving app is inactive (soft-deleted or deactivated).
 """
 
 from unittest import mock
@@ -153,11 +152,7 @@ def test_admin_app_with_manage_apps_does_not_receive_events_about_other_apps(
 def test_app_deleted_delivery_survives_worker_active_check(
     _mocked_apply_async, app_with_lifecycle_webhook
 ):
-    """Event fires end-to-end and survives the worker-time active-app gate.
-
-    EventDelivery is created with the bypass flag set so the worker keeps it
-    instead of marking FAILED.
-    """
+    """APP_DELETED on a soft-deleted app passes the delivery-time gate."""
     app, webhook = app_with_lifecycle_webhook(
         WebhookEventAsyncType.APP_DELETED,
         is_active=False,
@@ -168,7 +163,6 @@ def test_app_deleted_delivery_survives_worker_active_check(
     manager.app_deleted(app)
 
     delivery = EventDelivery.objects.get(webhook=webhook)
-    assert delivery.bypass_app_active_check is True
     assert delivery.status == EventDeliveryStatus.PENDING
 
     active, inactive = get_multiple_deliveries_for_webhooks([delivery.pk])
@@ -185,7 +179,7 @@ def test_app_deleted_delivery_survives_worker_active_check(
 def test_app_status_changed_delivery_survives_worker_active_check(
     _mocked_apply_async, app_with_lifecycle_webhook
 ):
-    """Same guarantee for APP_STATUS_CHANGED on deactivate."""
+    """APP_STATUS_CHANGED on a deactivated app passes the delivery-time gate."""
     app, webhook = app_with_lifecycle_webhook(
         WebhookEventAsyncType.APP_STATUS_CHANGED, is_active=False
     )
@@ -194,64 +188,9 @@ def test_app_status_changed_delivery_survives_worker_active_check(
     manager.app_status_changed(app)
 
     delivery = EventDelivery.objects.get(webhook=webhook)
-    assert delivery.bypass_app_active_check is True
 
     active, _ = get_multiple_deliveries_for_webhooks([delivery.pk])
 
     assert delivery.pk in active
     delivery.refresh_from_db()
     assert delivery.status == EventDeliveryStatus.PENDING
-
-
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
-)
-def test_app_installed_delivery_does_not_bypass_active_check(
-    _mocked_apply_async, app_with_lifecycle_webhook
-):
-    """APP_INSTALLED fires while the app is active — bypass must not be set."""
-    app, webhook = app_with_lifecycle_webhook(
-        WebhookEventAsyncType.APP_INSTALLED, is_active=True
-    )
-
-    manager = get_plugins_manager(allow_replica=False)
-    manager.app_installed(app)
-
-    delivery = EventDelivery.objects.get(webhook=webhook)
-    assert delivery.bypass_app_active_check is False
-
-
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
-)
-def test_app_updated_delivery_does_not_bypass_active_check(
-    _mocked_apply_async, app_with_lifecycle_webhook
-):
-    """APP_UPDATED cannot deactivate the app — bypass must not be set."""
-    app, webhook = app_with_lifecycle_webhook(
-        WebhookEventAsyncType.APP_UPDATED, is_active=True
-    )
-
-    manager = get_plugins_manager(allow_replica=False)
-    manager.app_updated(app)
-
-    delivery = EventDelivery.objects.get(webhook=webhook)
-    assert delivery.bypass_app_active_check is False
-
-
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
-)
-def test_app_status_changed_on_activate_delivery_does_not_bypass_active_check(
-    _mocked_apply_async, app_with_lifecycle_webhook
-):
-    """APP_STATUS_CHANGED on activate fires with is_active=True — no bypass."""
-    app, webhook = app_with_lifecycle_webhook(
-        WebhookEventAsyncType.APP_STATUS_CHANGED, is_active=True
-    )
-
-    manager = get_plugins_manager(allow_replica=False)
-    manager.app_status_changed(app)
-
-    delivery = EventDelivery.objects.get(webhook=webhook)
-    assert delivery.bypass_app_active_check is False
