@@ -287,9 +287,8 @@ def _patched_app_delete_all():
             yield mocked_delete_app, mocked_manager
 
 
-def test_app_delete_all_deletes_every_installed_app(db, _patched_app_delete_all):
+def test_app_delete_all_deletes_every_installed_app(db):
     # given
-    mocked_delete_app, mocked_manager = _patched_app_delete_all
     app_a = App.objects.create(name="App A", identifier="a", is_active=True)
     app_b = App.objects.create(name="App B", identifier="b", is_active=False)
     app_c = App.objects.create(name="App C", identifier="c", is_active=True)
@@ -298,12 +297,18 @@ def test_app_delete_all_deletes_every_installed_app(db, _patched_app_delete_all)
     call_command("app_delete_all")
 
     # then
-    assert mocked_delete_app.call_count == 3
-    assert mocked_delete_app.call_args_list == [
-        call(app_a, mocked_manager, force_sync=False),
-        call(app_b, mocked_manager, force_sync=False),
-        call(app_c, mocked_manager, force_sync=False),
-    ]
+    app_a.refresh_from_db()
+    app_b.refresh_from_db()
+    app_c.refresh_from_db()
+
+    assert app_a.is_active is False
+    assert app_a.removed_at is not None
+
+    assert app_b.is_active is False
+    assert app_b.removed_at is not None
+
+    assert app_c.is_active is False
+    assert app_c.removed_at is not None
 
 
 def test_app_delete_all_skips_already_removed_apps(db, _patched_app_delete_all):
