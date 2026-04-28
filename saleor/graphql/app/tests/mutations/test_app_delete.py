@@ -105,7 +105,6 @@ def test_app_delete_trigger_webhook(
         [any_webhook],
         app,
         SimpleLazyObject(lambda: staff_api_client.user),
-        bypass_app_active_check=True,
         allow_replica=False,
     )
 

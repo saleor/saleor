@@ -102,7 +102,6 @@ def test_activate_app_trigger_webhook(
         [any_webhook],
         app,
         SimpleLazyObject(lambda: staff_api_client.user),
-        bypass_app_active_check=False,
         allow_replica=False,
     )
 
