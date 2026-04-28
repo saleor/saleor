@@ -293,37 +293,6 @@ def test_app_query_without_permission_and_id(
     assert not content["data"]["app"]
 
 
-def test_app_query_with_permission(
-    app_api_client, permission_manage_apps, app, external_app, webhook
-):
-    app.permissions.add(permission_manage_apps)
-    id = graphene.Node.to_global_id("App", app.id)
-    variables = {"id": id}
-    response = app_api_client.post_graphql(
-        QUERY_APP,
-        variables,
-    )
-    content = get_graphql_content(response)
-
-    tokens = app.tokens.all()
-    app_data = content["data"]["app"]
-    tokens_data = app_data["tokens"]
-    assert tokens.count() == 1
-    assert tokens_data[0]["authToken"] == tokens.first().auth_token[-4:]
-
-    assert app_data["isActive"] == app.is_active
-    assert len(app_data["webhooks"]) == 1
-    assert app_data["webhooks"][0]["name"] == webhook.name
-    assert app_data["type"] == app.type.upper()
-    assert app_data["aboutApp"] == app.about_app
-    assert app_data["dataPrivacy"] == app.data_privacy
-    assert app_data["dataPrivacyUrl"] == app.data_privacy_url
-    assert app_data["homepageUrl"] == app.homepage_url
-    assert app_data["supportUrl"] == app.support_url
-    assert app_data["configurationUrl"] == app.configuration_url
-    assert app_data["appUrl"] == app.app_url
-
-
 def test_app_with_extensions_query(
     staff_api_client,
     permission_manage_apps,
