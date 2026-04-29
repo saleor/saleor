@@ -6,8 +6,10 @@ and that the delivery-time gate keeps lifecycle deliveries when the
 receiving app is inactive (soft-deleted or deactivated).
 """
 
+import json
 from unittest import mock
 
+import graphene
 import pytest
 from django.utils import timezone
 
@@ -19,12 +21,25 @@ from ....webhook.models import Webhook
 from ....webhook.transport.utils import get_multiple_deliveries_for_webhooks
 from ...manager import get_plugins_manager
 
+APP_STATUS_CHANGED_SUBSCRIPTION = """
+subscription {
+  event {
+    ... on AppStatusChanged {
+      app {
+        id
+        isActive
+      }
+    }
+  }
+}
+"""
+
 
 @pytest.fixture
 def app_with_lifecycle_webhook(db, settings):
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
-    def factory(event_type, *, is_active=True, removed_at=None):
+    def factory(event_type, *, is_active=True, removed_at=None, subscription_query=""):
         app = App.objects.create(name="Self-receive app", is_active=is_active)
         if removed_at:
             app.removed_at = removed_at
@@ -34,6 +49,7 @@ def app_with_lifecycle_webhook(db, settings):
             app=app,
             target_url="http://example.com/webhook",
             is_active=True,
+            subscription_query=subscription_query,
         )
         webhook.events.create(event_type=event_type)
         return app, webhook
@@ -194,3 +210,44 @@ def test_app_status_changed_delivery_survives_worker_active_check(
     assert delivery.pk in active
     delivery.refresh_from_db()
     assert delivery.status == EventDeliveryStatus.PENDING
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+def test_app_status_changed_subscription_payload_snapshots_state_per_event(
+    _mocked_apply_async, app_with_lifecycle_webhook
+):
+    """Subscription payload reflects app.is_active at dispatch time.
+
+    With delivery deferred (apply_async mocked), back-to-back deactivate
+    then activate must produce two PENDING deliveries whose subscription
+    payloads carry isActive=False and isActive=True respectively. This
+    proves payloads are snapshotted at event time and survive the queue
+    delay independent of the app's current state.
+    """
+    app, webhook = app_with_lifecycle_webhook(
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+        is_active=True,
+        subscription_query=APP_STATUS_CHANGED_SUBSCRIPTION,
+    )
+    app_global_id = graphene.Node.to_global_id("App", app.id)
+    manager = get_plugins_manager(allow_replica=False)
+
+    app.is_active = False
+    app.save(update_fields=["is_active"])
+    manager.app_status_changed(app)
+
+    app.is_active = True
+    app.save(update_fields=["is_active"])
+    manager.app_status_changed(app)
+
+    deliveries = list(EventDelivery.objects.filter(webhook=webhook).order_by("pk"))
+    assert len(deliveries) == 2
+    assert all(d.status == EventDeliveryStatus.PENDING for d in deliveries)
+
+    deactivate_payload = json.loads(deliveries[0].payload.get_payload())
+    activate_payload = json.loads(deliveries[1].payload.get_payload())
+
+    assert deactivate_payload == {"app": {"id": app_global_id, "isActive": False}}
+    assert activate_payload == {"app": {"id": app_global_id, "isActive": True}}
