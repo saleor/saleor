@@ -1511,6 +1511,14 @@ class CustomerMetadataUpdated(SubscriptionObjectType, UserBase):
         description = "Event sent when customer user metadata is updated."
 
 
+class CustomerDeleted(SubscriptionObjectType, UserBase):
+    class Meta:
+        root_type = "User"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when customer user is deleted." + ADDED_IN_323
+
+
 class CollectionBase(AbstractType):
     collection = graphene.Field(
         "saleor.graphql.product.types.collections.Collection",
@@ -3126,6 +3134,7 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED: FulfillmentMetadataUpdated,
     WebhookEventAsyncType.CUSTOMER_CREATED: CustomerCreated,
     WebhookEventAsyncType.CUSTOMER_UPDATED: CustomerUpdated,
+    WebhookEventAsyncType.CUSTOMER_DELETED: CustomerDeleted,
     WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: CustomerMetadataUpdated,
     WebhookEventAsyncType.COLLECTION_CREATED: CollectionCreated,
     WebhookEventAsyncType.COLLECTION_UPDATED: CollectionUpdated,

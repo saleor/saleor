@@ -2238,17 +2238,17 @@ def test_customer_updated(customer_user, subscription_customer_updated_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_customer_deleted(customer_user, subscription_customer_created_webhook):
+def test_customer_deleted(customer_user, subscription_customer_deleted_webhook):
     # given
     customer_user_id = customer_user.id
     customer_user.delete()
     customer_user.id = customer_user_id
 
-    webhooks = [subscription_customer_created_webhook]
-    event_type = WebhookEventAsyncType.CUSTOMER_CREATED
+    webhooks = [subscription_customer_deleted_webhook]
+    event_type = WebhookEventAsyncType.CUSTOMER_DELETED
     expected_payload = json.dumps(
         generate_customer_payload(
-            customer_user, subscription_customer_created_webhook.app
+            customer_user, subscription_customer_deleted_webhook.app
         )
     )
 

@@ -1518,6 +1518,7 @@ def async_subscription_webhooks_with_root_objects(
         ],
         events.CUSTOMER_CREATED: [subscription_customer_created_webhook, customer_user],
         events.CUSTOMER_UPDATED: [subscription_customer_updated_webhook, customer_user],
+        events.CUSTOMER_DELETED: [subscription_customer_deleted_webhook, customer_user],
         events.CUSTOMER_METADATA_UPDATED: [
             subscription_customer_metadata_updated_webhook,
             customer_user,
