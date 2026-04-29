@@ -2,7 +2,7 @@ from django.db import migrations
 
 
 def remove_manage_apps_permission(apps, _schema_editor):
-    Permission = apps.get_model("auth", "Permission")
+    Permission = apps.get_model("permission", "Permission")
     App = apps.get_model("app", "App")
     AppExtension = apps.get_model("app", "AppExtension")
 
