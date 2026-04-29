@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from django.conf import settings
@@ -7,6 +8,8 @@ from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
 from ...metrics import record_graphql_alias_count
+
+logger = logging.getLogger(__name__)
 
 
 class AliasCountLimitRule(ValidationRule):
@@ -23,6 +26,11 @@ class AliasCountLimitRule(ValidationRule):
 
     def leave_Document(self, *_args: Any) -> None:
         if self.alias_count_seen > self.limit:
+            logger.info(
+                "Query exceeds alias limit of %d, found %d aliases",
+                self.limit,
+                self.alias_count_seen,
+            )
             self.context.report_error(
                 GraphQLError(f"Number of aliases exceed the limit of {self.limit}")
             )
