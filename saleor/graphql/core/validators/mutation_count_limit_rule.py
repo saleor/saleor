@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from django.conf import settings
@@ -7,6 +8,8 @@ from graphql.validation.rules.base import ValidationRule
 from graphql.validation.validation import ValidationContext
 
 from ...metrics import record_graphql_mutation_count
+
+logger = logging.getLogger(__name__)
 
 
 class MutationCountLimitRule(ValidationRule):
@@ -23,6 +26,11 @@ class MutationCountLimitRule(ValidationRule):
 
     def leave_Document(self, *_args: Any) -> None:
         if self.seen_count > self.limit:
+            logger.info(
+                "Mutation count exceeds the limit of %d, found %d mutations",
+                self.limit,
+                self.seen_count,
+            )
             self.context.report_error(
                 GraphQLError(f"Number of mutations exceed the limit of {self.limit}")
             )
