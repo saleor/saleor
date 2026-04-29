@@ -1,30 +1,34 @@
-saleor/graphql/webhook/subscription_types.py
-  084426aac63e874d 1604-1608,1610-1611,3281
-saleor/webhook/tests/subscription_webhooks/test_create_deliveries_for_subscription.py
-  084426aac63e874d 2241,2247-2248,2251
-saleor/tests/fixtures.py
-  084426aac63e874d 1480
-saleor/graphql/schema.graphql
-  e2e51720558f8dd4 17453,17512,17584,17594,17604,17617,17630,17707,18474,18525,18550,18631,18643,18772,19156,19166,19179,19189,19488,20015,20086,20100,20629,20715,20904,20920,20995,21054,21087,21328,21464,21799,22245,22384,22517,22567,22596,22654,22757,22994,25326,25496,25539,25649,25907,26787,26809,26834,26845,27657,28946,29074,29109,30518,30695,30898,30956,30998,31068,31380,31946,32211,32876
-  084426aac63e874d 36179-36190,36192-36193
+saleor/app/actions.py
+  7cdfba62bb3c9691 2,17,54-68
+  h_463c3d2f499c35 16
+saleor/webhook/tests/test_utils.py
+  h_463c3d2f499c35 182
+  7cdfba62bb3c9691 190
+saleor/app/tests/test_app_commands.py
+  h_463c3d2f499c35 300-311
 ---
 {
   "schema_version": "authorship/3.0.0",
   "git_ai_version": "1.3.4",
   "base_commit_sha": "4dc7208a6272b14eb8d553637c96ea647d6e9d37",
   "prompts": {
-    "084426aac63e874d": {
+    "7cdfba62bb3c9691": {
       "agent_id": {
         "tool": "claude",
-        "id": "01e52fad-01d0-4132-b295-5df5958008d7",
+        "id": "a536e43f-70ef-4518-ac26-2e7bfe58271c",
         "model": "claude-opus-4-7"
       },
       "human_author": "Lukasz Ostrowski",
       "messages": [],
-      "total_additions": 40,
-      "total_deletions": 7,
-      "accepted_lines": 27,
+      "total_additions": 19,
+      "total_deletions": 10,
+      "accepted_lines": 19,
       "overriden_lines": 0
+    }
+  },
+  "humans": {
+    "h_463c3d2f499c35": {
+      "author": "Lukasz Ostrowski"
     }
   }
 }
