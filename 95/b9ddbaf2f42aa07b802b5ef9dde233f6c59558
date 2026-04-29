@@ -1,0 +1,23 @@
+saleor/app/migrations/0039_remove_manage_apps_permission.py
+  b2ef15cd5f03675f 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "95b9ddbaf2f42aa07b802b5ef9dde233f6c59558",
+  "prompts": {
+    "b2ef15cd5f03675f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c0861ffb-df77-407f-a394-1b29ac503981",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
