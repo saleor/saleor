@@ -2,6 +2,7 @@ import base64
 import math
 
 import graphene
+import orjson
 import pytest
 
 from ....tests.models import Book
@@ -257,6 +258,16 @@ def test_pagination_invalid_cursor(books):
 
 def test_pagination_invalid_cursor_and_valid_base64(books):
     cursor = base64.b64encode(str.encode(f"{['Test']}")).decode("utf-8")
+    variables = {"first": 5, "after": cursor}
+
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    assert len(result.errors) == 1
+    assert str(result.errors[0]) == "Received cursor is invalid."
+
+
+def test_pagination_cursor_decodes_to_non_list(books):
+    cursor = base64.b64encode(orjson.dumps({"id": "abc"})).decode("utf-8")
     variables = {"first": 5, "after": cursor}
 
     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
