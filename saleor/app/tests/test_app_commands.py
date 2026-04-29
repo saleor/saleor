@@ -277,14 +277,13 @@ APP_DELETE_ALL_COMMAND_MODULE = "saleor.app.management.commands.app_delete_all"
 
 
 @pytest.fixture
-def _patched_app_delete_all():
-    with patch(f"{APP_DELETE_ALL_COMMAND_MODULE}.delete_app") as mocked_delete_app:
-        with patch(
-            f"{APP_DELETE_ALL_COMMAND_MODULE}.get_plugins_manager"
-        ) as mocked_get_manager:
-            mocked_manager = Mock()
-            mocked_get_manager.return_value = mocked_manager
-            yield mocked_delete_app, mocked_manager
+def _patched_plugins_manager():
+    with patch(
+        f"{APP_DELETE_ALL_COMMAND_MODULE}.get_plugins_manager"
+    ) as mocked_get_manager:
+        mocked_manager = Mock()
+        mocked_get_manager.return_value = mocked_manager
+        yield mocked_manager
 
 
 def test_app_delete_all_deletes_every_installed_app(db):
@@ -311,49 +310,93 @@ def test_app_delete_all_deletes_every_installed_app(db):
     assert app_c.removed_at is not None
 
 
-def test_app_delete_all_skips_already_removed_apps(db, _patched_app_delete_all):
+def test_app_delete_all_skips_already_removed_apps(db):
     # given
-    mocked_delete_app, mocked_manager = _patched_app_delete_all
     active_app = App.objects.create(name="Active", identifier="active", is_active=True)
-    App.objects.create(
+    removed_app = App.objects.create(
         name="Removed",
         identifier="removed",
         is_active=False,
         removed_at=timezone.now(),
     )
+    removed_app.refresh_from_db()
+    original_removed_at = removed_app.removed_at
 
     # when
     call_command("app_delete_all")
 
     # then
-    assert mocked_delete_app.call_count == 1
-    mocked_delete_app.assert_called_once_with(
-        active_app, mocked_manager, force_sync=False
-    )
+    active_app.refresh_from_db()
+    removed_app.refresh_from_db()
+
+    assert active_app.is_active is False
+    assert active_app.removed_at is not None
+
+    assert removed_app.is_active is False
+    assert removed_app.removed_at == original_removed_at
 
 
-def test_app_delete_all_with_no_apps(db, _patched_app_delete_all):
-    # given
-    mocked_delete_app, _ = _patched_app_delete_all
-
+def test_app_delete_all_with_no_apps_does_not_call_manager(
+    db, _patched_plugins_manager
+):
     # when
     call_command("app_delete_all")
 
     # then
-    mocked_delete_app.assert_not_called()
+    _patched_plugins_manager.app_deleted.assert_not_called()
 
 
-def test_app_delete_all_with_force_sync(db, _patched_app_delete_all):
+def test_app_delete_all_without_force_sync_calls_app_deleted_on_manager(
+    db, _patched_plugins_manager, django_capture_on_commit_callbacks
+):
     # given
-    mocked_delete_app, mocked_manager = _patched_app_delete_all
     app_a = App.objects.create(name="App A", identifier="a", is_active=True)
     app_b = App.objects.create(name="App B", identifier="b", is_active=True)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        call_command("app_delete_all")
+
+    # then
+    app_a.refresh_from_db()
+    app_b.refresh_from_db()
+
+    assert app_a.removed_at is not None
+    assert app_b.removed_at is not None
+    assert _patched_plugins_manager.app_deleted.call_args_list == [
+        call(app_a),
+        call(app_b),
+    ]
+
+
+@patch("saleor.app.actions.trigger_webhook_sync_promise")
+@patch("saleor.app.actions.get_webhooks_for_app_lifecycle_event")
+def test_app_delete_all_with_force_sync_dispatches_sync_webhooks(
+    mocked_get_webhooks, mocked_trigger_sync, db, _patched_plugins_manager
+):
+    # given
+    app_a = App.objects.create(name="App A", identifier="a", is_active=True)
+    app_b = App.objects.create(name="App B", identifier="b", is_active=True)
+    webhook = Mock()
+    mocked_get_webhooks.return_value = [webhook]
 
     # when
     call_command("app_delete_all", force_sync=True)
 
     # then
-    assert mocked_delete_app.call_args_list == [
-        call(app_a, mocked_manager, force_sync=True),
-        call(app_b, mocked_manager, force_sync=True),
-    ]
+    app_a.refresh_from_db()
+    app_b.refresh_from_db()
+
+    assert app_a.removed_at is not None
+    assert app_b.removed_at is not None
+    _patched_plugins_manager.app_deleted.assert_not_called()
+
+    assert mocked_trigger_sync.call_count == 2
+    for webhook_call, expected_app in zip(
+        mocked_trigger_sync.call_args_list, [app_a, app_b], strict=True
+    ):
+        kwargs = webhook_call.kwargs
+        assert kwargs["event_type"] == "app_deleted"
+        assert kwargs["webhook"] is webhook
+        assert kwargs["allow_replica"] is False
+        assert kwargs["subscribable_object"] == expected_app
