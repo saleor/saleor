@@ -244,6 +244,22 @@ def test_unexpected_types_in_json_request_body(client, data):
     assert errors[0]["message"] == "Unable to parse query."
 
 
+def test_request_body_too_big(client, settings):
+    # given
+    settings.DATA_UPLOAD_MAX_MEMORY_SIZE = 10
+    data = '{"query": "query { products(first: 10) { edges { node { id } } } }"}'
+
+    # when
+    response = client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    assert response.status_code == 413
+    content = get_graphql_content_from_response(response)
+    errors = content.get("errors")
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Request body exceeds maximum size."
+
+
 def test_invalid_query(api_client):
     query = "query { invalid }"
     response = api_client.post_graphql(query, check_no_permissions=False)

@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 import orjson
 from django.conf import settings
 from django.core.cache import cache
+from django.core.exceptions import RequestDataTooBig
 from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render
 from django.views.generic import View
@@ -171,6 +172,17 @@ class GraphQLView(View):
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
             data = self.parse_body(request)
+        except RequestDataTooBig:
+            return JsonResponse(
+                data={
+                    "errors": [
+                        self.format_error(
+                            GraphQLError("Request body exceeds maximum size.")
+                        )
+                    ]
+                },
+                status=413,
+            )
         except ValueError:
             return JsonResponse(
                 data={
