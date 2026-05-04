@@ -1,0 +1,25 @@
+saleor/graphql/core/tests/test_view.py
+  74d59c75e58ce4e9 247-262
+saleor/graphql/views.py
+  74d59c75e58ce4e9 12,175-185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "a36fefa987f68af534074c6ac22e98f6ca43b506",
+  "prompts": {
+    "74d59c75e58ce4e9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b705e45-1037-41c2-9fe6-25db6d82e594",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski",
+      "messages": [],
+      "total_additions": 28,
+      "total_deletions": 0,
+      "accepted_lines": 28,
+      "overriden_lines": 0
+    }
+  }
+}
