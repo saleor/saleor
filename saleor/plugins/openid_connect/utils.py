@@ -416,7 +416,6 @@ def get_or_create_user_from_payload(
     sub: str | None = payload.get("sub")
     get_kwargs = {"private_metadata__contains": {oidc_metadata_key: sub}}
     if not sub:
-        get_kwargs = {"email": user_email}
         logger.warning("Missing sub section in OIDC payload")
         raise AuthenticationError("Missing subject identifier.")
 
