@@ -20,7 +20,7 @@ dependencies = [
     "boto3~=1.28",
     "botocore~=1.37",
     "braintree>=4.2,<4.32",
-    "cryptography>=44.0.2,<47",
+    "cryptography>=46.0.7,<47",
     "dj-database-url>=2,<3",
     "dj-email-url>=1,<2",
     "django[bcrypt]~=5.2.13",
@@ -39,14 +39,14 @@ dependencies = [
     "graphene<3.0",
     "graphql-core>=2.3.2,<3",
     "graphql-relay>=2.0.1,<3",
-    "lxml>=4.9.3,<5",
+    "lxml>=6.1.0,<7",
     "markdown>=3.1.1,<4",
     "measurement>=3.2.2,<4",
     "micawber>=0.5.5,<0.6",
     "oauthlib~=3.1",
     "petl==1.7.17",
     "phonenumberslite>=9.0.7,<10",
-    "pillow>=12.1.1,<13",
+    "pillow>=12.2.0,<13",
     "prices~=1.0",
     "promise~=2.3",
     "pybars3>=0.9.7,<0.10",
@@ -151,6 +151,8 @@ exclude-newer = "3 weeks"
 #       lockfile, run 'uv lock --refresh' to force a refresh.
 django = "2026-04-07T14:30:00Z"
 requests-hardened = "2026-04-27T14:43:48Z"
+lxml = "2026-04-18T04:32:51Z"
+pillow = "2026-04-01T14:46:17"
 
 [tool.poe.tasks]
 start.help = "Start development server with hot reload"
