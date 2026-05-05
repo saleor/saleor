@@ -9,13 +9,13 @@ supported-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-14T12:39:16.4045198Z"
+exclude-newer = "2026-04-14T14:53:47.52891026Z"
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
 pillow = "2026-04-02T00:00:00Z"
 lxml = "2026-04-18T04:32:51Z"
-django = "2026-04-07T14:30:00Z"
+django = "2026-05-05T13:57:31Z"
 requests-hardened = "2026-04-27T14:43:48Z"
 
 [[package]]
@@ -566,16 +566,16 @@ wheels = [
 
 [[package]]
 name = "django"
-version = "5.2.13"
+version = "5.2.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref", marker = "platform_python_implementation != 'PyPy'" },
     { name = "sqlparse", marker = "platform_python_implementation != 'PyPy'" },
     { name = "tzdata", marker = "platform_python_implementation != 'PyPy' and sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1f/c5/c69e338eb2959f641045802e5ea87ca4bf5ac90c5fd08953ca10742fad51/django-5.2.13.tar.gz", hash = "sha256:a31589db5188d074c63f0945c3888fad104627dfcc236fb2b97f71f89da33bc4", size = 10890368, upload-time = "2026-04-07T14:02:15.072Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/95/95f7faa0950867afaa0bef2460c6263afd6a2c78cc9434046ed28160b015/django-5.2.14.tar.gz", hash = "sha256:58a63ba841662e5c686b57ba1fec52ddd68c0b93bd96ac3029d55728f00bf8a2", size = 10895118, upload-time = "2026-05-05T13:57:31.104Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/b1/51ab36b2eefcf8cdb9338c7188668a157e29e30306bfc98a379704c9e10d/django-5.2.13-py3-none-any.whl", hash = "sha256:5788fce61da23788a8ce6f02583765ab060d396720924789f97fa42119d37f7a", size = 8310982, upload-time = "2026-04-07T14:02:08.883Z" },
+    { url = "https://files.pythonhosted.org/packages/14/44/f172870cf87aa25afef48fb72adba89ee8b77fcab6f3b23d240b923f1528/django-5.2.14-py3-none-any.whl", hash = "sha256:6f712143bd3064310d1f50fac859c3e9a274bdcfc9595339853be7779297fc76", size = 8311320, upload-time = "2026-05-05T13:57:25.795Z" },
 ]
 
 [package.optional-dependencies]
@@ -2627,7 +2627,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=46.0.7,<47" },
     { name = "dj-database-url", specifier = ">=2,<3" },
     { name = "dj-email-url", specifier = ">=1,<2" },
-    { name = "django", extras = ["bcrypt"], specifier = "~=5.2.13" },
+    { name = "django", extras = ["bcrypt"], specifier = "~=5.2.14" },
     { name = "django-cache-url", specifier = ">=3.1.2,<4" },
     { name = "django-celery-beat", specifier = ">=2.8.1,<3" },
     { name = "django-countries", specifier = "~=7.2" },
