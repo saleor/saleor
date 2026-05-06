@@ -34,6 +34,7 @@ RUN apt-get update \
   libwebp7 \
   libpq5 \
   libmagic1 \
+  libxslt1-dev `# libxslt is needed by lxml (PyPI)` \
   # Required by celery[sqs] which uses pycurl for AWS SQS support
   libcurl4 \
   # Required to allows to identify file types when handling file uploads
