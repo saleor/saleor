@@ -1,0 +1,12 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "14ec4e4363c8a462b3686594ffd8572e478f1fe9",
+  "prompts": {},
+  "humans": {
+    "h_0b728ee11e7481": {
+      "author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>"
+    }
+  }
+}
