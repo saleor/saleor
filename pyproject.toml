@@ -58,7 +58,7 @@ dependencies = [
     "razorpay~=1.2",
     "redis>=5.0.1,<6",
     "requests~=2.32",
-    "requests-hardened>=1.0.0,<2.0.0",
+    "requests-hardened>=1.2.1,<2.0.0",
     "Rx>=1.6.3,<2",
     "semantic-version>=2.10.0,<3",
     "sendgrid>=6.7.1,<7",
@@ -140,11 +140,17 @@ exclude-newer = "3 weeks"
 
 [tool.uv.exclude-newer-package]
 # To customize on a per-package basis, for example you can do this:
-# setuptools = "30 days"
+# setuptools = "2026-04-07T14:30:00Z"
+# Note: the timestamp should correspond to the package's upload time on PyPI.
+#       It doesn't need to match exactly, it can be set slightly after the actual
+#       publication time (add a few more seconds, but no more than a few minutes).
+#       Setting the timestamp too far after the publication time increases the risk
+#       of a race condition (e.g., a malicious version being uploaded within that
+#       window).
+# Note: if you remove a package from this list and 'uv lock' does not update the
+#       lockfile, run 'uv lock --refresh' to force a refresh.
 django = "2026-04-07T14:30:00Z"
-
-# Allow more recent pyjwt version due to https://github.com/jpadilla/pyjwt/security/advisories/GHSA-752w-5fwx-jx9f
-pyjwt = "10 days"
+requests-hardened = "2026-04-27T14:43:48Z"
 
 [tool.poe.tasks]
 start.help = "Start development server with hot reload"
