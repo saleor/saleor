@@ -4,11 +4,15 @@ import graphene
 import pytest
 from django.core.management import CommandError, call_command
 from django.forms import ValidationError
+from django.utils import timezone
 from requests_hardened import HTTPSession
 
 from ... import schema_version
 from ...core import JobStatus
+from ...core.models import EventDelivery
 from ...permission.enums import AppPermission, get_permissions
+from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.models import Webhook
 from ..models import App, AppInstallation
 from ..types import AppType
 
@@ -282,3 +286,143 @@ def test_creates_app_with_identifier():
     assert len(tokens) == 1
     assert app.uuid is not None
     assert app.identifier == "test.test"
+
+
+APP_DELETE_ALL_COMMAND_MODULE = "saleor.app.management.commands.app_delete_all"
+
+
+@pytest.fixture
+def _patched_plugins_manager():
+    with patch(
+        f"{APP_DELETE_ALL_COMMAND_MODULE}.get_plugins_manager"
+    ) as mocked_get_manager:
+        mocked_manager = Mock()
+        mocked_get_manager.return_value = mocked_manager
+        yield mocked_manager
+
+
+def test_app_delete_all_deletes_every_installed_app(db):
+    # given
+    app_a = App.objects.create(name="App A", identifier="a", is_active=True)
+    app_b = App.objects.create(name="App B", identifier="b", is_active=False)
+    app_c = App.objects.create(name="App C", identifier="c", is_active=True)
+
+    # when
+    call_command("app_delete_all")
+
+    # then
+    app_a.refresh_from_db()
+    app_b.refresh_from_db()
+    app_c.refresh_from_db()
+
+    assert app_a.is_active is False
+    assert app_a.removed_at is not None
+
+    assert app_b.is_active is False
+    assert app_b.removed_at is not None
+
+    assert app_c.is_active is False
+    assert app_c.removed_at is not None
+
+
+def test_app_delete_all_skips_already_removed_apps(db):
+    # given
+    active_app = App.objects.create(name="Active", identifier="active", is_active=True)
+    removed_app = App.objects.create(
+        name="Removed",
+        identifier="removed",
+        is_active=False,
+        removed_at=timezone.now(),
+    )
+    removed_app.refresh_from_db()
+    original_removed_at = removed_app.removed_at
+
+    # when
+    call_command("app_delete_all")
+
+    # then
+    active_app.refresh_from_db()
+    removed_app.refresh_from_db()
+
+    assert active_app.is_active is False
+    assert active_app.removed_at is not None
+
+    assert removed_app.is_active is False
+    assert removed_app.removed_at == original_removed_at
+
+
+def test_app_delete_all_with_no_apps_does_not_call_manager(
+    db, _patched_plugins_manager
+):
+    # given
+    assert not App.objects.exists()
+
+    # when
+    call_command("app_delete_all")
+
+    # then
+    _patched_plugins_manager.app_deleted.assert_not_called()
+
+
+def test_app_delete_all_without_force_sync_calls_app_deleted_on_manager(
+    db, _patched_plugins_manager, django_capture_on_commit_callbacks
+):
+    # given
+    app_a = App.objects.create(name="App A", identifier="a", is_active=True)
+    app_b = App.objects.create(name="App B", identifier="b", is_active=True)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        call_command("app_delete_all")
+
+    # then
+    app_a.refresh_from_db()
+    app_b.refresh_from_db()
+
+    assert app_a.removed_at is not None
+    assert app_b.removed_at is not None
+    assert _patched_plugins_manager.app_deleted.call_args_list == [
+        call(app_a),
+        call(app_b),
+    ]
+
+
+@patch("saleor.app.actions.send_webhook_request_async.apply")
+def test_app_delete_all_with_force_sync_dispatches_sync_webhooks(
+    mocked_apply, db, _patched_plugins_manager
+):
+    # given
+    app_a = App.objects.create(name="App A", identifier="a", is_active=True)
+    app_b = App.objects.create(name="App B", identifier="b", is_active=True)
+    subscription_query = "subscription { event { ... on AppDeleted { app { id } } } }"
+    for current_app in (app_a, app_b):
+        webhook = Webhook.objects.create(
+            name=f"hook-{current_app.identifier}",
+            app=current_app,
+            target_url=f"http://example.com/{current_app.identifier}",
+            is_active=True,
+            subscription_query=subscription_query,
+        )
+        webhook.events.create(event_type=WebhookEventAsyncType.APP_DELETED)
+
+    # when
+    call_command("app_delete_all", force_sync=True)
+
+    # then
+    app_a.refresh_from_db()
+    app_b.refresh_from_db()
+
+    assert app_a.removed_at is not None
+    assert app_b.removed_at is not None
+    _patched_plugins_manager.app_deleted.assert_not_called()
+
+    deliveries = EventDelivery.objects.filter(
+        event_type=WebhookEventAsyncType.APP_DELETED
+    )
+    assert deliveries.count() == 2
+    delivery_pks = set(deliveries.values_list("pk", flat=True))
+    called_pks = {
+        call.kwargs["kwargs"]["event_delivery_id"]
+        for call in mocked_apply.call_args_list
+    }
+    assert called_pks == delivery_pks

@@ -14,6 +14,16 @@ if TYPE_CHECKING:
     from django.db.models import QuerySet
 
 
+APP_LIFECYCLE_EVENTS = frozenset(
+    {
+        WebhookEventAsyncType.APP_INSTALLED,
+        WebhookEventAsyncType.APP_UPDATED,
+        WebhookEventAsyncType.APP_DELETED,
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+    }
+)
+
+
 def get_filter_for_single_webhook_event(
     event_type: str,
     apps_ids: Optional["list[int]"] = None,
@@ -76,6 +86,41 @@ def get_webhooks_for_event(
     return (
         webhooks.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
         .filter(filters)
+        .select_related("app")
+        .prefetch_related("app__permissions__content_type")
+    )
+
+
+def get_webhooks_for_app_lifecycle_event(
+    event_type: str,
+    app: "App",
+) -> "QuerySet[Webhook]":
+    """Get webhooks for an app's own lifecycle event.
+
+    App lifecycle events are self-only: only the affected app's own webhook
+    subscriptions receive them. MANAGE_APPS grants no access to events about
+    other apps. The app is intentionally not filtered by is_active /
+    removed_at — it may be deactivated or soft-deleted at dispatch time
+    (APP_DELETED, APP_STATUS_CHANGED on deactivate).
+    """
+    if event_type not in APP_LIFECYCLE_EVENTS:
+        raise ValueError(
+            f"{event_type} is not an app lifecycle event. Use "
+            "get_webhooks_for_event instead."
+        )
+
+    event_types = [event_type, WebhookEventAsyncType.ANY]
+    webhook_events = WebhookEvent.objects.using(
+        settings.DATABASE_CONNECTION_REPLICA_NAME
+    ).filter(event_type__in=event_types)
+
+    return (
+        Webhook.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(
+            is_active=True,
+            app_id=app.id,
+        )
+        .filter(Exists(webhook_events.filter(webhook_id=OuterRef("id"))))
         .select_related("app")
         .prefetch_related("app__permissions__content_type")
     )

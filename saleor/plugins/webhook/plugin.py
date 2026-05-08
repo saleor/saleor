@@ -118,7 +118,11 @@ from ...webhook.transport.utils import (
     get_meta_description_key,
     get_sqs_message_group_id,
 )
-from ...webhook.utils import filter_webhooks_for_channel, get_webhooks_for_event
+from ...webhook.utils import (
+    filter_webhooks_for_channel,
+    get_webhooks_for_app_lifecycle_event,
+    get_webhooks_for_event,
+)
 from ..base_plugin import BasePlugin
 
 if TYPE_CHECKING:
@@ -394,7 +398,7 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def _trigger_app_event(self, event_type, app):
-        if webhooks := get_webhooks_for_event(event_type):
+        if webhooks := get_webhooks_for_app_lifecycle_event(event_type, app):
             payload = self._serialize_payload(
                 {
                     "id": graphene.Node.to_global_id("App", app.id),
