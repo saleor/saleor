@@ -1,15 +1,15 @@
-import json
 import logging
 
-import graphene
 from django.utils import timezone
 
+from ..core.telemetry import get_task_context
 from ..core.utils.events import call_event
-from ..core.utils.json_serializer import CustomJsonEncoder
 from ..plugins.manager import PluginsManager
 from ..webhook.event_types import WebhookEventAsyncType
-from ..webhook.payloads import generate_meta, generate_requestor
-from ..webhook.transport.synchronous.transport import trigger_webhook_sync_promise
+from ..webhook.transport.asynchronous.transport import (
+    create_deliveries_for_subscriptions,
+    send_webhook_request_async,
+)
 from ..webhook.utils import get_webhooks_for_app_lifecycle_event
 from .models import App
 
@@ -23,8 +23,9 @@ def delete_app(app: App, manager: PluginsManager, *, force_sync: bool = False) -
     webhook. The row is removed by the `remove_apps_task` Celery job once
     `DELETE_APP_TTL` elapses.
 
-    When `force_sync` is True, the webhook is sent synchronously in-process
-    instead of being queued on Celery.
+    When `force_sync` is True, deliveries are persisted and the webhook
+    task is executed in-process via Celery's eager `.apply()` instead of
+    being queued.
     """
     app.removed_at = timezone.now()
     app.is_active = False
@@ -38,31 +39,37 @@ def delete_app(app: App, manager: PluginsManager, *, force_sync: bool = False) -
 
 def _dispatch_app_deleted_sync(app: App) -> None:
     event_type = WebhookEventAsyncType.APP_DELETED
-    webhooks = get_webhooks_for_app_lifecycle_event(event_type, app)
+    # Legacy (non-subscription) webhooks are intentionally not supported here.
+    # They are deprecated and slated for removal; this path will not emit to
+    # them. Only webhooks with a subscription query receive the event.
+    # Apps are validated to always provide subscription query as required
+    webhooks = [
+        webhook
+        for webhook in get_webhooks_for_app_lifecycle_event(event_type, app)
+        if webhook.subscription_query
+    ]
     if not webhooks:
         return
-    payload = json.dumps(
-        {
-            "id": graphene.Node.to_global_id("App", app.id),
-            "is_active": app.is_active,
-            "name": app.name,
-            "meta": generate_meta(requestor_data=generate_requestor(None)),
-        },
-        cls=CustomJsonEncoder,
+
+    deliveries = create_deliveries_for_subscriptions(
+        event_type=event_type,
+        subscribable_object=app,
+        webhooks=webhooks,
     )
-    for webhook in webhooks:
+
+    telemetry_context = get_task_context().to_dict()
+    for delivery in deliveries:
         try:
-            trigger_webhook_sync_promise(
-                event_type=event_type,
-                static_payload=payload,
-                webhook=webhook,
-                allow_replica=False,
-                subscribable_object=app,
-            ).get()
+            send_webhook_request_async.apply(
+                kwargs={
+                    "event_delivery_id": delivery.pk,
+                    "telemetry_context": telemetry_context,
+                },
+            )
         except Exception:
             logger.warning(
-                "Sync APP_DELETED dispatch failed for app pk=%s webhook pk=%s",
+                "Sync APP_DELETED dispatch failed for app pk=%s delivery pk=%s",
                 app.pk,
-                webhook.pk,
+                delivery.pk,
                 exc_info=True,
             )
