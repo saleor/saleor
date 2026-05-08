@@ -2879,9 +2879,6 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """Name of the app."""
   name: String
 
-  """Type of the app."""
-  type: AppTypeEnum
-
   """
   Last 4 characters of the tokens.
   
@@ -3057,19 +3054,6 @@ value as specified by
 [iso8601](https://en.wikipedia.org/wiki/ISO_8601).
 """
 scalar DateTime
-
-"""Enum determining type of your App."""
-enum AppTypeEnum @doc(category: "Apps") {
-  """
-  Local Saleor App. The app is fully manageable from dashboard. You can change assigned permissions, add webhooks, or authentication token
-  """
-  LOCAL
-
-  """
-  Third party external App. Installation is fully automated. Saleor uses a defined App manifest to gather all required information.
-  """
-  THIRDPARTY
-}
 
 """Represents token data."""
 type AppToken implements Node @doc(category: "Apps") {
@@ -17137,6 +17121,19 @@ input AppFilterInput @doc(category: "Apps") {
   search: String
   isActive: Boolean
   type: AppTypeEnum
+}
+
+"""Enum determining type of your App."""
+enum AppTypeEnum @doc(category: "Apps") {
+  """
+  Local Saleor App. The app is fully manageable from dashboard. You can change assigned permissions, add webhooks, or authentication token
+  """
+  LOCAL
+
+  """
+  Third party external App. Installation is fully automated. Saleor uses a defined App manifest to gather all required information.
+  """
+  THIRDPARTY
 }
 
 input AppSortingInput @doc(category: "Apps") {
