@@ -36185,6 +36185,28 @@ type CustomerUpdated implements Event @doc(category: "Users") {
   user: User
 }
 
+"""
+Event sent when customer user is deleted.
+
+Added in Saleor 3.23.
+"""
+type CustomerDeleted implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user the event relates to."""
+  user: User
+}
+
 """Event sent when customer user metadata is updated."""
 type CustomerMetadataUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
