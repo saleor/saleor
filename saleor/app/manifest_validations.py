@@ -15,6 +15,7 @@ from ..graphql.core.utils import str_to_enum
 from ..graphql.error import pydantic_to_validation_error
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
+    AppPermission,
     get_permissions,
     get_permissions_enum_list,
     split_permission_codename,
@@ -99,6 +100,17 @@ def _clean_permissions(
     return [p for p in saleor_permissions if p.codename in permissions]
 
 
+def _ensure_app_permissions_allowed(required_permissions: list[str]) -> None:
+    manage_apps = AppPermission.MANAGE_APPS.name
+    if manage_apps not in required_permissions:
+        return
+    raise ValidationError(
+        f"{manage_apps} permission cannot be granted to an app.",
+        code=AppErrorCode.OUT_OF_SCOPE_PERMISSION.value,
+        params={"permissions": [manage_apps]},
+    )
+
+
 def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     # Structural validation: required fields, field types, URL formats, brand logo.
     try:
@@ -121,6 +133,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         formatted_codename=Concat("content_type__app_label", Value("."), "codename")
     )
     try:
+        _ensure_app_permissions_allowed(manifest_data.get("permissions", []))
         app_permissions = _clean_permissions(
             manifest_data.get("permissions", []), saleor_permissions
         )
@@ -160,6 +173,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
 def _clean_extension_permissions(extension, app_permissions, errors):
     permissions_data = extension.get("permissions", [])
     try:
+        _ensure_app_permissions_allowed(permissions_data)
         extension_permissions = _clean_permissions(permissions_data, app_permissions)
     except ValidationError as e:
         if e.params is None:

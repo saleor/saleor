@@ -12,7 +12,11 @@ from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
 from ....app.enums import CircuitBreakerState, CircuitBreakerStateEnum
 from ....tests.fixtures import ApiClient
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 QUERY_APP = """
     query ($id: ID){
@@ -289,37 +293,6 @@ def test_app_query_without_permission_and_id(
     assert not content["data"]["app"]
 
 
-def test_app_query_with_permission(
-    app_api_client, permission_manage_apps, app, external_app, webhook
-):
-    app.permissions.add(permission_manage_apps)
-    id = graphene.Node.to_global_id("App", app.id)
-    variables = {"id": id}
-    response = app_api_client.post_graphql(
-        QUERY_APP,
-        variables,
-    )
-    content = get_graphql_content(response)
-
-    tokens = app.tokens.all()
-    app_data = content["data"]["app"]
-    tokens_data = app_data["tokens"]
-    assert tokens.count() == 1
-    assert tokens_data[0]["authToken"] == tokens.first().auth_token[-4:]
-
-    assert app_data["isActive"] == app.is_active
-    assert len(app_data["webhooks"]) == 1
-    assert app_data["webhooks"][0]["name"] == webhook.name
-    assert app_data["type"] == app.type.upper()
-    assert app_data["aboutApp"] == app.about_app
-    assert app_data["dataPrivacy"] == app.data_privacy
-    assert app_data["dataPrivacyUrl"] == app.data_privacy_url
-    assert app_data["homepageUrl"] == app.homepage_url
-    assert app_data["supportUrl"] == app.support_url
-    assert app_data["configurationUrl"] == app.configuration_url
-    assert app_data["appUrl"] == app.app_url
-
-
 def test_app_with_extensions_query(
     staff_api_client,
     permission_manage_apps,
@@ -505,6 +478,40 @@ def test_app_query_access_token_with_audience(
 
     decoded_token = jwt_decode(app_data["accessToken"])
     assert decoded_token["aud"] == app.audience
+
+
+@pytest.mark.parametrize("app_type", ["external", "custom"])
+def test_app_query_access_token_errors_when_app_has_manage_apps(
+    app_type,
+    staff_api_client,
+    permission_manage_apps,
+    app_with_token,
+    external_app,
+):
+    # given
+    app = external_app if app_type == "external" else app_with_token
+    app.permissions.add(permission_manage_apps)
+
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP,
+        variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    expected_message = (
+        "App must not have MANAGE_APPS permission, please remove it first."
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == expected_message
+    assert content["errors"][0]["path"] == ["app", "accessToken"]
+    assert content["data"]["app"]["accessToken"] is None
+    assert content["data"]["app"]["id"] == id
 
 
 @pytest.mark.parametrize(
