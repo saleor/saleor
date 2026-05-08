@@ -1,0 +1,37 @@
+saleor/app/tests/test_app_actions.py
+  h_0b728ee11e7481 73-77
+  s_c5fda5252158ba::t_bf0feb2eeaccd5 67-71,80-86,92-94
+  s_c5fda5252158ba::t_c0081c83ac4abd 103
+  s_c5fda5252158ba::t_b253945dc8e1e5 6-8,32-66,96-99,113-115
+saleor/app/actions.py
+  s_c5fda5252158ba::t_7735fdbb82c3c6 42-50,54-57
+  s_c5fda5252158ba::t_c6d8ee1441013f 5,9-12,26-28,53,59-61,63-68,71,73
+saleor/app/tests/test_app_commands.py
+  s_c5fda5252158ba::t_427bdc7f36b3ac 12,14-15
+  s_c5fda5252158ba::t_90cc681c853944 378,380,386-391,393-394,407-416
+  s_c5fda5252158ba::t_784cc325eddac6 392
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "4920a3b7326fef5ac1e35dd44b602113e0c0c849",
+  "prompts": {},
+  "humans": {
+    "h_0b728ee11e7481": {
+      "author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>"
+    },
+    "h_463c3d2f499c35": {
+      "author": "Lukasz Ostrowski"
+    }
+  },
+  "sessions": {
+    "s_c5fda5252158ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fa144da-09cc-4d5b-9f25-9af3ca4d62a5",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>"
+    }
+  }
+}
