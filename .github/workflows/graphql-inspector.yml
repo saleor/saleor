@@ -1,7 +1,7 @@
 name: GraphQL Inspector
 
 on:
-  push:
+  pull_request:
     paths: ["**.graphql"]
 
 permissions: {}
@@ -14,9 +14,12 @@ jobs:
       contents: read
       checks: write
 
+    env:
+      BASE_REF: ${{ github.base_ref }}
+
     steps:
       - uses: actions/checkout@v5
 
       - uses: graphql-hive/graphql-inspector@84c610fac649e0379643da772e77e775c6aeaf56 # release-1769448022768
         with:
-          schema: "main:saleor/graphql/schema.graphql"
+          schema: "${{ env.BASE_REF }}:saleor/graphql/schema.graphql"
