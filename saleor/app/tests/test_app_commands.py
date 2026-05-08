@@ -9,7 +9,10 @@ from requests_hardened import HTTPSession
 
 from ... import schema_version
 from ...core import JobStatus
+from ...core.models import EventDelivery
 from ...permission.enums import get_permissions
+from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.models import Webhook
 from ..models import App, AppInstallation
 from ..types import AppType
 
@@ -372,16 +375,23 @@ def test_app_delete_all_without_force_sync_calls_app_deleted_on_manager(
     ]
 
 
-@patch("saleor.app.actions.trigger_webhook_sync_promise")
-@patch("saleor.app.actions.get_webhooks_for_app_lifecycle_event")
+@patch("saleor.app.actions.send_webhook_request_async.apply")
 def test_app_delete_all_with_force_sync_dispatches_sync_webhooks(
-    mocked_get_webhooks, mocked_trigger_sync, db, _patched_plugins_manager
+    mocked_apply, db, _patched_plugins_manager
 ):
     # given
     app_a = App.objects.create(name="App A", identifier="a", is_active=True)
     app_b = App.objects.create(name="App B", identifier="b", is_active=True)
-    webhook = Mock()
-    mocked_get_webhooks.return_value = [webhook]
+    subscription_query = "subscription { event { ... on AppDeleted { app { id } } } }"
+    for current_app in (app_a, app_b):
+        webhook = Webhook.objects.create(
+            name=f"hook-{current_app.identifier}",
+            app=current_app,
+            target_url=f"http://example.com/{current_app.identifier}",
+            is_active=True,
+            subscription_query=subscription_query,
+        )
+        webhook.events.create(event_type=WebhookEventAsyncType.APP_DELETED)
 
     # when
     call_command("app_delete_all", force_sync=True)
@@ -394,12 +404,13 @@ def test_app_delete_all_with_force_sync_dispatches_sync_webhooks(
     assert app_b.removed_at is not None
     _patched_plugins_manager.app_deleted.assert_not_called()
 
-    assert mocked_trigger_sync.call_count == 2
-    for webhook_call, expected_app in zip(
-        mocked_trigger_sync.call_args_list, [app_a, app_b], strict=True
-    ):
-        kwargs = webhook_call.kwargs
-        assert kwargs["event_type"] == "app_deleted"
-        assert kwargs["webhook"] is webhook
-        assert kwargs["allow_replica"] is False
-        assert kwargs["subscribable_object"] == expected_app
+    deliveries = EventDelivery.objects.filter(
+        event_type=WebhookEventAsyncType.APP_DELETED
+    )
+    assert deliveries.count() == 2
+    delivery_pks = set(deliveries.values_list("pk", flat=True))
+    called_pks = {
+        call.kwargs["kwargs"]["event_delivery_id"]
+        for call in mocked_apply.call_args_list
+    }
+    assert called_pks == delivery_pks
