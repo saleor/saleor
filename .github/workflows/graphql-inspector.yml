@@ -14,8 +14,6 @@ jobs:
       contents: read
       checks: write
 
-    env:
-      BASE_REF: ${{ github.base_ref }}
     steps:
       - uses: actions/checkout@v5
 
