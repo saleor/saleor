@@ -64,7 +64,6 @@ from .dataloaders import (
 from .enums import (
     AppProblemDismissedBy,
     AppProblemDismissedByEnum,
-    AppTypeEnum,
     CircuitBreakerState,
     CircuitBreakerStateEnum,
 )
@@ -653,7 +652,6 @@ class App(ModelObjectType[models.App]):
         description="Determine if app will be set active or not."
     )
     name = graphene.String(description="Name of the app.")
-    type = AppTypeEnum(description="Type of the app.")
     tokens = NonNullList(
         AppToken,
         description=(
