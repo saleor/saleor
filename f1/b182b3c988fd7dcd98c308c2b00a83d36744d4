@@ -1,0 +1,35 @@
+saleor/plugins/webhook/tests/test_app_lifecycle_webhooks.py
+  s_c5fda5252158ba::t_cab5862381ad53 249,258,267
+  s_c5fda5252158ba::t_d4761a9fc59e7d 132,138,142
+  s_c5fda5252158ba::t_be7aa6ed3b9cf5 153,157,161,170,175,179
+  s_c5fda5252158ba::t_e8c16ad6b06788 218,223,229
+  s_c5fda5252158ba::t_adc31466c83141 105,113,117
+  s_c5fda5252158ba::t_119a3d72d4c482 190,197,203-204
+  s_c5fda5252158ba::t_978e9c62954949 64,68,72
+  s_c5fda5252158ba::t_80310fa5f4bc5a 82,86,90
+saleor/webhook/tests/test_utils.py
+  s_c5fda5252158ba::t_2ba1c52e0e1bad 156,159,164,169,173,178,187,192,197,203,206,211,216,221,226,231,234,239,246,251,256,261,264
+saleor/app/tests/test_app_commands.py
+  s_c5fda5252158ba::t_571204a4058017 342-344
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "f1b182b3c988fd7dcd98c308c2b00a83d36744d4",
+  "prompts": {},
+  "humans": {
+    "h_463c3d2f499c35": {
+      "author": "Lukasz Ostrowski"
+    }
+  },
+  "sessions": {
+    "s_c5fda5252158ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fa144da-09cc-4d5b-9f25-9af3ca4d62a5",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>"
+    }
+  }
+}
