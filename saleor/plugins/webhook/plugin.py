@@ -398,10 +398,6 @@ class WebhookPlugin(BasePlugin):
         return previous_value
 
     def _trigger_app_event(self, event_type, app):
-        # App lifecycle events are self-only: the affected app is the sole
-        # recipient. MANAGE_APPS does not grant visibility into other apps'
-        # lifecycle. The delivery-time app.is_active gate handles inactive
-        # apps for these events; see get_multiple_deliveries_for_webhooks.
         if webhooks := get_webhooks_for_app_lifecycle_event(event_type, app):
             payload = self._serialize_payload(
                 {
