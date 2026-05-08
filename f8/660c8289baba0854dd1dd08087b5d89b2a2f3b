@@ -1,0 +1,19 @@
+.github/workflows/graphql-inspector.yml
+  s_3a4506be353edd::t_9dabfb401c01f3 4,17-19,25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "f8660c8289baba0854dd1dd08087b5d89b2a2f3b",
+  "prompts": {},
+  "sessions": {
+    "s_3a4506be353edd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fd0d2569-943c-49ec-af6d-c2c0b1fd3e9a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Lukasz Ostrowski <lukasz.ostrowski@saleor.io>"
+    }
+  }
+}
