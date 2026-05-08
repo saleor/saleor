@@ -339,6 +339,9 @@ def test_app_delete_all_skips_already_removed_apps(db):
 def test_app_delete_all_with_no_apps_does_not_call_manager(
     db, _patched_plugins_manager
 ):
+    # given
+    assert not App.objects.exists()
+
     # when
     call_command("app_delete_all")
 
