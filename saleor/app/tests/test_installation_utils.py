@@ -216,7 +216,7 @@ def test_install_app_with_brand_data(app_manifest, app_installation, monkeypatch
 
 
 @freeze_time("2022-05-12 12:00:00")
-@patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@patch("saleor.plugins.webhook.plugin.get_webhooks_for_app_lifecycle_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_install_app_created_app_trigger_webhook(
     mocked_webhook_trigger,

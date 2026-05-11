@@ -254,6 +254,51 @@ def test_get_delivery_for_webhook_inactive_app(event_delivery, caplog):
     assert not_found is False
 
 
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        WebhookEventAsyncType.APP_DELETED,
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+    ],
+)
+def test_get_delivery_for_webhook_inactive_app_self_lifecycle_event(
+    event_delivery, event_type
+):
+    # given
+    event_delivery.webhook.app.is_active = False
+    event_delivery.webhook.app.save(update_fields=["is_active"])
+    event_delivery.event_type = event_type
+    event_delivery.save(update_fields=["event_type"])
+
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery == event_delivery
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert not_found is False
+
+
+def test_get_delivery_for_webhook_inactive_webhook_self_lifecycle_event(
+    event_delivery, caplog
+):
+    # given
+    event_delivery.webhook.is_active = False
+    event_delivery.webhook.save(update_fields=["is_active"])
+    event_delivery.event_type = WebhookEventAsyncType.APP_DELETED
+    event_delivery.save(update_fields=["event_type"])
+
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery is None
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.FAILED
+    assert not_found is False
+
+
 def test_get_multiple_deliveries_for_webhooks(event_deliveries):
     # given
     all_deliveries = EventDelivery.objects.all()

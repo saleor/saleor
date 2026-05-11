@@ -520,7 +520,17 @@ def get_multiple_deliveries_for_webhooks(
         logger.warning("Event delivery id: %r not found", not_found_delivery_id)
 
     for delivery in deliveries:
-        if delivery.webhook.is_active and delivery.webhook.app.is_active:
+        # For these 2 apps will (if deleted) or can (if deactivated) be inactive at this point
+        # For these two, we bypass active app check and emit anyway
+        bypass_inactive_check = delivery.event_type in (
+            WebhookEventAsyncType.APP_DELETED,
+            WebhookEventAsyncType.APP_STATUS_CHANGED,
+        )
+        should_deliver = delivery.webhook.is_active and (
+            delivery.webhook.app.is_active or bypass_inactive_check
+        )
+
+        if should_deliver:
             active_deliveries[delivery.pk] = delivery
         else:
             logger.info("Event delivery id: %r app/webhook is disabled.", delivery.pk)
