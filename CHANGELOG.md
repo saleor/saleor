@@ -22,3 +22,5 @@ All notable, unreleased changes to this project will be documented in this file.
 #### Search improvements
 
 ### Deprecations
+
+- Deprecated `Order.paymentStatus` and `Order.paymentStatusDisplay` fields. These fields attempt to consolidate both payment and refund state into a single flag, but cannot accurately represent certain edge cases — for example, an overcharged order that has been partially refunded yet still fully covers the order total. Use `authorizeStatus` and `chargeStatus` instead.

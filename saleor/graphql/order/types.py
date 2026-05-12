@@ -1583,10 +1583,38 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         description="Informs if an order is fully paid.", required=True
     )
     payment_status = PaymentChargeStatusEnum(
-        description="Internal payment status.", required=True
+        description=(
+            "Internal payment status. "
+            "This field attempts to consolidate both payment and "
+            "refund state into a single flag, but cannot accurately represent certain "
+            "edge cases — for example, an overcharged order that has been partially "
+            "refunded yet still fully covers the order total. "
+            "Use `authorizeStatus` and `chargeStatus` instead."
+        ),
+        required=True,
+        deprecation_reason=(
+            "This field attempts to consolidate both payment and refund state into a "
+            "single flag, but cannot accurately represent certain edge cases — for "
+            "example, an overcharged order that has been partially refunded yet still "
+            "fully covers the order total. Use `authorizeStatus` and `chargeStatus` instead."
+        ),
     )
     payment_status_display = graphene.String(
-        description="User-friendly payment status.", required=True
+        description=(
+            "User-friendly payment status. "
+            "This field attempts to consolidate both payment and "
+            "refund state into a single flag, but cannot accurately represent certain "
+            "edge cases — for example, an overcharged order that has been partially "
+            "refunded yet still fully covers the order total. "
+            "Use `authorizeStatus` and `chargeStatus` instead."
+        ),
+        required=True,
+        deprecation_reason=(
+            "This field attempts to consolidate both payment and refund state into a "
+            "single flag, but cannot accurately represent certain edge cases — for "
+            "example, an overcharged order that has been partially refunded yet still "
+            "fully covers the order total. Use `authorizeStatus` and `chargeStatus` instead."
+        ),
     )
     authorize_status = OrderAuthorizeStatusEnum(
         description="The authorize status of the order.",

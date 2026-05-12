@@ -11880,11 +11880,15 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Informs if an order is fully paid."""
   isPaid: Boolean!
 
-  """Internal payment status."""
-  paymentStatus: PaymentChargeStatusEnum!
+  """
+  Internal payment status. This field attempts to consolidate both payment and refund state into a single flag, but cannot accurately represent certain edge cases — for example, an overcharged order that has been partially refunded yet still fully covers the order total. Use `authorizeStatus` and `chargeStatus` instead.
+  """
+  paymentStatus: PaymentChargeStatusEnum! @deprecated(reason: "This field attempts to consolidate both payment and refund state into a single flag, but cannot accurately represent certain edge cases \\u2014 for example, an overcharged order that has been partially refunded yet still fully covers the order total. Use `authorizeStatus` and `chargeStatus` instead.")
 
-  """User-friendly payment status."""
-  paymentStatusDisplay: String!
+  """
+  User-friendly payment status. This field attempts to consolidate both payment and refund state into a single flag, but cannot accurately represent certain edge cases — for example, an overcharged order that has been partially refunded yet still fully covers the order total. Use `authorizeStatus` and `chargeStatus` instead.
+  """
+  paymentStatusDisplay: String! @deprecated(reason: "This field attempts to consolidate both payment and refund state into a single flag, but cannot accurately represent certain edge cases \\u2014 for example, an overcharged order that has been partially refunded yet still fully covers the order total. Use `authorizeStatus` and `chargeStatus` instead.")
 
   """The authorize status of the order."""
   authorizeStatus: OrderAuthorizeStatusEnum!
