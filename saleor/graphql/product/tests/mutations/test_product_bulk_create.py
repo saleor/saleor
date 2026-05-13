@@ -275,16 +275,20 @@ def test_product_bulk_create_with_description_as_json_object_does_not_crash(
     category,
     permission_manage_products,
 ):
-    # Regression for Sentry SALEOR-CORE-845: a client sending the `description`
-    # JSONString variable as a JSON object (dict) instead of a JSON-encoded
-    # string used to raise TypeError from graphene's `parse_value` and surface
-    # as an unhandled 500-style error. After the fix, the invalid value is
-    # rejected as a normal GraphQL validation error.
+    """Ensure Saleor properly handles invalid JSON inputs in rich text inputs.
+    
+    Regression for Sentry SALEOR-CORE-845: a client sending the `description`
+    JSONString variable as a JSON object (dict) instead of a JSON-encoded
+    string used to raise TypeError from graphene's `parse_value` and surface
+    as an unhandled 500-style error. After the fix, the invalid value is
+    rejected as a normal GraphQL validation error.
+    """
 
     # given
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
+    # Expects a JSON string (`str`), but we pass an object instead (invalid)
     description = {"foo": "bar"}
 
     products = [
