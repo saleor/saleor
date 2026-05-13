@@ -29,6 +29,7 @@ from .....product.tests.utils import (
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import (
     get_graphql_content,
+    get_graphql_content_from_response,
     get_multipart_request_body_with_multiple_files,
 )
 
@@ -266,6 +267,65 @@ def test_product_bulk_create_with_base_data(
 
     for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
+
+
+def test_product_bulk_create_with_description_as_json_object_does_not_crash(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    # Regression for Sentry SALEOR-CORE-845: a client sending the `description`
+    # JSONString variable as a JSON object (dict) instead of a JSON-encoded
+    # string used to raise TypeError from graphene's `parse_value` and surface
+    # as an unhandled 500-style error. After the fix, the invalid value is
+    # rejected as a normal GraphQL validation error.
+
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    description = {"foo": "bar"}
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "description": description,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    input_dump = json.dumps(
+        [
+            {
+                "category": category_id,
+                "description": description,
+                "name": product_name,
+                "productType": product_type_id,
+            }
+        ],
+        sort_keys=True,
+    )
+    description_dump = json.dumps(description, sort_keys=True)
+    expected_message = (
+        f'Variable "$products" got invalid value {input_dump}.\n'
+        f'In element #0: In field "description": '
+        f'Expected type "JSONString", found {description_dump}.'
+    )
+    assert "errors" in content
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == expected_message
+    assert not Product.objects.filter(name=product_name).exists()
 
 
 def test_product_bulk_create_with_base_data_and_collections(
