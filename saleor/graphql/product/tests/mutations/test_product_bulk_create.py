@@ -276,7 +276,7 @@ def test_product_bulk_create_with_description_as_json_object_does_not_crash(
     permission_manage_products,
 ):
     """Ensure Saleor properly handles invalid JSON inputs in rich text inputs.
-    
+
     Regression for Sentry SALEOR-CORE-845: a client sending the `description`
     JSONString variable as a JSON object (dict) instead of a JSON-encoded
     string used to raise TypeError from graphene's `parse_value` and surface
