@@ -165,5 +165,12 @@ class JSONString(graphene.JSONString):
     def parse_literal(node):
         try:
             return graphene.JSONString.parse_literal(node)
-        except JSONDecodeError:
+        except (JSONDecodeError, TypeError):
+            return None
+
+    @staticmethod
+    def parse_value(value):
+        try:
+            return graphene.JSONString.parse_value(value)
+        except (JSONDecodeError, TypeError):
             return None
