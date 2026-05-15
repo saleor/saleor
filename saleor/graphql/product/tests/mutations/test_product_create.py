@@ -3718,6 +3718,35 @@ def test_create_product_with_weight_variable(
     assert result_weight["unit"] == site_settings.default_weight_unit.upper()
 
 
+def test_create_product_with_null_weight_value_returns_validation_error(
+    staff_api_client,
+    category,
+    permission_manage_products,
+    product_type_without_variant,
+):
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type_without_variant.pk
+    )
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "weight": {"unit": "KG", "value": None},
+    }
+
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_VARIABLE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["productCreate"]["product"] is None
+    error = content["data"]["productCreate"]["errors"][0]
+    assert error["field"] == "weight"
+
+
 @pytest.mark.parametrize(
     ("weight", "expected_weight_value"),
     [
