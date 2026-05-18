@@ -491,6 +491,12 @@ class GraphQLView(View):
 
     @staticmethod
     def parse_body(request: HttpRequest):
+        # psycopg rejects NUL bytes in text parameters; reaching the DB layer
+        # with one produces an unhandled DataError.
+        #
+        # Don't strip the byte - assume this is rogue request, so reject it early.
+        if b"\x00" in request.body:
+            raise ValueError("Request body contains NUL byte.")
         content_type = request.content_type
         if content_type == "application/graphql":
             return {"query": request.body.decode("utf-8")}
