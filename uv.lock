@@ -9,7 +9,7 @@ supported-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-14T14:53:47.52891026Z"
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
@@ -2371,14 +2371,14 @@ wheels = [
 
 [[package]]
 name = "razorpay"
-version = "1.4.2"
+version = "2.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/97/fb/14d5baeffc5b812775bc34cb7d416aa090be6f5779c04aaf45d2ba17458b/razorpay-1.4.2.tar.gz", hash = "sha256:0d812030ba29e776e66d1ceaacc31635810fde18b66ff2591e582eb651bb5131", size = 194335, upload-time = "2024-03-19T12:12:08.904Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/e4/877eb8ba68bb5212021b25a4f97b6c3f693e08bb6b319fc97c966c4391a3/razorpay-2.0.1.tar.gz", hash = "sha256:a766b9019e496c995906f75c31900bff8b2709bea251f1771925d742cba53e5b", size = 197169, upload-time = "2026-03-09T12:59:03.445Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/3d/07a25e3c6f3d65a319da30300f055d946860e90f705c05bb39524dc46f30/razorpay-1.4.2-py3-none-any.whl", hash = "sha256:aaf525baebc5001e5c54ae317a372c3c17c81314cedcbbf71aa0a2d3419a9757", size = 174302, upload-time = "2024-03-19T12:12:06.883Z" },
+    { url = "https://files.pythonhosted.org/packages/7f/35/e8fbf239cb16595007839408f7645bc952d8490f5dd50f9049434f296ce8/razorpay-2.0.1-py3-none-any.whl", hash = "sha256:e6a60c78203a3e1d3fc428e6fadf15bc67f75bd67217eaf9dc9925c87e98bc7a", size = 176920, upload-time = "2026-03-09T12:59:01.99Z" },
 ]
 
 [[package]]
@@ -2673,7 +2673,7 @@ requires-dist = [
     { name = "python-magic", marker = "sys_platform != 'win32'", specifier = ">=0.4.27,<0.5" },
     { name = "python-magic-bin", marker = "sys_platform == 'win32'", specifier = ">=0.4.14,<0.5" },
     { name = "pytimeparse", specifier = ">=1.1.8,<2" },
-    { name = "razorpay", specifier = "~=1.2" },
+    { name = "razorpay", specifier = "~=2.0" },
     { name = "redis", specifier = ">=5.0.1,<6" },
     { name = "requests", specifier = "~=2.32" },
     { name = "requests-hardened", specifier = ">=1.2.1,<2.0.0" },
