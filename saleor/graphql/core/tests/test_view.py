@@ -221,9 +221,23 @@ def test_invalid_request_body_error_is_not_logged(client, caplog, settings, debu
     assert caplog.records == []
 
 
-def test_request_body_with_nul_byte_is_rejected(client, caplog):
+@pytest.mark.parametrize(
+    "control_char",
+    [
+        "\x00",  # NUL
+        "\x01",  # SOH (C0)
+        "\x08",  # backspace (C0)
+        "\x0b",  # vertical tab (C0)
+        "\x1f",  # unit separator (C0, last)
+        "\x7f",  # DEL
+        "\x80",  # C1 (first)
+        "\x9f",  # C1 (last)
+    ],
+)
+def test_request_body_with_control_character_is_rejected(client, control_char):
     # given
-    data = b'{"query": "{ category(slug: \\"foo\x00bar\\") { id } }"}'
+    query = f'{{"query": "{{ category(slug: \\"foo{control_char}bar\\") {{ id }} }}"}}'
+    data = query.encode("utf-8")
 
     # when
     response = client.post(API_PATH, data, content_type="application/json")
@@ -234,6 +248,21 @@ def test_request_body_with_nul_byte_is_rejected(client, caplog):
     errors = content.get("errors")
     assert len(errors) == 1
     assert errors[0]["message"] == "Unable to parse query."
+
+
+@pytest.mark.parametrize("whitespace", ["\t", "\n", "\r"])
+def test_request_body_with_whitespace_control_character_is_accepted(client, whitespace):
+    # given - whitespace controls are legal in JSON and GraphQL source
+    query = f"{{{whitespace}__typename{whitespace}}}"
+    data = json.dumps({"query": query})
+
+    # when
+    response = client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    assert response.status_code == 200
+    content = get_graphql_content_from_response(response)
+    assert content["data"] == {"__typename": "Query"}
 
 
 @pytest.mark.parametrize(

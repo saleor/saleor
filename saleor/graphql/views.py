@@ -1,6 +1,7 @@
 import decimal
 import hashlib
 import importlib
+import re
 import time
 from inspect import isclass
 from typing import Any, cast
@@ -57,6 +58,13 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
+
+# Control characters that should never appear unescaped in a GraphQL request
+# body. Covers C0 (0x00-0x1F) except whitespace (\t \n \r) plus DEL and C1
+# (0x7F-0x9F). NUL bytes trip psycopg with an unhandled DataError; the rest
+# enable log/header injection and have no legitimate use in JSON or GraphQL
+# source text.
+FORBIDDEN_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]")
 
 
 def default_serializer(obj):
@@ -528,20 +536,21 @@ class GraphQLView(View):
 
     @staticmethod
     def parse_body(request: HttpRequest):
-        # psycopg rejects NUL bytes in text parameters; reaching the DB layer
-        # with one produces an unhandled DataError. Reject text GraphQL bodies
-        # that contain a NUL byte rather than stripping it - assume the
-        # request is rogue. Multipart bodies are not checked here because
-        # uploaded files legitimately contain NUL bytes in binary payloads.
+        # Reject text GraphQL bodies containing control characters rather than
+        # stripping them - assume the request is rogue. Multipart bodies are
+        # not checked here because uploaded files legitimately contain control
+        # bytes in binary payloads.
         content_type = request.content_type
         if content_type == "application/graphql":
-            if b"\x00" in request.body:
-                raise ValueError("Request body contains NUL byte.")
-            return {"query": request.body.decode("utf-8")}
+            body = request.body.decode("utf-8")
+            if FORBIDDEN_CONTROL_CHARS.search(body):
+                raise ValueError("Request body contains control characters.")
+            return {"query": body}
         if content_type == "application/json":
-            if b"\x00" in request.body:
-                raise ValueError("Request body contains NUL byte.")
-            body = orjson.loads(request.body)
+            body_str = request.body.decode("utf-8")
+            if FORBIDDEN_CONTROL_CHARS.search(body_str):
+                raise ValueError("Request body contains control characters.")
+            body = orjson.loads(body_str)
             if isinstance(body, dict) or isinstance(body, list):
                 return body
 
