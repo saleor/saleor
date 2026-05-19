@@ -68,6 +68,19 @@ INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 FORBIDDEN_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]")
 
 
+def _contains_control_chars(value) -> bool:
+    if isinstance(value, str):
+        return FORBIDDEN_CONTROL_CHARS.search(value) is not None
+    if isinstance(value, dict):
+        return any(
+            _contains_control_chars(k) or _contains_control_chars(v)
+            for k, v in value.items()
+        )
+    if isinstance(value, list):
+        return any(_contains_control_chars(item) for item in value)
+    return False
+
+
 def default_serializer(obj):
     if isinstance(obj, decimal.Decimal):
         return str(obj)
@@ -552,6 +565,11 @@ class GraphQLView(View):
             if FORBIDDEN_CONTROL_CHARS.search(body_str):
                 raise ValueError("Request body contains control characters.")
             body = orjson.loads(body_str)
+            # JSON allows control chars to be escaped (e.g. "\u0000"), which
+            # passes the raw-body check above but decodes into an actual
+            # control codepoint inside parsed strings.
+            if _contains_control_chars(body):
+                raise ValueError("Request body contains control characters.")
             if isinstance(body, dict) or isinstance(body, list):
                 return body
 

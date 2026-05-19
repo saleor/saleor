@@ -221,23 +221,69 @@ def test_invalid_request_body_error_is_not_logged(client, caplog, settings, debu
     assert caplog.records == []
 
 
-@pytest.mark.parametrize(
-    "control_char",
-    [
-        "\x00",  # NUL
-        "\x01",  # SOH (C0)
-        "\x08",  # backspace (C0)
-        "\x0b",  # vertical tab (C0)
-        "\x1f",  # unit separator (C0, last)
-        "\x7f",  # DEL
-        "\x80",  # C1 (first)
-        "\x9f",  # C1 (last)
-    ],
-)
-def test_request_body_with_control_character_is_rejected(client, control_char):
+CONTROL_CHARS = [
+    "\x00",  # NUL
+    "\x01",  # SOH (C0)
+    "\x08",  # backspace (C0)
+    "\x0b",  # vertical tab (C0)
+    "\x1f",  # unit separator (C0, last)
+    "\x7f",  # DEL
+    "\x80",  # C1 (first)
+    "\x9f",  # C1 (last)
+]
+
+
+@pytest.mark.parametrize("control_char", CONTROL_CHARS)
+def test_request_body_with_control_character_in_query_is_rejected(client, control_char):
     # given
     query = f'{{"query": "{{ category(slug: \\"foo{control_char}bar\\") {{ id }} }}"}}'
     data = query.encode("utf-8")
+
+    # when
+    response = client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    assert response.status_code == 400
+    content = get_graphql_content_from_response(response)
+    errors = content.get("errors")
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Unable to parse query."
+
+
+@pytest.mark.parametrize("control_char", CONTROL_CHARS)
+def test_request_body_with_control_character_in_operation_name_is_rejected(
+    client, control_char
+):
+    # given
+    data = json.dumps(
+        {
+            "query": "query GetTypename { __typename }",
+            "operationName": f"GetTypename{control_char}",
+        }
+    )
+
+    # when
+    response = client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    assert response.status_code == 400
+    content = get_graphql_content_from_response(response)
+    errors = content.get("errors")
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Unable to parse query."
+
+
+@pytest.mark.parametrize("control_char", CONTROL_CHARS)
+def test_request_body_with_control_character_in_variables_is_rejected(
+    client, control_char
+):
+    # given
+    data = json.dumps(
+        {
+            "query": "query($slug: String!) { category(slug: $slug) { id } }",
+            "variables": {"slug": f"foo{control_char}bar"},
+        }
+    )
 
     # when
     response = client.post(API_PATH, data, content_type="application/json")
@@ -263,6 +309,27 @@ def test_request_body_with_whitespace_control_character_is_accepted(client, whit
     assert response.status_code == 200
     content = get_graphql_content_from_response(response)
     assert content["data"] == {"__typename": "Query"}
+
+
+@pytest.mark.parametrize("whitespace", ["\t", "\n", "\r"])
+def test_request_body_with_whitespace_control_character_in_variables_is_accepted(
+    api_client, whitespace
+):
+    # given - whitespace inside variable values must round-trip as data
+    slug_with_whitespace = f"foo{whitespace}bar"
+    data = {
+        "query": "query($slug: String!) { category(slug: $slug) { id } }",
+        "variables": {"slug": slug_with_whitespace},
+    }
+
+    # when
+    response = api_client.post(data=data)
+
+    # then - no slug matches but the request is accepted and resolves to null
+    assert response.status_code == 200
+    content = get_graphql_content_from_response(response)
+    assert "errors" not in content
+    assert content["data"] == {"category": None}
 
 
 @pytest.mark.parametrize(
