@@ -61,8 +61,9 @@ INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 # Control characters that should never appear unescaped in a GraphQL request
 # body. Covers C0 (0x00-0x1F) except whitespace (\t \n \r) plus DEL and C1
-# (0x7F-0x9F). NUL bytes trip psycopg with an unhandled DataError; the rest
-# enable log/header injection and have no legitimate use in JSON or GraphQL
+# (0x7F-0x9F). More info: https://en.wikipedia.org/wiki/C0_and_C1_control_codes
+# NUL bytes trip psycopg with an unhandled DataError; the rest can enable log
+# and header injections and have no legitimate use in JSON or GraphQL
 # source text.
 FORBIDDEN_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]")
 
