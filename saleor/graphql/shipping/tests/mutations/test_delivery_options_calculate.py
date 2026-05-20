@@ -343,7 +343,7 @@ def test_when_assigned_delivery_has_stale_invalid_sibling(
     checkout_delivery,
 ):
     """Ensure it deletes duplicate delivery method on conflict.
-    
+
     Regression test for the IntegrityError on `unique_for_checkout` raised
     when the assigned (valid) delivery is invalidated while a stale invalid
     sibling row for the same shipping method already exists. Matches the
