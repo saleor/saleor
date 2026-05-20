@@ -1570,7 +1570,7 @@ def test_fetch_shipping_methods_for_checkout_invalidates_assigned_when_stale_inv
     checkout_with_item, plugins_manager, address, settings
 ):
     """Test that it deletes duplicate rows when invalidating delivery method.
-    
+
     Regression test: the unique constraint `unique_for_checkout` allows at most
     one row per (checkout, shipping_method, is_valid). When a stale invalid
     row already exists for the same shipping method as the assigned (valid)
@@ -1645,7 +1645,7 @@ def test_fetch_shipping_methods_for_checkout_preserve_invalidates_when_stale_inv
     app,
 ):
     """Ensure it preserves existing delivery methods when they don't conflict.
-    
+
     Regression test for the preserve path: when the refreshed external shipping
     method has changed and the assigned (valid) delivery has a stale invalid
     sibling, _preserve_assigned_delivery used to fail with IntegrityError when
