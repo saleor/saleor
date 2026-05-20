@@ -446,6 +446,17 @@ def _restore_assigned_delivery_as_valid(
 
 
 def _invalidate_assigned_delivery(assigned_delivery: CheckoutDelivery):
+    # The unique constraint `unique_for_checkout` allows at most one row per
+    # (checkout, shipping_method, is_valid) tuple. A stale invalid sibling may
+    # already exist for the same shipping method, so remove it before flipping
+    # the flag to avoid a duplicate key violation.
+    CheckoutDelivery.objects.filter(
+        checkout_id=assigned_delivery.checkout_id,
+        external_shipping_method_id=assigned_delivery.external_shipping_method_id,
+        built_in_shipping_method_id=assigned_delivery.built_in_shipping_method_id,
+        is_valid=False,
+    ).exclude(pk=assigned_delivery.pk).delete()
+
     assigned_delivery.is_valid = False
     assigned_delivery.save(update_fields=["is_valid"])
 

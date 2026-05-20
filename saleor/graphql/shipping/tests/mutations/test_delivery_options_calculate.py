@@ -327,6 +327,86 @@ def test_when_refreshed_delivery_has_different_details(
 
 
 @mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout",
+    wraps=excluded_shipping_methods_for_checkout,
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout",
+    wraps=list_shipping_methods_for_checkout,
+)
+def test_when_assigned_delivery_has_stale_invalid_sibling(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    api_client,
+    checkout_with_item,
+    address,
+    checkout_delivery,
+):
+    # Regression test for the IntegrityError on `unique_for_checkout` raised
+    # when the assigned (valid) delivery is invalidated while a stale invalid
+    # sibling row for the same shipping method already exists. Matches the
+    # Sentry signature: POST /graphql/ → IntegrityError in
+    # `_invalidate_assigned_delivery`.
+
+    # given
+    checkout = checkout_with_item
+    assigned_delivery = checkout_delivery(checkout)
+    stale_invalid_sibling = CheckoutDelivery.objects.create(
+        checkout=checkout,
+        built_in_shipping_method_id=assigned_delivery.built_in_shipping_method_id,
+        external_shipping_method_id=None,
+        name=assigned_delivery.name,
+        price_amount=assigned_delivery.price_amount,
+        currency=assigned_delivery.currency,
+        is_valid=False,
+    )
+
+    checkout.assigned_delivery = assigned_delivery
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.save()
+
+    # Force the refresh path to treat the refreshed delivery as "changed"
+    # so `_preserve_assigned_delivery` reaches `_invalidate_assigned_delivery`.
+    expected_name = assigned_delivery.name
+    assigned_delivery.name = "PreviousName"
+    assigned_delivery.save(update_fields=["name"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = api_client.post_graphql(DELIVERY_OPTIONS_CALCULATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["deliveryOptionsCalculate"]
+
+    # then
+    assert not data["errors"]
+    assert len(data["deliveries"]) == 1
+
+    assigned_delivery.refresh_from_db()
+    assert assigned_delivery.is_valid is False
+
+    assert not CheckoutDelivery.objects.filter(pk=stale_invalid_sibling.pk).exists()
+
+    refreshed_delivery = CheckoutDelivery.objects.exclude(id=assigned_delivery.id).get()
+    assert refreshed_delivery.is_valid is True
+    assert refreshed_delivery.name == expected_name
+    assert (
+        refreshed_delivery.built_in_shipping_method_id
+        == assigned_delivery.built_in_shipping_method_id
+    )
+
+    assert data["deliveries"][0]["id"] == graphene.Node.to_global_id(
+        "CheckoutDelivery", refreshed_delivery.pk
+    )
+
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+    assert mocked_list_shipping_methods.called
+    assert mocked_exclude_shipping_methods.called
+
+
+@mock.patch(
     "saleor.graphql.shipping.mutations.delivery_options_calculate.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,
 )
