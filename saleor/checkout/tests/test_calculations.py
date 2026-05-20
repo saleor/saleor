@@ -45,8 +45,12 @@ from ..calculations import (
     logger,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
-from ..models import Checkout
-from ..utils import add_promo_code_to_checkout, assign_external_shipping_to_checkout
+from ..models import Checkout, CheckoutMetadata
+from ..utils import (
+    add_promo_code_to_checkout,
+    add_variant_to_checkout,
+    assign_external_shipping_to_checkout,
+)
 
 
 @pytest.fixture
@@ -453,6 +457,152 @@ def test_fetch_checkout_data_flat_rates_and_no_tax_calc_strategy(
     mocked_update_checkout_prices_with_flat_rates.assert_called_once()
     assert line.tax_rate == Decimal("0.2300")
     assert checkout.shipping_tax_rate == Decimal("0.2300")
+
+
+def test_fetch_checkout_data_flat_rates_country_exception_charge_taxes_false_with_prices_entered_with_tax_reduces_gross_BUG(
+    db,
+    channel_USD,
+    product,
+    address,
+    shipping_method,
+    plugins_manager,
+    settings,
+):
+    # PROOF-OF-BUG (Saleor 3.22.16, reported by merchant on a UK channel
+    # shipping to AU). Reproduces the customer's scenario with one variant
+    # priced at $100 (gross) and one shipping method at $70 (gross):
+    #
+    #     channel.prices_entered_with_tax = True
+    #     channel.charge_taxes            = True
+    #     country exception for AU: charge_taxes = False
+    #     TaxClassCountryRate for AU = 10%  (e.g. shared with an AU channel)
+    #
+    # EXPECTED behaviour: merchant does not charge VAT for AU but the
+    # customer still pays the full entered (gross) price.
+    #     line gross     = 100.00, net = 100.00, tax = 0
+    #     shipping gross =  70.00, net =  70.00, tax = 0
+    #
+    # ACTUAL (BUGGY) behaviour today: the flat-rate calculator back-calcs
+    # net = gross / 1.10, then _remove_tax in checkout/calculations.py
+    # collapses gross onto that lower net (mirror of order-side fix in
+    # PR #16992 was never applied to the checkout side):
+    #     line gross     = 100.00 / 1.10 =  90.91, net = 90.91, tax = 0
+    #     shipping gross =  70.00 / 1.10 =  63.64, net = 63.64, tax = 0
+    #
+    # This test asserts the BUGGY numbers on purpose so it flips red the
+    # moment the fix lands. Once the fix lands, invert the expected lines
+    # below (the EXPECTED block at the bottom is commented out).
+
+    # given — 1) variant priced at $100 gross
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    variant_listing.price_amount = Decimal("100.00")
+    variant_listing.discounted_price_amount = Decimal("100.00")
+    variant_listing.save(update_fields=["price_amount", "discounted_price_amount"])
+
+    # 2) shipping method priced at $70 gross
+    shipping_listing = shipping_method.channel_listings.get(channel=channel_USD)
+    shipping_listing.price_amount = Decimal("70.00")
+    shipping_listing.save(update_fields=["price_amount"])
+
+    # 3) shipping address in AU
+    address.country = "AU"
+    address.save(update_fields=["country"])
+
+    # 4) channel: prices entered with tax, charge taxes by default,
+    #             flat-rate strategy.
+    tc = channel_USD.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = True
+    tc.charge_taxes = True
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save(
+        update_fields=[
+            "prices_entered_with_tax",
+            "charge_taxes",
+            "tax_calculation_strategy",
+        ]
+    )
+
+    # 5) country exception for AU: do not charge taxes (this is the customer's
+    #    setting that triggers the bug).
+    tc.country_exceptions.create(
+        country="AU",
+        charge_taxes=False,
+        tax_calculation_strategy=TaxCalculationStrategy.FLAT_RATES,
+    )
+
+    # 6) 10% AU rate on both the product's and the shipping method's tax class
+    #    (this rate exists because the merchant also runs an AU channel that
+    #    legitimately charges 10%; that's why removing the row is not a viable
+    #    workaround). The two tax classes may be the same default object, so
+    #    update_or_create avoids the unique constraint.
+    variant.product.tax_class.country_rates.update_or_create(
+        country="AU", defaults={"rate": Decimal("10")}
+    )
+    shipping_method.tax_class.country_rates.update_or_create(
+        country="AU", defaults={"rate": Decimal("10")}
+    )
+
+    # 7) build a fresh checkout with exactly one line (quantity 1) and one
+    #    shipping method. No compound fixtures: every relevant piece is set
+    #    above so the assertions can be read against the explicit inputs.
+    checkout = Checkout.objects.create(
+        currency=channel_USD.currency_code,
+        channel=channel_USD,
+        price_expiration=timezone.now() + settings.CHECKOUT_PRICES_TTL,
+        email="customer@example.com",
+        shipping_address=address,
+        billing_address=address,
+        shipping_method=shipping_method,
+    )
+    checkout.set_country("AU", commit=True)
+    CheckoutMetadata.objects.create(checkout=checkout)
+
+    checkout_info = fetch_checkout_info(checkout, [], plugins_manager)
+    add_variant_to_checkout(checkout_info, variant, 1)
+    checkout.save()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+
+    # when
+    fetch_checkout_data(
+        checkout_info, plugins_manager, lines, allow_sync_webhooks=False
+    )
+
+    # then
+    checkout.refresh_from_db()
+    line = checkout.lines.get()
+
+    # Tax is correctly zeroed because the AU country exception disables charging.
+    assert line.tax_rate == Decimal("0.0000")
+    assert checkout.shipping_tax_rate == Decimal("0.0000")
+
+    # _remove_tax collapsed gross onto net for both the line and shipping.
+    assert line.total_price_gross_amount == line.total_price_net_amount
+    assert checkout.shipping_price_gross_amount == checkout.shipping_price_net_amount
+
+    # BUG — line gross was reduced from the entered $100.00 to $100/1.10 = $90.91.
+    assert line.total_price_gross_amount == Decimal("90.91")
+    assert line.total_price_net_amount == Decimal("90.91")
+
+    # BUG — shipping gross was reduced from the entered $70.00 to $70/1.10 = $63.64.
+    assert checkout.shipping_price_gross_amount == Decimal("63.64")
+    assert checkout.shipping_price_net_amount == Decimal("63.64")
+
+    # BUG — checkout total reduced from the entered $170.00 to $154.55
+    # (90.91 + 63.64). Customer is charged $15.45 less than what was entered.
+    assert checkout.total_gross_amount == Decimal("154.55")
+    assert checkout.total_net_amount == Decimal("154.55")
+
+    # EXPECTED (correct) behaviour, currently failing — uncomment after fix:
+    # assert line.total_price_gross_amount == Decimal("100.00")
+    # assert line.total_price_net_amount == Decimal("100.00")
+    # assert checkout.shipping_price_gross_amount == Decimal("70.00")
+    # assert checkout.shipping_price_net_amount == Decimal("70.00")
+    # assert checkout.total_gross_amount == Decimal("170.00")
+    # assert checkout.total_net_amount == Decimal("170.00")
 
 
 def test_set_checkout_base_prices_no_charge_taxes_with_voucher(
