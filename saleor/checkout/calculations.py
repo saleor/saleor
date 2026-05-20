@@ -431,8 +431,9 @@ def _fetch_checkout_prices_if_expired(
 
         if not should_charge_tax:
             # If charge_taxes is disabled or checkout is exempt from taxes, remove the
-            # tax from the original gross prices.
-            _remove_tax(checkout, lines)
+            # tax from the merchant-entered prices. When prices were entered as gross,
+            # preserve the gross and align net to it; otherwise align gross to net.
+            _remove_tax(checkout, lines, prices_entered_with_tax)
 
     price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.price_expiration = price_expiration
@@ -670,7 +671,15 @@ def _get_taxes_for_checkout(
     return tax_data
 
 
-def _remove_tax(checkout, lines_info):
+def _remove_tax(checkout, lines_info, prices_entered_with_tax):
+    if prices_entered_with_tax:
+        _remove_tax_net(checkout, lines_info)
+    else:
+        _remove_tax_gross(checkout, lines_info)
+
+
+def _remove_tax_gross(checkout, lines_info):
+    """Set gross values equal to net values."""
     checkout.total_gross_amount = checkout.total_net_amount
     checkout.subtotal_gross_amount = checkout.subtotal_net_amount
     checkout.shipping_price_gross_amount = checkout.shipping_price_net_amount
@@ -679,6 +688,19 @@ def _remove_tax(checkout, lines_info):
     for line_info in lines_info:
         total_price_net_amount = line_info.line.total_price_net_amount
         line_info.line.total_price_gross_amount = total_price_net_amount
+        line_info.line.tax_rate = Decimal("0.00")
+
+
+def _remove_tax_net(checkout, lines_info):
+    """Set net values equal to gross values."""
+    checkout.total_net_amount = checkout.total_gross_amount
+    checkout.subtotal_net_amount = checkout.subtotal_gross_amount
+    checkout.shipping_price_net_amount = checkout.shipping_price_gross_amount
+    checkout.shipping_tax_rate = Decimal("0.00")
+
+    for line_info in lines_info:
+        total_price_gross_amount = line_info.line.total_price_gross_amount
+        line_info.line.total_price_net_amount = total_price_gross_amount
         line_info.line.tax_rate = Decimal("0.00")
 
 
