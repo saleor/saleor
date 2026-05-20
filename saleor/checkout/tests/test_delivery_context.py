@@ -1563,3 +1563,163 @@ def test_is_valid_delivery_method(
     delivery_method_info = checkout_info.get_delivery_method_info()
 
     assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_fetch_shipping_methods_for_checkout_invalidates_assigned_when_stale_invalid_sibling_exists(
+    checkout_with_item, plugins_manager, address, settings
+):
+    # Regression test: the unique constraint `unique_for_checkout` allows at most
+    # one row per (checkout, shipping_method, is_valid). When a stale invalid
+    # row already exists for the same shipping method as the assigned (valid)
+    # delivery, invalidating the assigned row used to raise IntegrityError
+    # because it would collide with the stale sibling.
+
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = (
+        timezone.now() + settings.CHECKOUT_DELIVERY_OPTIONS_TTL
+    )
+    checkout.save(update_fields=["shipping_address", "delivery_methods_stale_at"])
+
+    available_shipping_method = ShippingMethod.objects.get()
+    non_applicable_shipping_method_id = available_shipping_method.id + 1
+
+    assigned_delivery = checkout.deliveries.create(
+        built_in_shipping_method_id=non_applicable_shipping_method_id,
+        name="Nonexisting Shipping Method",
+        price_amount=Decimal(99),
+        currency="USD",
+        is_valid=True,
+    )
+    stale_invalid_sibling = checkout.deliveries.create(
+        built_in_shipping_method_id=non_applicable_shipping_method_id,
+        name="Nonexisting Shipping Method",
+        price_amount=Decimal(99),
+        currency="USD",
+        is_valid=False,
+    )
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None
+    ).get()
+
+    # then
+    assert len(shipping_methods) == 1
+
+    assigned_delivery.refresh_from_db()
+    assert assigned_delivery.is_valid is False
+
+    assert not CheckoutDelivery.objects.filter(pk=stale_invalid_sibling.pk).exists()
+
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
+
+
+@freeze_time("2024-05-31 12:00:01")
+@mock.patch(
+    "saleor.checkout.webhooks.exclude_shipping.excluded_shipping_methods_for_checkout"
+)
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
+def test_fetch_shipping_methods_for_checkout_preserve_invalidates_when_stale_invalid_sibling_exists(
+    mocked_list_shipping_methods,
+    mocked_exclude_shipping_methods,
+    checkout_with_item,
+    plugins_manager,
+    address,
+    settings,
+    app,
+):
+    # Regression test for the preserve path: when the refreshed external shipping
+    # method has changed and the assigned (valid) delivery has a stale invalid
+    # sibling, _preserve_assigned_delivery used to fail with IntegrityError when
+    # flipping is_valid on the assigned row.
+
+    # given
+    shipping_price_amount = Money(Decimal(10), checkout_with_item.currency)
+    changed_shipping_price_amount = Money(Decimal(11), checkout_with_item.currency)
+
+    available_shipping_method = ShippingMethodData(
+        id=to_shipping_app_id(app, "external-shipping-method-id"),
+        price=shipping_price_amount,
+        active=True,
+        name="External Shipping",
+        description="External Shipping Description",
+        maximum_delivery_days=10,
+        minimum_delivery_days=5,
+        metadata={"key": "value"},
+    )
+
+    checkout = checkout_with_item
+    assigned_delivery = convert_shipping_method_data_to_checkout_delivery(
+        available_shipping_method, checkout
+    )
+    assigned_delivery.is_valid = True
+    assigned_delivery.save()
+
+    stale_invalid_sibling = CheckoutDelivery.objects.create(
+        checkout=checkout,
+        external_shipping_method_id=assigned_delivery.external_shipping_method_id,
+        built_in_shipping_method_id=None,
+        name="Stale",
+        price_amount=shipping_price_amount.amount,
+        currency=checkout.currency,
+        is_external=True,
+        is_valid=False,
+    )
+
+    checkout.shipping_address = address
+    checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
+    checkout.assigned_delivery = assigned_delivery
+    checkout.save()
+
+    changed_shipping_method = available_shipping_method
+    changed_shipping_method.price = changed_shipping_price_amount
+    changed_shipping_method.name = "Modified"
+
+    mocked_exclude_shipping_methods.return_value = Promise.resolve([])
+    mocked_list_shipping_methods.return_value = Promise.resolve(
+        [changed_shipping_method]
+    )
+
+    lines_info, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(
+        checkout, lines=lines_info, manager=plugins_manager
+    )
+
+    # when
+    shipping_methods = fetch_shipping_methods_for_checkout(
+        checkout_info, requestor=None, overwrite_assigned_delivery=False
+    ).get()
+
+    # then
+    assigned_delivery.refresh_from_db()
+    assert assigned_delivery.is_valid is False
+    assert assigned_delivery.price == shipping_price_amount
+
+    assert not CheckoutDelivery.objects.filter(pk=stale_invalid_sibling.pk).exists()
+
+    deliveries = CheckoutDelivery.objects.filter(
+        external_shipping_method_id=assigned_delivery.external_shipping_method_id
+    )
+    assert len(deliveries) == 2
+    refreshed_delivery = next(
+        delivery for delivery in deliveries if delivery.id != assigned_delivery.id
+    )
+    assert refreshed_delivery.is_valid is True
+    assert refreshed_delivery.price == changed_shipping_price_amount
+
+    assert len(shipping_methods) == 2
+    checkout.refresh_from_db()
+    assert checkout.assigned_delivery_id == assigned_delivery.id
