@@ -56,8 +56,7 @@ repos:
         - --quiet
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    # uv version.
-    rev: 0.8.14
+    rev: 659a7789596d520c849e9c96525119e9fbaa731f # frozen: 0.11.8
     hooks:
       - id: uv-lock
 
