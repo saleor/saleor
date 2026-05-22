@@ -109,7 +109,7 @@ package-mode = false
   prices = "^1.0"
   promise = "^2.3"
   pybars3 = "^0.9.7"
-  pyjwt = "^2.12.1"
+  pyjwt = "^2.13.0"
   python-dateutil = "^2.8.2"
   python-http-client = "^3.3.7"
   python-json-logger = ">=0.1.11,<3.3.0"
@@ -132,7 +132,7 @@ package-mode = false
   opentelemetry-sdk = "^1.32.1"
   opentelemetry-semantic-conventions = "^0.53b1"
   nh3 = "^0.3.2"
-  idna = "^3.11"
+  idna = "^3.15"
 
     [tool.poetry.dependencies.kombu]
     extras = [ "sqs" ]
