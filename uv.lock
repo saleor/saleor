@@ -699,14 +699,14 @@ wheels = [
 
 [[package]]
 name = "django-phonenumber-field"
-version = "8.1.0"
+version = "8.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/95/4b/edec2f3e4b8f8048540d7d1844bc576a0bdb711e1f6a4cde364c505c865d/django_phonenumber_field-8.1.0.tar.gz", hash = "sha256:f19450625574ad3a2de047c409527d0e57699496849e71e53b53e8679ff67b27", size = 43854, upload-time = "2025-04-10T16:09:29.363Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/bf/8aa60c9834773b955dff1ddea842e361e8daaf6b0945d5bfc29fc66d53ab/django_phonenumber_field-8.4.0.tar.gz", hash = "sha256:2b83e843dac35eec6a69880a166487235b737a71a1e38c9a52e5ad67d6996083", size = 45512, upload-time = "2025-11-24T15:09:51.904Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/98/0413e47d7d1fab0e5a81eda6caacdcba69d50f74f64b65febf943cbd1f1e/django_phonenumber_field-8.1.0-py3-none-any.whl", hash = "sha256:9ba66873bf47401b13fc57797fbf85e785864a6bfdc8b9daa3a9012886567045", size = 65208, upload-time = "2025-04-10T16:09:27.843Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/a3/f6b85a9246e22cf719752ad83f5e95aa9ba12419b2f9eff70f20d30e55df/django_phonenumber_field-8.4.0-py3-none-any.whl", hash = "sha256:7a1cb3a6456edb54d879f11ffa0acb227ded08c93b587035d0f28093f0e46511", size = 69528, upload-time = "2025-11-24T15:09:45.479Z" },
 ]
 
 [[package]]
@@ -2662,7 +2662,7 @@ requires-dist = [
     { name = "django-filter", specifier = "~=25.1" },
     { name = "django-measurement", specifier = "~=3.0" },
     { name = "django-mptt", specifier = ">=0,<1" },
-    { name = "django-phonenumber-field", specifier = ">=4,<9" },
+    { name = "django-phonenumber-field", specifier = ">=8.4.0,<9" },
     { name = "django-storages", extras = ["google"], specifier = "~=1.11" },
     { name = "django-stubs-ext", specifier = ">=5.1.3,<6" },
     { name = "faker", specifier = ">=26.0.0,<27.0" },
