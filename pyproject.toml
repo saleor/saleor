@@ -45,7 +45,7 @@ dependencies = [
     "micawber>=0.5.5,<0.6",
     "oauthlib~=3.1",
     "petl==1.7.17",
-    "phonenumberslite>=9.0.7,<10",
+    "phonenumberslite>=9.0.29,<10",
     "pillow>=12.2.0,<13",
     "prices~=1.0",
     "promise~=2.3",
