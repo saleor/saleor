@@ -182,3 +182,26 @@ When adding or changing search vector indexing logic, create a data migration th
 
 - Task: `saleor/giftcard/migrations/tasks/saleor3_22.py`
 - Migration: `saleor/giftcard/migrations/0023_mark_gift_cards_search_vector_as_dirty.py`
+
+
+# Code style
+
+## Prefer docstrings over comments
+
+When describing behavior prefer to use docstring over a comment:
+
+Not:
+
+```python
+def foo():
+  # Comment
+  # instead of
+  # docstring
+```
+
+Do:
+
+```python
+def foo():
+  """Doc string"""
+```
