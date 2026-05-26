@@ -437,9 +437,12 @@ def test_checkout_problems_when_variant_channel_listing_doesnt_have_price_amount
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_checkout_problems_delivery_method_stale(
+def test_checkout_problems_delivery_method_stale_filtered_out_for_compat(
     checkout_with_items_and_shipping, api_client
 ):
+    # Compatibility shim: delivery-method problems are suppressed from
+    # `Checkout.problems` so pre-3.23 clients do not crash on unrecognised
+    # union members.
     # given
     checkout = checkout_with_items_and_shipping
     checkout.delivery_methods_stale_at = timezone.now() - datetime.timedelta(minutes=5)
@@ -454,16 +457,16 @@ def test_checkout_problems_delivery_method_stale(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
-    assert len(content["data"]["checkout"]["problems"]) == 1
-    problem = content["data"]["checkout"]["problems"][0]
-    assert problem["__typename"] == "CheckoutProblemDeliveryMethodStale"
-    assert problem["delivery"]["id"] == to_global_id_or_none(checkout.assigned_delivery)
+    assert content["data"]["checkout"]["problems"] == []
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_checkout_problems_delivery_method_invalid(
+def test_checkout_problems_delivery_method_invalid_filtered_out_for_compat(
     checkout_with_items_and_shipping, api_client
 ):
+    # Compatibility shim: delivery-method problems are suppressed from
+    # `Checkout.problems` so pre-3.23 clients do not crash on unrecognised
+    # union members.
     # given
     checkout = checkout_with_items_and_shipping
     checkout.assigned_delivery.is_valid = False
@@ -478,16 +481,16 @@ def test_checkout_problems_delivery_method_invalid(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
-    assert len(content["data"]["checkout"]["problems"]) == 1
-    problem = content["data"]["checkout"]["problems"][0]
-    assert problem["__typename"] == "CheckoutProblemDeliveryMethodInvalid"
-    assert problem["delivery"]["id"] == to_global_id_or_none(checkout.assigned_delivery)
+    assert content["data"]["checkout"]["problems"] == []
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_checkout_problems_delivery_method_invalid_when_active_set_to_false(
+def test_checkout_problems_delivery_method_invalid_when_active_set_to_false_filtered_out_for_compat(
     checkout_with_items_and_shipping, api_client
 ):
+    # Compatibility shim: delivery-method problems are suppressed from
+    # `Checkout.problems` so pre-3.23 clients do not crash on unrecognised
+    # union members.
     # given
     checkout = checkout_with_items_and_shipping
     checkout.assigned_delivery.active = False
@@ -502,16 +505,16 @@ def test_checkout_problems_delivery_method_invalid_when_active_set_to_false(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
-    assert len(content["data"]["checkout"]["problems"]) == 1
-    problem = content["data"]["checkout"]["problems"][0]
-    assert problem["__typename"] == "CheckoutProblemDeliveryMethodInvalid"
-    assert problem["delivery"]["id"] == to_global_id_or_none(checkout.assigned_delivery)
+    assert content["data"]["checkout"]["problems"] == []
 
 
 @freeze_time("2024-05-31 12:00:01")
-def test_checkout_problems_delivery_method_stale_and_invalid(
+def test_checkout_problems_delivery_method_stale_and_invalid_filtered_out_for_compat(
     checkout_with_items_and_shipping, api_client
 ):
+    # Compatibility shim: delivery-method problems are suppressed from
+    # `Checkout.problems` so pre-3.23 clients do not crash on unrecognised
+    # union members.
     # given
     checkout = checkout_with_items_and_shipping
     checkout.assigned_delivery.is_valid = False
@@ -532,15 +535,7 @@ def test_checkout_problems_delivery_method_stale_and_invalid(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
-    assert len(content["data"]["checkout"]["problems"]) == 2
-    problems = content["data"]["checkout"]["problems"]
-    problem_types = [problem["__typename"] for problem in problems]
-    assert "CheckoutProblemDeliveryMethodStale" in problem_types
-    assert "CheckoutProblemDeliveryMethodInvalid" in problem_types
-
-    assigned_delivery_id = to_global_id_or_none(checkout.assigned_delivery)
-    assert problems[0]["delivery"]["id"] == assigned_delivery_id
-    assert problems[1]["delivery"]["id"] == assigned_delivery_id
+    assert content["data"]["checkout"]["problems"] == []
 
 
 @freeze_time("2024-05-31 12:00:01")

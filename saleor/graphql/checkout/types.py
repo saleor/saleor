@@ -1443,12 +1443,26 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
             info.context
         )
 
-        def _wrapped_with_sync_webhook_control_context(problems):
+        def _wrapped_with_sync_webhook_control_context(checkout_problems):
+            # Compatibility shim: suppress delivery-method problems from
+            # `Checkout.problems` so pre-3.23 clients that iterate the union
+            # without `__typename` narrowing do not crash on unrecognised
+            # members. The types remain in the `CheckoutProblem` union for
+            # clients that explicitly query them via inline fragments.
+            filtered = [
+                problem
+                for problem in checkout_problems
+                if not isinstance(
+                    problem,
+                    problems.CheckoutProblemDeliveryMethodStale
+                    | problems.CheckoutProblemDeliveryMethodInvalid,
+                )
+            ]
             return [
                 SyncWebhookControlContext(
                     node=problem, allow_sync_webhooks=root.allow_sync_webhooks
                 )
-                for problem in problems
+                for problem in filtered
             ]
 
         return checkout_problems_dataloader.load(root.node.pk).then(
