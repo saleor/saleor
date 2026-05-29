@@ -134,6 +134,7 @@ class ModelMutationOptions(MutationOptions):
     model = None
     object_type = None
     return_field_name = None
+    max_input_size = None
 
 
 MT = TypeVar("MT", bound=Model)
@@ -1007,7 +1008,7 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def __init_subclass_with_meta__(  # type: ignore[override]
-        cls, model=None, object_type=None, _meta=None, **kwargs
+        cls, model=None, object_type=None, max_input_size=None, _meta=None, **kwargs
     ):
         if not model:
             raise ImproperlyConfigured("model is required for bulk mutation")
@@ -1016,6 +1017,7 @@ class BaseBulkMutation(BaseMutation):
 
         _meta.model = model
         _meta.object_type = object_type
+        _meta.max_input_size = max_input_size
 
         doc_category_key = f"{model._meta.app_label}.{model.__name__}"
         if "doc_category" not in kwargs and doc_category_key in DOC_CATEGORY_MAP:
@@ -1080,6 +1082,18 @@ class BaseBulkMutation(BaseMutation):
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
+
+        if cls._meta.max_input_size is not None and len(ids) > cls._meta.max_input_size:
+            return 0, ValidationError(
+                {
+                    "ids": ValidationError(
+                        f"The maximum number of items in ids is "
+                        f"{cls._meta.max_input_size}.",
+                        code="invalid",
+                    )
+                }
+            )
+
         instance_model = cls._meta.model
         model_type = cls.get_type_for_model()
         if not model_type:
@@ -1143,6 +1157,18 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         # Allow to pass empty list for dummy mutation
         if not ids:
             return 0, None
+
+        if cls._meta.max_input_size is not None and len(ids) > cls._meta.max_input_size:
+            return 0, ValidationError(
+                {
+                    "ids": ValidationError(
+                        f"The maximum number of items in ids is "
+                        f"{cls._meta.max_input_size}.",
+                        code="invalid",
+                    )
+                }
+            )
+
         instance_model = cls._meta.model
         model_type = cls.get_type_for_model()
         if not model_type:

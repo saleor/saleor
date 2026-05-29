@@ -18218,7 +18218,9 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productBulkDelete(
-    """List of product IDs to delete."""
+    """
+    List of product IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    """
     ids: [ID!]!
   ): ProductBulkDelete @doc(category: "Products")
 

@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.expressions import Exists, OuterRef
@@ -27,7 +28,12 @@ from ..utils import get_draft_order_lines_data_for_variants
 class ProductBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of product IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of product IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -37,6 +43,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        max_input_size = settings.PRODUCT_BULK_DELETE_LIMIT
 
     @classmethod
     @traced_atomic_transaction()

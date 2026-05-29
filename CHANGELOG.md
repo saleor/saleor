@@ -12,6 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
   From Saleor 3.24, this app installation with `MANAGE_APPS` permission will be rejected.
   To safely upgrade, ensure that all installed apps do not have this permission.
+- `productBulkDelete` mutation now limits the number of `ids` per call (default 100, configurable via the `PRODUCT_BULK_DELETE_LIMIT` env var). Exceeding the limit returns an `INVALID` error.
 
 ### GraphQL API
 

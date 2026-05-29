@@ -29,6 +29,7 @@ from ....product.models import (
 )
 from ....thumbnail.models import Thumbnail
 from ...tests.utils import get_graphql_content
+from ..bulk_mutations.product_bulk_delete import ProductBulkDelete
 
 MUTATION_CATEGORY_BULK_DELETE = """
     mutation categoryBulkDelete($ids: [ID!]!) {
@@ -576,6 +577,31 @@ def test_delete_products_invalid_object_typed_of_given_ids(
     assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
     assert errors[0]["field"] == "ids"
     assert data["count"] == 0
+
+
+def test_delete_products_exceeding_max_input_size(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    query = DELETE_PRODUCTS_MUTATION
+    limit = ProductBulkDelete._meta.max_input_size
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"ids": [product_id] * (limit + 1)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkDelete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "ids"
+    assert data["count"] == 0
+    assert Product.objects.filter(id=product.id).exists()
 
 
 @patch("saleor.product.signals.delete_from_storage_task.delay")

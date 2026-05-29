@@ -884,6 +884,9 @@ GRAPHQL_MUTATION_COUNT_LIMIT: int = int(
     os.environ.get("GRAPHQL_MUTATION_COUNT_LIMIT", 4)
 )
 
+# Maximum number of product IDs accepted by the productBulkDelete mutation
+PRODUCT_BULK_DELETE_LIMIT: int = int(os.environ.get("PRODUCT_BULK_DELETE_LIMIT", 100))
+
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
 GRAPHQL_QUERY_MAX_COMPLEXITY = int(
     os.environ.get("GRAPHQL_QUERY_MAX_COMPLEXITY", 50000)
