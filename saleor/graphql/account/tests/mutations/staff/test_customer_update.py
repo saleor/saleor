@@ -113,6 +113,8 @@ def test_customer_update(
         },
     }
 
+    assert customer_user.language_code == "en"
+
     # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
@@ -163,6 +165,8 @@ def test_customer_update(
     assert deactivated_event.parameters == {"account_id": customer_user.id}
 
     assert customer_user.updated_at > updated_at
+
+    assert customer_user.language_code == "pl"
 
     customer_user.refresh_from_db()
     assert customer_user.search_vector
