@@ -81,7 +81,7 @@ dependencies = [
     "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'",
     "nh3>=0.2.20",
     "idna>=3.15",
-    "orjson>=3.11.4",
+    "orjson>=3.11.9",
 ]
 
 [project.urls]
