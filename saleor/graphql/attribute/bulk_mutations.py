@@ -27,7 +27,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
             graphene.ID,
             required=True,
             description=(
-                "List of attribute IDs to delete. The number of items is limited. "
+                f"List of attribute IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )
@@ -102,7 +102,7 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
             required=True,
             description=(
                 "List of attribute value IDs to delete. The number of items is "
-                "limited. Exceeding the limit returns an `INVALID` error."
+                f"limited to {settings.BULK_DELETE_LIMIT} by default. Exceeding the limit returns an `INVALID` error."
             ),
         )
 

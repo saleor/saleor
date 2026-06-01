@@ -34,7 +34,7 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
             graphene.ID,
             required=True,
             description=(
-                "List of sale IDs to delete. The number of items is limited. "
+                f"List of sale IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )
@@ -156,7 +156,7 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
             graphene.ID,
             required=True,
             description=(
-                "List of voucher IDs to delete. The number of items is limited. "
+                f"List of voucher IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )

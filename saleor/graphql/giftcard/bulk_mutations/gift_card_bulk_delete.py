@@ -19,7 +19,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
             graphene.ID,
             required=True,
             description=(
-                "List of gift card IDs to delete. The number of items is limited. "
+                f"List of gift card IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )

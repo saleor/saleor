@@ -20,7 +20,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
             graphene.ID,
             required=True,
             description=(
-                "List of collection IDs to delete. The number of items is limited. "
+                f"List of collection IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )

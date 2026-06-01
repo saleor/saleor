@@ -15,7 +15,7 @@ class ProductMediaBulkDelete(ModelBulkDeleteMutation):
             required=True,
             description=(
                 "List of product media IDs to delete. The number of items is "
-                "limited. Exceeding the limit returns an `INVALID` error."
+                f"limited to {settings.BULK_DELETE_LIMIT} by default. Exceeding the limit returns an `INVALID` error."
             ),
         )
 

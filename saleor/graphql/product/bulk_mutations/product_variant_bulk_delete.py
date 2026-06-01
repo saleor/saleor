@@ -38,7 +38,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             required=False,
             description=(
                 "List of product variant IDs to delete. The number of items is "
-                "limited. Exceeding the limit returns an `INVALID` error."
+                f"limited to {settings.BULK_DELETE_LIMIT} by default. Exceeding the limit returns an `INVALID` error."
             ),
         )
         skus = NonNullList(
@@ -46,7 +46,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             required=False,
             description=(
                 "List of product variant SKUs to delete. The number of items is "
-                "limited. Exceeding the limit returns an `INVALID` error."
+                f"limited to {settings.BULK_DELETE_LIMIT} by default. Exceeding the limit returns an `INVALID` error."
             ),
         )
 

@@ -29,7 +29,7 @@ class PageBulkDelete(ModelBulkDeleteMutation):
             graphene.ID,
             required=True,
             description=(
-                "List of page IDs to delete. The number of items is limited. "
+                f"List of page IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )
@@ -127,7 +127,7 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
         ids = NonNullList(
             graphene.ID,
             description=(
-                "List of page type IDs to delete. The number of items is limited. "
+                f"List of page type IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
             required=True,

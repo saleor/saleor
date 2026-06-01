@@ -17861,7 +17861,7 @@ type Mutation {
   """
   shippingPriceBulkDelete(
     """
-    List of shipping price IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of shipping price IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): ShippingPriceBulkDelete @doc(category: "Shipping")
@@ -17948,7 +17948,7 @@ type Mutation {
   """
   shippingZoneBulkDelete(
     """
-    List of shipping zone IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of shipping zone IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): ShippingZoneBulkDelete @doc(category: "Shipping")
@@ -18037,7 +18037,7 @@ type Mutation {
   """
   categoryBulkDelete(
     """
-    List of category IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of category IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): CategoryBulkDelete @doc(category: "Products")
@@ -18124,7 +18124,7 @@ type Mutation {
   """
   collectionBulkDelete(
     """
-    List of collection IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of collection IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): CollectionBulkDelete @doc(category: "Products")
@@ -18227,7 +18227,7 @@ type Mutation {
   """
   productBulkDelete(
     """
-    List of product IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of product IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): ProductBulkDelete @doc(category: "Products")
@@ -18334,7 +18334,7 @@ type Mutation {
   """
   productMediaBulkDelete(
     """
-    List of product media IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of product media IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): ProductMediaBulkDelete @doc(category: "Products")
@@ -18392,7 +18392,7 @@ type Mutation {
   """
   productTypeBulkDelete(
     """
-    List of product type IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of product type IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): ProductTypeBulkDelete @doc(category: "Products")
@@ -18507,12 +18507,12 @@ type Mutation {
   """
   productVariantBulkDelete(
     """
-    List of product variant IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of product variant IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]
 
     """
-    List of product variant SKUs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of product variant SKUs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     skus: [String!]
   ): ProductVariantBulkDelete @doc(category: "Products")
@@ -19125,7 +19125,7 @@ type Mutation {
   """
   pageBulkDelete(
     """
-    List of page IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of page IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): PageBulkDelete @doc(category: "Pages")
@@ -19212,7 +19212,7 @@ type Mutation {
   """
   pageTypeBulkDelete(
     """
-    List of page type IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of page type IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): PageTypeBulkDelete @doc(category: "Pages")
@@ -19312,7 +19312,7 @@ type Mutation {
   """
   draftOrderBulkDelete(
     """
-    List of draft order IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of draft order IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): DraftOrderBulkDelete @doc(category: "Orders")
@@ -19324,7 +19324,7 @@ type Mutation {
   """
   draftOrderLinesBulkDelete(
     """
-    List of order lines IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of order lines IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): DraftOrderLinesBulkDelete @doc(category: "Orders") @deprecated
@@ -19821,7 +19821,7 @@ type Mutation {
   """
   menuBulkDelete(
     """
-    List of menu IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of menu IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): MenuBulkDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_DELETED], syncEvents: [])
@@ -19880,7 +19880,7 @@ type Mutation {
   """
   menuItemBulkDelete(
     """
-    List of menu item IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of menu item IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): MenuItemBulkDelete @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_DELETED], syncEvents: [])
@@ -20136,7 +20136,7 @@ type Mutation {
   """
   giftCardBulkDelete(
     """
-    List of gift card IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of gift card IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): GiftCardBulkDelete @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_DELETED], syncEvents: [])
@@ -20328,7 +20328,7 @@ type Mutation {
   """
   promotionBulkDelete(
     """
-    List of promotion IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of promotion IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): PromotionBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_DELETED], syncEvents: [])
@@ -20369,7 +20369,7 @@ type Mutation {
   """
   saleBulkDelete(
     """
-    List of sale IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of sale IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: [])
@@ -20489,7 +20489,7 @@ type Mutation {
   """
   voucherBulkDelete(
     """
-    List of voucher IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of voucher IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): VoucherBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: [])
@@ -21307,7 +21307,7 @@ type Mutation {
   """
   attributeBulkDelete(
     """
-    List of attribute IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of attribute IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): AttributeBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: [])
@@ -21323,7 +21323,7 @@ type Mutation {
   """
   attributeValueBulkDelete(
     """
-    List of attribute value IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of attribute value IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): AttributeValueBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_DELETED, ATTRIBUTE_UPDATED], syncEvents: [])
@@ -22076,7 +22076,7 @@ type Mutation {
   """
   customerBulkDelete(
     """
-    List of user IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of user IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: [])
@@ -22152,7 +22152,7 @@ type Mutation {
   """
   staffBulkDelete(
     """
-    List of user IDs to delete. The number of items is limited. Exceeding the limit returns an `INVALID` error.
+    List of user IDs to delete. The number of items is limited to 100 by default. Exceeding the limit returns an `INVALID` error.
     """
     ids: [ID!]!
   ): StaffBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: [])

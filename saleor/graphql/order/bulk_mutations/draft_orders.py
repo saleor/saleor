@@ -29,7 +29,7 @@ class DraftOrderBulkDelete(
             graphene.ID,
             required=True,
             description=(
-                "List of draft order IDs to delete. The number of items is limited. "
+                f"List of draft order IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )
@@ -166,7 +166,7 @@ class DraftOrderLinesBulkDelete(
             graphene.ID,
             required=True,
             description=(
-                "List of order lines IDs to delete. The number of items is limited. "
+                f"List of order lines IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
                 "Exceeding the limit returns an `INVALID` error."
             ),
         )
