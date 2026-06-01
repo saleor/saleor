@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ....account import models
 from ....permission.enums import AccountPermissions
@@ -17,7 +18,12 @@ from ..types import User
 class UserBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of user IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                f"List of user IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -39,6 +45,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
                 description="A customer account was deleted.",
             )
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):

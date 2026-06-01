@@ -884,6 +884,9 @@ GRAPHQL_MUTATION_COUNT_LIMIT: int = int(
     os.environ.get("GRAPHQL_MUTATION_COUNT_LIMIT", 4)
 )
 
+# Maximum number of IDs accepted by a single bulk delete mutation call
+BULK_DELETE_LIMIT: int = int(os.environ.get("BULK_DELETE_LIMIT", 100))
+
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
 GRAPHQL_QUERY_MAX_COMPLEXITY = int(
     os.environ.get("GRAPHQL_QUERY_MAX_COMPLEXITY", 50000)

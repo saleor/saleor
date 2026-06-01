@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ....permission.enums import ShippingPermissions
 from ....shipping import models
@@ -16,7 +17,10 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         ids = NonNullList(
             graphene.ID,
             required=True,
-            description="List of shipping price IDs to delete.",
+            description=(
+                "List of shipping price IDs to delete. The number of items is "
+                f"limited to {settings.BULK_DELETE_LIMIT} by default. Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -26,6 +30,7 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def get_nodes_or_error(
