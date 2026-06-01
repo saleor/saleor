@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....permission.enums import SitePermissions
 from ....site.error_codes import ReturnSettingsErrorCode
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_322
+from ...core.descriptions import ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
@@ -19,7 +19,7 @@ class ReturnSettingsUpdateInput(BaseInputObjectType):
         description=(
             "The ID of a model type, that will be used to reference return reasons. "
             "All models of this type will be accepted as return reasons. "
-            f"{ADDED_IN_322}"
+            f"{ADDED_IN_324}"
         ),
         required=True,
     )
@@ -37,7 +37,7 @@ class ReturnSettingsUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update return settings across all channels." + ADDED_IN_322
+        description = "Update return settings across all channels." + ADDED_IN_324
         doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ReturnSettingsUpdateError

@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("page", "0031_alter_page_metadata_alter_page_private_metadata_and_more"),
-        ("site", "0045_alter_sitesettings_refund_reason_reference_type"),
+        ("site", "0049_alter_sitesettings_refund_reason_reference_type"),
     ]
 
     operations = [

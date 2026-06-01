@@ -21,6 +21,7 @@ from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_322,
     ADDED_IN_323,
+    ADDED_IN_324,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -101,11 +102,11 @@ class RefundSettings(ModelObjectType[site_models.SiteSettings]):
 class ReturnSettings(ModelObjectType[site_models.SiteSettings]):
     reason_reference_type = graphene.Field(
         PageType,
-        description="Model type used for return reasons." + ADDED_IN_322,
+        description="Model type used for return reasons." + ADDED_IN_324,
     )
 
     class Meta:
-        description = "Return related settings from site settings." + ADDED_IN_322
+        description = "Return related settings from site settings." + ADDED_IN_324
         doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 

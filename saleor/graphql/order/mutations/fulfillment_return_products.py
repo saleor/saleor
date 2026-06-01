@@ -10,7 +10,7 @@ from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_322
+from ...core.descriptions import ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
@@ -37,11 +37,11 @@ class OrderReturnLineInput(BaseInputObjectType):
         default_value=False,
     )
     reason = graphene.String(
-        description="Reason for returning this line." + ADDED_IN_322,
+        description="Reason for returning this line." + ADDED_IN_324,
     )
     reason_reference = graphene.ID(
         description="ID of a `Page` (Model) to reference in reason for this line."
-        + ADDED_IN_322,
+        + ADDED_IN_324,
     )
 
     class Meta:
@@ -63,11 +63,11 @@ class OrderReturnFulfillmentLineInput(BaseInputObjectType):
         default_value=False,
     )
     reason = graphene.String(
-        description="Reason for returning this fulfillment line." + ADDED_IN_322,
+        description="Reason for returning this fulfillment line." + ADDED_IN_324,
     )
     reason_reference = graphene.ID(
         description="ID of a `Page` (Model) to reference in reason for this "
-        "fulfillment line." + ADDED_IN_322,
+        "fulfillment line." + ADDED_IN_324,
     )
 
     class Meta:
@@ -99,11 +99,11 @@ class OrderReturnProductsInput(BaseInputObjectType):
         default_value=False,
     )
     reason = graphene.String(
-        description="Reason for returning this order." + ADDED_IN_322,
+        description="Reason for returning this order." + ADDED_IN_324,
     )
     reason_reference = graphene.ID(
         description="ID of a `Page` (Model) to reference in reason for this return."
-        + ADDED_IN_322,
+        + ADDED_IN_324,
     )
 
     class Meta:
