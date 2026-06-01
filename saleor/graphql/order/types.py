@@ -80,6 +80,7 @@ from ..core.descriptions import (
     ADDED_IN_320,
     ADDED_IN_321,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -255,7 +256,7 @@ class OrderGrantedRefundLine(
         Page,
         required=False,
         description="Reason Model (Page) reference for this refund line."
-        + ADDED_IN_322,
+        + ADDED_IN_323,
     )
 
     class Meta:
@@ -863,13 +864,13 @@ class FulfillmentLine(
         description="The order line to which the fulfillment line is related.",
     )
     reason = graphene.String(
-        description="Reason for returning this fulfillment line." + ADDED_IN_322,
+        description="Reason for returning this fulfillment line." + ADDED_IN_323,
     )
     reason_reference = graphene.Field(
         Page,
         required=False,
         description="Reason Model (Page) reference for this fulfillment line."
-        + ADDED_IN_322,
+        + ADDED_IN_323,
     )
 
     class Meta:
@@ -941,13 +942,13 @@ class Fulfillment(
         required=False,
     )
     reason = graphene.String(
-        description="Reason for returning this fulfillment." + ADDED_IN_322,
+        description="Reason for returning this fulfillment." + ADDED_IN_323,
     )
     reason_reference = graphene.Field(
         Page,
         required=False,
         description="Reason Model (Page) reference for this fulfillment."
-        + ADDED_IN_322,
+        + ADDED_IN_323,
     )
 
     class Meta:

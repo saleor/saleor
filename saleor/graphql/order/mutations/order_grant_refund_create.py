@@ -11,7 +11,12 @@ from ....page.models import Page
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_320, ADDED_IN_322, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_320,
+    ADDED_IN_322,
+    ADDED_IN_323,
+    PREVIEW_FEATURE,
+)
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -59,7 +64,7 @@ class OrderGrantRefundCreateLineInput(BaseInputObjectType):
     reason = graphene.String(description="Reason of the granted refund for the line.")
     reason_reference = graphene.ID(
         description="ID of a `Page` (Model) to reference in reason for the line."
-        + ADDED_IN_322,
+        + ADDED_IN_323,
     )
 
     class Meta:

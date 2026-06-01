@@ -2,7 +2,7 @@ import graphene
 
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_322
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types.common import ReturnReasonReferenceTypeClearError
@@ -18,7 +18,7 @@ class ReturnReasonReferenceTypeClear(BaseMutation):
             "Updates ReturnSettings. The `Page` (Model) Type will be cleared from "
             "`reasonReferenceType`. When it's cleared, passing reason reference to "
             "return mutations is no longer accepted and will raise error."
-            + ADDED_IN_322
+            + ADDED_IN_323
         )
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (SitePermissions.MANAGE_SETTINGS,)
