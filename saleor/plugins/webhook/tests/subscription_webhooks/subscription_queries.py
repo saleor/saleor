@@ -49,13 +49,9 @@ ACCOUNT_CONFIRMED = (
 
 ACCOUNT_CONFIRMED_WITH_CHANNEL = (
     fragments.CUSTOMER_DETAILS
-    + fragments.RECIPIENT_APP_DETAILS
     + """
     subscription{
       event{
-        recipient{
-          ...Recipient
-        }
         ...on AccountConfirmed{
           user{
             ...CustomerDetails
