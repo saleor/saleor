@@ -143,6 +143,30 @@ def test_account_confirmed(customer_user, subscription_account_confirmed_webhook
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_account_confirmed_query_channel_without_channel_slug_in_payload(
+    customer_user, subscription_webhook
+):
+    # given
+    webhook = subscription_webhook(
+        subscription_queries.ACCOUNT_CONFIRMED_WITH_CHANNEL,
+        WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+    )
+    webhooks = [webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, {"user": customer_user}, webhooks
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.get_payload())
+    assert "errors" not in payload
+    assert payload["channel"] is None
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_account_change_email_requested(
     customer_user, channel_USD, subscription_account_change_email_requested_webhook
 ):
