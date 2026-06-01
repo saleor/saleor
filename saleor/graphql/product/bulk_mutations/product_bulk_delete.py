@@ -43,13 +43,15 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
-        max_input_size = settings.PRODUCT_BULK_DELETE_LIMIT
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids
     ):
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
         try:
             pks = cls.get_global_ids_or_error(ids, Product)
         except ValidationError as error:

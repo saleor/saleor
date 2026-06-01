@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from .....discount.models import VoucherCode
 from .....order import OrderStatus
@@ -45,6 +46,36 @@ def test_delete_draft_orders(
     assert order_models.Order.objects.filter(
         id__in=[order.id for order in orders]
     ).count() == len(orders)
+
+
+def test_delete_draft_orders_exceeding_max_input_size(
+    staff_api_client, order_list, permission_group_manage_orders
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_1, order_2, *_ = order_list
+    order_1.status = OrderStatus.DRAFT
+    order_2.status = OrderStatus.DRAFT
+    order_1.save()
+    order_2.save()
+
+    query = DRAFT_ORDER_BULK_DELETE
+    limit = settings.BULK_DELETE_LIMIT
+    order_id = graphene.Node.to_global_id("Order", order_1.id)
+    variables = {"ids": [order_id] * (limit + 1)}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderBulkDelete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID.name
+    assert errors[0]["field"] == "ids"
+    assert data["count"] == 0
+    assert order_models.Order.objects.filter(id=order_1.id).exists()
 
 
 def test_delete_draft_orders_by_user_no_channel_access(

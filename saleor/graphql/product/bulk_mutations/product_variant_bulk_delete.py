@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Subquery
@@ -35,12 +36,18 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         ids = NonNullList(
             graphene.ID,
             required=False,
-            description="List of product variant IDs to delete.",
+            description=(
+                "List of product variant IDs to delete. The number of items is "
+                "limited. Exceeding the limit returns an `INVALID` error."
+            ),
         )
         skus = NonNullList(
             graphene.String,
             required=False,
-            description="List of product variant SKUs to delete.",
+            description=(
+                "List of product variant SKUs to delete. The number of items is "
+                "limited. Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -50,6 +57,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def post_save_actions(cls, info, variants):
@@ -73,6 +81,10 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info: ResolveInfo, /, ids=None, skus=None, **data):
         validate_one_of_args_is_in_mutation("skus", skus, "ids", ids)
+
+        size_field = "ids" if ids else "skus"
+        if size_error := cls.validate_input_size(ids or skus or [], field=size_field):
+            return 0, size_error
 
         if ids:
             try:

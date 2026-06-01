@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
@@ -16,7 +17,12 @@ from ..types import Collection
 class CollectionBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of collection IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of collection IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -26,6 +32,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def bulk_action(cls, info, queryset):

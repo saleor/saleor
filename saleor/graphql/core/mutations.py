@@ -1075,6 +1075,21 @@ class BaseBulkMutation(BaseMutation):
         raise NotImplementedError
 
     @classmethod
+    def validate_input_size(cls, ids, field="ids") -> ValidationError | None:
+        """Validate that the number of input items does not exceed the limit."""
+        max_input_size = cls._meta.max_input_size
+        if max_input_size is not None and len(ids) > max_input_size:
+            return ValidationError(
+                {
+                    field: ValidationError(
+                        f"The maximum number of items in {field} is {max_input_size}.",
+                        code="invalid",
+                    )
+                }
+            )
+        return None
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
     ) -> tuple[int, ValidationError | None]:
@@ -1083,16 +1098,8 @@ class BaseBulkMutation(BaseMutation):
         if not ids:
             return 0, None
 
-        if cls._meta.max_input_size is not None and len(ids) > cls._meta.max_input_size:
-            return 0, ValidationError(
-                {
-                    "ids": ValidationError(
-                        f"The maximum number of items in ids is "
-                        f"{cls._meta.max_input_size}.",
-                        code="invalid",
-                    )
-                }
-            )
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
 
         instance_model = cls._meta.model
         model_type = cls.get_type_for_model()
@@ -1158,16 +1165,8 @@ class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
         if not ids:
             return 0, None
 
-        if cls._meta.max_input_size is not None and len(ids) > cls._meta.max_input_size:
-            return 0, ValidationError(
-                {
-                    "ids": ValidationError(
-                        f"The maximum number of items in ids is "
-                        f"{cls._meta.max_input_size}.",
-                        code="invalid",
-                    )
-                }
-            )
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
 
         instance_model = cls._meta.model
         model_type = cls.get_type_for_model()

@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
@@ -23,7 +24,12 @@ from .types import Attribute, AttributeValue
 class AttributeBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of attribute IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of attribute IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -39,6 +45,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
                 description="An attribute was deleted.",
             ),
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -46,6 +53,8 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
     ):
         if not ids:
             return 0, {}
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
@@ -91,7 +100,10 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         ids = NonNullList(
             graphene.ID,
             required=True,
-            description="List of attribute value IDs to delete.",
+            description=(
+                "List of attribute value IDs to delete. The number of items is "
+                "limited. Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -111,6 +123,7 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
                 description="An attribute was updated.",
             ),
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -118,6 +131,8 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     ):
         if not ids:
             return 0, {}
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)

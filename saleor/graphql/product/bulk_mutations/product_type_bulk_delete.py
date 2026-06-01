@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
@@ -19,7 +20,10 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
         ids = NonNullList(
             graphene.ID,
             required=True,
-            description="List of product type IDs to delete.",
+            description=(
+                "List of product type IDs to delete. The number of items is "
+                "limited. Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -29,12 +33,15 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids
     ):
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
         try:
             pks = cls.get_global_ids_or_error(ids, ProductType)
         except ValidationError as error:

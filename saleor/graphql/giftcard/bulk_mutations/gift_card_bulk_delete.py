@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ....giftcard import models
 from ....permission.enums import GiftcardPermissions
@@ -15,7 +16,12 @@ from ..types import GiftCard
 class GiftCardBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of gift card IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of gift card IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -30,6 +36,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
                 description="A gift card was deleted.",
             )
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

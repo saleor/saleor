@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ....menu import models
 from ....permission.enums import MenuPermissions
@@ -15,7 +16,12 @@ from ..types import Menu
 class MenuBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of menu IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of menu IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -31,6 +37,7 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
                 description="A menu was deleted.",
             ),
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

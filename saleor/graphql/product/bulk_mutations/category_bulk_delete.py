@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -12,7 +13,12 @@ from ..types import Category
 class CategoryBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of category IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of category IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -22,6 +28,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def bulk_action(cls, info, queryset):

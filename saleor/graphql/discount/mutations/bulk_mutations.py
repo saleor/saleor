@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import OuterRef, Subquery
@@ -30,7 +31,12 @@ from ..utils import convert_migrated_sale_predicate_to_catalogue_info
 class SaleBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of sale IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of sale IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -48,12 +54,16 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
                 description="A sale was deleted.",
             )
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
     ) -> tuple[int, ValidationError | None]:
         """Perform a mutation that deletes a list of model instances."""
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
+
         try:
             instances = cls.get_promotion_instances(ids)
         except ValidationError as error:
@@ -143,7 +153,12 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
 class VoucherBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of voucher IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                "List of voucher IDs to delete. The number of items is limited. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -159,6 +174,7 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
                 description="A voucher was deleted.",
             )
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
