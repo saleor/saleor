@@ -191,8 +191,13 @@ class AccountOperationBase(AbstractType):
     @staticmethod
     def resolve_channel(root, info: ResolveInfo):
         _, data = root
-        return Channel.objects.using(get_database_connection_name(info.context)).get(
-            slug=data["channel_slug"]
+        channel_slug = data.get("channel_slug")
+        if not channel_slug:
+            return None
+        return (
+            Channel.objects.using(get_database_connection_name(info.context))
+            .filter(slug=channel_slug)
+            .first()
         )
 
     @staticmethod

@@ -47,6 +47,25 @@ ACCOUNT_CONFIRMED = (
 """
 )
 
+ACCOUNT_CONFIRMED_WITH_CHANNEL = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountConfirmed{
+          user{
+            ...CustomerDetails
+          }
+          channel{
+            slug
+            id
+          }
+        }
+      }
+    }
+"""
+)
+
 
 ACCOUNT_CHANGE_EMAIL_REQUESTED = (
     fragments.CUSTOMER_DETAILS
