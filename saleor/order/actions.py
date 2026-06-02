@@ -73,6 +73,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from ..app.models import App
+    from ..page.models import Page
     from ..site.models import SiteSettings
     from ..warehouse.models import Warehouse
     from ..webhook.models import Webhook
@@ -1386,6 +1387,7 @@ def _move_order_lines_to_target_fulfillment(
     target_fulfillment: Fulfillment,
     site_settings: "SiteSettings",
     requestor: "App | User | None",
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> list[FulfillmentLine]:
     """Move order lines with given quantity to the target fulfillment."""
     fulfillment_lines_to_create: list[FulfillmentLine] = []
@@ -1404,11 +1406,19 @@ def _move_order_lines_to_target_fulfillment(
             )
             line_to_move.quantity_fulfilled += unfulfilled_to_move
 
+            reason = ""
+            reason_reference = None
+            if order_lines_reason_data and line_to_move.id in order_lines_reason_data:
+                raw_reason, reason_reference = order_lines_reason_data[line_to_move.id]
+                reason = raw_reason or ""
+
             fulfillment_line = FulfillmentLine(
                 fulfillment=target_fulfillment,
                 order_line_id=line_to_move.id,
                 stock_id=None,
                 quantity=unfulfilled_to_move,
+                reason=reason,
+                reason_reference=reason_reference,
             )
 
             # update current lines with new value of quantity
@@ -1467,6 +1477,10 @@ def _move_fulfillment_lines_to_target_fulfillment(
             moved_line.quantity += fulfilled_to_move
             fulfillment_line.quantity -= fulfilled_to_move
 
+            # Apply return reason data (latest wins when consolidating lines).
+            moved_line.reason = fulfillment_line_data.reason or ""
+            moved_line.reason_reference = fulfillment_line_data.reason_reference
+
             if fulfillment_line.quantity == 0:
                 # the fulfillment line without any items will be deleted
                 empty_fulfillment_lines_to_delete.append(fulfillment_line)
@@ -1484,7 +1498,10 @@ def _move_fulfillment_lines_to_target_fulfillment(
                 fulfillment_lines_to_update.append(moved_line)
 
         # update the fulfillment lines with new values
-        FulfillmentLine.objects.bulk_update(fulfillment_lines_to_update, ["quantity"])
+        FulfillmentLine.objects.bulk_update(
+            fulfillment_lines_to_update,
+            ["quantity", "reason", "reason_reference"],
+        )
         FulfillmentLine.objects.bulk_create(fulfillment_lines_to_create)
 
         # Remove the empty fulfillment lines
@@ -1684,18 +1701,24 @@ def _move_lines_to_return_fulfillment(
     shipping_refund_amount: Decimal | None,
     site_settings: "SiteSettings",
     requestor: "App | User | None",
+    reason: str = "",
+    reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
         status=fulfillment_status,
         order=order,
         total_refund_amount=total_refund_amount,
         shipping_refund_amount=shipping_refund_amount,
+        reason=reason,
+        reason_reference=reason_reference,
     )
     lines_in_target_fulfillment = _move_order_lines_to_target_fulfillment(
         order_lines_to_move=order_lines,
         target_fulfillment=target_fulfillment,
         site_settings=site_settings,
         requestor=requestor,
+        order_lines_reason_data=order_lines_reason_data,
     )
 
     fulfillment_lines_already_refunded = FulfillmentLine.objects.filter(
@@ -1725,7 +1748,10 @@ def _move_lines_to_return_fulfillment(
             refund_and_return_fulfillment = target_fulfillment
         else:
             refund_and_return_fulfillment = Fulfillment.objects.create(
-                status=FulfillmentStatus.REFUNDED_AND_RETURNED, order=order
+                status=FulfillmentStatus.REFUNDED_AND_RETURNED,
+                order=order,
+                reason=reason,
+                reason_reference=reason_reference,
             )
         _move_fulfillment_lines_to_target_fulfillment(
             fulfillment_lines_to_move=refunded_fulfillment_lines_to_return,
@@ -1742,15 +1768,22 @@ def _move_lines_to_replace_fulfillment(
     order: "Order",
     site_settings: "SiteSettings",
     requestor: "App | User | None",
+    reason: str = "",
+    reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> Fulfillment:
     target_fulfillment = Fulfillment.objects.create(
-        status=FulfillmentStatus.REPLACED, order=order
+        status=FulfillmentStatus.REPLACED,
+        order=order,
+        reason=reason,
+        reason_reference=reason_reference,
     )
     lines_in_target_fulfillment = _move_order_lines_to_target_fulfillment(
         order_lines_to_move=order_lines_to_replace,
         target_fulfillment=target_fulfillment,
         site_settings=site_settings,
         requestor=requestor,
+        order_lines_reason_data=order_lines_reason_data,
     )
     _move_fulfillment_lines_to_target_fulfillment(
         fulfillment_lines_to_move=fulfillment_lines_to_replace,
@@ -1769,6 +1802,9 @@ def create_return_fulfillment(
     total_refund_amount: Decimal | None,
     shipping_refund_amount: Decimal | None,
     site_settings: "SiteSettings",
+    reason: str = "",
+    reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> Fulfillment:
     status = FulfillmentStatus.RETURNED
     if total_refund_amount is not None:
@@ -1783,6 +1819,9 @@ def create_return_fulfillment(
             shipping_refund_amount=shipping_refund_amount,
             site_settings=site_settings,
             requestor=app or user,
+            reason=reason,
+            reason_reference=reason_reference,
+            order_lines_reason_data=order_lines_reason_data,
         )
         returned_lines: dict[OrderLineIDType, tuple[QuantityType, OrderLine]] = {}
         order_lines_with_fulfillment = OrderLine.objects.in_bulk(
@@ -1823,6 +1862,9 @@ def process_replace(
     fulfillment_lines: list[FulfillmentLineData],
     manager: "PluginsManager",
     site_settings: "SiteSettings",
+    reason: str = "",
+    reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> tuple[Fulfillment, Optional["Order"]]:
     """Create replace fulfillment and new draft order.
 
@@ -1837,6 +1879,9 @@ def process_replace(
             order=order,
             site_settings=site_settings,
             requestor=app or user,
+            reason=reason,
+            reason_reference=reason_reference,
+            order_lines_reason_data=order_lines_reason_data,
         )
         new_order = create_replace_order(
             user=user,
@@ -1873,6 +1918,9 @@ def create_fulfillments_for_returned_products(
     refund: bool = False,
     amount: Decimal | None = None,
     refund_shipping_costs=False,
+    reason: str = "",
+    reason_reference: "Page | None" = None,
+    order_lines_reason_data: dict[UUID, tuple[str | None, "Page | None"]] | None = None,
 ) -> tuple[Fulfillment, Fulfillment | None, Order | None]:
     """Process the request for replacing or returning the products.
 
@@ -1929,6 +1977,9 @@ def create_fulfillments_for_returned_products(
                 fulfillment_lines=replace_fulfillment_lines,
                 manager=manager,
                 site_settings=site_settings,
+                reason=reason,
+                reason_reference=reason_reference,
+                order_lines_reason_data=order_lines_reason_data,
             )
         return_fulfillment = create_return_fulfillment(
             user=user,
@@ -1939,6 +1990,9 @@ def create_fulfillments_for_returned_products(
             total_refund_amount=total_refund_amount,
             shipping_refund_amount=shipping_refund_amount,
             site_settings=site_settings,
+            reason=reason,
+            reason_reference=reason_reference,
+            order_lines_reason_data=order_lines_reason_data,
         )
         Fulfillment.objects.filter(
             order=order,

@@ -154,6 +154,7 @@ from ..tax.types import TaxClass
 from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
+    FulfillmentByIdLoader,
     FulfillmentLinesByFulfillmentIdLoader,
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
@@ -897,14 +898,35 @@ class FulfillmentLine(
         )
 
     @staticmethod
-    def resolve_reason(root: SyncWebhookControlContext[models.FulfillmentLine], info):
-        raise NotImplementedError("not implemented yet")
-
-    @staticmethod
     def resolve_reason_reference(
         root: SyncWebhookControlContext[models.FulfillmentLine], info
     ):
-        raise NotImplementedError("not implemented yet")
+        if not root.node.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            return (
+                FulfillmentByIdLoader(info.context)
+                .load(root.node.fulfillment_id)
+                .then(
+                    lambda fulfillment: ChannelByOrderIdLoader(info.context)
+                    .load(fulfillment.order_id)
+                    .then(
+                        lambda channel: ChannelContext(
+                            node=page, channel_slug=channel.slug
+                        )
+                    )
+                )
+            )
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference_id)
+            .then(wrap_page_with_context)
+        )
 
 
 class Fulfillment(
@@ -1049,14 +1071,29 @@ class Fulfillment(
         )
 
     @staticmethod
-    def resolve_reason(root: SyncWebhookControlContext[models.Fulfillment], info):
-        raise NotImplementedError("not implemented yet")
-
-    @staticmethod
     def resolve_reason_reference(
         root: SyncWebhookControlContext[models.Fulfillment], info
     ):
-        raise NotImplementedError("not implemented yet")
+        if not root.node.reason_reference_id:
+            return None
+
+        def wrap_page_with_context(page):
+            if not page:
+                return None
+
+            return (
+                ChannelByOrderIdLoader(info.context)
+                .load(root.node.order_id)
+                .then(
+                    lambda channel: ChannelContext(node=page, channel_slug=channel.slug)
+                )
+            )
+
+        return (
+            PageByIdLoader(info.context)
+            .load(root.node.reason_reference_id)
+            .then(wrap_page_with_context)
+        )
 
 
 class OrderLine(
