@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 import requests
 from authlib.jose import JWTClaims
+from authlib.jose.errors import JoseError
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 from requests import Response
@@ -33,6 +34,7 @@ from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
     create_tokens_from_oauth_payload,
+    decode_access_token,
     fetch_jwks,
     get_domain_from_email,
     get_or_create_user_from_payload,
@@ -41,6 +43,7 @@ from ..utils import (
     get_user_from_oauth_access_token_in_jwt_format,
     get_user_from_token,
     get_user_info,
+    is_jwt_shaped,
     validate_refresh_token,
 )
 
@@ -71,6 +74,82 @@ def test_fetch_jwks(mocked_cache_set):
     keys = fetch_jwks(jwks_url)
     assert len(keys) == 2
     mocked_cache_set.assert_called_once_with(JWKS_KEY, keys, JWKS_CACHE_TIME)
+
+
+@pytest.mark.parametrize(
+    ("token", "expected"),
+    [
+        # 2 dots -> signed JWT (JWS), 4 dots -> encrypted JWT (JWE).
+        ("header.payload.signature", True),
+        ("header.encrypted_key.iv.ciphertext.tag", True),
+        # Opaque reference tokens are not JWTs and have nothing to decode.
+        ("FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3", False),
+        ("", False),
+        ("header.payload", False),
+        ("a.b.c.d", False),
+        ("a.b.c.d.e.f", False),
+    ],
+)
+def test_is_jwt_shaped(token, expected):
+    # when
+    result = is_jwt_shaped(token)
+
+    # then
+    assert result is expected
+
+
+def test_decode_access_token_opaque_token_skips_decode_and_logging(monkeypatch, caplog):
+    # given
+    opaque_token = "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3"
+    jwks_url = "https://saleor.io/.well-known/jwks.json"
+    mocked_get_decoded_token = Mock()
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        mocked_get_decoded_token,
+    )
+
+    # when
+    result = decode_access_token(opaque_token, jwks_url)
+
+    # then
+    assert result is None
+    mocked_get_decoded_token.assert_not_called()
+    assert "Invalid OIDC access token format" not in caplog.text
+
+
+def test_decode_access_token_invalid_jwt_returns_none_and_logs(monkeypatch, caplog):
+    # given
+    jwt_shaped_token = "header.payload.signature"
+    jwks_url = "https://saleor.io/.well-known/jwks.json"
+    error_message = "bad signature"
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(side_effect=JoseError(description=error_message)),
+    )
+
+    # when
+    result = decode_access_token(jwt_shaped_token, jwks_url)
+
+    # then
+    assert result is None
+    assert "Invalid OIDC access token format" in caplog.text
+
+
+def test_decode_access_token_valid_jwt_returns_payload(monkeypatch):
+    # given
+    jwt_shaped_token = "header.payload.signature"
+    jwks_url = "https://saleor.io/.well-known/jwks.json"
+    payload = {"sub": "user-id", "email": "user@example.com"}
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(return_value=payload),
+    )
+
+    # when
+    result = decode_access_token(jwt_shaped_token, jwks_url)
+
+    # then
+    assert result == payload
 
 
 def test_get_or_create_user_from_token_missing_email(id_payload):
