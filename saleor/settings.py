@@ -817,6 +817,14 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
         "street_address_1",
         "street_address_2",
         "user_email",
+        # Order/customer filter input (`customer` CharFilter) accepts a raw
+        # email or name fragment as a scalar string value, so the PII lives
+        # directly under the `customer` key rather than a nested `email` key.
+        # It must be denylisted by name; recursion alone won't redact it.
+        "customer",
+        "line1",
+        "line2",
+        "from_street_address",
     ]
 
     sentry_sdk.init(
@@ -824,7 +832,9 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
         release=__version__,
         send_default_pii=False,
         event_scrubber=EventScrubber(
-            denylist=SALEOR_DENYLIST, pii_denylist=SALEOR_PII_DENYLIST
+            denylist=SALEOR_DENYLIST,
+            pii_denylist=SALEOR_PII_DENYLIST,
+            recursive=True,
         ),
         **sentry_opts,
     )
