@@ -1038,3 +1038,30 @@ def test_stock_quantity_is_sum_of_quantities_from_warehouses_that_support_countr
     content = get_graphql_content(response)
 
     assert content["data"]["productVariant"]["quantityAvailable"] == sum_quantities
+
+
+CHANNEL_FIELD_QUERY = """
+query getProductVariant($id: ID!) {
+    productVariant(id: $id) {
+        id
+        channel
+    }
+}
+"""
+
+
+def test_channel_field_with_default_channel_anonymous(api_client, variant, channel_USD):
+    """No `channel` argument is passed and the anonymous requestor has no product permissions, so the resolver falls back to the lazy default channel slug."""
+
+    # given
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id}
+
+    # when
+    response = api_client.post_graphql(CHANNEL_FIELD_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariant"]
+    assert data["id"] == variant_id
+    assert data["channel"] == channel_USD.slug
