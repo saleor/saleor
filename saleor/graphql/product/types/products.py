@@ -430,7 +430,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
 
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], _info):
-        return root.channel_slug
+        return str(root.channel_slug) if root.channel_slug else None
 
     @staticmethod
     def resolve_stocks(
@@ -1034,7 +1034,7 @@ class Product(ChannelContextType[models.Product]):
 
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], _info):
-        return root.channel_slug
+        return str(root.channel_slug) if root.channel_slug else None
 
     @staticmethod
     def resolve_default_variant(root: ChannelContext[models.Product], info):
