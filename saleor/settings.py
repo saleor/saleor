@@ -862,12 +862,8 @@ def SENTRY_INIT(dsn: str, sentry_opts: dict):
         # directly under the `customer` key rather than a nested `email` key.
         # It must be denylisted by name; recursion alone won't redact it.
         "customer",
-        "addresses",
-        "shipFrom",
-        "shipTo",
-        "from_city",
-        "from_country_area",
-        "from_postal_code",
+        "line1",
+        "line2",
         "from_street_address",
     ]
 
