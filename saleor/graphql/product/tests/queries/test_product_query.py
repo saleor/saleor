@@ -3216,3 +3216,30 @@ def test_applies_limit_on_product_assigned_attributes(
         content["data"]["product"]["assignedAttributes"][0]["attribute"]["slug"]
         == first_attribute.slug
     )
+
+
+CHANNEL_FIELD_QUERY = """
+query getProduct($id: ID!) {
+    product(id: $id) {
+        id
+        channel
+    }
+}
+"""
+
+
+def test_channel_field_with_default_channel_anonymous(api_client, product, channel_USD):
+    """No `channel` argument is passed and the anonymous requestor has no product permissions, so the resolver falls back to the lazy default channel slug."""
+
+    # given
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {"id": product_id}
+
+    # when
+    response = api_client.post_graphql(CHANNEL_FIELD_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    assert data["id"] == product_id
+    assert data["channel"] == channel_USD.slug
