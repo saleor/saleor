@@ -169,6 +169,29 @@ class EditorJSImageDataModel(SizeDataModel):
     url: URL | None = None
 
 
+class EditorJSTableDataModel(StrictBaseModel):
+    """Match the data payload for an EditorJS table block.
+
+    Each cell goes through ``Text`` so inline HTML produced by the table's
+    inline toolbar (bold, italic, strikethrough, link) is sanitized with nh3.
+
+    Example:
+        {
+            "withHeadings": true,
+            "stretched": false,
+            "content": [
+                ["<b>Name</b>", "Qty"],
+                ["Apples", "3 pcs"]
+            ]
+        }
+
+    """
+
+    withHeadings: bool | None = None
+    stretched: bool | None = None
+    content: list[list[Text]] | None = None
+
+
 class EditorJSNestedListItemModel(StrictBaseModel):
     """Match an EditorJS nested list item object.
 
@@ -425,13 +448,50 @@ class EditorJSImageBlockModel(EditorJSBlock):
         return text
 
 
+class EditorJSTableBlockModel(EditorJSBlock):
+    """Match an EditorJS table block object.
+
+    Produced by the ``@editorjs/table`` tool.
+
+    Example:
+        {
+            "type": "table",
+            "data": {
+                "withHeadings": true,
+                "stretched": false,
+                "content": [
+                    ["Name", "Qty"],
+                    ["Apples", "3 pcs"]
+                ]
+            }
+        }
+
+    """
+
+    type: Literal["table"]
+    data: EditorJSTableDataModel
+    id: Text | None = None
+
+    def to_text(self) -> str:
+        if not self.data.content:
+            return ""
+
+        parts = []
+        for row in self.data.content:
+            for cell in row:
+                if cell:
+                    parts.append(cell)
+        return " ".join(parts)
+
+
 EditorJSBlockModel = Annotated[
     EditorJSParagraphBlockModel
     | EditorJSHeaderBlockModel
     | EditorJSListBlockModel
     | EditorJSQuoteBlockModel
     | EditorJSEmbedBlockModel
-    | EditorJSImageBlockModel,
+    | EditorJSImageBlockModel
+    | EditorJSTableBlockModel,
     Field(discriminator="type"),
 ]
 
