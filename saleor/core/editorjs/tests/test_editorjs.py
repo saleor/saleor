@@ -1437,3 +1437,119 @@ def test_converts_exceptions_to_django(
     input_data = {"blocks": 1}
     with pytest.raises(expected_exception_cls):
         clean_editorjs(input_data, for_django=for_django)
+
+
+def test_clean_editorjs_table(no_link_rel):
+    # given
+    data = {
+        "blocks": [
+            {
+                "id": "lTBAOSyrNn",
+                "type": "table",
+                "data": {
+                    "withHeadings": True,
+                    "stretched": False,
+                    "content": [
+                        ["<s>asdf</s>", "asdf"],
+                        ["<i>asdf</i>", '<a href="http://google.com">asdf</a>'],
+                        ["<b>asdf</b>", "<s>asdf</s>"],
+                    ],
+                },
+            }
+        ]
+    }
+
+    # when
+    result = clean_editorjs(data, for_django=False)
+
+    # then
+    assert result == data
+
+
+def test_clean_editorjs_table_cleans_cell_content():
+    """Inline HTML inside table cells must be sanitized with nh3."""
+
+    # given
+    data = {
+        "blocks": [
+            {
+                "type": "table",
+                "data": {"content": [[DIRTY, "<b>safe</b>"]]},
+            }
+        ]
+    }
+
+    # when
+    result = clean_editorjs(data, for_django=False)
+
+    # then
+    cell = result["blocks"][0]["data"]["content"][0]
+    assert cell == [CLEAN, "<b>safe</b>"]
+
+
+def test_clean_editorjs_table_cleans_cell_url():
+    # given
+    url_invalid = "javascript:alert('Saleor')"
+    data = {
+        "blocks": [
+            {
+                "type": "table",
+                "data": {"content": [[f'<a href="{url_invalid}">link</a>']]},
+            }
+        ]
+    }
+
+    # when
+    result = clean_editorjs(data, for_django=False)
+
+    # then
+    cell = result["blocks"][0]["data"]["content"][0][0]
+    assert "javascript:" not in cell
+
+
+def test_clean_editorjs_table_drops_extra_fields():
+    """Unknown fields in a table block must be dropped (XSS protection)."""
+
+    # given
+    data = {
+        "blocks": [
+            {
+                "type": "table",
+                "data": {
+                    "content": [["a"]],
+                    DIRTY: DIRTY,
+                },
+            }
+        ]
+    }
+    expected = {"blocks": [{"type": "table", "data": {"content": [["a"]]}}]}
+
+    # when
+    result = clean_editorjs(data, for_django=False)
+
+    # then
+    assert result == expected
+
+
+def test_editorjs_to_text_table():
+    # given
+    data = {
+        "blocks": [
+            {
+                "type": "table",
+                "data": {
+                    "withHeadings": True,
+                    "content": [
+                        ["Name", "Qty"],
+                        ["<b>Apples</b>", "3 pcs"],
+                    ],
+                },
+            }
+        ]
+    }
+
+    # when
+    result = editorjs_to_text(data)
+
+    # then
+    assert result == "Name Qty Apples 3 pcs"
