@@ -6,6 +6,8 @@ from ....order.models import Order
 from ....payment.interface import PaymentGatewayData
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ..utils import to_global_id_or_none
+from graphql import GraphQLError
+from ..scalars import WeightScalar
 
 QUERY_CHECKOUT = """
 query getCheckout($token: UUID!) {
@@ -14,6 +16,41 @@ query getCheckout($token: UUID!) {
     }
 }
 """
+
+
+def test_parser():
+    valid_input = {"unit": "kg", "value": 70}
+    result = WeightScalar.parse_value(valid_input)
+    assert result is not None, (
+        "Function unexpectedly returned None for a valid dictionary"
+    )
+
+    valid_input = 150.5
+    result = WeightScalar.parse_value(valid_input)
+    assert result is not None, (
+        "Function unexpectedly returned None for a valid plain number"
+    )
+
+    valid_input = "70.5"
+    result = WeightScalar.parse_value(valid_input)
+    assert result is not None, (
+        "Function unexpectedly returned None for a valid numeric string"
+    )
+
+    invalid_input = "not_a_number"
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value(invalid_input)
+    assert "Invalid weight format provided." in str(exc_info.value)
+
+    invalid_input = -10
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value(invalid_input)
+    assert str(exc_info.value) == "Weight value cannot be negative."
+
+    invalid_input = [10, "kg"]
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value(invalid_input)
+    assert "Expected an object or a number" in str(exc_info.value)
 
 
 def test_uuid_scalar_value_passed_as_variable(api_client, checkout):
