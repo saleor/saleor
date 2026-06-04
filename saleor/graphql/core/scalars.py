@@ -4,6 +4,7 @@ import decimal
 import graphene
 from graphene.types.generic import GenericScalar
 from graphql.language import ast
+from graphql import GraphQLError
 from measurement.measures import Weight
 
 from ...core.weight import (
@@ -94,12 +95,38 @@ class JSON(GenericScalar):
 
 class WeightScalar(graphene.Scalar):
     @staticmethod
+    def create_validated_weight(unit, value_amount):
+        if value_amount is None:
+            raise GraphQLError("Weight value cannot be null.")
+        if not unit:
+            raise GraphQLError("Weight unit cannot be null or empty.")
+        try:
+            numeric_value = float(value_amount)
+            if numeric_value < 0:
+                raise GraphQLError("Weight value cannot be negative.")
+        except (ValueError, TypeError):
+            raise GraphQLError("Weight value must be a valid number.")
+        try:
+            return Weight(**{unit: value_amount})
+        except TypeError:
+            raise GraphQLError(f"Unsupported weight unit: '{unit}'.")
+
+    @staticmethod
     def parse_value(value):
         if isinstance(value, dict):
-            weight = Weight(**{value["unit"]: value["value"]})
-        else:
+            unit = value.get("unit")
+            value_amount = value.get("value")
+            return WeightScalar.create_validated_weight(unit, value_amount)
+        if isinstance(value, (int, float, str)):
+            if isinstance(value, (int, float)) and value < 0:
+                raise GraphQLError("Weight value cannot be negative.")
             weight = WeightScalar.parse_decimal(value)
-        return weight
+            if weight is None:
+                raise GraphQLError("Invalid weight format provided.")
+            return weight
+        raise GraphQLError(
+            "Invalid weight format provided. Expected an object or a number."
+        )
 
     @staticmethod
     def serialize(weight):
