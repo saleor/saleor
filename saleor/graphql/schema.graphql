@@ -1376,11 +1376,14 @@ type Query {
   ): Channel @doc(category: "Channels")
 
   """
-  List of all channels.
+  List of channels. Use `isActive` to filter by active status; when omitted, returns all channels.
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
-  channels: [Channel!] @doc(category: "Channels")
+  channels(
+    """Filter channels by active status. When omitted, returns all channels."""
+    isActive: Boolean
+  ): [Channel!] @doc(category: "Channels")
 
   """List of the shop's attributes."""
   attributes(
