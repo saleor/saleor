@@ -37,20 +37,37 @@ def test_parser():
         "Function unexpectedly returned None for a valid numeric string"
     )
 
-    invalid_input = "not_a_number"
     with pytest.raises(GraphQLError) as exc_info:
-        WeightScalar.parse_value(invalid_input)
+        WeightScalar.parse_value("not_a_number")
     assert "Invalid weight format provided." in str(exc_info.value)
 
-    invalid_input = -10
     with pytest.raises(GraphQLError) as exc_info:
-        WeightScalar.parse_value(invalid_input)
-    assert str(exc_info.value) == "Weight value cannot be negative."
+        WeightScalar.parse_value(-10)
+    assert "Weight value cannot be negative." in str(exc_info.value)
 
-    invalid_input = [10, "kg"]
     with pytest.raises(GraphQLError) as exc_info:
-        WeightScalar.parse_value(invalid_input)
+        WeightScalar.parse_value("-10")
+    assert "Weight value cannot be negative." in str(exc_info.value)
+
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value([10, "kg"])
     assert "Expected an object or a number" in str(exc_info.value)
+
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value(None)
+    assert "Expected an object or a number" in str(exc_info.value)
+
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value({})
+    assert "Weight value cannot be null." in str(exc_info.value)
+
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value({"unit": "kg"})
+    assert "Weight value cannot be null." in str(exc_info.value)
+
+    with pytest.raises(GraphQLError) as exc_info:
+        WeightScalar.parse_value({"value": 70})
+    assert "Weight unit cannot be null or empty." in str(exc_info.value)
 
 
 def test_uuid_scalar_value_passed_as_variable(api_client, checkout):
