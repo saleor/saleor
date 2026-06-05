@@ -66,6 +66,9 @@ R = TypeVar("R")
 logger = logging.getLogger(__name__)
 
 
+"""Logs an error if a synchronous webhook is triggered inside an atomic block."""
+
+
 @app.task(
     bind=True,
     retry_backoff=10,
@@ -282,6 +285,7 @@ def create_delivery_for_subscription_sync_event(
     :param allow_replica: use replica database.
     :return: List of event deliveries to send via webhook tasks.
     """
+
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
@@ -348,6 +352,7 @@ def create_promise_delivery_for_subscription_sync_event(
     :param allow_replica: use replica database.
     :return: List of event deliveries to send via webhook tasks.
     """
+
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
@@ -407,6 +412,8 @@ def trigger_webhook_sync_promise(
     requestor: Union["App", "User", None] = None,
 ) -> Promise[dict[Any, Any] | None]:
     """Send a synchronous webhook request."""
+
+    check_sync_webhook_transaction(event_type)
 
     def trigger_sync_for_delivery(
         delivery: EventDelivery | None,
@@ -476,6 +483,8 @@ def trigger_transaction_request(
         )
         return
 
+    check_sync_webhook_transaction(event_type)
+
     if webhook.subscription_query:
         delivery = None
         try:
@@ -514,3 +523,14 @@ def trigger_transaction_request(
         delivery.id,
         transaction_data.event.id,
     )
+
+
+def check_sync_webhook_transaction(event_type: str):
+    # Ensure this is a sync event type (adjust mapping name to match your codebase)
+    if event_type in WebhookEventSyncType.ALL:
+        if transaction.get_connection().in_atomic_block:
+            logger.error(
+                "Sync webhook '%s' is being processed inside an atomic transaction! "
+                "This can block DB connections and cause thread exhaustion.",
+                event_type,
+            )
