@@ -117,7 +117,6 @@ class WeightScalar(graphene.Scalar):
             unit = value.get("unit")
             value_amount = value.get("value")
             return WeightScalar.create_validated_weight(unit, value_amount)
-
         if isinstance(value, (int, float, str)):
             try:
                 numeric_val = float(value)
@@ -125,12 +124,10 @@ class WeightScalar(graphene.Scalar):
                     raise GraphQLError("Weight value cannot be negative.")
             except (ValueError, TypeError):
                 raise GraphQLError("Invalid weight format provided.")
-
             weight = WeightScalar.parse_decimal(value)
             if weight is None:
                 raise GraphQLError("Invalid weight format provided.")
             return weight
-
         raise GraphQLError(
             "Invalid weight format provided. Expected an object or a number."
         )
