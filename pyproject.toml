@@ -109,7 +109,7 @@ dev = [
     "pytest-memray>=1.5.0,<2",
     "pytest-mock>=3.6.1,<4",
     "pytest-recording>=0.13.0,<0.14",
-    "pytest-socket>=0.7.0,<0.8",
+    "pytest-socket>=0.8.0,<1",
     "pytest-xdist>=3.0.2,<4",
     "pywatchman>=2.0.0,<3",
     "ruff>=0.12.2,<0.13",
@@ -152,6 +152,7 @@ exclude-newer = "3 weeks"
 django = "2026-06-03T13:03:35Z" # https://pypi.org/pypi/django/5.2.15/json
 pyjwt = "2026-05-21T19:54:36Z" # https://github.com/jpadilla/pyjwt/releases/tag/2.13.0
 idna = "2026-05-12T22:45:57Z" # https://github.com/advisories/GHSA-65pc-fj4g-8rjx/
+pytest-socket = "2026-05-21T16:50:22Z" # Fixes slow fixtures caused by lack of cache https://github.com/miketheman/pytest-socket/pull/369
 
 [tool.poe.tasks]
 start.help = "Start development server with hot reload"
