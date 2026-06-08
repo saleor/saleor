@@ -1459,11 +1459,15 @@ def test_clean_editorjs_table(no_link_rel):
         ]
     }
 
+    # Capture the expectation before cleaning so a mutation of ``data`` can't make
+    # the assertion pass silently.
+    expected = deepcopy(data)
+
     # when
-    result = clean_editorjs(data, for_django=False)
+    actual = clean_editorjs(data, for_django=False)
 
     # then
-    assert result == data
+    assert actual == expected
 
 
 def test_clean_editorjs_table_cleans_cell_content():
@@ -1487,7 +1491,7 @@ def test_clean_editorjs_table_cleans_cell_content():
     assert cell == [CLEAN, "<b>safe</b>"]
 
 
-def test_clean_editorjs_table_cleans_cell_url():
+def test_clean_editorjs_table_cleans_cell_url(no_link_rel):
     # given
     url_invalid = "javascript:alert('Saleor')"
     data = {
@@ -1503,8 +1507,9 @@ def test_clean_editorjs_table_cleans_cell_url():
     result = clean_editorjs(data, for_django=False)
 
     # then
+    # The disallowed `javascript:` href is dropped entirely, leaving a bare anchor.
     cell = result["blocks"][0]["data"]["content"][0][0]
-    assert "javascript:" not in cell
+    assert cell == "<a>link</a>"
 
 
 def test_clean_editorjs_table_drops_extra_fields():
