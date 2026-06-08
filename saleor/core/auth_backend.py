@@ -152,11 +152,17 @@ def load_user_from_request(request):
             "Invalid token. Create new one by using tokenCreate mutation."
         )
 
-    site_settings = get_site_promise(request).get().settings
-    password_login_mode = site_settings.password_login_mode
-
-    if password_login_mode != PasswordLoginMode.ENABLED:
-        return _resolve_user_for_password_login_restriction(user, password_login_mode)
+    # Password login mode only restricts first-party access tokens, which are the
+    # tokens minted from a password login. Third-party access tokens are issued for
+    # apps and app extensions on behalf of an already-authenticated user (e.g. logged
+    # in via OIDC), so they must not have their staff access stripped here.
+    if jwt_type == JWT_ACCESS_TYPE:
+        site_settings = get_site_promise(request).get().settings
+        password_login_mode = site_settings.password_login_mode
+        if password_login_mode != PasswordLoginMode.ENABLED:
+            return _resolve_user_for_password_login_restriction(
+                user, password_login_mode
+            )
 
     if permissions is not None:
         token_permissions = get_permissions_from_names(permissions)
