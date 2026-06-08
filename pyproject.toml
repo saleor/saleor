@@ -195,8 +195,8 @@ exclude-newer = "3 weeks"
 # To customize on a per-package basis, for example you can do this:
 # setuptools = "2026-04-07T14:30:00Z"
 django = "2026-06-03T13:03:35Z" # https://pypi.org/pypi/django/5.2.15/json
-pyjwt = "2026-05-21T19:54:36" # https://github.com/jpadilla/pyjwt/releases/tag/2.13.0
-idna = "2026-05-12T22:45:57" # https://github.com/advisories/GHSA-65pc-fj4g-8rjx/
+pyjwt = "2026-05-21T19:54:36Z" # https://github.com/jpadilla/pyjwt/releases/tag/2.13.0
+idna = "2026-05-12T22:45:57Z" # https://github.com/advisories/GHSA-65pc-fj4g-8rjx/
 
 [tool.deptry]
 extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
