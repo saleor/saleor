@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 import requests
 from authlib.jose import JWTClaims
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 from requests import Response
@@ -18,10 +19,12 @@ from ....account.search import update_user_search_vector
 from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
+    create_access_token,
     jwt_decode,
     jwt_encode,
     jwt_user_payload,
 )
+from ....core.jwt_manager import get_jwt_manager
 from ....permission.models import Permission
 from ..exceptions import AuthenticationError
 from ..utils import (
@@ -33,6 +36,7 @@ from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
     create_tokens_from_oauth_payload,
+    decode_access_token,
     fetch_jwks,
     get_domain_from_email,
     get_or_create_user_from_payload,
@@ -41,6 +45,7 @@ from ..utils import (
     get_user_from_oauth_access_token_in_jwt_format,
     get_user_from_token,
     get_user_info,
+    is_jwt_shaped,
     validate_refresh_token,
 )
 
@@ -71,6 +76,85 @@ def test_fetch_jwks(mocked_cache_set):
     keys = fetch_jwks(jwks_url)
     assert len(keys) == 2
     mocked_cache_set.assert_called_once_with(JWKS_KEY, keys, JWKS_CACHE_TIME)
+
+
+@pytest.mark.parametrize(
+    ("token", "expected"),
+    [
+        # 2 dots -> signed JWT (JWS), 4 dots -> encrypted JWT (JWE).
+        ("header.payload.signature", True),
+        ("header.encrypted_key.iv.ciphertext.tag", True),
+        # A signature-less "alg:none" token still has 2 dots, so it is JWT-shaped.
+        # Rejecting it is the job of the decoder, not the shape check.
+        ("header.payload.", True),
+        # Opaque reference tokens are not JWTs and have nothing to decode.
+        ("FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3", False),
+        ("", False),
+        ("header.payload", False),
+        ("a.b.c.d", False),
+        ("a.b.c.d.e.f", False),
+    ],
+)
+def test_is_jwt_shaped(token, expected):
+    # when
+    result = is_jwt_shaped(token)
+
+    # then
+    assert result is expected
+
+
+def test_decode_access_token_opaque_token_skips_decode_and_logging(monkeypatch, caplog):
+    # given
+    opaque_token = "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3"
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    mocked_get_decoded_token = Mock()
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        mocked_get_decoded_token,
+    )
+
+    # when
+    result = decode_access_token(opaque_token, jwks_url)
+
+    # then
+    assert result is None
+    mocked_get_decoded_token.assert_not_called()
+    assert "Invalid OIDC access token format" not in caplog.text
+
+
+def test_decode_access_token_invalid_signature_returns_none_and_logs(
+    customer_user, caplog
+):
+    # given
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    cache.set(JWKS_KEY, get_jwt_manager().get_jwks()["keys"], JWKS_CACHE_TIME)
+
+    # tamper with the signature of an otherwise valid token so the real decoder
+    # rejects it on signature verification
+    header, payload, signature = create_access_token(customer_user).split(".")
+    tampered_signature = ("A" if signature[0] != "A" else "B") + signature[1:]
+    tampered_token = ".".join([header, payload, tampered_signature])
+
+    # when
+    result = decode_access_token(tampered_token, jwks_url)
+
+    # then
+    assert result is None
+    assert "Invalid OIDC access token format" in caplog.text
+
+
+def test_decode_access_token_valid_jwt_returns_payload(customer_user):
+    # given
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    cache.set(JWKS_KEY, get_jwt_manager().get_jwks()["keys"], JWKS_CACHE_TIME)
+    token = create_access_token(customer_user)
+
+    # when
+    result = decode_access_token(token, jwks_url)
+
+    # then
+    assert result is not None
+    assert result["email"] == customer_user.email
 
 
 def test_get_or_create_user_from_token_missing_email(id_payload):
