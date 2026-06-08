@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 import requests
 from authlib.jose import JWTClaims
-from authlib.jose.errors import JoseError
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 from requests import Response
@@ -19,10 +19,12 @@ from ....account.search import update_user_search_vector
 from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
+    create_access_token,
     jwt_decode,
     jwt_encode,
     jwt_user_payload,
 )
+from ....core.jwt_manager import get_jwt_manager
 from ....permission.models import Permission
 from ..exceptions import AuthenticationError
 from ..utils import (
@@ -82,6 +84,9 @@ def test_fetch_jwks(mocked_cache_set):
         # 2 dots -> signed JWT (JWS), 4 dots -> encrypted JWT (JWE).
         ("header.payload.signature", True),
         ("header.encrypted_key.iv.ciphertext.tag", True),
+        # A signature-less "alg:none" token still has 2 dots, so it is JWT-shaped.
+        # Rejecting it is the job of the decoder, not the shape check.
+        ("header.payload.", True),
         # Opaque reference tokens are not JWTs and have nothing to decode.
         ("FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3", False),
         ("", False),
@@ -101,7 +106,7 @@ def test_is_jwt_shaped(token, expected):
 def test_decode_access_token_opaque_token_skips_decode_and_logging(monkeypatch, caplog):
     # given
     opaque_token = "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3"
-    jwks_url = "https://saleor.io/.well-known/jwks.json"
+    jwks_url = "https://example.com/.well-known/jwks.json"
     mocked_get_decoded_token = Mock()
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.get_decoded_token",
@@ -117,39 +122,39 @@ def test_decode_access_token_opaque_token_skips_decode_and_logging(monkeypatch, 
     assert "Invalid OIDC access token format" not in caplog.text
 
 
-def test_decode_access_token_invalid_jwt_returns_none_and_logs(monkeypatch, caplog):
+def test_decode_access_token_invalid_signature_returns_none_and_logs(
+    customer_user, caplog
+):
     # given
-    jwt_shaped_token = "header.payload.signature"
-    jwks_url = "https://saleor.io/.well-known/jwks.json"
-    error_message = "bad signature"
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.get_decoded_token",
-        Mock(side_effect=JoseError(description=error_message)),
-    )
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    cache.set(JWKS_KEY, get_jwt_manager().get_jwks()["keys"], JWKS_CACHE_TIME)
+
+    # tamper with the signature of an otherwise valid token so the real decoder
+    # rejects it on signature verification
+    header, payload, signature = create_access_token(customer_user).split(".")
+    tampered_signature = ("A" if signature[0] != "A" else "B") + signature[1:]
+    tampered_token = ".".join([header, payload, tampered_signature])
 
     # when
-    result = decode_access_token(jwt_shaped_token, jwks_url)
+    result = decode_access_token(tampered_token, jwks_url)
 
     # then
     assert result is None
     assert "Invalid OIDC access token format" in caplog.text
 
 
-def test_decode_access_token_valid_jwt_returns_payload(monkeypatch):
+def test_decode_access_token_valid_jwt_returns_payload(customer_user):
     # given
-    jwt_shaped_token = "header.payload.signature"
-    jwks_url = "https://saleor.io/.well-known/jwks.json"
-    payload = {"sub": "user-id", "email": "user@example.com"}
-    monkeypatch.setattr(
-        "saleor.plugins.openid_connect.utils.get_decoded_token",
-        Mock(return_value=payload),
-    )
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    cache.set(JWKS_KEY, get_jwt_manager().get_jwks()["keys"], JWKS_CACHE_TIME)
+    token = create_access_token(customer_user)
 
     # when
-    result = decode_access_token(jwt_shaped_token, jwks_url)
+    result = decode_access_token(token, jwks_url)
 
     # then
-    assert result == payload
+    assert result is not None
+    assert result["email"] == customer_user.email
 
 
 def test_get_or_create_user_from_token_missing_email(id_payload):
