@@ -13,9 +13,9 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
-pyjwt = "2026-05-22T00:00:00Z"
+pyjwt = "2026-05-21T19:54:36Z"
 django = "2026-06-03T13:03:35Z"
-idna = "2026-05-13T00:00:00Z"
+idna = "2026-05-12T22:45:57Z"
 
 [[package]]
 name = "amqp"
