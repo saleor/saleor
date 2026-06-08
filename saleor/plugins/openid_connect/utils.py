@@ -152,10 +152,35 @@ def get_user_info(user_info_url, access_token) -> dict | None:
         return None
 
 
+def is_jwt_shaped(token: str) -> bool:
+    """Return whether the token is structurally a compact JWT.
+
+    authlib treats a token with 2 dots as a signed JWT (JWS) and one with 4 dots
+    as an encrypted JWT (JWE); anything else is rejected with a ``DecodeError``
+    (see ``authlib.jose.rfc7519.jwt.JWT.decode``). OIDC access tokens come in two
+    flavours: self-contained JWTs (validated locally against the JWKS) and opaque
+    reference tokens (validated by calling the user info endpoint). An opaque
+    token is just a random string and has nothing to decode, so probing it as a
+    JWT is pointless work that also raises a misleading "Invalid OIDC access
+    token format" log on every request. Mirroring authlib's own segment check
+    here lets us route opaque tokens straight to the user info path and reserve
+    the decode attempt - and its log - for tokens that actually claim to be JWTs.
+    """
+    return token.count(".") in (2, 4)
+
+
 def decode_access_token(token, jwks_url):
+    if not is_jwt_shaped(token):
+        # Opaque (non-JWT) access token - there is nothing to decode. The caller
+        # falls back to validating it via the user info endpoint. Return early to
+        # avoid the misleading "Invalid OIDC access token format" log below.
+        return None
     try:
         return get_decoded_token(token, jwks_url)
     except (JoseError, ValueError) as e:
+        # The token looked like a JWT but failed to decode/verify (e.g. bad
+        # signature, unknown key id, malformed segment). This is a genuine
+        # problem worth logging, unlike the opaque-token case handled above.
         logger.info(
             "Invalid OIDC access token format",
             extra={"error": str(e), "jwks_url": jwks_url},
