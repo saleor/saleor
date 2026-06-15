@@ -17,7 +17,7 @@ from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
-from ....product import ProductMediaTypes, models
+from ....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
 from ....product.models import CollectionProduct
 from ....thumbnail.utils import get_filename_from_url
@@ -470,6 +470,17 @@ class ProductBulkCreate(BaseMutation):
                         path=f"media.{index}.alt",
                         message=f"Alt field exceeds the character "
                         f"limit of {ALT_CHAR_LIMIT}.",
+                        code=ProductBulkCreateErrorCode.INVALID.value,
+                    )
+                )
+                continue
+
+            if media_url and len(media_url) > MEDIA_URL_CHAR_LIMIT:
+                index_error_map[product_index].append(
+                    ProductBulkCreateError(
+                        path=f"media.{index}.mediaUrl",
+                        message=f"URL field exceeds the character "
+                        f"limit of {MEDIA_URL_CHAR_LIMIT}.",
                         code=ProductBulkCreateErrorCode.INVALID.value,
                     )
                 )

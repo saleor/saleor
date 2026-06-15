@@ -6,7 +6,7 @@ from .....core.exceptions import UnsupportedMediaProviderException
 from .....core.http_client import HTTPClient
 from .....core.utils.validators import get_oembed_data
 from .....permission.enums import ProductPermissions
-from .....product import ProductMediaTypes, models
+from .....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
 from .....thumbnail.utils import get_filename_from_url
 from ....core import ResolveInfo
@@ -84,6 +84,17 @@ class ProductMediaCreate(BaseMutation):
                     "input": ValidationError(
                         "Either image or external URL is required.",
                         code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                }
+            )
+
+        if media_url and len(media_url) > MEDIA_URL_CHAR_LIMIT:
+            raise ValidationError(
+                {
+                    "media_url": ValidationError(
+                        f"URL field exceeds the character limit of "
+                        f"{MEDIA_URL_CHAR_LIMIT}.",
+                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
