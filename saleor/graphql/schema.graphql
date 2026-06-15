@@ -20673,9 +20673,6 @@ type Mutation {
     """The billing address of the checkout."""
     billingAddress: AddressInput!
 
-    """The ID of the checkout."""
-    checkoutId: ID @deprecated(reason: "Use `id` instead.")
-
     """The checkout's ID."""
     id: ID
 
@@ -20977,9 +20974,6 @@ type Mutation {
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutShippingAddressUpdate(
-    """The ID of the checkout."""
-    checkoutId: ID @deprecated(reason: "Use `id` instead.")
-
     """The checkout's ID."""
     id: ID
 

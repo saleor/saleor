@@ -33,12 +33,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
             required=False,
         )
-        checkout_id = graphene.ID(
-            required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
-        )
         billing_address = AddressInput(
             required=True, description="The billing address of the checkout."
         )
@@ -81,11 +75,10 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         billing_address,
         save_address,
         validation_rules=None,
-        checkout_id=None,
         token=None,
         id=None,
     ):
-        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
+        checkout = get_checkout(cls, info, token=token, id=id)
 
         address_validation_rules = validation_rules or {}
         billing_address = cls.validate_address(
