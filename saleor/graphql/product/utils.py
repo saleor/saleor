@@ -22,6 +22,7 @@ from ...core.utils.validators import (
 )
 from ...order import OrderStatus
 from ...order import models as order_models
+from ...product import MEDIA_URL_CHAR_LIMIT
 from ...warehouse.models import Stock
 from ..core.enums import ProductErrorCode
 
@@ -67,6 +68,12 @@ def validate_media_input(
             message=f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
             code=error_code_enum.INVALID.value,
             field="alt",
+        )
+    if media_url and len(media_url) > MEDIA_URL_CHAR_LIMIT:
+        return MediaValidationError(
+            message=f"URL field exceeds the character limit of {MEDIA_URL_CHAR_LIMIT}.",
+            code=error_code_enum.INVALID.value,
+            field="mediaUrl",
         )
     return None
 
