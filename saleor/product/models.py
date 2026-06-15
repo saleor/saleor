@@ -41,7 +41,12 @@ from ..permission.enums import (
 )
 from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 from ..tax.models import TaxClass
-from . import ProductMediaTypes, ProductTypeKind, managers
+from . import (
+    MEDIA_URL_CHAR_LIMIT,
+    ProductMediaTypes,
+    ProductTypeKind,
+    managers,
+)
 
 ALL_PRODUCTS_PERMISSIONS = [
     # List of permissions, where each of them allows viewing all products
@@ -649,7 +654,9 @@ class ProductMedia(SortableModel, ModelWithMetadata):
         choices=ProductMediaTypes.CHOICES,
         default=ProductMediaTypes.IMAGE,
     )
-    external_url = models.CharField(max_length=256, blank=True, null=True)
+    external_url = models.CharField(
+        max_length=MEDIA_URL_CHAR_LIMIT, blank=True, null=True
+    )
     oembed_data = JSONField(blank=True, default=dict)
     # DEPRECATED
     to_remove = models.BooleanField(default=False)
