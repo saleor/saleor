@@ -190,6 +190,19 @@ wheels = [
 ]
 
 [[package]]
+name = "beautifulsoup4"
+version = "4.14.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "soupsieve", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "typing-extensions", marker = "platform_python_implementation != 'PyPy'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c3/b0/1c6a16426d389813b48d95e26898aff79abbde42ad353958ad95cc8c9b21/beautifulsoup4-4.14.3.tar.gz", hash = "sha256:6292b1c5186d356bba669ef9f7f051757099565ad9ada5dd630bd9de5fa7fb86", size = 627737, upload-time = "2025-11-30T15:08:26.084Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/39/47f9197bdd44df24d67ac8893641e16f386c984a0619ef2ee4c51fbbc019/beautifulsoup4-4.14.3-py3-none-any.whl", hash = "sha256:0918bfe44902e6ad8d57732ba310582e98da931428d231a5ecb9e7c703a735bb", size = 107721, upload-time = "2025-11-30T15:08:24.087Z" },
+]
+
+[[package]]
 name = "beautifultable"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1429,9 +1442,16 @@ wheels = [
 
 [[package]]
 name = "micawber"
-version = "0.5.6"
+version = "0.6.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/75/64/8ee33117e6f323a996c1b87f0bf97c5a9eb6cb4dd50eb8e07b8c5ec616e4/micawber-0.5.6.tar.gz", hash = "sha256:20dc4e074c17a741880b489cf2558845c050987f5b796c8ff07ea2ff011a8c8d", size = 19606, upload-time = "2024-12-06T13:10:19.986Z" }
+dependencies = [
+    { name = "beautifulsoup4", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "lxml", marker = "platform_python_implementation != 'PyPy'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/45/9e/bdaec8ff46c130a62c446d9feaabedfd6ef9e072a26fad940bd81aec0829/micawber-0.6.2.tar.gz", hash = "sha256:cc04c19a5e0eb3615b8cd95d5aefdad5cde4f52a61c12d45071727dfe131b760", size = 19589, upload-time = "2026-01-07T16:30:15.179Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/41/05/f7e8c73f7666fb09d7d38957ee06eaf200ee86fddefcdb497319a06a7b02/micawber-0.6.2-py3-none-any.whl", hash = "sha256:f9ed828f60cfbce98459e5bf639fd9a2cacb5b22a4ce7b0c30b4eab4d5d12924", size = 22426, upload-time = "2026-01-07T16:30:14.27Z" },
+]
 
 [[package]]
 name = "mpmath"
@@ -2681,7 +2701,7 @@ requires-dist = [
     { name = "lxml", specifier = ">=6.1.0,<7" },
     { name = "markdown", specifier = ">=3.1.1,<4" },
     { name = "measurement", specifier = ">=3.2.2,<4" },
-    { name = "micawber", specifier = ">=0.5.5,<0.6" },
+    { name = "micawber", specifier = ">=0.6.2,<0.7" },
     { name = "nh3", specifier = ">=0.2.20" },
     { name = "oauthlib", specifier = "~=3.1" },
     { name = "opentelemetry-api", specifier = ">=1.32.1,<2" },
@@ -2825,6 +2845,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f23394729afe52f3bf7adec04bf9ed2c820b39e19299111/sortedcontainers-2.4.0.tar.gz", hash = "sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88", size = 30594, upload-time = "2021-05-16T22:03:42.897Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
+]
+
+[[package]]
+name = "soupsieve"
+version = "2.8.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/2c/0a5f6f8ee0d5589e48c7640213ed5175d52cf540a06725b628cc1a45d6ce/soupsieve-2.8.4.tar.gz", hash = "sha256:e121fd02e975c695e4e9e8774a5ee35d74714b59307868dcc5319ad2d9e3328e", size = 121110, upload-time = "2026-05-24T13:55:57.154Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5e/f5/0c41cb68dcae6b7de4fac4188a3a9589e21fb31df21ea3a2e888db95e6c9/soupsieve-2.8.4-py3-none-any.whl", hash = "sha256:e7e6b0769c8f51ed59acab6e994b00621096cfb1c640a7509295987388fbaf65", size = 37304, upload-time = "2026-05-24T13:55:55.406Z" },
 ]
 
 [[package]]
