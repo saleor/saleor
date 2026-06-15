@@ -10,7 +10,7 @@ from requests.exceptions import InvalidSchema
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
-from .....product import ProductMediaTypes
+from .....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
 from .....product.tests.utils import create_image, create_zip_file_with_image_ext
 
@@ -467,6 +467,34 @@ def test_product_media_create_mutation_alt_character_limit(
     errors = content["data"]["productMediaCreate"]["errors"]
     assert errors[0]["field"] == "input"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
+
+
+def test_product_media_create_mutation_media_url_character_limit(
+    staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    too_long_url = "https://example.com/" + "a" * MEDIA_URL_CHAR_LIMIT
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": too_long_url,
+        "alt": "",
+    }
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_CREATE_QUERY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "input"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        f"URL field exceeds the character limit of {MEDIA_URL_CHAR_LIMIT}."
+    )
 
 
 def test_product_media_create_when_alt_is_null(

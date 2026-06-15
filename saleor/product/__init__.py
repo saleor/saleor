@@ -1,3 +1,6 @@
+MEDIA_URL_CHAR_LIMIT = 2048
+
+
 class ProductMediaTypes:
     IMAGE = "IMAGE"
     VIDEO = "VIDEO"
