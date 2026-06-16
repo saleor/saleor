@@ -19,6 +19,7 @@ from .....attribute.tests.model_helpers import (
 )
 from .....core.exceptions import UnsupportedMediaProviderException
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
+from .....product import MEDIA_URL_CHAR_LIMIT
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import (
@@ -1272,6 +1273,54 @@ def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     assert errors[0]["path"] == "media.0.mediaUrl"
     assert errors[0]["message"] == "Unsupported media provider or incorrect URL."
     assert len(errors) == 1
+
+
+def test_product_bulk_create_with_media_url_character_limit(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+
+    too_long_url = "https://example.com/" + "a" * MEDIA_URL_CHAR_LIMIT
+    media = {
+        "alt": "",
+        "mediaUrl": too_long_url,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "name": product_name_1,
+        },
+        {
+            "productType": product_type_id,
+            "name": product_name_2,
+            "media": [media],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products, "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 1
+    errors = data["results"][1]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert errors[0]["path"] == "media.0.mediaUrl"
+    assert errors[0]["message"] == (
+        f"URL field exceeds the character limit of {MEDIA_URL_CHAR_LIMIT}."
+    )
 
 
 @patch(
