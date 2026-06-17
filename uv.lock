@@ -13,10 +13,9 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
-idna = "2026-05-12T22:45:57Z"
-pytest-socket = "2026-05-21T16:50:22Z"
-django = "2026-06-03T13:03:35Z"
 pyjwt = "2026-05-21T19:54:36Z"
+django = "2026-06-03T13:03:35Z"
+requests-hardened = "2026-06-17T09:12:54Z"
 
 [[package]]
 name = "amqp"
@@ -2438,14 +2437,14 @@ wheels = [
 
 [[package]]
 name = "requests-hardened"
-version = "1.2.1"
+version = "1.3.0b1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d8/5f/903d91548f95f4690430d0af64507d53e7db2862f495bdcdcde5d1e59583/requests_hardened-1.2.1.tar.gz", hash = "sha256:e15fb10f622bc54e843b97f58c297c64dc9d96132dc2f1f1eb158d4e55ea8bcc", size = 7687, upload-time = "2026-04-27T14:43:46.563Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9b/b5/416678b58d3743d92289f6c0d8309f8433ed981faa13233617c6c12ec07b/requests_hardened-1.3.0b1.tar.gz", hash = "sha256:ce68637de89c7ee7b7f62a94f589b5478ceeb832262c4fb0210d667e08b8a523", size = 7456, upload-time = "2026-06-17T09:12:53.636Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/c1/afdbcc0da96f9229e3f2e263f9fb9b9c2006bd03ae40a81b7b4d09f64c48/requests_hardened-1.2.1-py3-none-any.whl", hash = "sha256:9bc1566c22c5e2674232a80987e4907f2e482e7d2ddf2afc85973e57cec6b335", size = 9654, upload-time = "2026-04-27T14:43:45.062Z" },
+    { url = "https://files.pythonhosted.org/packages/99/ab/c31192450edf796756d4388784abe0fd5e261783ae062b26f8813670bd68/requests_hardened-1.3.0b1-py3-none-any.whl", hash = "sha256:b64ec9dbbe42d0fc5c31f97ee67f9a161f439cbc6a106d8f72a1851725d116d9", size = 9280, upload-time = "2026-06-17T09:12:52.469Z" },
 ]
 
 [[package]]
@@ -2707,7 +2706,7 @@ requires-dist = [
     { name = "razorpay", specifier = "~=1.2" },
     { name = "redis", specifier = ">=5.0.1,<6" },
     { name = "requests", specifier = "~=2.32" },
-    { name = "requests-hardened", specifier = ">=1.2.1,<2.0.0" },
+    { name = "requests-hardened", specifier = ">=1.3.0b1,<2.0.0" },
     { name = "rx", specifier = ">=1.6.3,<2" },
     { name = "semantic-version", specifier = ">=2.10.0,<3" },
     { name = "sendgrid", specifier = ">=6.7.1,<7" },
