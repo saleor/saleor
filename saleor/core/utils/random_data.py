@@ -1007,6 +1007,12 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     order.lines_count = order.lines.count()
     order.save()
 
+    # `prepare_order_search_vector_value` above prefetched `payment_transactions`
+    # while the order had none, caching an empty list on the instance. Drop that
+    # stale cache so `create_fake_payment` recalculates charge amounts against the
+    # transaction it creates instead of the cached empty queryset.
+    order.refresh_from_db()
+
     create_fake_payment(order=order)
 
     # Ensure totals (including total_balance) reflect the latest transactions
