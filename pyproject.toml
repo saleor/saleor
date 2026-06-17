@@ -58,7 +58,7 @@ dependencies = [
     "razorpay~=1.2",
     "redis>=5.0.1,<6",
     "requests~=2.32",
-    "requests-hardened>=1.2.1,<2.0.0",
+    "requests-hardened>=1.3.0b1,<2.0.0",
     "Rx>=1.6.3,<2",
     "semantic-version>=2.10.0,<3",
     "sendgrid>=6.7.1,<7",
@@ -151,8 +151,7 @@ exclude-newer = "3 weeks"
 #       lockfile, run 'uv lock --refresh' to force a refresh.
 django = "2026-06-03T13:03:35Z" # https://pypi.org/pypi/django/5.2.15/json
 pyjwt = "2026-05-21T19:54:36Z" # https://github.com/jpadilla/pyjwt/releases/tag/2.13.0
-idna = "2026-05-12T22:45:57Z" # https://github.com/advisories/GHSA-65pc-fj4g-8rjx/
-pytest-socket = "2026-05-21T16:50:22Z" # Fixes slow fixtures caused by lack of cache https://github.com/miketheman/pytest-socket/pull/369
+requests-hardened = "2026-06-17T09:12:54Z" # https://pypi.org/pypi/requests-hardened/1.3.0b1/json
 
 [tool.poe.tasks]
 start.help = "Start development server with hot reload"
