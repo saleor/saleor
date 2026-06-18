@@ -838,7 +838,7 @@ class FulfillmentLine(models.Model):
         blank=True,
         null=True,
     )
-    reason = models.TextField(blank=True, null=True, default="")
+    reason = models.TextField(blank=True, default="")
     reason_reference = models.ForeignKey(
         "page.Page",
         related_name="+",

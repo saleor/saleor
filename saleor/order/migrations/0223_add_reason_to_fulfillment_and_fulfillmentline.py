@@ -16,6 +16,18 @@ class Migration(migrations.Migration):
             name="reason",
             field=models.TextField(blank=True, default=""),
         ),
+        migrations.RunSQL(
+            sql="""
+            ALTER TABLE order_fulfillment
+            ALTER COLUMN reason
+            SET DEFAULT '';
+            """,
+            reverse_sql="""
+            ALTER TABLE order_fulfillment
+            ALTER COLUMN reason
+            DROP DEFAULT;
+            """,
+        ),
         migrations.AddField(
             model_name="fulfillment",
             name="reason_reference",
@@ -30,7 +42,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="fulfillmentline",
             name="reason",
-            field=models.TextField(blank=True, default="", null=True),
+            field=models.TextField(blank=True, default=""),
+        ),
+        migrations.RunSQL(
+            sql="""
+            ALTER TABLE order_fulfillmentline
+            ALTER COLUMN reason
+            SET DEFAULT '';
+            """,
+            reverse_sql="""
+            ALTER TABLE order_fulfillmentline
+            ALTER COLUMN reason
+            DROP DEFAULT;
+            """,
         ),
         migrations.AddField(
             model_name="fulfillmentline",
