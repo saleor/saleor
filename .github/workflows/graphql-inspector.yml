@@ -17,6 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: graphql-hive/graphql-inspector@84c610fac649e0379643da772e77e775c6aeaf56 # release-1769448022768
+      - uses: graphql-hive/graphql-inspector@8733c10560f98b868d3eb4db1325c8edf64936b3 # @graphql-inspector/action@5.0.21
         with:
           schema: "${{ github.event.pull_request.base.sha }}:saleor/graphql/schema.graphql"
