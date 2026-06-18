@@ -11,7 +11,7 @@ from ....order.fetch import OrderLineInfo
 from ....page.models import Page, PageType
 from ....site.models import SiteSettings
 from ...core.mutations import BaseMutation
-from ...payment.utils import validate_and_resolve_refund_reason_context
+from ...payment.utils import validate_reason_reference_context
 from ..types import FulfillmentLine, OrderLine
 from .order_grant_refund_utils import resolve_reason_reference_page
 
@@ -35,16 +35,16 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         """
         if not site_settings or reason_reference_id is None:
             return None
-        should_apply, resolved_type = validate_and_resolve_refund_reason_context(
+        should_apply = validate_reason_reference_context(
             reason_reference_id=reason_reference_id,
             requestor_is_user=False,
-            refund_reference_field_name="reason_reference",
+            reason_reference_field_name="reason_reference",
             error_code_enum=OrderErrorCode,
             reason_reference_type=reason_reference_type,
         )
-        if should_apply and resolved_type:
+        if should_apply and reason_reference_type:
             return resolve_reason_reference_page(
-                str(reason_reference_id), resolved_type.pk, OrderErrorCode
+                str(reason_reference_id), reason_reference_type.pk, OrderErrorCode
             )
         return None
 

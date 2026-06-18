@@ -24,7 +24,7 @@ from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ...payment.types import TransactionItem
-from ...payment.utils import validate_and_resolve_refund_reason_context
+from ...payment.utils import validate_reason_reference_context
 from ...site.dataloaders import get_site_promise
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
@@ -271,14 +271,13 @@ class OrderGrantRefundUpdate(BaseMutation):
 
         site = get_site_promise(info.context).get()
 
-        should_apply, refund_reason_reference_type = (
-            validate_and_resolve_refund_reason_context(
-                reason_reference_id=reason_reference_id,
-                requestor_is_user=bool(info.context.user),
-                refund_reference_field_name="reason_reference",
-                error_code_enum=OrderGrantRefundUpdateErrorCode,
-                reason_reference_type=site.settings.refund_reason_reference_type,
-            )
+        refund_reason_reference_type = site.settings.refund_reason_reference_type
+        should_apply = validate_reason_reference_context(
+            reason_reference_id=reason_reference_id,
+            requestor_is_user=bool(info.context.user),
+            reason_reference_field_name="reason_reference",
+            error_code_enum=OrderGrantRefundUpdateErrorCode,
+            reason_reference_type=refund_reason_reference_type,
         )
         refund_reason_reference_type_pk = (
             refund_reason_reference_type.pk if refund_reason_reference_type else None

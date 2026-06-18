@@ -6,32 +6,30 @@ from ....payment.error_codes import (
     TransactionRequestActionErrorCode,
     TransactionRequestRefundForGrantedRefundErrorCode,
 )
-from ..utils import validate_and_resolve_refund_reason_context
+from ..utils import validate_reason_reference_context
 
 
 def test_no_reference_type_configured_no_reference_id_provided():
     # Given / When
-    result = validate_and_resolve_refund_reason_context(
+    should_apply = validate_reason_reference_context(
         reason_reference_id=None,
         requestor_is_user=True,
-        refund_reference_field_name="refundReasonReference",
+        reason_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
         reason_reference_type=None,
     )
 
     # Then
-    should_apply, refund_reason_reference_type = result
     assert should_apply is False
-    assert refund_reason_reference_type is None
 
 
 def test_no_reference_type_configured_reference_id_provided_raises_invalid():
     # Given / When / Then
     with pytest.raises(ValidationError) as exc_info:
-        validate_and_resolve_refund_reason_context(
+        validate_reason_reference_context(
             reason_reference_id="some-id",
             requestor_is_user=True,
-            refund_reference_field_name="refundReasonReference",
+            reason_reference_field_name="refundReasonReference",
             error_code_enum=TransactionRequestActionErrorCode,
             reason_reference_type=None,
         )
@@ -54,10 +52,10 @@ def test_reference_type_configured_no_reference_id_user_requestor_raises_require
 
     # When / Then
     with pytest.raises(ValidationError) as exc_info:
-        validate_and_resolve_refund_reason_context(
+        validate_reason_reference_context(
             reason_reference_id=None,
             requestor_is_user=True,
-            refund_reference_field_name="refundReasonReference",
+            reason_reference_field_name="refundReasonReference",
             error_code_enum=TransactionRequestActionErrorCode,
             reason_reference_type=page_type,
         )
@@ -78,18 +76,16 @@ def test_reference_type_configured_no_reference_id_app_requestor_success():
     page_type.save()
 
     # When
-    result = validate_and_resolve_refund_reason_context(
+    should_apply = validate_reason_reference_context(
         reason_reference_id=None,
         requestor_is_user=False,  # App requestor
-        refund_reference_field_name="refundReasonReference",
+        reason_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
         reason_reference_type=page_type,
     )
 
     # Then
-    should_apply, refund_reason_reference_type = result
     assert should_apply is False
-    assert refund_reason_reference_type == page_type
 
 
 def test_reference_type_configured_reference_id_provided_success():
@@ -99,18 +95,16 @@ def test_reference_type_configured_reference_id_provided_success():
     page_type.save()
 
     # When
-    result = validate_and_resolve_refund_reason_context(
+    should_apply = validate_reason_reference_context(
         reason_reference_id="some-reference-id",
         requestor_is_user=True,
-        refund_reference_field_name="refundReasonReference",
+        reason_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
         reason_reference_type=page_type,
     )
 
     # Then
-    should_apply, refund_reason_reference_type = result
     assert should_apply is True
-    assert refund_reason_reference_type == page_type
 
 
 def test_reference_type_configured_reference_id_provided_app_requestor_success():
@@ -120,18 +114,16 @@ def test_reference_type_configured_reference_id_provided_app_requestor_success()
     page_type.save()
 
     # When
-    result = validate_and_resolve_refund_reason_context(
+    should_apply = validate_reason_reference_context(
         reason_reference_id="some-reference-id",
         requestor_is_user=False,  # App requestor
-        refund_reference_field_name="refundReasonReference",
+        reason_reference_field_name="refundReasonReference",
         error_code_enum=TransactionRequestActionErrorCode,
         reason_reference_type=page_type,
     )
 
     # Then
-    should_apply, refund_reason_reference_type = result
     assert should_apply is True
-    assert refund_reason_reference_type == page_type
 
 
 def test_custom_field_name_in_error_message():
@@ -140,10 +132,10 @@ def test_custom_field_name_in_error_message():
 
     # When / Then
     with pytest.raises(ValidationError) as exc_info:
-        validate_and_resolve_refund_reason_context(
+        validate_reason_reference_context(
             reason_reference_id="some-id",
             requestor_is_user=True,
-            refund_reference_field_name=custom_field_name,
+            reason_reference_field_name=custom_field_name,
             error_code_enum=TransactionRequestActionErrorCode,
             reason_reference_type=None,
         )
@@ -164,10 +156,10 @@ def test_custom_field_name_in_required_error_message():
 
     # When / Then
     with pytest.raises(ValidationError) as exc_info:
-        validate_and_resolve_refund_reason_context(
+        validate_reason_reference_context(
             reason_reference_id=None,
             requestor_is_user=True,
-            refund_reference_field_name=custom_field_name,
+            reason_reference_field_name=custom_field_name,
             error_code_enum=TransactionRequestActionErrorCode,
             reason_reference_type=page_type,
         )
@@ -184,10 +176,10 @@ def test_different_error_code_enum():
     """Test that the function works with different error code enums."""
     # Given / When / Then
     with pytest.raises(ValidationError) as exc_info:
-        validate_and_resolve_refund_reason_context(
+        validate_reason_reference_context(
             reason_reference_id="some-id",
             requestor_is_user=True,
-            refund_reference_field_name="refundReasonReference",
+            reason_reference_field_name="refundReasonReference",
             error_code_enum=TransactionRequestRefundForGrantedRefundErrorCode,
             reason_reference_type=None,
         )

@@ -46,24 +46,28 @@ def check_if_requestor_has_access(
     return False
 
 
-def validate_and_resolve_refund_reason_context(
+def validate_reason_reference_context(
     *,
     reason_reference_id: str | None,
     requestor_is_user: bool,
-    refund_reference_field_name: str,
+    reason_reference_field_name: str,
     error_code_enum,
     reason_reference_type: PageType | None,
-) -> tuple[bool, PageType | None]:
+) -> bool:
     """Validate a reason reference against the configured reference type.
 
     The caller must supply ``reason_reference_type`` (e.g. the refund or return
     reason reference type from the site settings); passing ``None`` means no
     reference type is configured.
+
+    Returns ``should_apply`` — whether a reason reference should be resolved and
+    applied. When it is ``True`` the supplied ``reason_reference_type`` is
+    guaranteed to be set, so the caller can resolve against it directly.
     """
     if not reason_reference_type and reason_reference_id:
         raise ValidationError(
             {
-                refund_reference_field_name: ValidationError(
+                reason_reference_field_name: ValidationError(
                     "Reason reference type is not configured.",
                     code=error_code_enum.INVALID.value,
                 )
@@ -77,13 +81,11 @@ def validate_and_resolve_refund_reason_context(
     ):
         raise ValidationError(
             {
-                refund_reference_field_name: ValidationError(
+                reason_reference_field_name: ValidationError(
                     "Reason reference is required when reason reference type is configured.",
                     code=error_code_enum.REQUIRED.value,
                 )
             }
         ) from None
 
-    should_apply = bool(reason_reference_id is not None and reason_reference_type)
-
-    return should_apply, reason_reference_type
+    return bool(reason_reference_id is not None and reason_reference_type)

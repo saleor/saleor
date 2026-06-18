@@ -15,7 +15,7 @@ from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
-from ...payment.utils import validate_and_resolve_refund_reason_context
+from ...payment.utils import validate_reason_reference_context
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Fulfillment, Order
@@ -167,20 +167,18 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
         return_reason_reference_type = site.settings.return_reason_reference_type
         requestor_is_user = info.context.user is not None and info.context.app is None
 
-        should_apply, resolved_reason_reference_type = (
-            validate_and_resolve_refund_reason_context(
-                reason_reference_id=reason_reference_id,
-                requestor_is_user=requestor_is_user,
-                refund_reference_field_name="reason_reference",
-                error_code_enum=OrderErrorCode,
-                reason_reference_type=return_reason_reference_type,
-            )
+        should_apply = validate_reason_reference_context(
+            reason_reference_id=reason_reference_id,
+            requestor_is_user=requestor_is_user,
+            reason_reference_field_name="reason_reference",
+            error_code_enum=OrderErrorCode,
+            reason_reference_type=return_reason_reference_type,
         )
         reason_reference_instance = None
-        if should_apply and resolved_reason_reference_type:
+        if should_apply and return_reason_reference_type:
             reason_reference_instance = resolve_reason_reference_page(
                 str(reason_reference_id),
-                resolved_reason_reference_type.pk,
+                return_reason_reference_type.pk,
                 OrderErrorCode,
             )
 
