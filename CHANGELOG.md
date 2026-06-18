@@ -19,7 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Webhooks
 
 ### Other changes
-
+- Fix externalUrl validation to accept relative URLs - #18012 by @cmirandavega
 #### Search improvements
 
 ### Deprecations

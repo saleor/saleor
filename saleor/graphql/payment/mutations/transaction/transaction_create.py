@@ -1,3 +1,4 @@
+import re
 import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING
@@ -44,6 +45,15 @@ from .shared import (
 
 if TYPE_CHECKING:
     pass
+
+
+# Relative URLs (RFC 3986 relative references such as
+# "/dashboard/apps/QXBwOjI=/...") are valid but are rejected by Django's
+# URLValidator, which only accepts absolute URLs. This pattern matches a
+# path-absolute reference: it must start with "/" and contain only valid URL
+# path characters — pchar (unreserved / pct-encoded / sub-delims / ":" / "@")
+# and "/" separators — plus optional query ("?") and fragment ("#") parts.
+RELATIVE_URL_REGEX = re.compile(r"/[A-Za-z0-9\-._~!$&'()*+,;=:@%/?#]*")
 
 
 class TransactionCreateInput(BaseInputObjectType):
@@ -123,6 +133,19 @@ class TransactionCreate(BaseMutation):
     @classmethod
     def validate_external_url(cls, external_url: str | None, error_code: str):
         if external_url is None:
+            return
+        # Relative URLs (e.g. "/dashboard/apps/...") are valid per RFC 3986 but
+        # are rejected by URLValidator, which only accepts absolute URLs. Accept
+        # them when they start with "/" and contain only valid path characters.
+        if external_url.startswith("/"):
+            if not RELATIVE_URL_REGEX.fullmatch(external_url):
+                raise ValidationError(
+                    {
+                        "transaction": ValidationError(
+                            "Invalid format of `externalUrl`.", code=error_code
+                        )
+                    }
+                )
             return
         validator = URLValidator()
         try:

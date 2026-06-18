@@ -1853,6 +1853,95 @@ def test_transaction_create_external_url_incorrect_url_format_by_app(
     assert error["code"] == TransactionCreateErrorCode.INVALID.name
 
 
+def test_transaction_create_external_url_accepts_relative_url_by_app(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    external_url = (
+        "/dashboard/apps/QXBwOjI=/app/app/transactions/"
+        "75ad3453-fddb-4e32-abf9-2804702e4fe0"
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": "Credit Card",
+            "amountAuthorized": {"amount": Decimal(10), "currency": "USD"},
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]
+    assert not data["errors"]
+    assert data["transaction"]["externalUrl"] == external_url
+
+    transaction = order_with_lines.payment_transactions.first()
+    assert transaction.external_url == external_url
+
+
+def test_transaction_create_external_url_accepts_absolute_url_by_app(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": "Credit Card",
+            "amountAuthorized": {"amount": Decimal(10), "currency": "USD"},
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]
+    assert not data["errors"]
+    assert data["transaction"]["externalUrl"] == external_url
+
+    transaction = order_with_lines.payment_transactions.first()
+    assert transaction.external_url == external_url
+
+
+def test_transaction_create_external_url_rejects_invalid_relative_url_by_app(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    # A leading "/" but containing a space, which is not a valid URL path char.
+    external_url = "/dashboard/invalid path"
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "name": "Credit Card",
+            "amountAuthorized": {"amount": Decimal(10), "currency": "USD"},
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert not content["data"]["transactionCreate"]["transaction"]
+    errors = content["data"]["transactionCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == TransactionCreateErrorCode.INVALID.name
+
+
 def test_transaction_create_creates_calculation_events(
     order_with_lines, permission_manage_payments, app_api_client
 ):
