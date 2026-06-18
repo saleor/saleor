@@ -173,7 +173,6 @@ class FulfillmentReturnProducts(FulfillmentRefundAndReturnProductBase):
                 requestor_is_user=requestor_is_user,
                 refund_reference_field_name="reason_reference",
                 error_code_enum=OrderErrorCode,
-                site_settings=site.settings,
                 reason_reference_type=return_reason_reference_type,
             )
         )

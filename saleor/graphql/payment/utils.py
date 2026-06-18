@@ -1,10 +1,9 @@
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Optional
 
 from django.core.exceptions import ValidationError
 
 from ...page.models import PageType
 from ...payment import models as payment_models
-from ...site.models import SiteSettings
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -47,32 +46,20 @@ def check_if_requestor_has_access(
     return False
 
 
-# Sentinel for ``validate_and_resolve_refund_reason_context``: when no explicit
-# reference type is passed, fall back to the refund reason reference type from the
-# site settings. Passing ``None`` explicitly means the reference type is not
-# configured (e.g. for return reasons that have not been set up).
-_USE_REFUND_REASON_REFERENCE_TYPE: Any = object()
-
-
 def validate_and_resolve_refund_reason_context(
     *,
     reason_reference_id: str | None,
     requestor_is_user: bool,
     refund_reference_field_name: str,
     error_code_enum,
-    site_settings: SiteSettings,
-    reason_reference_type: PageType | None = _USE_REFUND_REASON_REFERENCE_TYPE,
+    reason_reference_type: PageType | None,
 ) -> tuple[bool, PageType | None]:
     """Validate a reason reference against the configured reference type.
 
-    By default the refund reason reference type from the site settings is used.
-    Pass ``reason_reference_type`` explicitly (e.g. the return reason reference
-    type) to validate against another configured type; passing ``None`` means no
+    The caller must supply ``reason_reference_type`` (e.g. the refund or return
+    reason reference type from the site settings); passing ``None`` means no
     reference type is configured.
     """
-    if reason_reference_type is _USE_REFUND_REASON_REFERENCE_TYPE:
-        reason_reference_type = site_settings.refund_reason_reference_type
-
     if not reason_reference_type and reason_reference_id:
         raise ValidationError(
             {

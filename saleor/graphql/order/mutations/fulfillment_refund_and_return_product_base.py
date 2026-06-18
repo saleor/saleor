@@ -40,7 +40,6 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
             requestor_is_user=False,
             refund_reference_field_name="reason_reference",
             error_code_enum=OrderErrorCode,
-            site_settings=site_settings,
             reason_reference_type=reason_reference_type,
         )
         if should_apply and resolved_type:

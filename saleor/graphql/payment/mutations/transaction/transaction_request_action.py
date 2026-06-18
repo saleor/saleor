@@ -218,7 +218,7 @@ class TransactionRequestAction(BaseMutation):
                 requestor_is_user=bool(requestor_is_user),
                 refund_reference_field_name="refund_reason_reference",
                 error_code_enum=TransactionRequestActionErrorCode,
-                site_settings=site.settings,
+                reason_reference_type=site.settings.refund_reason_reference_type,
             )
         )
 

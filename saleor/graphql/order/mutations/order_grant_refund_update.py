@@ -277,7 +277,7 @@ class OrderGrantRefundUpdate(BaseMutation):
                 requestor_is_user=bool(info.context.user),
                 refund_reference_field_name="reason_reference",
                 error_code_enum=OrderGrantRefundUpdateErrorCode,
-                site_settings=site.settings,
+                reason_reference_type=site.settings.refund_reason_reference_type,
             )
         )
         refund_reason_reference_type_pk = (
