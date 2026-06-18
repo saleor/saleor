@@ -220,18 +220,20 @@ class TransactionRequestAction(BaseMutation):
             error_code_enum=TransactionRequestActionErrorCode,
             reason_reference_type=refund_reason_reference_type,
         )
+        refund_reason_reference_type_pk = (
+            refund_reason_reference_type.pk if refund_reason_reference_type else None
+        )
 
         reason_reference_instance: Page | None = None
 
-        if should_apply:
-            assert refund_reason_reference_type is not None
+        if should_apply and refund_reason_reference_type_pk:
             try:
                 reason_reference_pk = cls.get_global_id_or_error(
                     str(reason_reference_id), only_type="Page", field="reason_reference"
                 )
 
                 reason_reference_instance = Page.objects.get(
-                    pk=reason_reference_pk, page_type=refund_reason_reference_type.pk
+                    pk=reason_reference_pk, page_type=refund_reason_reference_type_pk
                 )
 
             except (Page.DoesNotExist, ValueError):
