@@ -75,7 +75,7 @@ def validate_reason_reference_context(
                     code=error_code_enum.INVALID.value,
                 )
             }
-        ) from None
+        )
 
     if (
         reason_reference_type is not None
@@ -89,6 +89,6 @@ def validate_reason_reference_context(
                     code=error_code_enum.REQUIRED.value,
                 )
             }
-        ) from None
+        )
 
     return bool(reason_reference_id is not None and reason_reference_type)
