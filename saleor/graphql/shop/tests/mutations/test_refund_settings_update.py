@@ -119,7 +119,7 @@ def test_refund_settings_update_change_page_type(
     assert site_settings.refund_reason_reference_type == page_type
 
 
-def test_refund_settings_update_empty_id_success(
+def test_refund_settings_update_empty_id_returns_error(
     staff_api_client, permission_manage_settings, site_settings
 ):
     # given
@@ -138,9 +138,11 @@ def test_refund_settings_update_empty_id_success(
     content = get_graphql_content(response)
     data = content["data"]["refundSettingsUpdate"]
 
-    assert not data["errors"]
-    assert data["refundSettings"]
-    assert data["refundSettings"]["reasonReferenceType"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "refundReasonReferenceType"
+    assert data["errors"][0]["code"] == RefundSettingsErrorCode.REQUIRED.name
+    assert data["errors"][0]["message"] == "This field is required."
+    assert data["refundSettings"] is None
 
 
 def test_refund_settings_update_invalid_id_format(
