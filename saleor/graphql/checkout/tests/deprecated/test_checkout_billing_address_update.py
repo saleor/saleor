@@ -5,9 +5,8 @@ from ....tests.utils import get_graphql_content
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
-            $checkoutId: ID, $token: UUID, $id: ID, $billingAddress: AddressInput!) {
+            $token: UUID, $id: ID, $billingAddress: AddressInput!) {
         checkoutBillingAddressUpdate(
-                checkoutId: $checkoutId,
                 token: $token,
                 id: $id
                 billingAddress: $billingAddress
@@ -36,7 +35,7 @@ def test_checkout_billing_address_update_by_id(
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
     billing_address = graphql_address_data
 
-    variables = {"checkoutId": checkout_id, "billingAddress": billing_address}
+    variables = {"id": checkout_id, "billingAddress": billing_address}
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -120,7 +119,7 @@ def test_checkout_billing_address_update_both_token_and_id_given(
     variables = {
         "billingAddress": billing_address,
         "token": checkout_with_item.token,
-        "checkoutId": checkout_id,
+        "id": checkout_id,
     }
 
     response = user_api_client.post_graphql(query, variables)

@@ -55,12 +55,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
             required=False,
         )
-        checkout_id = graphene.ID(
-            required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
-        )
         shipping_address = AddressInput(
             required=True,
             description="The mailing address to where the checkout will be shipped.",
@@ -133,14 +127,12 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         shipping_address,
         save_address,
         validation_rules=None,
-        checkout_id=None,
         token=None,
         id=None,
     ):
         checkout = get_checkout(
             cls,
             info,
-            checkout_id=checkout_id,
             token=token,
             id=id,
             qs=models.Checkout.objects.prefetch_related(

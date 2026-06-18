@@ -8,7 +8,12 @@ configuration, such as: warehouses, shipping zones, staff accounts, plugin confi
 from django.core.management.base import BaseCommand
 
 from ....account.models import Address, CustomerEvent, CustomerNote, User
-from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
+from ....checkout.models import (
+    Checkout,
+    CheckoutDelivery,
+    CheckoutLine,
+    CheckoutMetadata,
+)
 from ....discount.models import (
     CheckoutDiscount,
     CheckoutLineDiscount,
@@ -89,6 +94,9 @@ class Command(BaseCommand):
 
         checkout_lines = CheckoutLine.objects.all()
         checkout_lines._raw_delete(checkout_lines.db)
+
+        checkout_deliveries = CheckoutDelivery.objects.all()
+        checkout_deliveries._raw_delete(checkout_deliveries.db)
 
         checkout = Checkout.objects.all()
         checkout._raw_delete(checkout.db)
