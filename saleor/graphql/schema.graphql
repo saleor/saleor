@@ -37934,6 +37934,13 @@ type AssignedSwatchAttributeValue @doc(category: "Attributes") {
 
   """File associated with the attribute."""
   file: File
+
+  """
+  Translation of the name.
+  
+  Added in Saleor 3.22.
+  """
+  translation(languageCode: LanguageCodeEnum!): String
 }
 
 """
