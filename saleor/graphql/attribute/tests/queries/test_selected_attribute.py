@@ -1558,6 +1558,58 @@ def test_assigned_swatch_file_attribute(staff_api_client, page, swatch_attribute
     assert attr_value_data["file"]["contentType"] == attr_value.content_type
 
 
+ASSIGNED_SWATCH_ATTRIBUTE_TRANSLATION_QUERY = """
+query PageQuery($id: ID) {
+  page(id: $id) {
+    assignedAttributes(limit:10) {
+      ... on AssignedSwatchAttribute {
+        value {
+          name
+          slug
+          translation(languageCode: FR)
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def test_assigned_swatch_attribute_translation(
+    staff_api_client,
+    page,
+    swatch_attribute,
+):
+    # given
+    swatch_attribute.type = AttributeType.PAGE_TYPE
+    swatch_attribute.save()
+
+    page_type = page.page_type
+    page_type.page_attributes.set([swatch_attribute])
+
+    attr_value = swatch_attribute.values.first()
+    translation = AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=attr_value,
+        name="French Red",
+    )
+
+    associate_attribute_values_to_instance(page, {swatch_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SWATCH_ATTRIBUTE_TRANSLATION_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    attr_value_data = content["data"]["page"]["assignedAttributes"][0]["value"]
+    assert attr_value_data["translation"] == translation.name
+
+
 ASSIGNED_BOOLEAN_ATTRIBUTE_QUERY = """
 query PageQuery($id: ID) {
   page(id: $id) {
