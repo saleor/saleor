@@ -54,7 +54,10 @@ def validate_reason_reference_context(
     error_code_enum,
     reason_reference_type: PageType | None,
 ) -> bool:
-    """Validate a reason reference against the configured reference type.
+    """Validate conditions for applying reason reference.
+
+    This does not verify that ``reason_reference_id`` points to a Page of
+    ``reason_reference_type``.
 
     The caller must supply ``reason_reference_type`` (e.g. the refund or return
     reason reference type from the site settings); passing ``None`` means no
