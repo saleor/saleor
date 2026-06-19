@@ -30,7 +30,8 @@ def resolve_channel(info, id: str | None, slug: str | None):
     return None
 
 
-def resolve_channels(info):
-    return models.Channel.objects.using(
-        get_database_connection_name(info.context)
-    ).all()
+def resolve_channels(info, *, is_active: bool | None = None):
+    qs = models.Channel.objects.using(get_database_connection_name(info.context)).all()
+    if is_active is not None:
+        qs = qs.filter(is_active=is_active)
+    return qs

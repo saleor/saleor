@@ -17,6 +17,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Added optional `isActive` argument to the `channels` query to filter channels by active status. When omitted or `null`, the query returns all channels (backward compatible).
+
 ### Webhooks
 
 ### Other changes

@@ -33,7 +33,17 @@ class ChannelQueries(graphene.ObjectType):
     )
     channels = PermissionsField(
         NonNullList(Channel),
-        description="List of all channels.",
+        is_active=graphene.Argument(
+            graphene.Boolean,
+            description=(
+                "Filter channels by active status. When omitted, returns all channels."
+            ),
+            required=False,
+        ),
+        description=(
+            "List of channels. Use `isActive` to filter by active status; "
+            "when omitted, returns all channels."
+        ),
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -46,8 +56,8 @@ class ChannelQueries(graphene.ObjectType):
         return resolve_channel(info, id, slug)
 
     @staticmethod
-    def resolve_channels(_root, info: ResolveInfo, **kwargs):
-        return resolve_channels(info)
+    def resolve_channels(_root, info: ResolveInfo, *, is_active=None, **kwargs):
+        return resolve_channels(info, is_active=is_active)
 
 
 class ChannelMutations(graphene.ObjectType):
