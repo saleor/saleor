@@ -10136,6 +10136,20 @@ input ProductVariantWhereInput @doc(category: "Products") {
   """
   attributes: [AssignedAttributeWhereInput!]
 
+  """
+  Filter by variants having a specific stock status in the given channel.
+  
+  Added in Saleor 3.24.
+  """
+  stockAvailability: StockAvailability
+
+  """
+  Filter by stock of the variant.
+  
+  Added in Saleor 3.24.
+  """
+  stocks: ProductStockFilterInput
+
   """List of conditions that must be met."""
   AND: [ProductVariantWhereInput!]
 
