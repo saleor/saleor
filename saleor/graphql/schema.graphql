@@ -2020,6 +2020,15 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A product export is completed."""
   PRODUCT_EXPORT_COMPLETED
 
+  """A new product type is created."""
+  PRODUCT_TYPE_CREATED
+
+  """A product type is updated."""
+  PRODUCT_TYPE_UPDATED
+
+  """A product type is deleted."""
+  PRODUCT_TYPE_DELETED
+
   """A new product media is created."""
   PRODUCT_MEDIA_CREATED
 
@@ -2623,6 +2632,15 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A product export is completed."""
   PRODUCT_EXPORT_COMPLETED
+
+  """A new product type is created."""
+  PRODUCT_TYPE_CREATED
+
+  """A product type is updated."""
+  PRODUCT_TYPE_UPDATED
+
+  """A product type is deleted."""
+  PRODUCT_TYPE_DELETED
 
   """A new product media is created."""
   PRODUCT_MEDIA_CREATED
@@ -14207,6 +14225,9 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_DELETED
   PRODUCT_METADATA_UPDATED
   PRODUCT_EXPORT_COMPLETED
+  PRODUCT_TYPE_CREATED
+  PRODUCT_TYPE_UPDATED
+  PRODUCT_TYPE_DELETED
   PRODUCT_MEDIA_CREATED
   PRODUCT_MEDIA_UPDATED
   PRODUCT_MEDIA_DELETED
@@ -35613,6 +35634,72 @@ type ProductExportCompleted implements Event @doc(category: "Products") {
 
   """The export file for products."""
   export: ExportFile
+}
+
+"""
+Event sent when new product type is created.
+
+Added in Saleor 3.24.
+"""
+type ProductTypeCreated implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product type the event relates to."""
+  productType: ProductType
+}
+
+"""
+Event sent when product type is updated.
+
+Added in Saleor 3.24.
+"""
+type ProductTypeUpdated implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product type the event relates to."""
+  productType: ProductType
+}
+
+"""
+Event sent when product type is deleted.
+
+Added in Saleor 3.24.
+"""
+type ProductTypeDeleted implements Event @doc(category: "Products") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product type the event relates to."""
+  productType: ProductType
 }
 
 """Event sent when new product media is created."""
