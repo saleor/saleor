@@ -453,7 +453,7 @@ class OrderGrantedRefund(
     def resolve_reason_reference(
         root: SyncWebhookControlContext[models.OrderGrantedRefund], info
     ):
-        if not root.node.reason_reference:
+        if not root.node.reason_reference_id:
             return None
 
         def wrap_page_with_context(page):

@@ -284,8 +284,7 @@ class OrderGrantRefundUpdate(BaseMutation):
         )
 
         reason_reference_instance: Page | None = None
-        if should_apply:
-            assert refund_reason_reference_type_pk is not None
+        if should_apply and refund_reason_reference_type_pk:
             reason_reference_instance = resolve_reason_reference_page(
                 str(reason_reference_id),
                 refund_reason_reference_type_pk,
