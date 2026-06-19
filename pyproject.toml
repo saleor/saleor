@@ -120,7 +120,7 @@ dev = [
     "types-redis>=4.6.0,<5",
     "types-requests>=2.32.4,<3",
     "types-six>=1.17.0,<2",
-    "vcrpy>=7.0.0,<8",
+    "vcrpy>=8.1.1,<9",
     "poethepoet>=0.45.0,<0.46",
     "ipdb>=0.13.13,<0.14",
 ]
