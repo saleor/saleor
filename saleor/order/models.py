@@ -769,6 +769,7 @@ class Fulfillment(ModelWithMetadata):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_index=False,
     )
 
     shipping_refund_amount = models.DecimalField(
@@ -845,6 +846,7 @@ class FulfillmentLine(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        db_index=False,
     )
 
 
@@ -961,5 +963,10 @@ class OrderGrantedRefundLine(models.Model):
 
     reason = models.TextField(blank=True, null=True, default="")
     reason_reference = models.ForeignKey(
-        "page.Page", related_name="+", on_delete=models.SET_NULL, null=True, blank=True
+        "page.Page",
+        related_name="+",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=False,
     )
