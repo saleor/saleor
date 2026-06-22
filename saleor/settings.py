@@ -915,10 +915,9 @@ FEDERATED_QUERY_MAX_ENTITIES = int(os.environ.get("FEDERATED_QUERY_MAX_ENTITIES"
 # Value must be an import path, e.g.:
 #   SHOP_ANNOUNCEMENT_RESOLVER_IMPORT="saleor.custom.announcements.resolve_announcements"
 #
-# Where ``resolve_announcements`` should have the following signatures:
+# Where ``resolve_announcements`` should have the following signature:
 #
 # >>> from saleor.graphql.shop.types import Announcement
-# >>>
 # >>>
 # >>> def resolve_announcements() -> list[Announcement]: ...
 SHOP_ANNOUNCEMENT_RESOLVER_IMPORT = None

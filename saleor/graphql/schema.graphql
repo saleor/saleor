@@ -15250,7 +15250,7 @@ type Limits {
   warehouses: Int
 }
 
-"""Store the current and allowed usage."""
+"""Lists current announcements that the user should see."""
 type Announcement {
   """The date & time at which this announcement was created."""
   createdAt: DateTime!
@@ -15265,11 +15265,13 @@ type Announcement {
   messageHtml: String!
 
   """
-  Determine the how critical the announcement is. Null if no severity level was defined for this announcement. When value is `UNSET`, it should be considered as low importance or informational.
+  Determine the how critical the announcement is. UNSET if no severity level was defined for this announcement. When value is `UNSET`, it should be considered as low importance or informational.
   """
   importance: AnnouncementImportanceEnum!
 
-  """Defines the allowed maximum resource usage, null means unlimited."""
+  """
+  The announcement's type, for example "CUSTOM". Used to programatically distinguish between message types thus allowing to render the message differently, and allows to know the expected shape for the `extra` field.
+  """
   type: String!
 
   """Additional information about this announcement."""

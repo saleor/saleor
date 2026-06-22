@@ -185,7 +185,7 @@ class Announcement(graphene.ObjectType):
     importance = AnnouncementImportanceEnum(
         required=True,
         description=(
-            "Determine the how critical the announcement is. Null if no "
+            "Determine the how critical the announcement is. UNSET if no "
             "severity level was defined for this announcement. When value is `UNSET`, "
             "it should be considered as low importance or informational."
         ),
@@ -193,14 +193,19 @@ class Announcement(graphene.ObjectType):
 
     type = graphene.String(
         required=True,
-        description="Defines the allowed maximum resource usage, null means unlimited.",
+        description=(
+            'The announcement\'s type, for example "CUSTOM". Used to '
+            "programatically distinguish between message types thus allowing to "
+            "render the message differently, and allows to know the expected shape "
+            "for the `extra` field."
+        ),
     )
     extra = Metadata(
         required=True, description="Additional information about this announcement."
     )
 
     class Meta:
-        description = "Store the current and allowed usage."
+        description = "Lists current announcements that the user should see."
 
 
 class Shop(graphene.ObjectType):
