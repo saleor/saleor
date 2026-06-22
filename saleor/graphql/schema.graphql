@@ -15099,6 +15099,13 @@ type Shop implements ObjectWithMetadata {
   limits: LimitInfo! @deprecated
 
   """
+  List of announcements for this shop.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  announcements: [Announcement!]!
+
+  """
   Saleor API version.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
@@ -15241,6 +15248,41 @@ type Limits {
 
   """Defines the number of warehouses."""
   warehouses: Int
+}
+
+"""Store the current and allowed usage."""
+type Announcement {
+  """The date & time at which this announcement was created."""
+  createdAt: DateTime!
+
+  """The date & time at which this announcement was last updated."""
+  updatedAt: DateTime!
+
+  """The announcement's title."""
+  title: String!
+
+  """The announcement's description, may contain HTML formatting."""
+  messageHtml: String!
+
+  """
+  Determine the how critical the announcement is. Null if no severity level was defined for this announcement. When value is `UNSET`, it should be considered as low importance or informational.
+  """
+  importance: AnnouncementImportanceEnum!
+
+  """Defines the allowed maximum resource usage, null means unlimited."""
+  type: String!
+
+  """Additional information about this announcement."""
+  extra: Metadata!
+}
+
+"""Defines a shop-level announcement's level/severity."""
+enum AnnouncementImportanceEnum @doc(category: "Shop") {
+  CRITICAL
+  HIGH
+  MODERATE
+  LOW
+  UNSET
 }
 
 """

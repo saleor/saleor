@@ -13,6 +13,7 @@ from ...payment.gateway import get_payment_gateways
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission, SitePermissions, get_permissions
 from ...site import models as site_models
+from ...site.apps import SiteAppConfig
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..app.types import App
 from ..core import ResolveInfo
@@ -31,6 +32,7 @@ from ..core.doc_category import (
 )
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
+from ..core.scalars import DateTime
 from ..core.tracing import traced_resolver
 from ..core.types import (
     BaseObjectType,
@@ -42,7 +44,7 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
-from ..meta.types import ObjectWithMetadata
+from ..meta.types import Metadata, ObjectWithMetadata
 from ..page.types import PageType
 from ..payment.types import PaymentGateway
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -52,7 +54,11 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
-from .enums import GiftCardSettingsExpiryTypeEnum, PasswordLoginModeEnum
+from .enums import (
+    AnnouncementImportanceEnum,
+    GiftCardSettingsExpiryTypeEnum,
+    PasswordLoginModeEnum,
+)
 from .filters import CountryFilterInput
 from .resolvers import resolve_available_shipping_methods, resolve_countries
 
@@ -155,6 +161,42 @@ class LimitInfo(graphene.ObjectType):
         Limits,
         required=True,
         description="Defines the allowed maximum resource usage, null means unlimited.",
+    )
+
+    class Meta:
+        description = "Store the current and allowed usage."
+
+
+class Announcement(graphene.ObjectType):
+    created_at = DateTime(
+        required=True,
+        description="The date & time at which this announcement was created.",
+    )
+    updated_at = DateTime(
+        required=True,
+        description="The date & time at which this announcement was last updated.",
+    )
+
+    title = graphene.String(required=True, description="The announcement's title.")
+    message_html = graphene.String(
+        required=True,
+        description="The announcement's description, may contain HTML formatting.",
+    )
+    importance = AnnouncementImportanceEnum(
+        required=True,
+        description=(
+            "Determine the how critical the announcement is. Null if no "
+            "severity level was defined for this announcement. When value is `UNSET`, "
+            "it should be considered as low importance or informational."
+        ),
+    )
+
+    type = graphene.String(
+        required=True,
+        description="Defines the allowed maximum resource usage, null means unlimited.",
+    )
+    extra = Metadata(
+        required=True, description="Additional information about this announcement."
     )
 
     class Meta:
@@ -326,6 +368,12 @@ class Shop(graphene.ObjectType):
         required=True,
         description="Resource limitations and current usage if any set for a shop",
         deprecation_reason=DEFAULT_DEPRECATION_REASON,
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    announcements = PermissionsField(
+        NonNullList(Announcement),
+        required=True,
+        description="List of announcements for this shop.",
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
     version = PermissionsField(
@@ -614,6 +662,17 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_limits(_, _info):
         return LimitInfo(current_usage=Limits(), allowed_usage=Limits())
+
+    @staticmethod
+    def resolve_announcements(_, _info):
+        """Return the list of announcements for this shop.
+
+        This is not implement in Saleor Core OSS. However, this can be implemented
+        by overriding ``settings.SHOP_ANNOUNCEMENT_RESOLVER_IMPORT``.
+        """
+        if SiteAppConfig.announcements_resolver is not None:
+            return SiteAppConfig.announcements_resolver()
+        return []
 
     @staticmethod
     def resolve_version(_, _info):
