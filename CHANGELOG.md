@@ -21,6 +21,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Log an error when a sync webhook is triggered inside a database transaction, to help locate callers that need to be moved outside of transactions - #15138 by @ayesha-waris
+
 #### Search improvements
 
 ### Deprecations

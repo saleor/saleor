@@ -195,6 +195,17 @@ def _send_webhook_request_sync(
 def send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> dict[Any, Any] | None:
+    if transaction.get_connection().in_atomic_block:
+        # Sync webhooks should be triggered outside of any database transaction.
+        # Running them inside one keeps the DB connection open for the duration of an
+        # external HTTP request, which can exhaust the connection pool and lead to
+        # deadlocks. The stack trace pinpoints the call site so the offending caller can
+        # be moved out of the transaction.
+        logger.error(
+            "Sync webhook was triggered inside a database transaction: %s",
+            delivery.event_type,
+            stack_info=True,
+        )
     response, response_data = _send_webhook_request_sync(delivery, timeout)
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
