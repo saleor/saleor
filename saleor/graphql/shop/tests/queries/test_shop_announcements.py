@@ -2,15 +2,14 @@ from collections.abc import Callable
 from contextlib import contextmanager
 from datetime import datetime
 
-from saleor.graphql.shop.enums import AnnouncementImportanceEnum
-from saleor.graphql.shop.types import Announcement
-
 from .....site.apps import SiteAppConfig
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
     get_graphql_content_from_response,
 )
+from ...enums import AnnouncementImportanceEnum
+from ...types import Announcement
 
 QUERY_GET_ANNOUNCEMENTS_BASIC = """
 {
