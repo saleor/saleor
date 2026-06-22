@@ -474,6 +474,144 @@ def test_product_variant_bulk_update_create_already_existing_stock(
     assert errors[0]["warehouses"] == [warehouse_global_id]
 
 
+def test_product_variant_bulk_update_create_already_existing_channel_listing(
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    product = variant.product
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    existing_listing = variant.channel_listings.get(channel=channel_USD)
+    existing_price = existing_listing.price_amount
+    assert variant.channel_listings.count() == 1
+    channel_global_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+
+    new_price = 50.0
+    variants = [
+        {
+            "id": variant_id,
+            "channelListings": {
+                "create": [
+                    {
+                        "price": new_price,
+                        "channelId": channel_global_id,
+                    }
+                ]
+            },
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "channelId"
+    assert errors[0]["path"] == "channelListings.create.0.channelId"
+    assert errors[0]["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["message"] == (
+        "Channel listing already exists for this variant. "
+        "Use the `update` field to modify an existing channel listing."
+    )
+    assert errors[0]["channels"] == [channel_global_id]
+    assert data["count"] == 0
+    assert variant.channel_listings.count() == 1
+    existing_listing.refresh_from_db()
+    assert existing_listing.price_amount == existing_price
+
+
+@pytest.mark.parametrize(
+    "error_policy",
+    [
+        ErrorPolicyEnum.REJECT_EVERYTHING.name,
+        ErrorPolicyEnum.REJECT_FAILED_ROWS.name,
+        ErrorPolicyEnum.IGNORE_FAILED.name,
+    ],
+)
+def test_product_variant_bulk_update_create_already_existing_channel_listing_error_policy(
+    error_policy,
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    product = variant.product
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    existing_listing = variant.channel_listings.get(channel=channel_USD)
+    existing_price = existing_listing.price_amount
+    assert variant.channel_listings.count() == 1
+    channel_global_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+
+    new_name = "Updated variant name"
+    new_price = 50.0
+    variants = [
+        {
+            "id": variant_id,
+            "name": new_name,
+            "channelListings": {
+                "create": [
+                    {
+                        "price": new_price,
+                        "channelId": channel_global_id,
+                    }
+                ]
+            },
+        }
+    ]
+
+    variables = {
+        "productId": product_id,
+        "variants": variants,
+        "errorPolicy": error_policy,
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
+
+    variant.refresh_from_db()
+    existing_listing.refresh_from_db()
+
+    # no duplicate channel listing is ever created
+    assert variant.channel_listings.count() == 1
+    assert existing_listing.price_amount == existing_price
+
+    if error_policy == ErrorPolicyEnum.IGNORE_FAILED.name:
+        # the variant is updated, only the offending listing entry is dropped
+        assert data["count"] == 1
+        assert data["results"][0]["productVariant"]["name"] == new_name
+        assert variant.name == new_name
+    else:
+        # REJECT_EVERYTHING / REJECT_FAILED_ROWS save nothing for the row
+        assert data["count"] == 0
+        assert not data["results"][0]["productVariant"]
+        assert variant.name != new_name
+
+
 def test_product_variant_bulk_update_and_remove_stock(
     staff_api_client,
     variant_with_many_stocks,

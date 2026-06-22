@@ -228,9 +228,37 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
     ):
         if listings_data := cleaned_input["channel_listings"].get("create"):
+            used_channels = defaultdict(list)
+            for listing in listings_global_id_to_instance_map.values():
+                channel_global_id = graphene.Node.to_global_id(
+                    "Channel", listing.channel_id
+                )
+                used_channels[channel_global_id].append(listing.variant_id)
+
+            variant = cleaned_input["id"]
+            surviving_listings = []
+            for listing_index, listing_data in enumerate(listings_data):
+                channel_id = listing_data["channel_id"]
+                if variant.id in used_channels.get(channel_id, []):
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            field="channelId",
+                            path=f"channelListings.create.{listing_index}.channelId",
+                            message=(
+                                "Channel listing already exists for this variant. "
+                                "Use the `update` field to modify an existing "
+                                "channel listing."
+                            ),
+                            code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
+                            channels=[channel_id],
+                        )
+                    )
+                    continue
+                surviving_listings.append(listing_data)
+
             cleaned_input["channel_listings"]["create"] = (
                 ProductVariantBulkCreate.clean_channel_listings(
-                    listings_data,
+                    surviving_listings,
                     product_channel_global_id_to_instance_map,
                     None,
                     variant_index,
