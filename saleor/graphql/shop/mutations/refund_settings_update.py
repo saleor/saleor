@@ -1,12 +1,15 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....permission.enums import SitePermissions
+from ....site.error_codes import RefundSettingsErrorCode
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
 from ...core.types.common import RefundSettingsUpdateError
+from ...page.types import PageType
 from ...site.dataloaders import get_site_promise
 from ..types import RefundSettings
 
@@ -46,19 +49,27 @@ class RefundSettingsUpdate(BaseMutation):
     ):
         refund_reason_reference_type = input.get("refund_reason_reference_type")
 
+        if not refund_reason_reference_type:
+            raise ValidationError(
+                {
+                    "refund_reason_reference_type": ValidationError(
+                        "This field is required.",
+                        code=RefundSettingsErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
         site = get_site_promise(info.context).get()
         settings = site.settings
 
-        if refund_reason_reference_type:
-            model_type = cls.get_node_or_error(
-                info,
-                refund_reason_reference_type,
-                only_type="PageType",
-                field="refund_reason_reference_type",
-            )
+        model_type = cls.get_node_or_error(
+            info,
+            refund_reason_reference_type,
+            only_type=PageType,
+            field="refund_reason_reference_type",
+        )
 
-            settings.refund_reason_reference_type = model_type  # type: ignore[assignment]
-
-            settings.save(update_fields=["refund_reason_reference_type"])
+        settings.refund_reason_reference_type = model_type
+        settings.save(update_fields=["refund_reason_reference_type"])
 
         return RefundSettingsUpdate(refund_settings=settings)

@@ -29,10 +29,8 @@ def test_refund_reason_reference_type_clear_by_staff_success(
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
 
-    # Set initial page type
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
-    assert site_settings.refund_reason_reference_type == page_type
 
     # when
     response = staff_api_client.post_graphql(
@@ -59,10 +57,8 @@ def test_refund_reason_reference_type_clear_by_app_success(
     # given
     app_api_client.app.permissions.add(permission_manage_settings)
 
-    # Set initial page type
     site_settings.refund_reason_reference_type = page_type
     site_settings.save()
-    assert site_settings.refund_reason_reference_type == page_type
 
     # when
     response = app_api_client.post_graphql(
@@ -90,10 +86,8 @@ def test_refund_reason_reference_type_clear_when_already_none(
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
 
-    # Ensure it's already None
     site_settings.refund_reason_reference_type = None
     site_settings.save()
-    assert site_settings.refund_reason_reference_type is None
 
     # when
     response = staff_api_client.post_graphql(
@@ -125,10 +119,8 @@ def test_refund_reason_reference_type_clear_multiple_page_types(
     page_type1 = PageType.objects.create(name="Type 1", slug="type-1")
     page_type2 = PageType.objects.create(name="Type 2", slug="type-2")
 
-    # Set one as the reference type
     site_settings.refund_reason_reference_type = page_type1
     site_settings.save()
-    assert site_settings.refund_reason_reference_type == page_type1
 
     # when
     response = staff_api_client.post_graphql(
