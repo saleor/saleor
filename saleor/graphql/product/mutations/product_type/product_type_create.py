@@ -12,6 +12,7 @@ from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.validators import validate_slug_and_generate_if_needed
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import ProductTypeKindEnum
 from ...types import ProductType
 from ..utils import clean_tax_code
@@ -161,3 +162,8 @@ class ProductTypeCreate(DeprecatedModelMutation):
             instance.product_attributes.set(product_attributes)
         if variant_attributes is not None:
             instance.variant_attributes.set(variant_attributes)
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.product_type_created, instance)

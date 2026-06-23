@@ -9,9 +9,12 @@ from ....attribute import models as attribute_models
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductTypePermissions
 from ....product import models
+from ....webhook.event_types import WebhookEventAsyncType
+from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import NonNullList, ProductError
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import ProductType
 
 
@@ -48,6 +51,17 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
             return 0, error
         cls.delete_assigned_attribute_values(pks)
         return super().perform_mutation(_root, info, ids=ids)
+
+    @classmethod
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
+        product_types = list(queryset)
+        queryset.delete()
+        manager = get_plugin_manager_promise(info.context).get()
+        webhooks = get_webhooks_for_event(WebhookEventAsyncType.PRODUCT_TYPE_DELETED)
+        for product_type in product_types:
+            cls.call_event(
+                manager.product_type_deleted, product_type, webhooks=webhooks
+            )
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):
