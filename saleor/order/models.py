@@ -9,7 +9,7 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import connection, models
-from django.db.models import F, JSONField, Max
+from django.db.models import F, JSONField, Max, Q
 from django.db.models.expressions import Exists, OuterRef
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
@@ -762,6 +762,15 @@ class Fulfillment(ModelWithMetadata):
     )
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    reason = models.TextField(blank=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page",
+        related_name="+",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
 
     shipping_refund_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -781,6 +790,11 @@ class Fulfillment(ModelWithMetadata):
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             BTreeIndex(fields=["status"], name="fulfillment_status_idx"),
+            BTreeIndex(
+                fields=["reason_reference"],
+                name="fulfillment_reason_ref_idx",
+                condition=Q(reason_reference__isnull=False),
+            ),
         ]
 
     def __str__(self):
@@ -830,6 +844,24 @@ class FulfillmentLine(models.Model):
         blank=True,
         null=True,
     )
+    reason = models.TextField(blank=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page",
+        related_name="+",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
+
+    class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["reason_reference"],
+                name="fulfillmentline_reason_ref_idx",
+                condition=Q(reason_reference__isnull=False),
+            ),
+        ]
 
 
 class OrderEvent(models.Model):
@@ -944,3 +976,20 @@ class OrderGrantedRefundLine(models.Model):
     )
 
     reason = models.TextField(blank=True, null=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page",
+        related_name="+",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
+
+    class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["reason_reference"],
+                name="grantedrefundline_reason_ref_idx",
+                condition=Q(reason_reference__isnull=False),
+            ),
+        ]

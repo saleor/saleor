@@ -18,6 +18,8 @@ from .mutations import (
     OrderSettingsUpdate,
     RefundReasonReferenceTypeClear,
     RefundSettingsUpdate,
+    ReturnReasonReferenceTypeClear,
+    ReturnSettingsUpdate,
     ShopAddressUpdate,
     ShopDomainUpdate,
     ShopFetchTaxRates,
@@ -26,7 +28,7 @@ from .mutations import (
     StaffNotificationRecipientDelete,
     StaffNotificationRecipientUpdate,
 )
-from .types import GiftCardSettings, RefundSettings, Shop
+from .types import GiftCardSettings, RefundSettings, ReturnSettings, Shop
 
 
 class ShopQueries(graphene.ObjectType):
@@ -56,6 +58,13 @@ class ShopQueries(graphene.ObjectType):
     refund_settings = PermissionsField(
         RefundSettings,
         description="Refunds related settings. Returns `RefundSettings` configuration, global for the entire shop.",
+        required=True,
+        permissions=[],
+        doc_category=DOC_CATEGORY_SHOP,
+    )
+    return_settings = PermissionsField(
+        ReturnSettings,
+        description="Returns related settings. Returns `ReturnSettings` configuration, global for the entire shop.",
         required=True,
         permissions=[],
         doc_category=DOC_CATEGORY_SHOP,
@@ -92,6 +101,10 @@ class ShopQueries(graphene.ObjectType):
     def resolve_refund_settings(self, _info, site):
         return site.settings
 
+    @load_site_callback
+    def resolve_return_settings(self, _info, site):
+        return site.settings
+
 
 class ShopMutations(graphene.ObjectType):
     staff_notification_recipient_create = StaffNotificationRecipientCreate.Field()
@@ -114,3 +127,5 @@ class ShopMutations(graphene.ObjectType):
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
     refund_settings_update = RefundSettingsUpdate.Field()
     refund_reason_reference_clear = RefundReasonReferenceTypeClear.Field()
+    return_settings_update = ReturnSettingsUpdate.Field()
+    return_reason_reference_clear = ReturnReasonReferenceTypeClear.Field()

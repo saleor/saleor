@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -6,13 +8,45 @@ from ....order import FulfillmentLineData
 from ....order import models as order_models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
+from ....page.models import Page, PageType
+from ....site.models import SiteSettings
 from ...core.mutations import BaseMutation
+from ...payment.utils import validate_reason_reference_context
 from ..types import FulfillmentLine, OrderLine
+from .order_grant_refund_utils import resolve_reason_reference_page
 
 
 class FulfillmentRefundAndReturnProductBase(BaseMutation):
     class Meta:
         abstract = True
+
+    @classmethod
+    def _resolve_line_reason_reference(
+        cls,
+        reason_reference_id: str | None,
+        site_settings: SiteSettings | None,
+        reason_reference_type: PageType | None,
+    ) -> Page | None:
+        """Validate and resolve a per-line reason reference to a Page.
+
+        Per-line references are always optional (for both staff and apps); when
+        provided the referenced Page must match the configured reference type.
+        Reason processing is skipped entirely when ``site_settings`` is not given.
+        """
+        if not site_settings or reason_reference_id is None:
+            return None
+        should_apply = validate_reason_reference_context(
+            reason_reference_id=reason_reference_id,
+            requestor_is_user=False,
+            reason_reference_field_name="reason_reference",
+            error_code_enum=OrderErrorCode,
+            reason_reference_type=reason_reference_type,
+        )
+        if should_apply and reason_reference_type:
+            return resolve_reason_reference_page(
+                str(reason_reference_id), reason_reference_type.pk, OrderErrorCode
+            )
+        return None
 
     @classmethod
     def clean_order_payment(cls, payment, cleaned_input):
@@ -85,7 +119,12 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
 
     @classmethod
     def clean_fulfillment_lines(
-        cls, fulfillment_lines_data, cleaned_input, whitelisted_statuses
+        cls,
+        fulfillment_lines_data,
+        cleaned_input,
+        whitelisted_statuses,
+        site_settings: SiteSettings | None = None,
+        reason_reference_type: PageType | None = None,
     ):
         fulfillment_lines = cls.get_nodes_or_error(
             [line["fulfillment_line_id"] for line in fulfillment_lines_data],
@@ -134,17 +173,30 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     line.pk,
                     "order_line_id",
                 )
+            reason_reference_instance = cls._resolve_line_reason_reference(
+                line_data.get("reason_reference"),
+                site_settings,
+                reason_reference_type,
+            )
             cleaned_fulfillment_lines.append(
                 FulfillmentLineData(
                     line=line,
                     quantity=quantity,
                     replace=replace,
+                    reason=line_data.get("reason"),
+                    reason_reference=reason_reference_instance,
                 )
             )
         cleaned_input["fulfillment_lines"] = cleaned_fulfillment_lines
 
     @classmethod
-    def clean_lines(cls, lines_data, cleaned_input):
+    def clean_lines(
+        cls,
+        lines_data,
+        cleaned_input,
+        site_settings: SiteSettings | None = None,
+        reason_reference_type: PageType | None = None,
+    ):
         order_lines = cls.get_nodes_or_error(
             [line["order_line_id"] for line in lines_data],
             field="order_lines",
@@ -155,6 +207,7 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
         )
         order_lines = list(order_lines)
         cleaned_order_lines = []
+        order_lines_reason_data: dict[UUID, tuple[str | None, Page | None]] = {}
         for line, line_data in zip(order_lines, lines_data, strict=False):
             quantity = line_data["quantity"]
             if line.is_gift_card:
@@ -190,9 +243,19 @@ class FulfillmentRefundAndReturnProductBase(BaseMutation):
                     "order_line_id",
                 )
 
+            reason_reference_instance = cls._resolve_line_reason_reference(
+                line_data.get("reason_reference"),
+                site_settings,
+                reason_reference_type,
+            )
             cleaned_order_lines.append(
                 OrderLineInfo(
                     line=line, quantity=quantity, variant=variant, replace=replace
                 )
             )
+            order_lines_reason_data[line.pk] = (
+                line_data.get("reason"),
+                reason_reference_instance,
+            )
         cleaned_input["order_lines"] = cleaned_order_lines
+        cleaned_input["order_lines_reason_data"] = order_lines_reason_data
