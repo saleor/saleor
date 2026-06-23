@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING, Optional
 
 from django.core.exceptions import ValidationError
 
+from ...page.models import PageType
 from ...payment import models as payment_models
-from ...site.models import SiteSettings
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -46,50 +46,49 @@ def check_if_requestor_has_access(
     return False
 
 
-def validate_and_resolve_refund_reason_context(
+def validate_reason_reference_context(
     *,
     reason_reference_id: str | None,
     requestor_is_user: bool,
-    refund_reference_field_name: str,
+    reason_reference_field_name: str,
     error_code_enum,
-    site_settings: SiteSettings,
-):
-    refund_reason_reference_type = site_settings.refund_reason_reference_type
+    reason_reference_type: PageType | None,
+) -> bool:
+    """Validate conditions for applying reason reference.
 
-    is_passing_reason_reference_required: bool = (
-        refund_reason_reference_type is not None
-    )
+    This does not verify that ``reason_reference_id`` points to a Page of
+    ``reason_reference_type``.
 
-    if not refund_reason_reference_type and reason_reference_id:
+    The caller must supply ``reason_reference_type`` (e.g. the refund or return
+    reason reference type from the site settings); passing ``None`` means no
+    reference type is configured.
+
+    Returns ``should_apply`` — whether a reason reference should be resolved and
+    applied. When it is ``True`` the supplied ``reason_reference_type`` is
+    guaranteed to be set, so the caller can resolve against it directly.
+    """
+    if not reason_reference_type and reason_reference_id:
         raise ValidationError(
             {
-                refund_reference_field_name: ValidationError(
+                reason_reference_field_name: ValidationError(
                     "Reason reference type is not configured.",
                     code=error_code_enum.INVALID.value,
                 )
             }
-        ) from None
+        )
 
     if (
-        is_passing_reason_reference_required
+        reason_reference_type is not None
         and reason_reference_id is None
         and requestor_is_user
     ):
         raise ValidationError(
             {
-                refund_reference_field_name: ValidationError(
-                    "Reason reference is required when refund reason reference type is configured.",
+                reason_reference_field_name: ValidationError(
+                    "Reason reference is required when reason reference type is configured.",
                     code=error_code_enum.REQUIRED.value,
                 )
             }
-        ) from None
+        )
 
-    should_apply = bool(
-        reason_reference_id is not None and refund_reason_reference_type
-    )
-
-    return {
-        "is_passing_reason_reference_required": is_passing_reason_reference_required,
-        "refund_reason_reference_type": refund_reason_reference_type,
-        "should_apply": should_apply,
-    }
+    return bool(reason_reference_id is not None and reason_reference_type)
