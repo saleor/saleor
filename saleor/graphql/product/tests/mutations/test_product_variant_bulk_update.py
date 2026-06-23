@@ -612,6 +612,77 @@ def test_product_variant_bulk_update_create_already_existing_channel_listing_err
         assert variant.name != new_name
 
 
+def test_product_variant_bulk_update_create_duplicate_and_invalid_channel_listing_error_paths(
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    # The variant is already listed on channel_USD, and its product is NOT
+    # assigned to channel_PLN. The `create` list mixes:
+    #   index 0 -> duplicate listing for channel_USD (caught by the new check)
+    #   index 1 -> a listing for channel_PLN (product not assigned to that channel)
+    # so two different input entries each produce an error, and their reported
+    # `path` indices must stay aligned with the input positions.
+    product = variant.product
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    assert variant.channel_listings.count() == 1
+    usd_global_id = graphene.Node.to_global_id("Channel", channel_USD.pk)
+    pln_global_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+
+    variants = [
+        {
+            "id": variant_id,
+            "channelListings": {
+                "create": [
+                    {"price": 50.0, "channelId": usd_global_id},  # index 0: duplicate
+                    {
+                        "price": 20.0,
+                        "channelId": pln_global_id,
+                    },  # index 1: not assigned
+                ]
+            },
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 2
+
+    errors_by_code = {error["code"]: error for error in errors}
+
+    duplicate_error = errors_by_code[
+        ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
+    ]
+    assert duplicate_error["path"] == "channelListings.create.0.channelId"
+    assert duplicate_error["channels"] == [usd_global_id]
+
+    not_assigned_error = errors_by_code[
+        ProductVariantBulkErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.name
+    ]
+    # The entry was at input index 1; the reported path must keep that index even
+    # though the duplicate at index 0 was dropped before creation.
+    assert not_assigned_error["path"] == "channelListings.create.1.channelId"
+    assert not_assigned_error["channels"] == [pln_global_id]
+
+    assert data["count"] == 0
+    assert variant.channel_listings.count() == 1
+
+
 def test_product_variant_bulk_update_and_remove_stock(
     staff_api_client,
     variant_with_many_stocks,
