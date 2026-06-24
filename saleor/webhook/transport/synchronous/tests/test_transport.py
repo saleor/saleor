@@ -269,3 +269,26 @@ def test_send_webhook_request_sync_record_external_request_with_unknown_webhook_
     assert external_request_content_length.attributes == attributes
     assert external_request_content_length.count == 1
     assert external_request_content_length.sum == payload_size
+
+
+def test_send_webhook_request_sync_logs_error_inside_transaction(
+    event_delivery_payload_in_database,
+):
+    from django.db import transaction
+    from unittest.mock import patch
+    from ..transport import send_webhook_request_sync
+
+    with patch(
+        "saleor.webhook.transport.synchronous.transport._send_webhook_request_sync"
+    ) as mock_send, patch(
+        "saleor.webhook.transport.synchronous.transport.logger"
+    ) as mock_logger:
+        mock_send.return_value = (
+            type("R", (), {"status": "success"})(),
+            {},
+        )
+        with transaction.atomic():
+            send_webhook_request_sync(event_delivery_payload_in_database)
+
+        mock_logger.error.assert_called_once()
+        assert "transaction" in mock_logger.error.call_args[0][0]

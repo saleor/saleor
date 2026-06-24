@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.cache import cache
-from django.db import transaction
+from django.db import connection, transaction
 from opentelemetry.trace import StatusCode
 from promise import Promise
 
@@ -195,6 +195,13 @@ def _send_webhook_request_sync(
 def send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> dict[Any, Any] | None:
+    if connection.in_atomic_block:
+        logger.error(
+            "Sync webhook called inside a database transaction. "
+            "Event: %s. This may cause data inconsistency if the "
+            "transaction is rolled back.",
+            delivery.event_type,
+        )
     response, response_data = _send_webhook_request_sync(delivery, timeout)
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
 
