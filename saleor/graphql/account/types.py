@@ -26,6 +26,8 @@ from ..app.types import App
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
+from ..checkout.filters import CheckoutFilterInput
+from ..checkout.sorters import CheckoutSortField, CheckoutSortingInput
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import (
@@ -35,11 +37,12 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_322, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_322, ADDED_IN_324, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
+from ..core.utils import validate_and_apply_search_rank_sorting
 from ..core.scalars import UUID, DateTime
 from ..core.tracing import traced_resolver
 from ..core.types import (
@@ -367,13 +370,15 @@ class User(ModelObjectType[models.User]):
             description="Slug of a channel for which the data should be returned."
         ),
     )
-    checkouts = ConnectionField(
+    checkouts = FilterConnectionField(
         CheckoutCountableConnection,
+        sort_by=CheckoutSortingInput(description="Sort checkouts." + ADDED_IN_324),
+        filter=CheckoutFilterInput(description="Filtering options for checkouts." + ADDED_IN_324),
         description=(
-            "Returns checkouts assigned to this user. The query will not initiate any "
-            "external requests, including fetching external shipping methods, "
-            "filtering available shipping methods, or performing external tax "
-            "calculations."
+            "Returns checkouts assigned to this user. The query will not "
+            "initiate any external requests, including fetching external "
+            "shipping methods, filtering available shipping methods, or "
+            "performing external tax calculations."
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -556,10 +561,30 @@ class User(ModelObjectType[models.User]):
             .load((root.id, channel))
             .then(return_checkout_ids)
         )
-
     @staticmethod
     def resolve_checkouts(root: models.User, info: ResolveInfo, **kwargs):
+        validate_and_apply_search_rank_sorting(
+            kwargs, CheckoutSortField.RANK, "CheckoutSortingInput", info
+        )
+
         def _resolve_checkouts(checkouts):
+            from ...checkout.models import Checkout
+
+            if kwargs.get("sort_by") or kwargs.get("filter"):
+                checkout_ids = [c.pk for c in checkouts]
+                checkouts = Checkout.objects.using(
+                    get_database_connection_name(info.context)
+                ).filter(pk__in=checkout_ids)
+                qs = filter_connection_queryset(
+                    checkouts, kwargs, allow_replica=info.context.allow_replica
+                )
+                return create_connection_slice_for_sync_webhook_control_context(
+                    qs,
+                    info,
+                    kwargs,
+                    CheckoutCountableConnection,
+                    allow_sync_webhooks=False,
+                )
             return create_connection_slice_for_sync_webhook_control_context(
                 checkouts,
                 info,
@@ -594,7 +619,7 @@ class User(ModelObjectType[models.User]):
         return (
             GiftCardsByUserLoader(info.context).load(root.id).then(_resolve_gift_cards)
         )
-
+    
     @staticmethod
     def resolve_user_permissions(root: models.User, info: ResolveInfo):
         if is_newly_created_user(root):

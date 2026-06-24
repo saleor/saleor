@@ -859,3 +859,126 @@ def test_me_orders_where_filter_by_metadata(user_api_client, order_list):
     assert orders_data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
         "Order", order_list[0].pk
     )
+QUERY_ME_CHECKOUTS_WITH_SORT_AND_FILTER = """
+    query Me($sortBy: CheckoutSortingInput, $filter: CheckoutFilterInput) {
+        me {
+            checkouts(first: 10, sortBy: $sortBy, filter: $filter) {
+                edges {
+                    node {
+                        id
+                        created
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_me_checkouts_sort_by_creation_date_asc(user_api_client, checkout, checkout_JPY):
+    # given
+    user = user_api_client.user
+    checkout.user = checkout_JPY.user = user
+    checkout.save()
+    checkout_JPY.save()
+
+    # when
+    variables = {"sortBy": {"field": "CREATION_DATE", "direction": "ASC"}}
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUTS_WITH_SORT_AND_FILTER, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["me"]["checkouts"]["edges"]
+    assert len(edges) == 2
+    assert edges[0]["node"]["id"] == graphene.Node.to_global_id("Checkout", checkout.pk)
+    assert edges[1]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout_JPY.pk
+    )
+
+
+def test_me_checkouts_sort_by_creation_date_desc(user_api_client, checkout, checkout_JPY):
+    # given
+    user = user_api_client.user
+    checkout.user = checkout_JPY.user = user
+    checkout.save()
+    checkout_JPY.save()
+
+    # when
+    variables = {"sortBy": {"field": "CREATION_DATE", "direction": "DESC"}}
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUTS_WITH_SORT_AND_FILTER, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["me"]["checkouts"]["edges"]
+    assert len(edges) == 2
+    assert edges[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Checkout", checkout_JPY.pk
+    )
+    assert edges[1]["node"]["id"] == graphene.Node.to_global_id("Checkout", checkout.pk)
+
+
+def test_me_checkouts_filter_by_channel(user_api_client, checkout, checkout_JPY):
+    # given
+    user = user_api_client.user
+    checkout.user = checkout_JPY.user = user
+    checkout.save()
+    checkout_JPY.save()
+    channel_id = graphene.Node.to_global_id("Channel", checkout.channel.pk)
+
+    # when
+    variables = {"filter": {"channels": [channel_id]}}
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUTS_WITH_SORT_AND_FILTER, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["me"]["checkouts"]["edges"]
+    assert len(edges) == 1
+    assert edges[0]["node"]["id"] == graphene.Node.to_global_id("Checkout", checkout.pk)
+
+
+def test_me_checkouts_sort_and_filter_combined(user_api_client, checkout, checkout_JPY):
+    # given
+    user = user_api_client.user
+    checkout.user = checkout_JPY.user = user
+    checkout.save()
+    checkout_JPY.save()
+    channel_id = graphene.Node.to_global_id("Channel", checkout.channel.pk)
+
+    # when
+    variables = {
+        "sortBy": {"field": "CREATION_DATE", "direction": "DESC"},
+        "filter": {"channels": [channel_id]},
+    }
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUTS_WITH_SORT_AND_FILTER, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["me"]["checkouts"]["edges"]
+    assert len(edges) == 1
+    assert edges[0]["node"]["id"] == graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    
+def test_me_checkouts_sort_by_rank_without_search(user_api_client):
+    # given
+    variables = {"sortBy": {"field": "RANK", "direction": "DESC"}}
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_ME_CHECKOUTS_WITH_SORT_AND_FILTER, variables
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert "errors" in content
+    assert (
+        content["errors"][0]["message"]
+        == "Sorting by RANK is available only when using a search filter."
+    )
