@@ -273,6 +273,7 @@ def install_app(
             target=extension_data.get("target", DEFAULT_APP_TARGET),
             http_target_method=http_target_method,
             settings=extension_data.get("options", {}),
+            identifier=extension_data.get("identifier"),
         )
         extension.permissions.set(extension_data.get("permissions", []))
 

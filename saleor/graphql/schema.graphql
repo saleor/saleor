@@ -3128,6 +3128,13 @@ type AppExtension implements Node @doc(category: "Apps") {
 
   """JWT token used to authenticate by third-party app extension."""
   accessToken: String
+
+  """
+  Stable, app-defined identifier of the extension. Unique per app (an app cannot reuse the same identifier for two of its extensions), but may be reused across different apps. Null when the app did not declare one.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
 }
 
 scalar JSON
@@ -32325,6 +32332,7 @@ enum AppErrorCode @doc(category: "Apps") {
   INVALID_URL_FORMAT
   INVALID_MANIFEST_FORMAT
   INVALID_CUSTOM_HEADERS
+  DUPLICATED_EXTENSION_IDENTIFIER
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
