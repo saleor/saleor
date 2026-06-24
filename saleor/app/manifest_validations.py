@@ -196,6 +196,7 @@ def _clean_extension_permissions(extension, app_permissions, errors):
 def _clean_extensions(manifest_data, app_permissions, errors):
     extensions = manifest_data.get("extensions", [])
 
+    seen_identifiers: set[str] = set()
     for extension in extensions:
         if "target" not in extension:
             extension["target"] = DEFAULT_APP_TARGET
@@ -203,6 +204,8 @@ def _clean_extensions(manifest_data, app_permissions, errors):
         # Save in lowercase to maintain backwards compatibility with enums, that were used previously
         extension["target"] = extension["target"].lower()
         extension["mount"] = extension["mount"].lower()
+
+        _clean_extension_identifier(extension, seen_identifiers, errors)
 
         try:
             _clean_extension_url(extension, manifest_data)
@@ -215,6 +218,28 @@ def _clean_extensions(manifest_data, app_permissions, errors):
             )
 
         _clean_extension_permissions(extension, app_permissions, errors)
+
+
+def _clean_extension_identifier(extension, seen_identifiers, errors):
+    """Normalize and ensure the extension identifier is unique within the manifest.
+
+    Blank or whitespace-only identifiers are treated as not provided (``None``)
+    and may repeat freely. Non-empty identifiers must be unique per app.
+    """
+    identifier = (extension.get("identifier") or "").strip() or None
+    extension["identifier"] = identifier
+
+    if identifier is None:
+        return
+
+    if identifier in seen_identifiers:
+        errors["extensions"].append(
+            ValidationError(
+                f"Duplicate extension identifier: {identifier}.",
+                code=AppErrorCode.DUPLICATED_EXTENSION_IDENTIFIER.value,
+            )
+        )
+    seen_identifiers.add(identifier)
 
 
 def _clean_webhooks(manifest_data, errors):

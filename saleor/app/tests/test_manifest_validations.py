@@ -419,6 +419,114 @@ def test_clean_manifest_data_rejects_manage_apps_permission_on_extension_alongsi
     assert error.params == {"permissions": [manage_apps], "label": extension_label}
 
 
+def _extension(label, identifier=None):
+    extension = {
+        "label": label,
+        "url": "https://example.com/ext",
+        "mount": "PRODUCT_OVERVIEW_MORE_ACTIONS",
+        "target": "POPUP",
+    }
+    if identifier is not None:
+        extension["identifier"] = identifier
+    return extension
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_accepts_unique_extension_identifiers():
+    # given - two extensions with distinct identifiers
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [
+            _extension("First", identifier="first-ext"),
+            _extension("Second", identifier="second-ext"),
+        ],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then - identifiers are preserved on the cleaned manifest
+    assert manifest_data["extensions"][0]["identifier"] == "first-ext"
+    assert manifest_data["extensions"][1]["identifier"] == "second-ext"
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_duplicate_extension_identifiers():
+    # given - two extensions reuse the same identifier within one manifest
+    duplicate_identifier = "refund-button"
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [
+            _extension("First", identifier=duplicate_identifier),
+            _extension("Second", identifier=duplicate_identifier),
+        ],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    extension_errors = exc_info.value.error_dict["extensions"]
+    assert len(extension_errors) == 1
+    error = extension_errors[0]
+    assert error.code == AppErrorCode.DUPLICATED_EXTENSION_IDENTIFIER.value
+    assert duplicate_identifier in error.message
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_allows_multiple_extensions_without_identifier():
+    # given - several extensions omit the identifier entirely
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [
+            _extension("First"),
+            _extension("Second"),
+        ],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then - absent identifiers are normalized to None and do not collide
+    assert manifest_data["extensions"][0]["identifier"] is None
+    assert manifest_data["extensions"][1]["identifier"] is None
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_coerces_blank_identifier_to_none():
+    # given - blank and whitespace-only identifiers
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [
+            _extension("First", identifier="   "),
+            _extension("Second", identifier=""),
+        ],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then - both are treated as not provided, so no duplicate error is raised
+    assert manifest_data["extensions"][0]["identifier"] is None
+    assert manifest_data["extensions"][1]["identifier"] is None
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_strips_surrounding_whitespace_from_identifier():
+    # given - identifier padded with whitespace
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [_extension("First", identifier="  refund-button  ")],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert manifest_data["extensions"][0]["identifier"] == "refund-button"
+
+
 def test_manifest_schema_deprecated_fields_accepted():
     # given — deprecated fields are excluded from schema but must not cause a
     # validation error, and must remain accessible in the original dict so that
