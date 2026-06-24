@@ -28330,7 +28330,7 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   createdAt: DateTime!
 
   """Status of the order."""
-  status: OrderStatus
+  status: OrderStatus!
 
   """Customer associated with the order."""
   user: OrderBulkCreateUserInput!
