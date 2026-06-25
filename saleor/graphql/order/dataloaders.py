@@ -151,6 +151,16 @@ class OrderEventsByIdLoader(DataLoader[int, OrderEvent]):
         return [events.get(event_id) for event_id in keys]
 
 
+class OrderGrantedRefundByIdLoader(DataLoader[int, OrderGrantedRefund]):
+    context_key = "order_granted_refund_by_id"
+
+    def batch_load(self, keys):
+        refunds = OrderGrantedRefund.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys)
+        return [refunds.get(refund_id) for refund_id in keys]
+
+
 class OrderGrantedRefundsByOrderIdLoader(DataLoader[UUID, list[OrderGrantedRefund]]):
     context_key = "order_granted_refunds_by_order_id"
 
@@ -196,6 +206,16 @@ class AllocationsByOrderLineIdLoader(DataLoader[UUID, list[Allocation]]):
             order_lines_to_allocations[allocation.order_line_id].append(allocation)
 
         return [order_lines_to_allocations[order_line_id] for order_line_id in keys]
+
+
+class FulfillmentByIdLoader(DataLoader[int, Fulfillment]):
+    context_key = "fulfillment_by_id"
+
+    def batch_load(self, keys):
+        fulfillments = Fulfillment.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
+        return [fulfillments.get(fulfillment_id) for fulfillment_id in keys]
 
 
 class FulfillmentsByOrderIdLoader(DataLoader[UUID, list[Fulfillment]]):
@@ -417,32 +437,44 @@ class OrderShippingMethodsByOrderIdAndWebhookSyncLoader(
         orders = OrderByIdLoader(self.context).load_many([order for (order, _) in keys])
 
         def with_orders(orders: list[Order]):
-            def with_listings(channel_listings):
-                results: list[Promise[list[ShippingMethodData]]] = []
-                with allow_writer_in_context(self.context):
-                    for order, listings, (_, allow_sync_webhooks) in zip(
-                        orders, channel_listings, keys, strict=True
-                    ):
-                        result = get_valid_shipping_methods_for_order(
-                            order,
-                            listings,
-                            requestor=requestor,
-                            database_connection_name=self.database_connection_name,
-                            allow_sync_webhooks=allow_sync_webhooks,
-                        )
-                    results.append(result)
-                return Promise.all(results)
+            channel_ids = [order.channel_id for order in orders if order is not None]
 
             def with_channels(channels):
+                channel_slug_by_id = {channel.id: channel.slug for channel in channels}
+
+                def with_listings(channel_listings):
+                    listings_by_channel_id = dict(
+                        zip(channel_ids, channel_listings, strict=True)
+                    )
+                    results: list[Promise[list[ShippingMethodData]]] = []
+                    with allow_writer_in_context(self.context):
+                        for order, (_, allow_sync_webhooks) in zip(
+                            orders, keys, strict=True
+                        ):
+                            if order is None:
+                                results.append(Promise.resolve([]))
+                                continue
+                            result = get_valid_shipping_methods_for_order(
+                                order,
+                                listings_by_channel_id[order.channel_id],
+                                requestor=requestor,
+                                database_connection_name=self.database_connection_name,
+                                allow_sync_webhooks=allow_sync_webhooks,
+                            )
+                            results.append(result)
+                    return Promise.all(results)
+
                 return (
                     ShippingMethodChannelListingByChannelSlugLoader(self.context)
-                    .load_many([c.slug for c in channels])
+                    .load_many(
+                        [channel_slug_by_id[channel_id] for channel_id in channel_ids]
+                    )
                     .then(with_listings)
                 )
 
             return (
                 ChannelByIdLoader(self.context)
-                .load_many([order.channel_id for order in orders if order is not None])
+                .load_many(channel_ids)
                 .then(with_channels)
             )
 

@@ -6,6 +6,10 @@ updates:
     interval: "weekly"
   cooldown:
     default-days: 21 # 3 weeks
+  groups:
+    all-github-action-updates:
+      patterns:
+        - "*"
 - package-ecosystem: "uv"
   directory: "/"
   schedule:

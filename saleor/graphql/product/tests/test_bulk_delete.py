@@ -900,6 +900,50 @@ def test_delete_product_types(
     ).exists()
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_type_bulk_delete."
+    "get_webhooks_for_event"
+)
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_product_types_trigger_webhooks(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    product_type_list,
+    permission_manage_product_types_and_attributes,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type_count = len(product_type_list)
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductType", product_type.pk)
+            for product_type in product_type_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_TYPE_BULK_DELETE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeBulkDelete"]
+
+    assert not data["errors"]
+    assert data["count"] == product_type_count
+    assert mocked_webhook_trigger.call_count == product_type_count
+
+
 def test_delete_product_types_invalid_object_typed_of_given_ids(
     staff_api_client,
     product_type_list,

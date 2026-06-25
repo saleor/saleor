@@ -56,6 +56,7 @@ from ..core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
+    ADDED_IN_324,
     DEPRECATED_IN_3X_EVENT,
     PREVIEW_FEATURE,
 )
@@ -902,6 +903,42 @@ class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when product metadata is updated."
+
+
+class ProductTypeBase(AbstractType):
+    product_type = graphene.Field(
+        "saleor.graphql.product.types.ProductType",
+        description="The product type the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_product_type(root, _info: ResolveInfo):
+        _, product_type = root
+        return product_type
+
+
+class ProductTypeCreated(SubscriptionObjectType, ProductTypeBase):
+    class Meta:
+        root_type = "ProductType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new product type is created." + ADDED_IN_324
+
+
+class ProductTypeUpdated(SubscriptionObjectType, ProductTypeBase):
+    class Meta:
+        root_type = "ProductType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product type is updated." + ADDED_IN_324
+
+
+class ProductTypeDeleted(SubscriptionObjectType, ProductTypeBase):
+    class Meta:
+        root_type = "ProductType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product type is deleted." + ADDED_IN_324
 
 
 class ProductMediaBase(AbstractType):
@@ -3244,6 +3281,9 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,
     WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: ProductExportCompleted,
+    WebhookEventAsyncType.PRODUCT_TYPE_CREATED: ProductTypeCreated,
+    WebhookEventAsyncType.PRODUCT_TYPE_UPDATED: ProductTypeUpdated,
+    WebhookEventAsyncType.PRODUCT_TYPE_DELETED: ProductTypeDeleted,
     WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: ProductMediaCreated,
     WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: ProductMediaUpdated,
     WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: ProductMediaDeleted,

@@ -57,7 +57,7 @@ jobs:
 
       # Required by docker/metadata-action
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ inputs.ref }}
 
@@ -90,7 +90,7 @@ jobs:
 
       - name: Docker metadata
         id: metadata
-        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
           images: |
             ghcr.io/${{ steps.get-image-name.outputs.image_name }}
@@ -106,7 +106,7 @@ jobs:
 
   build-push:
     needs: prepare-variables
-    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@49a069ae9731cfccf3a1033fe1da4e3da84f4f2a # v1.11.0
+    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
     permissions:
       contents: read
       id-token: write # needed for AWS/ECR login (not used, but required permission)
@@ -126,7 +126,7 @@ jobs:
   notify:
     if: ${{ failure() }}
     needs: [prepare-variables, build-push]
-    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@49a069ae9731cfccf3a1033fe1da4e3da84f4f2a # v1.11.0
+    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
     with:
       type: build
       ref: ${{ needs.prepare-variables.outputs.version || inputs.ref || github.ref_name }}

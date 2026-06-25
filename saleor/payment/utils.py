@@ -1683,7 +1683,16 @@ def get_source_object(
 
 def mark_checkout_search_index_dirty(checkout: Checkout):
     checkout.search_index_dirty = True
-    checkout.safe_update(update_fields=["search_index_dirty"])
+    try:
+        checkout.safe_update(update_fields=["search_index_dirty"])
+    except Checkout.DoesNotExist:
+        # The checkout was concurrently deleted (e.g. completed into an order or
+        # expired). Marking the search index as dirty is a best-effort operation, so
+        # there is nothing left to re-index and the failure can be safely ignored.
+        logger.info(
+            "Skipped marking checkout %s search index as dirty: checkout no longer exists.",
+            checkout.pk,
+        )
 
 
 def _prepare_manual_event(
@@ -1943,8 +1952,7 @@ def handle_transaction_initialize_session(
         )
     if isinstance(source_object, Checkout):
         # new transaction created, so we need to mark the checkout search index as dirty
-        source_object.search_index_dirty = True
-        source_object.safe_update(update_fields=["search_index_dirty"])
+        mark_checkout_search_index_dirty(source_object)
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
 
@@ -1985,8 +1993,7 @@ def handle_transaction_process_session(
         created_event, source_object, app.identifier
     )
     if isinstance(source_object, Checkout):
-        source_object.search_index_dirty = True
-        source_object.safe_update(update_fields=["search_index_dirty"])
+        mark_checkout_search_index_dirty(source_object)
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return
 

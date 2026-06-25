@@ -1262,6 +1262,33 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     product_updated: Callable[["Product", Any, None], Any]
 
+    # Trigger when product type is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product type
+    # is created.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    product_type_created: Callable[["ProductType", Any], Any]
+
+    # Trigger when product type is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product type
+    # is deleted.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    product_type_deleted: Callable[["ProductType", Any, None], Any]
+
+    # Trigger when product type is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product type
+    # is updated.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    product_type_updated: Callable[["ProductType", Any], Any]
+
     # Trigger when product media is created.
     #
     # Overwrite this method if you need to trigger specific logic after a product media

@@ -43,6 +43,7 @@ from .payloads import (
     generate_page_payload,
     generate_page_type_payload,
     generate_permission_group_payload,
+    generate_product_type_payload,
     generate_promotion_payload,
     generate_promotion_rule_payload,
     generate_sale_payload,
@@ -2569,6 +2570,67 @@ def test_page_type_deleted(page_type, subscription_page_type_deleted_webhook):
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_type_created(product_type, subscription_product_type_created_webhook):
+    # given
+    webhooks = [subscription_product_type_created_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_TYPE_CREATED
+    expected_payload = json.dumps(
+        generate_product_type_payload(
+            product_type, subscription_product_type_created_webhook.app
+        )
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, product_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_type_updated(product_type, subscription_product_type_updated_webhook):
+    # given
+    webhooks = [subscription_product_type_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_TYPE_UPDATED
+    expected_payload = json.dumps(
+        generate_product_type_payload(
+            product_type, subscription_product_type_updated_webhook.app
+        )
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, product_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_type_deleted(product_type, subscription_product_type_deleted_webhook):
+    # given
+    product_type_id = product_type.id
+    product_type.delete()
+    product_type.id = product_type_id
+
+    webhooks = [subscription_product_type_deleted_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_TYPE_DELETED
+    expected_payload = json.dumps(
+        generate_product_type_payload(
+            product_type, subscription_product_type_deleted_webhook.app
+        )
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, product_type, webhooks)
 
     # then
     assert deliveries[0].payload.get_payload() == expected_payload

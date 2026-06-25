@@ -97,7 +97,14 @@ def filter_products_by_collections(qs, collection_pks):
     return qs.filter(Exists(collection_products.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
+def _get_in_stock_variant_stocks(qs, channel_slug):
+    """Return a Stock queryset of variants in stock for the channel's warehouses.
+
+    A variant is considered in stock when it has a stock with available quantity
+    (i.e. quantity greater than the sum of allocated and actively reserved quantity)
+    in a warehouse available for the given channel. The returned queryset is keyed by
+    ``product_variant_id``.
+    """
     allocations = (
         Allocation.objects.using(qs.db)
         .values("stock_id")
@@ -119,7 +126,7 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
     reservation_subquery = Subquery(queryset=reservations, output_field=IntegerField())
 
     warehouse_pks = get_available_warehouse_pks_for_product(qs, channel_slug)
-    stocks = (
+    return (
         Stock.objects.using(qs.db)
         .filter(
             warehouse_id__in=warehouse_pks,
@@ -129,6 +136,9 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         .values("product_variant_id")
     )
 
+
+def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
+    stocks = _get_in_stock_variant_stocks(qs, channel_slug)
     variants = (
         ProductVariant.objects.using(qs.db)
         .filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
@@ -138,6 +148,17 @@ def filter_products_by_stock_availability(qs, stock_availability, channel_slug):
         qs = qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
     if stock_availability == StockAvailability.OUT_OF_STOCK.value:  # type: ignore[attr-defined]
         qs = qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
+    return qs
+
+
+def filter_variants_by_stock_availability(qs, stock_availability, channel_slug):
+    """Filter a ProductVariant queryset by stock availability for the given channel."""
+    stocks = _get_in_stock_variant_stocks(qs, channel_slug)
+    in_stock = Exists(stocks.filter(product_variant_id=OuterRef("pk")))
+    if stock_availability == StockAvailability.IN_STOCK.value:  # type: ignore[attr-defined]
+        qs = qs.filter(in_stock)
+    if stock_availability == StockAvailability.OUT_OF_STOCK.value:  # type: ignore[attr-defined]
+        qs = qs.filter(~in_stock)
     return qs
 
 
@@ -520,6 +541,65 @@ def _filter_range(qs, field, value):
 def where_filter_stock_availability(qs, _, value, channel_slug):
     if value:
         return filter_products_by_stock_availability(qs, value, channel_slug)
+    return qs.none()
+
+
+def where_filter_variant_stock_availability(qs, _, value, channel_slug):
+    if value:
+        return filter_variants_by_stock_availability(qs, value, channel_slug)
+    return qs.none()
+
+
+def where_filter_variant_warehouses(qs, value):
+    if not value:
+        return qs.none()
+    _, warehouse_pks = resolve_global_ids_to_primary_keys(
+        value, warehouse_types.Warehouse
+    )
+    warehouses = (
+        Warehouse.objects.using(qs.db).filter(pk__in=warehouse_pks).values("pk")
+    )
+    stocks = (
+        Stock.objects.using(qs.db)
+        .filter(Exists(warehouses.filter(pk=OuterRef("warehouse"))))
+        .values("product_variant_id")
+    )
+    return qs.filter(Exists(stocks.filter(product_variant_id=OuterRef("pk"))))
+
+
+def where_filter_variant_quantity(qs, quantity_value, warehouse_ids=None):
+    """Filter variants queryset by their aggregated stock quantity.
+
+    Returns variants whose total stock quantity falls between the given range. If
+    warehouses are given, only stocks from those warehouses are aggregated.
+    """
+    stocks = Stock.objects.using(qs.db).all()
+    if warehouse_ids:
+        _, warehouse_pks = resolve_global_ids_to_primary_keys(
+            warehouse_ids, warehouse_types.Warehouse
+        )
+        stocks = stocks.filter(warehouse_id__in=warehouse_pks)
+    stocks = stocks.values("product_variant_id").filter(
+        product_variant_id=OuterRef("pk")
+    )
+    total_quantity = Subquery(stocks.values_list(Sum("quantity")))
+    qs = qs.annotate(
+        total_quantity=ExpressionWrapper(total_quantity, output_field=IntegerField())
+    )
+    return _filter_range(qs, "total_quantity", quantity_value)
+
+
+def where_filter_variant_stocks(qs, _, value):
+    if not value:
+        return qs.none()
+    warehouse_ids = value.get("warehouse_ids")
+    quantity = value.get("quantity")
+    if warehouse_ids and not quantity:
+        return where_filter_variant_warehouses(qs, warehouse_ids)
+    if quantity and not warehouse_ids:
+        return where_filter_variant_quantity(qs, quantity)
+    if quantity and warehouse_ids:
+        return where_filter_variant_quantity(qs, quantity, warehouse_ids)
     return qs.none()
 
 
