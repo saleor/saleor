@@ -2,6 +2,8 @@ from collections.abc import Callable
 from contextlib import contextmanager
 from datetime import datetime
 
+import pytest
+
 from .....site.apps import SiteAppConfig
 from ....tests.utils import (
     assert_no_permission,
@@ -110,6 +112,22 @@ def use_dummy_announcements(
     finally:
         settings.SHOP_ANNOUNCEMENT_RESOLVER_IMPORT = None
         SiteAppConfig.announcements_resolver = None
+
+
+@pytest.fixture(autouse=True)
+def default_settings(settings):
+    """Set the resolver to None, then reverts the changes during tear-down."""
+    old_resolver = SiteAppConfig.announcements_resolver
+
+    # Overrides the default resolver as it may potentially
+    # be set by users thus causing our tests to fail because we
+    # expect the value to be `None`
+    settings.SHOP_ANNOUNCEMENT_RESOLVER_IMPORT = None
+    SiteAppConfig.announcements_resolver = None
+
+    yield
+
+    SiteAppConfig.announcements_resolver = old_resolver
 
 
 def test_cannot_get_announcements_when_not_staff(user_api_client):

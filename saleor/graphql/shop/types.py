@@ -202,8 +202,7 @@ class Announcement(graphene.ObjectType):
         required=True,
         description=(
             "Determine the how critical the announcement is. UNSET if no "
-            "severity level was defined for this announcement. When value is `UNSET`, "
-            "it should be considered as low importance or informational."
+            "severity level was defined for this announcement."
         ),
     )
 
