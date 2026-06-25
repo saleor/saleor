@@ -16,7 +16,7 @@ services:
       - saleor-pre-commit-cache:/root/.cache/pre-commit/
 
   dashboard:
-    image: ghcr.io/saleor/saleor-dashboard:3.22
+    image: ghcr.io/saleor/saleor-dashboard:3.23
     restart: unless-stopped
     ports:
       - "80"
