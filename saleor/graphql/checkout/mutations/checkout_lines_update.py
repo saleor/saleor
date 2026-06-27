@@ -26,6 +26,7 @@ from .utils import (
     check_lines_quantity,
     get_variants_and_total_quantities,
     group_lines_input_data_on_update,
+    validate_checkout_line_input_list_size,
 )
 
 
@@ -92,7 +93,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             required=True,
             description=(
                 "A list of checkout lines, each containing information about "
-                "an item in the checkout."
+                "an item in the checkout. Maximum 100 items."
             ),
         )
 
@@ -216,6 +217,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
     def perform_mutation(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, *, lines, checkout_id=None, token=None, id=None
     ):
+        validate_checkout_line_input_list_size(lines, "lines")
         for line in lines:
             validate_one_of_args_is_in_mutation(
                 "line_id",

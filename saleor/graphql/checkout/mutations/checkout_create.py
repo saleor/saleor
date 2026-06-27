@@ -40,6 +40,7 @@ from .utils import (
     check_permissions_for_custom_prices,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
+    validate_checkout_line_input_list_size,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -137,7 +138,7 @@ class CheckoutCreateInput(BaseInputObjectType):
         CheckoutLineInput,
         description=(
             "A list of checkout lines, each containing information about "
-            "an item in the checkout."
+            "an item in the checkout. Maximum 100 items."
         ),
         required=True,
     )
@@ -442,6 +443,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         )
         lines = data.pop("lines", None)
         if lines:
+            validate_checkout_line_input_list_size(lines, "lines")
             (
                 cleaned_input["variants"],
                 cleaned_input["lines_data"],

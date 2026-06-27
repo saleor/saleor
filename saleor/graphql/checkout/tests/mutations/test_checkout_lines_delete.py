@@ -92,6 +92,32 @@ def test_checkout_lines_delete(
     assert checkout.search_index_dirty is True
 
 
+def test_checkout_lines_delete_rejects_too_many_lines_ids(
+    user_api_client, checkout_with_items
+):
+    # given
+    checkout = checkout_with_items
+    previous_last_change = checkout.last_change
+    line = checkout.lines.first()
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "linesIds": [line_id] * 101,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["checkoutLinesDelete"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "linesIds"
+    assert errors[0]["message"] == "The maximum number of items in lines_ids is 100."
+    assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
+    assert checkout.last_change == previous_last_change
+
+
 @pytest.mark.parametrize(
     ("channel_listing_model", "listing_filter_field"),
     [

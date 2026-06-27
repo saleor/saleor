@@ -17,7 +17,11 @@ from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Checkout
-from .utils import get_checkout, mark_checkout_deliveries_as_stale_if_needed
+from .utils import (
+    get_checkout,
+    mark_checkout_deliveries_as_stale_if_needed,
+    validate_checkout_line_input_list_size,
+)
 
 
 class CheckoutLinesDelete(BaseMutation):
@@ -35,7 +39,7 @@ class CheckoutLinesDelete(BaseMutation):
         lines_ids = NonNullList(
             graphene.ID,
             required=True,
-            description="A list of checkout lines.",
+            description="A list of checkout lines. Maximum 100 items.",
         )
 
     class Meta:
@@ -88,6 +92,7 @@ class CheckoutLinesDelete(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id=None, lines_ids, token=None
     ):
+        validate_checkout_line_input_list_size(lines_ids, "lines_ids")
         checkout = get_checkout(cls, info, checkout_id=None, token=token, id=id)
 
         _, lines_to_delete = resolve_global_ids_to_primary_keys(

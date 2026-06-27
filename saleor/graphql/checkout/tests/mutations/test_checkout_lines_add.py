@@ -149,6 +149,30 @@ def test_checkout_lines_add(
     assert checkout.search_index_dirty is True
 
 
+def test_checkout_lines_add_rejects_too_many_lines(
+    user_api_client, checkout_with_item, stock
+):
+    # given
+    checkout = checkout_with_item
+    previous_last_change = checkout.last_change
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    lines = [{"variantId": variant_id, "quantity": 1}] * 101
+    variables = {"id": to_global_id_or_none(checkout), "lines": lines}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["checkoutLinesAdd"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["message"] == "The maximum number of items in lines is 100."
+    assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
+    assert checkout.last_change == previous_last_change
+
+
 @pytest.mark.parametrize(
     ("channel_listing_model", "listing_filter_field"),
     [

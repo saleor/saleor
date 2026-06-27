@@ -35,6 +35,7 @@ from .utils import (
     get_variants_and_total_quantities,
     group_lines_input_on_add,
     mark_checkout_deliveries_as_stale_if_needed,
+    validate_checkout_line_input_list_size,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -63,7 +64,7 @@ class CheckoutLinesAdd(BaseMutation):
             required=True,
             description=(
                 "A list of checkout lines, each containing information about "
-                "an item in the checkout."
+                "an item in the checkout. Maximum 100 items."
             ),
         )
 
@@ -219,6 +220,7 @@ class CheckoutLinesAdd(BaseMutation):
         token=None,
         id=None,
     ):
+        validate_checkout_line_input_list_size(lines, "lines")
         app = get_app_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
 

@@ -103,6 +103,30 @@ def test_checkout_create_triggers_async_webhooks(
     assert mocked_webhook_trigger.called
 
 
+def test_checkout_create_rejects_too_many_lines(api_client, stock, channel_USD):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    lines = [{"quantity": 1, "variantId": variant_id}] * 101
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": lines,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["checkoutCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["message"] == "The maximum number of items in lines is 100."
+    assert errors[0]["code"] == CheckoutErrorCode.INVALID.name
+
+
 def test_checkout_create_with_default_channel(
     api_client, stock, graphql_address_data, channel_USD
 ):
