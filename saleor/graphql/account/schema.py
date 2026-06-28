@@ -7,7 +7,7 @@ from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_322, ADDED_IN_324, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
@@ -25,6 +25,7 @@ from .bulk_mutations import (
 from .enums import CountryCodeEnum
 from .filters import (
     CustomerFilter,
+    CustomerTagFilter,
     CustomerWhereInput,
     PermissionGroupFilter,
     StaffUserFilter,
@@ -57,6 +58,13 @@ from .mutations.authentication import (
     SetPassword,
     VerifyToken,
 )
+from .mutations.customer_tag import (
+    CustomerTagAssign,
+    CustomerTagCreate,
+    CustomerTagDelete,
+    CustomerTagUnassign,
+    CustomerTagUpdate,
+)
 from .mutations.permission_group import (
     PermissionGroupCreate,
     PermissionGroupDelete,
@@ -79,16 +87,25 @@ from .mutations.staff import (
 from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
+    resolve_customer_tag,
+    resolve_customer_tags,
     resolve_customers,
     resolve_permission_group,
     resolve_permission_groups,
     resolve_staff_users,
     resolve_user,
 )
-from .sorters import PermissionGroupSortingInput, UserSortField, UserSortingInput
+from .sorters import (
+    CustomerTagSortingInput,
+    PermissionGroupSortingInput,
+    UserSortField,
+    UserSortingInput,
+)
 from .types import (
     Address,
     AddressValidationData,
+    CustomerTag,
+    CustomerTagCountableConnection,
     Group,
     GroupCountableConnection,
     User,
@@ -106,6 +123,12 @@ class PermissionGroupFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_USERS
         filterset_class = PermissionGroupFilter
+
+
+class CustomerTagFilterInput(FilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        filterset_class = CustomerTagFilter
 
 
 class StaffUserInput(FilterInputObjectType):
@@ -177,6 +200,32 @@ class AccountQueries(graphene.ObjectType):
         ),
         description="Look up permission group by ID.",
         permissions=[AccountPermissions.MANAGE_STAFF],
+        doc_category=DOC_CATEGORY_USERS,
+    )
+    customer_tags = FilterConnectionField(
+        CustomerTagCountableConnection,
+        filter=CustomerTagFilterInput(
+            description="Filtering options for customer tags."
+        ),
+        sort_by=CustomerTagSortingInput(description="Sort customer tags."),
+        description="List of customer tags." + ADDED_IN_324,
+        permissions=[
+            AccountPermissions.MANAGE_CUSTOMER_TAGS,
+            AccountPermissions.ASSIGN_CUSTOMER_TAGS,
+        ],
+        doc_category=DOC_CATEGORY_USERS,
+    )
+    customer_tag = PermissionsField(
+        CustomerTag,
+        id=graphene.Argument(graphene.ID, description="ID of the customer tag."),
+        slug=graphene.Argument(
+            graphene.String, description="Slug of the customer tag."
+        ),
+        description="Look up a customer tag by ID or slug." + ADDED_IN_324,
+        permissions=[
+            AccountPermissions.MANAGE_CUSTOMER_TAGS,
+            AccountPermissions.ASSIGN_CUSTOMER_TAGS,
+        ],
         doc_category=DOC_CATEGORY_USERS,
     )
     me = BaseField(
@@ -254,6 +303,21 @@ class AccountQueries(graphene.ObjectType):
     def resolve_permission_group(_root, info: ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, Group)
         return resolve_permission_group(info, id)
+
+    @staticmethod
+    def resolve_customer_tags(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_customer_tags(info)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(qs, info, kwargs, CustomerTagCountableConnection)
+
+    @staticmethod
+    def resolve_customer_tag(_root, info: ResolveInfo, *, id=None, slug=None):
+        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        if id:
+            _, id = from_global_id_or_error(id, CustomerTag)
+        return resolve_customer_tag(info, id=id, slug=slug)
 
     @staticmethod
     def resolve_me(_root, info):
@@ -341,3 +405,10 @@ class AccountMutations(graphene.ObjectType):
     permission_group_create = PermissionGroupCreate.Field()
     permission_group_update = PermissionGroupUpdate.Field()
     permission_group_delete = PermissionGroupDelete.Field()
+
+    # Customer tag mutations
+    customer_tag_create = CustomerTagCreate.Field()
+    customer_tag_update = CustomerTagUpdate.Field()
+    customer_tag_delete = CustomerTagDelete.Field()
+    customer_tag_assign = CustomerTagAssign.Field()
+    customer_tag_unassign = CustomerTagUnassign.Field()

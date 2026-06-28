@@ -126,7 +126,7 @@ from ...webhook.utils import (
 from ..base_plugin import BasePlugin
 
 if TYPE_CHECKING:
-    from ...account.models import Address, Group, User
+    from ...account.models import Address, CustomerTag, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...core.utils.translations import Translation
     from ...csv.models import ExportFile
@@ -2283,6 +2283,46 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_page_type_event(
             WebhookEventAsyncType.PAGE_TYPE_DELETED, page_type, webhooks=webhooks
+        )
+        return previous_value
+
+    def _trigger_customer_tag_event(self, event_type, user, tags) -> None:
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = self._serialize_payload(
+                {
+                    "user_id": graphene.Node.to_global_id("User", user.id),
+                    "tag_ids": [
+                        graphene.Node.to_global_id("CustomerTag", tag.id)
+                        for tag in tags
+                    ],
+                    "meta": self._generate_meta(),
+                }
+            )
+            self.trigger_webhooks_async(
+                payload,
+                event_type,
+                webhooks,
+                {"user": user, "customer_tags": tags},
+                self.requestor,
+            )
+
+    def customer_tag_assigned(
+        self, user: "User", tags: list["CustomerTag"], previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_customer_tag_event(
+            WebhookEventAsyncType.CUSTOMER_TAG_ASSIGNED, user, tags
+        )
+        return previous_value
+
+    def customer_tag_unassigned(
+        self, user: "User", tags: list["CustomerTag"], previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_customer_tag_event(
+            WebhookEventAsyncType.CUSTOMER_TAG_UNASSIGNED, user, tags
         )
         return previous_value
 

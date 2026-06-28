@@ -34,7 +34,7 @@ from ..thumbnail.models import Thumbnail
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
-    from ..account.models import Address, Group, User
+    from ..account.models import Address, CustomerTag, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
     from ..channel.models import Channel
@@ -1138,6 +1138,24 @@ class BasePlugin:
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
     permission_group_created: Callable[["Group", Any], Any]
+
+    # Trigger when one or more customer tags are assigned to a user.
+    #
+    # Overwrite this method if you need to trigger specific logic when customer
+    # tags are assigned to a user.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    customer_tag_assigned: Callable[["User", list["CustomerTag"], Any], Any]
+
+    # Trigger when one or more customer tags are unassigned from a user.
+    #
+    # Overwrite this method if you need to trigger specific logic when customer
+    # tags are unassigned from a user.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    customer_tag_unassigned: Callable[["User", list["CustomerTag"], Any], Any]
 
     # Trigger when permission group type is deleted.
     #

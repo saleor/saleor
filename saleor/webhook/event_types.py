@@ -35,6 +35,9 @@ class WebhookEventAsyncType:
     ADDRESS_UPDATED = "address_updated"
     ADDRESS_DELETED = "address_deleted"
 
+    CUSTOMER_TAG_ASSIGNED = "customer_tag_assigned"
+    CUSTOMER_TAG_UNASSIGNED = "customer_tag_unassigned"
+
     APP_INSTALLED = "app_installed"
     APP_UPDATED = "app_updated"
     APP_DELETED = "app_deleted"
@@ -718,6 +721,14 @@ class WebhookEventAsyncType:
         PAGE_TYPE_DELETED: {
             "name": "Page type deleted",
             "permission": PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+        },
+        CUSTOMER_TAG_ASSIGNED: {
+            "name": "Customer tag assigned",
+            "permission": AccountPermissions.MANAGE_USERS,
+        },
+        CUSTOMER_TAG_UNASSIGNED: {
+            "name": "Customer tag unassigned",
+            "permission": AccountPermissions.MANAGE_USERS,
         },
         PERMISSION_GROUP_CREATED: {
             "name": "Permission group created",

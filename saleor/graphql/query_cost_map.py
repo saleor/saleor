@@ -75,6 +75,8 @@ COST_MAP = {
         "collection": {"complexity": 1},
         "collections": {"complexity": 1, "multipliers": ["first", "last"]},
         "customers": {"complexity": 1, "multipliers": ["first", "last"]},
+        "customerTag": {"complexity": 1},
+        "customerTags": {"complexity": 1, "multipliers": ["first", "last"]},
         "draftOrders": {"complexity": 1, "multipliers": ["first", "last"]},
         "exportFile": {"complexity": 1},
         "exportFiles": {"complexity": 1, "multipliers": ["first", "last"]},
@@ -420,6 +422,9 @@ COST_MAP = {
     "TaxConfiguration": {
         "channel": {"complexity": 1},
         "countries": {"complexity": 1},
+    },
+    "CustomerTag": {
+        "users": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "User": {
         "avatar": {"complexity": 1},

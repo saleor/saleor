@@ -35,7 +35,12 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_319, ADDED_IN_322, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_319,
+    ADDED_IN_322,
+    ADDED_IN_324,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -66,6 +71,8 @@ from .dataloaders import (
     AccessibleChannelsByUserIdLoader,
     AddressByIdLoader,
     CustomerEventsByUserLoader,
+    CustomerTagMemberCountByIdLoader,
+    CustomerTagsByUserIdLoader,
     RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
@@ -324,6 +331,58 @@ def is_newly_created_user(
     return False
 
 
+class CustomerTag(ModelObjectType[models.CustomerTag]):
+    id = graphene.GlobalID(required=True, description="The ID of the customer tag.")
+    name = graphene.String(required=True, description="The name of the customer tag.")
+    slug = graphene.String(
+        required=True, description="The unique slug of the customer tag."
+    )
+    description = graphene.String(description="The description of the customer tag.")
+    is_public = graphene.Boolean(
+        required=True,
+        description=(
+            "Whether the tag is visible to the storefront owner via `me { tags }`."
+        ),
+    )
+    member_count = graphene.Int(
+        required=True,
+        description="Number of users assigned to this customer tag.",
+    )
+    users = ConnectionField(
+        "saleor.graphql.account.types.UserCountableConnection",
+        description="List of users assigned to this customer tag.",
+        permissions=[
+            AccountPermissions.MANAGE_USERS,
+            AccountPermissions.MANAGE_CUSTOMER_TAGS,
+        ],
+    )
+
+    class Meta:
+        description = (
+            "Represents a customer tag - a merchant-managed customer segment "
+            "(e.g. VIP, Wholesale) that can be assigned to users." + ADDED_IN_324
+        )
+        interfaces = [relay.Node, ObjectWithMetadata]
+        model = models.CustomerTag
+        doc_category = DOC_CATEGORY_USERS
+
+    @staticmethod
+    def resolve_member_count(root: models.CustomerTag, info: ResolveInfo):
+        return CustomerTagMemberCountByIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_users(root: models.CustomerTag, info: ResolveInfo, **kwargs):
+        database_connection_name = get_database_connection_name(info.context)
+        qs = root.users.using(database_connection_name).all()
+        return create_connection_slice(qs, info, kwargs, UserCountableConnection)
+
+
+class CustomerTagCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        node = CustomerTag
+
+
 @federated_entity("id")
 @federated_entity("email")
 class User(ModelObjectType[models.User]):
@@ -347,6 +406,17 @@ class User(ModelObjectType[models.User]):
     )
     addresses = NonNullList(
         Address, description="List of all user's addresses.", required=True
+    )
+    tags = NonNullList(
+        "saleor.graphql.account.types.CustomerTag",
+        required=True,
+        description=(
+            "List of customer tags assigned to the user. Staff users with "
+            f"{AccountPermissions.MANAGE_USERS.name} or "
+            f"{AccountPermissions.MANAGE_CUSTOMER_TAGS.name} permission see all "
+            "assigned tags; the storefront owner (`me`) sees only tags marked as "
+            "public (`isPublic`)." + ADDED_IN_324
+        ),
     )
     checkout = graphene.Field(
         Checkout,
@@ -493,6 +563,30 @@ class User(ModelObjectType[models.User]):
         if is_newly_created_user(root):
             return []
         return root.addresses.annotate_default(root).all()
+
+    @staticmethod
+    def resolve_tags(root: models.User, info: ResolveInfo):
+        if is_newly_created_user(root):
+            return []
+
+        requestor = get_user_or_app_from_context(info.context)
+        can_see_all = bool(
+            requestor
+            and (
+                requestor.has_perm(AccountPermissions.MANAGE_USERS)
+                or requestor.has_perm(AccountPermissions.MANAGE_CUSTOMER_TAGS)
+            )
+        )
+
+        def _filter_visible(tags):
+            if can_see_all:
+                return tags
+            # Storefront owner (`me`) only sees tags flagged public.
+            return [tag for tag in tags if tag.is_public]
+
+        return (
+            CustomerTagsByUserIdLoader(info.context).load(root.id).then(_filter_visible)
+        )
 
     @staticmethod
     def resolve_checkout(root: models.User, info: ResolveInfo):

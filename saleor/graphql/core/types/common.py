@@ -39,6 +39,7 @@ from ..enums import (
     CheckoutErrorCode,
     CollectionErrorCode,
     CustomerBulkUpdateErrorCode,
+    CustomerTagErrorCode,
     DeliveryOptionsCalculateErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
@@ -431,6 +432,13 @@ class InvoiceError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
+
+
+class CustomerTagError(Error):
+    code = CustomerTagErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class PermissionGroupError(Error):
