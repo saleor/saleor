@@ -1,12 +1,18 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.test import override_settings
+from freezegun import freeze_time
 
 from .....app.models import AppWebhookMutex
 from .....core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.models import Webhook
+from ...utils import get_pending_delivery_requests
 from ..transport import (
     MAX_WEBHOOK_RETRIES,
     WebhookResponse,
+    execute_webhook_requests,
     send_webhooks_async_for_app,
 )
 
@@ -330,3 +336,172 @@ def test_send_webhooks_async_for_app_last_retry_succeeds(
 
     assert not EventDelivery.objects.exists()
     assert not EventDeliveryAttempt.objects.exists()
+
+
+@override_settings(WEBHOOK_ASYNC_BATCH_TIMEOUT=10)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_execute_webhook_requests_stops_mid_batch_on_soft_timeout(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_deliveries,
+):
+    # given
+    with freeze_time("2024-01-01 12:00:00", tick=False) as frozen_time:
+
+        def succeed_then_advance_past_timeout(*args, **kwargs):
+            # advance past WEBHOOK_ASYNC_BATCH_TIMEOUT after the first request,
+            # so the next loop guard breaks the loop
+            frozen_time.tick(delta=11)
+            return WebhookResponse(content="", status=EventDeliveryStatus.SUCCESS)
+
+        mock_send_prepared_webhook_request_using_http.side_effect = (
+            succeed_then_advance_past_timeout
+        )
+
+        http_requests, _ = get_pending_delivery_requests(
+            domain="example.com",
+            app_id=app.id,
+            session=MagicMock(),
+            batch_size=10,
+        )
+        assert http_requests.qsize() == 3
+        results: list = []
+
+        # when
+        execute_webhook_requests(
+            thread_id=0,
+            queue=http_requests,
+            results=results,
+            telemetry_context=MagicMock(),
+        )
+
+    # then
+    # exactly one delivery was processed before the timeout broke the loop
+    assert mock_send_prepared_webhook_request_using_http.call_count == 1
+    assert len(results) == 1
+    # the remaining deliveries stay queued for a later batch
+    assert http_requests.qsize() == 2
+
+
+@override_settings(WEBHOOK_ASYNC_MAX_CONCURRENCY=1)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_execute_webhook_requests_stops_on_failure_when_concurrency_is_one(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_deliveries,
+):
+    # given
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="", status=EventDeliveryStatus.FAILED
+    )
+    http_requests, _ = get_pending_delivery_requests(
+        domain="example.com",
+        app_id=app.id,
+        session=MagicMock(),
+        batch_size=10,
+    )
+    assert http_requests.qsize() == 3
+    results: list = []
+
+    # when
+    execute_webhook_requests(
+        thread_id=0,
+        queue=http_requests,
+        results=results,
+        telemetry_context=MagicMock(),
+    )
+
+    # then
+    # with concurrency 1 deliveries are processed in chronological order, so a
+    # failure must stop the thread to preserve ordering on the next batch
+    assert mock_send_prepared_webhook_request_using_http.call_count == 1
+    assert len(results) == 1
+    assert http_requests.qsize() == 2
+
+
+@override_settings(WEBHOOK_ASYNC_MAX_CONCURRENCY=2)
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_execute_webhook_requests_continues_on_failure_when_concurrency_above_one(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_deliveries,
+):
+    # given
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="", status=EventDeliveryStatus.FAILED
+    )
+    http_requests, _ = get_pending_delivery_requests(
+        domain="example.com",
+        app_id=app.id,
+        session=MagicMock(),
+        batch_size=10,
+    )
+    assert http_requests.qsize() == 3
+    results: list = []
+
+    # when
+    execute_webhook_requests(
+        thread_id=0,
+        queue=http_requests,
+        results=results,
+        telemetry_context=MagicMock(),
+    )
+
+    # then
+    # with concurrency greater than 1 ordering is not guaranteed, so a failed delivery must
+    # not stop the thread - it keeps draining the queue
+    assert mock_send_prepared_webhook_request_using_http.call_count == 3
+    assert len(results) == 3
+    assert http_requests.empty()
+
+
+@pytest.fixture
+def sqs_webhook(app):
+    return Webhook.objects.create(
+        name="SQS webhook",
+        app=app,
+        target_url=(
+            "awssqs://access_key:secret@sqs.us-east-1.amazonaws.com/account_id/queue"
+        ),
+    )
+
+
+@pytest.fixture
+def sqs_event_delivery(event_payload, sqs_webhook):
+    return EventDelivery.objects.create(
+        event_type=WebhookEventAsyncType.ANY,
+        payload=event_payload,
+        webhook=sqs_webhook,
+    )
+
+
+@override_settings(WEBHOOK_ASYNC_MAX_CONCURRENCY=2)
+@patch("saleor.webhook.transport.utils.boto3.client")
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_send_webhooks_async_for_app_processes_http_and_non_http(
+    mock_send_prepared_webhook_request_using_http,
+    mock_boto3_client,
+    app,
+    app_webhook_mutex,
+    event_delivery,
+    sqs_event_delivery,
+):
+    # given
+    assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).count() == 2
+
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="", status=EventDeliveryStatus.SUCCESS
+    )
+    mock_sqs = MagicMock()
+    mock_sqs.send_message.return_value = {"MessageId": "1"}
+    mock_boto3_client.return_value = mock_sqs
+
+    # when
+    send_webhooks_async_for_app(
+        app_id=app.id, telemetry_context=MagicMock(), concurrency=1
+    )
+
+    # then
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
+    mock_sqs.send_message.assert_called_once()
+    assert not EventDelivery.objects.exists()

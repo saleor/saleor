@@ -716,10 +716,29 @@ def test_async_webhooks_schedule_are_dirty(event_delivery):
     schedule = async_webhooks_schedule()
     assert event_delivery.status == EventDeliveryStatus.PENDING
     assert event_delivery.payload is not None
+    assert event_delivery.webhook.is_active is True
+    assert event_delivery.webhook.app.is_active is True
 
     # when
     is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(seconds=2))
 
     # then
     assert is_due is True
+    assert next_run == schedule.initial_timedelta.total_seconds()
+
+
+@override_settings(WEBHOOK_ASYNC_LEGACY_MODE=True)
+def test_async_webhooks_schedule_not_dirty_when_legacy_mode_enabled(event_delivery):
+    # given
+    schedule = async_webhooks_schedule()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert event_delivery.payload is not None
+    assert event_delivery.webhook.is_active is True
+    assert event_delivery.webhook.app.is_active is True
+
+    # when
+    is_due, next_run = schedule.is_due(timezone.now() - datetime.timedelta(seconds=2))
+
+    # then
+    assert is_due is False
     assert next_run == schedule.initial_timedelta.total_seconds()
