@@ -360,7 +360,9 @@ class CustomerTag(ModelObjectType[models.CustomerTag]):
     class Meta:
         description = (
             "Represents a customer tag - a merchant-managed customer segment "
-            "(e.g. VIP, Wholesale) that can be assigned to users." + ADDED_IN_324
+            "(e.g. VIP, Wholesale) that can be assigned to users."
+            + ADDED_IN_324
+            + PREVIEW_FEATURE
         )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.CustomerTag
@@ -415,7 +417,7 @@ class User(ModelObjectType[models.User]):
             f"{AccountPermissions.MANAGE_USERS.name} or "
             f"{AccountPermissions.MANAGE_CUSTOMER_TAGS.name} permission see all "
             "assigned tags; the storefront owner (`me`) sees only tags marked as "
-            "public (`isPublic`)." + ADDED_IN_324
+            "public (`isPublic`)." + ADDED_IN_324 + PREVIEW_FEATURE
         ),
     )
     checkout = graphene.Field(

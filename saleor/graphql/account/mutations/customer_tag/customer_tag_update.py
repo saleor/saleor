@@ -2,7 +2,7 @@ import graphene
 
 from .....permission.enums import AccountPermissions
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_324
+from ....core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import CustomerTagError
 from ...types import CustomerTag
@@ -17,7 +17,9 @@ class CustomerTagUpdate(CustomerTagMutationBase):
         )
 
     class Meta:
-        description = "Update an existing customer tag." + ADDED_IN_324
+        description = (
+            "Update an existing customer tag." + ADDED_IN_324 + PREVIEW_FEATURE
+        )
         doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_CUSTOMER_TAGS,)
         error_type_class = CustomerTagError

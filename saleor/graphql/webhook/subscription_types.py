@@ -1898,6 +1898,7 @@ class CustomerTagAssigned(SubscriptionObjectType, CustomerTagBase):
         description = (
             "Event sent when one or more customer tags are assigned to a user."
             + ADDED_IN_324
+            + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_USERS
 
@@ -1910,6 +1911,7 @@ class CustomerTagUnassigned(SubscriptionObjectType, CustomerTagBase):
         description = (
             "Event sent when one or more customer tags are unassigned from a user."
             + ADDED_IN_324
+            + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_USERS
 

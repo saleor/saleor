@@ -9,7 +9,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_324
+from ....core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import CustomerTagError, NonNullList
@@ -41,7 +41,9 @@ class CustomerTagAssign(BaseMutation):
 
     class Meta:
         description = (
-            "Assign one or more customer tags to one or more users." + ADDED_IN_324
+            "Assign one or more customer tags to one or more users."
+            + ADDED_IN_324
+            + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.ASSIGN_CUSTOMER_TAGS,)

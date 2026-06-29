@@ -1627,6 +1627,8 @@ type Query {
   
   Added in Saleor 3.24.
   
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
   Requires one of the following permissions: MANAGE_CUSTOMER_TAGS, ASSIGN_CUSTOMER_TAGS.
   """
   customerTags(
@@ -1657,6 +1659,8 @@ type Query {
   Look up a customer tag by ID or slug.
   
   Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TAGS, ASSIGN_CUSTOMER_TAGS.
   """
@@ -3372,6 +3376,8 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   List of customer tags assigned to the user. Staff users with MANAGE_USERS or MANAGE_CUSTOMER_TAGS permission see all assigned tags; the storefront owner (`me`) sees only tags marked as public (`isPublic`).
   
   Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   tags: [CustomerTag!]!
 
@@ -3656,6 +3662,8 @@ type ReducedRate @doc(category: "Taxes") {
 Represents a customer tag - a merchant-managed customer segment (e.g. VIP, Wholesale) that can be assigned to users.
 
 Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerTag implements Node & ObjectWithMetadata @doc(category: "Users") {
   """The ID of the customer tag."""
@@ -22570,7 +22578,9 @@ type Mutation {
   """
   Create a new customer tag.
   
-  Added in Saleor 3.24. 
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
   """
@@ -22582,7 +22592,9 @@ type Mutation {
   """
   Update an existing customer tag.
   
-  Added in Saleor 3.24. 
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
   """
@@ -22597,7 +22609,9 @@ type Mutation {
   """
   Delete a customer tag.
   
-  Added in Saleor 3.24. 
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
   """
@@ -22614,7 +22628,9 @@ type Mutation {
   """
   Assign one or more customer tags to one or more users.
   
-  Added in Saleor 3.24. 
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
   
@@ -22632,7 +22648,9 @@ type Mutation {
   """
   Unassign one or more customer tags from one or more users.
   
-  Added in Saleor 3.24. 
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
   
@@ -34266,7 +34284,9 @@ type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvent
 """
 Create a new customer tag.
 
-Added in Saleor 3.24. 
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
 """
@@ -34332,7 +34352,9 @@ input CustomerTagCreateInput @doc(category: "Users") {
 """
 Update an existing customer tag.
 
-Added in Saleor 3.24. 
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
 """
@@ -34375,7 +34397,9 @@ input CustomerTagInput @doc(category: "Users") {
 """
 Delete a customer tag.
 
-Added in Saleor 3.24. 
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
 """
@@ -34388,7 +34412,9 @@ type CustomerTagDelete @doc(category: "Users") {
 """
 Assign one or more customer tags to one or more users.
 
-Added in Saleor 3.24. 
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
 
@@ -34407,7 +34433,9 @@ type CustomerTagAssign @doc(category: "Users") @webhookEventsInfo(asyncEvents: [
 """
 Unassign one or more customer tags from one or more users.
 
-Added in Saleor 3.24. 
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
 
@@ -37283,6 +37311,8 @@ type PageTypeDeleted implements Event @doc(category: "Pages") {
 Event sent when one or more customer tags are assigned to a user.
 
 Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerTagAssigned implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -37308,6 +37338,8 @@ type CustomerTagAssigned implements Event @doc(category: "Users") {
 Event sent when one or more customer tags are unassigned from a user.
 
 Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerTagUnassigned implements Event @doc(category: "Users") {
   """Time of the event."""

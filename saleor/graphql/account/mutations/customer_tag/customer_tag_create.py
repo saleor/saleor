@@ -5,7 +5,7 @@ from .....account import models
 from .....account.error_codes import CustomerTagErrorCode
 from .....permission.enums import AccountPermissions
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_324
+from ....core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, CustomerTagError, NonNullList
@@ -105,7 +105,7 @@ class CustomerTagCreate(CustomerTagMutationBase):
         )
 
     class Meta:
-        description = "Create a new customer tag." + ADDED_IN_324
+        description = "Create a new customer tag." + ADDED_IN_324 + PREVIEW_FEATURE
         doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_CUSTOMER_TAGS,)
         error_type_class = CustomerTagError
