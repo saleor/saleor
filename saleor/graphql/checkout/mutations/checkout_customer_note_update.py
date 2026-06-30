@@ -4,7 +4,6 @@ from ....checkout.actions import call_checkout_event
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.types import CheckoutError
@@ -26,9 +25,7 @@ class CheckoutCustomerNoteUpdate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Updates customer note in the existing checkout object." + ADDED_IN_321
-        )
+        description = "Updates customer note in the existing checkout object."
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"

@@ -19,7 +19,6 @@ from ..app.types import App
 from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
-    ADDED_IN_319,
     ADDED_IN_322,
     ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
@@ -415,7 +414,7 @@ class Shop(graphene.ObjectType):
             "List of tax apps that can be assigned to the channel. "
             "The list will be calculated by Saleor based on the apps "
             "that are subscribed to webhooks related to tax calculations: "
-            "CHECKOUT_CALCULATE_TAXES" + ADDED_IN_319
+            "CHECKOUT_CALCULATE_TAXES"
         ),
         required=True,
         permissions=[

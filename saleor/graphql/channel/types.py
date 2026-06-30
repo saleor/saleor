@@ -18,9 +18,6 @@ from ...permission.enums import (
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (
-    ADDED_IN_318,
-    ADDED_IN_320,
-    ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
@@ -90,8 +87,7 @@ class CheckoutSettings(ObjectType):
             "checkout `charge_status` reaches `FULL`. This occurs when the total sum "
             "of charged and authorized transaction amounts equals or exceeds the "
             "checkout's total amount."
-        )
-        + ADDED_IN_320,
+        ),
     )
     automatic_completion_delay = Minute(
         required=False,
@@ -172,14 +168,13 @@ class OrderSettings(ObjectType):
         required=True,
         description=(
             "Determine if voucher applied on draft order should be count toward "
-            "voucher usage." + ADDED_IN_318 + PREVIEW_FEATURE
+            "voucher usage." + PREVIEW_FEATURE
         ),
     )
     draft_order_line_price_freeze_period = Hour(
         required=False,
         description=(
             "Time in hours after which the draft order line price will be refreshed."
-            + ADDED_IN_321
             + PREVIEW_FEATURE
         ),
     )
@@ -200,7 +195,7 @@ class OrderSettings(ObjectType):
             "returned in the `OrderLine.discounts` field. In this case, "
             "percentage-based vouchers retain their original type."
             "\nIn future releases, `OrderLineDiscount` will become the default "
-            "behavior, and this flag will be deprecated and removed." + ADDED_IN_321
+            "behavior, and this flag will be deprecated and removed."
         ),
     )
 
@@ -222,14 +217,12 @@ class PaymentSettings(ObjectType):
         required=False,
         description=(
             "Determine if the funds for expired checkouts should be released automatically."
-            + ADDED_IN_320
         ),
     )
     checkout_ttl_before_releasing_funds = Hour(
         required=False,
         description=(
             "The time in hours after which funds for expired checkouts will be released."
-            + ADDED_IN_320
         ),
     )
     checkout_release_funds_cut_off_date = DateTime(
@@ -238,7 +231,7 @@ class PaymentSettings(ObjectType):
             "Specifies the earliest date on which funds for expired checkouts can begin "
             "to be released. Expired checkouts dated before this cut-off will not have their "
             "funds released. Additionally, no funds will be released for checkouts that are "
-            "more than one year old, regardless of the cut-off date." + ADDED_IN_320
+            "more than one year old, regardless of the cut-off date."
         ),
     )
 
@@ -361,7 +354,7 @@ class Channel(ModelObjectType):
 
     tax_configuration = PermissionsField(
         "saleor.graphql.tax.types.TaxConfiguration",
-        description="Channel specific tax configuration." + ADDED_IN_320,
+        description="Channel specific tax configuration.",
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,

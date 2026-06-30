@@ -21,7 +21,6 @@ from ...account.mutations.account.utils import ADDRESS_UPDATE_FIELDS
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithExtRefMutation
@@ -43,8 +42,7 @@ class OrderUpdateInput(BaseInputObjectType):
     metadata = NonNullList(
         MetadataInput,
         description=(
-            f"Order public metadata. {ADDED_IN_321}"
-            f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
+            f"Order public metadata. {MetadataInputDescription.PUBLIC_METADATA_INPUT}"
         ),
         required=False,
     )
@@ -52,8 +50,7 @@ class OrderUpdateInput(BaseInputObjectType):
     private_metadata = NonNullList(
         MetadataInput,
         description=(
-            f"Order private metadata. {ADDED_IN_321}"
-            f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
+            f"Order private metadata. {MetadataInputDescription.PRIVATE_METADATA_INPUT}"
         ),
         required=False,
     )
@@ -61,7 +58,7 @@ class OrderUpdateInput(BaseInputObjectType):
     language_code = graphene.Argument(
         LanguageCodeEnum,
         required=False,
-        description=(f"Order language code.{ADDED_IN_321}"),
+        description=("Order language code."),
     )
 
     class Meta:

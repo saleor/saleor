@@ -66,7 +66,6 @@ from ...core.context import (
     get_database_connection_name,
 )
 from ...core.descriptions import (
-    ADDED_IN_321,
     ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,
@@ -206,7 +205,6 @@ class BasePricingInfo(BaseObjectType):
         description=(
             "The discount amount compared to prior price. Null if product "
             "is not on sale or prior price was not provided in VariantChannelListing"
-            + ADDED_IN_321
         ),
     )
 
@@ -229,9 +227,7 @@ class VariantPricingInfo(BasePricingInfo):
     price_undiscounted = graphene.Field(
         TaxedMoney, description="The price without any discount."
     )
-    price_prior = graphene.Field(
-        TaxedMoney, description="The price prior to discount." + ADDED_IN_321
-    )
+    price_prior = graphene.Field(TaxedMoney, description="The price prior to discount.")
 
     # deprecated
     discount_local_currency = graphene.Field(
@@ -265,7 +261,7 @@ class ProductPricingInfo(BasePricingInfo):
     )
     price_range_prior = graphene.Field(
         TaxedMoneyRange,
-        description="The prior price range of the product variants." + ADDED_IN_321,
+        description="The prior price range of the product variants.",
     )
 
     # deprecated
@@ -1068,7 +1064,7 @@ class Product(ChannelContextType[models.Product]):
         description=(
             "List of variants for the product. Requires the following permissions to "
             "include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}." + ADDED_IN_321
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
     )
     media = NonNullList(
