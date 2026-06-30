@@ -1,9 +1,13 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+import celery
+import google.api_core.exceptions
+import google.cloud.pubsub_v1.publisher
 import pytest
 from celery.exceptions import Retry as CeleryTaskRetryError
 from opentelemetry.trace import StatusCode
 
+from .....core.models import EventDelivery, EventDeliveryAttempt, EventDeliveryStatus
 from .....tests.utils import get_metric_data_point, get_span_by_name
 from ...metrics import (
     METRIC_EXTERNAL_REQUEST_BODY_SIZE,
@@ -202,3 +206,53 @@ def test_send_webhook_request_async_fails_when_exception_raised_by_webhooks_otel
         send_webhook_request_async(
             event_delivery_id=event_delivery.id, telemetry_context={}
         )
+
+
+@pytest.mark.parametrize(
+    "thrown_exception",
+    [
+        google.api_core.exceptions.ClientError,
+        google.api_core.exceptions.PermissionDenied,
+        google.cloud.pubsub_v1.publisher.exceptions.MessageTooLargeError,
+        RuntimeError,
+        TimeoutError,
+    ],
+)
+def test_send_webhook_request_async_when_google_cloud_pubsub_publish_fails(
+    thrown_exception,
+    event_delivery,
+    monkeypatch,
+):
+    # given
+    assert EventDeliveryAttempt.objects.count() == 0
+
+    webhook = event_delivery.webhook
+    webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
+    webhook.save(update_fields=["target_url"])
+
+    mocked_future = MagicMock()
+    mocked_future.result.side_effect = thrown_exception("")
+
+    mocked_publisher = MagicMock(spec=google.cloud.pubsub_v1.PublisherClient)
+    mocked_publisher.publish.return_value = mocked_future
+    monkeypatch.setattr(
+        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
+        lambda: mocked_publisher,
+    )
+
+    # when
+    with pytest.raises(celery.exceptions.Retry):
+        send_webhook_request_async(
+            event_delivery_id=event_delivery.id, telemetry_context={}
+        )
+
+    # then
+    mocked_future.result.assert_called_once()
+
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).count() == 1
+
+    attempts = EventDeliveryAttempt.objects.all()
+    assert len(attempts) == 1
+    assert attempts[0].status == EventDeliveryStatus.FAILED
