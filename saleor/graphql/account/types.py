@@ -344,9 +344,15 @@ class CustomerTag(ModelObjectType[models.CustomerTag]):
             "Whether the tag is visible to the storefront owner via `me { tags }`."
         ),
     )
-    member_count = graphene.Int(
+    member_count = PermissionsField(
+        graphene.Int,
         required=True,
         description="Number of users assigned to this customer tag.",
+        permissions=[
+            AccountPermissions.MANAGE_USERS,
+            AccountPermissions.MANAGE_CUSTOMER_TAGS,
+            AccountPermissions.ASSIGN_CUSTOMER_TAGS,
+        ],
     )
     users = ConnectionField(
         "saleor.graphql.account.types.UserCountableConnection",

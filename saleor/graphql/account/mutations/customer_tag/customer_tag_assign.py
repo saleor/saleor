@@ -79,6 +79,15 @@ class CustomerTagAssign(BaseMutation):
         assigned_by = requestor if isinstance(requestor, models.User) else None
 
         with traced_atomic_transaction():
+            # Lock the tags so concurrent assignments touching the same tag are
+            # serialized. This makes the existence check below authoritative, so
+            # each genuinely new assignment emits exactly one event (a losing
+            # racer sees the row already present and skips it).
+            list(
+                models.CustomerTag.objects.order_by("pk")
+                .select_for_update(of=["self"])
+                .filter(pk__in=[tag.pk for tag in tags])
+            )
             existing = set(
                 models.UserCustomerTag.objects.filter(
                     user__in=users, tag__in=tags

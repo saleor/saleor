@@ -460,6 +460,14 @@ class CustomerTag(ModelWithMetadata):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("name", "pk")
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="customer_tag_name_gin",
+                fields=["name"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
         permissions = (
             (
                 AccountPermissions.MANAGE_CUSTOMER_TAGS.codename,

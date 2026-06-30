@@ -78,15 +78,12 @@ class CustomerTagUnassign(BaseMutation):
         tags_by_id = {tag.id: tag for tag in tags}
 
         with traced_atomic_transaction():
-            removed = list(
-                models.UserCustomerTag.objects.filter(
-                    user__in=users, tag__in=tags
-                ).values_list("user_id", "tag_id")
+            assignments = models.UserCustomerTag.objects.filter(
+                user__in=users, tag__in=tags
             )
+            removed = list(assignments.values_list("user_id", "tag_id"))
             if removed:
-                models.UserCustomerTag.objects.filter(
-                    user__in=users, tag__in=tags
-                ).delete()
+                assignments.delete()
 
         cls.send_events(info, removed, users_by_id, tags_by_id)
         return cls(users=users, customer_tags=tags)

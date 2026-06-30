@@ -3711,7 +3711,11 @@ type CustomerTag implements Node & ObjectWithMetadata @doc(category: "Users") {
   """Whether the tag is visible to the storefront owner via `me { tags }`."""
   isPublic: Boolean!
 
-  """Number of users assigned to this customer tag."""
+  """
+  Number of users assigned to this customer tag.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_CUSTOMER_TAGS, ASSIGN_CUSTOMER_TAGS.
+  """
   memberCount: Int!
 
   """
@@ -34316,7 +34320,6 @@ enum CustomerTagErrorCode @doc(category: "Users") {
   REQUIRED
   UNIQUE
   CANNOT_DELETE
-  DUPLICATED_INPUT_ITEM
 }
 
 input CustomerTagCreateInput @doc(category: "Users") {

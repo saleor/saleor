@@ -60,7 +60,6 @@ class CustomerTagErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     CANNOT_DELETE = "cannot_delete"
-    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
 
 
 class PermissionGroupErrorCode(Enum):
