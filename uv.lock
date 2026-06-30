@@ -9,7 +9,7 @@ supported-markers = [
 ]
 
 [options]
-exclude-newer = "2026-05-26T07:45:12.804338Z"
+exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
@@ -2558,7 +2558,7 @@ wheels = [
 
 [[package]]
 name = "saleor"
-version = "3.22.53"
+version = "3.22.54"
 source = { virtual = "." }
 dependencies = [
     { name = "adyen", marker = "platform_python_implementation != 'PyPy'" },
