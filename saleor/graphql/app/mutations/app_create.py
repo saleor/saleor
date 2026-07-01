@@ -3,7 +3,7 @@ import graphene
 from ....app import models
 from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
-from ...core.descriptions import ADDED_IN_319
+from ...core.descriptions import ADDED_IN_319, ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -12,6 +12,7 @@ from ...core.utils import WebhookEventInfo
 from ...decorators import staff_member_required
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
+from ..enums import AppConcurrencyEnum
 from ..types import App
 from ..utils import ensure_app_permissions_allowed, ensure_can_manage_permissions
 
@@ -27,6 +28,9 @@ class AppInput(BaseInputObjectType):
     permissions = NonNullList(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
+    )
+    concurrency = AppConcurrencyEnum(
+        description="Concurrency level for app webhook processing." + ADDED_IN_324
     )
 
     class Meta:

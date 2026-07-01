@@ -32,7 +32,12 @@ from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
 from ..core.dataloaders import DataLoader
-from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
+from ..core.descriptions import (
+    ADDED_IN_319,
+    ADDED_IN_321,
+    ADDED_IN_322,
+    ADDED_IN_324,
+)
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import PermissionsField
@@ -62,6 +67,7 @@ from .dataloaders import (
     app_promise_callback,
 )
 from .enums import (
+    AppConcurrencyEnum,
     AppProblemDismissedBy,
     AppProblemDismissedByEnum,
     AppTypeEnum,
@@ -654,6 +660,9 @@ class App(ModelObjectType[models.App]):
     )
     name = graphene.String(description="Name of the app.")
     type = AppTypeEnum(description="Type of the app.")
+    concurrency = AppConcurrencyEnum(
+        description="Concurrency level for app webhook processing." + ADDED_IN_324
+    )
     tokens = NonNullList(
         AppToken,
         description=(
