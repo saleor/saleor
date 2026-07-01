@@ -148,6 +148,15 @@ class AppManifestExtension(BaseObjectType):
         required=True,
     )
 
+    identifier = graphene.String(
+        description=(
+            "Stable, app-defined identifier of the extension. Unique per app "
+            "(an app cannot reuse the same identifier for two of its extensions), "
+            "but may be reused across different apps. Null when the app did not "
+            "declare one." + ADDED_IN_323
+        )
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_APPS
 
@@ -155,6 +164,12 @@ class AppManifestExtension(BaseObjectType):
     def resolve_url(root, _info: ResolveInfo):
         """Return an extension URL."""
         return resolve_app_extension_url(root)
+
+    @staticmethod
+    def resolve_identifier(root, _info: ResolveInfo):
+        if isinstance(root, dict):
+            return root.get("identifier")
+        return root.identifier
 
     @staticmethod
     def resolve_target_name(root, _info: ResolveInfo):
@@ -183,14 +198,6 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     )
     access_token = graphene.String(
         description="JWT token used to authenticate by third-party app extension."
-    )
-    identifier = graphene.String(
-        description=(
-            "Stable, app-defined identifier of the extension. Unique per app "
-            "(an app cannot reuse the same identifier for two of its extensions), "
-            "but may be reused across different apps. Null when the app did not "
-            "declare one." + ADDED_IN_323
-        )
     )
 
     class Meta:
