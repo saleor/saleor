@@ -19,7 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
-- Fix field validation of the `orderBulkCreate` mutation that requires the status field. - #14506 by @shivansh-dutta
+- Fix field validation of the `orderBulkCreate` mutation that requires the status field. - #19391 by @shivansh-dutta
 
 ### Webhooks
 
