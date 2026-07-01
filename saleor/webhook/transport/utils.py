@@ -336,7 +336,10 @@ def send_webhook_using_aws_sqs(
     with catch_duration_time() as duration:
         try:
             response = json.dumps(client.send_message(**message_kwargs))
-        except botocore.exceptions.ClientError as e:
+        except (
+            botocore.exceptions.ClientError,
+            botocore.exceptions.BotoCoreError,
+        ) as e:
             return WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
             )
@@ -363,7 +366,7 @@ def send_webhook_using_google_cloud_pubsub(
                 timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
             )
         except (
-            google.api_core.exceptions.ClientError,
+            google.api_core.exceptions.GoogleAPIError,
             pubsub_v1.publisher.exceptions.MessageTooLargeError,
             RuntimeError,
             TimeoutError,
