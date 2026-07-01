@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import botocore.exceptions
 import celery
 import google.api_core.exceptions
 import google.cloud.pubsub_v1.publisher
@@ -248,6 +249,55 @@ def test_send_webhook_request_async_when_google_cloud_pubsub_publish_fails(
 
     # then
     mocked_future.result.assert_called_once()
+
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert EventDelivery.objects.filter(status=EventDeliveryStatus.PENDING).count() == 1
+
+    attempts = EventDeliveryAttempt.objects.all()
+    assert len(attempts) == 1
+    assert attempts[0].status == EventDeliveryStatus.FAILED
+
+
+@pytest.mark.parametrize(
+    "thrown_exception",
+    [
+        botocore.exceptions.ClientError(
+            {"Error": {"Code": "AccessDenied", "Message": ""}}, "SendMessage"
+        ),
+        botocore.exceptions.EndpointConnectionError(endpoint_url="https://sqs"),
+        botocore.exceptions.ConnectTimeoutError(endpoint_url="https://sqs"),
+    ],
+)
+def test_send_webhook_request_async_when_aws_sqs_send_message_fails(
+    thrown_exception,
+    event_delivery,
+    monkeypatch,
+):
+    # given
+    assert EventDeliveryAttempt.objects.count() == 0
+
+    webhook = event_delivery.webhook
+    webhook.target_url = (
+        "awssqs://key_id:secret@sqs.us-east-1.amazonaws.com/account_id/queue_name"
+    )
+    webhook.save(update_fields=["target_url"])
+
+    mocked_client = MagicMock()
+    mocked_client.send_message.side_effect = thrown_exception
+    monkeypatch.setattr(
+        "saleor.webhook.transport.utils.boto3.client",
+        lambda *args, **kwargs: mocked_client,
+    )
+
+    # when
+    with pytest.raises(celery.exceptions.Retry):
+        send_webhook_request_async(
+            event_delivery_id=event_delivery.id, telemetry_context={}
+        )
+
+    # then
+    mocked_client.send_message.assert_called_once()
 
     event_delivery.refresh_from_db()
     assert event_delivery.status == EventDeliveryStatus.PENDING
