@@ -3123,6 +3123,13 @@ type AppExtension implements Node @doc(category: "Apps") {
   """
   settings: JSON!
 
+  """
+  Stable, app-defined identifier of the extension. Unique per app (an app cannot reuse the same identifier for two of its extensions), but may be reused across different apps. Null when the app did not declare one.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
   """The app assigned to app extension."""
   app: App!
 
@@ -32369,6 +32376,7 @@ enum AppErrorCode @doc(category: "Apps") {
   INVALID_URL_FORMAT
   INVALID_MANIFEST_FORMAT
   INVALID_CUSTOM_HEADERS
+  DUPLICATED_EXTENSION_IDENTIFIER
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
@@ -32612,6 +32620,13 @@ type AppManifestExtension @doc(category: "Apps") {
   Added in Saleor 3.22.
   """
   settings: JSON!
+
+  """
+  Stable, app-defined identifier of the extension. Unique per app (an app cannot reuse the same identifier for two of its extensions), but may be reused across different apps. Null when the app did not declare one.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
 }
 
 type AppManifestWebhook @doc(category: "Apps") {

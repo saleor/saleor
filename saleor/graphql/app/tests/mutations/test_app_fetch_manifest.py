@@ -47,6 +47,7 @@ mutation AppFetchManifest(
         mountName
         targetName
         settings
+        identifier
         permissions{
           code
           name
@@ -527,6 +528,44 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["targetName"] == "POPUP"
 
     assert extension["settings"] == {}
+    assert extension["identifier"] is None
+
+
+def test_app_fetch_manifest_with_extension_identifier(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    manifest_url = "http://localhost:3000/manifest"
+    identifier = "refund-button"
+
+    app_manifest["extensions"] = [
+        {
+            "label": "Create product with App",
+            "url": "http://127.0.0.1:8080/app",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "identifier": identifier,
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["appFetchManifest"]["errors"]
+    extensions = content["data"]["appFetchManifest"]["manifest"]["extensions"]
+    assert len(extensions) == 1
+    assert extensions[0]["identifier"] == identifier
 
 
 def test_app_fetch_manifest_with_widget_extension_settings(
