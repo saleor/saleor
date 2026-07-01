@@ -13,7 +13,6 @@ from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
-    ADDED_IN_321,
     ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
@@ -157,8 +156,7 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the category slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the category slug, omit to use primary slug.",
         ),
         description="Look up a category by ID or slug.",
         doc_category=DOC_CATEGORY_PRODUCTS,
@@ -172,8 +170,7 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the collection"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the collection slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the collection slug, omit to use primary slug.",
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -212,8 +209,7 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the product slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the product slug, omit to use primary slug.",
         ),
         external_reference=graphene.Argument(
             graphene.String, description="External ID of the product."

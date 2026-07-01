@@ -5,7 +5,7 @@ from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import ChannelContext, ChannelQsContext
-from ..core.descriptions import ADDED_IN_321, ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import BaseField, FilterConnectionField
@@ -42,8 +42,7 @@ class PageQueries(graphene.ObjectType):
         slug=graphene.String(description="The slug of the page."),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the page slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the page slug, omit to use primary slug.",
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."

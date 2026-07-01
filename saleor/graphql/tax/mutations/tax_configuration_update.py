@@ -9,7 +9,6 @@ from ....plugins import PLUGIN_IDENTIFIER_PREFIX
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_319, ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import DeprecatedModelMutation
 from ...core.types import BaseInputObjectType, Error, NonNullList
@@ -51,7 +50,7 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
         description=(
             "The tax app `App.identifier` that will be used to calculate the taxes for the "
             "given channel and country. If not provided, use the value from the channel's "
-            "tax configuration." + ADDED_IN_319
+            "tax configuration."
         ),
     )
     use_weighted_tax_for_shipping = graphene.Boolean(
@@ -60,7 +59,6 @@ class TaxConfigurationPerCountryInput(BaseInputObjectType):
             "the tax rate for shipping will be calculated based on the weighted average "
             "of tax rates from the order or checkout lines. Default value is `False`."
             "Can be used only with `taxCalculationStrategy` set to `FLAT_RATES`."
-            + ADDED_IN_321
         ),
     )
 
@@ -105,7 +103,6 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
             "the tax rate for shipping will be calculated based on the weighted average "
             "of tax rates from the order or checkout lines. Default value is `False`."
             "Can be used only with `taxCalculationStrategy` set to `FLAT_RATES`."
-            + ADDED_IN_321
         ),
     )
     tax_app_id = graphene.String(
@@ -117,7 +114,6 @@ class TaxConfigurationUpdateInput(BaseInputObjectType):
             "by using prefix `plugin:` with `PLUGIN_ID` "
             "e.g. with Avalara `plugin:mirumee.taxes.avalara`."
             "Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`."
-            + ADDED_IN_319
         ),
     )
 
