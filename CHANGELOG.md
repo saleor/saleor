@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- [Preview feature] The `OrderBulkCreateInput.status` input field in the `orderBulkCreate` mutation is now a required field.
 - Removed the deprecated Authorize.Net payment gateway plugin (`mirumee.payments.authorize_net`).
 - Apps will be no longer to be granted with `MANAGE_APPS` permission. In certain cases, this permission was able to be assigned by the authorized user.
   App with such permission was not able to *act* like an admin app, but permission technically was granted.
@@ -18,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
+- Fix field validation of the `orderBulkCreate` mutation that requires the status field. - #14506 by @shivansh-dutta
 
 ### Webhooks
 
