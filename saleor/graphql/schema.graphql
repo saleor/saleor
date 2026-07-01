@@ -19045,6 +19045,10 @@ type Mutation {
     The amount of the event to report. 
     
     Required for all `REQUEST`, `SUCCESS`, `ACTION_REQUIRED`, and `ADJUSTMENT` events. For other events, the amount will be calculated based on the previous events with the same pspReference. If not possible to calculate, the mutation will return an error.
+    
+    `CANCEL_REQUEST` and `CANCEL_SUCCESS` events are an exception - when the amount is not provided it is deduced automatically. `CANCEL_REQUEST` defaults to the transaction's current authorized (remaining cancelable) amount. `CANCEL_SUCCESS` defaults to the amount of the matching `CANCEL_REQUEST` (same pspReference), or to the current authorized amount when there is no matching request. If the amount cannot be deduced, the mutation will return an error.
+    
+    Added in Saleor 3.23.
     """
     amount: PositiveDecimal
 
