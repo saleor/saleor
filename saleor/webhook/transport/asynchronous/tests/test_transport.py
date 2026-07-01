@@ -214,6 +214,9 @@ def test_send_webhook_request_async_fails_when_exception_raised_by_webhooks_otel
     [
         google.api_core.exceptions.ClientError,
         google.api_core.exceptions.PermissionDenied,
+        google.api_core.exceptions.InternalServerError,
+        google.api_core.exceptions.ServiceUnavailable,
+        google.api_core.exceptions.DeadlineExceeded,
         google.cloud.pubsub_v1.publisher.exceptions.MessageTooLargeError,
         RuntimeError,
         TimeoutError,
