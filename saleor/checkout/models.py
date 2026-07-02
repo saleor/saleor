@@ -455,9 +455,6 @@ class CheckoutLine(ModelWithMetadata):
         blank=True,
         null=True,
     )
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-    )
 
     undiscounted_unit_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -467,7 +464,7 @@ class CheckoutLine(ModelWithMetadata):
 
     undiscounted_unit_price = MoneyField(
         amount_field="undiscounted_unit_price_amount",
-        currency_field="currency",
+        currency_field="checkout_currency",
     )
 
     prior_unit_price_amount = models.DecimalField(
@@ -478,7 +475,7 @@ class CheckoutLine(ModelWithMetadata):
     )
 
     prior_unit_price = MoneyField(
-        amount_field="prior_unit_price_amount", currency_field="currency"
+        amount_field="prior_unit_price_amount", currency_field="checkout_currency"
     )
 
     total_price_net_amount = models.DecimalField(
@@ -528,7 +525,10 @@ class CheckoutLine(ModelWithMetadata):
     def is_shipping_required(self) -> bool:
         """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()
-
+        
+    @property
+    def checkout_currency(self):
+        return self.checkout.currency
 
 # Checkout metadata is moved to separate model so it can be used when checkout model is
 # locked by select_for_update during complete_checkout.
