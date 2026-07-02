@@ -293,6 +293,12 @@ def gift_card_permissions(
     return [GiftcardPermissions.MANAGE_GIFT_CARD]
 
 
+def customer_tag_permissions(
+    _info: ResolveInfo, _object_pk: Any
+) -> list[BasePermissionEnum]:
+    return [AccountPermissions.MANAGE_CUSTOMER_TAGS]
+
+
 def tax_permissions(_info: ResolveInfo, _object_pk: int) -> list[BasePermissionEnum]:
     return [
         CheckoutPermissions.HANDLE_TAXES,
@@ -315,6 +321,7 @@ PUBLIC_META_PERMISSION_MAP: dict[
     "Checkout": no_permissions,
     "CheckoutLine": no_permissions,
     "Collection": product_permissions,
+    "CustomerTag": customer_tag_permissions,
     "Fulfillment": order_permissions,
     "GiftCard": gift_card_permissions,
     "Invoice": invoice_permissions,
@@ -354,6 +361,7 @@ PRIVATE_META_PERMISSION_MAP: dict[
     "Checkout": checkout_permissions,
     "CheckoutLine": checkout_permissions,
     "Collection": product_permissions,
+    "CustomerTag": customer_tag_permissions,
     "Fulfillment": order_permissions,
     "GiftCard": gift_card_permissions,
     "Invoice": invoice_permissions,

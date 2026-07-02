@@ -63,3 +63,36 @@ class PermissionGroupSortingInput(SortInputObjectType):
         doc_category = DOC_CATEGORY_USERS
         sort_enum = PermissionGroupSortField
         type_name = "permission group"
+
+
+class CustomerTagSortField(BaseEnum):
+    NAME = ["name", "pk"]
+    SLUG = ["slug"]
+    MEMBER_COUNT = ["member_count", "name", "pk"]
+
+    class Meta:
+        description = "Sorting options for customer tags."
+        doc_category = DOC_CATEGORY_USERS
+
+    @property
+    def description(self):
+        # pylint: disable=no-member
+        if self in [
+            CustomerTagSortField.NAME,
+            CustomerTagSortField.SLUG,
+            CustomerTagSortField.MEMBER_COUNT,
+        ]:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort customer tags by {sort_name}."
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+    @staticmethod
+    def qs_with_member_count(queryset: QuerySet, *, channel_slug=None) -> QuerySet:
+        return queryset.annotate(member_count=Count("users"))
+
+
+class CustomerTagSortingInput(SortInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        sort_enum = CustomerTagSortField
+        type_name = "customer tag"

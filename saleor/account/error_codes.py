@@ -53,6 +53,15 @@ class CustomerBulkUpdateErrorCode(Enum):
     MAX_LENGTH = "max_length"
 
 
+class CustomerTagErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+    CANNOT_DELETE = "cannot_delete"
+
+
 class PermissionGroupErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"

@@ -2,7 +2,16 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar, cast
 
-from ...account.models import Address, CustomerEvent, Group, User
+from django.db.models import Count
+
+from ...account.models import (
+    Address,
+    CustomerEvent,
+    CustomerTag,
+    Group,
+    User,
+    UserCustomerTag,
+)
 from ...channel.models import Channel
 from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
@@ -37,6 +46,46 @@ class CustomerEventsByUserLoader(DataLoader[str, list[CustomerEvent]]):
         for event in events:
             events_by_user_map[event.user_id].append(event)
         return [events_by_user_map.get(user_id, []) for user_id in keys]
+
+
+class CustomerTagByIdLoader(DataLoader[int, CustomerTag]):
+    context_key = "customer_tag_by_id"
+
+    def batch_load(self, keys):
+        tag_map = CustomerTag.objects.using(self.database_connection_name).in_bulk(keys)
+        return [tag_map.get(tag_id) for tag_id in keys]
+
+
+class CustomerTagMemberCountByIdLoader(DataLoader[int, int]):
+    context_key = "customer_tag_member_count_by_id"
+
+    def batch_load(self, keys):
+        counts = (
+            UserCustomerTag.objects.using(self.database_connection_name)
+            .filter(tag_id__in=keys)
+            .values("tag_id")
+            .annotate(count=Count("user_id"))
+        )
+        count_map = {row["tag_id"]: row["count"] for row in counts}
+        return [count_map.get(tag_id, 0) for tag_id in keys]
+
+
+class CustomerTagsByUserIdLoader(DataLoader[int, list[CustomerTag]]):
+    context_key = "customer_tags_by_user_id"
+
+    def batch_load(self, keys):
+        assignments = (
+            UserCustomerTag.objects.using(self.database_connection_name)
+            .filter(user_id__in=keys)
+            .values_list("user_id", "tag_id")
+        )
+        tag_ids = {tag_id for _, tag_id in assignments}
+        tags = CustomerTag.objects.using(self.database_connection_name).in_bulk(tag_ids)
+        tags_by_user = defaultdict(list)
+        for user_id, tag_id in assignments:
+            if tag := tags.get(tag_id):
+                tags_by_user[user_id].append(tag)
+        return [tags_by_user.get(user_id, []) for user_id in keys]
 
 
 class ThumbnailByUserIdSizeAndFormatLoader(

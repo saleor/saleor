@@ -385,6 +385,11 @@ PaymentMethodProcessTokenizationErrorCode: Final[graphene.Enum] = (
 )
 PaymentMethodProcessTokenizationErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+CustomerTagErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTagErrorCode
+)
+CustomerTagErrorCode.doc_category = DOC_CATEGORY_USERS
+
 PermissionGroupErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )

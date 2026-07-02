@@ -147,6 +147,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PAGE_TYPE_CREATED: "A new page type is created.",
     WebhookEventAsyncType.PAGE_TYPE_UPDATED: "A page type is updated.",
     WebhookEventAsyncType.PAGE_TYPE_DELETED: "A page type is deleted.",
+    WebhookEventAsyncType.CUSTOMER_TAG_ASSIGNED: (
+        "One or more customer tags were assigned to a user."
+    ),
+    WebhookEventAsyncType.CUSTOMER_TAG_UNASSIGNED: (
+        "One or more customer tags were unassigned from a user."
+    ),
     WebhookEventAsyncType.PERMISSION_GROUP_CREATED: (
         "A new permission group is created."
     ),

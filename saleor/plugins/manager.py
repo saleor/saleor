@@ -53,7 +53,7 @@ from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
-    from ..account.models import Address, Group, User
+    from ..account.models import Address, CustomerTag, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -1438,6 +1438,22 @@ class PluginsManager(PaymentInterface):
             page_type,
             webhooks=webhooks,
             channel_slug=None,
+        )
+
+    # Note: this method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from plugin to core modules.
+    def customer_tag_assigned(self, user: "User", tags: list["CustomerTag"]):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "customer_tag_assigned", default_value, user, tags, channel_slug=None
+        )
+
+    # Note: this method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from plugin to core modules.
+    def customer_tag_unassigned(self, user: "User", tags: list["CustomerTag"]):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "customer_tag_unassigned", default_value, user, tags, channel_slug=None
         )
 
     # Note: this method is deprecated and will be removed in a future release.

@@ -8,7 +8,7 @@ from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
 from django.utils.crypto import get_random_string
 
-from ...account.models import Address, User
+from ...account.models import Address, CustomerTag, User
 from ...account.tests.fixtures.user import dangerously_get_or_create_superuser
 from ...attribute.models import AttributeValue
 from ...channel.models import Channel
@@ -128,6 +128,27 @@ def test_create_address(db):
     assert not Address.objects.exists()
     random_data.create_address()
     assert Address.objects.all().count() == 1
+
+
+def test_create_customer_tags(db):
+    # given some customers exist to be assigned to tags
+    for _ in random_data.create_users(get_random_string(length=50), 10):
+        pass
+
+    # when
+    for _ in random_data.create_customer_tags():
+        pass
+
+    # then the demo tags are created and members are assigned + counted
+    tags = CustomerTag.objects.all()
+    assert {tag.slug for tag in tags} == {
+        "vip",
+        "wholesale",
+        "employee",
+        "season-pass-2026",
+    }
+    for tag in tags:
+        assert tag.users.count() > 0
 
 
 def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):

@@ -24,7 +24,13 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...account.models import Address, Group, User
+from ...account.models import (
+    Address,
+    CustomerTag,
+    Group,
+    User,
+    UserCustomerTag,
+)
 from ...account.search import (
     update_user_search_vector,
 )
@@ -1118,6 +1124,63 @@ def create_users(user_password, how_many=10):
     for _ in range(how_many):
         user = create_fake_user(user_password)
         yield f"User: {user.email}"
+
+
+def create_customer_tags():
+    """Create demo customer tags and assign a subset of customers to them.
+
+    Seeds both a storefront-visible (public) and a back-office (private) tag so
+    the customer-tier pricing feature is demoable out of the box.
+    """
+    tags_data = [
+        {
+            "name": "VIP",
+            "slug": "vip",
+            "description": "High-value customers eligible for VIP pricing.",
+            "is_public": True,
+        },
+        {
+            "name": "Wholesale",
+            "slug": "wholesale",
+            "description": "Business customers buying in bulk.",
+            "is_public": False,
+        },
+        {
+            "name": "Employee",
+            "slug": "employee",
+            "description": "Staff members with an employee discount.",
+            "is_public": False,
+        },
+        {
+            "name": "Season Pass 2026",
+            "slug": "season-pass-2026",
+            "description": "Customers holding a 2026 season pass.",
+            "is_public": True,
+        },
+    ]
+    tags = []
+    for data in tags_data:
+        tag, _ = CustomerTag.objects.update_or_create(
+            slug=data["slug"],
+            defaults={
+                "name": data["name"],
+                "description": data["description"],
+                "is_public": data["is_public"],
+            },
+        )
+        tags.append(tag)
+        yield f"Customer tag: {tag.name}"
+
+    customers = list(User.objects.filter(is_staff=False).order_by("?")[:20])
+    assignments = []
+    for tag in tags:
+        # Assign ~30% of the sampled customers to each tag.
+        members = random.sample(customers, k=min(len(customers), 6))
+        for customer in members:
+            assignments.append(UserCustomerTag(user=customer, tag=tag))
+    if assignments:
+        UserCustomerTag.objects.bulk_create(assignments, ignore_conflicts=True)
+        yield f"Assigned customers to {len(tags)} customer tags"
 
 
 def create_permission_groups(staff_password):
