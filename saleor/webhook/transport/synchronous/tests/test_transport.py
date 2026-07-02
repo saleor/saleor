@@ -290,5 +290,5 @@ def test_send_webhook_request_sync_logs_error_inside_transaction(
         with transaction.atomic():
             send_webhook_request_sync(event_delivery_payload_in_database)
 
-        mock_logger.error.assert_called_once()
-        assert "transaction" in mock_logger.error.call_args[0][0]
+        mock_logger.warning.assert_called_once()
+        assert "transaction" in mock_logger.warning.call_args[0][0]
