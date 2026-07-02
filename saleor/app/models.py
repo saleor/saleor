@@ -13,6 +13,7 @@ from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import (
     DEFAULT_APP_TARGET,
+    AppConcurrency,
     AppType,
     DeprecatedAppExtensionHttpMethod,
 )
@@ -53,6 +54,12 @@ class App(ModelWithMetadata):
     removed_at = models.DateTimeField(blank=True, null=True)
     type = models.CharField(
         choices=AppType.CHOICES, default=AppType.LOCAL, max_length=60
+    )
+    concurrency = models.CharField(
+        choices=AppConcurrency.CHOICES,
+        default=AppConcurrency.LOW,
+        db_default=AppConcurrency.LOW,
+        max_length=60,
     )
     identifier = models.CharField(max_length=256, blank=True)
     permissions = models.ManyToManyField(
@@ -126,6 +133,15 @@ class App(ModelWithMetadata):
 
         perm_value = perm.value if isinstance(perm, BasePermissionEnum) else perm
         return perm_value in self.get_permissions()
+
+
+class AppWebhookMutex(models.Model):
+    app = models.ForeignKey(
+        App,
+        unique=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
 
 
 class AppTokenManager(models.Manager["AppToken"]):

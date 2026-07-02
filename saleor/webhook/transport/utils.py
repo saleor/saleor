@@ -3,10 +3,12 @@ import datetime
 import hashlib
 import json
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
+from functools import wraps
+from queue import Queue
 from time import time
 from typing import Optional
 from urllib.parse import unquote, urlparse, urlunparse
@@ -23,7 +25,8 @@ from django.db.models import Count
 from django.urls import reverse
 from django.utils.text import slugify
 from google.cloud import pubsub_v1
-from requests import RequestException
+from requests import PreparedRequest, Request, RequestException
+from requests_hardened import HTTPSession
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
@@ -58,12 +61,6 @@ class WebhookSchemes(str, Enum):
     HTTPS = "https"
     AWS_SQS = "awssqs"
     GOOGLE_CLOUD_PUBSUB = "gcpubsub"
-
-
-@dataclass
-class EventDeliveryWithAttemptCount:
-    delivery: "EventDelivery"
-    count: int
 
 
 @dataclass
@@ -199,6 +196,94 @@ def generate_cache_key_for_webhook(
     return (
         f"{app_id}-{webhook_url}-{event}-"
         f"{hashlib.sha256(key.encode('utf-8')).hexdigest()}"
+    )
+
+
+def prepare_webhook_request_using_http(
+    target_url: str,
+    message,
+    domain: str,
+    signature,
+    event_type,
+    session: HTTPSession,
+    custom_headers: dict[str, str] | None = None,
+) -> PreparedRequest:
+    """Prepare a webhook request using http / https protocol.
+
+    :param target_url: Target URL request will be sent to.
+    :param message: Payload that will be used.
+    :param domain: Current site domain.
+    :param signature: Webhook secret key checksum.
+    :param event_type: Webhook event type.
+    :param timeout: Request timeout.
+    :param custom_headers: Custom headers which will be added to request headers.
+
+    :return: PreparedRequest object.
+    """
+    headers = {
+        "Content-Type": "application/json",
+        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+        DeprecatedAppHeaders.EVENT_TYPE: event_type,
+        DeprecatedAppHeaders.DOMAIN: domain,
+        DeprecatedAppHeaders.SIGNATURE: signature,
+        AppHeaders.EVENT_TYPE: event_type,
+        AppHeaders.DOMAIN: domain,
+        AppHeaders.SIGNATURE: signature,
+        AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
+    }
+    tracer.inject_context(headers)
+
+    if custom_headers:
+        headers.update(custom_headers)
+
+    return session.prepare_request(
+        Request("POST", target_url, data=message, headers=headers)
+    )
+
+
+def send_prepared_webhook_request_using_http(
+    session: HTTPSession,
+    request: PreparedRequest,
+    timeout=settings.WEBHOOK_TIMEOUT,
+) -> WebhookResponse:
+    try:
+        response = session.send(
+            request,
+            timeout=timeout,
+            allow_redirects=False,
+        )
+    except RequestException as e:
+        if e.response:
+            return WebhookResponse(
+                content=e.response.text,
+                status=EventDeliveryStatus.FAILED,
+                request_headers=dict(request.headers),
+                response_headers=dict(e.response.headers),
+                response_status_code=e.response.status_code,
+            )
+
+        if isinstance(e, InvalidIPAddress):
+            message = "Invalid IP address"
+        else:
+            message = str(e)
+        result = WebhookResponse(
+            content=message,
+            status=EventDeliveryStatus.FAILED,
+            request_headers=dict(request.headers),
+        )
+        return result
+
+    return WebhookResponse(
+        content=response.text,
+        request_headers=dict(request.headers),
+        response_headers=dict(response.headers),
+        response_status_code=response.status_code,
+        duration=response.elapsed.total_seconds(),
+        status=(
+            EventDeliveryStatus.SUCCESS
+            if 200 <= response.status_code < 300
+            else EventDeliveryStatus.FAILED
+        ),
     )
 
 
@@ -408,6 +493,41 @@ def send_webhook_using_scheme_method(
     raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
 
+def prepare_event_delivery_request_callback(
+    domain: str,
+    session: HTTPSession,
+    target_url: str,
+    secret,
+    event_type,
+    message,
+    custom_headers=None,
+) -> tuple[str, Callable[[], WebhookResponse]]:
+    signature = signature_for_payload(message, secret)
+
+    url_parts = urlparse(target_url)
+    scheme = url_parts.scheme.lower()
+
+    if scheme in (WebhookSchemes.HTTP, WebhookSchemes.HTTPS):
+        prepared = prepare_webhook_request_using_http(
+            target_url, message, domain, signature, event_type, session, custom_headers
+        )
+        callback = lambda: send_prepared_webhook_request_using_http(session, prepared)  # noqa: E731
+    elif scheme == WebhookSchemes.AWS_SQS:
+        # TODO (ENG-1475): Group AWS SQS webhooks by target queue and send in batches
+        callback = lambda: send_webhook_using_aws_sqs(  # noqa: E731
+            target_url, message, domain, signature, event_type
+        )
+    elif scheme == WebhookSchemes.GOOGLE_CLOUD_PUBSUB:
+        # TODO (ENG-1476): Group Google Cloud Pub/Sub webhooks by target topic and send in batches
+        callback = lambda: send_webhook_using_google_cloud_pubsub(  # noqa: E731
+            target_url, message, domain, signature, event_type
+        )
+    else:
+        raise ValueError(f"Unknown webhook scheme: {url_parts.scheme!r}")
+
+    return scheme, callback
+
+
 def handle_webhook_retry(
     celery_task: Task,
     webhook: Webhook,
@@ -484,25 +604,108 @@ def get_delivery_for_webhook(
     return delivery, not_found
 
 
-def get_deliveries_for_app(
-    app_id, batch_size
-) -> dict[int, "EventDeliveryWithAttemptCount"]:
-    deliveries = (
+def http_session(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with HTTPClient.get_session() as session:
+            return func(*args, session=session, **kwargs)
+
+    return wrapper
+
+
+@dataclass
+class EventDeliveryRequest:
+    attempt: EventDeliveryAttempt
+    delivery: EventDelivery
+    payload_size: int
+    prev_attempts_count: int
+    scheme: str
+    callback: Callable[[], WebhookResponse]
+
+
+def get_pending_delivery_requests(
+    domain: str,
+    app_id: int,
+    session: HTTPSession,
+    batch_size: int,
+    task_id: str | None = None,
+) -> tuple[Queue[EventDeliveryRequest], Queue[EventDeliveryRequest]]:
+    http_delivery_requests: Queue[EventDeliveryRequest] = Queue()
+    other_delivery_requests: Queue[EventDeliveryRequest] = Queue()
+
+    deliveries_qs = (
         EventDelivery.objects.select_related("payload", "webhook__app")
-        .filter(webhook__app_id=app_id, status=EventDeliveryStatus.PENDING)
+        .filter(
+            webhook__app_id=app_id,
+            webhook__is_active=True,
+            status=EventDeliveryStatus.PENDING,
+        )
         .order_by("created_at")
         .annotate(
             attempts_count=Count("attempts", distinct=True),
         )[:batch_size]
     )
 
-    return {
-        delivery.pk: EventDeliveryWithAttemptCount(
-            delivery=delivery,
-            count=delivery.attempts_count,
+    for delivery in deliveries_qs:
+        webhook = delivery.webhook
+        # When the task calling this function gets SCHEDULED there will be at least ONE
+        # event delivery with ready payload.
+        # Other event delivers that could be added in meantime may not have
+        # payload ready yet.
+        if not delivery.payload:
+            # If the payload is not ready and event delivery is still pending it
+            # means the payload has to be generated yet.
+            # For this reason the loop is exited and task will be scheduled again
+            # once event delivery for this app has payload ready.
+            if is_delivery_still_pending(delivery.id):
+                task_logger.info(
+                    "[Webhook ID:%r] Event delivery id: %r has no payload.",
+                    webhook.id,
+                    delivery.id,
+                )
+                break
+
+            # If event delivery is not pending it can either be succeeded or failed.
+            # In both cases this event delivery does not need to be processed
+            # therefore is skipped.
+            task_logger.warning(
+                "[Webhook ID:%r] Event delivery id: %r has no payload and is no longer pending.",
+                webhook.id,
+                delivery.id,
+            )
+            continue
+
+        data = delivery.payload.get_payload()
+        # Convert payload to bytes if it's not already.
+        data = data if isinstance(data, bytes) else data.encode("utf-8")
+        # Count payload size in bytes.
+        payload_size = len(data)
+
+        scheme, callback = prepare_event_delivery_request_callback(
+            domain,
+            session,
+            webhook.target_url,
+            webhook.secret_key,
+            delivery.event_type,
+            data,
+            webhook.custom_headers,
         )
-        for delivery in deliveries
-    }
+
+        request = EventDeliveryRequest(
+            attempt=create_attempt(delivery, task_id=task_id, with_save=False),
+            delivery=delivery,
+            payload_size=payload_size,
+            prev_attempts_count=delivery.attempts_count,
+            scheme=scheme,
+            callback=callback,
+        )
+
+        if scheme in (WebhookSchemes.HTTP, WebhookSchemes.HTTPS):
+            http_delivery_requests.put(request)
+        else:
+            other_delivery_requests.put(request)
+
+    return http_delivery_requests, other_delivery_requests
 
 
 def get_multiple_deliveries_for_webhooks(
@@ -595,17 +798,16 @@ def attempt_update(
     attempt.request_headers = json.dumps(webhook_response.request_headers)
     attempt.status = webhook_response.status
 
-    if attempt.id and with_save:
-        attempt.save(
-            update_fields=[
-                "duration",
-                "response",
-                "response_headers",
-                "response_status_code",
-                "request_headers",
-                "status",
-            ]
-        )
+    update_fields = [
+        "duration",
+        "response",
+        "response_headers",
+        "response_status_code",
+        "request_headers",
+        "status",
+    ]
+    if with_save:
+        attempt.save(update_fields=update_fields if attempt.id else None)
 
 
 @allow_writer()
@@ -614,7 +816,7 @@ def clear_successful_delivery(delivery: "EventDelivery"):
 
 
 @allow_writer()
-def clear_successful_deliveries(deliveries: list["EventDelivery"]):
+def clear_successful_deliveries(deliveries: Sequence["EventDelivery"]):
     delivery_ids_to_delete = []
     payload_ids_to_delete = []
     for delivery in deliveries:
@@ -648,56 +850,10 @@ def clear_successful_deliveries(deliveries: list["EventDelivery"]):
         delete_files_from_private_storage_task(files_to_delete)
 
 
-@allow_writer()
-def process_failed_deliveries(
-    failed_deliveries_attempts: list[tuple[EventDelivery, EventDeliveryAttempt, int]],
-    max_webhook_retries: int,
-) -> None:
-    deliveries_to_update = []
-    deliveries_attempts_to_update = []
-    for delivery, attempt, attempt_count in failed_deliveries_attempts:
-        if attempt_count >= max_webhook_retries:
-            delivery.status = EventDeliveryStatus.FAILED
-            deliveries_to_update.append(delivery)
-        deliveries_attempts_to_update.append(attempt)
-
-    if deliveries_to_update:
-        EventDelivery.objects.bulk_update(deliveries_to_update, ["status"])
-
-    update_fields = [
-        "duration",
-        "response",
-        "response_headers",
-        "response_status_code",
-        "request_headers",
-        "status",
-    ]
-    if deliveries_attempts_to_update:
-        EventDeliveryAttempt.objects.bulk_update(
-            deliveries_attempts_to_update, update_fields
-        )
-
-
-@allow_writer()
-def create_attempts_for_deliveries(
-    deliveries: dict[int, EventDeliveryWithAttemptCount],
-    task_id: str | None,
-) -> dict[int, EventDeliveryAttempt]:
-    attempt_for_deliveries = {}
-    for delivery_id, delivery_with_count in deliveries.items():
-        delivery = delivery_with_count.delivery
-
-        attempt = create_attempt(delivery, task_id, with_save=False)
-        attempt_for_deliveries[delivery_id] = attempt
-
-    if attempt_for_deliveries:
-        attempts_to_create = [
-            attempt_for_deliveries[delivery_id]
-            for delivery_id in attempt_for_deliveries
-        ]
-        EventDeliveryAttempt.objects.bulk_create(attempts_to_create)
-
-    return attempt_for_deliveries
+def is_delivery_still_pending(delivery_id: int) -> bool:
+    return EventDelivery.objects.filter(
+        id=delivery_id, status=EventDeliveryStatus.PENDING
+    ).exists()
 
 
 @allow_writer()

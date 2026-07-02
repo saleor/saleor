@@ -3,7 +3,7 @@ from typing import Final
 import graphene
 
 from ...app import error_codes
-from ...app.types import AppType
+from ...app.types import AppConcurrency, AppType
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
 
@@ -64,6 +64,26 @@ CircuitBreakerStateEnum.doc_category = DOC_CATEGORY_APPS
 
 AppTypeEnum: Final[graphene.Enum] = to_enum(AppType, description=description)
 AppTypeEnum.doc_category = DOC_CATEGORY_APPS
+
+
+def concurrency_description(enum):
+    if enum is None:
+        return "Enum determining concurrency level for app webhook processing."
+    if enum == AppConcurrencyEnum.SEQUENTIAL:
+        return "Process webhooks sequentially, one at a time."
+    if enum == AppConcurrencyEnum.LOW:
+        return "Process webhooks with low concurrency."
+    if enum == AppConcurrencyEnum.NORMAL:
+        return "Process webhooks with normal concurrency."
+    if enum == AppConcurrencyEnum.HIGH:
+        return "Process webhooks with high concurrency."
+    return None
+
+
+AppConcurrencyEnum: Final[graphene.Enum] = to_enum(
+    AppConcurrency, description=concurrency_description
+)
+AppConcurrencyEnum.doc_category = DOC_CATEGORY_APPS
 
 
 class AppProblemDismissedBy:

@@ -2906,6 +2906,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   type: AppTypeEnum
 
   """
+  Concurrency level for app webhook processing.
+  
+  Added in Saleor 3.24.
+  """
+  concurrency: AppConcurrencyEnum
+
+  """
   Last 4 characters of the tokens.
   
   Requires one of the following permissions: MANAGE_APPS, OWNER.
@@ -3092,6 +3099,21 @@ enum AppTypeEnum @doc(category: "Apps") {
   Third party external App. Installation is fully automated. Saleor uses a defined App manifest to gather all required information.
   """
   THIRDPARTY
+}
+
+"""Enum determining concurrency level for app webhook processing."""
+enum AppConcurrencyEnum @doc(category: "Apps") {
+  """Process webhooks sequentially, one at a time."""
+  SEQUENTIAL
+
+  """Process webhooks with low concurrency."""
+  LOW
+
+  """Process webhooks with normal concurrency."""
+  NORMAL
+
+  """Process webhooks with high concurrency."""
+  HIGH
 }
 
 """Represents token data."""
@@ -32466,6 +32488,13 @@ input AppInput @doc(category: "Apps") {
 
   """List of permission code names to assign to this app."""
   permissions: [PermissionEnum!]
+
+  """
+  Concurrency level for app webhook processing.
+  
+  Added in Saleor 3.24.
+  """
+  concurrency: AppConcurrencyEnum
 }
 
 """

@@ -184,7 +184,10 @@ def _send_webhook_request_sync(
                 sync=True,
             )
 
-    attempt_update(attempt, response)
+    # Delivery attempt is not immediatelly saved.
+    # Unsuccessful delivery attempt will be eventually persisted.
+    # Successful delivery attempt will not be persisted, same as event delivery.
+    attempt_update(attempt, response, with_save=False)
     delivery_update(delivery, response.status)
     observability.report_event_delivery_attempt(attempt)
     save_unsuccessful_delivery_attempt(attempt)

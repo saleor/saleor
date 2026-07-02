@@ -1,3 +1,17 @@
+class AppConcurrency:
+    SEQUENTIAL = "sequential"
+    LOW = "low"
+    NORMAL = "normal"
+    HIGH = "high"
+
+    CHOICES = [
+        (SEQUENTIAL, "sequential"),
+        (LOW, "low"),
+        (NORMAL, "normal"),
+        (HIGH, "high"),
+    ]
+
+
 class AppType:
     LOCAL = "local"
     THIRDPARTY = "thirdparty"
