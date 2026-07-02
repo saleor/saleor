@@ -59,6 +59,15 @@ class ManifestExtensionSchema(BaseModel):
     target: str = DEFAULT_APP_TARGET
     permissions: list[str] = []
     options: dict = {}
+    identifier: str | None = None
+
+    @field_validator("identifier")
+    @classmethod
+    def validate_identifier(cls, v: str | None) -> str | None:
+        """Treat blank or whitespace-only identifiers as not provided."""
+        if v is None:
+            return None
+        return v.strip() or None
 
 
 class ManifestWebhookSchema(BaseModel):
