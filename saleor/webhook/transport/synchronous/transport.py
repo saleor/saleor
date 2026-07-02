@@ -196,11 +196,12 @@ def send_webhook_request_sync(
     delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
 ) -> dict[Any, Any] | None:
     if connection.in_atomic_block:
-        logger.error(
+        logger.warning(
             "Sync webhook called inside a database transaction. "
             "Event: %s. This may cause data inconsistency if the "
             "transaction is rolled back.",
             delivery.event_type,
+            stack_info=True,
         )
     response, response_data = _send_webhook_request_sync(delivery, timeout)
     return response_data if response.status == EventDeliveryStatus.SUCCESS else None
