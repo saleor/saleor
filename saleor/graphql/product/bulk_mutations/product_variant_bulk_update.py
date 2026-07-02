@@ -228,16 +228,50 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
     ):
         if listings_data := cleaned_input["channel_listings"].get("create"):
-            cleaned_input["channel_listings"]["create"] = (
-                ProductVariantBulkCreate.clean_channel_listings(
-                    listings_data,
-                    product_channel_global_id_to_instance_map,
-                    None,
-                    variant_index,
-                    index_error_map,
-                    "channelListings.create",
+            used_channels = defaultdict(set)
+            for listing in listings_global_id_to_instance_map.values():
+                channel_global_id = graphene.Node.to_global_id(
+                    "Channel", listing.channel_id
                 )
+                used_channels[channel_global_id].add(listing.variant_id)
+
+            variant = cleaned_input["id"]
+            existing_channels = set()
+            for listing_index, listing_data in enumerate(listings_data):
+                channel_id = listing_data["channel_id"]
+                if variant.id in used_channels.get(channel_id, set()):
+                    existing_channels.add(channel_id)
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            field="channelId",
+                            path=f"channelListings.create.{listing_index}.channelId",
+                            message=(
+                                "Channel listing already exists for this variant. "
+                                "Use the `update` field to modify an existing "
+                                "channel listing."
+                            ),
+                            code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
+                            channels=[channel_id],
+                        )
+                    )
+
+            # Pass the full list to the create validator so its reported error
+            # paths stay aligned with the input indices, then drop listings that
+            # already exist for this variant so they are not re-created (the unique
+            # (variant, channel) constraint would otherwise raise an IntegrityError).
+            cleaned_listings = ProductVariantBulkCreate.clean_channel_listings(
+                listings_data,
+                product_channel_global_id_to_instance_map,
+                None,
+                variant_index,
+                index_error_map,
+                "channelListings.create",
             )
+            cleaned_input["channel_listings"]["create"] = [
+                listing
+                for listing in cleaned_listings
+                if listing["channel_id"] not in existing_channels
+            ]
         if listings_data := cleaned_input["channel_listings"].get("update"):
             listings_to_update = []
             for index, listing_data in enumerate(listings_data):
