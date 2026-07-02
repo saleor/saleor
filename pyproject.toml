@@ -12,7 +12,7 @@ license = "BSD-3-Clause"
 dependencies = [
   "Adyen>=4.0.0,<5",
   "asgiref>=3.7.2,<4",
-  "authlib>=1.6.9,<2",
+  "authlib>=1.7.2,<2",
   "authorizenet>=1.1.5,<2",
   "azure-common>=1.1.28,<2",
   "azure-storage-blob>=12.23.1,<13",
@@ -21,7 +21,7 @@ dependencies = [
   "boto3~=1.28",
   "botocore~=1.37",
   "braintree>=4.2,<4.32",
-  "cryptography>=46.0.7,<47",
+  "cryptography>=49.0.0",
   "dj-database-url>=2,<3",
   "dj-email-url>=1,<2",
   "django[bcrypt]~=5.2.15",
@@ -49,7 +49,7 @@ dependencies = [
   "oauthlib~=3.1",
   "petl==1.7.17",
   "phonenumberslite>=9.0.7,<10",
-  "pillow>=12.2.0,<13",
+  "pillow>=12.3.0,<13",
   "pillow-avif-plugin>=1.5.2,<2",
   "posuto>=2025.1.0,<2026",
   "prices~=1.0",
@@ -62,7 +62,7 @@ dependencies = [
   "pytimeparse>=1.1.8,<2",
   "razorpay~=1.2",
   "redis>=5.0.1,<6",
-  "requests~=2.32",
+  "requests>=2.34,<3",
   "requests-hardened>=1.2.1,<2.0.0",
   "Rx>=1.6.3,<2",
   "semantic-version>=2.10.0,<3",
@@ -194,9 +194,8 @@ exclude-newer = "3 weeks"
 [tool.uv.exclude-newer-package]
 # To customize on a per-package basis, for example you can do this:
 # setuptools = "2026-04-07T14:30:00Z"
-django = "2026-06-03T13:03:35Z" # https://pypi.org/pypi/django/5.2.15/json
-pyjwt = "2026-05-21T19:54:36Z" # https://github.com/jpadilla/pyjwt/releases/tag/2.13.0
-idna = "2026-05-12T22:45:57Z" # https://github.com/advisories/GHSA-65pc-fj4g-8rjx/
+pillow = "2026-07-01T11:56:00Z"
+cryptography = "2026-06-12T20:01:25Z"
 
 [tool.deptry]
 extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
