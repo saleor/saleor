@@ -1,8 +1,0 @@
-WEBHOOK_CACHE_DEFAULT_TTL: int = 5 * 60  # 5 minutes
-SYNC_WEBHOOK_FAILURE_CACHE_TTL: int = 1  # 1 second
-SYNC_WEBHOOK_FAILURE_SENTINEL = (
-    "WEBHOOK_FAILURE"  # Arbitrary value to indicate webhook failure in cache
-)
-APP_ID_PREFIX = "app"
-
-MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT = 500
