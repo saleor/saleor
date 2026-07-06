@@ -908,6 +908,20 @@ GRAPHQL_QUERY_MAX_COMPLEXITY = int(
 # Set FEDERATED_QUERY_MAX_ENTITIES=0 in env to disable (not recommended)
 FEDERATED_QUERY_MAX_ENTITIES = int(os.environ.get("FEDERATED_QUERY_MAX_ENTITIES", 100))
 
+# Optional - Python import path of a GraphQL resolver to allow Saleor to return
+# announcements. See ``saleor/site/apps.py`` and ``saleor/graphql/shop/types.py``
+# for details around the Announcements API.
+#
+# Value must be an import path, e.g.:
+#   SHOP_ANNOUNCEMENT_RESOLVER_IMPORT="saleor.custom.announcements.resolve_announcements"
+#
+# Where ``resolve_announcements`` should have the following signature:
+#
+# >>> from saleor.graphql.shop.types import Announcement
+# >>>
+# >>> def resolve_announcements() -> list[Announcement]: ...
+SHOP_ANNOUNCEMENT_RESOLVER_IMPORT = None
+
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin",
     "saleor.plugins.webhook.plugin.WebhookPlugin",
@@ -1038,6 +1052,9 @@ CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS = int(
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore[assignment,misc]
 
 patch_executor()
+
+# Default queue into which messages will be pushed.
+CELERY_TASK_DEFAULT_QUEUE = os.environ.get("CELERY_TASK_DEFAULT_QUEUE", "celery")
 
 # Optional queue names for Celery tasks.
 # Set None to route to the default queue, or a string value to use a separate one

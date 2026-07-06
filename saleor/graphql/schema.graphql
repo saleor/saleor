@@ -15160,6 +15160,13 @@ type Shop implements ObjectWithMetadata {
   limits: LimitInfo! @deprecated
 
   """
+  List of announcements for this shop.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  announcements: [Announcement!]!
+
+  """
   Saleor API version.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
@@ -15302,6 +15309,43 @@ type Limits {
 
   """Defines the number of warehouses."""
   warehouses: Int
+}
+
+"""Lists current announcements that the user should see."""
+type Announcement {
+  """The date & time at which this announcement was created."""
+  createdAt: DateTime!
+
+  """The date & time at which this announcement was last updated."""
+  updatedAt: DateTime!
+
+  """The announcement's title."""
+  title: String!
+
+  """The announcement's description, may contain HTML formatting."""
+  messageHtml: String!
+
+  """
+  Determine the how critical the announcement is. UNSET if no severity level was defined for this announcement.
+  """
+  importance: AnnouncementImportanceEnum!
+
+  """
+  The announcement's type, for example "CUSTOM". Used to programatically distinguish between message types thus allowing to render the message differently, and allows to know the expected shape for the `extra` field.
+  """
+  type: String!
+
+  """Additional information about this announcement."""
+  extra: Metadata!
+}
+
+"""Defines a shop-level announcement's level/severity."""
+enum AnnouncementImportanceEnum @doc(category: "Shop") {
+  CRITICAL
+  HIGH
+  MODERATE
+  LOW
+  UNSET
 }
 
 """
