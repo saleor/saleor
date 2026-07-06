@@ -2318,12 +2318,11 @@ wheels = [
 
 [[package]]
 name = "pywatchman"
-version = "3.0.0"
+version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bb/6b/f1df266103d33014ea7492222d12652f3341978c21d13f0b297cb7fd7e1f/pywatchman-3.0.0.tar.gz", hash = "sha256:efd32a17391a5872118c55041da71a20960e46ba4b73440c24efac287eea911e", size = 40717, upload-time = "2025-05-30T00:36:18.526Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/38/71/343c1ecc70bf32726c33c1cdcb999f27e27bc1d181118bcdafaf360b767a/pywatchman-4.0.0.tar.gz", hash = "sha256:2dea10710160c6f6bcd220c49a27895234897cfdec62c5b1098f6a0ee4edd79a", size = 40906, upload-time = "2026-06-12T17:00:35.871Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/8e/431e68fca61344c68ac1ad294bc6fa352d68e48a0f6a1fbeb538216bb1d7/pywatchman-3.0.0-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:4f69c49a72e81f1d24733ff5c9dda451404c542edb1efafdb77fd43c7c1a8df9", size = 60136, upload-time = "2025-05-30T00:36:13.45Z" },
-    { url = "https://files.pythonhosted.org/packages/eb/2e/721898f989cab2c0fe8bb3805b2f847c94c46ce7c88af3bd0cb9e0a6b2eb/pywatchman-3.0.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:c15484b7d20c007f5b3c7781dddf5acb2c8a8f6440925e3e512b7e194b05dda9", size = 52448, upload-time = "2025-05-30T00:36:14.287Z" },
+    { url = "https://files.pythonhosted.org/packages/21/55/3e0b28c67548a6662a3abf2c8663ce1496550dbb716c48886e90a4fa01de/pywatchman-4.0.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:aa63e2c73a75a49b183c9efc5e1e6c8e984a0258123be8c7b6b53a31c5039f38", size = 52597, upload-time = "2026-06-12T17:00:31.316Z" },
 ]
 
 [[package]]
@@ -2696,7 +2695,7 @@ dev = [
     { name = "pytest-recording", specifier = ">=0.13.0,<0.14" },
     { name = "pytest-socket", specifier = ">=0.8.0,<1" },
     { name = "pytest-xdist", specifier = ">=3.0.2,<4" },
-    { name = "pywatchman", specifier = ">=3.0.0,<4" },
+    { name = "pywatchman", specifier = ">=4.0.0,<5" },
     { name = "ruff", specifier = ">=0.12.2,<0.13" },
     { name = "types-certifi", specifier = ">=2021.10.8,<2022" },
     { name = "types-freezegun", specifier = ">=1.1.7,<2" },
