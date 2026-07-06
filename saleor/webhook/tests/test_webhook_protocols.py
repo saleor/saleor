@@ -64,6 +64,7 @@ def test_trigger_webhooks_with_aws_sqs(
         region_name=region,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
+        config=ANY,
     )
     expected_call_args = {
         "QueueUrl": f"https://sqs.us-east-1.amazonaws.com/account_id/{queue_name}",
@@ -136,6 +137,7 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
         region_name=region,
         aws_access_key_id=access_key,
         aws_secret_access_key=unquoted_secret,
+        config=ANY,
     )
     mocked_client.send_message.assert_called_once_with(
         QueueUrl="https://sqs.us-east-1.amazonaws.com/account_id/queue_name",
@@ -195,6 +197,8 @@ def test_trigger_webhooks_with_google_pub_sub(
         saleorApiUrl="http://mirumee.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
+        retry=ANY,
+        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,
     )
 
 
@@ -248,6 +252,8 @@ def test_trigger_webhooks_with_google_pub_sub_when_timout_error_raised(
         saleorApiUrl="http://mirumee.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
+        retry=ANY,
+        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,
     )
 
 
@@ -258,6 +264,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
     permission_manage_users,
     permission_manage_products,
     monkeypatch,
+    settings,
 ):
     mocked_publisher = MagicMock(spec=PublisherClient)
     mocked_publisher.publish.return_value.result.return_value = "message_id"
@@ -288,6 +295,8 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
         saleorApiUrl="http://mirumee.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
+        retry=ANY,
+        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,
     )
 
 
