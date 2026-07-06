@@ -10,7 +10,7 @@ from ......account.error_codes import SendConfirmationEmailErrorCode
 from ......account.notifications import get_default_user_payload
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
-from ......core.tokens import token_generator
+from ......core.tokens import account_confirm_token_generator
 from ......core.utils.url import prepare_url
 from .....tests.utils import get_graphql_content
 
@@ -55,7 +55,7 @@ def test_send_confirmation_email(
     data = content["data"]["sendConfirmationEmail"]
     assert not data["errors"]
 
-    token = token_generator.make_token(user)
+    token = account_confirm_token_generator.make_token(user)
     params = urlencode({"email": user.email, "token": token})
     confirm_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -226,4 +226,4 @@ def test_send_confirmation_email_generates_valid_token(
     token = called_kwargs["payload_func"]()["token"]
 
     user.refresh_from_db()
-    assert token_generator.check_token(user, token)
+    assert account_confirm_token_generator.check_token(user, token)

@@ -6,7 +6,11 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ......account.models import User
-from ......core.tokens import account_delete_token_generator
+from ......core.tokens import (
+    account_delete_token_generator,
+    legacy_account_delete_token_generator,
+    password_reset_token_generator,
+)
 from ......thumbnail.models import Thumbnail
 from .....tests.utils import assert_no_permission, get_graphql_content
 
@@ -107,6 +111,58 @@ def test_account_delete_invalid_token(user_api_client):
     assert len(data["errors"]) == 1
     assert data["errors"][0]["message"] == "Invalid or expired token."
     assert User.objects.filter(pk=user.id).exists()
+
+
+def test_account_delete_rejects_token_for_other_mutation(user_api_client):
+    """When providing a token that's meant for another mutation, it should reject.
+
+    In this test, we pass a password reset token instead of an account deletion
+    token, and we test whether it rejects it properly.
+    """
+
+    user = user_api_client.user
+    invalid_token = password_reset_token_generator.make_token(user)
+    variables = {"token": invalid_token}
+
+    # Should reject the token
+    content = get_graphql_content(
+        user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    )
+    data = content["data"]["accountDelete"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "token"
+    assert data["errors"][0]["message"] == "Invalid or expired token."
+    assert User.objects.filter(pk=user.id).exists(), (
+        "shouldn't have deleted the account"
+    )
+
+    # Sanity check: should accept an account deletion token
+    valid_token = account_delete_token_generator.make_token(user)
+    variables["token"] = valid_token
+    content = get_graphql_content(
+        user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    )
+    data = content["data"]["accountDelete"]
+    assert not data["errors"]
+    assert not User.objects.filter(pk=user.id).exists()
+
+
+def test_account_delete_accepts_legacy_account_delete_token(user_api_client):
+    """Ensure old tokens before adding scopes still work properly."""
+
+    # given
+    user = user_api_client.user
+    token = legacy_account_delete_token_generator.make_token(user)
+    variables = {"token": token}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+    assert not data["errors"]
+    assert not User.objects.filter(pk=user.id).exists()
 
 
 def test_account_delete_anonymous_user(api_client):
