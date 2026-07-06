@@ -897,7 +897,7 @@ def join_threads_with_deadline(
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             break
-        thread.join(remaining)
+        thread.join(timeout=remaining)
 
     deadline_exceeded_event.set()
 
@@ -907,12 +907,13 @@ def join_threads_with_deadline(
     grace_period_deadline = time.monotonic() + (
         settings.REQUESTS_CONN_EST_TIMEOUT
         + settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
+        + 2  # arbitrary leeway
     )
     for thread in threads:
         remaining = grace_period_deadline - time.monotonic()
         if remaining <= 0:
             break
-        thread.join(remaining)
+        thread.join(timeout=remaining)
 
     unfinished_threads = [thread for thread in threads if thread.is_alive()]
     for thread in unfinished_threads:
