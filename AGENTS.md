@@ -12,12 +12,29 @@
 
 # Testing
 
+## Running in a git worktree
+
+When Saleor is checked out in a git worktree, prefer running operations (tests, management
+commands, etc.) inside that worktree's containers rather than on the host machine. The host's
+services may belong to a different worktree, so running directly on the host can hit the wrong
+database/cache or collide with another worktree's stack.
+
+- Use the `.worktree-container/compose.sh` wrapper, which targets the current worktree's
+  isolated stack. Run commands inside the `saleor` service, e.g.:
+  ```sh
+  .worktree-container/compose.sh up -d                       # start this worktree's stack
+  .worktree-container/compose.sh exec saleor pytest --reuse-db saleor/path/to/test_file.py
+  .worktree-container/compose.sh exec saleor python manage.py migrate
+  ```
+- Do not run these operations directly on the host machine when working in a worktree.
+
 ## Running tests
 
 - Run tests using `pytest`
 - Attach `--reuse-db` argument to speed up tests by reusing the test database
 - Select tests to run by passing test file path as an argument
-- Enter virtual environment before executing tests
+- Inside the dev container, dependencies are installed system-wide, so run `pytest` directly — no virtual environment to activate
+- On the host (outside the container), enter the virtual environment before executing tests
 
 ## Writing tests
 
