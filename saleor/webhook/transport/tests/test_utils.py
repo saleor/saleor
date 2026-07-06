@@ -1,6 +1,6 @@
 import datetime
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from celery import Task
@@ -163,6 +163,7 @@ def test_send_webhook_using_aws_sqs(
         region_name=expected_region,
         aws_access_key_id=expected_access_key_id,
         aws_secret_access_key=expected_secret_access_key,
+        config=ANY,
     )
     expected_call_args = {
         "QueueUrl": expected_queue_url,
