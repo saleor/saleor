@@ -1,4 +1,5 @@
-from threading import Event
+import logging
+from threading import Event, Thread
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -14,6 +15,7 @@ from ..transport import (
     MAX_WEBHOOK_RETRIES,
     WebhookResponse,
     execute_webhook_requests,
+    join_threads_with_deadline,
     send_webhooks_async_for_app,
 )
 
@@ -385,6 +387,47 @@ def test_execute_webhook_requests_stops_mid_batch_on_soft_timeout(
     assert http_requests.qsize() == 2
 
 
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_execute_webhook_requests_stops_mid_batch_when_deadline_event_set(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_deliveries,
+):
+    # given
+    deadline_exceeded_event = Event()
+
+    def succeed_then_set_event(*args, **kwargs):
+        # set the deadline event after the first request, so the next loop guard
+        # breaks the loop
+        deadline_exceeded_event.set()
+        return WebhookResponse(content="", status=EventDeliveryStatus.SUCCESS)
+
+    mock_send_prepared_webhook_request_using_http.side_effect = succeed_then_set_event
+
+    http_requests, _ = get_pending_delivery_requests(
+        domain="example.com",
+        app_id=app.id,
+        session=MagicMock(),
+        batch_size=10,
+    )
+    assert http_requests.qsize() == 3
+    results: list = []
+
+    # when
+    execute_webhook_requests(
+        thread_id=0,
+        queue=http_requests,
+        results=results,
+        deadline_exceeded_event=deadline_exceeded_event,
+        telemetry_context=MagicMock(),
+    )
+
+    # then
+    assert mock_send_prepared_webhook_request_using_http.call_count == 1
+    assert len(results) == 1
+    assert http_requests.qsize() == 2
+
+
 @override_settings(WEBHOOK_ASYNC_MAX_CONCURRENCY=1)
 @patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 def test_execute_webhook_requests_stops_on_failure_when_concurrency_is_one(
@@ -457,6 +500,103 @@ def test_execute_webhook_requests_continues_on_failure_when_concurrency_above_on
     assert mock_send_prepared_webhook_request_using_http.call_count == 3
     assert len(results) == 3
     assert http_requests.empty()
+
+
+def test_join_threads_with_deadline_sets_event_and_joins_finished_threads(caplog, app):
+    # given
+    caplog.set_level(logging.WARNING)
+    deadline_exceeded_event = Event()
+
+    # Workers that return immediately, so they finish well within the deadline.
+    threads = [Thread(target=lambda: None, name=f"worker-{i}") for i in range(3)]
+    for thread in threads:
+        thread.start()
+
+    # when
+    join_threads_with_deadline(threads, deadline_exceeded_event, app_id=app.id)
+
+    # then
+    assert deadline_exceeded_event.is_set() is True
+    assert all(thread.is_alive() is False for thread in threads)
+    warnings = [
+        record
+        for record in caplog.records
+        if record.message == "Webhook worker did not finish before the deadline."
+    ]
+    assert len(warnings) == 0
+
+
+@override_settings(
+    WEBHOOK_ASYNC_BATCH_TIMEOUT=0,
+    REQUESTS_CONN_EST_TIMEOUT=0,
+    WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT=0,
+)
+def test_join_threads_with_deadline_warns_for_unfinished_thread(caplog, app):
+    # given
+    caplog.set_level(logging.WARNING)
+
+    # A worker that blocks until the test releases it, so it stays alive past the
+    # deadlines. Imitates a thread sending webhooks past both deadlines.
+    release_event = Event()
+    thread = Thread(target=release_event.wait, name="unfinished-worker")
+    thread.start()
+    deadline_exceeded_event = Event()
+
+    try:
+        # when
+        join_threads_with_deadline([thread], deadline_exceeded_event, app_id=app.id)
+
+        # then
+        assert thread.is_alive() is True
+        assert deadline_exceeded_event.is_set() is True
+        warnings = [
+            record
+            for record in caplog.records
+            if record.message == "Webhook worker did not finish before the deadline."
+        ]
+        assert len(warnings) == 1
+        assert warnings[0].app_id == app.id
+        assert warnings[0].thread_name == thread.name
+    finally:
+        # release the blocked worker so it does not leak into other tests
+        release_event.set()
+        thread.join()
+
+
+@override_settings(
+    WEBHOOK_ASYNC_BATCH_TIMEOUT=0,
+    REQUESTS_CONN_EST_TIMEOUT=2,
+    WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT=18,
+)
+def test_join_threads_with_deadline_grace_period_lets_lingering_thread_finish(
+    caplog, app
+):
+    # given
+    caplog.set_level(logging.WARNING)
+
+    # A worker that blocks until deadline exceeded event is set, so it stays alive past
+    # the first deadline. Imitates a thread sending webhooks past first deadline but
+    # finished before the second one.
+    deadline_exceeded_event = Event()
+    thread = Thread(target=deadline_exceeded_event.wait, name="lingering-worker")
+    thread.start()
+
+    try:
+        # when
+        join_threads_with_deadline([thread], deadline_exceeded_event, app_id=app.id)
+
+        # then
+        assert thread.is_alive() is False
+        assert deadline_exceeded_event.is_set() is True
+        warnings = [
+            record
+            for record in caplog.records
+            if record.message == "Webhook worker did not finish before the deadline."
+        ]
+        assert len(warnings) == 0
+    finally:
+        deadline_exceeded_event.set()
+        thread.join()
 
 
 @pytest.fixture

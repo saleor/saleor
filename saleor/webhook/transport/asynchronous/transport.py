@@ -1013,7 +1013,7 @@ def send_webhooks_async_for_app(
         # be processing webhook and result is not yet appended to the list.
         if len(results) != len(results_to_process):
             logger.warning(
-                "Webhook result(s) were not processed (persisted: %d, not persisted: %d)",
+                "Some webhook result(s) were not persisted (persisted: %d, not persisted: %d)",
                 len(results_to_process),
                 len(results) - len(results_to_process),
                 extra={
