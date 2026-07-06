@@ -1,12 +1,12 @@
 import datetime
 import json
 import logging
+import time
 from collections import defaultdict
 from collections.abc import Callable, Hashable, Sequence
 from dataclasses import asdict, dataclass
-from datetime import timedelta
 from queue import Empty as QueueEmpty
-from threading import Thread
+from threading import Event, Thread
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
@@ -17,7 +17,6 @@ from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef
-from django.utils import timezone
 from opentelemetry.trace import StatusCode
 from promise import Promise
 
@@ -887,6 +886,45 @@ def trigger_send_webhooks_async_for_apps():
             )
 
 
+def join_threads_with_deadline(
+    threads: list[Thread], deadline_exceeded_event: Event, app_id: int
+) -> None:
+    """Join all threads in two phases bounded by shared deadlines."""
+
+    # This is the time budget for sending webhooks.
+    deadline = time.monotonic() + settings.WEBHOOK_ASYNC_BATCH_TIMEOUT
+    for thread in threads:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        thread.join(remaining)
+
+    deadline_exceeded_event.set()
+
+    # This is grace period for webhooks being sent to finish before results are
+    # processed.
+    # Logic sending the webhooks must respect predictable timeout.
+    grace_period_deadline = time.monotonic() + (
+        settings.REQUESTS_CONN_EST_TIMEOUT
+        + settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
+    )
+    for thread in threads:
+        remaining = grace_period_deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        thread.join(remaining)
+
+    unfinished_threads = [thread for thread in threads if thread.is_alive()]
+    for thread in unfinished_threads:
+        logger.warning(
+            "Webhook worker did not finish before the deadline.",
+            extra={
+                "app_id": app_id,
+                "thread_name": thread.name,
+            },
+        )
+
+
 @app.task(
     queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
@@ -896,7 +934,7 @@ def trigger_send_webhooks_async_for_apps():
 @task_with_telemetry_context
 def send_webhooks_async_for_app(
     self,
-    app_id,
+    app_id: int,
     *,
     session: "HTTPSession",
     telemetry_context: TelemetryTaskContext,
@@ -933,12 +971,17 @@ def send_webhooks_async_for_app(
             app_id,
             max_workers,
         )
+
+        # Shared across all workers. It's set once the deadline is reached to signal
+        # workers to stop pulling new deliveries from the queue.
+        deadline_exceeded_event = Event()
         threads = []
         for thread_id in range(max_workers):
             thread = Thread(
                 target=execute_webhook_requests,
-                args=(thread_id, http_requests, results),
+                args=(thread_id, http_requests, results, deadline_exceeded_event),
                 kwargs={"telemetry_context": telemetry_context.to_dict()},
+                name=f"send_webhooks_async_for_app-worker-{app_id}-{thread_id}",
             )
             thread.start()
             threads.append(thread)
@@ -949,16 +992,34 @@ def send_webhooks_async_for_app(
             thread_id = max_workers
             thread = Thread(
                 target=execute_webhook_requests,
-                args=(thread_id, other_requests, results),
+                args=(thread_id, other_requests, results, deadline_exceeded_event),
                 kwargs={"telemetry_context": telemetry_context.to_dict()},
+                name=f"send_webhooks_async_for_app-worker-{app_id}-{thread_id}",
             )
             thread.start()
             threads.append(thread)
 
-        for thread in threads:
-            thread.join()
+        join_threads_with_deadline(threads, deadline_exceeded_event, app_id)
 
-        process_executed_delivery_requests(results)
+        # There might be threads still processing requests even after the generous
+        # deadline. Copy the results to protect against appending to the list during
+        # iteration over it.
+        results_to_process = list(results)
+
+        process_executed_delivery_requests(results_to_process)
+
+        # Detect the situation when webhook could have been processed but would not be
+        # recorded as executed. It's not fool-proof because thread in theory could still
+        # be processing webhook and result is not yet appended to the list.
+        if len(results) != len(results_to_process):
+            logger.warning(
+                "Webhook result(s) were not processed (persisted: %d, not persisted: %d)",
+                len(results_to_process),
+                len(results) - len(results_to_process),
+                extra={
+                    "app_id": app_id,
+                },
+            )
 
 
 @allow_writer()
@@ -997,13 +1058,14 @@ def execute_webhook_requests(
     thread_id: int,
     queue: "Queue[EventDeliveryRequest]",
     results: list[EventDeliveryRequest],
+    deadline_exceeded_event: Event,
     *,
     telemetry_context: TelemetryTaskContext,
 ):
-    stop_after = timezone.now() + timedelta(
-        seconds=settings.WEBHOOK_ASYNC_BATCH_TIMEOUT
-    )
-    while timezone.now() < stop_after:
+    # This deadline is kept here in case the deadline exceeded event for whatever reason is not set.
+    deadline = time.monotonic() + settings.WEBHOOK_ASYNC_BATCH_TIMEOUT
+
+    while time.monotonic() < deadline and not deadline_exceeded_event.is_set():
         try:
             request = queue.get(block=False)
         except QueueEmpty:
@@ -1084,9 +1146,8 @@ def execute_webhook_requests(
             # so we need to break the loop and start next iteration from retrying last failed delivery.
             # In case of higher concurrency we can continue processing next deliveries,
             # as they are processed in parallel and not necessarily in chronological order.
-            if settings.WEBHOOK_ASYNC_MAX_CONCURRENCY > 1:
-                continue
-            break
+            if settings.WEBHOOK_ASYNC_MAX_CONCURRENCY <= 1:
+                break
 
 
 def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):

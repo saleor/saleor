@@ -1,3 +1,4 @@
+from threading import Event
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -372,6 +373,7 @@ def test_execute_webhook_requests_stops_mid_batch_on_soft_timeout(
             thread_id=0,
             queue=http_requests,
             results=results,
+            deadline_exceeded_event=Event(),
             telemetry_context=MagicMock(),
         )
 
@@ -408,6 +410,7 @@ def test_execute_webhook_requests_stops_on_failure_when_concurrency_is_one(
         thread_id=0,
         queue=http_requests,
         results=results,
+        deadline_exceeded_event=Event(),
         telemetry_context=MagicMock(),
     )
 
@@ -444,6 +447,7 @@ def test_execute_webhook_requests_continues_on_failure_when_concurrency_above_on
         thread_id=0,
         queue=http_requests,
         results=results,
+        deadline_exceeded_event=Event(),
         telemetry_context=MagicMock(),
     )
 
