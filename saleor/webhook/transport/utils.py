@@ -15,6 +15,7 @@ from uuid import UUID
 import boto3
 import botocore.exceptions
 import google.api_core.exceptions
+from botocore.config import Config as BotoConfig
 from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
@@ -22,6 +23,8 @@ from django.conf import settings
 from django.db.models import Count
 from django.urls import reverse
 from django.utils.text import slugify
+from google.api_core import exceptions as google_exceptions
+from google.api_core import retry as google_retry
 from google.cloud import pubsub_v1
 from requests import RequestException
 from requests_hardened.ip_filter import InvalidIPAddress
@@ -288,51 +291,11 @@ def send_webhook_using_aws_sqs(
     target_url, message, domain, signature, event_type, **kwargs
 ) -> WebhookResponse:
     parts = urlparse(target_url)
-    region = "us-east-1"
-    hostname_parts = parts.hostname.split(".")
-    if len(hostname_parts) == 4 and hostname_parts[0] == "sqs":
-        region = hostname_parts[1]
-    client = boto3.client(
-        "sqs",
-        region_name=region,
-        aws_access_key_id=parts.username,
-        aws_secret_access_key=(
-            unquote(parts.password) if parts.password else parts.password
-        ),
+    client = get_boto3_sqs_client(parts)
+    message_kwargs = get_boto3_sqs_message_kwargs(
+        parts, message, domain, signature, event_type
     )
-    queue_url = urlunparse(
-        (
-            "https",
-            parts.hostname,
-            parts.path,
-            parts.params,
-            parts.query,
-            parts.fragment,
-        )
-    )
-    is_fifo = parts.path.endswith(".fifo")
 
-    msg_attributes = {
-        "SaleorDomain": {"DataType": "String", "StringValue": domain},
-        "SaleorApiUrl": {
-            "DataType": "String",
-            "StringValue": build_absolute_uri(reverse("api"), domain),
-        },
-        "EventType": {"DataType": "String", "StringValue": event_type},
-    }
-    if signature:
-        msg_attributes["Signature"] = {
-            "DataType": "String",
-            "StringValue": signature,
-        }
-
-    message_kwargs = {
-        "QueueUrl": queue_url,
-        "MessageAttributes": msg_attributes,
-        "MessageBody": message.decode("utf-8"),
-    }
-    if is_fifo:
-        message_kwargs["MessageGroupId"] = domain
     with catch_duration_time() as duration:
         try:
             response = json.dumps(client.send_message(**message_kwargs))
@@ -350,8 +313,9 @@ def send_webhook_using_google_cloud_pubsub(
     target_url, message, domain, signature, event_type, **kwargs
 ):
     parts = urlparse(target_url)
-    client = pubsub_v1.PublisherClient()
     topic_name = parts.path[1:]  # drop the leading slash
+
+    client, retry_config = get_google_pubsub_client_and_retry_config()
     with catch_duration_time() as duration:
         try:
             future = client.publish(
@@ -361,9 +325,11 @@ def send_webhook_using_google_cloud_pubsub(
                 saleorApiUrl=build_absolute_uri(reverse("api"), domain),
                 eventType=event_type,
                 signature=signature,
+                retry=retry_config,
+                timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,  #  timeout for an attempt, time budget shared between attempts
             )
             response = future.result(
-                timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
+                timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,  # timeout for waiting until the result is resolved
             )
         except (
             google.api_core.exceptions.GoogleAPIError,
@@ -758,3 +724,88 @@ def get_sqs_message_group_id(domain: str, app: App | None = None) -> str:
         identifier = slugify(app.identifier) if app.identifier else app.id
         group_id = f"{domain}:{identifier}"
     return group_id[:128]  # SQS MessageGroupId max length is 128 chars
+
+
+def get_boto3_sqs_client(parts):
+    region = "us-east-1"
+    hostname_parts = parts.hostname.split(".")
+
+    if len(hostname_parts) == 4 and hostname_parts[0] == "sqs":
+        region = hostname_parts[1]
+
+    return boto3.client(
+        "sqs",
+        region_name=region,
+        aws_access_key_id=parts.username,
+        aws_secret_access_key=(
+            unquote(parts.password) if parts.password else parts.password
+        ),
+        # Default Boto config allows internal retries which can take minutes.
+        # The intention is to set timeouts resembling sending HTTP(S) and Google PubSub webhooks.
+        # Boto timeouts can only be configured per attempt therefore internal Boto3 retries are
+        # being disabled.
+        config=BotoConfig(
+            connect_timeout=settings.REQUESTS_CONN_EST_TIMEOUT,
+            read_timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,
+            retries={"total_max_attempts": 1, "mode": "standard"},
+        ),
+    )
+
+
+def get_boto3_sqs_message_kwargs(parts, message, domain, signature, event_type):
+    queue_url = urlunparse(
+        (
+            "https",
+            parts.hostname,
+            parts.path,
+            parts.params,
+            parts.query,
+            parts.fragment,
+        )
+    )
+    is_fifo = parts.path.endswith(".fifo")
+
+    msg_attributes = {
+        "SaleorDomain": {"DataType": "String", "StringValue": domain},
+        "SaleorApiUrl": {
+            "DataType": "String",
+            "StringValue": build_absolute_uri(reverse("api"), domain),
+        },
+        "EventType": {"DataType": "String", "StringValue": event_type},
+    }
+    if signature:
+        msg_attributes["Signature"] = {
+            "DataType": "String",
+            "StringValue": signature,
+        }
+
+    message_kwargs = {
+        "QueueUrl": queue_url,
+        "MessageAttributes": msg_attributes,
+        "MessageBody": message.decode("utf-8"),
+    }
+    if is_fifo:
+        message_kwargs["MessageGroupId"] = domain
+
+    return message_kwargs
+
+
+def get_google_pubsub_client_and_retry_config():
+    client = pubsub_v1.PublisherClient()
+
+    # Copy-pasted default retry predicate BUT with different timeout.
+    # https://github.com/googleapis/google-cloud-python/blob/7bfa41a6746c43125f3534104aaaa7e8b18758ec/packages/google-cloud-pubsub/google/pubsub_v1/services/publisher/transports/base.py#L183-L196
+    retry_config = google_retry.Retry(
+        predicate=google_retry.if_exception_type(
+            google_exceptions.Aborted,
+            google_exceptions.Cancelled,
+            google_exceptions.DeadlineExceeded,
+            google_exceptions.InternalServerError,
+            google_exceptions.ResourceExhausted,
+            google_exceptions.ServiceUnavailable,
+            google_exceptions.Unknown,
+        ),
+        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,  # time budget for all attempts
+    )
+
+    return client, retry_config
