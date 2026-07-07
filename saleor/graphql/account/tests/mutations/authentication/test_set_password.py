@@ -5,7 +5,11 @@ from freezegun import freeze_time
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
 from ......account.models import User
-from ......core.tokens import token_generator
+from ......core.tokens import (
+    account_confirm_token_generator,
+    legacy_password_reset_token_generator,
+    password_reset_token_generator,
+)
 from .....core.utils import str_to_enum
 from .....tests.utils import get_graphql_content
 from ....mutations.base import INVALID_TOKEN
@@ -41,7 +45,7 @@ def test_set_password(mocked_cache, user_api_client, setup_mock_for_cache):
     customer_user = User.objects.create_user(
         email="testSetPassword1@example.com", password="old-password"
     )
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     variables = {"email": customer_user.email, "password": password, "token": token}
@@ -80,7 +84,7 @@ def test_set_password_confirm_user_and_match_orders(
         is_confirmed=False,
     )
 
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     variables = {"email": customer_user.email, "password": password, "token": token}
@@ -126,6 +130,83 @@ def test_set_password_invalid_token(
 
 
 @patch("saleor.account.throttling.cache")
+def test_set_password_rejects_account_confirm_token(
+    mocked_cache, user_api_client, customer_user, setup_mock_for_cache
+):
+    """When providing a token that's meant for another mutation, it should reject.
+
+    In this test, we pass an account confirmation token instead of a password reset
+    token, and we test whether it rejects it properly.
+    """
+
+    setup_mock_for_cache({}, mocked_cache)
+
+    new_password = "new-password"
+    assert not customer_user.check_password(new_password)
+
+    variables = {
+        "email": customer_user.email,
+        "password": new_password,
+    }
+
+    # Should reject invalid token
+    invalid_token = account_confirm_token_generator.make_token(customer_user)
+    content = get_graphql_content(
+        user_api_client.post_graphql(
+            SET_PASSWORD_MUTATION, {**variables, "token": invalid_token}
+        )
+    )
+    data = content["data"]["setPassword"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == INVALID_TOKEN
+    assert data["errors"][0]["code"] == AccountErrorCode.INVALID.name
+    customer_user.refresh_from_db()
+    assert not customer_user.check_password(new_password)
+
+    # Sanity check: should accept valid tokens
+    valid_token = password_reset_token_generator.make_token(customer_user)
+    variables["token"] = valid_token
+    content = get_graphql_content(
+        user_api_client.post_graphql(
+            SET_PASSWORD_MUTATION, {**variables, "token": valid_token}
+        )
+    )
+    data = content["data"]["setPassword"]
+    assert not data["errors"]
+    customer_user.refresh_from_db()
+    assert customer_user.check_password(new_password)
+
+
+@patch("saleor.account.throttling.cache")
+def test_set_password_accepts_legacy_password_reset_token(
+    mocked_cache, user_api_client, customer_user, setup_mock_for_cache
+):
+    """Ensure old tokens before adding scopes still work properly."""
+
+    # given
+    setup_mock_for_cache({}, mocked_cache)
+    password = "new-password"
+    token = legacy_password_reset_token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "password": password,
+        "token": token,
+    }
+
+    # when
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["setPassword"]
+    assert not data["errors"]
+    assert data["user"]["id"]
+    assert data["token"]
+    customer_user.refresh_from_db()
+    assert customer_user.check_password(password)
+
+
+@patch("saleor.account.throttling.cache")
 def test_set_password_invalid_email(
     mocked_cache, user_api_client, setup_mock_for_cache
 ):
@@ -164,7 +245,7 @@ def test_set_password_invalid_password(
         {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
     ]
 
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     variables = {"email": customer_user.email, "password": "1234", "token": token}
 
     # when
