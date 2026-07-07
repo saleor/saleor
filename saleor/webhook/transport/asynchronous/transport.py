@@ -21,6 +21,7 @@ from opentelemetry.trace import StatusCode
 from promise import Promise
 
 from ....app.models import App
+from ....app.types import AppConcurrency
 from ....app.utils import acquire_webhook_lock
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -879,7 +880,6 @@ def trigger_send_webhooks_async_for_apps():
                 kwargs={
                     "app_id": webhook_app.id,
                     "telemetry_context": get_task_context().to_dict(),
-                    "concurrency": 1,  # TODO - will be loaded dynamically from App, value is not used by the task yet
                 },
                 queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
                 MessageGroupId=get_sqs_message_group_id(domain, webhook_app),
@@ -926,6 +926,17 @@ def join_threads_with_deadline(
         )
 
 
+def app_concurrency_to_workers_count(concurrency: str) -> int:
+    """Translate App.concurrency level into a number of worker threads."""
+    mapping = {
+        AppConcurrency.SEQUENTIAL: settings.APP_CONCURRENCY_SEQUENTIAL,
+        AppConcurrency.LOW: settings.APP_CONCURRENCY_LOW,
+        AppConcurrency.NORMAL: settings.APP_CONCURRENCY_NORMAL,
+        AppConcurrency.HIGH: settings.APP_CONCURRENCY_HIGH,
+    }
+    return mapping.get(concurrency, settings.APP_CONCURRENCY_LOW)
+
+
 @app.task(
     queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
@@ -939,8 +950,17 @@ def send_webhooks_async_for_app(
     *,
     session: "HTTPSession",
     telemetry_context: TelemetryTaskContext,
-    concurrency: int,
 ) -> None:
+    app_concurrency = (
+        App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .filter(id=app_id)
+        .values_list("concurrency", flat=True)
+        .first()
+    )
+    if app_concurrency is None:
+        logger.warning("App with ID %s not found, skipping webhook sending.", app_id)
+        return
+
     with acquire_webhook_lock(app_id) as acquired:
         if not acquired:
             return
@@ -954,23 +974,29 @@ def send_webhooks_async_for_app(
             batch_size=settings.WEBHOOK_ASYNC_BATCH_SIZE,
             task_id=self.request.id,
         )
-        results: list[EventDeliveryRequest] = []
 
         if http_requests.empty() and other_requests.empty():
             logger.info("No pending deliveries found for App ID: %s", app_id)
             return
 
-        # Determine workers count based on the number of pending deliveries,
-        # but without exceeding the max concurrency setting.
-        # Accessing _qsize directly is acceptable before threads start
-        deliveries_count = http_requests._qsize()
-        max_workers = min(deliveries_count, settings.WEBHOOK_ASYNC_MAX_CONCURRENCY)
+        results: list[EventDeliveryRequest] = []
+
+        # Determine workers count based on the number of pending HTTP deliveries,
+        # but without exceeding the concurrency configured for the app.
+        http_deliveries_count = http_requests.qsize()
+        other_deliveries_count = other_requests.qsize()
+        max_workers = min(
+            http_deliveries_count, app_concurrency_to_workers_count(app_concurrency)
+        )
+        is_app_concurrency_sequential = app_concurrency == AppConcurrency.SEQUENTIAL
 
         task_logger.info(
-            "Processing %d pending deliveries for App ID: %s with %d worker(s).",
-            deliveries_count,
-            app_id,
+            "Processing %d pending HTTP deliveries with %d worker(s) and "
+            "%d other deliveries for App ID: %s.",
+            http_deliveries_count,
             max_workers,
+            other_deliveries_count,
+            app_id,
         )
 
         # Shared across all workers. It's set once the deadline is reached to signal
@@ -980,9 +1006,15 @@ def send_webhooks_async_for_app(
         for thread_id in range(max_workers):
             thread = Thread(
                 target=execute_webhook_requests,
-                args=(thread_id, http_requests, results, deadline_exceeded_event),
-                kwargs={"telemetry_context": telemetry_context.to_dict()},
-                name=f"send_webhooks_async_for_app-worker-{app_id}-{thread_id}",
+                kwargs={
+                    "thread_id": thread_id,
+                    "queue": http_requests,
+                    "results": results,
+                    "deadline_exceeded_event": deadline_exceeded_event,
+                    "telemetry_context": telemetry_context.to_dict(),
+                    "is_app_concurrency_sequential": is_app_concurrency_sequential,
+                },
+                name=f"send_webhooks_async_for_app-http-worker-{app_id}-{thread_id}",
             )
             thread.start()
             threads.append(thread)
@@ -993,9 +1025,15 @@ def send_webhooks_async_for_app(
             thread_id = max_workers
             thread = Thread(
                 target=execute_webhook_requests,
-                args=(thread_id, other_requests, results, deadline_exceeded_event),
-                kwargs={"telemetry_context": telemetry_context.to_dict()},
-                name=f"send_webhooks_async_for_app-worker-{app_id}-{thread_id}",
+                kwargs={
+                    "thread_id": thread_id,
+                    "queue": other_requests,
+                    "results": results,
+                    "deadline_exceeded_event": deadline_exceeded_event,
+                    "telemetry_context": telemetry_context.to_dict(),
+                    "is_app_concurrency_sequential": is_app_concurrency_sequential,
+                },
+                name=f"send_webhooks_async_for_app-non-http-worker-{app_id}-{thread_id}",
             )
             thread.start()
             threads.append(thread)
@@ -1062,6 +1100,7 @@ def execute_webhook_requests(
     deadline_exceeded_event: Event,
     *,
     telemetry_context: TelemetryTaskContext,
+    is_app_concurrency_sequential: bool,
 ):
     # This deadline is kept here in case the deadline exceeded event for whatever reason is not set.
     deadline = time.monotonic() + settings.WEBHOOK_ASYNC_BATCH_TIMEOUT
@@ -1143,11 +1182,11 @@ def execute_webhook_requests(
                 delivery.id,
                 extra=log_extra_details,
             )
-            # In case of max concurrency of 1 we process deliveries sequentially in chronological order,
+            # A sequential app processes deliveries in chronological order,
             # so we need to break the loop and start next iteration from retrying last failed delivery.
             # In case of higher concurrency we can continue processing next deliveries,
             # as they are processed in parallel and not necessarily in chronological order.
-            if settings.WEBHOOK_ASYNC_MAX_CONCURRENCY <= 1:
+            if is_app_concurrency_sequential:
                 break
 
 
