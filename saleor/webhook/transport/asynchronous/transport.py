@@ -1007,7 +1007,7 @@ def send_webhooks_async_for_app(
                     "telemetry_context": telemetry_context.to_dict(),
                     "max_workers": max_workers,
                 },
-                name=f"send_webhooks_async_for_app-worker-{app_id}-{thread_id}",
+                name=f"send_webhooks_async_for_app-http-worker-{app_id}-{thread_id}",
             )
             thread.start()
             threads.append(thread)
@@ -1023,7 +1023,7 @@ def send_webhooks_async_for_app(
                     "telemetry_context": telemetry_context.to_dict(),
                     "max_workers": max_workers,
                 },
-                name=f"send_webhooks_async_for_app-worker-{app_id}-{thread_id}",
+                name=f"send_webhooks_async_for_app-non-http-worker-{app_id}-{thread_id}",
             )
             thread.start()
             threads.append(thread)
