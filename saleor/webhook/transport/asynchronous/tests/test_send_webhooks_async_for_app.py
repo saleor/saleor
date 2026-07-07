@@ -418,7 +418,7 @@ def test_execute_webhook_requests_stops_mid_batch_when_deadline_event_set(
 
 
 @patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
-def test_execute_webhook_requests_stops_on_failure_when_concurrency_is_one(
+def test_execute_webhook_requests_stops_on_failure_when_app_concurrency_sequential(
     mock_send_prepared_webhook_request_using_http,
     app,
     event_deliveries,
@@ -447,7 +447,7 @@ def test_execute_webhook_requests_stops_on_failure_when_concurrency_is_one(
     )
 
     # then
-    # with concurrency 1 deliveries are processed in chronological order, so a
+    # a sequential app processes deliveries in chronological order, so a
     # failure must stop the thread to preserve ordering on the next batch
     assert mock_send_prepared_webhook_request_using_http.call_count == 1
     assert len(results) == 1
@@ -455,7 +455,7 @@ def test_execute_webhook_requests_stops_on_failure_when_concurrency_is_one(
 
 
 @patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
-def test_execute_webhook_requests_continues_on_failure_when_concurrency_above_one(
+def test_execute_webhook_requests_continues_on_failure_when_app_concurrency_not_sequential(
     mock_send_prepared_webhook_request_using_http,
     app,
     event_deliveries,
@@ -484,7 +484,7 @@ def test_execute_webhook_requests_continues_on_failure_when_concurrency_above_on
     )
 
     # then
-    # with concurrency greater than 1 ordering is not guaranteed, so a failed delivery must
+    # a non-sequential app does not guarantee ordering, so a failed delivery must
     # not stop the thread - it keeps draining the queue
     assert mock_send_prepared_webhook_request_using_http.call_count == 3
     assert len(results) == 3

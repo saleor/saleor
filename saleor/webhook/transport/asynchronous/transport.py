@@ -980,20 +980,23 @@ def send_webhooks_async_for_app(
             logger.info("No pending deliveries found for App ID: %s", app_id)
             return
 
-        # Determine workers count based on the number of pending deliveries,
+        # Determine workers count based on the number of pending HTTP deliveries,
         # but without exceeding the concurrency configured for the app.
         # Accessing _qsize directly is acceptable before threads start
-        deliveries_count = http_requests._qsize()
+        http_deliveries_count = http_requests._qsize()
+        other_deliveries_count = other_requests._qsize()
         max_workers = min(
-            deliveries_count, app_concurrency_to_workers_count(app_concurrency)
+            http_deliveries_count, app_concurrency_to_workers_count(app_concurrency)
         )
         is_app_concurrency_sequential = app_concurrency == AppConcurrency.SEQUENTIAL
 
         task_logger.info(
-            "Processing %d pending deliveries for App ID: %s with %d worker(s).",
-            deliveries_count,
-            app_id,
+            "Processing %d pending HTTP deliveries with %d worker(s) and "
+            "%d non-HTTP deliveries for App ID: %s.",
+            http_deliveries_count,
             max_workers,
+            other_deliveries_count,
+            app_id,
         )
 
         # Shared across all workers. It's set once the deadline is reached to signal
