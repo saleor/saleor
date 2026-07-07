@@ -5,7 +5,7 @@ from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....core.tokens import (
     account_confirm_token_generator,
-    legacy_account_delete_token_generator,
+    legacy_account_confirm_token_generator,
     try_generators,
 )
 from .....giftcard.utils import assign_user_gift_cards
@@ -62,7 +62,7 @@ class ConfirmAccount(BaseMutation):
 
         valid_token = try_generators(
             current_generator=account_confirm_token_generator,
-            fallback_generator=legacy_account_delete_token_generator,
+            fallback_generator=legacy_account_confirm_token_generator,
             user=user,
             token=data["token"],
         )

@@ -10,7 +10,7 @@ rules:
       by `from saleor.core.tokens import XXX`
 
       WARNING: make sure to create a new generator for your specific use-case.
-               The value for `key_salt` must not collid with another token
+               The value for `key_salt` must not collide with another token
                generator (e.g., a password reset token shouldn't be usable
                to confirm an account).
     metadata:
