@@ -10,7 +10,7 @@ from ......account.error_codes import AccountErrorCode
 from ......account.notifications import get_default_user_payload
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
-from ......core.tokens import token_generator
+from ......core.tokens import password_reset_token_generator
 from ......core.utils.url import prepare_url
 from ......site import PasswordLoginMode
 from .....tests.utils import get_graphql_content
@@ -57,7 +57,7 @@ def test_account_reset_password(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -162,7 +162,7 @@ def test_account_reset_password_with_upper_case_email(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -209,7 +209,7 @@ def test_request_password_reset_email_for_staff(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = token_generator.make_token(user)
+    token = password_reset_token_generator.make_token(user)
     params = urlencode({"email": user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -325,7 +325,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
 
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -368,7 +368,7 @@ def test_account_reset_password_subdomain(
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
 
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -446,7 +446,7 @@ def test_account_reset_password_for_not_confirmed_user(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -504,7 +504,7 @@ def test_account_reset_password_no_channel_provided_multiple_channels(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -568,7 +568,7 @@ def test_account_reset_password_no_channel_provided_one_channel(
     # then
     data = content["data"]["requestPasswordReset"]
     assert not data["errors"]
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     reset_url = prepare_url(params, redirect_url)
     expected_payload = {
