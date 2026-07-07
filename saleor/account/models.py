@@ -145,6 +145,15 @@ class User(
     addresses = models.ManyToManyField(
         Address, blank=True, related_name="user_addresses"
     )
+    tags: "models.ManyToManyField[CustomerTag, UserCustomerTag]" = (
+        models.ManyToManyField(
+            "CustomerTag",
+            blank=True,
+            related_name="users",
+            through="UserCustomerTag",
+            through_fields=("user", "tag"),
+        )
+    )
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_confirmed = models.BooleanField(default=True)
@@ -432,3 +441,74 @@ class Group(models.Model):
 
     def natural_key(self):
         return (self.name,)
+
+
+class CustomerTag(ModelWithMetadata):
+    """A first-class, merchant-managed customer segment (e.g. VIP, Wholesale).
+
+    Tags are assigned to users via the `UserCustomerTag` through model and form
+    the customer-tier axis of the dynamic pricing feature. Whether a tag is
+    visible to the storefront owner (`me { tags }`) is controlled by the
+    ``is_public`` flag.
+    """
+
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    description = models.TextField(blank=True, default="")
+    # When True, the tag is visible to the storefront owner via `me { tags }`.
+    is_public = models.BooleanField(default=False, db_default=False)
+
+    class Meta(ModelWithMetadata.Meta):
+        ordering = ("name", "pk")
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            GinIndex(
+                name="customer_tag_name_gin",
+                fields=["name"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
+        permissions = (
+            (
+                AccountPermissions.MANAGE_CUSTOMER_TAGS.codename,
+                "Manage customer tags.",
+            ),
+            (
+                AccountPermissions.ASSIGN_CUSTOMER_TAGS.codename,
+                "Assign customer tags to users.",
+            ),
+        )
+
+    def __str__(self):
+        return self.name
+
+
+class UserCustomerTag(models.Model):
+    """Explicit through model for the `User.tags` relation.
+
+    Carries assignment provenance (`assigned_at`/`assigned_by`) so precise
+    `CUSTOMER_TAG_ASSIGNED/UNASSIGNED` webhooks can be fired.
+    """
+
+    user = models.ForeignKey(
+        User, related_name="customer_tag_assignments", on_delete=models.CASCADE
+    )
+    tag = models.ForeignKey(
+        CustomerTag, related_name="user_assignments", on_delete=models.CASCADE
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    assigned_by = models.ForeignKey(
+        User,
+        related_name="+",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    class Meta:
+        ordering = ("pk",)
+        unique_together = ("user", "tag")
+        indexes = [
+            models.Index(fields=["user"], name="user_customer_tag_user_idx"),
+            models.Index(fields=["tag"], name="user_customer_tag_tag_idx"),
+        ]

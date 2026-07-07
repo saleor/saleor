@@ -84,6 +84,16 @@ def permission_manage_users():
 
 
 @pytest.fixture
+def permission_manage_customer_tags():
+    return Permission.objects.get(codename="manage_customer_tags")
+
+
+@pytest.fixture
+def permission_assign_customer_tags():
+    return Permission.objects.get(codename="assign_customer_tags")
+
+
+@pytest.fixture
 def permission_impersonate_user():
     return Permission.objects.get(codename="impersonate_user")
 

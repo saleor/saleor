@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Count, Exists, OuterRef
 
-from ...account.models import Address, User
+from ...account.models import Address, CustomerTag, User
 from ...core.search import prefix_search
 from ...order.models import Order
 from ..core.doc_category import DOC_CATEGORY_USERS
@@ -257,6 +257,21 @@ class PermissionGroupFilter(django_filters.FilterSet):
         from . import types as account_types
 
         return filter_by_id(account_types.Group)(qs, _, value)
+
+
+class CustomerTagFilter(MetadataFilterBase):
+    search = django_filters.CharFilter(method=filter_search)
+    ids = GlobalIDMultipleChoiceFilter(method="filter_ids")
+
+    class Meta:
+        model = CustomerTag
+        fields = ["search", "ids"]
+
+    @staticmethod
+    def filter_ids(qs, _, value):
+        from . import types as account_types
+
+        return filter_by_id(account_types.CustomerTag)(qs, _, value)
 
 
 class StaffUserFilter(django_filters.FilterSet):

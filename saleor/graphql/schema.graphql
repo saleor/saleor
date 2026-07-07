@@ -1622,6 +1622,56 @@ type Query {
     id: ID!
   ): Group @doc(category: "Users")
 
+  """
+  List of customer tags.
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TAGS, ASSIGN_CUSTOMER_TAGS.
+  """
+  customerTags(
+    """Filtering options for customer tags."""
+    filter: CustomerTagFilterInput
+
+    """Sort customer tags."""
+    sortBy: CustomerTagSortingInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CustomerTagCountableConnection @doc(category: "Users")
+
+  """
+  Look up a customer tag by ID or slug.
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TAGS, ASSIGN_CUSTOMER_TAGS.
+  """
+  customerTag(
+    """ID of the customer tag."""
+    id: ID
+
+    """Slug of the customer tag."""
+    slug: String
+  ): CustomerTag @doc(category: "Users")
+
   """Return the currently authenticated user."""
   me: User @doc(category: "Users")
 
@@ -2140,6 +2190,12 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A page type is deleted."""
   PAGE_TYPE_DELETED
+
+  """One or more customer tags were assigned to a user."""
+  CUSTOMER_TAG_ASSIGNED
+
+  """One or more customer tags were unassigned from a user."""
+  CUSTOMER_TAG_UNASSIGNED
 
   """A new permission group is created."""
   PERMISSION_GROUP_CREATED
@@ -2754,6 +2810,12 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A page type is deleted."""
   PAGE_TYPE_DELETED
 
+  """One or more customer tags were assigned to a user."""
+  CUSTOMER_TAG_ASSIGNED
+
+  """One or more customer tags were unassigned from a user."""
+  CUSTOMER_TAG_UNASSIGNED
+
   """A new permission group is created."""
   PERMISSION_GROUP_CREATED
 
@@ -3051,6 +3113,8 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_USERS
   MANAGE_STAFF
   IMPERSONATE_USER
+  MANAGE_CUSTOMER_TAGS
+  ASSIGN_CUSTOMER_TAGS
   MANAGE_APPS
   MANAGE_OBSERVABILITY
   MANAGE_CHECKOUTS
@@ -3307,6 +3371,15 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """List of all user's addresses."""
   addresses: [Address!]!
+
+  """
+  List of customer tags assigned to the user. Staff users with MANAGE_USERS or MANAGE_CUSTOMER_TAGS permission see all assigned tags; the storefront owner (`me`) sees only tags marked as public (`isPublic`).
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  tags: [CustomerTag!]!
 
   """Returns the last open checkout of this user."""
   checkout: Checkout @deprecated(reason: "Use the `checkoutTokens` field to fetch the user checkouts.")
@@ -3583,6 +3656,124 @@ type ReducedRate @doc(category: "Taxes") {
 
   """A type of goods."""
   rateType: String!
+}
+
+"""
+Represents a customer tag - a merchant-managed customer segment (e.g. VIP, Wholesale) that can be assigned to users.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CustomerTag implements Node & ObjectWithMetadata @doc(category: "Users") {
+  """The ID of the customer tag."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """The name of the customer tag."""
+  name: String!
+
+  """The unique slug of the customer tag."""
+  slug: String!
+
+  """The description of the customer tag."""
+  description: String
+
+  """Whether the tag is visible to the storefront owner via `me { tags }`."""
+  isPublic: Boolean!
+
+  """
+  Number of users assigned to this customer tag.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_CUSTOMER_TAGS, ASSIGN_CUSTOMER_TAGS.
+  """
+  memberCount: Int!
+
+  """
+  List of users assigned to this customer tag.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_CUSTOMER_TAGS.
+  """
+  users(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): UserCountableConnection
+}
+
+type UserCountableConnection @doc(category: "Users") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [UserCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+"""
+The Relay compliant `PageInfo` type, containing data necessary to paginate this connection.
+"""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+}
+
+type UserCountableEdge @doc(category: "Users") {
+  """The item at the end of the edge."""
+  node: User!
+
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
 """Checkout object."""
@@ -4070,23 +4261,6 @@ type ShippingZoneCountableConnection @doc(category: "Shipping") {
 
   """A total count of items in the collection."""
   totalCount: Int
-}
-
-"""
-The Relay compliant `PageInfo` type, containing data necessary to paginate this connection.
-"""
-type PageInfo {
-  """When paginating forwards, are there more items?"""
-  hasNextPage: Boolean!
-
-  """When paginating backwards, are there more items?"""
-  hasPreviousPage: Boolean!
-
-  """When paginating backwards, the cursor to continue."""
-  startCursor: String
-
-  """When paginating forwards, the cursor to continue."""
-  endCursor: String
 }
 
 type ShippingZoneCountableEdge @doc(category: "Shipping") {
@@ -14295,6 +14469,8 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PAGE_TYPE_CREATED
   PAGE_TYPE_UPDATED
   PAGE_TYPE_DELETED
+  CUSTOMER_TAG_ASSIGNED
+  CUSTOMER_TAG_UNASSIGNED
   PERMISSION_GROUP_CREATED
   PERMISSION_GROUP_UPDATED
   PERMISSION_GROUP_DELETED
@@ -17419,23 +17595,6 @@ type ChoiceValue {
   verbose: String
 }
 
-type UserCountableConnection @doc(category: "Users") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [UserCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type UserCountableEdge @doc(category: "Users") {
-  """The item at the end of the edge."""
-  node: User!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
 input CustomerFilterInput @doc(category: "Users") {
   dateJoined: DateRangeInput
   numberOfOrders: IntRangeInput
@@ -17554,6 +17713,49 @@ input PermissionGroupSortingInput @doc(category: "Users") {
 enum PermissionGroupSortField @doc(category: "Users") {
   """Sort permission group accounts by name."""
   NAME
+}
+
+type CustomerTagCountableConnection @doc(category: "Users") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [CustomerTagCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type CustomerTagCountableEdge @doc(category: "Users") {
+  """The item at the end of the edge."""
+  node: CustomerTag!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input CustomerTagFilterInput @doc(category: "Users") {
+  search: String
+  ids: [ID!]
+  metadata: [MetadataFilter!]
+}
+
+input CustomerTagSortingInput @doc(category: "Users") {
+  """Specifies the direction in which to sort customer tag."""
+  direction: OrderDirection!
+
+  """Sort customer tag by the selected field."""
+  field: CustomerTagSortField!
+}
+
+"""Sorting options for customer tags."""
+enum CustomerTagSortField @doc(category: "Users") {
+  """Sort customer tags by name."""
+  NAME
+
+  """Sort customer tags by slug."""
+  SLUG
+
+  """Sort customer tags by member count."""
+  MEMBER_COUNT
 }
 
 input StaffUserInput @doc(category: "Users") {
@@ -22376,6 +22578,96 @@ type Mutation {
     """ID of the group to delete."""
     id: ID!
   ): PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_DELETED], syncEvents: [])
+
+  """
+  Create a new customer tag.
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
+  """
+  customerTagCreate(
+    """Fields required to create a customer tag."""
+    input: CustomerTagCreateInput!
+  ): CustomerTagCreate @doc(category: "Users")
+
+  """
+  Update an existing customer tag.
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
+  """
+  customerTagUpdate(
+    """ID of the customer tag to update."""
+    id: ID!
+
+    """Fields required to update a customer tag."""
+    input: CustomerTagInput!
+  ): CustomerTagUpdate @doc(category: "Users")
+
+  """
+  Delete a customer tag.
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
+  """
+  customerTagDelete(
+    """
+    Delete the tag even if it is still assigned to users. The assignments are removed together with the tag. Defaults to false.
+    """
+    force: Boolean = false
+
+    """ID of the customer tag to delete."""
+    id: ID!
+  ): CustomerTagDelete @doc(category: "Users")
+
+  """
+  Assign one or more customer tags to one or more users.
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TAG_ASSIGNED (async): One or more tags were assigned to a user.
+  """
+  customerTagAssign(
+    """IDs of the customer tags to assign. Limited to 100."""
+    tagIds: [ID!]!
+
+    """IDs of the users to assign the tags to. Limited to 100."""
+    userIds: [ID!]!
+  ): CustomerTagAssign @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TAG_ASSIGNED], syncEvents: [])
+
+  """
+  Unassign one or more customer tags from one or more users.
+  
+  Added in Saleor 3.24.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TAG_UNASSIGNED (async): One or more tags were unassigned from a user.
+  """
+  customerTagUnassign(
+    """IDs of the customer tags to unassign. Limited to 100."""
+    tagIds: [ID!]!
+
+    """IDs of the users to unassign the tags from. Limited to 100."""
+    userIds: [ID!]!
+  ): CustomerTagUnassign @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TAG_UNASSIGNED], syncEvents: [])
 }
 
 """
@@ -33993,6 +34285,175 @@ type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvent
   group: Group
 }
 
+"""
+Create a new customer tag.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
+"""
+type CustomerTagCreate @doc(category: "Users") {
+  """The customer tag."""
+  customerTag: CustomerTag
+  errors: [CustomerTagError!]!
+}
+
+type CustomerTagError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerTagErrorCode!
+}
+
+enum CustomerTagErrorCode @doc(category: "Users") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  CANNOT_DELETE
+}
+
+input CustomerTagCreateInput @doc(category: "Users") {
+  """Name of the customer tag."""
+  name: String!
+
+  """Slug of the customer tag."""
+  slug: String
+
+  """Description of the customer tag."""
+  description: String
+
+  """
+  Whether the tag is visible to the storefront owner via `me { tags }`. Defaults to false.
+  """
+  isPublic: Boolean
+
+  """
+  Customer tag public metadata. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Customer tag private metadata. Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  privateMetadata: [MetadataInput!]
+}
+
+"""
+Update an existing customer tag.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
+"""
+type CustomerTagUpdate @doc(category: "Users") {
+  """The customer tag."""
+  customerTag: CustomerTag
+  errors: [CustomerTagError!]!
+}
+
+input CustomerTagInput @doc(category: "Users") {
+  """Name of the customer tag."""
+  name: String
+
+  """Slug of the customer tag."""
+  slug: String
+
+  """Description of the customer tag."""
+  description: String
+
+  """
+  Whether the tag is visible to the storefront owner via `me { tags }`. Defaults to false.
+  """
+  isPublic: Boolean
+
+  """
+  Customer tag public metadata. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Customer tag private metadata. Requires permissions to modify and to read the metadata of the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  privateMetadata: [MetadataInput!]
+}
+
+"""
+Delete a customer tag.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TAGS.
+"""
+type CustomerTagDelete @doc(category: "Users") {
+  """The deleted customer tag."""
+  customerTag: CustomerTag
+  errors: [CustomerTagError!]!
+}
+
+"""
+Assign one or more customer tags to one or more users.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
+
+Triggers the following webhook events:
+- CUSTOMER_TAG_ASSIGNED (async): One or more tags were assigned to a user.
+"""
+type CustomerTagAssign @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TAG_ASSIGNED], syncEvents: []) {
+  """The users the tags were assigned to."""
+  users: [User!]
+
+  """The customer tags that were assigned."""
+  customerTags: [CustomerTag!]
+  errors: [CustomerTagError!]!
+}
+
+"""
+Unassign one or more customer tags from one or more users.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: ASSIGN_CUSTOMER_TAGS.
+
+Triggers the following webhook events:
+- CUSTOMER_TAG_UNASSIGNED (async): One or more tags were unassigned from a user.
+"""
+type CustomerTagUnassign @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TAG_UNASSIGNED], syncEvents: []) {
+  """The users the tags were unassigned from."""
+  users: [User!]
+
+  """The customer tags that were unassigned."""
+  customerTags: [CustomerTag!]
+  errors: [CustomerTagError!]!
+}
+
 type Subscription @doc(category: "Miscellaneous") {
   """Look up subscription event."""
   event: Event
@@ -36847,6 +37308,60 @@ type PageTypeDeleted implements Event @doc(category: "Pages") {
 
   """The page type the event relates to."""
   pageType: PageType
+}
+
+"""
+Event sent when one or more customer tags are assigned to a user.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CustomerTagAssigned implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user the customer tags were assigned to or unassigned from."""
+  user: User
+
+  """The customer tags the event relates to."""
+  customerTags: [CustomerTag!]
+}
+
+"""
+Event sent when one or more customer tags are unassigned from a user.
+
+Added in Saleor 3.24.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CustomerTagUnassigned implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user the customer tags were assigned to or unassigned from."""
+  user: User
+
+  """The customer tags the event relates to."""
+  customerTags: [CustomerTag!]
 }
 
 """Event sent when new permission group is created."""

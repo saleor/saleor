@@ -17,6 +17,8 @@ class AccountPermissions(BasePermissionEnum):
     MANAGE_USERS = "account.manage_users"
     MANAGE_STAFF = "account.manage_staff"
     IMPERSONATE_USER = "account.impersonate_user"
+    MANAGE_CUSTOMER_TAGS = "account.manage_customer_tags"
+    ASSIGN_CUSTOMER_TAGS = "account.assign_customer_tags"
 
 
 class AppPermission(BasePermissionEnum):

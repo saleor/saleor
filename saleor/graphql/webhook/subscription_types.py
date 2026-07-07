@@ -1869,6 +1869,53 @@ class PermissionGroupDeleted(SubscriptionObjectType, PermissionGroupBase):
         description = "Event sent when permission group is deleted."
 
 
+class CustomerTagBase(AbstractType):
+    user = graphene.Field(
+        UserType,
+        description="The user the customer tags were assigned to or unassigned from.",
+    )
+    customer_tags = NonNullList(
+        "saleor.graphql.account.types.CustomerTag",
+        description="The customer tags the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_user(root, _info: ResolveInfo):
+        _, data = root
+        return data["user"]
+
+    @staticmethod
+    def resolve_customer_tags(root, _info: ResolveInfo):
+        _, data = root
+        return data["customer_tags"]
+
+
+class CustomerTagAssigned(SubscriptionObjectType, CustomerTagBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when one or more customer tags are assigned to a user."
+            + ADDED_IN_324
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_USERS
+
+
+class CustomerTagUnassigned(SubscriptionObjectType, CustomerTagBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when one or more customer tags are unassigned from a user."
+            + ADDED_IN_324
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_USERS
+
+
 class ShippingPriceBase(AbstractType):
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethodType",
@@ -3340,6 +3387,8 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PAGE_TYPE_CREATED: PageTypeCreated,
     WebhookEventAsyncType.PAGE_TYPE_UPDATED: PageTypeUpdated,
     WebhookEventAsyncType.PAGE_TYPE_DELETED: PageTypeDeleted,
+    WebhookEventAsyncType.CUSTOMER_TAG_ASSIGNED: CustomerTagAssigned,
+    WebhookEventAsyncType.CUSTOMER_TAG_UNASSIGNED: CustomerTagUnassigned,
     WebhookEventAsyncType.PERMISSION_GROUP_CREATED: PermissionGroupCreated,
     WebhookEventAsyncType.PERMISSION_GROUP_UPDATED: PermissionGroupUpdated,
     WebhookEventAsyncType.PERMISSION_GROUP_DELETED: PermissionGroupDeleted,

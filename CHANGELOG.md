@@ -18,10 +18,12 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
+- Added `CustomerTag`, a merchant-managed customer segment (e.g. VIP, Wholesale) that can be assigned to users. New `customerTag`/`customerTags` queries, `customerTagCreate`/`customerTagUpdate`/`customerTagDelete`/`customerTagAssign`/`customerTagUnassign` mutations, and a `User.tags` field (the storefront `me { tags }` only returns tags whose `isPublic` flag is set). Guarded by the new `MANAGE_CUSTOMER_TAGS` and `ASSIGN_CUSTOMER_TAGS` permissions. This is the customer-tier axis of the dynamic pricing (price lists) feature.
 
 ### Webhooks
 
 - Added `PRODUCT_TYPE_CREATED`, `PRODUCT_TYPE_UPDATED`, and `PRODUCT_TYPE_DELETED` webhook events, dispatched when a product type is created, updated, or deleted - #17574 by @ayesha-waris
+- Added `CUSTOMER_TAG_ASSIGNED` and `CUSTOMER_TAG_UNASSIGNED` async/subscription webhook events, dispatched when customer tags are assigned to or unassigned from a user.
 
 ### Other changes
 

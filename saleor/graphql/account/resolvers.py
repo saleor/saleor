@@ -54,6 +54,19 @@ def resolve_permission_groups(info):
     return models.Group.objects.using(get_database_connection_name(info.context)).all()
 
 
+def resolve_customer_tag(info, id=None, slug=None):
+    qs = models.CustomerTag.objects.using(get_database_connection_name(info.context))
+    if id:
+        return qs.filter(id=id).first()
+    return qs.filter(slug=slug).first()
+
+
+def resolve_customer_tags(info):
+    return models.CustomerTag.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
+
+
 def resolve_staff_users(info):
     return models.User.objects.staff().using(get_database_connection_name(info.context))
 
