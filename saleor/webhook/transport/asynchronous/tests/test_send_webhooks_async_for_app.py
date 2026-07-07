@@ -364,7 +364,7 @@ def test_execute_webhook_requests_stops_mid_batch_on_soft_timeout(
             results=results,
             deadline_exceeded_event=Event(),
             telemetry_context=MagicMock(),
-            max_workers=1,
+            is_app_concurrency_sequential=True,
         )
 
     # then
@@ -408,7 +408,7 @@ def test_execute_webhook_requests_stops_mid_batch_when_deadline_event_set(
         results=results,
         deadline_exceeded_event=deadline_exceeded_event,
         telemetry_context=MagicMock(),
-        max_workers=1,
+        is_app_concurrency_sequential=True,
     )
 
     # then
@@ -443,7 +443,7 @@ def test_execute_webhook_requests_stops_on_failure_when_concurrency_is_one(
         results=results,
         deadline_exceeded_event=Event(),
         telemetry_context=MagicMock(),
-        max_workers=1,
+        is_app_concurrency_sequential=True,
     )
 
     # then
@@ -480,7 +480,7 @@ def test_execute_webhook_requests_continues_on_failure_when_concurrency_above_on
         results=results,
         deadline_exceeded_event=Event(),
         telemetry_context=MagicMock(),
-        max_workers=2,
+        is_app_concurrency_sequential=False,
     )
 
     # then
