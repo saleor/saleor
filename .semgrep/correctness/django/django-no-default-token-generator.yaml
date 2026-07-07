@@ -3,18 +3,23 @@ rules:
   # token generator classes (django.contrib.auth.tokens.*)
   - id: django-no-default-token-generator
     version: 1.0.0
-    message: The default Django's token generator class shouldn't be used directly,
+    message: |
+      The default Django's token generator class shouldn't be used directly,
       instead it should select it based on `settings.TOKEN_GENERATOR_CLASS`.
       Replace `from django.contrib.auth.tokens import default_token_generator`
-      by `from saleor.core.tokens import token_generator`
+      by `from saleor.core.tokens import XXX`
+
+      WARNING: make sure to create a new generator for your specific use-case.
+               The value for `key_salt` must not collide with another token
+               generator (e.g., a password reset token shouldn't be usable
+               to confirm an account).
     metadata:
       category: correctness
       technology:
-        - django 
+        - django
     languages:
       - python
     severity: ERROR
     pattern: |
       from django.contrib.auth.tokens import $X
-    fix:
-      from saleor.core.tokens import token_generator
+    fix: from saleor.core.tokens import XXX
