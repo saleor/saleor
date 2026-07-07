@@ -974,17 +974,17 @@ def send_webhooks_async_for_app(
             batch_size=settings.WEBHOOK_ASYNC_BATCH_SIZE,
             task_id=self.request.id,
         )
-        results: list[EventDeliveryRequest] = []
 
         if http_requests.empty() and other_requests.empty():
             logger.info("No pending deliveries found for App ID: %s", app_id)
             return
 
+        results: list[EventDeliveryRequest] = []
+
         # Determine workers count based on the number of pending HTTP deliveries,
         # but without exceeding the concurrency configured for the app.
-        # Accessing _qsize directly is acceptable before threads start
-        http_deliveries_count = http_requests._qsize()
-        other_deliveries_count = other_requests._qsize()
+        http_deliveries_count = http_requests.qsize()
+        other_deliveries_count = other_requests.qsize()
         max_workers = min(
             http_deliveries_count, app_concurrency_to_workers_count(app_concurrency)
         )
@@ -992,7 +992,7 @@ def send_webhooks_async_for_app(
 
         task_logger.info(
             "Processing %d pending HTTP deliveries with %d worker(s) and "
-            "%d non-HTTP deliveries for App ID: %s.",
+            "%d other deliveries for App ID: %s.",
             http_deliveries_count,
             max_workers,
             other_deliveries_count,
