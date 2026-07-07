@@ -199,3 +199,17 @@ When adding or changing search vector indexing logic, create a data migration th
 
 - Task: `saleor/giftcard/migrations/tasks/saleor3_22.py`
 - Migration: `saleor/giftcard/migrations/0023_mark_gift_cards_search_vector_as_dirty.py`
+
+## Agent skills
+
+### Issue tracker
+
+Issue tracking is opted out — skills must not create issues, PRDs, or triage records anywhere, and should treat "publish to the issue tracker" steps as not applicable. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Not applicable — there is no issue queue, so the triage state machine and label vocabulary are unused. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
