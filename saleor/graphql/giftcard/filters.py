@@ -9,6 +9,7 @@ from ...account import models as account_models
 from ...giftcard import models
 from ...order import models as order_models
 from ...product import models as product_models
+from ..core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.filters import (
     FilterInputObjectType,
@@ -101,8 +102,19 @@ def filter_created_by_email(qs, _, value):
 class GiftCardFilter(MetadataFilterBase):
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
-    used_by = GlobalIDMultipleChoiceFilter(method=filter_used_by)
-    assigned_to = GlobalIDMultipleChoiceFilter(method=filter_assigned_to)
+    used_by = GlobalIDMultipleChoiceFilter(
+        method=filter_used_by,
+        help_text=(
+            "Filter by the customer who used a gift card." + DEPRECATED_IN_3X_INPUT
+        ),
+    )
+    assigned_to = GlobalIDMultipleChoiceFilter(
+        method=filter_assigned_to,
+        help_text=(
+            "Filter by the customer the gift card usage is restricted to."
+            + ADDED_IN_323
+        ),
+    )
     used = django_filters.BooleanFilter(method=filter_gift_card_used)
     currency = django_filters.CharFilter(method=filter_currency)
     current_balance = ObjectTypeFilter(

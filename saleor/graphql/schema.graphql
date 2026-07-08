@@ -16337,7 +16337,15 @@ input GiftCardFilterInput @doc(category: "Gift cards") {
   metadata: [MetadataFilter!]
   tags: [String!]
   products: [ID!]
-  usedBy: [ID!]
+
+  """Filter by the customer who used a gift card."""
+  usedBy: [ID!] @deprecated
+
+  """
+  Filter by the customer the gift card usage is restricted to.
+  
+  Added in Saleor 3.23.
+  """
   assignedTo: [ID!]
   used: Boolean
   currency: String
