@@ -166,6 +166,64 @@ def test_send_webhooks_async_for_app_failed_status(
     ).exists()
 
 
+@pytest.mark.parametrize("response_status_code", [300, 404, 499])
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_send_webhooks_async_for_app_gives_up_on_permanent_failure_status(
+    mock_send_prepared_webhook_request_using_http,
+    response_status_code,
+    app,
+    event_delivery,
+):
+    # given
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="",
+        status=EventDeliveryStatus.FAILED,
+        response_status_code=response_status_code,
+    )
+
+    # when
+    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+
+    # then
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
+    deliveries = EventDelivery.objects.all()
+    assert len(deliveries) == 1
+    assert deliveries[0].status == EventDeliveryStatus.FAILED
+    attempts = EventDeliveryAttempt.objects.all()
+    assert len(attempts) == 1
+    assert attempts[0].status == EventDeliveryStatus.FAILED
+    assert attempts[0].response_status_code == response_status_code
+
+
+@pytest.mark.parametrize("response_status_code", [500, 503])
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_send_webhooks_async_for_app_retries_on_server_error_status(
+    mock_send_prepared_webhook_request_using_http,
+    response_status_code,
+    app,
+    event_delivery,
+):
+    # given
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="",
+        status=EventDeliveryStatus.FAILED,
+        response_status_code=response_status_code,
+    )
+
+    # when
+    send_webhooks_async_for_app(app_id=app.id, telemetry_context=MagicMock())
+
+    # then
+    mock_send_prepared_webhook_request_using_http.assert_called_once()
+    deliveries = EventDelivery.objects.all()
+    assert len(deliveries) == 1
+    assert deliveries[0].status == EventDeliveryStatus.PENDING
+    attempts = EventDeliveryAttempt.objects.all()
+    assert len(attempts) == 1
+    assert attempts[0].status == EventDeliveryStatus.FAILED
+    assert attempts[0].response_status_code == response_status_code
+
+
 @patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
 @patch("saleor.webhook.transport.asynchronous.transport.record_external_request")
 @patch(
@@ -486,6 +544,44 @@ def test_execute_webhook_requests_continues_on_failure_when_app_concurrency_not_
     # then
     # a non-sequential app does not guarantee ordering, so a failed delivery must
     # not stop the thread - it keeps draining the queue
+    assert mock_send_prepared_webhook_request_using_http.call_count == 3
+    assert len(results) == 3
+    assert http_requests.empty()
+
+
+@patch("saleor.webhook.transport.utils.send_prepared_webhook_request_using_http")
+def test_execute_webhook_requests_continues_on_permanent_failure_when_app_concurrency_sequential(
+    mock_send_prepared_webhook_request_using_http,
+    app,
+    event_deliveries,
+):
+    # given
+    response_status_code = 404
+    mock_send_prepared_webhook_request_using_http.return_value = WebhookResponse(
+        content="",
+        status=EventDeliveryStatus.FAILED,
+        response_status_code=response_status_code,
+    )
+    http_requests, _ = get_pending_delivery_requests(
+        domain="example.com",
+        app_id=app.id,
+        session=MagicMock(),
+        batch_size=10,
+    )
+    assert http_requests.qsize() == 3
+    results: list = []
+
+    # when
+    execute_webhook_requests(
+        thread_id=0,
+        queue=http_requests,
+        results=results,
+        deadline_exceeded_event=Event(),
+        telemetry_context=MagicMock(),
+        is_app_concurrency_sequential=True,
+    )
+
+    # then
     assert mock_send_prepared_webhook_request_using_http.call_count == 3
     assert len(results) == 3
     assert http_requests.empty()
