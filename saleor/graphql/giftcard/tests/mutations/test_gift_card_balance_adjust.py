@@ -4,6 +4,7 @@ import graphene
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
+from .....giftcard.models import GiftCardEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION = """
@@ -93,6 +94,9 @@ def test_decrease_clamps_to_zero(
 def test_zero_amount_is_rejected(
     staff_api_client, gift_card, permission_manage_gift_card
 ):
+    # given
+    balance_before = gift_card.current_balance_amount
+
     # when
     response = _adjust(
         staff_api_client, gift_card, Decimal(0), [permission_manage_gift_card]
@@ -103,11 +107,21 @@ def test_zero_amount_is_rejected(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "amount"
     assert data["errors"][0]["code"] == GiftCardErrorCode.INVALID.name
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance_amount == balance_before
+    assert not GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.BALANCE_ADJUSTED
+    ).exists()
 
 
 def test_requires_permission(staff_api_client, gift_card):
+    # given
+    balance_before = gift_card.current_balance_amount
+
     # when
     response = _adjust(staff_api_client, gift_card, Decimal("10.00"))
 
     # then
     assert_no_permission(response)
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance_amount == balance_before

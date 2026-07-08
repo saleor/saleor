@@ -121,6 +121,14 @@ def _validate_gift_cards(checkout: Checkout):
         msg = "Gift card has expired. Order placement cancelled."
         raise GiftCardNotApplicable(msg)
 
+    # Re-check restricted gift cards at completion time: a card may have been
+    # assigned to another customer after it was added to the checkout, or an
+    # actor may have added a card they are not authorized to use. This is a
+    # defense-in-depth safeguard, not a redundant check — do not remove it.
+    #
+    # We deliberately do not acquire a row lock here. A gift card changing hands
+    # mid-checkoutComplete() is outside the threat model, and locking would have
+    # a real performance/reliability cost for an unrealistic security risk.
     restricted = GiftCard.objects.filter(
         checkouts=checkout.token, assigned_to_email__isnull=False
     )

@@ -157,3 +157,6 @@ def test_requires_permission(staff_api_client, gift_card, customer_user):
 
     # then
     assert_no_permission(response)
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to is None
+    assert gift_card.assigned_to_email is None

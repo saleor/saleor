@@ -889,13 +889,15 @@ def test_assign_blocked_when_used_in_order(gift_card, customer_user):
 
 def test_assign_detaches_clean_checkout(gift_card, customer_user, checkout):
     # given
+    checkout_qs = checkout.gift_cards.filter(pk=gift_card.pk)
     checkout.gift_cards.add(gift_card)
+    assert checkout_qs.exists() is True
 
     # when
     assign_gift_card_to_user(gift_card, customer_user)
 
     # then
-    assert not checkout.gift_cards.filter(pk=gift_card.pk).exists()
+    assert checkout_qs.exists() is False
     gift_card.refresh_from_db()
     assert gift_card.assigned_to == customer_user
 
@@ -969,4 +971,25 @@ def test_add_restricted_card_rejects_guest(
     with pytest.raises(InvalidPromoCode):
         add_gift_card_code_to_checkout(
             checkout, "guest@example.com", gift_card.code, checkout.currency
+        )
+
+
+def test_add_restricted_card_rejects_guest_with_assignee_email(
+    checkout_with_item, gift_card, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    # A guest whose email matches the assignee still cannot use the card until
+    # authenticated — the restriction is keyed on the user, not the email.
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, customer_user.email, gift_card.code, checkout.currency
         )

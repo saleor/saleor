@@ -39,9 +39,7 @@ class GiftCardBalanceAdjust(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Adjust a gift card's balance by a signed delta atomically. " + ADDED_IN_323
-        )
+        description = "Adjust a gift card's balance by a delta. " + ADDED_IN_323
         doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError

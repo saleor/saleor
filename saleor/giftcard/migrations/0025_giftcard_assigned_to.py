@@ -49,6 +49,11 @@ class Migration(migrations.Migration):
                         "balance_adjusted",
                         "The gift card balance was adjusted by a delta.",
                     ),
+                    ("assigned_to_user", "The gift card was assigned to a customer."),
+                    (
+                        "unassigned_from_user",
+                        "The gift card was unassigned from a customer.",
+                    ),
                 ],
                 max_length=255,
             ),

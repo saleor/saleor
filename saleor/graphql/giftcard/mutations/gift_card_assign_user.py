@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import User as UserModel
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.events import call_event
 from ....giftcard import events
 from ....giftcard.error_codes import GiftCardErrorCode
@@ -62,8 +63,15 @@ class GiftCardAssignUser(BaseMutation):
         previous_user_id = gift_card.assigned_to_id
         previous_email = gift_card.assigned_to_email
 
+        staff = info.context.user
+        app = get_app_promise(info.context).get()
+
         try:
-            assign_gift_card_to_user(gift_card, user)
+            with traced_atomic_transaction():
+                assign_gift_card_to_user(gift_card, user)
+                events.gift_card_assigned_event(
+                    gift_card, previous_user_id, previous_email, staff, app
+                )
         except GiftCardCannotAssign as e:
             raise ValidationError(
                 {
@@ -72,12 +80,6 @@ class GiftCardAssignUser(BaseMutation):
                     )
                 }
             ) from e
-
-        staff = info.context.user
-        app = get_app_promise(info.context).get()
-        events.gift_card_assigned_event(
-            gift_card, previous_user_id, previous_email, staff, app
-        )
 
         manager = get_plugin_manager_promise(info.context).get()
         call_event(manager.gift_card_updated, gift_card)

@@ -69,10 +69,18 @@ def test_unassign_clears_fields(
     assert assignment["currentAssignedToEmail"] is None
 
 
-def test_requires_permission(staff_api_client, gift_card):
+def test_requires_permission(staff_api_client, gift_card, customer_user):
+    # given
+    from .....giftcard.utils import assign_gift_card_to_user
+
+    assign_gift_card_to_user(gift_card, customer_user)
+
     # when
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
     response = staff_api_client.post_graphql(MUTATION, variables)
 
     # then
     assert_no_permission(response)
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to == customer_user
+    assert gift_card.assigned_to_email == customer_user.email

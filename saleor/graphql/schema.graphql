@@ -20209,7 +20209,7 @@ type Mutation {
   ): GiftCardUnassignUser @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
 
   """
-  Adjust a gift card's balance by a signed delta atomically. 
+  Adjust a gift card's balance by a delta. 
   
   Added in Saleor 3.23. 
   
@@ -29286,7 +29286,7 @@ type GiftCardUnassignUser @doc(category: "Gift cards") @webhookEventsInfo(asyncE
 }
 
 """
-Adjust a gift card's balance by a signed delta atomically. 
+Adjust a gift card's balance by a delta. 
 
 Added in Saleor 3.23. 
 

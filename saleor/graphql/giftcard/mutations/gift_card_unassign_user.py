@@ -1,5 +1,6 @@
 import graphene
 
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.events import call_event
 from ....giftcard import events
 from ....permission.enums import GiftcardPermissions
@@ -42,15 +43,16 @@ class GiftCardUnassignUser(BaseMutation):
         previous_user_id = gift_card.assigned_to_id
         previous_email = gift_card.assigned_to_email
 
-        gift_card.assigned_to = None
-        gift_card.assigned_to_email = None
-        gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
-
         staff = info.context.user
         app = get_app_promise(info.context).get()
-        events.gift_card_unassigned_event(
-            gift_card, previous_user_id, previous_email, staff, app
-        )
+
+        with traced_atomic_transaction():
+            gift_card.assigned_to = None
+            gift_card.assigned_to_email = None
+            gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
+            events.gift_card_unassigned_event(
+                gift_card, previous_user_id, previous_email, staff, app
+            )
 
         manager = get_plugin_manager_promise(info.context).get()
         call_event(manager.gift_card_updated, gift_card)

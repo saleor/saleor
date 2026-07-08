@@ -1,4 +1,5 @@
 import datetime
+import logging
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
@@ -34,6 +35,9 @@ if TYPE_CHECKING:
     from ..site.models import SiteSettings
 
 
+logger = logging.getLogger(__name__)
+
+
 def add_gift_card_code_to_checkout(
     checkout: Checkout, email: str, promo_code: str, currency: str
 ):
@@ -54,6 +58,12 @@ def add_gift_card_code_to_checkout(
 
     if gift_card.assigned_to_email and gift_card.assigned_to_id != checkout.user_id:
         # Restricted gift cards can only be used by the assigned customer.
+        logger.warning(
+            "Rejected use of gift card %s restricted to another customer "
+            "in checkout %s.",
+            gift_card.pk,
+            checkout.pk,
+        )
         # Generic error — do not reveal the assignee.
         raise InvalidPromoCode()
 
@@ -87,6 +97,8 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
     attached to a checkout that has payments. Clean attached checkouts are
     detached (the same invalidation checkoutRemovePromoCode performs).
     """
+    from ..payment.models import Payment, TransactionItem
+
     with traced_atomic_transaction():
         locked = gift_card_qs_select_for_update().get(pk=gift_card.pk)
 
@@ -95,19 +107,24 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
                 "Cannot assign a gift card that was already used in an order."
             )
 
-        attached_checkouts = list(locked.checkouts.all())
-        for checkout in attached_checkouts:
-            has_transactions = (
-                checkout.payments.filter(is_active=True).exists()
-                or checkout.payment_transactions.exists()
+        attached_checkouts = locked.checkouts.all()
+        has_payments = attached_checkouts.filter(
+            Exists(Payment.objects.filter(checkout_id=OuterRef("pk"), is_active=True))
+            | Exists(TransactionItem.objects.filter(checkout_id=OuterRef("pk")))
+        ).exists()
+        if has_payments:
+            raise GiftCardCannotAssign(
+                "Cannot assign a gift card attached to a checkout with payments."
             )
-            if has_transactions:
-                raise GiftCardCannotAssign(
-                    "Cannot assign a gift card attached to a checkout with payments."
-                )
-        for checkout in attached_checkouts:
-            checkout.gift_cards.remove(locked)
-            checkout.save(update_fields=["last_change"])
+
+        # Detach clean checkouts in bulk (same invalidation that
+        # checkoutRemovePromoCode performs). Batched to keep the row lock short.
+        checkout_tokens = list(attached_checkouts.values_list("pk", flat=True))
+        if checkout_tokens:
+            locked.checkouts.clear()
+            Checkout.objects.filter(pk__in=checkout_tokens).update(
+                last_change=timezone.now()
+            )
 
         locked.assigned_to = user
         locked.assigned_to_email = user.email
