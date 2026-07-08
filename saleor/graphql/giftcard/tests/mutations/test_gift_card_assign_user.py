@@ -7,11 +7,30 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 MUTATION = """
     mutation Assign($id: ID!, $userId: ID!) {
         giftCardAssignUser(id: $id, userId: $userId) {
-            giftCard { id }
+            giftCard {
+                id
+                events {
+                    type
+                    assignedTo {
+                        oldAssignedTo { email }
+                        currentAssignedTo { email }
+                        oldAssignedToEmail
+                        currentAssignedToEmail
+                    }
+                }
+            }
             errors { field code message }
         }
     }
 """
+
+
+def _assign_event(gift_card_data):
+    return next(
+        event
+        for event in gift_card_data["events"]
+        if event["type"] == GiftCardEvents.ASSIGNED_TO_USER.upper()
+    )
 
 
 def _vars(gift_card, user):
@@ -22,13 +41,17 @@ def _vars(gift_card, user):
 
 
 def test_assign_user(
-    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+    staff_api_client,
+    gift_card,
+    customer_user,
+    permission_manage_gift_card,
+    permission_manage_users,
 ):
     # when
     response = staff_api_client.post_graphql(
         MUTATION,
         _vars(gift_card, customer_user),
-        permissions=[permission_manage_gift_card],
+        permissions=[permission_manage_gift_card, permission_manage_users],
     )
 
     # then
@@ -39,9 +62,20 @@ def test_assign_user(
     assert gift_card.assigned_to_email == customer_user.email
     assert gift_card.events.filter(type=GiftCardEvents.ASSIGNED_TO_USER).count() == 1
 
+    assignment = _assign_event(data["giftCard"])["assignedTo"]
+    assert assignment["oldAssignedTo"] is None
+    assert assignment["oldAssignedToEmail"] is None
+    assert assignment["currentAssignedTo"]["email"] == customer_user.email
+    assert assignment["currentAssignedToEmail"] == customer_user.email
+
 
 def test_reassign_records_previous(
-    staff_api_client, gift_card, customer_user, staff_user, permission_manage_gift_card
+    staff_api_client,
+    gift_card,
+    customer_user,
+    staff_user,
+    permission_manage_gift_card,
+    permission_manage_users,
 ):
     # given
     from .....giftcard.utils import assign_gift_card_to_user
@@ -52,7 +86,7 @@ def test_reassign_records_previous(
     response = staff_api_client.post_graphql(
         MUTATION,
         _vars(gift_card, customer_user),
-        permissions=[permission_manage_gift_card],
+        permissions=[permission_manage_gift_card, permission_manage_users],
     )
 
     # then
@@ -61,6 +95,38 @@ def test_reassign_records_previous(
     event = gift_card.events.filter(type=GiftCardEvents.ASSIGNED_TO_USER).last()
     assert event.parameters["previous_assigned_to_id"] == staff_user.id
     assert event.parameters["assigned_to_id"] == customer_user.id
+
+    assignment = _assign_event(data["giftCard"])["assignedTo"]
+    assert assignment["oldAssignedTo"]["email"] == staff_user.email
+    assert assignment["oldAssignedToEmail"] == staff_user.email
+    assert assignment["currentAssignedTo"]["email"] == customer_user.email
+    assert assignment["currentAssignedToEmail"] == customer_user.email
+
+
+def test_assigned_to_user_fields_require_manage_users(
+    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+):
+    # given a requester with MANAGE_GIFT_CARD but not MANAGE_USERS
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION,
+        _vars(gift_card, customer_user),
+        permissions=[permission_manage_gift_card],
+    )
+
+    # then the User sub-field is denied while the email sub-field still resolves
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["giftCardAssignUser"]
+    assert data["errors"] == []
+    assignment = _assign_event(data["giftCard"])["assignedTo"]
+    assert assignment["currentAssignedTo"] is None
+    assert assignment["currentAssignedToEmail"] == customer_user.email
+    assert any(
+        error["message"] == "To access this path, you need one of the following "
+        "permissions: MANAGE_USERS, MANAGE_STAFF, OWNER"
+        for error in content["errors"]
+    )
 
 
 def test_assign_blocked_when_used(

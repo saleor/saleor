@@ -6,15 +6,38 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 MUTATION = """
     mutation Unassign($id: ID!) {
         giftCardUnassignUser(id: $id) {
-            giftCard { id }
+            giftCard {
+                id
+                events {
+                    type
+                    assignedTo {
+                        oldAssignedTo { email }
+                        currentAssignedTo { email }
+                        oldAssignedToEmail
+                        currentAssignedToEmail
+                    }
+                }
+            }
             errors { field code message }
         }
     }
 """
 
 
+def _unassign_event(gift_card_data):
+    return next(
+        event
+        for event in gift_card_data["events"]
+        if event["type"] == GiftCardEvents.UNASSIGNED_FROM_USER.upper()
+    )
+
+
 def test_unassign_clears_fields(
-    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+    staff_api_client,
+    gift_card,
+    customer_user,
+    permission_manage_gift_card,
+    permission_manage_users,
 ):
     # given
     from .....giftcard.utils import assign_gift_card_to_user
@@ -24,7 +47,9 @@ def test_unassign_clears_fields(
 
     # when
     response = staff_api_client.post_graphql(
-        MUTATION, variables, permissions=[permission_manage_gift_card]
+        MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
     )
 
     # then
@@ -36,6 +61,12 @@ def test_unassign_clears_fields(
     assert (
         gift_card.events.filter(type=GiftCardEvents.UNASSIGNED_FROM_USER).count() == 1
     )
+
+    assignment = _unassign_event(data["giftCard"])["assignedTo"]
+    assert assignment["oldAssignedTo"]["email"] == customer_user.email
+    assert assignment["oldAssignedToEmail"] == customer_user.email
+    assert assignment["currentAssignedTo"] is None
+    assert assignment["currentAssignedToEmail"] is None
 
 
 def test_requires_permission(staff_api_client, gift_card):

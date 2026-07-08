@@ -69,6 +69,79 @@ class GiftCardEventBalance(BaseObjectType):
         doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
+class GiftCardEventAssignment(BaseObjectType):
+    old_assigned_to = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The customer the gift card was assigned to before this event. "
+            "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
+    current_assigned_to = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The customer the gift card is assigned to after this event. "
+            "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
+    old_assigned_to_email = graphene.String(
+        description=(
+            "Email of the customer the gift card was assigned to before this event."
+        ),
+    )
+    current_assigned_to_email = graphene.String(
+        description=(
+            "Email of the customer the gift card is assigned to after this event."
+        ),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
+
+    @staticmethod
+    def resolve_old_assigned_to(root: models.GiftCardEvent, info):
+        return _resolve_assignment_user(root, info, "previous_assigned_to_id")
+
+    @staticmethod
+    def resolve_current_assigned_to(root: models.GiftCardEvent, info):
+        return _resolve_assignment_user(root, info, "assigned_to_id")
+
+    @staticmethod
+    def resolve_old_assigned_to_email(root: models.GiftCardEvent, _info):
+        return root.parameters.get("previous_assigned_to_email")
+
+    @staticmethod
+    def resolve_current_assigned_to_email(root: models.GiftCardEvent, _info):
+        return root.parameters.get("assigned_to_email")
+
+
+def _resolve_assignment_user(root: models.GiftCardEvent, info, parameters_key: str):
+    # Gate the customer identity behind MANAGE_USERS/MANAGE_STAFF only when there is an
+    # assignee to protect; a null id (unassign, first assignment, deleted customer)
+    # returns null without raising PermissionDenied.
+    user_id = root.parameters.get(parameters_key)
+    if not user_id:
+        return None
+
+    def _resolve(event_user):
+        requester = get_user_or_app_from_context(info.context)
+        check_is_owner_or_has_one_of_perms(
+            requester,
+            event_user,
+            AccountPermissions.MANAGE_USERS,
+            AccountPermissions.MANAGE_STAFF,
+        )
+        return event_user
+
+    return UserByUserIdLoader(info.context).load(user_id).then(_resolve)
+
+
 class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     id = graphene.GlobalID(
         required=True, description="ID of the event associated with a gift card."
@@ -110,6 +183,14 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
         description="The list of old gift card tags.",
     )
     balance = graphene.Field(GiftCardEventBalance, description="The gift card balance.")
+    assigned_to = graphene.Field(
+        GiftCardEventAssignment,
+        description=(
+            "The customer assignment change recorded by the event. Only set for "
+            f"{GiftCardEvents.ASSIGNED_TO_USER.upper()} and "
+            f"{GiftCardEvents.UNASSIGNED_FROM_USER.upper()} events. " + ADDED_IN_323
+        ),
+    )
     expiry_date = Date(description="The gift card expiry date.")
     old_expiry_date = Date(description="Previous gift card expiry date.")
 
@@ -203,6 +284,15 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
                 balance_data[field] = prices.Money(Decimal(amount), currency)
 
         return GiftCardEventBalance(**balance_data)
+
+    @staticmethod
+    def resolve_assigned_to(root: models.GiftCardEvent, _info):
+        if root.type not in (
+            GiftCardEvents.ASSIGNED_TO_USER,
+            GiftCardEvents.UNASSIGNED_FROM_USER,
+        ):
+            return None
+        return root
 
     @staticmethod
     def resolve_expiry_date(root: models.GiftCardEvent, _info):

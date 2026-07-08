@@ -11469,6 +11469,13 @@ type GiftCardEvent implements Node @doc(category: "Gift cards") {
   """The gift card balance."""
   balance: GiftCardEventBalance
 
+  """
+  The customer assignment change recorded by the event. Only set for ASSIGNED_TO_USER and UNASSIGNED_FROM_USER events. 
+  
+  Added in Saleor 3.23.
+  """
+  assignedTo: GiftCardEventAssignment
+
   """The gift card expiry date."""
   expiryDate: Date
 
@@ -11507,6 +11514,28 @@ type GiftCardEventBalance @doc(category: "Gift cards") {
 
   """Previous current balance of the gift card."""
   oldCurrentBalance: Money
+}
+
+type GiftCardEventAssignment @doc(category: "Gift cards") {
+  """
+  The customer the gift card was assigned to before this event. 
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  """
+  oldAssignedTo: User
+
+  """
+  The customer the gift card is assigned to after this event. 
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  """
+  currentAssignedTo: User
+
+  """Email of the customer the gift card was assigned to before this event."""
+  oldAssignedToEmail: String
+
+  """Email of the customer the gift card is assigned to after this event."""
+  currentAssignedToEmail: String
 }
 
 input GiftCardEventFilterInput @doc(category: "Gift cards") {
