@@ -10,10 +10,6 @@ DEPRECATED_IN_3X_TYPE = "\n\nDEPRECATED: this type will be removed."
 
 DEPRECATED_IN_3X_EVENT = "\n\nDEPRECATED: this event will be removed."
 
-ADDED_IN_318 = "\n\nAdded in Saleor 3.18."
-ADDED_IN_319 = "\n\nAdded in Saleor 3.19."
-ADDED_IN_320 = "\n\nAdded in Saleor 3.20."
-ADDED_IN_321 = "\n\nAdded in Saleor 3.21."
 ADDED_IN_322 = "\n\nAdded in Saleor 3.22."
 ADDED_IN_323 = "\n\nAdded in Saleor 3.23."
 ADDED_IN_324 = "\n\nAdded in Saleor 3.24."

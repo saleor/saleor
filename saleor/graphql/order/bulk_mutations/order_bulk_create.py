@@ -58,7 +58,6 @@ from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_318, ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
@@ -489,7 +488,7 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     product_name = graphene.String(description="The name of the product.")
     product_sku = graphene.String(
         required=False,
-        description="The SKU of the product." + ADDED_IN_318,
+        description="The SKU of the product.",
     )
     translated_variant_name = graphene.String(
         description="Translation of the product variant name."
@@ -518,16 +517,15 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     )
     unit_discount_reason = graphene.String(
         required=False,
-        description="Reason of the discount on order line." + ADDED_IN_319,
+        description="Reason of the discount on order line.",
     )
     unit_discount_type = graphene.Field(
         DiscountValueTypeEnum,
         required=False,
-        description="Type of the discount: fixed or percent" + ADDED_IN_319,
+        description="Type of the discount: fixed or percent",
     )
     unit_discount_value = PositiveDecimal(
-        description="Value of the discount. Can store fixed value or percent value"
-        + ADDED_IN_319,
+        description="Value of the discount. Can store fixed value or percent value",
         required=False,
     )
     warehouse = graphene.ID(
@@ -622,7 +620,7 @@ class OrderBulkCreateInput(BaseInputObjectType):
         description="List of gift card codes associated with the order.",
     )
     voucher_code = graphene.String(
-        description="Code of a voucher associated with the order." + ADDED_IN_318
+        description="Code of a voucher associated with the order."
     )
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
     fulfillments = NonNullList(

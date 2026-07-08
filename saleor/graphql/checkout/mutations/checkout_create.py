@@ -22,7 +22,6 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -149,7 +148,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
-        + ADDED_IN_321
     )
     shipping_address = AddressInput(
         description=(
@@ -166,7 +164,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
-        + ADDED_IN_321
     )
     billing_address = AddressInput(
         description=(
@@ -187,7 +184,6 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             f"Checkout public metadata. "
             f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
-            f"{ADDED_IN_321}"
         ),
         required=False,
     )
@@ -199,7 +195,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
             f"{CheckoutPermissions.HANDLE_CHECKOUTS.name} \n\n"
             f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
-            f"{ADDED_IN_321}"
         ),
         required=False,
     )

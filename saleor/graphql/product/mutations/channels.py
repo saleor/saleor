@@ -22,7 +22,7 @@ from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date, DateTime, PositiveDecimal
@@ -391,7 +391,7 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
     prior_price = PositiveDecimal(
         description="Previous price of the variant in channel. Useful for providing "
         "promotion information required by customer protection laws such as EU Omnibus "
-        "directive." + ADDED_IN_321
+        "directive."
     )
     preorder_threshold = graphene.Int(
         description="The threshold for preorder variant in channel."

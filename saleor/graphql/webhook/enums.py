@@ -2,7 +2,6 @@ import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
-    ADDED_IN_318,
     DEFAULT_DEPRECATION_REASON,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -233,7 +232,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: "A voucher metadata is updated.",
     WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: (
-        "A voucher code export is completed." + ADDED_IN_318
+        "A voucher code export is completed."
     ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",

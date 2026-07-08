@@ -3,7 +3,6 @@ from django.db.models import F, Min, OuterRef, Q, QuerySet, Subquery
 
 from ...discount.models import VoucherCode
 from ..core.descriptions import (
-    ADDED_IN_318,
     CHANNEL_REQUIRED,
     DEFAULT_DEPRECATION_REASON,
 )
@@ -77,7 +76,6 @@ class VoucherSortField(graphene.Enum):
         descrption_extras = {
             VoucherSortField.VALUE.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             VoucherSortField.MINIMUM_SPENT_AMOUNT.name: [CHANNEL_REQUIRED],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            VoucherSortField.NAME.name: [ADDED_IN_318],  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in VoucherSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")

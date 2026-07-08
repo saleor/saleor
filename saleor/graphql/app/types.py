@@ -32,7 +32,7 @@ from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
 from ..core.dataloaders import DataLoader
-from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
+from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import PermissionsField
@@ -645,7 +645,7 @@ class AppProblem(ModelObjectType[models.AppProblem]):
 class App(ModelObjectType[models.App]):
     id = graphene.GlobalID(required=True, description="The ID of the app.")
     identifier = graphene.String(
-        required=False, description="Canonical app ID from the manifest" + ADDED_IN_319
+        required=False, description="Canonical app ID from the manifest"
     )
     permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = DateTime(description="The date and time when the app was created.")
@@ -716,12 +716,11 @@ class App(ModelObjectType[models.App]):
     )
     brand = graphene.Field(AppBrand, description="App's brand data.")
     breaker_state = CircuitBreakerStateEnum(
-        description="Circuit breaker state, if open, sync webhooks operation is disrupted."
-        + ADDED_IN_321,
+        description="Circuit breaker state, if open, sync webhooks operation is disrupted.",
         required=True,
     )
     breaker_last_state_change = DateTime(
-        description="Circuit breaker last state change date." + ADDED_IN_321,
+        description="Circuit breaker last state change date.",
         required=False,
     )
 

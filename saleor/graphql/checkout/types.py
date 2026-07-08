@@ -45,9 +45,6 @@ from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext
 from ..core.descriptions import (
-    ADDED_IN_318,
-    ADDED_IN_319,
-    ADDED_IN_321,
     ADDED_IN_323,
     PREVIEW_FEATURE,
 )
@@ -302,8 +299,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
     )
     prior_unit_price = graphene.Field(
         Money,
-        description="The unit price of the checkout line prior to promotion."
-        + ADDED_IN_321,
+        description="The unit price of the checkout line prior to promotion.",
     )
     total_price = BaseField(
         TaxedMoney,
@@ -323,8 +319,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
     )
     prior_total_price = graphene.Field(
         Money,
-        description="The sum of the checkout line price prior to promotion."
-        + ADDED_IN_321,
+        description="The sum of the checkout line price prior to promotion.",
     )
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered.",
@@ -334,7 +329,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
         CheckoutLineProblem, description="List of problems with the checkout line."
     )
     is_gift = graphene.Boolean(
-        description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
+        description="Determine if the line is a gift." + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -609,7 +604,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         description="The shipping address of the checkout.",
     )
     customer_note = graphene.String(
-        required=True, description=f"The customer note for the checkout. {ADDED_IN_321}"
+        required=True, description="The customer note for the checkout. "
     )
     note = graphene.String(
         required=True,
@@ -636,7 +631,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     )
     voucher = PermissionsField(
         "saleor.graphql.discount.types.vouchers.Voucher",
-        description="The voucher assigned to the checkout." + ADDED_IN_318,
+        description="The voucher assigned to the checkout.",
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
     voucher_code = graphene.String(
