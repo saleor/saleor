@@ -22,6 +22,16 @@ If any of these files don't exist yet, **proceed silently**. Don't flag their ab
 └── saleor/            ← application code
 ```
 
+## ADR tags
+
+Every ADR carries a `**Tags:**` line directly under its title — a short, comma-separated list of the areas it relates to (e.g. `gift card`, `security`, `concurrency`, `checkout`). Tags are for discovery: use them to find the ADRs that touch the area you're about to work in, rather than reading every file.
+
+- When you add a new ADR, give it tags.
+- Reuse existing tag names where one fits; only coin a new tag when nothing existing applies.
+- Prefer stable, area-level tags (a domain like `gift card`, or a cross-cutting concern like `security`) over narrow, one-off labels.
+
+ADRs describe **business / high-level decisions and their rationale** — why a choice was made and what the alternative would have cost. Keep implementation detail out; it goes stale and lives in the code. Include a code reference only when it is essential to understand the decision.
+
 ## Use the glossary's vocabulary
 
 When your output names a domain concept (in a refactor proposal, a hypothesis, a test name), use the term as defined in `CONTEXT.md`. Don't drift to synonyms the glossary explicitly avoids.
