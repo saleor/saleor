@@ -64,6 +64,7 @@ from ..utils import (
     get_sqs_message_group_id,
     handle_webhook_retry,
     http_session,
+    is_retryable_status_code,
     prepare_deferred_payload_data,
     send_webhook_using_scheme_method,
 )
@@ -1078,7 +1079,22 @@ def process_executed_delivery_requests(
             successful_deliveries.append(delivery)
         elif attempt.status == EventDeliveryStatus.FAILED:
             attempts_to_save.append(attempt)
-            if request.prev_attempts_count >= MAX_WEBHOOK_RETRIES:
+            is_permanent_failure = not is_retryable_status_code(
+                attempt.response_status_code
+            )
+            if is_permanent_failure:
+                logger.info(
+                    "[Webhook ID: %r] Failed request to %r: received HTTP %d,"
+                    " not retrying. Delivery ID: %r",
+                    delivery.webhook.id,
+                    sanitize_url_for_logging(delivery.webhook.target_url),
+                    attempt.response_status_code,
+                    delivery.id,
+                )
+            if (
+                is_permanent_failure
+                or request.prev_attempts_count >= MAX_WEBHOOK_RETRIES
+            ):
                 delivery.status = EventDeliveryStatus.FAILED
                 deliveries_to_update.append(delivery)
         else:
@@ -1186,7 +1202,9 @@ def execute_webhook_requests(
             # so we need to break the loop and start next iteration from retrying last failed delivery.
             # In case of higher concurrency we can continue processing next deliveries,
             # as they are processed in parallel and not necessarily in chronological order.
-            if is_app_concurrency_sequential:
+            if is_app_concurrency_sequential and is_retryable_status_code(
+                response.response_status_code
+            ):
                 break
 
 

@@ -523,6 +523,11 @@ def prepare_event_delivery_request_callback(
     return scheme, callback
 
 
+def is_retryable_status_code(response_status_code: int | None) -> bool:
+    """Failures with 3xx/4xx status codes are permanent and not retried."""
+    return not (response_status_code and 300 <= response_status_code < 500)
+
+
 def handle_webhook_retry(
     celery_task: Task,
     webhook: Webhook,
@@ -556,8 +561,7 @@ def handle_webhook_retry(
         delivery_attempt.id,
         extra=log_extra_details,
     )
-    if response.response_status_code and 300 <= response.response_status_code < 500:
-        # do not retry for 30x and 40x status codes
+    if not is_retryable_status_code(response.response_status_code):
         task_logger.info(
             "[Webhook ID: %r] Failed request to %r: received HTTP %d. Delivery ID: %r",
             webhook.id,
