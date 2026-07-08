@@ -22,7 +22,7 @@ from promise import Promise
 
 from ....app.models import App
 from ....app.types import AppConcurrency
-from ....app.utils import acquire_webhook_lock
+from ....app.utils import acquire_webhook_lock, get_app_ids_with_mutex_acquired
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
 from ....core.db.connection import allow_writer
@@ -869,13 +869,27 @@ def trigger_send_webhooks_async_for_apps():
             webhook__app_id=OuterRef("id"),
         )
 
-        webhook_apps = (
+        webhook_apps = list(
             App.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             .filter(is_active=True)
             .filter(Exists(event_deliveries_to_process_qs))
             .only("id", "identifier")
         )
+        if not webhook_apps:
+            return
+
+        # An already-acquired mutex indicates the app's webhooks are likely being
+        # sent right now. If this check mistakenly skips an app (e.g. because
+        # another instance of this task held the mutex just to check whether the
+        # app is busy), a subsequent instance of this task will reconcile it.
+        busy_app_ids = get_app_ids_with_mutex_acquired(
+            [webhook_app.id for webhook_app in webhook_apps]
+        )
+
         for webhook_app in webhook_apps:
+            if webhook_app.id in busy_app_ids:
+                continue
+
             send_webhooks_async_for_app.apply_async(
                 kwargs={
                     "app_id": webhook_app.id,
