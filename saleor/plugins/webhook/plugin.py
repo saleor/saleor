@@ -1865,6 +1865,50 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
+    def _trigger_product_type_event(self, event_type, product_type, webhooks=None):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("ProductType", product_type.id),
+                    "name": product_type.name,
+                    "slug": product_type.slug,
+                    "meta": self._generate_meta(),
+                }
+            )
+            self.trigger_webhooks_async(
+                payload, event_type, webhooks, product_type, self.requestor
+            )
+
+    def product_type_created(
+        self, product_type: "ProductType", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_product_type_event(
+            WebhookEventAsyncType.PRODUCT_TYPE_CREATED, product_type
+        )
+        return previous_value
+
+    def product_type_updated(
+        self, product_type: "ProductType", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_product_type_event(
+            WebhookEventAsyncType.PRODUCT_TYPE_UPDATED, product_type
+        )
+        return previous_value
+
+    def product_type_deleted(
+        self, product_type: "ProductType", previous_value: None, webhooks=None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_product_type_event(
+            WebhookEventAsyncType.PRODUCT_TYPE_DELETED, product_type, webhooks=webhooks
+        )
+        return previous_value
+
     def product_media_created(
         self, media: "ProductMedia", previous_value: None
     ) -> None:

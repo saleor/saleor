@@ -2,7 +2,6 @@ import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
-    ADDED_IN_318,
     DEFAULT_DEPRECATION_REASON,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -156,6 +155,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_UPDATED: "A product is updated.",
     WebhookEventAsyncType.PRODUCT_DELETED: "A product is deleted.",
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: "A product metadata is updated.",
+    WebhookEventAsyncType.PRODUCT_TYPE_CREATED: "A new product type is created.",
+    WebhookEventAsyncType.PRODUCT_TYPE_UPDATED: "A product type is updated.",
+    WebhookEventAsyncType.PRODUCT_TYPE_DELETED: "A product type is deleted.",
     WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: "A new product media is created.",
     WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: "A product media is updated.",
     WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: "A product media is deleted.",
@@ -230,7 +232,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: "A voucher metadata is updated.",
     WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: (
-        "A voucher code export is completed." + ADDED_IN_318
+        "A voucher code export is completed."
     ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",

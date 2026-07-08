@@ -22,7 +22,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -66,8 +66,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 "Indicates whether the shipping address should be saved "
                 "to the user’s address book upon checkout completion. "
                 "If not provided, the default behavior is to save the address."
-            )
-            + ADDED_IN_321,
+            ),
         )
         validation_rules = CheckoutAddressValidationRules(
             required=False,

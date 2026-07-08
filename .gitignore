@@ -1,6 +1,7 @@
 *.py[cod]
 .*
 !.devcontainer
+!.worktree-container
 !.dockerignore
 !.github
 !.gitignore

@@ -3,7 +3,11 @@ from unittest.mock import patch
 from freezegun import freeze_time
 
 from ......account.error_codes import AccountErrorCode
-from ......core.tokens import token_generator
+from ......core.tokens import (
+    account_confirm_token_generator,
+    legacy_account_confirm_token_generator,
+    password_reset_token_generator,
+)
 from .....tests.utils import get_graphql_content
 
 CONFIRM_ACCOUNT_MUTATION = """
@@ -43,7 +47,7 @@ def test_account_confirmation(
 
     variables = {
         "email": customer_user.email,
-        "token": token_generator.make_token(customer_user),
+        "token": account_confirm_token_generator.make_token(customer_user),
         "channel": channel_USD.slug,
     }
     response = api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
@@ -73,7 +77,7 @@ def test_account_confirmation_invalid_user(
 ):
     variables = {
         "email": "non-existing@example.com",
-        "token": token_generator.make_token(customer_user),
+        "token": account_confirm_token_generator.make_token(customer_user),
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
@@ -114,3 +118,108 @@ def test_account_confirmation_invalid_token(
     )
     match_orders_with_new_user_mock.assert_not_called()
     assign_gift_cards_mock.assert_not_called()
+
+
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
+@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
+def test_account_confirmation_rejects_token_for_wrong_scope(
+    mocked_account_confirmed,
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    user_api_client,
+    customer_user,
+):
+    """When providing a token that's meant for another mutation, it should reject.
+
+    In this test, we pass a password reset token instead of an account confirmation
+    token, and we test whether it rejects it properly.
+    """
+
+    customer_user.is_confirmed = False
+    customer_user.save(update_fields=["is_confirmed"])
+
+    # Create token for the wrong mutation
+    invalid_token = password_reset_token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "token": invalid_token,
+    }
+
+    # Should reject the token
+    content = get_graphql_content(
+        user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    )
+    data = content["data"]["confirmAccount"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "token"
+    assert data["errors"][0]["code"] == AccountErrorCode.INVALID.name
+
+    # Shouldn't have confirmed the account nor merged the account
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+    assert customer_user.is_confirmed is False
+    match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
+    mocked_account_confirmed.assert_not_called()
+
+    # Sanity check: a valid token should work properly
+    valid_token = account_confirm_token_generator.make_token(customer_user)
+    variables["token"] = valid_token
+    content = get_graphql_content(
+        user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    )
+    data = content["data"]["confirmAccount"]
+    assert not data["errors"]
+
+    # Should have merged the account & confirmed the account
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+    assert customer_user.is_confirmed is True
+    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
+    mocked_account_confirmed.assert_called_once_with(customer_user)
+
+
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
+@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
+def test_account_confirmation_accepts_legacy_account_confirm_token(
+    mocked_account_confirmed,
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    user_api_client,
+    customer_user,
+):
+    """Ensure old tokens before adding scopes still work properly."""
+
+    # given
+    customer_user.is_confirmed = False
+    customer_user.save(update_fields=["is_confirmed"])
+    token = legacy_account_confirm_token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "token": token,
+    }
+
+    # when
+    response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["confirmAccount"]
+    assert not data["errors"]
+    assert data["user"]["email"] == customer_user.email
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+
+    # Should have properly confirmed the account
+    assert customer_user.is_confirmed is True
+    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
+    mocked_account_confirmed.assert_called_once_with(customer_user)

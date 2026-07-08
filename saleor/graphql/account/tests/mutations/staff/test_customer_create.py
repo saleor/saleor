@@ -81,7 +81,7 @@ CUSTOMER_CREATE_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.password_reset_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
 def test_customer_create(
@@ -196,7 +196,7 @@ def test_customer_create(
 
 
 @patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.password_reset_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch("saleor.plugins.manager.PluginsManager.account_set_password_requested")
 def test_customer_create_as_app(
@@ -315,7 +315,7 @@ def test_customer_create_as_app(
     )
 
 
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.password_reset_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_create_send_password_with_url(
     mocked_notify,
@@ -503,7 +503,7 @@ def test_customer_create_with_non_unique_external_reference(
     assert error["message"] == "User with this External reference already exists."
 
 
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.password_reset_token_generator.make_token")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_customer_create_webhook_event_triggered(
     mocked_trigger_webhooks_async,

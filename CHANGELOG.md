@@ -21,6 +21,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Webhooks
 
+- Added `PRODUCT_TYPE_CREATED`, `PRODUCT_TYPE_UPDATED`, and `PRODUCT_TYPE_DELETED` webhook events, dispatched when a product type is created, updated, or deleted - #17574 by @ayesha-waris
+
 ### Other changes
 
 #### Search improvements
