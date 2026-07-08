@@ -5,8 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0039_remove_manage_apps_permission"),
-        ("permission", "0002_alter_permission_content_type"),
+        ("app", "0038_merge_20260213_1154"),
     ]
 
     operations = [
