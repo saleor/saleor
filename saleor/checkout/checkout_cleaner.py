@@ -121,6 +121,17 @@ def _validate_gift_cards(checkout: Checkout):
         msg = "Gift card has expired. Order placement cancelled."
         raise GiftCardNotApplicable(msg)
 
+    restricted = GiftCard.objects.filter(
+        checkouts=checkout.token, assigned_to_email__isnull=False
+    )
+    if checkout.user_id:
+        restricted = restricted.exclude(assigned_to_id=checkout.user_id)
+    if restricted.exists():
+        # Generic message — do not reveal the assignee.
+        raise GiftCardNotApplicable(
+            "Gift card cannot be used. Order placement cancelled."
+        )
+
 
 def validate_checkout(
     checkout_info: "CheckoutInfo",

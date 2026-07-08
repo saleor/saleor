@@ -94,3 +94,55 @@ def test_query_own_gift_cards(
     assert data["edges"][0]["node"]["last4CodeChars"] == gift_card_used.display_code
     assert data["edges"][0]["node"]["code"] == gift_card_used.code
     assert data["totalCount"] == 1
+
+
+ME_GIFT_CARDS = """
+    query { me { giftCards(first: 10) { edges { node { id } } } } }
+"""
+
+
+def test_me_gift_cards_includes_assigned(user_api_client, gift_card, customer_user):
+    # given
+    gift_card.used_by = None
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["used_by", "assigned_to", "assigned_to_email"])
+
+    # when
+    response = user_api_client.post_graphql(ME_GIFT_CARDS, {})
+
+    # then
+    edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
+    ids = {e["node"]["id"] for e in edges}
+    assert graphene.Node.to_global_id("GiftCard", gift_card.pk) in ids
+
+
+FILTER_QUERY = """
+    query GiftCards($filter: GiftCardFilterInput!) {
+        giftCards(first: 10, filter: $filter) {
+            edges { node { id } }
+        }
+    }
+"""
+
+
+def test_filter_by_assigned_to(
+    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+):
+    # given
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
+    variables = {
+        "filter": {"assignedTo": [graphene.Node.to_global_id("User", customer_user.pk)]}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        FILTER_QUERY, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    edges = get_graphql_content(response)["data"]["giftCards"]["edges"]
+    ids = {e["node"]["id"] for e in edges}
+    assert graphene.Node.to_global_id("GiftCard", gift_card.pk) in ids

@@ -20,6 +20,7 @@ from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
 from ..site import GiftCardSettingsExpiryType
 from . import GiftCardEvents, GiftCardLineData, events
+from .lock_objects import gift_card_qs_select_for_update
 from .models import GiftCard, GiftCardEvent
 from .notifications import send_gift_card_notification
 
@@ -51,6 +52,11 @@ def add_gift_card_code_to_checkout(
     except GiftCard.DoesNotExist as e:
         raise InvalidPromoCode() from e
 
+    if gift_card.assigned_to_email and gift_card.assigned_to_id != checkout.user_id:
+        # Restricted gift cards can only be used by the assigned customer.
+        # Generic error — do not reveal the assignee.
+        raise InvalidPromoCode()
+
     checkout.gift_cards.add(gift_card)
     checkout.save(update_fields=["last_change"])
 
@@ -68,6 +74,47 @@ def remove_gift_card_code_from_checkout_or_error(
             "Cannot remove a gift card not attached to this checkout.",
             code=CheckoutErrorCode.INVALID.value,
         )
+
+
+class GiftCardCannotAssign(Exception):
+    """Raised when a gift card cannot be (re)assigned to a customer."""
+
+
+def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
+    """Restrict a gift card to a customer under a row lock.
+
+    Raise GiftCardCannotAssign when the card was already used in an order or is
+    attached to a checkout that has payments. Clean attached checkouts are
+    detached (the same invalidation checkoutRemovePromoCode performs).
+    """
+    with traced_atomic_transaction():
+        locked = gift_card_qs_select_for_update().get(pk=gift_card.pk)
+
+        if locked.last_used_on is not None:
+            raise GiftCardCannotAssign(
+                "Cannot assign a gift card that was already used in an order."
+            )
+
+        attached_checkouts = list(locked.checkouts.all())
+        for checkout in attached_checkouts:
+            has_transactions = (
+                checkout.payments.filter(is_active=True).exists()
+                or checkout.payment_transactions.exists()
+            )
+            if has_transactions:
+                raise GiftCardCannotAssign(
+                    "Cannot assign a gift card attached to a checkout with payments."
+                )
+        for checkout in attached_checkouts:
+            checkout.gift_cards.remove(locked)
+            checkout.save(update_fields=["last_change"])
+
+        locked.assigned_to = user
+        locked.assigned_to_email = user.email
+        locked.save(update_fields=["assigned_to", "assigned_to_email"])
+
+        gift_card.assigned_to = user
+        gift_card.assigned_to_email = user.email
 
 
 def deactivate_gift_card(gift_card: GiftCard):

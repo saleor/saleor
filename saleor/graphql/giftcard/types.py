@@ -24,7 +24,7 @@ from ..app.types import App
 from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import DEFAULT_DEPRECATION_REASON
+from ..core.descriptions import ADDED_IN_323, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
 from ..core.scalars import Date, DateTime
@@ -288,6 +288,24 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         description="Email address of the customer who used a gift card.",
         deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
+    assigned_to = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The customer the gift card usage is restricted to."
+            + "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}. " + ADDED_IN_323
+        ),
+    )
+    assigned_to_email = graphene.String(
+        required=False,
+        description=(
+            "Email of the customer the gift card is restricted to."
+            + "\n\nRequires one of the following permissions: "
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name}, "
+            f"{AuthorizationFilters.OWNER.name}. " + ADDED_IN_323
+        ),
+    )
     last_used_on = DateTime(description="Date and time when gift card was last used.")
     expiry_date = Date(description="Expiry date of the gift card.")
     app = graphene.Field(
@@ -370,16 +388,17 @@ class GiftCard(ModelObjectType[models.GiftCard]):
 
     @staticmethod
     def resolve_code(root: models.GiftCard, info):
-        def _resolve_code(user):
-            # Gift card code can be fetched by the staff user and app
-            # with manage gift card permission and by the card owner.
-            if requestor := get_user_or_app_from_context(info.context):
-                requestor_is_an_owner = user and requestor == user
-                if requestor_is_an_owner or requestor.has_perm(
+        # Gift card code can be fetched by the staff user and app with manage gift
+        # card permission and by the card owner (the customer who used it or the
+        # customer it is assigned to).
+        def _resolve_code(owner_ids):
+            requestor = get_user_or_app_from_context(info.context)
+            if requestor:
+                requestor_is_owner = getattr(requestor, "id", None) in owner_ids
+                if requestor_is_owner or requestor.has_perm(
                     GiftcardPermissions.MANAGE_GIFT_CARD
                 ):
                     return root.code
-
             return PermissionDenied(
                 permissions=[
                     AuthorizationFilters.OWNER,
@@ -387,12 +406,10 @@ class GiftCard(ModelObjectType[models.GiftCard]):
                 ]
             )
 
-        if root.used_by_id is None:
-            return _resolve_code(None)
-
-        return (
-            UserByUserIdLoader(info.context).load(root.used_by_id).then(_resolve_code)
-        )
+        owner_ids = {
+            uid for uid in (root.used_by_id, root.assigned_to_id) if uid is not None
+        }
+        return _resolve_code(owner_ids)
 
     @staticmethod
     def resolve_created_by(root: models.GiftCard, info):
@@ -463,6 +480,41 @@ class GiftCard(ModelObjectType[models.GiftCard]):
             UserByUserIdLoader(info.context)
             .load(root.used_by_id)
             .then(_resolve_used_by_email)
+        )
+
+    @staticmethod
+    def resolve_assigned_to(root: models.GiftCard, info):
+        def _resolve_assigned_to(user):
+            requestor = get_user_or_app_from_context(info.context)
+            check_is_owner_or_has_one_of_perms(
+                requestor, user, AccountPermissions.MANAGE_USERS
+            )
+            return user
+
+        if root.assigned_to_id is None:
+            return None
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.assigned_to_id)
+            .then(_resolve_assigned_to)
+        )
+
+    @staticmethod
+    def resolve_assigned_to_email(root: models.GiftCard, info):
+        def _resolve_assigned_to_email(user):
+            requestor = get_user_or_app_from_context(info.context)
+            if is_owner_or_has_one_of_perms(
+                requestor, user, GiftcardPermissions.MANAGE_GIFT_CARD
+            ):
+                return user.email if user else root.assigned_to_email
+            return obfuscate_email(user.email if user else root.assigned_to_email)
+
+        if root.assigned_to_id is None:
+            return _resolve_assigned_to_email(None)
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.assigned_to_id)
+            .then(_resolve_assigned_to_email)
         )
 
     @staticmethod

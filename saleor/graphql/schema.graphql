@@ -11360,6 +11360,24 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   """Email address of the customer who used a gift card."""
   usedByEmail: String @deprecated
 
+  """
+  The customer the gift card usage is restricted to.
+  
+  Requires one of the following permissions: MANAGE_USERS, OWNER. 
+  
+  Added in Saleor 3.23.
+  """
+  assignedTo: User
+
+  """
+  Email of the customer the gift card is restricted to.
+  
+  Requires one of the following permissions: MANAGE_GIFT_CARD, OWNER. 
+  
+  Added in Saleor 3.23.
+  """
+  assignedToEmail: String
+
   """Date and time when gift card was last used."""
   lastUsedOn: DateTime
 
@@ -11472,6 +11490,9 @@ enum GiftCardEventsEnum @doc(category: "Gift cards") {
   NOTE_ADDED
   USED_IN_ORDER
   REFUNDED_IN_ORDER
+  BALANCE_ADJUSTED
+  ASSIGNED_TO_USER
+  UNASSIGNED_FROM_USER
 }
 
 type GiftCardEventBalance @doc(category: "Gift cards") {
@@ -16288,6 +16309,7 @@ input GiftCardFilterInput @doc(category: "Gift cards") {
   tags: [String!]
   products: [ID!]
   usedBy: [ID!]
+  assignedTo: [ID!]
   used: Boolean
   currency: String
   currentBalance: PriceRangeInput
@@ -20115,6 +20137,61 @@ type Mutation {
     """ID of a gift card to activate."""
     id: ID!
   ): GiftCardActivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: [])
+
+  """
+  Restrict a gift card so only the given customer can use it. 
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_UPDATED (async): A gift card was updated.
+  """
+  giftCardAssignUser(
+    """ID of the gift card."""
+    id: ID!
+
+    """ID of the customer to restrict the card to."""
+    userId: ID!
+  ): GiftCardAssignUser @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
+
+  """
+  Remove a customer restriction from a gift card. 
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_UPDATED (async): A gift card was updated.
+  """
+  giftCardUnassignUser(
+    """ID of the gift card."""
+    id: ID!
+  ): GiftCardUnassignUser @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
+
+  """
+  Adjust a gift card's balance by a signed delta atomically. 
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_UPDATED (async): A gift card was updated.
+  """
+  giftCardBalanceAdjust(
+    """
+    Signed amount to adjust the current balance by. Positive tops up, negative deducts. A deduction below zero clamps the balance to zero. A top-up above the initial balance raises the initial balance to the new current balance. 
+    
+    Added in Saleor 3.23.
+    """
+    amount: Decimal!
+
+    """ID of the gift card to adjust."""
+    id: ID!
+  ): GiftCardBalanceAdjust @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
 
   """
   Creates a new gift card. 
@@ -29134,6 +29211,58 @@ enum GiftCardErrorCode @doc(category: "Gift cards") {
   UNIQUE
   EXPIRED_GIFT_CARD
   DUPLICATED_INPUT_ITEM
+  CANNOT_ASSIGN
+}
+
+"""
+Restrict a gift card so only the given customer can use it. 
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_UPDATED (async): A gift card was updated.
+"""
+type GiftCardAssignUser @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: []) {
+  """The assigned gift card."""
+  giftCard: GiftCard
+  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [GiftCardError!]!
+}
+
+"""
+Remove a customer restriction from a gift card. 
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_UPDATED (async): A gift card was updated.
+"""
+type GiftCardUnassignUser @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: []) {
+  """The unassigned gift card."""
+  giftCard: GiftCard
+  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [GiftCardError!]!
+}
+
+"""
+Adjust a gift card's balance by a signed delta atomically. 
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_UPDATED (async): A gift card was updated.
+"""
+type GiftCardBalanceAdjust @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: []) {
+  """The adjusted gift card."""
+  giftCard: GiftCard
+  giftCardErrors: [GiftCardError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [GiftCardError!]!
 }
 
 """
@@ -29199,6 +29328,13 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
 
   """The gift card note from the staff member."""
   note: String
+
+  """
+  ID of the customer the gift card is restricted to. 
+  
+  Added in Saleor 3.23.
+  """
+  assignedTo: ID
 }
 
 input PriceInput {

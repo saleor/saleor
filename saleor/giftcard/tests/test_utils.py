@@ -23,7 +23,9 @@ from ...webhook.payloads import generate_meta, generate_requestor
 from .. import GiftCardEvents, GiftCardLineData, events
 from ..models import GiftCard, GiftCardEvent
 from ..utils import (
+    GiftCardCannotAssign,
     add_gift_card_code_to_checkout,
+    assign_gift_card_to_user,
     assign_user_gift_cards,
     calculate_expiry_date,
     deactivate_order_gift_cards,
@@ -863,3 +865,108 @@ def test_is_gift_card_expired_false(expiry_date, gift_card):
 
     # then
     assert result is False
+
+
+def test_assign_sets_user_and_email(gift_card, customer_user):
+    # when
+    assign_gift_card_to_user(gift_card, customer_user)
+
+    # then
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to == customer_user
+    assert gift_card.assigned_to_email == customer_user.email
+
+
+def test_assign_blocked_when_used_in_order(gift_card, customer_user):
+    # given
+    gift_card.last_used_on = timezone.now()
+    gift_card.save(update_fields=["last_used_on"])
+
+    # when / then
+    with pytest.raises(GiftCardCannotAssign):
+        assign_gift_card_to_user(gift_card, customer_user)
+
+
+def test_assign_detaches_clean_checkout(gift_card, customer_user, checkout):
+    # given
+    checkout.gift_cards.add(gift_card)
+
+    # when
+    assign_gift_card_to_user(gift_card, customer_user)
+
+    # then
+    assert not checkout.gift_cards.filter(pk=gift_card.pk).exists()
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to == customer_user
+
+
+def test_assign_blocked_when_checkout_has_transaction(
+    gift_card, customer_user, checkout, transaction_item_generator
+):
+    # given
+    checkout.gift_cards.add(gift_card)
+    transaction_item_generator(checkout_id=checkout.pk)
+
+    # when / then
+    with pytest.raises(GiftCardCannotAssign):
+        assign_gift_card_to_user(gift_card, customer_user)
+    assert checkout.gift_cards.filter(pk=gift_card.pk).exists()
+
+
+def test_add_restricted_card_allows_matching_user(
+    checkout_with_item, gift_card, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when
+    add_gift_card_code_to_checkout(
+        checkout, customer_user.email, gift_card.code, checkout.currency
+    )
+
+    # then
+    assert checkout.gift_cards.filter(pk=gift_card.pk).exists()
+
+
+def test_add_restricted_card_rejects_other_user(
+    checkout_with_item, gift_card, customer_user, staff_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = staff_user
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, staff_user.email, gift_card.code, checkout.currency
+        )
+
+
+def test_add_restricted_card_rejects_guest(
+    checkout_with_item, gift_card, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, "guest@example.com", gift_card.code, checkout.currency
+        )

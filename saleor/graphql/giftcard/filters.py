@@ -50,6 +50,14 @@ def filter_gift_cards_by_used_by_user(qs, user_pks):
     return qs.filter(Exists(users.filter(pk=OuterRef("used_by_id"))))
 
 
+def filter_assigned_to(qs, _, value):
+    if value:
+        _, user_pks = resolve_global_ids_to_primary_keys(value, "User")
+        users = account_models.User.objects.using(qs.db).filter(pk__in=user_pks)
+        qs = qs.filter(Exists(users.filter(pk=OuterRef("assigned_to_id"))))
+    return qs
+
+
 def filter_tags_list(qs, _, value):
     if not value:
         return qs
@@ -94,6 +102,7 @@ class GiftCardFilter(MetadataFilterBase):
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
     used_by = GlobalIDMultipleChoiceFilter(method=filter_used_by)
+    assigned_to = GlobalIDMultipleChoiceFilter(method=filter_assigned_to)
     used = django_filters.BooleanFilter(method=filter_gift_card_used)
     currency = django_filters.CharFilter(method=filter_currency)
     current_balance = ObjectTypeFilter(

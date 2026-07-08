@@ -873,3 +873,61 @@ def test_query_gift_card_events_filter_by_orders_no_events(
     data = content["data"]["giftCard"]
     events_data = data["events"]
     assert not events_data
+
+
+ASSIGNED_TO_QUERY = """
+    query GiftCard($id: ID!) {
+        giftCard(id: $id) {
+            assignedTo { email }
+            assignedToEmail
+        }
+    }
+"""
+
+
+def test_assigned_to_visible_with_manage_users(
+    staff_api_client,
+    gift_card,
+    customer_user,
+    permission_manage_gift_card,
+    permission_manage_users,
+):
+    # given
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_TO_QUERY,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCard"]
+    assert data["assignedTo"]["email"] == customer_user.email
+    assert data["assignedToEmail"] == customer_user.email
+
+
+CODE_QUERY = """
+    query { me { giftCards(first: 10) { edges { node { id code } } } } }
+"""
+
+
+def test_assigned_customer_can_read_code(user_api_client, gift_card, customer_user):
+    # given (user_api_client is authenticated as customer_user)
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.used_by = None
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "used_by"])
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when
+    response = user_api_client.post_graphql(CODE_QUERY, {})
+
+    # then
+    edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
+    node = next(e["node"] for e in edges if e["node"]["id"] == gift_card_id)
+    assert node["code"] == gift_card.code

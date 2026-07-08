@@ -1006,3 +1006,39 @@ def test_create_gift_card_with_private_and_public_metadata(
     assert data["metadata"][0]["value"] == metadata_value
     assert data["privateMetadata"][0]["key"] == metadata_key
     assert data["privateMetadata"][0]["value"] == metadata_value
+
+
+def test_create_with_assigned_to(
+    staff_api_client, customer_user, permission_manage_gift_card
+):
+    # given
+    query = """
+        mutation Create($input: GiftCardCreateInput!) {
+            giftCardCreate(input: $input) {
+                giftCard { id }
+                errors { field code }
+            }
+        }
+    """
+    variables = {
+        "input": {
+            "balance": {"amount": 100, "currency": "USD"},
+            "isActive": True,
+            "assignedTo": graphene.Node.to_global_id("User", customer_user.pk),
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardCreate"]
+    assert data["errors"] == []
+    gift_card = GiftCard.objects.get(
+        pk=graphene.Node.from_global_id(data["giftCard"]["id"])[1]
+    )
+    assert gift_card.assigned_to == customer_user
+    assert gift_card.assigned_to_email == customer_user.email
+    assert gift_card.events.filter(type=GiftCardEvents.ASSIGNED_TO_USER).count() == 1
