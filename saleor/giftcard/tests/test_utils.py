@@ -993,3 +993,46 @@ def test_add_restricted_card_rejects_guest_with_assignee_email(
         add_gift_card_code_to_checkout(
             checkout, customer_user.email, gift_card.code, checkout.currency
         )
+
+
+def test_add_restricted_card_rejects_when_assignee_deleted(
+    checkout_with_item, gift_card, customer_user
+):
+    # given a card restricted to a now-deleted user: assigned_to was nulled by
+    # SET_NULL while assigned_to_email was retained
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = None
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    # Even a logged-in user matching assigned_to_email cannot use it — with no
+    # assignee it can no longer be validated against an owner.
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, customer_user.email, gift_card.code, checkout.currency
+        )
+
+
+def test_add_restricted_card_with_deleted_assignee_rejects_guest(
+    checkout_with_item, gift_card, customer_user
+):
+    # given a guest checkout and a card whose assignee was deleted
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = None
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    # Regression: the previous single guard let this through because
+    # `None != checkout.user_id` (None) was False for a guest.
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, customer_user.email, gift_card.code, checkout.currency
+        )

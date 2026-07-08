@@ -56,7 +56,19 @@ def add_gift_card_code_to_checkout(
     except GiftCard.DoesNotExist as e:
         raise InvalidPromoCode() from e
 
-    if gift_card.assigned_to_email and gift_card.assigned_to_id != checkout.user_id:
+    if gift_card.assigned_to_email and not gift_card.assigned_to_id:
+        # The card is restricted but its assignee no longer exists (the user was
+        # deleted and assigned_to was nulled). It cannot be validated against an
+        # owner, so it must not be usable by anyone — including a guest whose
+        # email happens to match assigned_to_email.
+        logger.warning(
+            "Rejected use of gift card %s restricted to a deleted customer "
+            "in checkout %s.",
+            gift_card.pk,
+            checkout.pk,
+        )
+        raise InvalidPromoCode()
+    if gift_card.assigned_to_id and gift_card.assigned_to_id != checkout.user_id:
         # Restricted gift cards can only be used by the assigned customer.
         logger.warning(
             "Rejected use of gift card %s restricted to another customer "
