@@ -125,3 +125,19 @@ def test_requires_permission(staff_api_client, gift_card):
     assert_no_permission(response)
     gift_card.refresh_from_db()
     assert gift_card.current_balance_amount == balance_before
+
+
+def test_empty_id_is_rejected(staff_api_client, permission_manage_gift_card):
+    # given
+    variables = {"id": "", "amount": "10.00"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardBalanceAdjust"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == GiftCardErrorCode.NOT_FOUND.name

@@ -1,6 +1,7 @@
 import graphene
 
 from .....giftcard import GiftCardEvents
+from .....giftcard.error_codes import GiftCardErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION = """
@@ -84,3 +85,23 @@ def test_requires_permission(staff_api_client, gift_card, customer_user):
     gift_card.refresh_from_db()
     assert gift_card.assigned_to == customer_user
     assert gift_card.assigned_to_email == customer_user.email
+
+
+def test_empty_id_is_rejected(
+    staff_api_client, permission_manage_gift_card, permission_manage_users
+):
+    # given
+    variables = {"id": ""}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardUnassignUser"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == GiftCardErrorCode.NOT_FOUND.name

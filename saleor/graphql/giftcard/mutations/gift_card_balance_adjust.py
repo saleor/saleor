@@ -56,6 +56,15 @@ class GiftCardBalanceAdjust(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id, amount
     ):
         gift_card = cls.get_node_or_error(info, id, only_type=GiftCard, field="id")
+        if gift_card is None:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Couldn't resolve to a gift card.",
+                        code=GiftCardErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
 
         if amount == Decimal(0):
             raise ValidationError(

@@ -52,6 +52,15 @@ class GiftCardAssignUser(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id, user_id
     ):
         gift_card = cls.get_node_or_error(info, id, only_type=GiftCard, field="id")
+        if gift_card is None:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Couldn't resolve to a gift card.",
+                        code=GiftCardErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
         user = cls.get_node_or_error(
             info,
             user_id,
@@ -59,6 +68,15 @@ class GiftCardAssignUser(BaseMutation):
             field="user_id",
             qs=UserModel.objects.filter(is_active=True),
         )
+        if user is None:
+            raise ValidationError(
+                {
+                    "user_id": ValidationError(
+                        "Couldn't resolve to a user.",
+                        code=GiftCardErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
 
         previous_user_id = gift_card.assigned_to_id
         previous_email = gift_card.assigned_to_email

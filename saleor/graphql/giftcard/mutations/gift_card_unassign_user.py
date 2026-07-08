@@ -1,8 +1,10 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.events import call_event
 from ....giftcard import events
+from ....giftcard.error_codes import GiftCardErrorCode
 from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
@@ -40,6 +42,15 @@ class GiftCardUnassignUser(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id
     ):
         gift_card = cls.get_node_or_error(info, id, only_type=GiftCard, field="id")
+        if gift_card is None:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Couldn't resolve to a gift card.",
+                        code=GiftCardErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
         previous_user_id = gift_card.assigned_to_id
         previous_email = gift_card.assigned_to_email
 

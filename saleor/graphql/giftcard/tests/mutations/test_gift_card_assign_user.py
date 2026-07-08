@@ -160,3 +160,54 @@ def test_requires_permission(staff_api_client, gift_card, customer_user):
     gift_card.refresh_from_db()
     assert gift_card.assigned_to is None
     assert gift_card.assigned_to_email is None
+
+
+def test_empty_gift_card_id_is_rejected(
+    staff_api_client,
+    customer_user,
+    permission_manage_gift_card,
+    permission_manage_users,
+):
+    # given
+    variables = {
+        "id": "",
+        "userId": graphene.Node.to_global_id("User", customer_user.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardAssignUser"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "id"
+    assert data["errors"][0]["code"] == GiftCardErrorCode.NOT_FOUND.name
+
+
+def test_empty_user_id_is_rejected(
+    staff_api_client, gift_card, permission_manage_gift_card, permission_manage_users
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
+        "userId": "",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardAssignUser"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "userId"
+    assert data["errors"][0]["code"] == GiftCardErrorCode.NOT_FOUND.name
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to is None
