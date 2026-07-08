@@ -150,9 +150,7 @@ class AppManifestExtension(BaseObjectType):
 
     identifier = graphene.String(
         description=(
-            "Stable, app-defined identifier of the extension. Unique per app "
-            "(an app cannot reuse the same identifier for two of its extensions), "
-            "but may be reused across different apps. Null when the app did not "
+            "Extension identifier, unique per app. Null when the app does not "
             "declare one." + ADDED_IN_323
         )
     )
@@ -164,12 +162,6 @@ class AppManifestExtension(BaseObjectType):
     def resolve_url(root, _info: ResolveInfo):
         """Return an extension URL."""
         return resolve_app_extension_url(root)
-
-    @staticmethod
-    def resolve_identifier(root, _info: ResolveInfo):
-        if isinstance(root, dict):
-            return root.get("identifier")
-        return root.identifier
 
     @staticmethod
     def resolve_target_name(root, _info: ResolveInfo):
