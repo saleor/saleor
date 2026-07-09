@@ -42,6 +42,7 @@ from .models import (
 from .webhooks.stock_events import (
     trigger_product_variant_back_in_stock,
     trigger_product_variant_out_of_stock,
+    trigger_product_variant_stocks_updated,
 )
 
 if TYPE_CHECKING:
@@ -458,6 +459,7 @@ def increase_stock(
     warehouse: Warehouse,
     quantity: int,
     allocate: bool = False,
+    requestor: T_REQUESTOR = None,
 ):
     """Increse stock quantity for given `order_line` in a given warehouse.
 
@@ -492,6 +494,9 @@ def increase_stock(
             )
         stock.quantity_allocated = F("quantity_allocated") + quantity
         stock.save(update_fields=["quantity_allocated"])
+    transaction.on_commit(
+        partial(trigger_product_variant_stocks_updated, [stock], requestor)
+    )
 
 
 def _reduce_quantity_allocated_for_stocks(
@@ -633,12 +638,16 @@ def decrease_stock(
         quantity_allocation_for_stocks[allocation["stock"]] += allocation[
             "quantity_allocated__sum"
         ]
-    _decrease_stocks_quantity(
+    updated_stocks = _decrease_stocks_quantity(
         order_lines_info,
         variant_and_warehouse_to_stock,
         quantity_allocation_for_stocks,
         allow_stock_to_be_exceeded,
     )
+    if updated_stocks:
+        transaction.on_commit(
+            partial(trigger_product_variant_stocks_updated, updated_stocks, requestor)
+        )
 
     stock_ids = (s.id for s in stocks)
     for stock in Stock.objects.filter(id__in=stock_ids).annotate_available_quantity():
@@ -653,7 +662,7 @@ def _decrease_stocks_quantity(
     variant_and_warehouse_to_stock: dict[int, dict[UUID, Stock]],
     quantity_allocation_for_stocks: dict[int, int],
     allow_stock_to_be_exceeded: bool = False,
-):
+) -> list[Stock]:
     insufficient_stocks: list[InsufficientStockData] = []
     stocks_to_update = []
     for line_info in order_lines_info:
@@ -700,6 +709,7 @@ def _decrease_stocks_quantity(
         raise InsufficientStock(insufficient_stocks)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
+    return stocks_to_update
 
 
 def _get_variant_for_order_line_info(
