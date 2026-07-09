@@ -3,7 +3,11 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from .....account import models
 from .....account.error_codes import AccountErrorCode
-from .....core.tokens import token_generator
+from .....core.tokens import (
+    account_confirm_token_generator,
+    legacy_account_confirm_token_generator,
+    try_generators,
+)
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....webhook.event_types import WebhookEventAsyncType
@@ -56,7 +60,12 @@ class ConfirmAccount(BaseMutation):
             error = True
             user = models.User()
 
-        valid_token = token_generator.check_token(user, data["token"])
+        valid_token = try_generators(
+            current_generator=account_confirm_token_generator,
+            fallback_generator=legacy_account_confirm_token_generator,
+            user=user,
+            token=data["token"],
+        )
         if not valid_token or error:
             raise ValidationError(
                 {
