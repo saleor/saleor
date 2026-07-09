@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Webhooks
 
 - Added `PRODUCT_TYPE_CREATED`, `PRODUCT_TYPE_UPDATED`, and `PRODUCT_TYPE_DELETED` webhook events, dispatched when a product type is created, updated, or deleted - #17574 by @ayesha-waris
+- `PRODUCT_VARIANT_STOCK_UPDATED` is now also triggered when order flows change stock quantities or allocations (checkout completion, fulfillment, order/fulfillment cancellation, restock) — previously it was only triggered by the explicit stock-edit mutations - by @xseignard
 
 ### Other changes
 
