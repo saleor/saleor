@@ -203,13 +203,25 @@ def fetch_brand_data_async(
         )
 
 
-def fetch_manifest(manifest_url: str, timeout=settings.COMMON_REQUESTS_TIMEOUT):
+def fetch_manifest(manifest_url: str, timeout=settings.APP_MANIFEST_TIMEOUT):
     headers = {AppHeaders.SCHEMA_VERSION: schema_version}
-    response = HTTPClient.send_request(
-        "GET", manifest_url, headers=headers, timeout=timeout, allow_redirects=False
-    )
-    response.raise_for_status()
-    return response.json()
+    attempt = 0
+    while True:  # initial try + 2 retries
+        try:
+            response = HTTPClient.send_request(
+                "GET",
+                manifest_url,
+                headers=headers,
+                timeout=timeout,
+                allow_redirects=False,
+            )
+            response.raise_for_status()
+            return response.json()
+        except (requests.ConnectionError, requests.Timeout):
+            if attempt == 2:
+                raise
+            attempt += 1
+            time.sleep(attempt)
 
 
 def install_app(
