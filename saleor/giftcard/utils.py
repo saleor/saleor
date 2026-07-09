@@ -145,6 +145,29 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
         gift_card.assigned_to_email = user.email
 
 
+def deactivate_assigned_gift_cards(users) -> None:
+    """Detach and deactivate gift cards restricted to users being deleted.
+
+    ``GiftCard.assigned_to`` uses ``on_delete=PROTECT``, so the assignee
+    reference must be cleared before the user is deleted or the deletion is
+    refused. Call this inside the deletion transaction, before deleting the
+    users, from every mutation that removes users.
+
+    The ``assigned_to`` FK is nulled on every referencing card (otherwise
+    PROTECT would still block the delete), while ``assigned_to_email`` is kept
+    so the now-inactive card retains who it belonged to. Cards are deactivated
+    because they can no longer be validated against their owner. A deactivation
+    event is recorded only for cards that were actually active.
+
+    ``users`` may be any iterable or queryset of users.
+    """
+    assigned = GiftCard.objects.filter(assigned_to__in=users)
+    deactivated_ids = list(assigned.filter(is_active=True).values_list("id", flat=True))
+    assigned.update(assigned_to=None, is_active=False)
+    if deactivated_ids:
+        events.gift_cards_deactivated_event(deactivated_ids, user=None, app=None)
+
+
 def deactivate_gift_card(gift_card: GiftCard):
     """Set gift card status as inactive."""
     if gift_card.is_active:

@@ -67,7 +67,11 @@ class GiftCard(ModelWithMetadata):
         settings.AUTH_USER_MODEL,
         blank=True,
         null=True,
-        on_delete=models.SET_NULL,
+        # PROTECT (not SET_NULL): deleting an assignee must go through
+        # deactivate_assigned_gift_cards() so the card is detached AND
+        # deactivated together. A raw delete is refused rather than silently
+        # leaving an active card restricted to a ghost user.
+        on_delete=models.PROTECT,
         related_name="assigned_gift_cards",
     )
     assigned_to_email = models.EmailField(null=True, blank=True)
