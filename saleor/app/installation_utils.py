@@ -226,8 +226,13 @@ def fetch_manifest(
     for attempt in range(max_retries):
         try:
             return _get(attempt)
-        except (requests.ConnectionError, requests.Timeout):
-            continue
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            logger.info(
+                "Failed to fetch manifest (%s), retrying (attempt %d out of %d)...",
+                exc,
+                attempt + 1,
+                max_retries + 1,
+            )
     return _get(max_retries)  # final attempt, explicit return to satisfy ruff RET503
 
 
