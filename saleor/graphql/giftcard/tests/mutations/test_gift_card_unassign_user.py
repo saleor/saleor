@@ -2,6 +2,7 @@ import graphene
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
+from .....giftcard.utils import assign_gift_card_to_user
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION = """
@@ -41,8 +42,6 @@ def test_unassign_clears_fields(
     permission_manage_users,
 ):
     # given
-    from .....giftcard.utils import assign_gift_card_to_user
-
     assign_gift_card_to_user(gift_card, customer_user)
     variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
 
@@ -72,8 +71,6 @@ def test_unassign_clears_fields(
 
 def test_requires_permission(staff_api_client, gift_card, customer_user):
     # given
-    from .....giftcard.utils import assign_gift_card_to_user
-
     assign_gift_card_to_user(gift_card, customer_user)
 
     # when

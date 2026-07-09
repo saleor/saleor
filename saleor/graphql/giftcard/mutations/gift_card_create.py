@@ -176,13 +176,14 @@ class GiftCardCreate(DeprecatedModelMutation):
 
         if assigned_to_id := data.get("assigned_to"):
             assigned_user = cast(
-                User,
+                User | None,
                 cls.get_node_or_error(
                     info, assigned_to_id, only_type="User", field="assigned_to"
                 ),
             )
-            cleaned_input["assigned_to"] = assigned_user
-            cleaned_input["assigned_to_email"] = assigned_user.email
+            if assigned_user:
+                cleaned_input["assigned_to"] = assigned_user
+                cleaned_input["assigned_to_email"] = assigned_user.email
 
         return cleaned_input
 
@@ -251,7 +252,13 @@ class GiftCardCreate(DeprecatedModelMutation):
             app=app,
         )
         if instance.assigned_to_id:
-            events.gift_card_assigned_event(gift_card=instance, previous_user_id=None, previous_email=None, user=user, app=app)
+            events.gift_card_assigned_event(
+                gift_card=instance,
+                previous_user_id=None,
+                previous_email=None,
+                user=user,
+                app=app,
+            )
         manager = get_plugin_manager_promise(info.context).get()
         if note := cleaned_input.get("note"):
             events.gift_card_note_added_event(
