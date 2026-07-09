@@ -1042,3 +1042,38 @@ def test_create_with_assigned_to(
     assert gift_card.assigned_to == customer_user
     assert gift_card.assigned_to_email == customer_user.email
     assert gift_card.events.filter(type=GiftCardEvents.ASSIGNED_TO_USER).count() == 1
+
+
+def test_create_with_assigned_to_not_found(
+    staff_api_client, permission_manage_gift_card
+):
+    # given
+    query = """
+        mutation Create($input: GiftCardCreateInput!) {
+            giftCardCreate(input: $input) {
+                giftCard { id }
+                errors { field code }
+            }
+        }
+    """
+    non_existing_id = graphene.Node.to_global_id("User", -1)
+    variables = {
+        "input": {
+            "balance": {"amount": 100, "currency": "USD"},
+            "isActive": True,
+            "assignedTo": non_existing_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardCreate"]
+    assert data["giftCard"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "assignedTo"
+    assert data["errors"][0]["code"] == GiftCardErrorCode.NOT_FOUND.name
+    assert GiftCard.objects.count() == 0
