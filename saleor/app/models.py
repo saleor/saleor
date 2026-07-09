@@ -180,6 +180,10 @@ class AppExtension(models.Model):
                 fields=["app", "identifier"],
                 name="unique_app_extension_identifier",
             ),
+            models.CheckConstraint(
+                condition=~models.Q(identifier=""),
+                name="app_extension_identifier_not_blank",
+            ),
         ]
 
 

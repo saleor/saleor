@@ -111,6 +111,18 @@ def test_app_extension_allows_multiple_null_identifiers_per_app(app):
     assert second.identifier is None
 
 
+def test_app_extension_identifier_cannot_be_blank(app):
+    # given / when / then - a blank identifier is rejected at the database level
+    with pytest.raises(IntegrityError), atomic():
+        AppExtension.objects.create(
+            app=app,
+            label="Extension",
+            url="https://example.com/ext",
+            mount="product_overview_more_actions",
+            identifier="",
+        )
+
+
 def test_app_installation_set_message_truncates(app_installation):
     max_length = AppInstallation._meta.get_field("message").max_length
     too_long_message = "msg" * max_length

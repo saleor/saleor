@@ -20,4 +20,11 @@ class Migration(migrations.Migration):
                 fields=("app", "identifier"), name="unique_app_extension_identifier"
             ),
         ),
+        migrations.AddConstraint(
+            model_name="appextension",
+            constraint=models.CheckConstraint(
+                condition=~models.Q(identifier=""),
+                name="app_extension_identifier_not_blank",
+            ),
+        ),
     ]
