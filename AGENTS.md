@@ -10,6 +10,10 @@
 ### GraphQL permissions
 - Use PermissionsField to describe field restrictions
 
+# Code style
+
+- Use global import statements. Place all imports at the top of the file rather than inside functions, methods, or other local scopes.
+
 # Testing
 
 ## Running in a git worktree

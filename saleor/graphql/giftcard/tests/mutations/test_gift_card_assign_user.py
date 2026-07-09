@@ -1,7 +1,9 @@
 import graphene
+from django.utils import timezone
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
+from .....giftcard.utils import assign_gift_card_to_user
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION = """
@@ -78,8 +80,6 @@ def test_reassign_records_previous(
     permission_manage_users,
 ):
     # given
-    from .....giftcard.utils import assign_gift_card_to_user
-
     assign_gift_card_to_user(gift_card, staff_user)
 
     # when
@@ -133,8 +133,6 @@ def test_assign_blocked_when_used(
     staff_api_client, gift_card_used, customer_user, permission_manage_gift_card
 ):
     # given
-    from django.utils import timezone
-
     gift_card_used.last_used_on = timezone.now()
     gift_card_used.save(update_fields=["last_used_on"])
 

@@ -19,6 +19,7 @@ from ..core.utils.events import call_event
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
 from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
+from ..payment.models import Payment, TransactionItem
 from ..site import GiftCardSettingsExpiryType
 from . import GiftCardEvents, GiftCardLineData, events
 from .lock_objects import gift_card_qs_select_for_update
@@ -109,8 +110,6 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
     attached to a checkout that has payments. Clean attached checkouts are
     detached (the same invalidation checkoutRemovePromoCode performs).
     """
-    from ..payment.models import Payment, TransactionItem
-
     with traced_atomic_transaction():
         locked = gift_card_qs_select_for_update().get(pk=gift_card.pk)
 
