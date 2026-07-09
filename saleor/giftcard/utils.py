@@ -134,8 +134,9 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
         checkout_tokens = list(attached_checkouts.values_list("pk", flat=True))
         if checkout_tokens:
             locked.checkouts.clear()
-            locked.checkouts.clear()
-            attached_checkouts.update(last_change=timezone.now())
+            Checkout.objects.filter(pk__in=checkout_tokens).update(
+                last_change=timezone.now()
+            )
 
         locked.assigned_to = user
         locked.assigned_to_email = user.email
