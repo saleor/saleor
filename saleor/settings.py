@@ -1135,11 +1135,6 @@ REQUESTS_CONN_EST_TIMEOUT = 2
 # Default timeout for external requests.
 COMMON_REQUESTS_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, 18)
 
-# Default timeouts for fetching manifests to install saleor apps.
-# Standard REQUESTS_CONN_EST_TIMEOUT (2s) is too short for the US environment,
-# as it has to do a costly roundtrip to fetch the manifest from Vercel in Europe.
-APP_MANIFEST_TIMEOUT = (5, 18)
-
 WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT = 18
 
 WEBHOOK_TIMEOUT = (REQUESTS_CONN_EST_TIMEOUT, WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT)
