@@ -138,6 +138,14 @@ class GiftCard(ModelWithMetadata):
             BTreeIndex(fields=["assigned_to"], name="giftcard_assigned_to_idx"),
         ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
+        constraints = [
+            # Defense-in-depth backstop: no code path should ever persist a
+            # negative balance (writers clamp to zero), but the DB enforces it.
+            models.CheckConstraint(
+                condition=Q(current_balance_amount__gte=0),
+                name="giftcard_current_balance_non_negative",
+            ),
+        ]
 
     @property
     def display_code(self):

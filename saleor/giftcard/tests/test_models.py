@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 import pytest
+from django.db import IntegrityError, transaction
 from django.db.models import ProtectedError
 
 from ..models import GiftCard
@@ -29,3 +32,12 @@ def test_deleting_assigned_customer_is_protected(gift_card, customer_user):
     # the user-deletion mutations).
     with pytest.raises(ProtectedError):
         customer_user.delete()
+
+
+def test_current_balance_cannot_be_negative(gift_card):
+    # given
+    gift_card.current_balance_amount = Decimal(-1)
+
+    # when / then: the DB check constraint rejects a negative current balance
+    with pytest.raises(IntegrityError), transaction.atomic():
+        gift_card.save(update_fields=["current_balance_amount"])
