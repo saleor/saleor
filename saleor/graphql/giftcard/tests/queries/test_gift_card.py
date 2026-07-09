@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from .....giftcard import GiftCardEvents, events
 from .....giftcard.models import GiftCardEvent
+from .....permission.enums import AccountPermissions
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -909,6 +910,31 @@ def test_assigned_to_visible_with_manage_users(
     data = get_graphql_content(response)["data"]["giftCard"]
     assert data["assignedTo"]["email"] == customer_user.email
     assert data["assignedToEmail"] == customer_user.email
+
+
+def test_assigned_to_requires_manage_users(
+    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+):
+    # given a requester with MANAGE_GIFT_CARD but not MANAGE_USERS
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_TO_QUERY, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then the assignedTo user is denied while the email (MANAGE_GIFT_CARD) resolves
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["giftCard"]
+    assert data["assignedTo"] is None
+    assert data["assignedToEmail"] == customer_user.email
+    assert any(
+        AccountPermissions.MANAGE_USERS.name in error["message"]
+        for error in content["errors"]
+    )
 
 
 CODE_QUERY = """

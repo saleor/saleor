@@ -117,6 +117,37 @@ def test_me_gift_cards_includes_assigned(user_api_client, gift_card, customer_us
     assert graphene.Node.to_global_id("GiftCard", gift_card.pk) in ids
 
 
+ME_ASSIGNED_FIELDS = """
+    query {
+        me {
+            giftCards(first: 10) {
+                edges { node { id assignedTo { email } assignedToEmail } }
+            }
+        }
+    }
+"""
+
+
+def test_me_gift_cards_assigned_fields_visible_to_owner(
+    user_api_client, gift_card, customer_user
+):
+    # given the card is assigned to the requesting customer (the owner)
+    gift_card.used_by = None
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["used_by", "assigned_to", "assigned_to_email"])
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when the owner queries without MANAGE_USERS / MANAGE_GIFT_CARD permissions
+    response = user_api_client.post_graphql(ME_ASSIGNED_FIELDS, {})
+
+    # then the owner can read both the assigned user and its email
+    edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
+    node = next(e["node"] for e in edges if e["node"]["id"] == gift_card_id)
+    assert node["assignedTo"]["email"] == customer_user.email
+    assert node["assignedToEmail"] == customer_user.email
+
+
 FILTER_QUERY = """
     query GiftCards($filter: GiftCardFilterInput!) {
         giftCards(first: 10, filter: $filter) {

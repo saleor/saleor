@@ -3,6 +3,7 @@ import graphene
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.utils import assign_gift_card_to_user
+from .....permission.enums import AccountPermissions
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION = """
@@ -82,6 +83,31 @@ def test_requires_permission(staff_api_client, gift_card, customer_user):
     gift_card.refresh_from_db()
     assert gift_card.assigned_to == customer_user
     assert gift_card.assigned_to_email == customer_user.email
+
+
+def test_assigned_to_user_fields_require_manage_users(
+    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+):
+    # given a requester with MANAGE_GIFT_CARD but not MANAGE_USERS
+    assign_gift_card_to_user(gift_card, customer_user)
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then the event User sub-field is denied while the email sub-field resolves
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["giftCardUnassignUser"]
+    assert data["errors"] == []
+    assignment = _unassign_event(data["giftCard"])["assignedTo"]
+    assert assignment["oldAssignedTo"] is None
+    assert assignment["oldAssignedToEmail"] == customer_user.email
+    assert any(
+        AccountPermissions.MANAGE_USERS.name in error["message"]
+        for error in content["errors"]
+    )
 
 
 def test_empty_id_is_rejected(
