@@ -251,7 +251,7 @@ class GiftCardCreate(DeprecatedModelMutation):
             app=app,
         )
         if instance.assigned_to_id:
-            events.gift_card_assigned_event(instance, None, None, user, app)
+            events.gift_card_assigned_event(gift_card=instance, previous_user_id=None, previous_email=None, user=user, app=app)
         manager = get_plugin_manager_promise(info.context).get()
         if note := cleaned_input.get("note"):
             events.gift_card_note_added_event(

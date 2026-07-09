@@ -122,8 +122,10 @@ def _validate_gift_cards(checkout: Checkout):
         raise GiftCardNotApplicable(msg)
 
     # Re-check restricted gift cards at completion time: a card may have been
-    # assigned to another customer after it was added to the checkout, or an
-    # actor may have added a card they are not authorized to use. This is a
+    # assigned to another customer after it was added to the checkout.
+    # This also acts as a defense-in-depth safeguard in case an actor
+    # may successfully add a giftcard that they are not authorized
+    # to use into their checkout (shouldn't happen)
     # defense-in-depth safeguard, not a redundant check — do not remove it.
     #
     # We deliberately do not acquire a row lock here. A gift card changing hands

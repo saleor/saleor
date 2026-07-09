@@ -37,19 +37,20 @@ def gift_card_balance_adjusted_event(
     user: User | None,
     app: App | None,
 ) -> GiftCardEvent:
-    balance_data = {
-        "currency": gift_card.currency,
-        "current_balance": gift_card.current_balance_amount,
-        "initial_balance": gift_card.initial_balance_amount,
-        "old_current_balance": old_current_balance,
-        "old_initial_balance": old_initial_balance,
-    }
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
         app=app,
         type=GiftCardEvents.BALANCE_ADJUSTED,
-        parameters={"balance": balance_data},
+        parameters={
+            "balance": {
+                "currency": gift_card.currency,
+                "current_balance": gift_card.current_balance_amount,
+                "initial_balance": gift_card.initial_balance_amount,
+                "old_current_balance": old_current_balance,
+                "old_initial_balance": old_initial_balance,
+            }
+        },
     )
 
 

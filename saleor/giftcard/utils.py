@@ -61,7 +61,7 @@ def add_gift_card_code_to_checkout(
         # deleted and assigned_to was nulled). It cannot be validated against an
         # owner, so it must not be usable by anyone — including a guest whose
         # email happens to match assigned_to_email.
-        logger.warning(
+        logger.info(
             "Rejected use of gift card %s restricted to a deleted customer "
             "in checkout %s.",
             gift_card.pk,
@@ -70,7 +70,7 @@ def add_gift_card_code_to_checkout(
         raise InvalidPromoCode()
     if gift_card.assigned_to_id and gift_card.assigned_to_id != checkout.user_id:
         # Restricted gift cards can only be used by the assigned customer.
-        logger.warning(
+        logger.info(
             "Rejected use of gift card %s restricted to another customer "
             "in checkout %s.",
             gift_card.pk,
@@ -134,9 +134,8 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
         checkout_tokens = list(attached_checkouts.values_list("pk", flat=True))
         if checkout_tokens:
             locked.checkouts.clear()
-            Checkout.objects.filter(pk__in=checkout_tokens).update(
-                last_change=timezone.now()
-            )
+            locked.checkouts.clear()
+            attached_checkouts.update(last_change=timezone.now())
 
         locked.assigned_to = user
         locked.assigned_to_email = user.email
