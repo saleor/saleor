@@ -10,6 +10,10 @@
 ### GraphQL permissions
 - Use PermissionsField to describe field restrictions
 
+# Architecture
+
+- Do not use Django signals (e.g. `post_save`, `pre_delete`, `@receiver`). Call the relevant logic explicitly from the code that triggers it instead of wiring it through signal handlers. (The one exception is the `post_migrate` signal used to trigger data-migration tasks — see Data Migrations below.)
+
 # Code style
 
 - Use global import statements. Place all imports at the top of the file rather than inside functions, methods, or other local scopes.
