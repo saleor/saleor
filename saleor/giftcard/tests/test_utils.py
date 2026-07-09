@@ -10,6 +10,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...checkout.error_codes import CheckoutErrorCode
+from ...checkout.models import Checkout
 from ...core import TimePeriodType
 from ...core.exceptions import GiftCardNotApplicable
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -900,6 +901,24 @@ def test_assign_detaches_clean_checkout(gift_card, customer_user, checkout):
     assert checkout_qs.exists() is False
     gift_card.refresh_from_db()
     assert gift_card.assigned_to == customer_user
+
+
+def test_assign_bumps_last_change_of_detached_checkout(
+    gift_card, customer_user, checkout
+):
+    # given
+    stale_last_change = timezone.now() - datetime.timedelta(days=1)
+    checkout.gift_cards.add(gift_card)
+    # last_change uses auto_now, so set the stale value directly in the DB
+    # (QuerySet.update bypasses auto_now).
+    Checkout.objects.filter(pk=checkout.pk).update(last_change=stale_last_change)
+
+    # when
+    assign_gift_card_to_user(gift_card, customer_user)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.last_change > stale_last_change
 
 
 def test_assign_blocked_when_checkout_has_transaction(
