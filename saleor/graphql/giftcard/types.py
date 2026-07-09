@@ -593,6 +593,11 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     def resolve_assigned_to_email(root: models.GiftCard, info):
         def _resolve_assigned_to_email(user):
             requestor = get_user_or_app_from_context(info.context)
+            # Intentional access-control decision (not broken access control):
+            # the denormalized email identifier is readable with MANAGE_GIFT_CARD
+            # alone, so staff can reason about who a card belongs to without also
+            # holding MANAGE_USERS. Fetching the full User object is stricter and
+            # is gated behind MANAGE_USERS in `resolve_assigned_to`. See ADR 0005.
             if is_owner_or_has_one_of_perms(
                 requestor, user, GiftcardPermissions.MANAGE_GIFT_CARD
             ):
