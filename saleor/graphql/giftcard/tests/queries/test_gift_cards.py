@@ -158,9 +158,13 @@ FILTER_QUERY = """
 
 
 def test_filter_by_assigned_to(
-    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+    staff_api_client,
+    gift_card,
+    gift_card_created_by_staff,
+    customer_user,
+    permission_manage_gift_card,
 ):
-    # given
+    # given a card assigned to the customer and another card assigned to nobody
     gift_card.assigned_to = customer_user
     gift_card.assigned_to_email = customer_user.email
     gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
@@ -173,7 +177,34 @@ def test_filter_by_assigned_to(
         FILTER_QUERY, variables, permissions=[permission_manage_gift_card]
     )
 
-    # then
+    # then only the matching card is returned
     edges = get_graphql_content(response)["data"]["giftCards"]["edges"]
+    ids = {e["node"]["id"] for e in edges}
+    assert ids == {graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+    assert (
+        graphene.Node.to_global_id("GiftCard", gift_card_created_by_staff.pk) not in ids
+    )
+
+
+def test_filter_by_assigned_to_does_not_require_manage_users(
+    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+):
+    # given a requester with MANAGE_GIFT_CARD but not MANAGE_USERS
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
+    variables = {
+        "filter": {"assignedTo": [graphene.Node.to_global_id("User", customer_user.pk)]}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        FILTER_QUERY, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then filtering succeeds without MANAGE_USERS (see filter_assigned_to comment)
+    content = get_graphql_content(response, ignore_errors=True)
+    assert "errors" not in content
+    edges = content["data"]["giftCards"]["edges"]
     ids = {e["node"]["id"] for e in edges}
     assert graphene.Node.to_global_id("GiftCard", gift_card.pk) in ids

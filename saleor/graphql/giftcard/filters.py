@@ -51,6 +51,12 @@ def filter_gift_cards_by_used_by_user(qs, user_pks):
     return qs.filter(Exists(users.filter(pk=OuterRef("used_by_id"))))
 
 
+# Intentionally not gated behind MANAGE_USERS (unlike resolving the assignedTo
+# User object). Reaching this filter already requires MANAGE_GIFT_CARD, which
+# exposes the assignee via the assignedToEmail field, so filtering by a
+# caller-supplied user id reveals no additional information. It also only
+# narrows gift cards; it never returns a User entity (the only thing gated
+# behind MANAGE_USERS). This mirrors the used_by filter. See ADR 0005.
 def filter_assigned_to(qs, _, value):
     if value:
         _, user_pks = resolve_global_ids_to_primary_keys(value, "User")
