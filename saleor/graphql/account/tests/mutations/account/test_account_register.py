@@ -12,7 +12,7 @@ from ......account.notifications import get_default_user_payload
 from ......account.tasks import finish_creating_user
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
-from ......core.tokens import token_generator
+from ......core.tokens import account_confirm_token_generator
 from ......core.utils.url import prepare_url
 from ......settings import AUTH_PASSWORD_VALIDATORS
 from ......tests import race_condition
@@ -100,7 +100,7 @@ mutation RegisterAccount($input: AccountRegisterInput!) {
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.account_confirm_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch(
     "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
@@ -178,7 +178,7 @@ def test_customer_register(
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.account_confirm_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch(
     "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
@@ -327,7 +327,7 @@ def test_customer_register_generates_valid_token(
     assert called_kwargs["channel_slug"] == channel_PLN.slug
 
     assert not data["errors"]
-    assert token_generator.check_token(new_user, token)
+    assert account_confirm_token_generator.check_token(new_user, token)
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -480,7 +480,7 @@ def test_account_register_returns_empty_id(
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.account_confirm_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch(
     "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
