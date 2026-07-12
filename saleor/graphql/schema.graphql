@@ -18688,6 +18688,25 @@ type Mutation {
   ): VariantMediaAssign @doc(category: "Products")
 
   """
+  Changes ordering of the media of a product variant, independently from the ordering of the parent product's media.
+  
+  Added in Saleor 3.24. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  variantMediaReorder(
+    """
+    IDs of a product variant media in the desired order. Limited to 100 items.
+    
+    Added in Saleor 3.24.
+    """
+    mediaIds: [ID!]!
+
+    """ID of a product variant that media order will be altered."""
+    variantId: ID!
+  ): VariantMediaReorder @doc(category: "Products")
+
+  """
   Unassign an media from a product variant. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -25818,6 +25837,43 @@ type VariantMediaAssign @doc(category: "Products") {
   media: ProductMedia
   productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ProductError!]!
+}
+
+"""
+Changes ordering of the media of a product variant, independently from the ordering of the parent product's media.
+
+Added in Saleor 3.24. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type VariantMediaReorder @doc(category: "Products") {
+  productVariant: ProductVariant
+  media: [ProductMedia!]
+  variantMediaReorderErrors: [VariantMediaReorderError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [VariantMediaReorderError!]!
+}
+
+type VariantMediaReorderError @doc(category: "Products") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: VariantMediaReorderErrorCode!
+
+  """List of media IDs which causes the error."""
+  media: [ID!]
+}
+
+enum VariantMediaReorderErrorCode @doc(category: "Products") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
 }
 
 """

@@ -87,6 +87,7 @@ from ..enums import (
     TransactionUpdateErrorCode,
     TranslationErrorCode,
     UploadErrorCode,
+    VariantMediaReorderErrorCode,
     VoucherCodeBulkDeleteErrorCode,
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
@@ -602,6 +603,18 @@ class ProductVariantBulkError(Error):
     channel_listings = NonNullList(
         graphene.ID,
         description="List of channel listings IDs which causes the error.",
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class VariantMediaReorderError(Error):
+    code = VariantMediaReorderErrorCode(description="The error code.", required=True)
+    media = NonNullList(
+        graphene.ID,
+        description="List of media IDs which causes the error.",
         required=False,
     )
 

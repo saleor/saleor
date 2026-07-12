@@ -611,7 +611,7 @@ class ProductMedia(SortableModel, ModelWithMetadata):
         super(SortableModel, self).delete(*args, **kwargs)
 
 
-class VariantMedia(models.Model):
+class VariantMedia(SortableModel):
     variant = models.ForeignKey(
         "ProductVariant", related_name="variant_media", on_delete=models.CASCADE
     )
@@ -620,7 +620,11 @@ class VariantMedia(models.Model):
     )
 
     class Meta:
+        ordering = ("sort_order", "pk")
         unique_together = ("variant", "media")
+
+    def get_ordering_queryset(self):
+        return self.variant.variant_media.all()
 
 
 class CollectionProduct(SortableModel):

@@ -405,6 +405,11 @@ ProductVariantBulkErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 ProductVariantBulkErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
+VariantMediaReorderErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    product_error_codes.VariantMediaReorderErrorCode
+)
+VariantMediaReorderErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
 
 def collection_error_deprecation_reason(enum):
     if enum == CollectionErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT:

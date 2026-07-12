@@ -23,8 +23,9 @@ from ...core.utils.validators import (
 from ...order import OrderStatus
 from ...order import models as order_models
 from ...product import MEDIA_URL_CHAR_LIMIT
+from ...product import models as product_models
 from ...warehouse.models import Stock
-from ..core.enums import ProductErrorCode
+from ..core.enums import ProductErrorCode, VariantMediaReorderErrorCode
 
 if TYPE_CHECKING:
     from ...product.models import ProductVariant
@@ -259,6 +260,46 @@ def update_ordered_media(ordered_media):
                 logger.warning(msg)
                 errors["media"].append(
                     ValidationError(msg, code=ProductErrorCode.NOT_FOUND.value)
+                )
+
+    if errors:
+        raise ValidationError(errors)
+
+
+def update_ordered_variant_media(variant: "ProductVariant", ordered_media):
+    """Update sort_order on the VariantMedia rows linking variant to ordered_media.
+
+    Unlike `update_ordered_media`, this reorders the per-variant junction table
+    (`VariantMedia.sort_order`) rather than the product-level `ProductMedia.sort_order`.
+    """
+    errors = defaultdict(list)
+    with traced_atomic_transaction():
+        for order, media in enumerate(ordered_media):
+            try:
+                variant_media = variant.variant_media.get(media=media)
+            except product_models.VariantMedia.DoesNotExist:
+                msg = f"Media {media} is not assigned to this variant."
+                logger.warning(msg)
+                errors["media"].append(
+                    ValidationError(
+                        msg, code=VariantMediaReorderErrorCode.NOT_FOUND.value
+                    )
+                )
+                continue
+            variant_media.sort_order = order
+            try:
+                variant_media.save(update_fields=["sort_order"])
+            except DatabaseError as e:
+                msg = (
+                    f"Cannot update media for instance: {media}. "
+                    "Updating not existing object. "
+                    f"Details: {e}."
+                )
+                logger.warning(msg)
+                errors["media"].append(
+                    ValidationError(
+                        msg, code=VariantMediaReorderErrorCode.NOT_FOUND.value
+                    )
                 )
 
     if errors:

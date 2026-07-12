@@ -500,6 +500,7 @@ class MediaByProductVariantIdLoader(DataLoader):
         variant_media = (
             VariantMedia.objects.using(self.database_connection_name)
             .filter(variant_id__in=keys)
+            .order_by("sort_order")
             .values_list("variant_id", "media_id")
         )
 

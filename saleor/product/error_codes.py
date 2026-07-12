@@ -26,6 +26,13 @@ class ProductErrorCode(Enum):
     FILE_SIZE_LIMIT_EXCEEDED = "file_size_limit_exceeded"
 
 
+class VariantMediaReorderErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+
+
 class CollectionErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     GRAPHQL_ERROR = "graphql_error"

@@ -25,6 +25,7 @@ from .product_variant import (
     ProductVariantSetDefault,
     ProductVariantUpdate,
     VariantMediaAssign,
+    VariantMediaReorder,
     VariantMediaUnassign,
 )
 
@@ -55,5 +56,6 @@ __all__ = [
     "ProductVariantSetDefault",
     "ProductVariantUpdate",
     "VariantMediaAssign",
+    "VariantMediaReorder",
     "VariantMediaUnassign",
 ]

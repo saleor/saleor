@@ -85,6 +85,7 @@ from .mutations import (
     ProductVariantSetDefault,
     ProductVariantUpdate,
     VariantMediaAssign,
+    VariantMediaReorder,
     VariantMediaUnassign,
 )
 from .mutations.attributes import (
@@ -698,4 +699,5 @@ class ProductMutations(graphene.ObjectType):
     product_variant_preorder_deactivate = ProductVariantPreorderDeactivate.Field()
 
     variant_media_assign = VariantMediaAssign.Field()
+    variant_media_reorder = VariantMediaReorder.Field()
     variant_media_unassign = VariantMediaUnassign.Field()
