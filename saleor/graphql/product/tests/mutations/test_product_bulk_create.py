@@ -560,6 +560,131 @@ def test_product_bulk_create_with_same_name_and_no_slug(
     assert data["results"][1]["product"]["slug"] == "test-name-2"
 
 
+def test_product_bulk_create_with_existing_slug_and_reject_failed_rows(
+    staff_api_client,
+    product,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_count = Product.objects.count()
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    new_product_slug = "new-product-slug"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "name": "New product",
+            "slug": new_product_slug,
+        },
+        {
+            "productType": product_type_id,
+            "name": "Product with existing slug",
+            "slug": product.slug,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products, "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 1
+    assert data["results"][0]["product"]["slug"] == new_product_slug
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["product"]
+    errors = data["results"][1]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["path"] == "slug"
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
+    assert Product.objects.count() == product_count + 1
+
+
+def test_product_bulk_create_with_duplicated_slug_in_input(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_count = Product.objects.count()
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    duplicated_slug = "duplicated-product-slug"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "name": "First product",
+            "slug": duplicated_slug,
+        },
+        {
+            "productType": product_type_id,
+            "name": "Second product",
+            "slug": duplicated_slug,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert Product.objects.count() == product_count
+    for result in data["results"]:
+        assert not result["product"]
+        errors = result["errors"]
+        assert len(errors) == 1
+        assert errors[0]["path"] == "slug"
+        assert errors[0]["code"] == ProductBulkCreateErrorCode.UNIQUE.name
+
+
+def test_product_bulk_create_generates_slug_unique_to_explicit_batch_slug(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    products = [
+        {
+            "productType": product_type_id,
+            "name": "First product",
+            "slug": "test-name",
+        },
+        {
+            "productType": product_type_id,
+            "name": "test name",
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 2
+    assert data["results"][0]["product"]["slug"] == "test-name"
+    assert data["results"][1]["product"]["slug"] == "test-name-2"
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+
+
 def test_product_bulk_create_with_invalid_attributes(
     staff_api_client,
     product_type,
