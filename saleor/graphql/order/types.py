@@ -1183,6 +1183,15 @@ class OrderLine(
     is_price_overridden = graphene.Boolean(
         description="Returns True, if the line unit price was overridden."
     )
+    price_override_reason = PermissionsField(
+        graphene.String,
+        description=(
+            "Reason explaining why a custom price was set on the line, copied from "
+            "the checkout line when the order was created from a checkout."
+            + ADDED_IN_323
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,

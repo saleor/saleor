@@ -11593,6 +11593,15 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   isGift: Boolean
+
+  """
+  Reason explaining why a custom price was set on the line, provided by the app that set the price override.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_CHECKOUTS.
+  """
+  priceOverrideReason: String
 }
 
 """Represents an problem in the checkout line."""
@@ -12329,6 +12338,15 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
 
   """Returns True, if the line unit price was overridden."""
   isPriceOverridden: Boolean
+
+  """
+  Reason explaining why a custom price was set on the line, copied from the checkout line when the order was created from a checkout.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  priceOverrideReason: String
 
   """
   A purchased product variant. Note: this field may be null if the variant has been removed from stock at all. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -30757,6 +30775,7 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   INVALID_SHIPPING_METHOD
   NOT_FOUND
   PAYMENT_ERROR
+  PRICE_OVERRIDE_REASON_WITHOUT_OVERRIDE
   QUANTITY_GREATER_THAN_LIMIT
   REQUIRED
   SHIPPING_ADDRESS_NOT_SET
@@ -30933,6 +30952,13 @@ input CheckoutLineInput @doc(category: "Checkout") {
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
   """
   price: PositiveDecimal
+
+  """
+  Reason explaining why a custom `price` was set on the line, for debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` permission and only together with a `price` override. Blank values are stored as no reason.
+  
+  Added in Saleor 3.23.
+  """
+  priceOverrideReason: String
 
   """
   Flag that allow force splitting the same variant into multiple lines by skipping the matching logic.
@@ -31159,6 +31185,13 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
   """
   price: PositiveDecimal
+
+  """
+  Reason explaining why a custom `price` was set on the line, for debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` permission and only when the line has a `price` override. Setting a new `price` without a reason clears the previous reason. Blank values are stored as no reason.
+  
+  Added in Saleor 3.23.
+  """
+  priceOverrideReason: String
 
   """ID of the line."""
   lineId: ID

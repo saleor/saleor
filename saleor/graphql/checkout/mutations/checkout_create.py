@@ -22,7 +22,7 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321
+from ...core.descriptions import ADDED_IN_321, ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -40,6 +40,7 @@ from .utils import (
     check_permissions_for_custom_prices,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
+    validate_price_override_reason,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -108,6 +109,15 @@ class CheckoutLineInput(BaseInputObjectType):
             "Custom price of the item. Can be set only by apps "
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
+        ),
+    )
+    price_override_reason = graphene.String(
+        required=False,
+        description=(
+            "Reason explaining why a custom `price` was set on the line, for "
+            "debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` "
+            "permission and only together with a `price` override. Blank values are "
+            "stored as no reason." + ADDED_IN_323
         ),
     )
     force_new_line = graphene.Boolean(
@@ -266,6 +276,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         )
 
         checkout_lines_data = group_lines_input_on_add(lines)
+        validate_price_override_reason(checkout_lines_data)
 
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)

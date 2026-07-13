@@ -13,6 +13,7 @@ from decimal import Decimal
 import graphene
 
 from .....checkout.error_codes import CheckoutErrorCode
+from .....checkout.models import Checkout
 from .....order import OrderOrigin, OrderStatus
 from .....order.models import Order
 from ....core.utils import to_global_id_or_none
@@ -243,7 +244,7 @@ def test_create_sets_price_override_reason(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkoutCreate"]["errors"] == []
-    checkout_line = channel_USD.checkout_set.first().lines.first()
+    checkout_line = Checkout.objects.first().lines.first()
     assert checkout_line.price_override == price
     assert checkout_line.price_override_reason == reason
 

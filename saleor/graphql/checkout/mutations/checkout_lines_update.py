@@ -9,7 +9,11 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import (
+    ADDED_IN_321,
+    ADDED_IN_323,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
@@ -49,6 +53,16 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
             "Custom price of the item. Can be set only by apps "
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
+        ),
+    )
+    price_override_reason = graphene.String(
+        required=False,
+        description=(
+            "Reason explaining why a custom `price` was set on the line, for "
+            "debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` "
+            "permission and only when the line has a `price` override. Setting a new "
+            "`price` without a reason clears the previous reason. Blank values are "
+            "stored as no reason." + ADDED_IN_323
         ),
     )
     line_id = graphene.ID(
