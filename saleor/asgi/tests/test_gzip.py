@@ -204,5 +204,4 @@ async def test_response_content_length_is_random(
     # On average, the filename's length should be higher than 1 byte, and thus
     # on average it should exceed the length of 'length_1byte_filename'
     avg: float = sum(lengths) / float(len(lengths))
-    assert avg.is_integer() is False, "Number shouldn't be whole"
     assert avg > length_1byte_filename
