@@ -223,3 +223,133 @@ def test_account_confirmation_accepts_legacy_account_confirm_token(
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
     assign_gift_cards_mock.assert_called_once_with(customer_user)
     mocked_account_confirmed.assert_called_once_with(customer_user)
+
+
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
+@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
+def test_account_confirmation_rejects_disabled_accounts(
+    mocked_account_confirmed,
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    api_client,
+    customer_user,
+):
+    """Ensure a user with `is_active=False` cannot confirm their account.
+
+    A disabled account shouldn't be able to interact with our API, thus we
+    are ensuring `is_active=False` results to the request being rejected.
+    """
+
+    # given
+    customer_user.is_confirmed = False
+    customer_user.is_active = False
+    customer_user.save(update_fields=("is_confirmed", "is_active"))
+    token = account_confirm_token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "token": token,
+    }
+
+    # when
+    response = get_graphql_content(
+        api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    )
+
+    # then
+    data = response["data"]["confirmAccount"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "token"
+    assert errors[0]["code"] == AccountErrorCode.INVALID.name
+    assert data["user"] is None
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+
+    # Shouldn't have activated the account
+    assert customer_user.is_confirmed is False
+    match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
+    mocked_account_confirmed.assert_not_called()
+
+    # Sanity check: should work when is_active=True
+    customer_user.is_active = True
+    customer_user.save(update_fields=("is_active",))
+    response = get_graphql_content(
+        api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    )
+    assert not response["data"]["confirmAccount"]["errors"], (
+        "should have accepted the token"
+    )
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+    assert customer_user.is_confirmed is True, "shouldh have activated the account"
+    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
+    mocked_account_confirmed.assert_called_once_with(customer_user)
+
+
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
+@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
+def test_account_confirmation_rejects_already_confirmed(
+    mocked_account_confirmed,
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    api_client,
+    customer_user,
+):
+    """Ensure a user with `is_confirmed=True` cannot confirm their account.
+
+    An already confirmed account shouldn't be able to confirm their account
+    again; this is invalid operation therefore should be rejected.
+    """
+
+    # given
+    assert customer_user.is_confirmed is True
+    token = account_confirm_token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "token": token,
+    }
+
+    # when
+    response = get_graphql_content(
+        api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    )
+
+    # then
+    data = response["data"]["confirmAccount"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "token"
+    assert errors[0]["code"] == AccountErrorCode.INVALID.name
+    assert data["user"] is None
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+    assert customer_user.is_confirmed is True, "shouldn't have changed"
+
+    # Shouldn't have performed post-confirm actions
+    match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
+    mocked_account_confirmed.assert_not_called()
+
+    # Sanity check: should work when is_confirmed=False
+    customer_user.is_confirmed = False
+    customer_user.save(update_fields=("is_confirmed",))
+    response = get_graphql_content(
+        api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    )
+    assert not response["data"]["confirmAccount"]["errors"], (
+        "should have accepted the token"
+    )
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+    assert customer_user.is_confirmed is True, "shouldh have activated the account"
+    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
+    assign_gift_cards_mock.assert_called_once_with(customer_user)
+    mocked_account_confirmed.assert_called_once_with(customer_user)
