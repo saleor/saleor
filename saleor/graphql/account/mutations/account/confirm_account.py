@@ -53,7 +53,7 @@ class ConfirmAccount(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         error = False
         try:
-            user = models.User.objects.get(email=data["email"])
+            user = models.User.objects.get(email=data["email"], is_active=True)
         except ObjectDoesNotExist:
             # If user doesn't exists in the database we create fake user for calculation
             # purpose, as we don't want to indicate non existence of user in the system.
@@ -75,9 +75,8 @@ class ConfirmAccount(BaseMutation):
                 }
             )
 
-        user.is_active = True
         user.is_confirmed = True
-        user.save(update_fields=["is_active", "is_confirmed", "updated_at"])
+        user.save(update_fields=["is_confirmed", "updated_at"])
 
         match_orders_with_new_user(user)
         assign_user_gift_cards(user)
