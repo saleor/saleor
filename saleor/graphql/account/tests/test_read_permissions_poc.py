@@ -9,8 +9,11 @@ Invariants:
   C. Regression  - MANAGE_X behavior unchanged; no-perms still denied
   D. App carve-out - READ_STAFF is app-grantable; MANAGE_STAFF is not
   E. Metadata    - READ_X unlocks private metadata reads (dynamic perm resolution)
+  G. Grant-scope - MANAGE_X covers granting its READ_X twin (appCreate scope check)
 """
 
+from ....app.error_codes import AppErrorCode
+from ...core.enums import PermissionEnum
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -328,3 +331,135 @@ def test_read_users_cannot_read_staff_private_metadata(
     read_content = get_graphql_content(read_response)
     assert read_content["data"]["user"] is None
     assert read_content["data"] == manage_content["data"]
+
+
+# --------------------------------------------------------------------------- #
+# G. Grant-scope - MANAGE_X covers granting its READ_X twin
+#
+# get_out_of_scope_permissions ("can this requestor grant permission X?") must
+# treat READ_X as a subset of MANAGE_X, so a MANAGE_X holder can delegate
+# read-only access to an app without holding READ_X directly.
+# --------------------------------------------------------------------------- #
+
+APP_CREATE_MUTATION = """
+    mutation AppCreate($name: String, $permissions: [PermissionEnum!]) {
+        appCreate(input: {name: $name, permissions: $permissions}) {
+            app {
+                permissions { code }
+            }
+            errors { field code permissions }
+        }
+    }
+"""
+
+
+def test_app_create_read_users_inferred_from_manage_users(
+    staff_api_client, permission_manage_apps, permission_manage_users
+):
+    # given a staff user with MANAGE_APPS + MANAGE_USERS and NO READ_USERS
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_manage_users
+    )
+    variables = {"name": "read app", "permissions": [PermissionEnum.READ_USERS.name]}
+
+    # when creating an app that should hold READ_USERS
+    response = staff_api_client.post_graphql(APP_CREATE_MUTATION, variables)
+
+    # then the app is created and holds read_users - inferred from MANAGE_USERS
+    content = get_graphql_content(response)
+    data = content["data"]["appCreate"]
+    assert data["errors"] == []
+    codes = {perm["code"] for perm in data["app"]["permissions"]}
+    assert codes == {PermissionEnum.READ_USERS.name}
+
+
+def test_app_create_read_twins_inferred_from_manage_twins(
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_users,
+    permission_manage_staff,
+):
+    # given a staff user with MANAGE_APPS + MANAGE_USERS + MANAGE_STAFF
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_manage_users, permission_manage_staff
+    )
+    variables = {
+        "name": "read app",
+        "permissions": [PermissionEnum.READ_USERS.name, PermissionEnum.READ_STAFF.name],
+    }
+
+    # when creating an app that should hold both READ twins
+    response = staff_api_client.post_graphql(APP_CREATE_MUTATION, variables)
+
+    # then the app is created holding both, each inferred from its MANAGE twin
+    content = get_graphql_content(response)
+    data = content["data"]["appCreate"]
+    assert data["errors"] == []
+    codes = {perm["code"] for perm in data["app"]["permissions"]}
+    assert codes == {PermissionEnum.READ_USERS.name, PermissionEnum.READ_STAFF.name}
+
+
+def test_app_create_read_staff_out_of_scope_without_manage_staff(
+    staff_api_client, permission_manage_apps, permission_manage_users
+):
+    # given a staff user with MANAGE_APPS + MANAGE_USERS but no staff scope
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_manage_users
+    )
+    variables = {"name": "read app", "permissions": [PermissionEnum.READ_STAFF.name]}
+
+    # when creating an app that should hold READ_STAFF
+    response = staff_api_client.post_graphql(APP_CREATE_MUTATION, variables)
+
+    # then it is out of scope - MANAGE_USERS never covers READ_STAFF (per-domain)
+    content = get_graphql_content(response)
+    data = content["data"]["appCreate"]
+    assert data["app"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "permissions"
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
+    assert error["permissions"] == [PermissionEnum.READ_STAFF.name]
+
+
+def test_app_create_read_users_granted_directly(
+    staff_api_client, permission_manage_apps, permission_read_users
+):
+    # given a staff user holding READ_USERS directly (no MANAGE_USERS)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_read_users
+    )
+    variables = {"name": "read app", "permissions": [PermissionEnum.READ_USERS.name]}
+
+    # when creating an app that should hold READ_USERS
+    response = staff_api_client.post_graphql(APP_CREATE_MUTATION, variables)
+
+    # then the app is created - a directly-held twin still grants
+    content = get_graphql_content(response)
+    data = content["data"]["appCreate"]
+    assert data["errors"] == []
+    codes = {perm["code"] for perm in data["app"]["permissions"]}
+    assert codes == {PermissionEnum.READ_USERS.name}
+
+
+def test_app_create_manage_users_still_out_of_scope(
+    staff_api_client, permission_manage_apps
+):
+    # given a staff user with MANAGE_APPS only
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {
+        "name": "manage app",
+        "permissions": [PermissionEnum.MANAGE_USERS.name],
+    }
+
+    # when creating an app that should hold MANAGE_USERS
+    response = staff_api_client.post_graphql(APP_CREATE_MUTATION, variables)
+
+    # then it is out of scope - the READ subset rule did not widen MANAGE granting
+    content = get_graphql_content(response)
+    data = content["data"]["appCreate"]
+    assert data["app"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
+    assert error["permissions"] == [PermissionEnum.MANAGE_USERS.name]

@@ -26,6 +26,21 @@ MANAGE_TO_READ_PERMISSION_MAP: dict[BasePermissionEnum, BasePermissionEnum] = {
 }
 
 
+# Inverse registry: the MANAGE_X that grants each READ_X. Anyone holding MANAGE_X
+# implicitly holds READ_X (READ_X ⊆ MANAGE_X), so scope checks resolve through this.
+READ_TO_MANAGE_PERMISSION_MAP: dict[BasePermissionEnum, BasePermissionEnum] = {
+    read_perm: manage_perm
+    for manage_perm, read_perm in MANAGE_TO_READ_PERMISSION_MAP.items()
+}
+
+# Dotted-value lookup ("account.read_users" -> "account.manage_users") for the
+# permission-string call sites (app permission granting, scope checks).
+_READ_TO_MANAGE_VALUE_MAP: dict[str, str] = {
+    read_perm.value: manage_perm.value
+    for read_perm, manage_perm in READ_TO_MANAGE_PERMISSION_MAP.items()
+}
+
+
 def expand_read_permissions(
     permissions: Iterable[BasePermissionEnum],
 ) -> list[BasePermissionEnum]:
@@ -43,3 +58,13 @@ def expand_read_permissions(
         if read_twin is not None and read_twin not in expanded:
             expanded.append(read_twin)
     return expanded
+
+
+def get_manage_parent_permission(read_permission_value: str) -> str | None:
+    """Return the ``MANAGE_X`` value that grants ``READ_X``, or ``None``.
+
+    Accepts and returns dotted permission values (``"account.read_users"``). Use it
+    in "can this requestor grant permission X?" scope checks so holding ``MANAGE_X``
+    is enough to grant its ``READ_X`` twin, mirroring ``READ_X ⊆ MANAGE_X``.
+    """
+    return _READ_TO_MANAGE_VALUE_MAP.get(read_permission_value)
