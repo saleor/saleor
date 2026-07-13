@@ -4,12 +4,6 @@ from django.utils import timezone
 from ...app.models import App
 from ..event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..models import Webhook
-from ..observability.exceptions import (
-    ApiCallTruncationError,
-    EventDeliveryAttemptTruncationError,
-    TruncationError,
-)
-from ..observability.payload_schema import ObservabilityEventTypes
 from ..transport.utils import (
     generate_cache_key_for_webhook,
 )
@@ -266,35 +260,6 @@ def test_app_lifecycle_rejects_non_lifecycle_event(app_lifecycle_app_factory):
         get_webhooks_for_app_lifecycle_event(
             WebhookEventAsyncType.ORDER_CREATED, affected_app
         )
-
-
-@pytest.mark.parametrize(
-    ("error", "event_type"),
-    [
-        (
-            ApiCallTruncationError,
-            ObservabilityEventTypes.API_CALL,
-        ),
-        (
-            EventDeliveryAttemptTruncationError,
-            ObservabilityEventTypes.EVENT_DELIVERY_ATTEMPT,
-        ),
-    ],
-)
-def test_truncation_error_extra_fields(
-    error: type[TruncationError], event_type: ObservabilityEventTypes
-):
-    operation, bytes_limit, payload_size = "operation_name", 100, 102
-    kwargs = {"extra_kwarg_a": "a", "extra_kwarg_b": "b"}
-    err = error(operation, bytes_limit, payload_size, **kwargs)
-    assert str(err)
-    assert err.extra == {
-        "observability_event_type": event_type,
-        "operation": operation,
-        "bytes_limit": bytes_limit,
-        "payload_size": payload_size,
-        **kwargs,
-    }
 
 
 def test_get_webhooks_for_multiple_events(

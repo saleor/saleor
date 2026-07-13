@@ -71,13 +71,8 @@ def webhook_data():
     return WebhookTestData(secret, event_type, data, message)
 
 
-@mock.patch(
-    "saleor.webhook.transport.synchronous.transport.observability.report_event_delivery_attempt"
-)
 @mock.patch.object(HTTPSession, "request")
-def test_send_webhook_request_sync_failed_attempt(
-    mock_post, mock_observability, app, event_delivery
-):
+def test_send_webhook_request_sync_failed_attempt(mock_post, app, event_delivery):
     # given
     expected_data = {
         "content": '{"key": "response_text"}',
@@ -102,14 +97,12 @@ def test_send_webhook_request_sync_failed_attempt(
     assert attempt.response_headers == json.dumps(expected_data["headers"])
     assert attempt.response_status_code == expected_data["status_code"]
     assert response_data is None
-    mock_observability.assert_called_once_with(attempt)
 
 
-@mock.patch("saleor.webhook.observability.report_event_delivery_attempt")
 @mock.patch.object(HTTPSession, "request")
 @mock.patch("saleor.webhook.transport.synchronous.transport.clear_successful_delivery")
 def test_send_webhook_request_sync_successful_attempt(
-    mock_clear_delivery, mock_post, mock_observability, app, event_delivery
+    mock_clear_delivery, mock_post, app, event_delivery
 ):
     # given
     expected_data = {
@@ -128,25 +121,13 @@ def test_send_webhook_request_sync_successful_attempt(
 
     # then
     mock_clear_delivery.assert_called_once_with(event_delivery)
-    mock_observability.assert_called_once()
     assert not EventDeliveryAttempt.objects.exists()
-
-    attempt = mock_observability.mock_calls[0].args[0]
     assert event_delivery.status == EventDeliveryStatus.SUCCESS
-    assert attempt.status == EventDeliveryStatus.SUCCESS
-    assert attempt.duration == expected_data["duration"].total_seconds()
-    assert attempt.response == expected_data["content"]
-    assert attempt.response_headers == json.dumps(expected_data["headers"])
-    assert attempt.response_status_code == expected_data["status_code"]
     assert response_data == json.loads(expected_data["content"])
-    mock_observability.assert_called_once_with(attempt)
 
 
-@mock.patch("saleor.webhook.observability.report_event_delivery_attempt")
 @mock.patch.object(HTTPSession, "request", side_effect=RequestException)
-def test_send_webhook_request_sync_request_exception(
-    mock_post, mock_observability, app, event_delivery
-):
+def test_send_webhook_request_sync_request_exception(mock_post, app, event_delivery):
     # given
     event_payload = event_delivery.payload
     data = event_payload.get_payload()
@@ -171,13 +152,11 @@ def test_send_webhook_request_sync_request_exception(
     assert attempt.response_status_code is None
     assert json.loads(attempt.request_headers) == expected_request_headers
     assert response_data is None
-    mock_observability.assert_called_once_with(attempt)
 
 
-@mock.patch("saleor.webhook.observability.report_event_delivery_attempt")
 @mock.patch.object(HTTPSession, "request")
 def test_send_webhook_request_sync_when_exception_with_response(
-    mock_post, mock_observability, app, event_delivery
+    mock_post, app, event_delivery
 ):
     mock_response = mock.Mock()
     mock_response.text = "response_content"
@@ -192,14 +171,10 @@ def test_send_webhook_request_sync_when_exception_with_response(
     assert attempt.response == "response_content"
     assert attempt.response_headers == '{"response": "headers"}'
     assert attempt.response_status_code == 302
-    mock_observability.assert_called_once_with(attempt)
 
 
-@mock.patch("saleor.webhook.observability.report_event_delivery_attempt")
 @mock.patch.object(HTTPSession, "request")
-def test_send_webhook_request_sync_json_parsing_error(
-    mock_post, mock_observability, app, event_delivery
-):
+def test_send_webhook_request_sync_json_parsing_error(mock_post, app, event_delivery):
     # given
     expected_data = {
         "incorrect_content": "{key: response}",
@@ -224,7 +199,6 @@ def test_send_webhook_request_sync_json_parsing_error(
     assert attempt.response_headers == json.dumps(expected_data["response_headers"])
     assert attempt.response_status_code == expected_data["status_code"]
     assert response_data is None
-    mock_observability.assert_called_once_with(attempt)
 
 
 @mock.patch.object(HTTPSession, "request")

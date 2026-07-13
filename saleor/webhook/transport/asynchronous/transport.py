@@ -7,7 +7,6 @@ from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
-from celery import group
 from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.apps import apps
@@ -33,9 +32,7 @@ from ....graphql.webhook.subscription_payload import (
     get_pre_save_payload_key,
     initialize_request,
 )
-from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ...observability import WebhookData
 from ..metrics import record_external_request, record_first_delivery_attempt_delay
 from ..utils import (
     DEFERRED_SUBSCRIBABLE_OBJECT_MAP,
@@ -68,7 +65,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(f"{__name__}.celery")
 
-OBSERVABILITY_QUEUE_NAME = "observability"
 MAX_WEBHOOK_EVENTS_IN_DB_BULK = 100
 
 MAX_WEBHOOK_RETRIES = 5
@@ -837,9 +833,7 @@ def send_webhook_request_async(
             delivery.id,
         )
         delivery.status = EventDeliveryStatus.SUCCESS
-        # update attempt without save to provide proper data in observability
         attempt_update(attempt, response, with_save=False)
-    observability.report_event_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
 
 
@@ -921,7 +915,6 @@ def send_webhooks_async_for_app(
                     delivery.id,
                 )
                 delivery.status = EventDeliveryStatus.SUCCESS
-                # update attempt without save to provide proper data in observability
                 attempt_update(attempt, response, with_save=False)
         except ValueError as e:
             response = WebhookResponse(
@@ -930,7 +923,6 @@ def send_webhooks_async_for_app(
             attempt_update(attempt, response, with_save=False)
             failed_deliveries_attempts.append((delivery, attempt, attempt_count))
 
-        observability.report_event_delivery_attempt(attempt)
         successful_deliveries.append(delivery)
 
     process_failed_deliveries(failed_deliveries_attempts, MAX_WEBHOOK_RETRIES)
@@ -942,90 +934,3 @@ def send_webhooks_async_for_app(
             "telemetry_context": telemetry_context.to_dict(),
         },
     )
-
-
-def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
-    event_type = WebhookEventAsyncType.OBSERVABILITY
-    for webhook in webhooks:
-        scheme = urlparse(webhook.target_url).scheme.lower()
-        failed = 0
-        extra = {
-            "webhook_id": webhook.id,
-            "webhook_target_url": webhook.target_url,
-            "events_count": len(events),
-        }
-        try:
-            if scheme in [WebhookSchemes.AWS_SQS, WebhookSchemes.GOOGLE_CLOUD_PUBSUB]:
-                for event in events:
-                    response = send_webhook_using_scheme_method(
-                        webhook.target_url,
-                        webhook.saleor_domain,
-                        webhook.secret_key,
-                        event_type,
-                        event,
-                    )
-                    if response.status == EventDeliveryStatus.FAILED:
-                        failed += 1
-            else:
-                response = send_webhook_using_scheme_method(
-                    webhook.target_url,
-                    webhook.saleor_domain,
-                    webhook.secret_key,
-                    event_type,
-                    observability.concatenate_json_events(events),
-                )
-                if response.status == EventDeliveryStatus.FAILED:
-                    failed = len(events)
-        except ValueError:
-            logger.error(
-                "Webhook ID: %r unknown webhook scheme: %r.",
-                webhook.id,
-                scheme,
-                extra={**extra, "dropped_events_count": len(events)},
-            )
-            continue
-        if failed:
-            logger.info(
-                "Webhook ID: %r failed request to %r (%s/%s events dropped): %r.",
-                webhook.id,
-                sanitize_url_for_logging(webhook.target_url),
-                failed,
-                len(events),
-                response.content,
-                extra={**extra, "dropped_events_count": failed},
-            )
-            continue
-        logger.debug(
-            "Successful delivered %s events to %r.",
-            len(events),
-            sanitize_url_for_logging(webhook.target_url),
-            extra={**extra, "dropped_events_count": 0},
-        )
-
-
-@app.task(queue=OBSERVABILITY_QUEUE_NAME)
-@allow_writer()
-def observability_send_events():
-    with observability.otel_trace("send_events_task", "task"):
-        if webhooks := observability.get_webhooks():
-            with observability.otel_trace("pop_events", "buffer"):
-                events, _ = observability.pop_events_with_remaining_size()
-            if events:
-                with observability.otel_trace("send_events", "webhooks"):
-                    send_observability_events(webhooks, events)
-
-
-@app.task(queue=OBSERVABILITY_QUEUE_NAME)
-@allow_writer()
-def observability_reporter_task():
-    with observability.otel_trace("reporter_task", "task"):
-        if webhooks := observability.get_webhooks():
-            with observability.otel_trace("pop_events", "buffer"):
-                events, batch_count = observability.pop_events_with_remaining_size()
-            if batch_count > 0:
-                tasks = [observability_send_events.s() for _ in range(batch_count)]
-                expiration = settings.OBSERVABILITY_REPORT_PERIOD.total_seconds()
-                group(tasks).apply_async(expires=expiration)
-            if events:
-                with observability.otel_trace("send_events", "webhooks"):
-                    send_observability_events(webhooks, events)

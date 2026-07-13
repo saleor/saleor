@@ -235,7 +235,6 @@ WEBHOOK_EVENT_DESCRIPTION = {
         "A voucher code export is completed."
     ),
     WebhookEventAsyncType.ANY: "All the events.",
-    WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created.",
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: "Shop metadata is updated.",
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
