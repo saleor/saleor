@@ -23172,6 +23172,13 @@ type ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [
 }
 
 input ShopSettingsInput {
+  """
+  Shop's name.
+  
+  Added in Saleor 3.23.
+  """
+  name: String
+
   """Header text."""
   headerText: String
 
