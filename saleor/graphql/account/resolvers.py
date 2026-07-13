@@ -11,6 +11,7 @@ from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, OrderPermissions
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
 from ..core.tracing import traced_resolver
@@ -70,15 +71,22 @@ def resolve_user(info, id=None, email=None, external_reference=None):
             filter_kwargs["email__iexact"] = email.lower()
         if external_reference:
             filter_kwargs["external_reference"] = external_reference
-        if requester.has_perms(
-            [AccountPermissions.MANAGE_STAFF, AccountPermissions.MANAGE_USERS]
-        ):
+        # Row-visibility parity: READ_STAFF mirrors MANAGE_STAFF (staff visibility)
+        # and READ_USERS mirrors MANAGE_USERS (customer visibility), so a READ-only
+        # principal sees the same user subset as its MANAGE twin.
+        can_read_staff = has_one_of_permissions(
+            requester, expand_read_permissions([AccountPermissions.MANAGE_STAFF])
+        )
+        can_read_customers = has_one_of_permissions(
+            requester, expand_read_permissions([AccountPermissions.MANAGE_USERS])
+        )
+        if can_read_staff and can_read_customers:
             return (
                 models.User.objects.using(connection_name)
                 .filter(**filter_kwargs)
                 .first()
             )
-        if requester.has_perm(AccountPermissions.MANAGE_STAFF):
+        if can_read_staff:
             return (
                 models.User.objects.staff()
                 .using(connection_name)
@@ -86,7 +94,10 @@ def resolve_user(info, id=None, email=None, external_reference=None):
                 .first()
             )
         if has_one_of_permissions(
-            requester, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
+            requester,
+            expand_read_permissions(
+                [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
+            ),
         ):
             return (
                 models.User.objects.customers()
