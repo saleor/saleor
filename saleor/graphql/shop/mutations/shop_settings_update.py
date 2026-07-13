@@ -24,6 +24,7 @@ from ..types import Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
+    name = graphene.String(description="Shop's name." + ADDED_IN_323)
     header_text = graphene.String(description="Header text.")
     description = graphene.String(description="SEO description.")
     track_inventory_by_default = graphene.Boolean(
@@ -238,6 +239,9 @@ class ShopSettingsUpdate(BaseMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
+        # `name` is stored on the `Site` object, not on `SiteSettings`.
+        name = cleaned_input.pop("name", None)
+
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
@@ -259,6 +263,11 @@ class ShopSettingsUpdate(BaseMutation):
         )
         cls.clean_instance(info, instance)
         instance.save()
+
+        if name is not None and site.name != name:
+            site.name = name
+            cls.clean_instance(info, site)
+            site.save(update_fields=["name"])
 
         if (
             instance.metadata != old_metadata
