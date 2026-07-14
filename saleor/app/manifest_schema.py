@@ -72,11 +72,12 @@ class ManifestExtensionSchema(BaseModel):
         provided) happens later in ``manifest_validations``: the validated
         model returned by ``model_validate`` is discarded, so any value
         returned here would not reach the manifest data. Length is checked
-        here because it is a purely structural constraint.
+        here because it is a purely structural constraint. The raw value is
+        measured (whitespace included) since that is what would be persisted.
         """
         if v is None:
             return None
-        if len(v.strip()) > EXTENSION_IDENTIFIER_MAX_LENGTH:
+        if len(v) > EXTENSION_IDENTIFIER_MAX_LENGTH:
             raise PydanticCustomError(
                 AppErrorCode.INVALID.value,
                 "Identifier is too long. Maximum length is "
