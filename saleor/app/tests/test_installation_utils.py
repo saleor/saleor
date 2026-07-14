@@ -306,7 +306,6 @@ def test_install_app_with_extension(
     assert app_extension.mount == "product_overview_create"
     assert app_extension.target == "popup"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.http_target_method is None
 
 
 def test_install_app_with_extension_widget(
@@ -354,7 +353,7 @@ def test_install_app_with_extension_widget(
     assert app_extension.mount == "product_details_widgets"
     assert app_extension.target == "widget"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.http_target_method == "POST"
+    assert app_extension.settings == options
 
 
 @pytest.mark.parametrize(
@@ -435,7 +434,7 @@ def test_install_app_with_extension_new_tab_target(
     assert app_extension.mount == "product_overview_create"
     assert app_extension.target == "new_tab"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.http_target_method == "GET"
+    assert app_extension.settings == options
 
 
 @pytest.mark.parametrize(
@@ -587,7 +586,7 @@ def test_install_app_with_extension_post_method(
     assert app_extension.mount == "product_overview_create"
     assert app_extension.target == "new_tab"
     assert list(app_extension.permissions.all()) == [permission_manage_products]
-    assert app_extension.http_target_method == "POST"
+    assert app_extension.settings == options
 
 
 def test_install_app_with_webhook(

@@ -14,7 +14,6 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import (
     DEFAULT_APP_TARGET,
     AppType,
-    DeprecatedAppExtensionHttpMethod,
 )
 
 
@@ -165,11 +164,6 @@ class AppExtension(models.Model):
         Permission,
         blank=True,
         help_text="Specific permissions for this app extension.",
-    )
-    http_target_method = models.CharField(
-        blank=False,
-        null=True,
-        choices=DeprecatedAppExtensionHttpMethod.CHOICES,
     )
     settings = models.JSONField(blank=True, default=dict, db_default={})
 
