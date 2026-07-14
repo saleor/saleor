@@ -627,7 +627,7 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
 
 
 def test_checkout_create_without_lines(api_client, channel_USD):
-    """Create checkout without providing lines - defaults to empty list."""
+    """Create checkout without providing lines - creates a checkout with no lines."""
     # given
     variables = {
         "checkoutInput": {
@@ -643,9 +643,8 @@ def test_checkout_create_without_lines(api_client, channel_USD):
     content = get_graphql_content(response)["data"]["checkoutCreate"]
     assert content["errors"] == []
 
-    new_checkout = Checkout.objects.first()
-    assert new_checkout is not None
-    assert new_checkout.lines.count() == 0
+    new_checkout = Checkout.objects.get()
+    assert new_checkout.lines.exists() is False
     checkout_data = content["checkout"]
     assert checkout_data["token"] == str(new_checkout.token)
     assert checkout_data["lines"] == []
@@ -670,9 +669,8 @@ def test_checkout_create_with_empty_lines(api_client, channel_USD):
     content = get_graphql_content(response)["data"]["checkoutCreate"]
     assert content["errors"] == []
 
-    new_checkout = Checkout.objects.first()
-    assert new_checkout is not None
-    assert new_checkout.lines.count() == 0
+    new_checkout = Checkout.objects.get()
+    assert new_checkout.lines.exists() is False
     checkout_data = content["checkout"]
     assert checkout_data["token"] == str(new_checkout.token)
     assert checkout_data["lines"] == []
