@@ -634,3 +634,68 @@ def test_shop_settings_update_password_login_mode_preserves_when_not_provided(
     assert data["shop"]["passwordLoginMode"] == login_mode.upper()
     site_settings.refresh_from_db()
     assert site_settings.password_login_mode == login_mode
+
+
+MUTATION_UPDATE_SHOP_NAME = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop {
+                name
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_shop_settings_update_name(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    new_name = "New shop name"
+    assert site_settings.site.name != new_name
+    variables = {"input": {"name": new_name}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHOP_NAME,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["errors"]
+    assert data["shop"]["name"] == new_name
+    site = Site.objects.get_current()
+    assert site.name == new_name
+
+
+def test_shop_settings_update_name_too_long(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    # `Site.name` is limited to 50 characters.
+    too_long_name = "x" * 51
+    original_name = site_settings.site.name
+    variables = {"input": {"name": too_long_name}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHOP_NAME,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["shopSettingsUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "name"
+    site = Site.objects.get_current()
+    assert site.name == original_name
