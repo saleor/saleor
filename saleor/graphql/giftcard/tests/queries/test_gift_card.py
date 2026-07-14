@@ -885,15 +885,31 @@ ASSIGNED_TO_QUERY = """
     }
 """
 
+ASSIGNED_FIELD_QUERY = """
+    query GiftCard($id: ID!) {
+        giftCard(id: $id) { %s }
+    }
+"""
 
-def test_assigned_to_visible_with_manage_users(
+
+@pytest.mark.parametrize(
+    ("field", "extract"),
+    [
+        ("assignedTo { email }", lambda data: data["assignedTo"]["email"]),
+        ("assignedToEmail", lambda data: data["assignedToEmail"]),
+    ],
+)
+def test_assigned_field_visible_with_manage_users(
+    field,
+    extract,
     staff_api_client,
     gift_card,
     customer_user,
     permission_manage_gift_card,
     permission_manage_users,
 ):
-    # given
+    # given each assignment field is queried in isolation so a broken
+    # authorization check on one cannot be masked by the other
     gift_card.assigned_to = customer_user
     gift_card.assigned_to_email = customer_user.email
     gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
@@ -901,15 +917,16 @@ def test_assigned_to_visible_with_manage_users(
 
     # when
     response = staff_api_client.post_graphql(
-        ASSIGNED_TO_QUERY,
+        ASSIGNED_FIELD_QUERY % field,
         variables,
         permissions=[permission_manage_gift_card, permission_manage_users],
     )
 
     # then
     data = get_graphql_content(response)["data"]["giftCard"]
-    assert data["assignedTo"]["email"] == customer_user.email
-    assert data["assignedToEmail"] == customer_user.email
+    assert extract(data) == customer_user.email, (
+        "should be visible when the user has MANAGE_USERS permission"
+    )
 
 
 def test_assigned_to_requires_manage_users(
@@ -931,29 +948,7 @@ def test_assigned_to_requires_manage_users(
     data = content["data"]["giftCard"]
     assert data["assignedTo"] is None
     assert data["assignedToEmail"] == customer_user.email
-    assert any(
-        AccountPermissions.MANAGE_USERS.name in error["message"]
-        for error in content["errors"]
-    )
-
-
-CODE_QUERY = """
-    query { me { giftCards(first: 10) { edges { node { id code } } } } }
-"""
-
-
-def test_assigned_customer_can_read_code(user_api_client, gift_card, customer_user):
-    # given (user_api_client is authenticated as customer_user)
-    gift_card.assigned_to = customer_user
-    gift_card.assigned_to_email = customer_user.email
-    gift_card.used_by = None
-    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "used_by"])
-    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
-
-    # when
-    response = user_api_client.post_graphql(CODE_QUERY, {})
-
-    # then
-    edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
-    node = next(e["node"] for e in edges if e["node"]["id"] == gift_card_id)
-    assert node["code"] == gift_card.code
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert AccountPermissions.MANAGE_USERS.name in errors[0]["message"]
+    assert errors[0]["path"] == ["giftCard", "assignedTo"]

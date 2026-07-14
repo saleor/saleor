@@ -72,6 +72,8 @@ def test_unassign_clears_fields(
 
 def test_requires_permission(staff_api_client, gift_card, customer_user):
     # given
+    assert gift_card.assigned_to is None
+    assert gift_card.assigned_to_email is None
     assign_gift_card_to_user(gift_card, customer_user)
 
     # when

@@ -870,6 +870,10 @@ def test_is_gift_card_expired_false(expiry_date, gift_card):
 
 
 def test_assign_sets_user_and_email(gift_card, customer_user):
+    # given
+    assert gift_card.assigned_to is None
+    assert gift_card.assigned_to_email is None
+
     # when
     assign_gift_card_to_user(gift_card, customer_user)
 
@@ -891,6 +895,7 @@ def test_assign_blocked_when_used_in_order(gift_card, customer_user):
 
 def test_assign_detaches_clean_checkout(gift_card, customer_user, checkout):
     # given
+    assert gift_card.assigned_to is None
     checkout_qs = checkout.gift_cards.filter(pk=gift_card.pk)
     checkout.gift_cards.add(gift_card)
     assert checkout_qs.exists() is True
@@ -913,6 +918,8 @@ def test_assign_bumps_last_change_of_detached_checkout(
     # last_change uses auto_now, so set the stale value directly in the DB
     # (QuerySet.update bypasses auto_now).
     Checkout.objects.filter(pk=checkout.pk).update(last_change=stale_last_change)
+    checkout.refresh_from_db()
+    assert checkout.last_change == stale_last_change
 
     # when
     assign_gift_card_to_user(gift_card, customer_user)

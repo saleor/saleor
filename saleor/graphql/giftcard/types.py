@@ -484,7 +484,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         def _resolve_code(owner_ids):
             requestor = get_user_or_app_from_context(info.context)
             if requestor:
-                requestor_is_owner = getattr(requestor, "id", None) in owner_ids
+                requestor_is_owner = requestor.id in owner_ids
                 if requestor_is_owner or requestor.has_perm(
                     GiftcardPermissions.MANAGE_GIFT_CARD
                 ):

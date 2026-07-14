@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from ....tests.utils import get_graphql_content
 
@@ -117,21 +118,29 @@ def test_me_gift_cards_includes_assigned(user_api_client, gift_card, customer_us
     assert graphene.Node.to_global_id("GiftCard", gift_card.pk) in ids
 
 
-ME_ASSIGNED_FIELDS = """
-    query {
+ME_ASSIGNED_FIELD = """
+    query MeAssignedField {
         me {
             giftCards(first: 10) {
-                edges { node { id assignedTo { email } assignedToEmail } }
+                edges { node { id %s } }
             }
         }
     }
 """
 
 
-def test_me_gift_cards_assigned_fields_visible_to_owner(
-    user_api_client, gift_card, customer_user
+@pytest.mark.parametrize(
+    ("field", "extract"),
+    [
+        ("assignedTo { email }", lambda node: node["assignedTo"]["email"]),
+        ("assignedToEmail", lambda node: node["assignedToEmail"]),
+    ],
+)
+def test_me_gift_cards_assigned_field_visible_to_owner(
+    field, extract, user_api_client, gift_card, customer_user
 ):
-    # given the card is assigned to the requesting customer (the owner)
+    # given each assignment field is queried in isolation so a broken
+    # authorization check on one cannot be masked by the other
     gift_card.used_by = None
     gift_card.assigned_to = customer_user
     gift_card.assigned_to_email = customer_user.email
@@ -139,13 +148,34 @@ def test_me_gift_cards_assigned_fields_visible_to_owner(
     gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
 
     # when the owner queries without MANAGE_USERS / MANAGE_GIFT_CARD permissions
-    response = user_api_client.post_graphql(ME_ASSIGNED_FIELDS, {})
+    response = user_api_client.post_graphql(ME_ASSIGNED_FIELD % field, {})
 
-    # then the owner can read both the assigned user and its email
+    # then the owner can read the field
     edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
     node = next(e["node"] for e in edges if e["node"]["id"] == gift_card_id)
-    assert node["assignedTo"]["email"] == customer_user.email
-    assert node["assignedToEmail"] == customer_user.email
+    assert extract(node) == customer_user.email
+
+
+CODE_QUERY = """
+    query { me { giftCards(first: 10) { edges { node { id code } } } } }
+"""
+
+
+def test_assigned_customer_can_read_code(user_api_client, gift_card, customer_user):
+    # given (user_api_client is authenticated as customer_user)
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.used_by = None
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "used_by"])
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when
+    response = user_api_client.post_graphql(CODE_QUERY, {})
+
+    # then
+    edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
+    node = next(e["node"] for e in edges if e["node"]["id"] == gift_card_id)
+    assert node["code"] == gift_card.code
 
 
 FILTER_QUERY = """
