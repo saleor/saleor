@@ -239,9 +239,6 @@ class ShopSettingsUpdate(BaseMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
 
-        # `name` is stored on the `Site` object, not on `SiteSettings`.
-        name = cleaned_input.pop("name", None)
-
         metadata_list: list[MetadataInput] = cleaned_input.pop("metadata", None)
         private_metadata_list: list[MetadataInput] = cleaned_input.pop(
             "private_metadata", None
@@ -257,17 +254,20 @@ class ShopSettingsUpdate(BaseMutation):
         old_metadata = dict(instance.metadata)
         old_private_metadata = dict(instance.private_metadata)
 
+        # `name` is stored on the `Site` object, not on `SiteSettings`, so it must
+        # be popped before `construct_instance` runs over the remaining input.
+        name = cleaned_input.pop("name", None)
+        if name is not None and site.name != name:
+            site.name = name
+            cls.clean_instance(info, site)
+            site.save(update_fields=["name"])
+
         instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, instance)
         instance.save()
-
-        if name is not None and site.name != name:
-            site.name = name
-            cls.clean_instance(info, site)
-            site.save(update_fields=["name"])
 
         if (
             instance.metadata != old_metadata
