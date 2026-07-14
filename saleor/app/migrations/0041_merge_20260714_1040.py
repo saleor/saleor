@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("app", "0039_remove_manage_apps_permission"),
         ("app", "0040_appextension_identifier_unique_constraint"),
