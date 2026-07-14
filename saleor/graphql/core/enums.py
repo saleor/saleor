@@ -263,11 +263,6 @@ MenuErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     menu_error_codes.MenuErrorCode
 )
 
-OrderSettingsErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    site_error_codes.OrderSettingsErrorCode
-)
-OrderSettingsErrorCode.doc_category = DOC_CATEGORY_ORDERS
-
 GiftCardSettingsErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     site_error_codes.GiftCardSettingsErrorCode
 )
