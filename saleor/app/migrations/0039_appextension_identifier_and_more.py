@@ -4,6 +4,8 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+    atomic = False
+
     dependencies = [
         ("app", "0038_merge_20260213_1154"),
     ]
@@ -14,11 +16,38 @@ class Migration(migrations.Migration):
             name="identifier",
             field=models.CharField(max_length=256, null=True),
         ),
-        migrations.AddConstraint(
-            model_name="appextension",
-            constraint=models.UniqueConstraint(
-                fields=("app", "identifier"), name="unique_app_extension_identifier"
-            ),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                    CREATE UNIQUE INDEX CONCURRENTLY unique_app_extension_identifier
+                    ON app_appextension ("app_id", "identifier");
+                    """,
+                    reverse_sql="""
+                    DROP INDEX CONCURRENTLY IF EXISTS unique_app_extension_identifier;
+                    """,
+                ),
+                migrations.RunSQL(
+                    sql="""
+                    ALTER TABLE app_appextension
+                    ADD CONSTRAINT unique_app_extension_identifier
+                    UNIQUE USING INDEX unique_app_extension_identifier;
+                    """,
+                    reverse_sql="""
+                    ALTER TABLE app_appextension DROP CONSTRAINT
+                    IF EXISTS unique_app_extension_identifier;
+                    """,
+                ),
+            ],
+            state_operations=[
+                migrations.AddConstraint(
+                    model_name="appextension",
+                    constraint=models.UniqueConstraint(
+                        fields=("app", "identifier"),
+                        name="unique_app_extension_identifier",
+                    ),
+                ),
+            ],
         ),
         migrations.AddConstraint(
             model_name="appextension",
