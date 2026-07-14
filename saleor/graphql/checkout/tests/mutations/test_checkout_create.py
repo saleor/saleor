@@ -626,38 +626,22 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert new_checkout.shipping_address.validation_skipped is False
 
 
-def test_checkout_create_without_lines(api_client, channel_USD):
-    """Create checkout without providing lines - creates a checkout with no lines."""
+@pytest.mark.parametrize(
+    "lines_input",
+    [
+        {},
+        {"lines": []},
+        {"lines": None},
+    ],
+    ids=["omitted", "empty_list", "explicit_null"],
+)
+def test_checkout_create_without_lines(lines_input, api_client, channel_USD):
+    """Create checkout when lines are omitted, empty, or null - no lines are created."""
     # given
     variables = {
         "checkoutInput": {
             "channel": channel_USD.slug,
-        }
-    }
-    assert not Checkout.objects.exists()
-
-    # when
-    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-
-    # then
-    content = get_graphql_content(response)["data"]["checkoutCreate"]
-    assert content["errors"] == []
-
-    new_checkout = Checkout.objects.get()
-    assert new_checkout.lines.exists() is False
-    checkout_data = content["checkout"]
-    assert checkout_data["token"] == str(new_checkout.token)
-    assert checkout_data["lines"] == []
-    assert checkout_data["quantity"] == 0
-
-
-def test_checkout_create_with_empty_lines(api_client, channel_USD):
-    """Create checkout with an explicitly empty lines list."""
-    # given
-    variables = {
-        "checkoutInput": {
-            "channel": channel_USD.slug,
-            "lines": [],
+            **lines_input,
         }
     }
     assert not Checkout.objects.exists()
