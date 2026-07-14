@@ -284,6 +284,11 @@ def deprecation_reason(enum):
             "See the docs for more details about migrating from NOTIFY_USER to other events: "
             "https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user"
         )
+    if enum.value == WebhookEventAsyncType.OBSERVABILITY:
+        return (
+            "The observability feature is no longer supported. "
+            "This event will be removed in Saleor 3.24."
+        )
     if enum.value == WebhookEventAsyncType.ANY:
         return DEFAULT_DEPRECATION_REASON
     return None
@@ -324,6 +329,7 @@ WebhookSampleEventTypeEnum = graphene.Enum(
         for e_type in WebhookEventAsyncType.CHOICES
         if e_type[0] != WebhookEventAsyncType.ANY
     ],
+    deprecation_reason=deprecation_reason,
 )
 WebhookSampleEventTypeEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 

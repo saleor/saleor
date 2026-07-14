@@ -52,7 +52,6 @@ from ..enums import (
     MetadataErrorCode,
     OrderBulkCreateErrorCode,
     OrderErrorCode,
-    OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
     PaymentGatewayConfigErrorCode,
@@ -338,13 +337,6 @@ class MenuError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_MENU
-
-
-class OrderSettingsError(Error):
-    code = OrderSettingsErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class GiftCardSettingsError(Error):
