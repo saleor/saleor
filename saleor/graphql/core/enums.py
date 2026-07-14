@@ -117,6 +117,7 @@ LanguageCodeEnum = graphene.Enum(
 
 JobStatusEnum: Final[graphene.Enum] = to_enum(JobStatus)
 
+
 PermissionEnum: Final[graphene.Enum] = graphene.Enum(
     "PermissionEnum", get_permissions_enum_list()
 )

@@ -14115,7 +14115,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   CHECKOUT_FULLY_AUTHORIZED
   CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
-  NOTIFY_USER
+  NOTIFY_USER @deprecated(reason: "See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user")
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
@@ -23029,6 +23029,13 @@ type ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [
 }
 
 input ShopSettingsInput {
+  """
+  Shop's name.
+  
+  Added in Saleor 3.23.
+  """
+  name: String
+
   """Header text."""
   headerText: String
 

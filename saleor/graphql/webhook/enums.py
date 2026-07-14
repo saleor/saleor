@@ -323,6 +323,7 @@ WebhookSampleEventTypeEnum = graphene.Enum(
         for e_type in WebhookEventAsyncType.CHOICES
         if e_type[0] != WebhookEventAsyncType.ANY
     ],
+    deprecation_reason=deprecation_reason,
 )
 WebhookSampleEventTypeEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
