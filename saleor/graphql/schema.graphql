@@ -248,13 +248,6 @@ type Query {
   shop: Shop!
 
   """
-  Order related settings from site settings. Returns `orderSettings` for the first `channel` in alphabetical order.
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
-  orderSettings: OrderSettings @doc(category: "Orders") @deprecated(reason: "Use the `channel` query to fetch the `orderSettings` field instead.")
-
-  """
   Gift card related settings from site settings.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
