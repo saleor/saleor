@@ -47,9 +47,11 @@ permissions.
 - `staffDelete` mutation now always deletes the staff user. Previously, staff members with existing orders were only deactivated (`is_staff` set to `False`); now they are fully removed regardless of order history.
 - Add `giftCardBalanceAdjust` mutation to change a gift card balance by a signed delta atomically.
 - Add customer restriction for gift cards: `assignedTo`/`assignedToEmail` fields, `giftCardAssignUser`/`giftCardUnassignUser` mutations, `assignedTo` on `GiftCardCreateInput`, and `assignedTo` gift card filter. Restricted cards can only be used by the assigned customer at checkout.
+- Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
 
 ### Webhooks
 
+- Deprecated the `OBSERVABILITY` webhook event type (`WebhookEventTypeEnum`, `WebhookEventTypeAsyncEnum`, `WebhookSampleEventTypeEnum`). The observability feature is no longer supported and the event will be removed in Saleor 3.24.
 - For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.
 -  Building payloads for webhook order events (including draft orders and fulfillments) is now delegated to a separate background task. This speeds up the execution of most order mutations by deferring the expensive payload serialization out of the request path.
 
