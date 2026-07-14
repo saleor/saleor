@@ -3,7 +3,12 @@ from django.core.exceptions import ValidationError
 from pydantic import ValidationError as PydanticValidationError
 
 from ..error_codes import AppErrorCode
-from ..manifest_schema import ICON_MIME_TYPES, ManifestSchema
+from ..manifest_schema import (
+    EXTENSION_IDENTIFIER_MAX_LENGTH,
+    ICON_MIME_TYPES,
+    ManifestExtensionSchema,
+    ManifestSchema,
+)
 from ..manifest_validations import clean_manifest_data
 
 MINIMAL_MANIFEST = {
@@ -410,6 +415,80 @@ def test_clean_manifest_data_strips_surrounding_whitespace_from_identifier():
 
     # then
     assert manifest_data["extensions"][0]["identifier"] == "refund-button"
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_accepts_identifier_at_max_length():
+    # given - identifier exactly at the maximum allowed length
+    identifier = "a" * EXTENSION_IDENTIFIER_MAX_LENGTH
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [_extension("First", identifier=identifier)],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert manifest_data["extensions"][0]["identifier"] == identifier
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_too_long_identifier():
+    # given - identifier exceeding the maximum allowed length
+    identifier = "a" * (EXTENSION_IDENTIFIER_MAX_LENGTH + 1)
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [_extension("First", identifier=identifier)],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    expected_message = (
+        f"Identifier is too long. Maximum length is "
+        f"{EXTENSION_IDENTIFIER_MAX_LENGTH} characters."
+    )
+    extension_errors = exc_info.value.error_dict["extensions"]
+    assert len(extension_errors) == 1
+    error = extension_errors[0]
+    assert error.code == AppErrorCode.INVALID.value
+    assert error.message == expected_message
+
+
+def test_manifest_extension_schema_rejects_too_long_identifier():
+    # given - identifier exceeding the maximum allowed length
+    identifier = "a" * (EXTENSION_IDENTIFIER_MAX_LENGTH + 1)
+    extension_data = _extension("First", identifier=identifier)
+
+    # when
+    with pytest.raises(PydanticValidationError) as exc_info:
+        ManifestExtensionSchema.model_validate(extension_data)
+
+    # then
+    expected_message = (
+        f"Identifier is too long. Maximum length is "
+        f"{EXTENSION_IDENTIFIER_MAX_LENGTH} characters."
+    )
+    errors = exc_info.value.errors()
+    assert len(errors) == 1
+    assert errors[0]["loc"] == ("identifier",)
+    assert errors[0]["msg"] == expected_message
+    assert errors[0]["ctx"]["error_code"] == AppErrorCode.INVALID.value
+
+
+def test_manifest_extension_schema_accepts_identifier_at_max_length():
+    # given - identifier exactly at the maximum allowed length
+    identifier = "a" * EXTENSION_IDENTIFIER_MAX_LENGTH
+    extension_data = _extension("First", identifier=identifier)
+
+    # when
+    schema = ManifestExtensionSchema.model_validate(extension_data)
+
+    # then
+    assert schema.identifier == identifier
 
 
 def test_manifest_schema_deprecated_fields_accepted():
