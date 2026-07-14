@@ -237,13 +237,18 @@ def test_checkout_customer_attach_by_app_without_permission(
 
 
 def test_checkout_customer_attach_user_to_checkout_with_user(
-    user_api_client, customer_user, user_checkout, address
+    user_api_client,
+    customer_user,
+    user_checkout,
+    address,
+    permission_impersonate_user,
 ):
+    # given
     checkout = user_checkout
 
     query = """
-    mutation checkoutCustomerAttach($id: ID) {
-        checkoutCustomerAttach(id: $id) {
+    mutation checkoutCustomerAttach($id: ID, $customerId: ID) {
+        checkoutCustomerAttach(id: $id, customerId: $customerId) {
             checkout {
                 token
             }
@@ -269,8 +274,75 @@ def test_checkout_customer_attach_user_to_checkout_with_user(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     customer_id = graphene.Node.to_global_id("User", second_user.pk)
     variables = {"id": checkout_id, "customerId": customer_id}
+
+    # when
+    response = user_api_client.post_graphql(
+        query, variables, permissions=[permission_impersonate_user]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerAttach"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.CHECKOUT_HAS_USER.name
+    assert errors[0]["field"] == "customerId"
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user
+
+
+def test_reattach_same_customer_to_owned_checkout_returns_success(
+    user_api_client, customer_user, user_checkout
+):
+    # given
+    checkout = user_checkout
+    assert checkout.user == customer_user
+    previous_last_change = checkout.last_change
+
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
     response = user_api_client.post_graphql(query, variables)
-    assert_no_permission(response)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerAttach"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user
+    assert checkout.last_change == previous_last_change
+
+
+def test_attach_own_account_to_checkout_owned_by_another_user_returns_error(
+    user_api_client, customer_user, customer_user2, checkout
+):
+    """A customer without IMPERSONATE_USER cannot take over another user's checkout.
+
+    They attach themselves (no ``customerId``); because the checkout is already
+    owned by a different user, a structured ``CHECKOUT_HAS_USER`` error is returned
+    instead of a raw permission-denied error.
+    """
+    # given
+    checkout.user = customer_user2
+    checkout.email = customer_user2.email
+    checkout.save(update_fields=["user", "email"])
+
+    query = MUTATION_CHECKOUT_CUSTOMER_ATTACH
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCustomerAttach"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == CheckoutErrorCode.CHECKOUT_HAS_USER.name
+    assert errors[0]["field"] == "customerId"
+    checkout.refresh_from_db()
+    assert checkout.user == customer_user2
 
 
 def test_with_active_problems_flow(user_api_client, checkout_with_problems):

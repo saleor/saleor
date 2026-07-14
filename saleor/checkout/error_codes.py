@@ -34,6 +34,7 @@ class CheckoutErrorCode(Enum):
     NON_REMOVABLE_GIFT_LINE = "non_removable_gift_line"
     SHIPPING_CHANGE_FORBIDDEN = "shipping_change_forbidden"
     MISSING_ADDRESS_DATA = "missing_address_data"
+    CHECKOUT_HAS_USER = "checkout_has_user"
 
 
 class OrderCreateFromCheckoutErrorCode(Enum):
