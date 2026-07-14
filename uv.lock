@@ -2506,7 +2506,7 @@ wheels = [
 
 [[package]]
 name = "saleor"
-version = "3.23.17"
+version = "3.23.18"
 source = { virtual = "." }
 dependencies = [
     { name = "asgiref", marker = "platform_python_implementation != 'PyPy'" },
