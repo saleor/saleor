@@ -1,5 +1,4 @@
 from .gift_card_settings_update import GiftCardSettingsUpdate
-from .order_settings_update import OrderSettingsUpdate
 from .refund_reason_reference_type_clear import RefundReasonReferenceTypeClear
 from .refund_settings_update import RefundSettingsUpdate
 from .return_reason_reference_type_clear import ReturnReasonReferenceTypeClear
@@ -14,7 +13,6 @@ from .staff_notification_recipient_update import StaffNotificationRecipientUpdat
 
 __all__ = [
     "GiftCardSettingsUpdate",
-    "OrderSettingsUpdate",
     "RefundSettingsUpdate",
     "RefundReasonReferenceTypeClear",
     "ReturnSettingsUpdate",

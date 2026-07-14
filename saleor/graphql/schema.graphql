@@ -17714,16 +17714,6 @@ type Mutation {
   ): ShopAddressUpdate @doc(category: "Shop")
 
   """
-  Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
-  orderSettingsUpdate(
-    """Fields required to update shop order settings."""
-    input: OrderSettingsUpdateInput!
-  ): OrderSettingsUpdate @doc(category: "Orders") @deprecated(reason: "Use `channelUpdate` mutation instead.")
-
-  """
   Update gift card settings. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
@@ -23199,47 +23189,6 @@ type ShopAddressUpdate @doc(category: "Shop") {
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ShopError!]!
-}
-
-"""
-Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
-
-Requires one of the following permissions: MANAGE_ORDERS.
-"""
-type OrderSettingsUpdate @doc(category: "Orders") {
-  """Order settings."""
-  orderSettings: OrderSettings
-  orderSettingsErrors: [OrderSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [OrderSettingsError!]!
-}
-
-type OrderSettingsError @doc(category: "Orders") {
-  """
-  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
-  """
-  field: String
-
-  """The error message."""
-  message: String
-
-  """The error code."""
-  code: OrderSettingsErrorCode!
-}
-
-enum OrderSettingsErrorCode @doc(category: "Orders") {
-  INVALID
-}
-
-input OrderSettingsUpdateInput @doc(category: "Orders") {
-  """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
-  """
-  automaticallyConfirmAllNewOrders: Boolean
-
-  """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By default set to True.
-  """
-  automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
 """

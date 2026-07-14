@@ -15,7 +15,6 @@ from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
 from .mutations import (
     GiftCardSettingsUpdate,
-    OrderSettingsUpdate,
     RefundReasonReferenceTypeClear,
     RefundSettingsUpdate,
     ReturnReasonReferenceTypeClear,
@@ -121,9 +120,6 @@ class ShopMutations(graphene.ObjectType):
     shop_settings_translate = ShopSettingsTranslate.Field()
     shop_address_update = ShopAddressUpdate.Field()
 
-    order_settings_update = OrderSettingsUpdate.Field(
-        deprecation_reason="Use `channelUpdate` mutation instead."
-    )
     gift_card_settings_update = GiftCardSettingsUpdate.Field()
     refund_settings_update = RefundSettingsUpdate.Field()
     refund_reason_reference_clear = RefundReasonReferenceTypeClear.Field()
