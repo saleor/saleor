@@ -21,7 +21,6 @@ from .mutations import (
     ReturnReasonReferenceTypeClear,
     ReturnSettingsUpdate,
     ShopAddressUpdate,
-    ShopDomainUpdate,
     ShopFetchTaxRates,
     ShopSettingsUpdate,
     StaffNotificationRecipientCreate,
@@ -111,9 +110,6 @@ class ShopMutations(graphene.ObjectType):
     staff_notification_recipient_update = StaffNotificationRecipientUpdate.Field()
     staff_notification_recipient_delete = StaffNotificationRecipientDelete.Field()
 
-    shop_domain_update = ShopDomainUpdate.Field(
-        deprecation_reason="Use `PUBLIC_URL` environment variable instead."
-    )
     shop_settings_update = ShopSettingsUpdate.Field()
     shop_fetch_tax_rates = ShopFetchTaxRates.Field(
         deprecation_reason=DEFAULT_DEPRECATION_REASON
