@@ -626,6 +626,59 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert new_checkout.shipping_address.validation_skipped is False
 
 
+def test_checkout_create_without_lines(api_client, channel_USD):
+    """Create checkout without providing lines - defaults to empty list."""
+    # given
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert content["errors"] == []
+
+    new_checkout = Checkout.objects.first()
+    assert new_checkout is not None
+    assert new_checkout.lines.count() == 0
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert checkout_data["lines"] == []
+    assert checkout_data["quantity"] == 0
+
+
+def test_checkout_create_with_empty_lines(api_client, channel_USD):
+    """Create checkout with an explicitly empty lines list."""
+    # given
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [],
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert content["errors"] == []
+
+    new_checkout = Checkout.objects.first()
+    assert new_checkout is not None
+    assert new_checkout.lines.count() == 0
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert checkout_data["lines"] == []
+    assert checkout_data["quantity"] == 0
+
+
 def test_checkout_create_with_custom_price(
     app_api_client,
     stock,

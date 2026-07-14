@@ -30628,9 +30628,9 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   channel: String
 
   """
-  A list of checkout lines, each containing information about an item in the checkout.
+  A list of checkout lines, each containing information about an item in the checkout. Defaults to an empty list, creating a checkout with no lines.
   """
-  lines: [CheckoutLineInput!]!
+  lines: [CheckoutLineInput!] = []
 
   """The customer's email address."""
   email: String

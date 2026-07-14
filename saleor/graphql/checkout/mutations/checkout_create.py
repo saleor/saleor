@@ -136,9 +136,11 @@ class CheckoutCreateInput(BaseInputObjectType):
         CheckoutLineInput,
         description=(
             "A list of checkout lines, each containing information about "
-            "an item in the checkout."
+            "an item in the checkout. Defaults to an empty list, creating a "
+            "checkout with no lines."
         ),
-        required=True,
+        required=False,
+        default_value=[],
     )
     email = graphene.String(description="The customer's email address.")
     save_shipping_address = graphene.Boolean(
