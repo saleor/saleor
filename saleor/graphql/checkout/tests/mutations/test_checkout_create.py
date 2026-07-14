@@ -627,15 +627,14 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
 
 
 @pytest.mark.parametrize(
-    "lines_input",
+    ("_case", "lines_input"),
     [
-        {},
-        {"lines": []},
-        {"lines": None},
+        ("omitted", {}),
+        ("empty_list", {"lines": []}),
+        ("explicit_null", {"lines": None}),
     ],
-    ids=["omitted", "empty_list", "explicit_null"],
 )
-def test_checkout_create_without_lines(lines_input, api_client, channel_USD):
+def test_checkout_create_without_lines(_case, lines_input, api_client, channel_USD):
     """Create checkout when lines are omitted, empty, or null - no lines are created."""
     # given
     variables = {
