@@ -2206,7 +2206,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_CODE_EXPORT_COMPLETED
 
   """An observability event is created."""
-  OBSERVABILITY
+  OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
 
   """A thumbnail is created."""
   THUMBNAIL_CREATED
@@ -2815,7 +2815,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   VOUCHER_CODE_EXPORT_COMPLETED
 
   """An observability event is created."""
-  OBSERVABILITY
+  OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
 
   """A thumbnail is created."""
   THUMBNAIL_CREATED
@@ -3016,7 +3016,7 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_STAFF
   IMPERSONATE_USER
   MANAGE_APPS
-  MANAGE_OBSERVABILITY
+  MANAGE_OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This permission will be removed in Saleor 3.24.")
   MANAGE_CHECKOUTS
   HANDLE_CHECKOUTS
   HANDLE_TAXES
@@ -14122,7 +14122,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   CHECKOUT_FULLY_AUTHORIZED
   CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
-  NOTIFY_USER
+  NOTIFY_USER @deprecated(reason: "See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user")
   PAGE_CREATED
   PAGE_UPDATED
   PAGE_DELETED
@@ -14157,7 +14157,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_CODES_DELETED
   VOUCHER_METADATA_UPDATED
   VOUCHER_CODE_EXPORT_COMPLETED
-  OBSERVABILITY
+  OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
   THUMBNAIL_CREATED
   SHOP_METADATA_UPDATED
 }

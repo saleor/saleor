@@ -25,7 +25,7 @@ from ...menu import error_codes as menu_error_codes
 from ...order import error_codes as order_error_codes
 from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
-from ...permission.enums import get_permissions_enum_list
+from ...permission.enums import AppPermission, get_permissions_enum_list
 from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
@@ -117,8 +117,20 @@ LanguageCodeEnum = graphene.Enum(
 
 JobStatusEnum: Final[graphene.Enum] = to_enum(JobStatus)
 
+
+def permission_enum_deprecation_reason(enum):
+    if enum.value == AppPermission.MANAGE_OBSERVABILITY.value:
+        return (
+            "The observability feature is no longer supported. "
+            "This permission will be removed in Saleor 3.24."
+        )
+    return None
+
+
 PermissionEnum: Final[graphene.Enum] = graphene.Enum(
-    "PermissionEnum", get_permissions_enum_list()
+    "PermissionEnum",
+    get_permissions_enum_list(),
+    deprecation_reason=permission_enum_deprecation_reason,
 )
 PermissionEnum.doc_category = DOC_CATEGORY_USERS
 
