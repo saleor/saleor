@@ -14900,7 +14900,9 @@ type Shop implements ObjectWithMetadata {
   """Shop's description."""
   description: String
 
-  """Shop's domain data."""
+  """
+  Shop's domain data. Can be customized using the `PUBLIC_URL` environment variable if self-hosted. If a custom domain is needed in your Saleor Cloud environment, then contact Saleor support.
+  """
   domain: Domain!
 
   """List of the shops's supported languages."""
