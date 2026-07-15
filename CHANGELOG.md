@@ -20,6 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
   #### For self-hosting
 
   The `OBSERVABILITY_BROKER_URL`, `OBSERVABILITY_ACTIVE`, `OBSERVABILITY_REPORT_ALL_API_CALLS`, `OBSERVABILITY_MAX_PAYLOAD_SIZE`, `OBSERVABILITY_BUFFER_SIZE_LIMIT`, `OBSERVABILITY_BUFFER_BATCH_SIZE`, `OBSERVABILITY_REPORT_PERIOD`, and `OBSERVABILITY_BUFFER_TIMEOUT` environment variables are no longer used and can be removed from your deployment. The dedicated `observability` Celery queue and its beat-scheduled reporter task have also been removed; any worker configured to consume the `observability` queue can be decommissioned.
+- Removed the deprecated `shopDomainUpdate` mutation. Use the `PUBLIC_URL` environment variable to configure the shop domain instead.
 - Removed the deprecated `orderSettingsUpdate` mutation. Use the `channelUpdate` mutation with the `orderSettings` input to update order settings per channel instead.
 - Removed the deprecated `orderSettings` query field. Use the `channel` query and read its `orderSettings` field instead.
 
