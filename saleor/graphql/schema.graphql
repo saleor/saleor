@@ -14900,7 +14900,9 @@ type Shop implements ObjectWithMetadata {
   """Shop's description."""
   description: String
 
-  """Shop's domain data."""
+  """
+  Shop's domain data. Can be customized using the `PUBLIC_URL` environment variable if self-hosted. If a custom domain is needed in your Saleor Cloud environment, then contact Saleor support.
+  """
   domain: Domain!
 
   """List of the shops's supported languages."""
@@ -17659,16 +17661,6 @@ type Mutation {
     """ID of a staff notification recipient to delete."""
     id: ID!
   ): StaffNotificationRecipientDelete @doc(category: "Users")
-
-  """
-  Updates site domain of the shop. 
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  shopDomainUpdate(
-    """Fields required to update site."""
-    input: SiteDomainInput
-  ): ShopDomainUpdate @doc(category: "Shop") @deprecated(reason: "Use `PUBLIC_URL` environment variable instead.")
 
   """
   Updates shop settings. 
@@ -22989,26 +22981,6 @@ type StaffNotificationRecipientDelete @doc(category: "Users") {
   shopErrors: [ShopError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
-}
-
-"""
-Updates site domain of the shop. 
-
-Requires one of the following permissions: MANAGE_SETTINGS.
-"""
-type ShopDomainUpdate @doc(category: "Shop") {
-  """Updated shop."""
-  shop: Shop
-  shopErrors: [ShopError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ShopError!]!
-}
-
-input SiteDomainInput {
-  """Domain name for shop."""
-  domain: String
-
-  """Shop site name."""
-  name: String
 }
 
 """

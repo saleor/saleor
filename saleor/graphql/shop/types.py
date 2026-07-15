@@ -303,7 +303,15 @@ class Shop(graphene.ObjectType):
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     description = graphene.String(description="Shop's description.")
-    domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
+    domain = graphene.Field(
+        Domain,
+        required=True,
+        description=(
+            "Shop's domain data. Can be customized using the `PUBLIC_URL` "
+            "environment variable if self-hosted. If a custom domain is needed "
+            "in your Saleor Cloud environment, then contact Saleor support."
+        ),
+    )
     languages = NonNullList(
         LanguageDisplay,
         description="List of the shops's supported languages.",
