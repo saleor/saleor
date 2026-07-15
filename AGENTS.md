@@ -246,6 +246,25 @@ Build the index `CONCURRENTLY` instead so it does not block concurrent traffic.
 
 # Code style
 
+## Correctness (Django): use `pk` instead of `id`
+
+Don't use the `id` DB field in Django models, instead use `pk` when referencing the object ID
+field from a model.
+
+Don't:
+
+```py
+book = Book.objects.get(id=1)
+id = book.id
+```
+
+Do:
+
+```py
+book = Book.objects.get(pk=1)
+id = book.pk
+```
+
 ## Prefer docstrings over comments
 
 When describing behavior prefer to use docstring over a comment:
@@ -265,3 +284,28 @@ Do:
 def foo():
   """Doc string"""
 ```
+
+# Performance
+
+- Avoid unnecessarely broad `Model.save()` calls and unnecessarely broad `Model.refresh_from_db()`.
+  Instead, use tuples that select specific DB fields, e.g.,
+  `invoice.refresh_from_db(fields=("id",))`, or `invoice.save(update_fields=("number",))`
+- Avoid iterating over the same objects multiple times (meaning multiple O(N) operations)
+
+  Don't:
+
+  ```py
+  assigned_ids = [giftcard.pk for giftcards in assigned_cards]
+  deactivated_ids = [giftcard.pk for giftcards in assigned_cards if giftcard.active]
+  ```
+
+  Do:
+
+  ```py
+  assigned_ids = []
+  deactivated_ids = []
+  for giftcard in giftcards:
+      assigned_ids.append(giftcard.pk)
+      if giftcard.active is True:
+          deactivated_ids.append(giftcard.pk)
+  ```
