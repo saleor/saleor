@@ -57,6 +57,8 @@ from ..core.descriptions import (
     ADDED_IN_322,
     ADDED_IN_323,
     DEPRECATED_IN_3X_EVENT,
+    DEPRECATED_LEGACY_PAYMENTS,
+    DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -2590,6 +2592,7 @@ class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
         description="Look up a payment.",
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
 
     @staticmethod
@@ -2603,7 +2606,7 @@ class PaymentAuthorize(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Authorize payment."
+        description = "Authorize payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2612,7 +2615,7 @@ class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Capture payment."
+        description = "Capture payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2621,7 +2624,7 @@ class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Refund payment."
+        description = "Refund payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2630,7 +2633,7 @@ class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Void payment."
+        description = "Void payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2639,7 +2642,7 @@ class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Confirm payment."
+        description = "Confirm payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2648,7 +2651,7 @@ class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Process payment."
+        description = "Process payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2657,7 +2660,9 @@ class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "List payment gateways."
+        description = (
+            "List payment gateways." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_PAYMENTS
 
 

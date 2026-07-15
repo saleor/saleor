@@ -35,7 +35,12 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_319, ADDED_IN_322, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_319,
+    ADDED_IN_322,
+    DEPRECATED_LEGACY_PAYMENTS,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -444,6 +449,7 @@ class User(ModelObjectType[models.User]):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True

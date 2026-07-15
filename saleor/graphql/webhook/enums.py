@@ -4,6 +4,7 @@ from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
     ADDED_IN_318,
     DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ..core.types import BaseEnum
@@ -289,6 +290,8 @@ def deprecation_reason(enum):
         )
     if enum.value == WebhookEventAsyncType.ANY:
         return DEFAULT_DEPRECATION_REASON
+    if enum.value in WebhookEventSyncType.PAYMENT_EVENTS:
+        return DEPRECATED_LEGACY_PAYMENTS
     return None
 
 
