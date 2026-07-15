@@ -206,30 +206,6 @@ query OrdersQuery {
                         amount
                     }
                 }
-                availableShippingMethods {
-                    id
-                    name
-                    description
-                    price{
-                      amount
-                    }
-                    minimumOrderPrice {
-                      amount
-                    }
-                    maximumOrderPrice{
-                      amount
-                    }
-                    maximumDeliveryDays
-                    minimumDeliveryDays
-                    metadata{
-                      key
-                      value
-                    }
-                    privateMetadata{
-                      key
-                      value
-                    }
-                }
                 shippingMethods{
                   id
                   name
@@ -437,12 +413,12 @@ def test_order_query(
         lines_qs=order.lines.all(), channel_id=order.channel.id
     )
 
-    assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["shippingMethods"]) == (expected_methods.count())
     assert len(order_data["availableCollectionPoints"]) == (
         expected_collection_points.count()
     )
 
-    method = order_data["availableShippingMethods"][0]
+    method = order_data["shippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
@@ -1438,9 +1414,9 @@ def test_order_query_in_pln_channel(
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
     )
-    assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["shippingMethods"]) == (expected_methods.count())
 
-    method = order_data["availableShippingMethods"][0]
+    method = order_data["shippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id

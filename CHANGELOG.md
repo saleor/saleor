@@ -39,6 +39,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.
 - Scalars `Minute`, `Hour` and `Day` now inherit from `NonNegativeInt`, which mean GraphQL disallows negative values for time units.
 - Removed `partial` field from the `Payment` GraphQL type.
+- Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
+- Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.
+- Removed the deprecated `note` field from the `Checkout` type. Use `customerNote` instead.
 - Added sorting and filtering support for `transactions` query:
   - sort by `CREATED_AT`, `MODIFIED_AT`;
   - filter by `createdAt`, `modifiedAt` date ranges and by transaction events (`type`, `createdAt`).

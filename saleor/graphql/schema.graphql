@@ -3637,9 +3637,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   customerNote: String!
 
-  """The note for the checkout."""
-  note: String! @deprecated(reason: "Use `customerNote` instead.")
-
   """
   The total discount applied to the checkout. Note: Only discount created via voucher are included in this field.
   """
@@ -6928,15 +6925,6 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
     """ID of a product image."""
     id: ID!
   ): ProductImage @deprecated(reason: "Use the `mediaById` field instead.")
-
-  """Get a single variant by SKU or ID."""
-  variant(
-    """ID of the variant."""
-    id: ID
-
-    """SKU of the variant."""
-    sku: String
-  ): ProductVariant @deprecated(reason: "Use top-level `variant` query.")
 
   """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -11865,9 +11853,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   List of actions that can be performed in the current state of an order.
   """
   actions: [OrderAction!]!
-
-  """Shipping methods that can be used with this order."""
-  availableShippingMethods: [ShippingMethod!] @deprecated(reason: "Use `shippingMethods`, this field will be removed in 4.0")
 
   """Shipping methods related to this order."""
   shippingMethods: [ShippingMethod!]!
