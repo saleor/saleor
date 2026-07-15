@@ -23,6 +23,7 @@ from ..core.descriptions import (
     ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import (
     DOC_CATEGORY_AUTH,
@@ -241,6 +242,7 @@ class Shop(graphene.ObjectType):
         ),
         description="List of available payment gateways.",
         required=True,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     available_external_authentications = NonNullList(
         ExternalAuthentication,
