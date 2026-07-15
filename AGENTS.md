@@ -246,7 +246,7 @@ Build the index `CONCURRENTLY` instead so it does not block concurrent traffic.
 
 # Code style
 
-## Correctness: Django use `pk` instead of `id`
+## Correctness (Django): use `pk` instead of `id`
 
 Don't use the `id` DB field in Django models, instead use `pk` when referencing the object ID
 field from a model.
