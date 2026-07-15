@@ -481,25 +481,22 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         # Gift card code can be fetched by the staff user and app with manage gift
         # card permission and by the card owner (the customer who used it or the
         # customer it is assigned to).
-        def _resolve_code(owner_ids):
-            requestor = get_user_or_app_from_context(info.context)
-            if requestor:
-                requestor_is_owner = requestor.id in owner_ids
-                if requestor_is_owner or requestor.has_perm(
-                    GiftcardPermissions.MANAGE_GIFT_CARD
-                ):
-                    return root.code
-            return PermissionDenied(
-                permissions=[
-                    AuthorizationFilters.OWNER,
-                    GiftcardPermissions.MANAGE_GIFT_CARD,
-                ]
-            )
-
         owner_ids = {
             uid for uid in (root.used_by_id, root.assigned_to_id) if uid is not None
         }
-        return _resolve_code(owner_ids)
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor:
+            requestor_is_owner = requestor.pk in owner_ids
+            if requestor_is_owner or requestor.has_perm(
+                GiftcardPermissions.MANAGE_GIFT_CARD
+            ):
+                return root.code
+        return PermissionDenied(
+            permissions=[
+                AuthorizationFilters.OWNER,
+                GiftcardPermissions.MANAGE_GIFT_CARD,
+            ]
+        )
 
     @staticmethod
     def resolve_created_by(root: models.GiftCard, info):

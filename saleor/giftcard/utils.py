@@ -161,17 +161,23 @@ def deactivate_assigned_gift_cards(users) -> None:
 
     ``users`` may be any iterable or queryset of users.
     """
-    assigned = GiftCard.objects.filter(assigned_to__in=users)
-    # Snapshot the currently-active cards so the deactivation events match exactly
-    # the cards we deactivate.
-    deactivated_ids = list(assigned.filter(is_active=True).values_list("id", flat=True))
-    # Deactivate only the snapshotted cards; a blanket ``update(is_active=False)`` on
-    # ``assigned`` could deactivate a card concurrently assigned/activated after the
-    # snapshot without emitting an event for it.
-    GiftCard.objects.filter(pk__in=deactivated_ids).update(is_active=False)
-    # Detach the FK on every referencing card (including already-inactive ones), or
-    # ``on_delete=PROTECT`` would still block the deletion.
-    assigned.update(assigned_to=None)
+    # Lock and snapshot every assigned card, including inactive ones. Restricting the
+    # snapshot to active cards would allow a concurrent activation to leave a card
+    # detached but active.
+    assigned_cards = list(
+        gift_card_qs_select_for_update()
+        .filter(assigned_to__in=users)
+        .values_list("pk", "is_active")
+    )
+    assigned_ids = [gift_card_id for gift_card_id, _is_active in assigned_cards]
+    deactivated_ids = [
+        gift_card_id for gift_card_id, is_active in assigned_cards if is_active
+    ]
+    # Clear the protected FK and unconditionally deactivate the exact locked set in
+    # one update. Already-inactive cards do not receive a duplicate event.
+    GiftCard.objects.filter(pk__in=assigned_ids).update(
+        assigned_to=None, is_active=False
+    )
     if deactivated_ids:
         events.gift_cards_deactivated_event(deactivated_ids, user=None, app=None)
 

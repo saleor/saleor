@@ -1,6 +1,7 @@
 import graphene
 import pytest
 
+from .....core.anonymize import obfuscate_email
 from ....tests.utils import get_graphql_content
 
 QUERY_GIFT_CARDS = """
@@ -154,6 +155,33 @@ def test_me_gift_cards_assigned_field_visible_to_owner(
     edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
     node = next(e["node"] for e in edges if e["node"]["id"] == gift_card_id)
     assert extract(node) == customer_user.email
+
+
+def test_me_gift_cards_assigned_to_email_requires_manage_gift_card_for_non_owner(
+    user_api_client, gift_card, customer_user, customer_user2
+):
+    # given the requester can reach the card as its last user but is not its assignee
+    gift_card.used_by = customer_user
+    gift_card.used_by_email = customer_user.email
+    gift_card.assigned_to = customer_user2
+    gift_card.assigned_to_email = customer_user2.email
+    gift_card.save(
+        update_fields=[
+            "used_by",
+            "used_by_email",
+            "assigned_to",
+            "assigned_to_email",
+        ]
+    )
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+
+    # when the requester queries without MANAGE_GIFT_CARD permission
+    response = user_api_client.post_graphql(ME_ASSIGNED_FIELD % "assignedToEmail", {})
+
+    # then the assignee's email is obfuscated
+    edges = get_graphql_content(response)["data"]["me"]["giftCards"]["edges"]
+    node = next(e["node"] for e in edges if e["node"]["id"] == gift_card_id)
+    assert node["assignedToEmail"] == obfuscate_email(customer_user2.email)
 
 
 CODE_QUERY = """

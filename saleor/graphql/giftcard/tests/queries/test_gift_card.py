@@ -947,7 +947,9 @@ def test_assigned_to_requires_manage_users(
     content = get_graphql_content(response, ignore_errors=True)
     data = content["data"]["giftCard"]
     assert data["assignedTo"] is None
-    assert data["assignedToEmail"] == customer_user.email
+    assert data["assignedToEmail"] == customer_user.email, (
+        "should be visible when the user has MANAGE_GIFT_CARD permission"
+    )
     errors = content["errors"]
     assert len(errors) == 1
     assert AccountPermissions.MANAGE_USERS.name in errors[0]["message"]

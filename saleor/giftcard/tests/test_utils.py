@@ -6,11 +6,11 @@ import graphene
 import pytest
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from django.utils import timezone
 from freezegun import freeze_time
 
 from ...checkout.error_codes import CheckoutErrorCode
-from ...checkout.models import Checkout
 from ...core import TimePeriodType
 from ...core.exceptions import GiftCardNotApplicable
 from ...core.utils.json_serializer import CustomJsonEncoder
@@ -913,20 +913,19 @@ def test_assign_bumps_last_change_of_detached_checkout(
     gift_card, customer_user, checkout
 ):
     # given
-    stale_last_change = timezone.now() - datetime.timedelta(days=1)
     checkout.gift_cards.add(gift_card)
-    # last_change uses auto_now, so set the stale value directly in the DB
-    # (QuerySet.update bypasses auto_now).
-    Checkout.objects.filter(pk=checkout.pk).update(last_change=stale_last_change)
     checkout.refresh_from_db()
-    assert checkout.last_change == stale_last_change
+    last_change_before_assignment = checkout.last_change
+    assignment_time = last_change_before_assignment + datetime.timedelta(days=1)
+    assert last_change_before_assignment < assignment_time
 
     # when
-    assign_gift_card_to_user(gift_card, customer_user)
+    with freeze_time(assignment_time):
+        assign_gift_card_to_user(gift_card, customer_user)
 
     # then
     checkout.refresh_from_db()
-    assert checkout.last_change > stale_last_change
+    assert checkout.last_change == assignment_time
 
 
 def test_assign_blocked_when_checkout_has_transaction(
@@ -1005,6 +1004,41 @@ def test_deactivate_assigned_gift_cards_no_event_for_already_inactive(
     assert not GiftCardEvent.objects.filter(
         gift_card=gift_card, type=GiftCardEvents.DEACTIVATED
     ).exists()
+
+
+def test_deactivate_assigned_gift_cards_deactivates_card_activated_before_detach(
+    gift_card, customer_user
+):
+    # given an inactive card restricted to the customer
+    assigned_email = customer_user.email
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = assigned_email
+    gift_card.is_active = False
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "is_active"])
+    original_update = QuerySet.update
+    activation_was_simulated = False
+
+    def activate_before_detach(queryset, **kwargs):
+        nonlocal activation_was_simulated
+        if (
+            not activation_was_simulated
+            and queryset.model is GiftCard
+            and "assigned_to" in kwargs
+        ):
+            activation_was_simulated = True
+            original_update(GiftCard.objects.filter(pk=gift_card.pk), is_active=True)
+        return original_update(queryset, **kwargs)
+
+    # when another writer activates the card immediately before it is detached
+    with patch.object(QuerySet, "update", activate_before_detach):
+        deactivate_assigned_gift_cards([customer_user])
+
+    # then detaching still guarantees that the card is inactive
+    gift_card.refresh_from_db()
+    assert activation_was_simulated is True
+    assert gift_card.assigned_to_id is None
+    assert gift_card.assigned_to_email == assigned_email
+    assert gift_card.is_active is False
 
 
 def test_add_restricted_card_allows_matching_user(
