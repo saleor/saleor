@@ -677,6 +677,7 @@ def test_create_gift_card_trigger_webhook(
         permissions=[permission_manage_gift_card, permission_manage_users],
     )
     gift_card = GiftCard.objects.last()
+    assert gift_card is not None
 
     # then
     content = get_graphql_content(response)
@@ -751,6 +752,7 @@ def test_create_gift_card_with_email_triggers_gift_card_sent_webhook(
         permissions=[permission_manage_gift_card, permission_manage_users],
     )
     gift_card = GiftCard.objects.last()
+    assert gift_card is not None
 
     # then
     content = get_graphql_content(response)

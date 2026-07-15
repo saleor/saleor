@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 def add_gift_card_code_to_checkout(
-    checkout: Checkout, email: str, promo_code: str, currency: str
+    checkout: Checkout, email: str | None, promo_code: str, currency: str
 ):
     """Add gift card data to checkout by code.
 
