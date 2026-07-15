@@ -15,7 +15,7 @@ def remove_manage_observability_permission(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("app", "0039_remove_manage_apps_permission"),
+        ("app", "0041_merge_20260714_1040"),
     ]
 
     operations = [
