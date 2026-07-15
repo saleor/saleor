@@ -1658,12 +1658,6 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         ),
         required=True,
     )
-    available_shipping_methods = NonNullList(
-        ShippingMethod,
-        description="Shipping methods that can be used with this order.",
-        required=False,
-        deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
-    )
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods related to this order.",
@@ -2755,16 +2749,6 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     ):
         return OrderShippingMethodsByOrderIdAndWebhookSyncLoader(info.context).load(
             (root.node.id, root.allow_sync_webhooks)
-        )
-
-    @classmethod
-    @traced_resolver
-    @prevent_sync_event_circular_query
-    def resolve_available_shipping_methods(
-        cls, root: SyncWebhookControlContext[models.Order], info
-    ):
-        return cls.resolve_shipping_methods(root, info).then(
-            lambda methods: [method for method in methods if method.active]
         )
 
     @classmethod

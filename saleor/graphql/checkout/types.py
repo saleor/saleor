@@ -606,11 +606,6 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     customer_note = graphene.String(
         required=True, description="The customer note for the checkout. "
     )
-    note = graphene.String(
-        required=True,
-        description="The note for the checkout.",
-        deprecation_reason="Use `customerNote` instead.",
-    )
     discount = graphene.Field(
         Money,
         description=(
