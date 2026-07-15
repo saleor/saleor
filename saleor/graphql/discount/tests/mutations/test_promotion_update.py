@@ -209,6 +209,114 @@ def test_promotion_update_dates_dont_change(
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_ended")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
+def test_promotion_update_end_date_in_past_sends_ended_webhook(
+    promotion_updated_mock,
+    promotion_ended_mock,
+    promotion_started_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    catalogue_promotion,
+):
+    # given
+    promotion = catalogue_promotion
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion.start_date = timezone.now() - datetime.timedelta(days=5)
+    promotion.end_date = timezone.now() + datetime.timedelta(days=5)
+    promotion.last_notification_scheduled_at = None
+    promotion.save(
+        update_fields=["start_date", "end_date", "last_notification_scheduled_at"]
+    )
+
+    end_date = timezone.now() - datetime.timedelta(days=1)
+    variables = {
+        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "input": {
+            "endDate": end_date.isoformat(),
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionUpdate"]
+    promotion_data = data["promotion"]
+
+    assert not data["errors"]
+    assert promotion_data["endDate"] == end_date.isoformat()
+    event_types = [event["type"] for event in promotion_data["events"]]
+    assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_ENDED.upper() in event_types
+    assert PromotionEvents.PROMOTION_STARTED.upper() not in event_types
+
+    promotion.refresh_from_db()
+    assert promotion.last_notification_scheduled_at == timezone.now()
+
+    promotion_updated_mock.assert_called_once_with(promotion)
+    promotion_ended_mock.assert_called_once_with(promotion)
+    promotion_started_mock.assert_not_called()
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
+@patch("saleor.plugins.manager.PluginsManager.promotion_ended")
+@patch("saleor.plugins.manager.PluginsManager.promotion_updated")
+def test_promotion_update_start_date_in_past_notification_already_sent(
+    promotion_updated_mock,
+    promotion_ended_mock,
+    promotion_started_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    catalogue_promotion,
+):
+    """Do not re-send the toggle webhook when the start date was already notified."""
+    # given
+    promotion = catalogue_promotion
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() - datetime.timedelta(days=2)
+    promotion.start_date = start_date
+    promotion.end_date = None
+    promotion.last_notification_scheduled_at = timezone.now() - datetime.timedelta(
+        days=1
+    )
+    promotion.save(
+        update_fields=["start_date", "end_date", "last_notification_scheduled_at"]
+    )
+    previous_notification_date = promotion.last_notification_scheduled_at
+
+    variables = {
+        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "input": {
+            "startDate": start_date.isoformat(),
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionUpdate"]
+
+    assert not data["errors"]
+    event_types = [event["type"] for event in data["promotion"]["events"]]
+    assert PromotionEvents.PROMOTION_UPDATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_STARTED.upper() not in event_types
+    assert PromotionEvents.PROMOTION_ENDED.upper() not in event_types
+
+    promotion.refresh_from_db()
+    assert promotion.last_notification_scheduled_at == previous_notification_date
+
+    promotion_updated_mock.assert_called_once_with(promotion)
+    promotion_started_mock.assert_not_called()
+    promotion_ended_mock.assert_not_called()
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
+@patch("saleor.plugins.manager.PluginsManager.promotion_ended")
+@patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_by_customer(
     promotion_updated_mock,
     promotion_started_mock,
