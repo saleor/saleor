@@ -52,6 +52,20 @@ database/cache or collide with another worktree's stack.
 - When testing graphQL cases with expected errors ALWAYS assert expected length of errors list
 - When setting up test data, extract values into variables and reuse them in assertions. Do not repeat literal values between setup and assertion — use the variable instead.
 - When comparing JSON payloads in tests, use `json.loads()` to compare dicts instead of comparing serialized strings with `json.dumps()`. String comparison breaks when key order changes.
+- When a test expects exactly one row, use `Model.objects.get()` instead of `.first()` followed by an `is not None` assertion. `get()` both fetches the object and asserts that exactly one exists, so drop the separate not-None check.
+- For presence/absence checks prefer `qs.exists()` over `qs.count() == 0` / `!= 0`. `exists()` is cheaper than a `COUNT`. Example: `assert checkout.lines.exists() is False`.
+- Use `@pytest.mark.parametrize` for variations of the same scenario instead of copy/pasting near-identical test bodies. Label each case with a leading `_case` string parameter rather than the `ids=` argument — it keeps the description next to the data and is easier to read and edit:
+  ```python
+  @pytest.mark.parametrize(
+      ("_case", "value"),
+      [
+          ("omitted", {}),
+          ("empty_list", {"lines": []}),
+      ],
+  )
+  def test_something(_case, value): ...
+  ```
+- When a mutation input is optional/nullable, test the explicit `null` value in addition to omitting the field — they are distinct inputs and can be handled differently.
 
 
 # Webhooks and Events
