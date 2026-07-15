@@ -3291,6 +3291,20 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Returns checkouts assigned to this user. The query will not initiate any external requests, including fetching external shipping methods, filtering available shipping methods, or performing external tax calculations.
   """
   checkouts(
+    """
+    Sort checkouts.
+    
+    Added in Saleor 3.24.
+    """
+    sortBy: CheckoutSortingInput
+
+    """
+    Filtering options for checkouts.
+    
+    Added in Saleor 3.24.
+    """
+    filter: CheckoutFilterInput
+
     """Slug of a channel for which the data should be returned."""
     channel: String
 
@@ -13484,6 +13498,41 @@ type CheckoutCountableEdge @doc(category: "Checkout") {
   cursor: String!
 }
 
+input CheckoutSortingInput @doc(category: "Checkout") {
+  """Specifies the direction in which to sort checkouts."""
+  direction: OrderDirection!
+
+  """Sort checkouts by the selected field."""
+  field: CheckoutSortField!
+}
+
+enum CheckoutSortField @doc(category: "Checkout") {
+  """Sort checkouts by creation date."""
+  CREATION_DATE
+
+  """Sort checkouts by customer."""
+  CUSTOMER
+
+  """Sort checkouts by payment."""
+  PAYMENT
+
+  """
+  Sort checkouts by rank. Note: This option is available only with the `search` filter.
+  """
+  RANK
+}
+
+input CheckoutFilterInput @doc(category: "Checkout") {
+  customer: String
+  created: DateRangeInput
+  search: String
+  metadata: [MetadataFilter!]
+  channels: [ID!]
+  updatedAt: DateRangeInput
+  authorizeStatus: [CheckoutAuthorizeStatusEnum!]
+  chargeStatus: [CheckoutChargeStatusEnum!]
+}
+
 type GiftCardCountableConnection @doc(category: "Gift cards") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -16945,41 +16994,6 @@ enum ExportFileSortField {
   CREATED_AT
   UPDATED_AT @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
   LAST_MODIFIED_AT
-}
-
-input CheckoutSortingInput @doc(category: "Checkout") {
-  """Specifies the direction in which to sort checkouts."""
-  direction: OrderDirection!
-
-  """Sort checkouts by the selected field."""
-  field: CheckoutSortField!
-}
-
-enum CheckoutSortField @doc(category: "Checkout") {
-  """Sort checkouts by creation date."""
-  CREATION_DATE
-
-  """Sort checkouts by customer."""
-  CUSTOMER
-
-  """Sort checkouts by payment."""
-  PAYMENT
-
-  """
-  Sort checkouts by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
-}
-
-input CheckoutFilterInput @doc(category: "Checkout") {
-  customer: String
-  created: DateRangeInput
-  search: String
-  metadata: [MetadataFilter!]
-  channels: [ID!]
-  updatedAt: DateRangeInput
-  authorizeStatus: [CheckoutAuthorizeStatusEnum!]
-  chargeStatus: [CheckoutChargeStatusEnum!]
 }
 
 type CheckoutLineCountableConnection @doc(category: "Checkout") {
