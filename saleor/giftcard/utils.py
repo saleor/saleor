@@ -130,12 +130,10 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
 
         # Detach clean checkouts in bulk (same invalidation that
         # checkoutRemovePromoCode performs). Batched to keep the row lock short.
-        checkout_tokens = list(attached_checkouts.values_list("pk", flat=True))
-        if checkout_tokens:
+        # Invalidate before clearing because the relation-backed queryset no longer
+        # matches any checkouts after ``clear()``.
+        if attached_checkouts.update(last_change=timezone.now()):
             locked.checkouts.clear()
-            Checkout.objects.filter(pk__in=checkout_tokens).update(
-                last_change=timezone.now()
-            )
 
         locked.assigned_to = user
         locked.assigned_to_email = user.email
@@ -169,10 +167,12 @@ def deactivate_assigned_gift_cards(users) -> None:
         .filter(assigned_to__in=users)
         .values_list("pk", "is_active")
     )
-    assigned_ids = [gift_card_id for gift_card_id, _is_active in assigned_cards]
-    deactivated_ids = [
-        gift_card_id for gift_card_id, is_active in assigned_cards if is_active
-    ]
+    assigned_ids = []
+    deactivated_ids = []
+    for gift_card_id, is_active in assigned_cards:
+        assigned_ids.append(gift_card_id)
+        if is_active:
+            deactivated_ids.append(gift_card_id)
     # Clear the protected FK and unconditionally deactivate the exact locked set in
     # one update. Already-inactive cards do not receive a duplicate event.
     GiftCard.objects.filter(pk__in=assigned_ids).update(
