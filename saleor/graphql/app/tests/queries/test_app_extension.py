@@ -626,6 +626,64 @@ def test_app_extension_type_settings_from_http_target_method(
         assert extension_data["settings"]["widgetTarget"]["method"] == method
 
 
+QUERY_APP_EXTENSION_IDENTIFIER = """
+query ($id: ID!){
+    appExtension(id: $id){
+        id
+        identifier
+    }
+}
+"""
+
+
+def test_app_extension_identifier_returned(app, staff_api_client):
+    # given
+    identifier = "refund-button"
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+        identifier=identifier,
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION_IDENTIFIER,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+    assert extension_data["identifier"] == identifier
+
+
+def test_app_extension_identifier_null_when_not_set(app, staff_api_client):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION_IDENTIFIER,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+    assert extension_data["identifier"] is None
+
+
 def test_app_extension_type_settings_from_native_settings(
     app,
     staff_api_client,

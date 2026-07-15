@@ -248,13 +248,6 @@ type Query {
   shop: Shop!
 
   """
-  Order related settings from site settings. Returns `orderSettings` for the first `channel` in alphabetical order.
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
-  orderSettings: OrderSettings @doc(category: "Orders") @deprecated(reason: "Use the `channel` query to fetch the `orderSettings` field instead.")
-
-  """
   Gift card related settings from site settings.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
@@ -3097,6 +3090,13 @@ type AppExtension implements Node @doc(category: "Apps") {
   Added in Saleor 3.22.
   """
   settings: JSON!
+
+  """
+  Extension identifier, unique per app. Null when the app does not declare one.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
 
   """The app assigned to app extension."""
   app: App!
@@ -17706,16 +17706,6 @@ type Mutation {
   ): ShopAddressUpdate @doc(category: "Shop")
 
   """
-  Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
-  orderSettingsUpdate(
-    """Fields required to update shop order settings."""
-    input: OrderSettingsUpdateInput!
-  ): OrderSettingsUpdate @doc(category: "Orders") @deprecated(reason: "Use `channelUpdate` mutation instead.")
-
-  """
   Update gift card settings. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
@@ -23198,47 +23188,6 @@ type ShopAddressUpdate @doc(category: "Shop") {
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ShopError!]!
-}
-
-"""
-Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
-
-Requires one of the following permissions: MANAGE_ORDERS.
-"""
-type OrderSettingsUpdate @doc(category: "Orders") {
-  """Order settings."""
-  orderSettings: OrderSettings
-  orderSettingsErrors: [OrderSettingsError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [OrderSettingsError!]!
-}
-
-type OrderSettingsError @doc(category: "Orders") {
-  """
-  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
-  """
-  field: String
-
-  """The error message."""
-  message: String
-
-  """The error code."""
-  code: OrderSettingsErrorCode!
-}
-
-enum OrderSettingsErrorCode @doc(category: "Orders") {
-  INVALID
-}
-
-input OrderSettingsUpdateInput @doc(category: "Orders") {
-  """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
-  """
-  automaticallyConfirmAllNewOrders: Boolean
-
-  """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically. By default set to True.
-  """
-  automaticallyFulfillNonShippableGiftCard: Boolean
 }
 
 """
@@ -30620,9 +30569,9 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   channel: String
 
   """
-  A list of checkout lines, each containing information about an item in the checkout.
+  A list of checkout lines, each containing information about an item in the checkout. When omitted, a checkout with no lines is created.
   """
-  lines: [CheckoutLineInput!]!
+  lines: [CheckoutLineInput!]
 
   """The customer's email address."""
   email: String
@@ -32099,6 +32048,7 @@ enum AppErrorCode @doc(category: "Apps") {
   INVALID_URL_FORMAT
   INVALID_MANIFEST_FORMAT
   INVALID_CUSTOM_HEADERS
+  DUPLICATED_EXTENSION_IDENTIFIER
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
@@ -32340,6 +32290,13 @@ type AppManifestExtension @doc(category: "Apps") {
   Added in Saleor 3.22.
   """
   settings: JSON!
+
+  """
+  Extension identifier, unique per app. Null when the app does not declare one.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
 }
 
 type AppManifestWebhook @doc(category: "Apps") {

@@ -168,6 +168,19 @@ class AppExtension(models.Model):
         choices=DeprecatedAppExtensionHttpMethod.CHOICES,
     )
     settings = models.JSONField(blank=True, default=dict, db_default={})
+    identifier = models.CharField(max_length=256, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["app", "identifier"],
+                name="unique_app_extension_identifier",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(identifier=""),
+                name="app_extension_identifier_not_blank",
+            ),
+        ]
 
 
 class AppProblem(models.Model):
