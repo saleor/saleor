@@ -6,6 +6,7 @@ import graphene
 import pytest
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -23,9 +24,12 @@ from ...webhook.payloads import generate_meta, generate_requestor
 from .. import GiftCardEvents, GiftCardLineData, events
 from ..models import GiftCard, GiftCardEvent
 from ..utils import (
+    GiftCardCannotAssign,
     add_gift_card_code_to_checkout,
+    assign_gift_card_to_user,
     assign_user_gift_cards,
     calculate_expiry_date,
+    deactivate_assigned_gift_cards,
     deactivate_order_gift_cards,
     fulfill_gift_card_lines,
     fulfill_non_shippable_gift_cards,
@@ -863,3 +867,298 @@ def test_is_gift_card_expired_false(expiry_date, gift_card):
 
     # then
     assert result is False
+
+
+def test_assign_sets_user_and_email(gift_card, customer_user):
+    # given
+    assert gift_card.assigned_to is None
+    assert gift_card.assigned_to_email is None
+
+    # when
+    assign_gift_card_to_user(gift_card, customer_user)
+
+    # then
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to == customer_user
+    assert gift_card.assigned_to_email == customer_user.email
+
+
+def test_assign_blocked_when_used_in_order(gift_card, customer_user):
+    # given
+    gift_card.last_used_on = timezone.now()
+    gift_card.save(update_fields=["last_used_on"])
+
+    # when / then
+    with pytest.raises(GiftCardCannotAssign):
+        assign_gift_card_to_user(gift_card, customer_user)
+
+
+def test_assign_detaches_clean_checkout(gift_card, customer_user, checkout):
+    # given
+    assert gift_card.assigned_to is None
+    checkout_qs = checkout.gift_cards.filter(pk=gift_card.pk)
+    checkout.gift_cards.add(gift_card)
+    assert checkout_qs.exists() is True
+
+    # when
+    assign_gift_card_to_user(gift_card, customer_user)
+
+    # then
+    assert checkout_qs.exists() is False
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to == customer_user
+
+
+def test_assign_bumps_last_change_of_detached_checkout(
+    gift_card, customer_user, checkout
+):
+    # given
+    checkout.gift_cards.add(gift_card)
+    checkout.refresh_from_db()
+    last_change_before_assignment = checkout.last_change
+    assignment_time = last_change_before_assignment + datetime.timedelta(days=1)
+    assert last_change_before_assignment < assignment_time
+
+    # when
+    with freeze_time(assignment_time):
+        assign_gift_card_to_user(gift_card, customer_user)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.last_change == assignment_time
+
+
+def test_assign_blocked_when_checkout_has_transaction(
+    gift_card, customer_user, checkout, transaction_item_generator
+):
+    # given
+    checkout.gift_cards.add(gift_card)
+    transaction_item_generator(checkout_id=checkout.pk)
+
+    # when / then
+    with pytest.raises(GiftCardCannotAssign):
+        assign_gift_card_to_user(gift_card, customer_user)
+    assert checkout.gift_cards.filter(pk=gift_card.pk).exists()
+
+
+def test_deactivate_assigned_gift_cards_detaches_and_deactivates(
+    gift_card, customer_user
+):
+    # given an active card restricted to the customer
+    assigned_email = customer_user.email
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = assigned_email
+    gift_card.is_active = True
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "is_active"])
+
+    # when
+    deactivate_assigned_gift_cards([customer_user])
+
+    # then the FK is nulled and the card deactivated, but the email is kept
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to_id is None
+    assert gift_card.is_active is False
+    assert gift_card.assigned_to_email == assigned_email
+    assert GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.DEACTIVATED
+    ).exists()
+
+
+def test_deactivate_assigned_gift_cards_ignores_other_users(
+    gift_card, customer_user, staff_user
+):
+    # given a card assigned to a different user than the one being removed
+    gift_card.assigned_to = staff_user
+    gift_card.assigned_to_email = staff_user.email
+    gift_card.is_active = True
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "is_active"])
+
+    # when
+    deactivate_assigned_gift_cards([customer_user])
+
+    # then the untouched card stays active and assigned
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to == staff_user
+    assert gift_card.is_active is True
+    assert not GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.DEACTIVATED
+    ).exists()
+
+
+def test_deactivate_assigned_gift_cards_no_event_for_already_inactive(
+    gift_card, customer_user
+):
+    # given an already inactive card restricted to the customer
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.is_active = False
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "is_active"])
+
+    # when
+    deactivate_assigned_gift_cards([customer_user])
+
+    # then the FK is still cleared (so the user can be deleted) but no event fires
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to_id is None
+    assert gift_card.is_active is False
+    assert not GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.DEACTIVATED
+    ).exists()
+
+
+def test_deactivate_assigned_gift_cards_deactivates_card_activated_before_detach(
+    gift_card, customer_user
+):
+    # given an inactive card restricted to the customer
+    assigned_email = customer_user.email
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = assigned_email
+    gift_card.is_active = False
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "is_active"])
+    original_update = QuerySet.update
+    activation_was_simulated = False
+
+    def activate_before_detach(queryset, **kwargs):
+        nonlocal activation_was_simulated
+        if (
+            not activation_was_simulated
+            and queryset.model is GiftCard
+            and "assigned_to" in kwargs
+        ):
+            activation_was_simulated = True
+            original_update(GiftCard.objects.filter(pk=gift_card.pk), is_active=True)
+        return original_update(queryset, **kwargs)
+
+    # when another writer activates the card immediately before it is detached
+    with patch.object(QuerySet, "update", activate_before_detach):
+        deactivate_assigned_gift_cards([customer_user])
+
+    # then detaching still guarantees that the card is inactive
+    gift_card.refresh_from_db()
+    assert activation_was_simulated is True
+    assert gift_card.assigned_to_id is None
+    assert gift_card.assigned_to_email == assigned_email
+    assert gift_card.is_active is False
+
+
+def test_add_restricted_card_allows_matching_user(
+    checkout_with_item, gift_card, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when
+    add_gift_card_code_to_checkout(
+        checkout, customer_user.email, gift_card.code, checkout.currency
+    )
+
+    # then
+    assert checkout.gift_cards.filter(pk=gift_card.pk).exists()
+
+
+def test_add_restricted_card_rejects_other_user(
+    checkout_with_item, gift_card, customer_user, staff_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = staff_user
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, staff_user.email, gift_card.code, checkout.currency
+        )
+
+
+def test_add_restricted_card_rejects_guest(
+    checkout_with_item, gift_card, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, "guest@example.com", gift_card.code, checkout.currency
+        )
+
+
+def test_add_restricted_card_rejects_guest_with_assignee_email(
+    checkout_with_item, gift_card, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    # A guest whose email matches the assignee still cannot use the card until
+    # authenticated — the restriction is keyed on the user, not the email.
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, customer_user.email, gift_card.code, checkout.currency
+        )
+
+
+def test_add_restricted_card_rejects_when_assignee_deleted(
+    checkout_with_item, gift_card, customer_user
+):
+    # given a card restricted to a now-deleted user: assigned_to was nulled by
+    # SET_NULL while assigned_to_email was retained
+    checkout = checkout_with_item
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = None
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    # Even a logged-in user matching assigned_to_email cannot use it — with no
+    # assignee it can no longer be validated against an owner.
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, customer_user.email, gift_card.code, checkout.currency
+        )
+
+
+def test_add_restricted_card_with_deleted_assignee_rejects_guest(
+    checkout_with_item, gift_card, customer_user
+):
+    # given a guest checkout and a card whose assignee was deleted
+    checkout = checkout_with_item
+    checkout.user = None
+    checkout.save(update_fields=["user"])
+    gift_card.assigned_to = None
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.currency = checkout.currency
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email", "currency"])
+
+    # when / then
+    # Regression: the previous single guard let this through because
+    # `None != checkout.user_id` (None) was False for a guest.
+    with pytest.raises(InvalidPromoCode):
+        add_gift_card_code_to_checkout(
+            checkout, customer_user.email, gift_card.code, checkout.currency
+        )

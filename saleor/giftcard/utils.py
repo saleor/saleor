@@ -1,4 +1,5 @@
 import datetime
+import logging
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Optional
@@ -18,8 +19,10 @@ from ..core.utils.events import call_event
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
 from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
+from ..payment.models import Payment, TransactionItem
 from ..site import GiftCardSettingsExpiryType
 from . import GiftCardEvents, GiftCardLineData, events
+from .lock_objects import gift_card_qs_select_for_update
 from .models import GiftCard, GiftCardEvent
 from .notifications import send_gift_card_notification
 
@@ -31,6 +34,9 @@ if TYPE_CHECKING:
     from ..order.models import Order
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
+
+
+logger = logging.getLogger(__name__)
 
 
 def add_gift_card_code_to_checkout(
@@ -51,6 +57,29 @@ def add_gift_card_code_to_checkout(
     except GiftCard.DoesNotExist as e:
         raise InvalidPromoCode() from e
 
+    if gift_card.assigned_to_email and not gift_card.assigned_to_id:
+        # The card is restricted but its assignee no longer exists (the user was
+        # deleted and assigned_to was nulled). It cannot be validated against an
+        # owner, so it must not be usable by anyone — including a guest whose
+        # email happens to match assigned_to_email.
+        logger.info(
+            "Rejected use of gift card %s restricted to a deleted customer "
+            "in checkout %s.",
+            gift_card.pk,
+            checkout.pk,
+        )
+        raise InvalidPromoCode()
+    if gift_card.assigned_to_id and gift_card.assigned_to_id != checkout.user_id:
+        # Restricted gift cards can only be used by the assigned customer.
+        logger.info(
+            "Rejected use of gift card %s restricted to another customer "
+            "in checkout %s.",
+            gift_card.pk,
+            checkout.pk,
+        )
+        # Generic error — do not reveal the assignee.
+        raise InvalidPromoCode()
+
     checkout.gift_cards.add(gift_card)
     checkout.save(update_fields=["last_change"])
 
@@ -68,6 +97,89 @@ def remove_gift_card_code_from_checkout_or_error(
             "Cannot remove a gift card not attached to this checkout.",
             code=CheckoutErrorCode.INVALID.value,
         )
+
+
+class GiftCardCannotAssign(Exception):
+    """Raised when a gift card cannot be (re)assigned to a customer."""
+
+
+def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
+    """Restrict a gift card to a customer under a row lock.
+
+    Raise GiftCardCannotAssign when the card was already used in an order or is
+    attached to a checkout that has payments. Clean attached checkouts are
+    detached (the same invalidation checkoutRemovePromoCode performs).
+    """
+    with traced_atomic_transaction():
+        locked = gift_card_qs_select_for_update().get(pk=gift_card.pk)
+
+        if locked.last_used_on is not None:
+            raise GiftCardCannotAssign(
+                "Cannot assign a gift card that was already used in an order."
+            )
+
+        attached_checkouts = locked.checkouts.all()
+        has_payments = attached_checkouts.filter(
+            Exists(Payment.objects.filter(checkout_id=OuterRef("pk"), is_active=True))
+            | Exists(TransactionItem.objects.filter(checkout_id=OuterRef("pk")))
+        ).exists()
+        if has_payments:
+            raise GiftCardCannotAssign(
+                "Cannot assign a gift card attached to a checkout with payments."
+            )
+
+        # Detach clean checkouts in bulk (same invalidation that
+        # checkoutRemovePromoCode performs). Batched to keep the row lock short.
+        # Invalidate before clearing because the relation-backed queryset no longer
+        # matches any checkouts after ``clear()``.
+        if attached_checkouts.update(last_change=timezone.now()):
+            locked.checkouts.clear()
+
+        locked.assigned_to = user
+        locked.assigned_to_email = user.email
+        locked.save(update_fields=["assigned_to", "assigned_to_email"])
+
+        gift_card.assigned_to = user
+        gift_card.assigned_to_email = user.email
+
+
+def deactivate_assigned_gift_cards(users) -> None:
+    """Detach and deactivate gift cards restricted to users being deleted.
+
+    ``GiftCard.assigned_to`` uses ``on_delete=PROTECT``, so the assignee
+    reference must be cleared before the user is deleted or the deletion is
+    refused. Call this inside the deletion transaction, before deleting the
+    users, from every mutation that removes users.
+
+    The ``assigned_to`` FK is nulled on every referencing card (otherwise
+    PROTECT would still block the delete), while ``assigned_to_email`` is kept
+    so the now-inactive card retains who it belonged to. Cards are deactivated
+    because they can no longer be validated against their owner. A deactivation
+    event is recorded only for cards that were actually active.
+
+    ``users`` may be any iterable or queryset of users.
+    """
+    # Lock and snapshot every assigned card, including inactive ones. Restricting the
+    # snapshot to active cards would allow a concurrent activation to leave a card
+    # detached but active.
+    assigned_cards = list(
+        gift_card_qs_select_for_update()
+        .filter(assigned_to__in=users)
+        .values_list("pk", "is_active")
+    )
+    assigned_ids = []
+    deactivated_ids = []
+    for gift_card_id, is_active in assigned_cards:
+        assigned_ids.append(gift_card_id)
+        if is_active:
+            deactivated_ids.append(gift_card_id)
+    # Clear the protected FK and unconditionally deactivate the exact locked set in
+    # one update. Already-inactive cards do not receive a duplicate event.
+    GiftCard.objects.filter(pk__in=assigned_ids).update(
+        assigned_to=None, is_active=False
+    )
+    if deactivated_ids:
+        events.gift_cards_deactivated_event(deactivated_ids, user=None, app=None)
 
 
 def deactivate_gift_card(gift_card: GiftCard):
