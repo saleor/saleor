@@ -309,6 +309,61 @@ def test_install_app_with_extension(
     assert app_extension.http_target_method is None
 
 
+def test_install_app_with_extension_identifier(
+    app_manifest,
+    app_installation,
+    monkeypatch,
+):
+    # given
+    identifier = "refund-button"
+    app_manifest["extensions"] = [
+        {
+            "label": "Create product with app",
+            "url": "https://example.com/app-extension",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "identifier": identifier,
+        }
+    ]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    app_extension = app.extensions.get()
+    assert app_extension.identifier == identifier
+
+
+def test_install_app_with_extension_blank_identifier_stored_as_none(
+    app_manifest,
+    app_installation,
+    monkeypatch,
+):
+    # given
+    app_manifest["extensions"] = [
+        {
+            "label": "Create product with app",
+            "url": "https://example.com/app-extension",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "identifier": "   ",
+        }
+    ]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    app_extension = app.extensions.get()
+    assert app_extension.identifier is None
+
+
 def test_install_app_with_extension_widget(
     app_manifest,
     app_installation,

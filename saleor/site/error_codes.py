@@ -6,10 +6,6 @@ class SiteErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
 
 
-class OrderSettingsErrorCode(Enum):
-    INVALID = "invalid"
-
-
 class GiftCardSettingsErrorCode(Enum):
     INVALID = "invalid"
     REQUIRED = "required"

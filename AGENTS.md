@@ -200,6 +200,35 @@ When adding or changing search vector indexing logic, create a data migration th
 - Task: `saleor/giftcard/migrations/tasks/saleor3_22.py`
 - Migration: `saleor/giftcard/migrations/0023_mark_gift_cards_search_vector_as_dirty.py`
 
+## Adding indexes / unique constraints concurrently
+
+Building an index synchronously (the default `AddIndex` / `AddConstraint`) takes
+an `ACCESS EXCLUSIVE` lock on the whole table for the duration of the build,
+blocking reads and writes. On a large table this can mean significant downtime.
+Build the index `CONCURRENTLY` instead so it does not block concurrent traffic.
+
+### Rules
+
+- `CREATE INDEX CONCURRENTLY` cannot run inside a transaction, so the migration
+  that creates it must set `atomic = False`.
+- Keep the concurrent index in its **own** migration. Fast, atomic schema
+  changes (`AddField`, `CheckConstraint`, etc.) stay in a normal `atomic = True`
+  migration; only the slow, non-atomic index build lives on its own. This keeps
+  most schema changes transactional and limits the blast radius if the
+  concurrent build fails and has to be retried.
+- To back a `UniqueConstraint` with a concurrently-built index, wrap the raw SQL
+  in `SeparateDatabaseAndState`: `database_operations` create the index
+  `CONCURRENTLY` and attach it via `ALTER TABLE ... ADD CONSTRAINT ... UNIQUE
+  USING INDEX`, while `state_operations` hold the matching
+  `AddConstraint(UniqueConstraint(...))` so Django's model state stays in sync.
+- Always provide `reverse_sql` (use `DROP INDEX CONCURRENTLY IF EXISTS` /
+  `DROP CONSTRAINT IF EXISTS`).
+
+### Reference example
+
+- `saleor/page/migrations/0030_slug_translation_unique_constraint.py`
+- `saleor/app/migrations/0040_appextension_identifier_unique_constraint.py`
+  (split out of the atomic `0039_appextension_identifier_and_more.py`)
 
 # Code style
 
