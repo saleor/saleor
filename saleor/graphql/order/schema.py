@@ -92,7 +92,10 @@ from .types import Order, OrderCountableConnection, OrderEventCountableConnectio
 class OrderFilterInput(FilterInputObjectType):
     payment_status = NonNullList(
         PaymentChargeStatusEnum,
-        description=DEPRECATED_LEGACY_PAYMENTS,
+        description=(
+            "Filter orders by payment charge status."
+            f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_LEGACY_PAYMENTS}"
+        ),
     )
 
     class Meta:

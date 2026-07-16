@@ -1,5 +1,9 @@
 from ...api import schema
-from ...core.descriptions import DEPRECATED_LEGACY_PAYMENTS
+from ...core.descriptions import (
+    DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
+)
+from ...schema_printer import print_type
 
 DEPRECATED_FIELDS = {
     "Query": ["payment", "payments"],
@@ -130,12 +134,21 @@ def test_legacy_payment_types_have_deprecation_description():
         assert DEPRECATED_LEGACY_PAYMENTS in graphql_type.description
 
 
-def test_order_payment_status_filter_has_deprecation_description():
+def test_order_payment_status_filter_is_deprecated_in_printed_schema():
     graphql_type = schema.get_type("OrderFilterInput")
 
     field = graphql_type.fields["paymentStatus"]
+    printed_type = print_type(graphql_type)
 
-    assert field.description == DEPRECATED_LEGACY_PAYMENTS
+    assert field.description == (
+        "Filter orders by payment charge status."
+        f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_LEGACY_PAYMENTS}"
+    )
+    assert '"""Filter orders by payment charge status."""' in printed_type
+    assert (
+        'paymentStatus: [PaymentChargeStatusEnum!] @deprecated(reason: "'
+        f'{DEPRECATED_LEGACY_PAYMENTS}")'
+    ) in printed_type
 
 
 def test_shared_payment_gateway_type_is_not_deprecated():
