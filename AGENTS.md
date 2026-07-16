@@ -10,6 +10,14 @@
 ### GraphQL permissions
 - Use PermissionsField to describe field restrictions
 
+# Architecture
+
+- Do not use Django signals (e.g. `post_save`, `pre_delete`, `@receiver`). Call the relevant logic explicitly from the code that triggers it instead of wiring it through signal handlers. (The one exception is the `post_migrate` signal used to trigger data-migration tasks — see Data Migrations below.)
+
+# Code style
+
+- Use global import statements. Place all imports at the top of the file rather than inside functions, methods, or other local scopes.
+
 # Testing
 
 ## Running in a git worktree
@@ -284,6 +292,20 @@ Do:
 def foo():
   """Doc string"""
 ```
+
+## Agent skills
+
+### Issue tracker
+
+Issue tracking is opted out — skills must not create issues, PRDs, or triage records anywhere, and should treat "publish to the issue tracker" steps as not applicable. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Not applicable — there is no issue queue, so the triage state machine and label vocabulary are unused. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
 # Performance
 
