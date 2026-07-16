@@ -1,5 +1,6 @@
 import pytest
 
+from ......graphql.discount.enums import PromotionTypeEnum, RewardValueTypeEnum
 from ......product.tasks import recalculate_discounted_price_for_products_task
 from ....product.utils.preparing_product import prepare_products
 from ....promotions.utils import create_promotion, create_promotion_rule
@@ -24,7 +25,7 @@ def prepare_promotion_for_products(
     discount_value,
 ):
     promotion_name = "Promotion Percentage"
-    promotion_type = "CATALOGUE"
+    promotion_type = PromotionTypeEnum.CATALOGUE.name
     promotion_data = create_promotion(
         e2e_staff_api_client, promotion_name, promotion_type
     )
@@ -96,7 +97,7 @@ def test_checkout_products_on_percentage_promotion_core_2104(
         e2e_staff_api_client,
         channel_id,
         product_ids,
-        discount_type="PERCENTAGE",
+        discount_type=RewardValueTypeEnum.PERCENTAGE.name,
         discount_value=3,
     )
 

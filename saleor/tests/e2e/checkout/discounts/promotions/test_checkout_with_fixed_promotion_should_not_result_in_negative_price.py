@@ -1,5 +1,7 @@
+import graphene
 import pytest
 
+from ......graphql.discount.enums import PromotionTypeEnum, RewardValueTypeEnum
 from ......product.tasks import recalculate_discounted_price_for_products_task
 from ....product.utils import get_product
 from ....product.utils.preparing_product import prepare_products
@@ -24,7 +26,7 @@ def prepare_promotion_for_products(
     discount_value,
 ):
     promotion_name = "Promotion Fixed"
-    promotion_type = "CATALOGUE"
+    promotion_type = PromotionTypeEnum.CATALOGUE.name
     promotion_data = create_promotion(
         e2e_staff_api_client, promotion_name, promotion_type
     )
@@ -104,7 +106,7 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
         e2e_staff_api_client,
         channel_id,
         product_ids,
-        discount_type="FIXED",
+        discount_type=RewardValueTypeEnum.FIXED.name,
         discount_value=discount_value,
     )
 
@@ -143,7 +145,7 @@ def test_checkout_with_fixed_promotion_should_not_result_in_negative_price_CORE_
         email="testEmail@example.com",
     )
     checkout_id = checkout_data["id"]
-    assert checkout_id is not None
+    assert graphene.Node.from_global_id(checkout_id)[0] == "Checkout"
     checkout_line1 = checkout_data["lines"][0]
     assert checkout_line1["unitPrice"]["gross"]["amount"] == 0
     assert checkout_line1["undiscountedUnitPrice"]["amount"] == product1_variant_price
