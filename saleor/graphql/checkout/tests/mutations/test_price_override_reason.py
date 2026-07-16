@@ -13,7 +13,7 @@ from decimal import Decimal
 import graphene
 
 from .....checkout.error_codes import CheckoutErrorCode
-from .....checkout.models import Checkout
+from .....checkout.models import Checkout, CheckoutLine
 from .....order import OrderOrigin, OrderStatus
 from .....order.models import Order
 from ....core.utils import to_global_id_or_none
@@ -81,6 +81,10 @@ MUTATION_CHECKOUT_COMPLETE = """
         }
     }
 """
+
+REASON_WITHOUT_OVERRIDE_MESSAGE = (
+    "Cannot set priceOverrideReason without a price override on the line."
+)
 
 
 # --- 1. Writing the reason (checkout, app-only) ---------------------------------
@@ -180,6 +184,7 @@ def test_lines_add_reason_without_override_raises_error(
         errors[0]["code"]
         == CheckoutErrorCode.PRICE_OVERRIDE_REASON_WITHOUT_OVERRIDE.name
     )
+    assert errors[0]["message"] == REASON_WITHOUT_OVERRIDE_MESSAGE
 
 
 def test_lines_add_reason_by_app_no_perm(app_api_client, checkout, stock):
@@ -285,6 +290,43 @@ def test_lines_add_empty_reason_stored_as_null(
     line = checkout.lines.last()
     assert line.price_override == price
     assert line.price_override_reason is None
+
+
+def test_lines_add_reason_truncated_to_max_length(
+    app_api_client, checkout, stock, permission_handle_checkouts
+):
+    # given
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    price = Decimal("13.11")
+    max_length = CheckoutLine._meta.get_field("price_override_reason").max_length
+    reason = "x" * (max_length + 50)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {
+                "variantId": variant_id,
+                "quantity": 1,
+                "price": price,
+                "priceOverrideReason": reason,
+            }
+        ],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHECKOUT_LINES_ADD, variables, permissions=[permission_handle_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkoutLinesAdd"]["errors"] == []
+    checkout.refresh_from_db()
+    line = checkout.lines.last()
+    assert line.price_override_reason == reason[:max_length]
+    assert len(line.price_override_reason) == max_length
 
 
 # --- 3. Update semantics on checkoutLinesUpdate (per-operation) ------------------
@@ -445,6 +487,53 @@ def test_lines_update_reason_only_without_override_raises(
         errors[0]["code"]
         == CheckoutErrorCode.PRICE_OVERRIDE_REASON_WITHOUT_OVERRIDE.name
     )
+    assert errors[0]["message"] == REASON_WITHOUT_OVERRIDE_MESSAGE
+
+
+def test_lines_update_clear_price_with_reason_raises(
+    app_api_client, checkout_with_item, permission_handle_checkouts
+):
+    # given
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    price = Decimal("10.00")
+    reason = "old"
+    line.price_override = price
+    line.price_override_reason = reason
+    line.save(update_fields=["price_override", "price_override_reason"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
+
+    # clearing the override and setting a reason in the same operation must be
+    # rejected - the reason would otherwise be orphaned (no price override left).
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {
+                "variantId": variant_id,
+                "quantity": 1,
+                "price": None,
+                "priceOverrideReason": "still here",
+            }
+        ],
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHECKOUT_LINES_UPDATE, variables, permissions=[permission_handle_checkouts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutLinesUpdate"]["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["code"]
+        == CheckoutErrorCode.PRICE_OVERRIDE_REASON_WITHOUT_OVERRIDE.name
+    )
+    assert errors[0]["message"] == REASON_WITHOUT_OVERRIDE_MESSAGE
+    line.refresh_from_db()
+    assert line.price_override == price
+    assert line.price_override_reason == reason
 
 
 # --- 4. Checkout -> Order conversion --------------------------------------------

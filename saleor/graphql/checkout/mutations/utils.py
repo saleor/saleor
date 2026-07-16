@@ -457,11 +457,20 @@ def check_permissions_for_custom_prices(app, lines):
         )
 
 
+PRICE_OVERRIDE_REASON_MAX_LENGTH = models.CheckoutLine._meta.get_field(
+    "price_override_reason"
+).max_length
+
+
 def _clean_price_override_reason(reason: str | None) -> str | None:
-    """Normalize a price override reason, treating blank strings as no reason."""
+    """Normalize a price override reason.
+
+    Blank strings are treated as no reason and the value is truncated to the
+    stored column's max length so an over-long reason cannot crash on save.
+    """
     if reason is None:
         return None
-    reason = reason.strip()
+    reason = reason.strip()[:PRICE_OVERRIDE_REASON_MAX_LENGTH]
     return reason or None
 
 
@@ -485,15 +494,15 @@ def validate_price_override_reason(
         )
         if not reason_is_set:
             continue
-        incoming_override = (
-            line_data.custom_price if line_data.custom_price_to_update else None
-        )
-        existing_override = (
-            existing_override_by_line_id.get(line_data.line_id)
-            if line_data.line_id
-            else None
-        )
-        if incoming_override is None and existing_override is None:
+        # When the same operation sets the price, only the incoming value counts -
+        # a null price clears the override, so the existing one must not be credited.
+        if line_data.custom_price_to_update:
+            effective_override = line_data.custom_price
+        elif line_data.line_id:
+            effective_override = existing_override_by_line_id.get(line_data.line_id)
+        else:
+            effective_override = None
+        if effective_override is None:
             raise ValidationError(
                 "Cannot set priceOverrideReason without a price override on the line.",
                 code=CheckoutErrorCode.PRICE_OVERRIDE_REASON_WITHOUT_OVERRIDE.value,

@@ -62,7 +62,8 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
             "debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` "
             "permission and only when the line has a `price` override. Setting a new "
             "`price` without a reason clears the previous reason. Blank values are "
-            "stored as no reason." + ADDED_IN_323
+            "stored as no reason. Limited to 255 characters; longer values are "
+            "truncated." + ADDED_IN_323
         ),
     )
     line_id = graphene.ID(

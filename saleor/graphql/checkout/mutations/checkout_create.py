@@ -117,7 +117,8 @@ class CheckoutLineInput(BaseInputObjectType):
             "Reason explaining why a custom `price` was set on the line, for "
             "debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` "
             "permission and only together with a `price` override. Blank values are "
-            "stored as no reason." + ADDED_IN_323
+            "stored as no reason. Limited to 255 characters; longer values are "
+            "truncated." + ADDED_IN_323
         ),
     )
     force_new_line = graphene.Boolean(
