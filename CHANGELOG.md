@@ -23,8 +23,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
 - `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
-- Add `giftCardBalanceAdjust` mutation to change a gift card balance by a signed delta atomically.
-- Add customer restriction for gift cards: `assignedTo`/`assignedToEmail` fields, `giftCardAssignUser`/`giftCardUnassignUser` mutations, `assignedTo` on `GiftCardCreateInput`, and `assignedTo` gift card filter. Restricted cards can only be used by the assigned customer at checkout.
 
 ### Webhooks
 
