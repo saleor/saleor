@@ -5,7 +5,6 @@ from freezegun import freeze_time
 from ......account.error_codes import AccountErrorCode
 from ......core.tokens import (
     account_confirm_token_generator,
-    legacy_account_confirm_token_generator,
     password_reset_token_generator,
 )
 from .....tests.utils import get_graphql_content
@@ -177,48 +176,6 @@ def test_account_confirmation_rejects_token_for_wrong_scope(
 
     # Should have merged the account & confirmed the account
     customer_user.refresh_from_db(fields=("is_confirmed",))
-    assert customer_user.is_confirmed is True
-    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
-    assign_gift_cards_mock.assert_called_once_with(customer_user)
-    mocked_account_confirmed.assert_called_once_with(customer_user)
-
-
-@patch(
-    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
-)
-@patch(
-    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
-)
-@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
-def test_account_confirmation_accepts_legacy_account_confirm_token(
-    mocked_account_confirmed,
-    match_orders_with_new_user_mock,
-    assign_gift_cards_mock,
-    user_api_client,
-    customer_user,
-):
-    """Ensure old tokens before adding scopes still work properly."""
-
-    # given
-    customer_user.is_confirmed = False
-    customer_user.save(update_fields=["is_confirmed"])
-    token = legacy_account_confirm_token_generator.make_token(customer_user)
-    variables = {
-        "email": customer_user.email,
-        "token": token,
-    }
-
-    # when
-    response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["confirmAccount"]
-    assert not data["errors"]
-    assert data["user"]["email"] == customer_user.email
-    customer_user.refresh_from_db(fields=("is_confirmed",))
-
-    # Should have properly confirmed the account
     assert customer_user.is_confirmed is True
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
     assign_gift_cards_mock.assert_called_once_with(customer_user)

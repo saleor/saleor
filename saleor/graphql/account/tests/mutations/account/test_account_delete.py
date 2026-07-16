@@ -8,7 +8,6 @@ from freezegun import freeze_time
 from ......account.models import User
 from ......core.tokens import (
     account_delete_token_generator,
-    legacy_account_delete_token_generator,
     password_reset_token_generator,
 )
 from ......thumbnail.models import Thumbnail
@@ -142,24 +141,6 @@ def test_account_delete_rejects_token_for_other_mutation(user_api_client):
     content = get_graphql_content(
         user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
     )
-    data = content["data"]["accountDelete"]
-    assert not data["errors"]
-    assert not User.objects.filter(pk=user.id).exists()
-
-
-def test_account_delete_accepts_legacy_account_delete_token(user_api_client):
-    """Ensure old tokens before adding scopes still work properly."""
-
-    # given
-    user = user_api_client.user
-    token = legacy_account_delete_token_generator.make_token(user)
-    variables = {"token": token}
-
-    # when
-    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
-
-    # then
-    content = get_graphql_content(response)
     data = content["data"]["accountDelete"]
     assert not data["errors"]
     assert not User.objects.filter(pk=user.id).exists()
