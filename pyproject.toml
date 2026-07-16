@@ -160,7 +160,7 @@ addopts = [
     "--record-mode=none",
     "--ds=saleor.tests.settings",
     "--disable-socket",
-    "--allow-hosts=127.0.0.1,::1,cache",
+    "--allow-hosts=127.0.0.1,::1,cache,host.docker.internal,host.containers.internal",
     "--allow-unix-socket",
     "--pdbcls=IPython.terminal.debugger:TerminalPdb",
     "--dist=loadgroup",
