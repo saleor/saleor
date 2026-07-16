@@ -5,11 +5,7 @@ from django.core.exceptions import ValidationError
 
 from .....account import models
 from .....account.error_codes import AccountErrorCode
-from .....core.tokens import (
-    account_delete_token_generator,
-    legacy_account_delete_token_generator,
-    try_generators,
-)
+from .....core.tokens import account_delete_token_generator
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
@@ -64,9 +60,7 @@ class AccountDelete(ModelDeleteMutation):
         user = cast(models.User, user)
         cls.clean_instance(info, user)
 
-        valid_token = try_generators(
-            current_generator=account_delete_token_generator,
-            fallback_generator=legacy_account_delete_token_generator,
+        valid_token = account_delete_token_generator.check_token(
             user=user,
             token=token,
         )
