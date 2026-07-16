@@ -5,7 +5,7 @@ import pytest
 from .....core.error_codes import ShopErrorCode
 from .....core.jwt import JWT_OWNER_FIELD
 from .....site.models import Site
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import PasswordLoginModeEnum
 
 SHOP_SETTINGS_UPDATE_MUTATION = """
@@ -699,3 +699,54 @@ def test_shop_settings_update_name_too_long(
     assert errors[0]["field"] == "name"
     site = Site.objects.get_current()
     assert site.name == original_name
+
+
+SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop { allowStorefrontTraffic }
+            errors { field message code }
+        }
+    }
+"""
+
+
+def test_shop_settings_update_sets_allow_storefront_traffic(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    site_settings.allow_storefront_traffic = True
+    site_settings.save(update_fields=["allow_storefront_traffic"])
+    variables = {"input": {"allowStorefrontTraffic": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert data["errors"] == []
+    assert data["shop"]["allowStorefrontTraffic"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.allow_storefront_traffic is False
+
+
+def test_shop_settings_update_allow_storefront_traffic_requires_permission(
+    staff_api_client, site_settings
+):
+    # given: no MANAGE_SETTINGS granted
+    variables = {"input": {"allowStorefrontTraffic": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION, variables
+    )
+
+    # then
+    assert_no_permission(response)
+    site_settings.refresh_from_db()
+    assert site_settings.allow_storefront_traffic is True
