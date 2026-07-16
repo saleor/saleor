@@ -4,7 +4,12 @@ import django_filters
 import graphene
 from django.db.models import Exists, OuterRef, Q, QuerySet
 
-from ...attribute.models import AssignedPageAttributeValue, Attribute, AttributeValue
+from ...attribute.models import (
+    AssignedPageAttributeValue,
+    Attribute,
+    AttributePage,
+    AttributeValue,
+)
 from ...page import models
 from ..attribute.shared_filters import (
     CONTAINS_TYPING,
@@ -86,10 +91,22 @@ def _get_assigned_page_attribute_for_attribute_value(
     attribute_values: QuerySet[AttributeValue],
     db_connection_name: str,
 ):
+    """Build an expression matching pages by assigned attribute values.
+
+    Values of attributes that are no longer assigned to the page's page type
+    are skipped, as such values are no longer exposed on the page.
+    """
+    attribute_assigned_to_page_type = AttributePage.objects.using(
+        db_connection_name
+    ).filter(
+        attribute_id=OuterRef("value__attribute_id"),
+        page_type_id=OuterRef(OuterRef("page_type_id")),
+    )
     return Q(
         Exists(
             AssignedPageAttributeValue.objects.using(db_connection_name).filter(
                 Exists(attribute_values.filter(id=OuterRef("value_id"))),
+                Exists(attribute_assigned_to_page_type),
                 page_id=OuterRef("id"),
             )
         )
@@ -631,11 +648,10 @@ def filter_pages_by_attributes(qs, value):
         atr_value_qs = AttributeValue.objects.using(qs.db).filter(
             attribute_id__in=[attr.id for attr in attr_without_values_input]
         )
-        assigned_attr_value = AssignedPageAttributeValue.objects.using(qs.db).filter(
-            Exists(atr_value_qs.filter(id=OuterRef("value_id"))),
-            page_id=OuterRef("id"),
+        attr_filter_expression = _get_assigned_page_attribute_for_attribute_value(
+            attribute_values=atr_value_qs,
+            db_connection_name=qs.db,
         )
-        attr_filter_expression = Q(Exists(assigned_attr_value))
 
     for attr_filter in value:
         attr_value = attr_filter.get("value")

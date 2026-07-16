@@ -10,7 +10,12 @@ from django.db.models import Value as V
 from django.db.models.functions import Cast, Concat
 
 from ...attribute import AttributeInputType
-from ...attribute.models import AssignedVariantAttribute, Attribute, AttributeValue
+from ...attribute.models import (
+    AssignedVariantAttribute,
+    Attribute,
+    AttributeProduct,
+    AttributeValue,
+)
 from ...core.utils import build_absolute_uri
 from ...core.utils.editorjs import clean_editor_js
 from ...product.models import (
@@ -179,8 +184,13 @@ def prepare_products_relations_data(
         attr_values = AttributeValue.objects.filter(
             Exists(attributes.filter(id=OuterRef("attribute_id"))),
         )
+        attribute_assigned_to_product_type = AttributeProduct.objects.filter(
+            attribute_id=OuterRef("attributevalues__value__attribute_id"),
+            product_type_id=OuterRef("product_type_id"),
+        )
         relations_data = queryset.filter(
-            Exists(attr_values.filter(id=OuterRef("attributevalues__value_id")))
+            Exists(attr_values.filter(id=OuterRef("attributevalues__value_id"))),
+            Exists(attribute_assigned_to_product_type),
         )
         fields_for_attrs.update(attribute_fields.values())
         relations_data = relations_data.values(*fields_for_attrs)
