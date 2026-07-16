@@ -16,6 +16,13 @@ ADDED_IN_320 = "\n\nAdded in Saleor 3.20."
 ADDED_IN_321 = "\n\nAdded in Saleor 3.21."
 ADDED_IN_322 = "\n\nAdded in Saleor 3.22."
 
+DEPRECATED_LEGACY_PAYMENTS = (
+    "The legacy Payments API is deprecated and will be removed. "
+    "Use the Transactions API instead."
+)
+
+DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION = "\n\n" + DEPRECATED_LEGACY_PAYMENTS
+
 
 PREVIEW_FEATURE = (
     "\n\nNote: this API is currently in Feature Preview and can be subject to "

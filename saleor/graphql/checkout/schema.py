@@ -10,7 +10,7 @@ from ..core.connection import (
     create_connection_slice_for_sync_webhook_control_context,
     filter_connection_queryset,
 )
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT, DEPRECATED_LEGACY_PAYMENTS
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.fields import BaseField, ConnectionField, FilterConnectionField
 from ..core.scalars import UUID
@@ -136,7 +136,9 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_lines_add = CheckoutLinesAdd.Field()
     checkout_lines_update = CheckoutLinesUpdate.Field()
     checkout_remove_promo_code = CheckoutRemovePromoCode.Field()
-    checkout_payment_create = CheckoutPaymentCreate.Field()
+    checkout_payment_create = CheckoutPaymentCreate.Field(
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS
+    )
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field(
         deprecation_reason="Use `checkoutDeliveryMethodUpdate` instead."
