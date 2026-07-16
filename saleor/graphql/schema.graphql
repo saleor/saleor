@@ -14931,6 +14931,13 @@ type Shop implements ObjectWithMetadata {
   """
   trackInventoryByDefault: Boolean
 
+  """
+  Determines whether the GraphQL API accepts storefront requests (anonymous requests and authenticated non-staff customers). When disabled, only apps and staff users may call the API directly; all other requests are rejected with an HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
+  
+  Added in Saleor 3.23.
+  """
+  allowStorefrontTraffic: Boolean!
+
   """Default weight unit."""
   defaultWeightUnit: WeightUnitsEnum
 
@@ -23055,6 +23062,13 @@ input ShopSettingsInput {
 
   """Enable possibility to login without account confirmation."""
   allowLoginWithoutConfirmation: Boolean
+
+  """
+  Determines whether the GraphQL API accepts storefront requests (anonymous requests and authenticated non-staff customers). When disabled, only apps and staff users may call the API directly; all other requests are rejected with an HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
+  
+  Added in Saleor 3.23.
+  """
+  allowStorefrontTraffic: Boolean
 
   """
   Shop public metadata. Can be read by any API client authorized to read the object it's attached to.

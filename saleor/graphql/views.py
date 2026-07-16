@@ -48,6 +48,11 @@ from .metrics import (
     record_request_duration,
 )
 from .query_cost_map import COST_MAP, QUERY_COST_FAILED_OPERATION
+from .storefront_traffic import (
+    STOREFRONT_TRAFFIC_ERROR_CODE,
+    STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+    is_storefront_traffic_blocked,
+)
 from .utils import (
     format_error,
     get_source_service_name_value,
@@ -170,6 +175,24 @@ class GraphQLView(View):
         )
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
+        # Reject disallowed storefront traffic before parsing/executing anything.
+        # Runs once per HTTP request, so batches get a single 401.
+        # `get_context_value` resolves app/user and is cached, so the later call
+        # in `execute_graphql_request` is free.
+        context = get_context_value(request)
+        if is_storefront_traffic_blocked(context):
+            return JsonResponse(
+                data={
+                    "errors": [
+                        {
+                            "message": STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+                            "extensions": {"code": STOREFRONT_TRAFFIC_ERROR_CODE},
+                        }
+                    ]
+                },
+                status=401,
+            )
+
         try:
             data = self.parse_body(request)
         except RequestDataTooBig:

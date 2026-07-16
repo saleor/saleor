@@ -74,6 +74,7 @@ class SiteSettings(ModelWithMetadata):
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
+    allow_storefront_traffic = models.BooleanField(default=True)
     preserve_all_address_fields = models.BooleanField(
         default=False,
         db_default=False,

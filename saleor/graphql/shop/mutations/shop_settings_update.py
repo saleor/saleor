@@ -74,6 +74,15 @@ class ShopSettingsInput(graphene.InputObjectType):
     allow_login_without_confirmation = graphene.Boolean(
         description="Enable possibility to login without account confirmation."
     )
+    allow_storefront_traffic = graphene.Boolean(
+        description=(
+            "Determines whether the GraphQL API accepts storefront requests "
+            "(anonymous requests and authenticated non-staff customers). When "
+            "disabled, only apps and staff users may call the API directly; all "
+            "other requests are rejected with an HTTP 401 and the "
+            "`STOREFRONT_TRAFFIC_NOT_ALLOWED` error code." + ADDED_IN_323
+        ),
+    )
     metadata = common_types.NonNullList(
         MetadataInput,
         description="Shop public metadata. "
