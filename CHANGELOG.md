@@ -29,7 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
   No actions are needed as long as you upgraded to Saleor >=3.21.65, >=3.22.59, or >=3.23.18
   before upgrading to 3.24.0.
 
-  (via # by @NyanKiyoshi)
+  (via #19492 by @NyanKiyoshi)
 - Removed the deprecated `orderAddNote` mutation, along with the `OrderAddNote` type and `OrderAddNoteInput` input. Use the `orderNoteAdd` mutation instead.
 - Removed the deprecated `exportGiftCards` and `exportVoucherCodes` mutations, along with the `ExportGiftCards`, `ExportGiftCardsInput`, `ExportVoucherCodes` and `ExportVoucherCodesInput` types. Fetch the data with the `giftCards` and `voucher` queries and format it in your app instead.
 - Removed the `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` webhook event types, along with the `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types. They were emitted only by the removed `exportGiftCards` and `exportVoucherCodes` mutations. Existing webhook subscriptions to these events are deleted by a migration; a webhook left with no other events will stop being triggered.
