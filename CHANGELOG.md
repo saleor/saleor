@@ -24,7 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
   No actions are needed as long as you upgraded to Saleor >=3.21.65, >=3.22.59, or >=3.23.18
   before upgrading to 3.24.0.
 
-  (via # by @NyanKiyoshi)
+  (via #19492 by @NyanKiyoshi)
 
 ### GraphQL API
 
