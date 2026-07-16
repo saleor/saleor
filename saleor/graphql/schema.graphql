@@ -15870,10 +15870,8 @@ enum OrderSortField @doc(category: "Orders") {
 }
 
 input OrderFilterInput @doc(category: "Orders") {
-  """
-  The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.
-  """
-  paymentStatus: [PaymentChargeStatusEnum!]
+  """Filter orders by payment charge status."""
+  paymentStatus: [PaymentChargeStatusEnum!] @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
   status: [OrderStatusFilter!]
   customer: String
   created: DateRangeInput
