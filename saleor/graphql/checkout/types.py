@@ -46,6 +46,7 @@ from ..core.connection import CountableConnection
 from ..core.context import ChannelContext
 from ..core.descriptions import (
     ADDED_IN_323,
+    DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
@@ -690,6 +691,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 description="Fetch payment gateways available for checkout.",
             ),
         ],
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = NonNullList(
