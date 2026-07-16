@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+import jwt
 import pytest
 from django.contrib.sites.models import Site
 
@@ -81,3 +82,27 @@ def test_missing_principal_attributes_are_treated_as_storefront(site_settings):
 
     # when / then
     assert is_storefront_traffic_blocked(request) is True
+
+
+@pytest.mark.parametrize(
+    ("_case", "allow_storefront_traffic", "expected_blocked"),
+    [
+        ("enabled", True, False),
+        ("disabled", False, True),
+    ],
+)
+def test_invalid_token_user_resolution(
+    _case, allow_storefront_traffic, expected_blocked, site_settings
+):
+    # given: evaluating request.user raises for an invalid/stale token
+    _set_allow_storefront_traffic(site_settings, allow_storefront_traffic)
+
+    class Request:
+        app = None
+
+        @property
+        def user(self):
+            raise jwt.InvalidTokenError("Invalid token.")
+
+    # when / then
+    assert is_storefront_traffic_blocked(Request()) is expected_blocked
