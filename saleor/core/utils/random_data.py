@@ -786,6 +786,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
         "billing_address": billing_address or address,
         "shipping_address": address,
         "user_email": get_email(address.first_name, address.last_name),
+        "lines_count": 0,
     }
 
     shipping_method_channel_listing = (
