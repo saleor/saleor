@@ -1,7 +1,7 @@
 import datetime
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, NamedTuple, cast
+from typing import TYPE_CHECKING, NamedTuple
 
 import orjson
 from django.db.models import Model
@@ -101,46 +101,48 @@ def get_assignment_model_and_fk(instance: T_INSTANCE):
     )
 
 
-def get_assigned_attribute_value_if_exists(
-    instance: T_INSTANCE, attribute: "Attribute", lookup_field: str, value
-):
-    """Unified method to find an existing assigned value."""
+def _get_assigned_attribute_values_qs(instance: T_INSTANCE, attribute: "Attribute"):
+    """Build a queryset of values currently assigned to the given instance."""
     if isinstance(instance, product_models.ProductVariant):
         # variant has old attribute structure so need to handle it differently
-        return get_variant_assigned_attribute_value_if_exists(
-            instance, attribute, lookup_field, value
+        attribute_variant = Exists(
+            attribute_models.AttributeVariant.objects.filter(
+                pk=OuterRef("assignment_id"),
+                attribute_id=attribute.pk,
+            )
         )
+        assigned_variant = Exists(
+            attribute_models.AssignedVariantAttribute.objects.filter(
+                attribute_variant
+            ).filter(
+                variant_id=instance.pk,
+                values=OuterRef("pk"),
+            )
+        )
+        return attribute_models.AttributeValue.objects.filter(assigned_variant)
 
     assignment_model, instance_fk = get_assignment_model_and_fk(instance)
     assigned_values = assignment_model.objects.filter(**{instance_fk: instance.pk})
     return attribute_models.AttributeValue.objects.filter(
         Exists(assigned_values.filter(value_id=OuterRef("id"))),
         attribute_id=attribute.pk,
-        **{lookup_field: value},
-    ).first()
+    )
 
 
-def get_variant_assigned_attribute_value_if_exists(
-    instance: T_INSTANCE, attribute: "Attribute", lookup_field: str, value: str
+def get_assigned_attribute_value_if_exists(
+    instance: T_INSTANCE, attribute: "Attribute", lookup_field: str, value
 ):
-    variant = cast(product_models.ProductVariant, instance)
-    attribute_variant = Exists(
-        attribute_models.AttributeVariant.objects.filter(
-            pk=OuterRef("assignment_id"),
-            attribute_id=attribute.pk,
-        )
+    """Unified method to find an existing assigned value."""
+    return (
+        _get_assigned_attribute_values_qs(instance, attribute)
+        .filter(**{lookup_field: value})
+        .first()
     )
-    assigned_variant = Exists(
-        attribute_models.AssignedVariantAttribute.objects.filter(
-            attribute_variant
-        ).filter(
-            variant_id=variant.pk,
-            values=OuterRef("pk"),
-        )
-    )
-    return attribute_models.AttributeValue.objects.filter(
-        assigned_variant, **{lookup_field: value}
-    ).first()
+
+
+def get_assigned_attribute_value(instance: T_INSTANCE, attribute: "Attribute"):
+    """Return the value currently assigned to the instance for the attribute."""
+    return _get_assigned_attribute_values_qs(instance, attribute).first()
 
 
 def has_input_modified_attribute_values(

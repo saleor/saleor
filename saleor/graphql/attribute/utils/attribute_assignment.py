@@ -311,7 +311,7 @@ class AttributeAssignmentMixin:
                 <Attribute>: [
                     {
                         "attribute": <Attribute>,
-                        "slug": "instance_id_attribute_id",
+                        "slug": "<assigned value slug or model_name-instance_id_attribute_id>",
                         "defaults": {"name": "...", "plain_text": "..."}
                     }
                 ],

@@ -29,6 +29,7 @@ from .shared import (
     T_INSTANCE,
     AttrValuesForSelectableFieldInput,
     AttrValuesInput,
+    get_assigned_attribute_value,
     get_assigned_attribute_value_if_exists,
 )
 
@@ -116,7 +117,24 @@ class AttributeTypeHandler(abc.ABC):
         instance: T_INSTANCE,
         value_defaults: dict,
     ):
-        slug = slugify(unidecode(f"{instance.id}_{self.attribute.id}"))
+        """Prepare an update-or-create action for a value owned by the instance.
+
+        The value currently assigned to the instance is updated in place under
+        its existing slug. The slug of a new value must encode the entity
+        type: products, variants and pages use independent pk sequences, so
+        the bare `{pk}_{attribute pk}` slug used historically made a product
+        and a variant with the same pk share (and overwrite) a single value
+        row.
+        """
+        assigned_value = get_assigned_attribute_value(instance, self.attribute)
+        if assigned_value:
+            slug = assigned_value.slug
+        else:
+            slug = slugify(
+                unidecode(
+                    f"{instance._meta.model_name}-{instance.pk}_{self.attribute.pk}"
+                )
+            )
         value = {
             "attribute": self.attribute,
             "slug": slug,
