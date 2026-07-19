@@ -1,5 +1,5 @@
 from ..app.models import App
-from ..order.models import Order, OrderLine
+from ..order.models import Order
 from . import CustomerEvents
 from .models import CustomerEvent, User
 
@@ -74,17 +74,6 @@ def customer_added_to_note_order_event(
         order=order,
         type=CustomerEvents.NOTE_ADDED_TO_ORDER,
         parameters={"message": message},
-    )
-
-
-def customer_downloaded_a_digital_link_event(
-    *, user: User, order_line: OrderLine
-) -> CustomerEvent:
-    return CustomerEvent.objects.create(
-        user=user,
-        order=order_line.order,
-        type=CustomerEvents.DIGITAL_LINK_DOWNLOADED,
-        parameters={"order_line_pk": order_line.pk},
     )
 
 

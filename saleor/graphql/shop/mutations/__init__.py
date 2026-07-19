@@ -1,9 +1,9 @@
 from .gift_card_settings_update import GiftCardSettingsUpdate
-from .order_settings_update import OrderSettingsUpdate
 from .refund_reason_reference_type_clear import RefundReasonReferenceTypeClear
 from .refund_settings_update import RefundSettingsUpdate
+from .return_reason_reference_type_clear import ReturnReasonReferenceTypeClear
+from .return_settings_update import ReturnSettingsUpdate
 from .shop_address_update import ShopAddressUpdate
-from .shop_domain_update import ShopDomainUpdate
 from .shop_fetch_tax_rates import ShopFetchTaxRates
 from .shop_settings_update import ShopSettingsUpdate
 from .staff_notification_recipient_create import StaffNotificationRecipientCreate
@@ -12,11 +12,11 @@ from .staff_notification_recipient_update import StaffNotificationRecipientUpdat
 
 __all__ = [
     "GiftCardSettingsUpdate",
-    "OrderSettingsUpdate",
     "RefundSettingsUpdate",
     "RefundReasonReferenceTypeClear",
+    "ReturnSettingsUpdate",
+    "ReturnReasonReferenceTypeClear",
     "ShopAddressUpdate",
-    "ShopDomainUpdate",
     "ShopFetchTaxRates",
     "ShopSettingsUpdate",
     "StaffNotificationRecipientCreate",

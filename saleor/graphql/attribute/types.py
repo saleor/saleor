@@ -293,9 +293,9 @@ class Attribute(ChannelContextType[models.Attribute]):
         ),
     )
 
-    name = graphene.String(description=AttributeDescriptions.NAME)
-    slug = graphene.String(description=AttributeDescriptions.SLUG)
-    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE)
+    name = graphene.String(description=AttributeDescriptions.NAME, required=True)
+    slug = graphene.String(description=AttributeDescriptions.SLUG, required=True)
+    type = AttributeTypeEnum(description=AttributeDescriptions.TYPE, required=True)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT)
     choices = FilterConnectionField(
         AttributeValueCountableConnection,
@@ -1496,6 +1496,14 @@ class AssignedSwatchAttributeValue(BaseObjectType):
     file = graphene.Field(
         File, description="File associated with the attribute.", required=False
     )
+    translation = graphene.String(
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            required=True,
+        ),
+        description="Translation of the name." + ADDED_IN_322,
+        required=False,
+    )
 
     @staticmethod
     def resolve_hex_color(
@@ -1510,6 +1518,16 @@ class AssignedSwatchAttributeValue(BaseObjectType):
         if not root.file_url:
             return None
         return File(url=root.file_url, content_type=root.content_type)
+
+    @staticmethod
+    def resolve_translation(
+        root: models.AttributeValue, info: ResolveInfo, *, language_code
+    ) -> Promise[str | None] | None:
+        return (
+            AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
+            .load((root.id, language_code))
+            .then(lambda translation: translation.name if translation else None)
+        )
 
     class Meta:
         description = "Represents a single swatch value." + ADDED_IN_322

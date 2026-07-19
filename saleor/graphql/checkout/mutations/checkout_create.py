@@ -22,7 +22,6 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -137,9 +136,10 @@ class CheckoutCreateInput(BaseInputObjectType):
         CheckoutLineInput,
         description=(
             "A list of checkout lines, each containing information about "
-            "an item in the checkout."
+            "an item in the checkout. When omitted, a checkout with no lines "
+            "is created."
         ),
-        required=True,
+        required=False,
     )
     email = graphene.String(description="The customer's email address.")
     save_shipping_address = graphene.Boolean(
@@ -149,7 +149,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
-        + ADDED_IN_321
     )
     shipping_address = AddressInput(
         description=(
@@ -166,7 +165,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
-        + ADDED_IN_321
     )
     billing_address = AddressInput(
         description=(
@@ -187,7 +185,6 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             f"Checkout public metadata. "
             f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
-            f"{ADDED_IN_321}"
         ),
         required=False,
     )
@@ -199,7 +196,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
             f"{CheckoutPermissions.HANDLE_CHECKOUTS.name} \n\n"
             f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
-            f"{ADDED_IN_321}"
         ),
         required=False,
     )
@@ -280,6 +276,9 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             variants, checkout_lines_data
         )
 
+        use_legacy_shipping_zone_stock_availability = (
+            site.settings.use_legacy_shipping_zone_stock_availability
+        )
         check_lines_quantity(
             variants,
             quantities,
@@ -287,6 +286,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
             channel.slug,
             site.settings.limit_quantity_per_checkout,
             check_reservations=is_reservation_enabled(site.settings),
+            calculate_stocks_with_shipping_zones=use_legacy_shipping_zone_stock_availability,
         )
         return variants, checkout_lines_data
 
@@ -494,6 +494,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
                     reservation_length=get_reservation_length(
                         site=site, user=info.context.user
                     ),
+                    calculate_stocks_with_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
                 )
 
             # Save addresses

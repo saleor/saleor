@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import hashlib
 import json
@@ -12,7 +13,9 @@ from urllib.parse import unquote, urlparse, urlunparse
 from uuid import UUID
 
 import boto3
-from botocore.exceptions import ClientError
+import botocore.exceptions
+import google.api_core.exceptions
+from botocore.config import Config as BotoConfig
 from celery import Task
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
@@ -20,6 +23,8 @@ from django.conf import settings
 from django.db.models import Count
 from django.urls import reverse
 from django.utils.text import slugify
+from google.api_core import exceptions as google_exceptions
+from google.api_core import retry as google_retry
 from google.cloud import pubsub_v1
 from requests import RequestException
 from requests_hardened.ip_filter import InvalidIPAddress
@@ -37,9 +42,13 @@ from ...core.models import (
 from ...core.tasks import delete_files_from_private_storage_task
 from ...core.telemetry import tracer
 from ...core.utils import build_absolute_uri
+from ...core.utils.json_serializer import CustomJsonEncoder
 from ...core.utils.url import sanitize_url_for_logging
+from ...product.interface import VariantDiscountedPriceChange
+from ...warehouse.interface import VariantChannelStockInfo
 from .. import observability
 from ..const import APP_ID_PREFIX
+from ..event_types import WebhookEventAsyncType
 from ..models import Webhook
 from . import signature_for_payload
 
@@ -85,30 +94,97 @@ class RequestorModelName:
 
 @dataclass
 class DeferredPayloadData:
-    model_name: str
-    object_id: int | UUID
     requestor_model_name: str | None
     requestor_object_id: int | UUID | None
     request_time: datetime.datetime | None
+    # Legacy: used when subscribable_object is a Django model.
+    model_name: str | None = None
+    object_id: int | UUID | None = None
+    # New: used when subscribable_object is a dataclass with object IDs
+    # resolved by subscription resolvers.
+    subscribable_object_data: dict | None = None
 
 
-def prepare_deferred_payload_data(
-    subscribable_object, requestor, request_time
+# Mapping from event type to subscribable object dataclass. Used by deferred
+# payloads to validate and reconstruct subscribable objects from serialized JSON.
+# Only event types that use dataclass subscribable objects (instead of Django
+# models) need to be listed here.
+DEFERRED_SUBSCRIBABLE_OBJECT_MAP: dict[str, type] = {
+    WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED: (
+        VariantDiscountedPriceChange
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL: (
+        VariantChannelStockInfo
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL: (
+        VariantChannelStockInfo
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK_FOR_CLICK_AND_COLLECT: (
+        VariantChannelStockInfo
+    ),
+    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT: (
+        VariantChannelStockInfo
+    ),
+}
+
+
+def _prepare_deferred_payload_for_model(
+    subscribable_object, requestor_model_name, requestor_object_id, request_time
 ) -> DeferredPayloadData:
+    """Prepare deferred payload data for a Django model subscribable object."""
     model_name = (
         f"{subscribable_object._meta.app_label}.{subscribable_object._meta.model_name}"
-    )
-    requestor_model_name = (
-        f"{requestor._meta.app_label}.{requestor._meta.model_name}"
-        if requestor
-        else None
     )
     return DeferredPayloadData(
         model_name=model_name,
         object_id=subscribable_object.pk,
         request_time=request_time,
         requestor_model_name=requestor_model_name,
-        requestor_object_id=(requestor.pk if requestor else None),
+        requestor_object_id=requestor_object_id,
+    )
+
+
+def _prepare_deferred_payload_for_dataclass(
+    subscribable_object, requestor_model_name, requestor_object_id, request_time
+) -> DeferredPayloadData:
+    """Prepare deferred payload data for a dataclass subscribable object.
+
+    Serializes all fields as JSON data. Resolvers are responsible for fetching
+    DB objects from the IDs stored in the data.
+    """
+    subscribable_object_data = json.loads(
+        json.dumps(dataclasses.asdict(subscribable_object), cls=CustomJsonEncoder)
+    )
+    return DeferredPayloadData(
+        subscribable_object_data=subscribable_object_data,
+        request_time=request_time,
+        requestor_model_name=requestor_model_name,
+        requestor_object_id=requestor_object_id,
+    )
+
+
+def prepare_deferred_payload_data(
+    subscribable_object, requestor, request_time
+) -> DeferredPayloadData:
+    requestor_model_name = (
+        f"{requestor._meta.app_label}.{requestor._meta.model_name}"
+        if requestor
+        else None
+    )
+    requestor_object_id = requestor.pk if requestor else None
+
+    if hasattr(subscribable_object, "_meta"):
+        return _prepare_deferred_payload_for_model(
+            subscribable_object,
+            requestor_model_name,
+            requestor_object_id,
+            request_time,
+        )
+    return _prepare_deferred_payload_for_dataclass(
+        subscribable_object,
+        requestor_model_name,
+        requestor_object_id,
+        request_time,
     )
 
 
@@ -215,55 +291,18 @@ def send_webhook_using_aws_sqs(
     target_url, message, domain, signature, event_type, **kwargs
 ) -> WebhookResponse:
     parts = urlparse(target_url)
-    region = "us-east-1"
-    hostname_parts = parts.hostname.split(".")
-    if len(hostname_parts) == 4 and hostname_parts[0] == "sqs":
-        region = hostname_parts[1]
-    client = boto3.client(
-        "sqs",
-        region_name=region,
-        aws_access_key_id=parts.username,
-        aws_secret_access_key=(
-            unquote(parts.password) if parts.password else parts.password
-        ),
+    client = get_boto3_sqs_client(parts)
+    message_kwargs = get_boto3_sqs_message_kwargs(
+        parts, message, domain, signature, event_type
     )
-    queue_url = urlunparse(
-        (
-            "https",
-            parts.hostname,
-            parts.path,
-            parts.params,
-            parts.query,
-            parts.fragment,
-        )
-    )
-    is_fifo = parts.path.endswith(".fifo")
 
-    msg_attributes = {
-        "SaleorDomain": {"DataType": "String", "StringValue": domain},
-        "SaleorApiUrl": {
-            "DataType": "String",
-            "StringValue": build_absolute_uri(reverse("api"), domain),
-        },
-        "EventType": {"DataType": "String", "StringValue": event_type},
-    }
-    if signature:
-        msg_attributes["Signature"] = {
-            "DataType": "String",
-            "StringValue": signature,
-        }
-
-    message_kwargs = {
-        "QueueUrl": queue_url,
-        "MessageAttributes": msg_attributes,
-        "MessageBody": message.decode("utf-8"),
-    }
-    if is_fifo:
-        message_kwargs["MessageGroupId"] = domain
     with catch_duration_time() as duration:
         try:
             response = json.dumps(client.send_message(**message_kwargs))
-        except ClientError as e:
+        except (
+            botocore.exceptions.ClientError,
+            botocore.exceptions.BotoCoreError,
+        ) as e:
             return WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED, duration=duration()
             )
@@ -274,8 +313,9 @@ def send_webhook_using_google_cloud_pubsub(
     target_url, message, domain, signature, event_type, **kwargs
 ):
     parts = urlparse(target_url)
-    client = pubsub_v1.PublisherClient()
     topic_name = parts.path[1:]  # drop the leading slash
+
+    client, retry_config = get_google_pubsub_client_and_retry_config()
     with catch_duration_time() as duration:
         try:
             future = client.publish(
@@ -285,11 +325,14 @@ def send_webhook_using_google_cloud_pubsub(
                 saleorApiUrl=build_absolute_uri(reverse("api"), domain),
                 eventType=event_type,
                 signature=signature,
+                retry=retry_config,
+                timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,  #  timeout for an attempt, time budget shared between attempts
             )
             response = future.result(
-                timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT
+                timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,  # timeout for waiting until the result is resolved
             )
         except (
+            google.api_core.exceptions.GoogleAPIError,
             pubsub_v1.publisher.exceptions.MessageTooLargeError,
             RuntimeError,
             TimeoutError,
@@ -430,9 +473,12 @@ def get_deliveries_for_app(
 
 def get_multiple_deliveries_for_webhooks(
     event_delivery_ids,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> tuple[dict[int, "EventDelivery"], set[int]]:
-    deliveries = EventDelivery.objects.select_related("payload", "webhook__app").filter(
-        id__in=event_delivery_ids
+    deliveries = (
+        EventDelivery.objects.using(database_connection_name)
+        .select_related("payload", "webhook__app")
+        .filter(id__in=event_delivery_ids)
     )
 
     active_deliveries = {}
@@ -445,7 +491,17 @@ def get_multiple_deliveries_for_webhooks(
         logger.warning("Event delivery id: %r not found", not_found_delivery_id)
 
     for delivery in deliveries:
-        if delivery.webhook.is_active and delivery.webhook.app.is_active:
+        # For these 2 apps will (if deleted) or can (if deactivated) be inactive at this point
+        # For these two, we bypass active app check and emit anyway
+        bypass_inactive_check = delivery.event_type in (
+            WebhookEventAsyncType.APP_DELETED,
+            WebhookEventAsyncType.APP_STATUS_CHANGED,
+        )
+        should_deliver = delivery.webhook.is_active and (
+            delivery.webhook.app.is_active or bypass_inactive_check
+        )
+
+        if should_deliver:
             active_deliveries[delivery.pk] = delivery
         else:
             logger.info("Event delivery id: %r app/webhook is disabled.", delivery.pk)
@@ -668,3 +724,88 @@ def get_sqs_message_group_id(domain: str, app: App | None = None) -> str:
         identifier = slugify(app.identifier) if app.identifier else app.id
         group_id = f"{domain}:{identifier}"
     return group_id[:128]  # SQS MessageGroupId max length is 128 chars
+
+
+def get_boto3_sqs_client(parts):
+    region = "us-east-1"
+    hostname_parts = parts.hostname.split(".")
+
+    if len(hostname_parts) == 4 and hostname_parts[0] == "sqs":
+        region = hostname_parts[1]
+
+    return boto3.client(
+        "sqs",
+        region_name=region,
+        aws_access_key_id=parts.username,
+        aws_secret_access_key=(
+            unquote(parts.password) if parts.password else parts.password
+        ),
+        # Default Boto config allows internal retries which can take minutes.
+        # The intention is to set timeouts resembling sending HTTP(S) and Google PubSub webhooks.
+        # Boto timeouts can only be configured per attempt therefore internal Boto3 retries are
+        # being disabled.
+        config=BotoConfig(
+            connect_timeout=settings.REQUESTS_CONN_EST_TIMEOUT,
+            read_timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,
+            retries={"total_max_attempts": 1, "mode": "standard"},
+        ),
+    )
+
+
+def get_boto3_sqs_message_kwargs(parts, message, domain, signature, event_type):
+    queue_url = urlunparse(
+        (
+            "https",
+            parts.hostname,
+            parts.path,
+            parts.params,
+            parts.query,
+            parts.fragment,
+        )
+    )
+    is_fifo = parts.path.endswith(".fifo")
+
+    msg_attributes = {
+        "SaleorDomain": {"DataType": "String", "StringValue": domain},
+        "SaleorApiUrl": {
+            "DataType": "String",
+            "StringValue": build_absolute_uri(reverse("api"), domain),
+        },
+        "EventType": {"DataType": "String", "StringValue": event_type},
+    }
+    if signature:
+        msg_attributes["Signature"] = {
+            "DataType": "String",
+            "StringValue": signature,
+        }
+
+    message_kwargs = {
+        "QueueUrl": queue_url,
+        "MessageAttributes": msg_attributes,
+        "MessageBody": message.decode("utf-8"),
+    }
+    if is_fifo:
+        message_kwargs["MessageGroupId"] = domain
+
+    return message_kwargs
+
+
+def get_google_pubsub_client_and_retry_config():
+    client = pubsub_v1.PublisherClient()
+
+    # Copy-pasted default retry predicate BUT with different timeout.
+    # https://github.com/googleapis/google-cloud-python/blob/7bfa41a6746c43125f3534104aaaa7e8b18758ec/packages/google-cloud-pubsub/google/pubsub_v1/services/publisher/transports/base.py#L183-L196
+    retry_config = google_retry.Retry(
+        predicate=google_retry.if_exception_type(
+            google_exceptions.Aborted,
+            google_exceptions.Cancelled,
+            google_exceptions.DeadlineExceeded,
+            google_exceptions.InternalServerError,
+            google_exceptions.ResourceExhausted,
+            google_exceptions.ServiceUnavailable,
+            google_exceptions.Unknown,
+        ),
+        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,  # time budget for all attempts
+    )
+
+    return client, retry_config

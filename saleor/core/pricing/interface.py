@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional, Union
 
 from ...discount import DiscountType
@@ -23,8 +23,8 @@ class LineInfo:
     variant: Optional["ProductVariant"]
     product: Optional["Product"]
     product_type: Optional["ProductType"]
-    collections: list["Collection"]
-    channel: "Channel"
+    collections: list["Collection"] = field(repr=False)
+    channel: "Channel" = field(repr=False)
     discounts: Iterable[Union["OrderLineDiscount", "CheckoutLineDiscount"]]
     voucher: Optional["Voucher"]
     voucher_code: str | None

@@ -89,7 +89,7 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_flat_rate
     checkout.undiscounted_base_shipping_price_amount = Decimal(100)
     checkout.save()
 
-    checkout_delivery = checkout.shipping_methods.get()
+    checkout_delivery = checkout.deliveries.get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -147,7 +147,7 @@ def test_query_checkouts_do_not_trigger_external_shipping_webhook_with_tax_app(
     checkout.delivery_methods_stale_at = timezone.now()
     checkout.save()
 
-    checkout_delivery = checkout.shipping_methods.get()
+    checkout_delivery = checkout.deliveries.get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -203,7 +203,7 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_flat_rate
     checkout.delivery_methods_stale_at = timezone.now()
     checkout.save()
 
-    checkout_delivery = checkout.shipping_methods.get()
+    checkout_delivery = checkout.deliveries.get()
 
     # when
     response = staff_api_client.post_graphql(
@@ -259,7 +259,7 @@ def test_query_checkouts_do_not_trigger_exclude_shipping_webhooks_with_tax_app(
     checkout.delivery_methods_stale_at = timezone.now()
     checkout.save()
 
-    checkout_delivery = checkout.shipping_methods.get()
+    checkout_delivery = checkout.deliveries.get()
 
     # when
     response = staff_api_client.post_graphql(

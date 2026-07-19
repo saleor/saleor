@@ -12,6 +12,7 @@ from ...core import ResolveInfo
 from ...core.mutations import BaseBulkWithRestrictedChannelAccessMutation
 from ...core.types import NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..mutations.order_cancel import clean_order_cancel
 from ..types import Order
 
@@ -40,12 +41,14 @@ class OrderBulkCancel(BaseBulkWithRestrictedChannelAccessMutation):
             WEBHOOK_EVENTS_FOR_ORDER_CANCELED
         )
         manager = get_plugin_manager_promise(info.context).get()
+        site = get_site_promise(info.context).get()
         for order in queryset:
             cancel_order(
                 order=order,
                 user=info.context.user,
                 app=get_app_promise(info.context).get(),
                 manager=manager,
+                site_settings=site.settings,
                 webhook_event_map=webhook_event_map,
             )
 

@@ -14,6 +14,8 @@ class CustomerEvents:
     # Order related events
     PLACED_ORDER = "placed_order"  # created an order
     NOTE_ADDED_TO_ORDER = "note_added_to_order"  # added a note to one of their orders
+
+    # Kept to ensure zero-downtime migrations - will be removed in Saleor v3.24.0
     DIGITAL_LINK_DOWNLOADED = "digital_link_downloaded"  # downloaded a digital good
 
     # Staff actions over customers events

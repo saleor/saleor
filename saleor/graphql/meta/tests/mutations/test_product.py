@@ -85,32 +85,6 @@ def test_delete_private_metadata_for_collection(
     )
 
 
-def test_delete_private_metadata_for_digital_content(
-    staff_api_client, permission_manage_products, digital_content
-):
-    # given
-    digital_content.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    digital_content.save(update_fields=["private_metadata"])
-    digital_content_id = graphene.Node.to_global_id(
-        "DigitalContent", digital_content.pk
-    )
-
-    # when
-    response = execute_clear_private_metadata_for_item(
-        staff_api_client,
-        permission_manage_products,
-        digital_content_id,
-        "DigitalContent",
-    )
-
-    # then
-    assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"],
-        digital_content,
-        digital_content_id,
-    )
-
-
 def test_delete_public_metadata_for_product_media(
     staff_api_client, permission_manage_products, product_with_image
 ):
@@ -283,30 +257,6 @@ def test_delete_public_metadata_for_collection(
     )
 
 
-def test_delete_public_metadata_for_digital_content(
-    staff_api_client, permission_manage_products, digital_content
-):
-    # given
-    digital_content.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    digital_content.save(update_fields=["metadata"])
-    digital_content_id = graphene.Node.to_global_id(
-        "DigitalContent", digital_content.pk
-    )
-
-    # when
-    response = execute_clear_public_metadata_for_item(
-        staff_api_client,
-        permission_manage_products,
-        digital_content_id,
-        "DigitalContent",
-    )
-
-    # then
-    assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], digital_content, digital_content_id
-    )
-
-
 @patch("saleor.plugins.manager.PluginsManager.product_metadata_updated")
 def test_delete_public_metadata_for_product(
     updated_webhook_mock, staff_api_client, permission_manage_products, product
@@ -447,28 +397,6 @@ def test_add_public_metadata_for_collection(
     # then
     assert item_contains_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], published_collection, collection_id
-    )
-
-
-def test_add_public_metadata_for_digital_content(
-    staff_api_client, permission_manage_products, digital_content
-):
-    # given
-    digital_content_id = graphene.Node.to_global_id(
-        "DigitalContent", digital_content.pk
-    )
-
-    # when
-    response = execute_update_public_metadata_for_item(
-        staff_api_client,
-        permission_manage_products,
-        digital_content_id,
-        "DigitalContent",
-    )
-
-    # then
-    assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], digital_content, digital_content_id
     )
 
 

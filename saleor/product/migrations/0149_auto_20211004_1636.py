@@ -4,32 +4,6 @@ import django.contrib.postgres.indexes
 from django.db import migrations, models
 
 
-def parse_draftjs_content_to_string(definitions):
-    string = ""
-    blocks = definitions.get("blocks")
-    if not blocks or not isinstance(blocks, list):
-        return ""
-    for block in blocks:
-        text = block.get("text")
-        if not text:
-            continue
-        string += f"{text} "
-
-    return string
-
-
-def parse_description_json_field(apps, schema):
-    Category = apps.get_model("product", "Category")
-
-    for category in Category.objects.iterator():
-        category.description_plaintext = ""
-        if category.description:
-            category.description_plaintext = parse_draftjs_content_to_string(
-                category.description
-            )
-        category.save(update_fields=["description_plaintext"])
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("product", "0148_producttype_product_type_search_gin"),
@@ -49,9 +23,5 @@ class Migration(migrations.Migration):
                 name="category_search_name_slug_gin",
                 opclasses=["gin_trgm_ops", "gin_trgm_ops", "gin_trgm_ops"],
             ),
-        ),
-        migrations.RunPython(
-            parse_description_json_field,
-            migrations.RunPython.noop,
         ),
     ]

@@ -25,7 +25,6 @@ from ..discount.utils.voucher import (
 from ..graphql.core.types import Money
 from ..payment.models import Payment
 from ..product.models import (
-    DigitalContent,
     ProductVariant,
     ProductVariantChannelListing,
 )
@@ -46,8 +45,6 @@ class OrderLineInfo:
     line: "OrderLine"
     quantity: int
     variant: Optional["ProductVariant"] = None
-    is_digital: bool | None = None
-    digital_content: Optional["DigitalContent"] = None
     replace: bool = False
     warehouse_pk: UUID | None = None
     line_discounts: Iterable["OrderLineDiscount"] | None = None
@@ -66,20 +63,15 @@ def fetch_order_info(order: "Order") -> OrderInfo:
 
 
 def fetch_order_lines(order: "Order") -> list[OrderLineInfo]:
-    lines = order.lines.prefetch_related("variant__digital_content")
+    lines = order.lines.prefetch_related("variant")
     lines_info = []
     for line in lines:
-        is_digital = line.is_digital
         variant = line.variant
         lines_info.append(
             OrderLineInfo(
                 line=line,
                 quantity=line.quantity,
-                is_digital=is_digital,
                 variant=variant,
-                digital_content=(
-                    variant.digital_content if is_digital and variant else None
-                ),
             )
         )
 
@@ -139,9 +131,8 @@ def fetch_draft_order_lines_info(
         )
 
     if lines is None:
-        with allow_writer():
-            # TODO: load lines with dataloader and pass as an argument
-            lines = list(order.lines.prefetch_related(*prefetch_related_fields))
+        # TODO: load lines with dataloader and pass as an argument
+        lines = list(order.lines.prefetch_related(*prefetch_related_fields))
     else:
         prefetch_related_objects(lines, *prefetch_related_fields)
 

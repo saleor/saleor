@@ -8,7 +8,7 @@ from django.utils import timezone
 from .....checkout.calculations import _fetch_checkout_prices_if_expired
 from .....checkout.fetch import fetch_checkout_lines
 from .....order import OrderStatus
-from .....order.models import FulfillmentStatus
+from .....order.models import FulfillmentStatus, Order
 from .....payment.interface import (
     ListStoredPaymentMethodsRequestData,
     PaymentGateway,
@@ -202,7 +202,7 @@ def test_me_query_checkouts_do_not_trigger_sync_tax_webhooks(
         force_update=False,
         lines=lines,
         manager=mock.ANY,
-        pregenerated_subscription_payloads=mock.ANY,
+        requestor=user,
     )
 
 
@@ -254,7 +254,7 @@ def test_me_query_checkouts_calculate_flat_taxes(
         force_update=False,
         lines=lines,
         manager=mock.ANY,
-        pregenerated_subscription_payloads=mock.ANY,
+        requestor=user,
     )
 
 
@@ -684,3 +684,178 @@ def test_me_query_stored_payment_methods(
             "data": payment_method_data,
         }
     ]
+
+
+ME_ORDERS_PAGINATION_QUERY = """
+    query Me($first: Int, $last: Int, $after: String, $before: String) {
+        me {
+            orders(first: $first, last: $last, after: $after, before: $before) {
+                edges {
+                    node {
+                        id
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    hasPreviousPage
+                    startCursor
+                    endCursor
+                }
+                totalCount
+            }
+        }
+    }
+"""
+
+
+def test_me_orders_pagination_has_previous_page(user_api_client, order_list):
+    # given - 3 orders exist for the user; fetch first page of 1
+    variables = {"first": 1}
+    response = user_api_client.post_graphql(ME_ORDERS_PAGINATION_QUERY, variables)
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    end_cursor = orders_data["pageInfo"]["endCursor"]
+    assert orders_data["pageInfo"]["hasPreviousPage"] is False
+    assert orders_data["pageInfo"]["hasNextPage"] is True
+
+    # when - fetch second page using after cursor
+    variables = {"first": 1, "after": end_cursor}
+    response = user_api_client.post_graphql(ME_ORDERS_PAGINATION_QUERY, variables)
+
+    # then - second page should report hasPreviousPage=True
+    content = get_graphql_content(response)
+    page_info = content["data"]["me"]["orders"]["pageInfo"]
+    assert page_info["hasPreviousPage"] is True
+    assert page_info["hasNextPage"] is True
+
+
+ME_ORDERS_WHERE_QUERY = """
+    query Me($where: CustomerOrderWhereInput!) {
+        me {
+            orders(first: 10, where: $where) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        number
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_me_orders_where_filter_by_ids(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    for order in order_list:
+        order.user = user
+    Order.objects.bulk_update(order_list, ["user"])
+
+    target_orders = order_list[:2]
+    ids = [graphene.Node.to_global_id("Order", order.pk) for order in target_orders]
+    variables = {"where": {"ids": ids}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 2
+    returned_ids = {edge["node"]["id"] for edge in orders_data["edges"]}
+    assert returned_ids == {
+        graphene.Node.to_global_id("Order", o.pk) for o in target_orders
+    }
+
+
+def test_me_orders_where_filter_by_status(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    order_list[0].user = user
+    order_list[0].status = OrderStatus.UNCONFIRMED
+    order_list[1].user = user
+    order_list[1].status = OrderStatus.UNFULFILLED
+    order_list[2].user = user
+    order_list[2].status = OrderStatus.UNFULFILLED
+    Order.objects.bulk_update(order_list, ["user", "status"])
+
+    variables = {"where": {"status": {"eq": OrderStatus.UNCONFIRMED.upper()}}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_list[0].pk
+    )
+
+
+def test_me_orders_where_filter_excludes_draft_orders(user_api_client, order_list):
+    # given - owner has a draft order and a non-draft order
+    user = user_api_client.user
+    order_list[0].user = user
+    order_list[0].status = OrderStatus.UNFULFILLED
+    order_list[1].user = user
+    order_list[1].status = OrderStatus.DRAFT
+    Order.objects.bulk_update(order_list[:2], ["user", "status"])
+
+    # when - user queries their own orders with no filter
+    variables = {"where": {}}
+
+    # then - draft order is excluded for the owner
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    returned_ids = {edge["node"]["id"] for edge in orders_data["edges"]}
+    assert graphene.Node.to_global_id("Order", order_list[0].pk) in returned_ids
+    assert graphene.Node.to_global_id("Order", order_list[1].pk) not in returned_ids
+
+
+def test_me_orders_where_filter_by_number(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    for order in order_list:
+        order.user = user
+    Order.objects.bulk_update(order_list, ["user"])
+
+    target_order = order_list[0]
+    variables = {"where": {"number": {"eq": str(target_order.number)}}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["number"] == str(target_order.number)
+
+
+def test_me_orders_where_filter_by_metadata(user_api_client, order_list):
+    # given
+    user = user_api_client.user
+    order_list[0].user = user
+    order_list[0].metadata = {"key": "value"}
+    order_list[1].user = user
+    order_list[1].metadata = {"key": "other_value"}
+    order_list[2].user = user
+    order_list[2].metadata = {}
+    Order.objects.bulk_update(order_list, ["user", "metadata"])
+
+    variables = {"where": {"metadata": {"key": "key", "value": {"eq": "value"}}}}
+
+    # when
+    response = user_api_client.post_graphql(ME_ORDERS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    orders_data = content["data"]["me"]["orders"]
+    assert orders_data["totalCount"] == 1
+    assert orders_data["edges"][0]["node"]["id"] == graphene.Node.to_global_id(
+        "Order", order_list[0].pk
+    )

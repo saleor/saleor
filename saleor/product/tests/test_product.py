@@ -1,15 +1,12 @@
 import datetime
-import os
 from collections import defaultdict
 from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
 import pytest
-from freezegun import freeze_time
 from prices import Money
 
-from ...account import events as account_events
 from ...attribute.utils import associate_attribute_values_to_instance
 from ...discount import RewardValueType
 from ...discount.models import PromotionRule
@@ -21,7 +18,6 @@ from ...graphql.product.filters.product_attributes import (
 from .. import ProductTypeKind, models
 from ..tasks import update_variants_names
 from ..utils.costs import get_margin_for_variant_channel_listing
-from ..utils.digital_products import increment_download_count
 
 
 def test_filtering_by_attribute(
@@ -394,99 +390,6 @@ def test_get_price_overridden_price_with_discount(
     assert price.amount == price_override - reward_value_2 - (
         reward_value_1 / 100 * price_override
     )
-
-
-def test_digital_product_view(client, digital_content_url):
-    """Ensure a non-expired digital good can be downloaded and results in an event."""
-
-    url = digital_content_url.get_absolute_url()
-    response = client.get(url)
-    filename = os.path.basename(digital_content_url.content.content_file.name)
-
-    assert response.status_code == 200
-    assert response["content-type"] == "image/jpeg"
-    assert response["content-disposition"] == f'attachment; filename="{filename}"'
-
-    # Ensure an event was generated from downloading a digital good.
-    # The validity of this event is checked in test_digital_product_increment_download
-    assert account_events.CustomerEvent.objects.exists()
-
-
-@pytest.mark.parametrize(
-    ("is_user_null", "is_line_null"), [(False, False), (False, True), (True, True)]
-)
-def test_digital_product_increment_download(
-    client,
-    customer_user,
-    digital_content_url: models.DigitalContentUrl,
-    is_user_null,
-    is_line_null,
-):
-    """Ensure a digital good can be downloaded without it belonging to an order or user."""
-
-    expected_user = customer_user
-
-    if is_line_null:
-        expected_user = None
-        digital_content_url.line = None
-        digital_content_url.save(update_fields=["line"])
-    elif is_user_null:
-        expected_user = None
-        digital_content_url.line.user = None
-        digital_content_url.line.save(update_fields=["user"])
-
-    expected_new_download_count = digital_content_url.download_num + 1
-    increment_download_count(digital_content_url)
-    assert digital_content_url.download_num == expected_new_download_count
-
-    if expected_user is None:
-        # Ensure an event was not generated from downloading a digital good
-        # as no user could be found
-        assert not account_events.CustomerEvent.objects.exists()
-        return
-
-    download_event = account_events.CustomerEvent.objects.get()
-    assert download_event.type == account_events.CustomerEvents.DIGITAL_LINK_DOWNLOADED
-    assert download_event.user == expected_user
-    assert download_event.order == digital_content_url.line.order
-    assert download_event.parameters == {
-        "order_line_pk": str(digital_content_url.line.pk)
-    }
-
-
-def test_digital_product_view_url_downloaded_max_times(client, digital_content):
-    digital_content.use_default_settings = False
-    digital_content.max_downloads = 1
-    digital_content.save()
-    digital_content_url = models.DigitalContentUrl.objects.create(
-        content=digital_content
-    )
-
-    url = digital_content_url.get_absolute_url()
-    response = client.get(url)
-
-    # first download
-    assert response.status_code == 200
-
-    # second download
-    response = client.get(url)
-    assert response.status_code == 404
-
-
-def test_digital_product_view_url_expired(client, digital_content):
-    digital_content.use_default_settings = False
-    digital_content.url_valid_days = 10
-    digital_content.save()
-
-    with freeze_time("2018-05-31 12:00:01"):
-        digital_content_url = models.DigitalContentUrl.objects.create(
-            content=digital_content
-        )
-
-    url = digital_content_url.get_absolute_url()
-    response = client.get(url)
-
-    assert response.status_code == 404
 
 
 @pytest.mark.parametrize(

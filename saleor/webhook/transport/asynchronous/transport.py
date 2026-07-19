@@ -2,17 +2,19 @@ import datetime
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Hashable, Sequence
 from dataclasses import asdict, dataclass
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from celery import group
+from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.apps import apps
 from django.conf import settings
 from django.db import transaction
 from opentelemetry.trace import StatusCode
+from promise import Promise
 
 from ....celeryconf import app
 from ....core import EventDeliveryStatus
@@ -26,19 +28,17 @@ from ....core.telemetry import (
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
 from ....core.utils.url import sanitize_url_for_logging
-from ....graphql.core.dataloaders import DataLoader
 from ....graphql.webhook.subscription_payload import (
-    generate_payload_from_subscription,
     generate_payload_promise_from_subscription,
     get_pre_save_payload_key,
     initialize_request,
 )
-from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...observability import WebhookData
 from ..metrics import record_external_request, record_first_delivery_attempt_delay
 from ..utils import (
+    DEFERRED_SUBSCRIBABLE_OBJECT_MAP,
     DeferredPayloadData,
     RequestorModelName,
     WebhookResponse,
@@ -60,6 +60,8 @@ from ..utils import (
 )
 
 if TYPE_CHECKING:
+    from ....graphql.core.context import SaleorContext
+    from ....graphql.core.dataloaders import DataLoader
     from ....webhook.models import Webhook
 
 
@@ -88,7 +90,7 @@ def create_deliveries_for_multiple_subscription_objects(
     allow_replica=False,
     pre_save_payloads: dict | None = None,
     request_time: datetime.datetime | None = None,
-) -> list[EventDelivery]:
+) -> Promise[list[EventDelivery]]:
     """Create event deliveries with payloads based on multiple subscription objects.
 
     Trigger webhooks for each object in `subscribable_objects`. EventDeliveries and
@@ -104,41 +106,56 @@ def create_deliveries_for_multiple_subscription_objects(
     :return: List of event deliveries to send via webhook tasks.
     :param allow_replica: use replica database.
     """
+    from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
+
     if event_type not in WEBHOOK_TYPES_MAP:
         logger.info(
             "Skipping subscription webhook. Event %s is not subscribable.", event_type
         )
-        return []
+        return Promise.resolve([])
 
-    event_payloads = []
-    event_payloads_data = []
-    event_deliveries = []
-    event_deliveries_for_bulk_update = []
+    is_sync_event = event_type in WebhookEventSyncType.ALL
+    dataloaders: dict[str, type[DataLoader]] = {}
+    request_map: dict[int, SaleorContext] = {}
 
+    promises = []
+    subscribable_object_with_webhook = []
     for subscribable_object in subscribable_objects:
         # Dataloaders are shared between calls to generate_payload_from_subscription to
         # reuse their cache. This avoids unnecessary DB queries when different webhooks
         # need to resolve the same data.
-        dataloaders: dict[str, type[DataLoader]] = {}
-
-        request = initialize_request(
-            requestor,
-            event_type in WebhookEventSyncType.ALL,
-            event_type=event_type,
-            allow_replica=allow_replica,
-            request_time=request_time,
-            dataloaders=dataloaders,
-        )
-
         for webhook in webhooks:
-            data = generate_payload_from_subscription(
+            request = request_map.get(webhook.app_id)
+            if not request:
+                request = initialize_request(
+                    app=webhook.app,
+                    requestor=requestor,
+                    sync_event=is_sync_event,
+                    event_type=event_type,
+                    allow_replica=allow_replica,
+                    request_time=request_time,
+                    dataloaders=dataloaders,
+                )
+                request_map[webhook.app_id] = request
+
+            promise = generate_payload_promise_from_subscription(
                 event_type=event_type,
                 subscribable_object=subscribable_object,
                 subscription_query=webhook.subscription_query,
                 request=request,
-                app=webhook.app,
             )
+            subscribable_object_with_webhook.append((subscribable_object, webhook))
+            promises.append(promise)
 
+    def process_webhook_payloads(webhook_payloads):
+        event_payloads = []
+        event_payloads_data = []
+        event_deliveries = []
+        event_deliveries_for_bulk_update = []
+
+        for (subscribable_object, webhook), data in zip(
+            subscribable_object_with_webhook, webhook_payloads, strict=False
+        ):
             if not data:
                 logger.info(
                     "No payload was generated with subscription for event: %s",
@@ -189,16 +206,18 @@ def create_deliveries_for_multiple_subscription_objects(
                 event_payloads_data = []
                 event_deliveries_for_bulk_update = []
 
-    with allow_writer():
-        # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
-        with transaction.atomic():
-            EventPayload.objects.bulk_create_with_payload_files(
-                event_payloads, event_payloads_data
-            )
-            event_deliveries.extend(
-                EventDelivery.objects.bulk_create(event_deliveries_for_bulk_update)
-            )
-        return event_deliveries
+        with allow_writer():
+            # Use transaction to ensure EventPayload and EventDelivery are created together, preventing inconsistent DB state.
+            with transaction.atomic():
+                EventPayload.objects.bulk_create_with_payload_files(
+                    event_payloads, event_payloads_data
+                )
+                event_deliveries.extend(
+                    EventDelivery.objects.bulk_create(event_deliveries_for_bulk_update)
+                )
+            return event_deliveries
+
+    return Promise.all(promises).then(process_webhook_payloads)
 
 
 def create_deliveries_for_subscriptions(
@@ -230,7 +249,7 @@ def create_deliveries_for_subscriptions(
         allow_replica,
         pre_save_payloads,
         request_time,
-    )
+    ).get()
 
 
 def create_deliveries_for_deferred_payload_subscriptions(
@@ -240,10 +259,10 @@ def create_deliveries_for_deferred_payload_subscriptions(
     requestor=None,
     allow_replica=False,
     request_time=None,
-) -> dict[int, list[tuple[EventDelivery, DeferredPayloadData]]]:
+) -> dict[Hashable, list[tuple[EventDelivery, DeferredPayloadData]]]:
     deliveries_to_create = []
     deliveries_per_object: dict[
-        int, list[tuple[EventDelivery, DeferredPayloadData]]
+        Hashable, list[tuple[EventDelivery, DeferredPayloadData]]
     ] = defaultdict(list)
 
     for subscribable_object in subscribable_objects:
@@ -346,11 +365,12 @@ def trigger_webhooks_async_for_multiple_objects(
 
     # List of deliveries with payloads.
     deliveries: list[EventDelivery] = []
+    delivery_promise: Promise[list[EventDelivery]] | None = None
 
     # List of deliveries and data to generate deferred payloads for each subscribable
     # object. Note: we assume that all subscribable objects are of the same type.
     deferred_deliveries_per_object: dict[
-        int, list[tuple[EventDelivery, DeferredPayloadData]]
+        Hashable, list[tuple[EventDelivery, DeferredPayloadData]]
     ] = defaultdict(list)
 
     for webhook_payload_detail in webhook_payloads_data:
@@ -393,17 +413,17 @@ def trigger_webhooks_async_for_multiple_objects(
                 )
             )
         else:
-            deliveries.extend(
-                create_deliveries_for_multiple_subscription_objects(
-                    event_type=event_type,
-                    subscribable_objects=subscribable_objects,
-                    webhooks=subscription_webhooks,
-                    requestor=requestor,
-                    allow_replica=allow_replica,
-                    pre_save_payloads=pre_save_payloads,
-                    request_time=request_time,
-                )
+            delivery_promise = create_deliveries_for_multiple_subscription_objects(
+                event_type=event_type,
+                subscribable_objects=subscribable_objects,
+                webhooks=subscription_webhooks,
+                requestor=requestor,
+                allow_replica=allow_replica,
+                pre_save_payloads=pre_save_payloads,
+                request_time=request_time,
             )
+
+    domain = get_domain()
 
     for _, deferred_deliveries in deferred_deliveries_per_object.items():
         if not deferred_deliveries:
@@ -415,6 +435,8 @@ def trigger_webhooks_async_for_multiple_objects(
         # object; we can take the first one for given `deferred_deliveries`.
         deferred_payload_data = deferred_deliveries[0][1]
 
+        message_group_id = get_sqs_message_group_id(domain, app=None)
+
         # Trigger deferred payload generation task for each subscribable object.
         # This task in run on the default queue; `send_webhook_queue` is passed to
         # run the `send_webhook_request_async` task after the payload is generated.
@@ -425,24 +447,31 @@ def trigger_webhooks_async_for_multiple_objects(
                 "send_webhook_queue": queue,
                 "telemetry_context": get_task_context().to_dict(),
             },
-            bind=True,
+            MessageGroupId=message_group_id,
+            queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
         )
-    domain = get_domain()
-    for delivery in deliveries:
-        message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
-            kwargs={
-                "event_delivery_id": delivery.pk,
-                "telemetry_context": get_task_context().to_dict(),
-            },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
-        )
+
+    def process_deliveries(deliveries_list):
+        for delivery in deliveries_list:
+            message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
+            # TODO: switch to new `send_webhooks_async_for_app` task when we have
+            # deduplication mechanism in place.
+
+            send_webhook_request_async.apply_async(
+                kwargs={
+                    "event_delivery_id": delivery.pk,
+                    "telemetry_context": get_task_context().to_dict(),
+                },
+                queue=get_queue_name_for_webhook(
+                    delivery.webhook,
+                    default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
+                ),
+                MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            )
+
+    process_deliveries(deliveries)
+    if delivery_promise:
+        delivery_promise.then(process_deliveries).get()
 
 
 def trigger_webhooks_async(
@@ -488,7 +517,25 @@ def trigger_webhooks_async(
     )
 
 
-@app.task(bind=True)
+def confirm_event_delivery_availability(
+    event_delivery_ids: list[int],
+    db_connection_name: str,
+) -> tuple[set[int], set[int]]:
+    """Confirm which event deliveries are available on the given DB connection."""
+    available_delivery_pks = set(
+        EventDelivery.objects.using(db_connection_name)
+        .filter(pk__in=event_delivery_ids)
+        .values_list("pk", flat=True)
+    )
+
+    missing_delivery_pks = set(event_delivery_ids) - available_delivery_pks
+    return available_delivery_pks, missing_delivery_pks
+
+
+@app.task(
+    bind=True,
+    max_retries=12,
+)
 @allow_writer()
 @task_with_telemetry_context
 def generate_deferred_payloads(
@@ -499,8 +546,80 @@ def generate_deferred_payloads(
     *,
     telemetry_context: TelemetryTaskContext,
 ):
+    if not event_delivery_ids:
+        logger.warning(
+            "No event delivery IDs provided for deferred payload generation task."
+        )
+        return
+
+    task_properties = self.request.properties or {}
+    message_group_id = task_properties.get("MessageGroupId")
+    if message_group_id is None:
+        domain = get_domain()
+        message_group_id = get_sqs_message_group_id(domain, app=None)
+
+    # Set up transaction to ensure that we always use the same
+    # replica while checking the lag and generating the payloads.
+    with transaction.atomic(
+        using=settings.DATABASE_CONNECTION_REPLICA_NAME, savepoint=False
+    ):
+        db_connection_name = settings.DATABASE_CONNECTION_REPLICA_NAME
+        available_delivery_pks, missing_delivery_pks = (
+            confirm_event_delivery_availability(event_delivery_ids, db_connection_name)
+        )
+
+        if not available_delivery_pks:
+            # If all deliveries are missing, we queue a retry to wait for replica
+            try:
+                retry_backoff = 1
+                countdown = retry_backoff * (2**self.request.retries)
+                raise self.retry(
+                    countdown=countdown,
+                    MessageGroupId=message_group_id,
+                )
+            except MaxRetriesExceededError:
+                logger.error(
+                    "Max retries exceeded for deferred payload generation. "
+                    "Event deliveries not found on replica: %s.",
+                    missing_delivery_pks,
+                    extra={
+                        "event_delivery_ids": event_delivery_ids,
+                    },
+                )
+            return
+
+        if missing_delivery_pks:
+            # Process missing deliveries separately.
+            request_kwargs = self.request.kwargs
+            generate_deferred_payloads.apply_async(
+                kwargs={
+                    **request_kwargs,
+                    "event_delivery_ids": list(missing_delivery_pks),
+                },
+                MessageGroupId=message_group_id,
+            )
+
+        _generate_deferred_payloads(
+            event_delivery_ids=available_delivery_pks,
+            deferred_payload_data=deferred_payload_data,
+            send_webhook_queue=send_webhook_queue,
+            telemetry_context=telemetry_context,
+            database_connection_name=db_connection_name,
+        )
+
+
+def _generate_deferred_payloads(
+    event_delivery_ids: set[int],
+    deferred_payload_data: dict,
+    send_webhook_queue: str | None,
+    telemetry_context: TelemetryTaskContext,
+    database_connection_name: str,
+):
     deliveries = list(
-        get_multiple_deliveries_for_webhooks(event_delivery_ids)[0].values()
+        get_multiple_deliveries_for_webhooks(
+            event_delivery_ids,
+            database_connection_name=database_connection_name,
+        )[0].values()
     )
     args_obj = DeferredPayloadData(**deferred_payload_data)
     requestor = None
@@ -509,13 +628,24 @@ def generate_deferred_payloads(
         RequestorModelName.USER,
     ):
         model = apps.get_model(args_obj.requestor_model_name)
-        requestor = model.objects.filter(pk=args_obj.requestor_object_id).first()
+        requestor = (
+            model.objects.using(database_connection_name)
+            .filter(pk=args_obj.requestor_object_id)
+            .first()
+        )
 
-    subscribable_object = (
-        apps.get_model(args_obj.model_name)
-        .objects.filter(pk=args_obj.object_id)
-        .first()
-    )
+    if args_obj.subscribable_object_data is not None:
+        event_type = deliveries[0].event_type
+        subscribable_object = _reconstruct_subscribable_object(event_type, args_obj)
+    elif args_obj.model_name and args_obj.object_id is not None:
+        subscribable_object = (
+            apps.get_model(args_obj.model_name)
+            .objects.using(database_connection_name)
+            .filter(pk=args_obj.object_id)
+            .first()
+        )
+    else:
+        subscribable_object = None
     if not subscribable_object:
         EventDelivery.objects.filter(pk__in=event_delivery_ids).update(
             status=EventDeliveryStatus.FAILED
@@ -524,31 +654,40 @@ def generate_deferred_payloads(
 
     event_payloads = []
     event_payloads_data = []
-    event_deliveries_for_bulk_update = []
 
+    dataloaders: dict[str, type[DataLoader]] = {}
+    request_map: dict[int, SaleorContext] = {}
+
+    data_promises = []
     for delivery in deliveries:
         event_type = delivery.event_type
         webhook = delivery.webhook
         if not webhook.subscription_query:
             continue
-
-        request = initialize_request(
-            requestor,
-            event_type in WebhookEventSyncType.ALL,
-            event_type=event_type,
-            allow_replica=True,
-            request_time=args_obj.request_time,
+        request = request_map.get(webhook.app_id)
+        if not request:
+            request = initialize_request(
+                app=webhook.app,
+                requestor=requestor,
+                sync_event=event_type in WebhookEventSyncType.ALL,
+                event_type=event_type,
+                allow_replica=True,
+                request_time=args_obj.request_time,
+                dataloaders=dataloaders,
+            )
+            request_map[webhook.app_id] = request
+        data_promises.append(
+            generate_payload_promise_from_subscription(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                subscription_query=webhook.subscription_query,
+                request=request,
+            )
         )
-        data_promise = generate_payload_promise_from_subscription(
-            event_type=event_type,
-            subscribable_object=subscribable_object,
-            subscription_query=webhook.subscription_query,
-            request=request,
-            app=webhook.app,
-        )
 
-        if data_promise:
-            data = data_promise.get()
+    def with_subscription_payload(payloads):
+        event_deliveries_for_bulk_update = []
+        for data, delivery in zip(payloads, deliveries, strict=False):
             if data:
                 data_json = json.dumps({**data})
                 event_payloads_data.append(data_json)
@@ -557,32 +696,66 @@ def generate_deferred_payloads(
                 delivery.payload = event_payload
                 event_deliveries_for_bulk_update.append(delivery)
 
-    if event_deliveries_for_bulk_update:
-        with allow_writer():
-            with transaction.atomic():
-                EventPayload.objects.bulk_create_with_payload_files(
-                    event_payloads, event_payloads_data
-                )
-                EventDelivery.objects.bulk_update(
-                    event_deliveries_for_bulk_update, ["payload"]
-                )
-    domain = get_domain()
-    for delivery in event_deliveries_for_bulk_update:
-        # Trigger webhook delivery task when the payload is ready.
-        message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
-        # TODO: switch to new `send_webhooks_async_for_app` task when we have
-        # deduplication mechanism in place.
-        send_webhook_request_async.apply_async(
-            kwargs={
-                "event_delivery_id": delivery.pk,
-                "telemetry_context": telemetry_context.to_dict(),
-            },
-            queue=get_queue_name_for_webhook(
-                delivery.webhook,
-                default_queue=send_webhook_queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
-            ),
-            MessageGroupId=message_group_id,  # for AWS SQS fair queues
+        if event_deliveries_for_bulk_update:
+            with allow_writer():
+                with transaction.atomic():
+                    EventPayload.objects.bulk_create_with_payload_files(
+                        event_payloads, event_payloads_data
+                    )
+                    EventDelivery.objects.bulk_update(
+                        event_deliveries_for_bulk_update, ["payload"]
+                    )
+        domain = get_domain()
+        for delivery in event_deliveries_for_bulk_update:
+            # Trigger webhook delivery task when the payload is ready.
+            message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
+            # TODO: switch to new `send_webhooks_async_for_app` task when we have
+            # deduplication mechanism in place.
+            send_webhook_request_async.apply_async(
+                kwargs={
+                    "event_delivery_id": delivery.pk,
+                    "telemetry_context": telemetry_context.to_dict(),
+                },
+                queue=get_queue_name_for_webhook(
+                    delivery.webhook,
+                    default_queue=send_webhook_queue
+                    or settings.WEBHOOK_CELERY_QUEUE_NAME,
+                ),
+                MessageGroupId=message_group_id,  # for AWS SQS fair queues
+            )
+
+    Promise.all(data_promises).then(with_subscription_payload).get()
+    return
+
+
+def _reconstruct_subscribable_object(
+    event_type: str,
+    deferred_data: "DeferredPayloadData",
+):
+    """Reconstruct a dataclass subscribable object from serialized data.
+
+    Looks up the expected dataclass from the event type mapping and instantiates
+    it with the stored data. The dataclass constructor validates the structure —
+    missing or unexpected fields will raise a TypeError.
+    """
+    data = deferred_data.subscribable_object_data
+    if data is None:
+        raise ValueError(
+            "subscribable_object_data is required for "
+            "dataclass-based deferred payloads."
         )
+    cls = DEFERRED_SUBSCRIBABLE_OBJECT_MAP.get(event_type)
+    if cls is None:
+        raise ValueError(
+            f"No subscribable object class registered for event type: "
+            f"{event_type}. Add it to DEFERRED_SUBSCRIBABLE_OBJECT_MAP."
+        )
+    try:
+        return cls(**data)
+    except (TypeError, ValueError) as e:
+        raise ValueError(
+            f"Failed to reconstruct {cls.__name__} from deferred payload data: {e}"
+        ) from e
 
 
 @app.task(

@@ -6,9 +6,15 @@ configuration, such as: warehouses, shipping zones, staff accounts, plugin confi
 """
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from ....account.models import Address, CustomerEvent, CustomerNote, User
-from ....checkout.models import Checkout, CheckoutLine, CheckoutMetadata
+from ....checkout.models import (
+    Checkout,
+    CheckoutDelivery,
+    CheckoutLine,
+    CheckoutMetadata,
+)
 from ....discount.models import (
     CheckoutDiscount,
     CheckoutLineDiscount,
@@ -90,8 +96,20 @@ class Command(BaseCommand):
         checkout_lines = CheckoutLine.objects.all()
         checkout_lines._raw_delete(checkout_lines.db)
 
-        checkout = Checkout.objects.all()
-        checkout._raw_delete(checkout.db)
+        # We use a transaction in order to defer PostgreSQL FK checks due to
+        # Checkout and CheckoutDelivery models/tables referencing each other,
+        # thus this requires deferring the FK checks after deleting both tables
+        # (thus deferring autocommit)
+        #
+        # Note: this may cause locks to be held for longer, however this is the
+        #       the cheapest approach. Doing a bulk update would be highly
+        #       expensive in comparison
+        with transaction.atomic():
+            checkout_deliveries = CheckoutDelivery.objects.all()
+            checkout_deliveries._raw_delete(checkout_deliveries.db)
+
+            checkout = Checkout.objects.all()
+            checkout._raw_delete(checkout.db)
         self.stdout.write("Removed checkouts")
 
     def delete_payments(self):

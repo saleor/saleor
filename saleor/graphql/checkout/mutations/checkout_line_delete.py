@@ -91,7 +91,12 @@ class CheckoutLineDelete(BaseMutation):
         invalidate_update_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        checkout.save(update_fields=shipping_update_fields + invalidate_update_fields)
+        checkout.search_index_dirty = True
+        checkout.save(
+            update_fields=shipping_update_fields
+            + invalidate_update_fields
+            + ["search_index_dirty"]
+        )
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,

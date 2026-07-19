@@ -45,9 +45,7 @@ class JWTManagerBase:
         return NotImplemented
 
     @classmethod
-    def decode(
-        cls, token: str, verify_expiration: bool = True, verify_aud: bool = False
-    ) -> dict:
+    def decode(cls, token: str, verify_aud: bool = False) -> dict:
         return NotImplemented
 
     @classmethod
@@ -182,7 +180,7 @@ class JWTManager(JWTManagerBase):
         )
 
     @classmethod
-    def decode(cls, token, verify_expiration: bool = True, verify_aud: bool = False):
+    def decode(cls, token, verify_aud: bool = False):
         # `verify_aud` set to false as we decode our own tokens
         # we can have `aud` defined for app or custom.
         headers = jwt.get_unverified_header(token)
@@ -191,13 +189,13 @@ class JWTManager(JWTManagerBase):
                 token,
                 cls.get_public_key(),
                 algorithms=[cls._ALG],
-                options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
+                options={"verify_aud": verify_aud},
             )
         return jwt.decode(
             token,
             cast(str, settings.SECRET_KEY),
             algorithms=["HS256"],
-            options={"verify_exp": verify_expiration, "verify_aud": verify_aud},
+            options={"verify_aud": verify_aud},
         )
 
     @classmethod

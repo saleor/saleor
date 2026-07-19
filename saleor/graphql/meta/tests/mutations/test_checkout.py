@@ -481,8 +481,20 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_checkout_updated(
         webhook_id=checkout_updated_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
     )
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id
@@ -576,8 +588,20 @@ def test_add_metadata_for_checkout_triggers_webhooks_with_updated_metadata(
         webhook_id=checkout_metadata_updated_webhook.id
     ).exists()
 
-    shipping_methods_call, filter_shipping_call, tax_delivery_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
+    )
+    shipping_methods_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_webhook.id
     )
     shipping_methods_delivery = shipping_methods_call.args[0]
     assert shipping_methods_delivery.webhook_id == shipping_webhook.id

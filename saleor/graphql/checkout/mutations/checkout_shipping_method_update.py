@@ -1,17 +1,22 @@
+from typing import Union
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....account.models import User
+from ....app.models import App
+from ....checkout.delivery_context import (
+    assign_delivery_method_to_checkout,
+    get_or_fetch_checkout_deliveries,
+    is_shipping_required,
+)
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import (
     CheckoutInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
-    get_or_fetch_checkout_deliveries,
 )
 from ....checkout.models import CheckoutDelivery
-from ....checkout.utils import (
-    is_shipping_required,
-)
 from ....webhook.const import APP_ID_PREFIX
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...core import ResolveInfo
@@ -23,10 +28,10 @@ from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import (
     ERROR_DOES_NOT_SHIP,
-    assign_delivery_method_to_checkout,
     get_checkout,
 )
 
@@ -67,6 +72,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 ),
             ),
             WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
                 type=WebhookEventAsyncType.CHECKOUT_UPDATED,
                 description="A checkout was updated.",
             ),
@@ -95,11 +107,16 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def get_checkout_delivery(
-        cls, checkout_info: CheckoutInfo, shipping_method_id: str | None
+        cls,
+        checkout_info: CheckoutInfo,
+        shipping_method_id: str | None,
+        requestor: Union["App", "User", None],
     ) -> CheckoutDelivery | None:
         if shipping_method_id is None:
             return None
-        checkout_deliveries = get_or_fetch_checkout_deliveries(checkout_info)
+        checkout_deliveries = get_or_fetch_checkout_deliveries(
+            checkout_info, requestor=requestor
+        ).get()
         internal_shipping_method_id = cls._resolve_delivery_method_id(
             shipping_method_id
         )
@@ -139,6 +156,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             checkout.channel.use_legacy_error_flow_for_checkout
         )
 
+        requestor = get_user_or_app_from_context(info.context)
         manager = get_plugin_manager_promise(info.context).get()
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
@@ -167,7 +185,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 }
             )
 
-        checkout_delivery = cls.get_checkout_delivery(checkout_info, shipping_method_id)
+        checkout_delivery = cls.get_checkout_delivery(
+            checkout_info, shipping_method_id, requestor=requestor
+        )
         assign_delivery_method_to_checkout(
             checkout_info,
             lines,

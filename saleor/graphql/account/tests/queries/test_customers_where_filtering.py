@@ -6,6 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from .....account.models import Address, User
+from .....account.tests.fixtures.user import dangerously_create_test_user
 from .....order import OrderOrigin
 from ....tests.utils import get_graphql_content
 
@@ -94,7 +95,7 @@ def test_customers_filter_by_date_joined(
 ):
     # given
     with freeze_time((timezone.now() - datetime.timedelta(days=5)).isoformat()):
-        customer_2 = User.objects.create_user(
+        customer_2 = dangerously_create_test_user(
             "test2@example.com",
             "password",
             first_name="Leslie",
@@ -102,7 +103,7 @@ def test_customers_filter_by_date_joined(
         )
 
     with freeze_time((timezone.now() - datetime.timedelta(days=2)).isoformat()):
-        customer_3 = User.objects.create_user(
+        customer_3 = dangerously_create_test_user(
             "test3@example.com",
             "password",
             first_name="John",

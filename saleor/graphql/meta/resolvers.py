@@ -73,7 +73,6 @@ def resolve_object_with_metadata_type(instance):
         payment_models.TransactionItem: payment_types.TransactionItem,
         product_models.Category: product_types.Category,
         product_models.Collection: product_types.Collection,
-        product_models.DigitalContent: product_types.DigitalContent,
         product_models.Product: product_types.Product,
         product_models.ProductMedia: product_types.ProductMedia,
         product_models.ProductType: product_types.ProductType,

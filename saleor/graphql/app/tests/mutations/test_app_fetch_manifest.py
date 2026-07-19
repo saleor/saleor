@@ -47,6 +47,7 @@ mutation AppFetchManifest(
         mountName
         targetName
         settings
+        identifier
         permissions{
           code
           name
@@ -331,7 +332,7 @@ def test_app_fetch_manifest_missing_fields(
     assert errors[0] == {
         "code": "REQUIRED",
         "field": missing_field,
-        "message": "Field required.",
+        "message": "Field required",
     }
 
 
@@ -379,7 +380,7 @@ def test_app_fetch_manifest_missing_extension_fields(
     assert errors[0] == {
         "code": "REQUIRED",
         "field": "extensions",
-        "message": f"Missing required fields for app extension: {missing_field}.",
+        "message": "Field required",
     }
 
 
@@ -387,7 +388,7 @@ def test_app_fetch_manifest_missing_extension_fields(
     ("app_permissions", "extension_permissions"),
     [
         ([], ["MANAGE_PRODUCTS"]),
-        (["MANAGE_PRODUCTS"], ["MANAGE_PRODUCTS", "MANAGE_APPS"]),
+        (["MANAGE_PRODUCTS"], ["MANAGE_PRODUCTS", "MANAGE_ORDERS"]),
     ],
 )
 def test_app_fetch_manifest_extensions_permission_out_of_scope(
@@ -527,6 +528,44 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["targetName"] == "POPUP"
 
     assert extension["settings"] == {}
+    assert extension["identifier"] is None
+
+
+def test_app_fetch_manifest_with_extension_identifier(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    manifest_url = "http://localhost:3000/manifest"
+    identifier = "refund-button"
+
+    app_manifest["extensions"] = [
+        {
+            "label": "Create product with App",
+            "url": "http://127.0.0.1:8080/app",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "identifier": identifier,
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["appFetchManifest"]["errors"]
+    extensions = content["data"]["appFetchManifest"]["manifest"]["extensions"]
+    assert len(extensions) == 1
+    assert extensions[0]["identifier"] == identifier
 
 
 def test_app_fetch_manifest_with_widget_extension_settings(
@@ -921,6 +960,7 @@ def test_app_fetch_manifest_extension_with_relative_url(
     staff_api_client, app_manifest, permission_manage_apps, monkeypatch
 ):
     # given
+    app_manifest["appUrl"] = "http://127.0.0.1:5000"
     app_manifest["extensions"] = [
         {
             "permissions": [],

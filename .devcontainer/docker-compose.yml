@@ -15,15 +15,16 @@ services:
       - cache
     volumes:
       - ..:/app
+      - saleor-pre-commit-cache:/root/.cache/pre-commit/
 
   dashboard:
-    image: ghcr.io/saleor/saleor-dashboard:3.20.5
+    image: ghcr.io/saleor/saleor-dashboard:3.23
     restart: unless-stopped
     ports:
       - 9000:80
 
   db:
-    image: library/postgres:15-alpine
+    image: docker.io/library/postgres:15-alpine
     ports:
       - 5435:5432
     restart: unless-stopped
@@ -34,7 +35,7 @@ services:
       - POSTGRES_PASSWORD=saleor
 
   cache:
-    image: valkey/valkey:8.1-alpine
+    image: docker.io/valkey/valkey:8.1-alpine
     restart: unless-stopped
     volumes:
       - saleor-cache:/data
@@ -42,7 +43,7 @@ services:
       - 6379:6379
 
   mailpit:
-    image: axllent/mailpit
+    image: docker.io/axllent/mailpit
     ports:
       - 1025:1025 # SMTP Server
       - 8025:8025 # Mailpit UI
@@ -52,4 +53,6 @@ volumes:
   saleor-db:
     driver: local
   saleor-cache:
+    driver: local
+  saleor-pre-commit-cache:
     driver: local

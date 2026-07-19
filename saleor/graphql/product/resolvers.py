@@ -85,20 +85,6 @@ def resolve_collections(info: ResolveInfo, channel_slug):
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
 
 
-def resolve_digital_content_by_id(info, id):
-    return (
-        models.DigitalContent.objects.using(get_database_connection_name(info.context))
-        .filter(pk=id)
-        .first()
-    )
-
-
-def resolve_digital_contents(info: ResolveInfo):
-    return models.DigitalContent.objects.using(
-        get_database_connection_name(info.context)
-    ).all()
-
-
 def resolve_product(
     info: ResolveInfo,
     id,

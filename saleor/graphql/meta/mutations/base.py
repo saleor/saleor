@@ -20,7 +20,6 @@ from ...core.context import BaseContext, ChannelContext, SyncWebhookControlConte
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 from ..extra_methods import TYPE_EXTRA_METHODS
-from ..permissions import AccountPermissions
 from ..types import ObjectWithMetadata
 from .utils import get_valid_metadata_instance
 
@@ -151,15 +150,6 @@ class BaseMetadataMutation(BaseMutation):
             return graphene_type.get_model()
 
         return graphene_type._meta.model
-
-    @classmethod
-    def check_permissions(cls, context, permissions=None, **data):  # type: ignore[override]
-        is_app = bool(getattr(context, "app", None))
-        if is_app and permissions and AccountPermissions.MANAGE_STAFF in permissions:
-            raise PermissionDenied(
-                message="Apps are not allowed to perform this mutation."
-            )
-        return super().check_permissions(context, permissions)
 
     @classmethod
     @allow_writer()

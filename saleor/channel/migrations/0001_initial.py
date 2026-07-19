@@ -28,6 +28,7 @@ def assign_permissions(apps, schema_editor):
         for group in Group.objects.iterator():
             group.permissions.add(manage_channels)
 
+    # nosemgrep: django-migration-wrong-app-config
     sender = registry.get_app_config("channel")
     post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 

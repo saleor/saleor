@@ -11,23 +11,17 @@ from ....channel.models import Channel
 from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
-from ....order.utils import get_all_shipping_methods_for_order
+from ....product.interface import VariantDiscountedPriceChange
 from ....product.models import Category
-from ....shipping.interface import ShippingMethodData
 from ....shipping.models import (
     ShippingMethod,
-    ShippingMethodChannelListing,
     ShippingZone,
 )
-from ....shipping.utils import convert_to_shipping_method_data
 from ....site.models import SiteSettings
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...transport.asynchronous.transport import (
     create_deliveries_for_subscriptions,
     logger,
-)
-from ...transport.synchronous.transport import (
-    create_delivery_for_subscription_sync_event,
 )
 from . import subscription_queries
 from .payloads import (
@@ -49,6 +43,7 @@ from .payloads import (
     generate_page_payload,
     generate_page_type_payload,
     generate_permission_group_payload,
+    generate_product_type_payload,
     generate_promotion_payload,
     generate_promotion_rule_payload,
     generate_sale_payload,
@@ -124,7 +119,9 @@ def test_account_confirmation_requested(
 
     # then
     expected_payload = generate_account_requested_events_payload(
-        customer_user, channel_USD
+        customer_user,
+        channel_USD,
+        subscription_account_confirmation_requested_webhook.app,
     )
 
     assert deliveries[0].payload.get_payload() == expected_payload
@@ -143,9 +140,35 @@ def test_account_confirmed(customer_user, subscription_account_confirmed_webhook
     )
 
     # then
-    expected_payload = generate_account_events_payload(customer_user)
+    expected_payload = generate_account_events_payload(
+        customer_user, subscription_account_confirmed_webhook.app
+    )
 
     assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_confirmed_query_channel_without_channel_slug_in_payload(
+    customer_user, subscription_webhook
+):
+    # given
+    webhook = subscription_webhook(
+        subscription_queries.ACCOUNT_CONFIRMED_WITH_CHANNEL,
+        WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+    )
+    webhooks = [webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, {"user": customer_user}, webhooks
+    )
+
+    # then
+    payload = json.loads(deliveries[0].payload.get_payload())
+    assert "errors" not in payload
+    assert payload["channel"] is None
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -173,7 +196,10 @@ def test_account_change_email_requested(
 
     # then
     expected_payload = generate_account_requested_events_payload(
-        customer_user, channel_USD, new_email=new_email
+        customer_user,
+        channel_USD,
+        subscription_account_change_email_requested_webhook.app,
+        new_email=new_email,
     )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -193,7 +219,9 @@ def test_account_email_changed(
     )
 
     # then
-    expected_payload = generate_account_events_payload(customer_user)
+    expected_payload = generate_account_events_payload(
+        customer_user, subscription_account_email_changed_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -220,7 +248,7 @@ def test_account_delete_requested(
 
     # then
     expected_payload = generate_account_requested_events_payload(
-        customer_user, channel_USD
+        customer_user, channel_USD, subscription_account_delete_requested_webhook.app
     )
 
     assert deliveries[0].payload.get_payload() == expected_payload
@@ -249,7 +277,9 @@ def test_account_set_password_requested(
 
     # then
     expected_payload = generate_account_requested_events_payload(
-        customer_user, channel_USD
+        customer_user,
+        channel_USD,
+        subscription_account_set_password_requested_webhook.app,
     )
 
     assert deliveries[0].payload.get_payload() == expected_payload
@@ -268,7 +298,9 @@ def test_account_deleted_confirmed(customer_user, subscription_account_deleted_w
     )
 
     # then
-    expected_payload = generate_account_events_payload(customer_user)
+    expected_payload = generate_account_events_payload(
+        customer_user, subscription_account_deleted_webhook.app
+    )
 
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -284,7 +316,17 @@ def test_address_created(address, subscription_address_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, address, webhooks)
 
     # then
-    expected_payload = json.dumps({"address": generate_address_payload(address)})
+    expected_payload = json.dumps(
+        {
+            "recipient": {
+                "id": graphene.Node.to_global_id(
+                    "App", subscription_address_created_webhook.app.pk
+                ),
+                "name": subscription_address_created_webhook.app.name,
+            },
+            "address": generate_address_payload(address),
+        }
+    )
 
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -300,7 +342,17 @@ def test_address_updated(address, subscription_address_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, address, webhooks)
 
     # then
-    expected_payload = json.dumps({"address": generate_address_payload(address)})
+    expected_payload = json.dumps(
+        {
+            "recipient": {
+                "id": graphene.Node.to_global_id(
+                    "App", subscription_address_updated_webhook.app.pk
+                ),
+                "name": subscription_address_updated_webhook.app.name,
+            },
+            "address": generate_address_payload(address),
+        }
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -320,7 +372,17 @@ def test_address_deleted(address, subscription_address_deleted_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, address, webhooks)
 
     # then
-    expected_payload = json.dumps({"address": generate_address_payload(address)})
+    expected_payload = json.dumps(
+        {
+            "recipient": {
+                "id": graphene.Node.to_global_id(
+                    "App", subscription_address_deleted_webhook.app.pk
+                ),
+                "name": subscription_address_deleted_webhook.app.name,
+            },
+            "address": generate_address_payload(address),
+        }
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -336,7 +398,9 @@ def test_app_installed(app, subscription_app_installed_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
 
     # then
-    expected_payload = generate_app_payload(app, app_id)
+    expected_payload = generate_app_payload(
+        app, app_id, subscription_app_installed_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -352,7 +416,9 @@ def test_app_updated(app, subscription_app_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
 
     # then
-    expected_payload = generate_app_payload(app, app_id)
+    expected_payload = generate_app_payload(
+        app, app_id, subscription_app_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -373,7 +439,9 @@ def test_app_deleted(app, subscription_app_deleted_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
 
     # then
-    expected_payload = generate_app_payload(app, app_id)
+    expected_payload = generate_app_payload(
+        app, app_id, subscription_app_deleted_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -394,7 +462,9 @@ def test_app_status_changed(status, app, subscription_app_status_changed_webhook
     deliveries = create_deliveries_for_subscriptions(event_type, app, webhooks)
 
     # then
-    expected_payload = generate_app_payload(app, app_id)
+    expected_payload = generate_app_payload(
+        app, app_id, subscription_app_status_changed_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -411,7 +481,9 @@ def test_attribute_created(color_attribute, subscription_attribute_created_webho
     )
 
     # then
-    expected_payload = generate_attribute_payload(color_attribute)
+    expected_payload = generate_attribute_payload(
+        color_attribute, subscription_attribute_created_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -428,7 +500,9 @@ def test_attribute_updated(color_attribute, subscription_attribute_updated_webho
     )
 
     # then
-    expected_payload = generate_attribute_payload(color_attribute)
+    expected_payload = generate_attribute_payload(
+        color_attribute, subscription_attribute_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -450,7 +524,9 @@ def test_attribute_deleted(color_attribute, subscription_attribute_deleted_webho
     )
 
     # then
-    expected_payload = generate_attribute_payload(color_attribute)
+    expected_payload = generate_attribute_payload(
+        color_attribute, subscription_attribute_deleted_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -469,7 +545,9 @@ def test_attribute_value_created(
     )
 
     # then
-    expected_payload = generate_attribute_value_payload(pink_attribute_value)
+    expected_payload = generate_attribute_value_payload(
+        pink_attribute_value, subscription_attribute_value_created_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -488,7 +566,9 @@ def test_attribute_value_updated(
     )
 
     # then
-    expected_payload = generate_attribute_value_payload(pink_attribute_value)
+    expected_payload = generate_attribute_value_payload(
+        pink_attribute_value, subscription_attribute_value_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -512,7 +592,9 @@ def test_attribute_value_deleted(
     )
 
     # then
-    expected_payload = generate_attribute_value_payload(pink_attribute_value)
+    expected_payload = generate_attribute_value_payload(
+        pink_attribute_value, subscription_attribute_value_deleted_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -526,7 +608,9 @@ def test_category_created(
     parent_category = categories_tree_with_published_products
     webhooks = [subscription_category_created_webhook]
     event_type = WebhookEventAsyncType.CATEGORY_CREATED
-    expected_payload = generate_category_payload(parent_category)
+    expected_payload = generate_category_payload(
+        parent_category, subscription_category_created_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -548,7 +632,9 @@ def test_category_updated(
     parent_category = categories_tree_with_published_products
     webhooks = [subscription_category_updated_webhook]
     event_type = WebhookEventAsyncType.CATEGORY_UPDATED
-    expected_payload = generate_category_payload(parent_category)
+    expected_payload = generate_category_payload(
+        parent_category, subscription_category_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -674,7 +760,9 @@ def test_gift_card_created(gift_card, subscription_gift_card_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = generate_gift_card_payload(gift_card, gift_card_id)
+    expected_payload = generate_gift_card_payload(
+        gift_card, gift_card_id, subscription_gift_card_created_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -690,7 +778,9 @@ def test_gift_card_updated(gift_card, subscription_gift_card_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = generate_gift_card_payload(gift_card, gift_card_id)
+    expected_payload = generate_gift_card_payload(
+        gift_card, gift_card_id, subscription_gift_card_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -713,7 +803,9 @@ def test_gift_card_deleted(gift_card, subscription_gift_card_deleted_webhook):
     )
 
     # then
-    expected_payload = generate_gift_card_payload(gift_card, gift_card_id)
+    expected_payload = generate_gift_card_payload(
+        gift_card, gift_card_id, subscription_gift_card_deleted_webhook.app
+    )
     assert gift_card_instances[0].id is not None
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -743,7 +835,11 @@ def test_gift_card_sent(gift_card, channel_USD, subscription_gift_card_sent_webh
     )
 
     # then
-    expected_payload = json.loads(generate_gift_card_payload(gift_card, gift_card_id))
+    expected_payload = json.loads(
+        generate_gift_card_payload(
+            gift_card, gift_card_id, subscription_gift_card_sent_webhook.app
+        )
+    )
     expected_payload["channel"] = channel_USD.slug
     expected_payload["sentToEmail"] = "client@example.com"
 
@@ -770,7 +866,9 @@ def test_gift_card_status_changed(
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = generate_gift_card_payload(gift_card, gift_card_id)
+    expected_payload = generate_gift_card_payload(
+        gift_card, gift_card_id, subscription_gift_card_status_changed_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -788,7 +886,9 @@ def test_gift_card_metadata_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, gift_card, webhooks)
 
     # then
-    expected_payload = generate_gift_card_payload(gift_card, gift_card_id)
+    expected_payload = generate_gift_card_payload(
+        gift_card, gift_card_id, subscription_gift_card_metadata_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -814,7 +914,11 @@ def test_gift_card_export_completed(
     )
 
     # then
-    expected_payload = generate_export_payload(user_export_file, gift_card_id)
+    expected_payload = generate_export_payload(
+        user_export_file,
+        gift_card_id,
+        subscription_gift_card_export_completed_webhook.app,
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -830,7 +934,9 @@ def test_menu_created(menu, subscription_menu_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu, webhooks)
 
     # then
-    expected_payload = json.dumps(generate_menu_payload(menu, menu_id))
+    expected_payload = json.dumps(
+        generate_menu_payload(menu, menu_id, subscription_menu_created_webhook.app)
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -846,7 +952,9 @@ def test_menu_updated(menu, subscription_menu_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu, webhooks)
 
     # then
-    expected_payload = json.dumps(generate_menu_payload(menu, menu_id))
+    expected_payload = json.dumps(
+        generate_menu_payload(menu, menu_id, subscription_menu_updated_webhook.app)
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -869,7 +977,9 @@ def test_menu_deleted(menu, subscription_menu_deleted_webhook):
     )
 
     # then
-    expected_payload = json.dumps(generate_menu_payload(menu, menu_id))
+    expected_payload = json.dumps(
+        generate_menu_payload(menu, menu_id, subscription_menu_deleted_webhook.app)
+    )
     assert menu_instances[0].id is not None
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -886,7 +996,11 @@ def test_menu_item_created(menu_item, subscription_menu_item_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu_item, webhooks)
 
     # then
-    expected_payload = json.dumps(generate_menu_item_payload(menu_item, menu_item_id))
+    expected_payload = json.dumps(
+        generate_menu_item_payload(
+            menu_item, menu_item_id, subscription_menu_item_created_webhook.app
+        )
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -902,7 +1016,11 @@ def test_menu_item_updated(menu_item, subscription_menu_item_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, menu_item, webhooks)
 
     # then
-    expected_payload = json.dumps(generate_menu_item_payload(menu_item, menu_item_id))
+    expected_payload = json.dumps(
+        generate_menu_item_payload(
+            menu_item, menu_item_id, subscription_menu_item_updated_webhook.app
+        )
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -926,7 +1044,11 @@ def test_menu_item_deleted(menu_item, subscription_menu_item_deleted_webhook):
 
     # then
     expected_payload = json.dumps(
-        generate_menu_item_payload(menu_item_instances[0], menu_item_id)
+        generate_menu_item_payload(
+            menu_item_instances[0],
+            menu_item_id,
+            subscription_menu_item_deleted_webhook.app,
+        )
     )
     assert menu_item_instances[0].id is not None
     assert deliveries[0].payload.get_payload() == expected_payload
@@ -940,7 +1062,9 @@ def test_shipping_price_created(
     # given
     webhooks = [subscription_shipping_price_created_webhook]
     event_type = WebhookEventAsyncType.SHIPPING_PRICE_CREATED
-    expected_payload = generate_shipping_method_payload(shipping_method)
+    expected_payload = generate_shipping_method_payload(
+        shipping_method, subscription_shipping_price_created_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -959,7 +1083,9 @@ def test_shipping_price_updated(
     # given
     webhooks = [subscription_shipping_price_updated_webhook]
     event_type = WebhookEventAsyncType.SHIPPING_PRICE_UPDATED
-    expected_payload = generate_shipping_method_payload(shipping_method)
+    expected_payload = generate_shipping_method_payload(
+        shipping_method, subscription_shipping_price_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -1124,7 +1250,9 @@ def test_staff_created(staff_user, subscription_staff_created_webhook):
     # given
     webhooks = [subscription_staff_created_webhook]
     event_type = WebhookEventAsyncType.STAFF_CREATED
-    expected_payload = json.dumps(generate_staff_payload(staff_user))
+    expected_payload = json.dumps(
+        generate_staff_payload(staff_user, subscription_staff_created_webhook.app)
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, staff_user, webhooks)
@@ -1139,7 +1267,9 @@ def test_staff_updated(staff_user, subscription_staff_updated_webhook):
     # given
     webhooks = [subscription_staff_updated_webhook]
     event_type = WebhookEventAsyncType.STAFF_UPDATED
-    expected_payload = json.dumps(generate_staff_payload(staff_user))
+    expected_payload = json.dumps(
+        generate_staff_payload(staff_user, subscription_staff_updated_webhook.app)
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, staff_user, webhooks)
@@ -1161,7 +1291,9 @@ def test_staff_deleted(staff_user, subscription_staff_deleted_webhook):
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, staff_user, webhooks)
-    expected_payload = json.dumps(generate_staff_payload(staff_user))
+    expected_payload = json.dumps(
+        generate_staff_payload(staff_user, subscription_staff_deleted_webhook.app)
+    )
 
     # then
 
@@ -1191,7 +1323,7 @@ def test_staff_set_password_requested(
 
     # then
     expected_payload = generate_account_requested_events_payload(
-        staff_user, channel_USD
+        staff_user, channel_USD, subscription_staff_set_password_requested_webhook.app
     )
 
     assert deliveries[0].payload.get_payload() == expected_payload
@@ -1269,7 +1401,9 @@ def test_product_export_completed(
     )
 
     # then
-    expected_payload = generate_export_payload(user_export_file, export_id)
+    expected_payload = generate_export_payload(
+        user_export_file, export_id, subscription_product_export_completed_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -1438,6 +1572,57 @@ def test_product_variant_stock_updated(
     )
 
     assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_variant_discounted_price_updated(
+    variant_with_many_stocks,
+    channel_USD,
+    subscription_product_variant_discounted_price_updated_webhook,
+):
+    # given
+    webhooks = [subscription_product_variant_discounted_price_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    previous_price = Decimal("10.00")
+    new_price = Decimal("8.00")
+    currency = channel_USD.currency_code
+
+    price_info = VariantDiscountedPriceChange(
+        variant_id=variant.id,
+        channel_slug=channel_USD.slug,
+        previous_price_amount=previous_price,
+        new_price_amount=new_price,
+        currency=currency,
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, price_info, webhooks)
+
+    # then
+    payload = json.loads(deliveries[0].payload.get_payload())
+    variant_channel_listing = variant.channel_listings.get(channel=channel_USD)
+    assert payload == {
+        "productVariant": {
+            "id": variant_id,
+            "pricing": {
+                "price": {
+                    "gross": {
+                        "amount": variant_channel_listing.discounted_price_amount,
+                    }
+                }
+            },
+        },
+        "channel": {"slug": channel_USD.slug},
+        "previousPrice": {
+            "amount": previous_price,
+            "currency": currency,
+        },
+        "newPrice": {"amount": new_price, "currency": currency},
+    }
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 
@@ -1619,7 +1804,9 @@ def test_sale_created(promotion_converted_from_sale, subscription_sale_created_w
     sale = promotion_converted_from_sale
     webhooks = [subscription_sale_created_webhook]
     event_type = WebhookEventAsyncType.SALE_CREATED
-    expected_payload = generate_sale_payload(sale)
+    expected_payload = generate_sale_payload(
+        sale, subscription_sale_created_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, sale, webhooks)
@@ -1635,7 +1822,9 @@ def test_sale_updated(promotion_converted_from_sale, subscription_sale_updated_w
     sale = promotion_converted_from_sale
     webhooks = [subscription_sale_updated_webhook]
     event_type = WebhookEventAsyncType.SALE_UPDATED
-    expected_payload = generate_sale_payload(sale)
+    expected_payload = generate_sale_payload(
+        sale, subscription_sale_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, sale, webhooks)
@@ -1651,7 +1840,9 @@ def test_sale_deleted(promotion_converted_from_sale, subscription_sale_deleted_w
     sale = promotion_converted_from_sale
     webhooks = [subscription_sale_deleted_webhook]
     event_type = WebhookEventAsyncType.SALE_DELETED
-    expected_payload = generate_sale_payload(sale)
+    expected_payload = generate_sale_payload(
+        sale, subscription_sale_deleted_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, sale, webhooks)
@@ -1667,7 +1858,7 @@ def test_sale_toggle(promotion_converted_from_sale, subscription_sale_toggle_web
     sale = promotion_converted_from_sale
     webhooks = [subscription_sale_toggle_webhook]
     event_type = WebhookEventAsyncType.SALE_TOGGLE
-    expected_payload = generate_sale_payload(sale)
+    expected_payload = generate_sale_payload(sale, subscription_sale_toggle_webhook.app)
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, sale, webhooks)
@@ -1683,7 +1874,9 @@ def test_promotion_created(catalogue_promotion, subscription_promotion_created_w
     promotion = catalogue_promotion
     webhooks = [subscription_promotion_created_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_CREATED
-    expected_payload = generate_promotion_payload(promotion)
+    expected_payload = generate_promotion_payload(
+        promotion, subscription_promotion_created_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -1701,7 +1894,9 @@ def test_promotion_updated(catalogue_promotion, subscription_promotion_updated_w
     promotion = catalogue_promotion
     webhooks = [subscription_promotion_updated_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_UPDATED
-    expected_payload = generate_promotion_payload(promotion)
+    expected_payload = generate_promotion_payload(
+        promotion, subscription_promotion_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
@@ -1717,7 +1912,9 @@ def test_promotion_deleted(catalogue_promotion, subscription_promotion_deleted_w
     promotion = catalogue_promotion
     webhooks = [subscription_promotion_deleted_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_DELETED
-    expected_payload = generate_promotion_payload(promotion)
+    expected_payload = generate_promotion_payload(
+        promotion, subscription_promotion_deleted_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
@@ -1733,7 +1930,9 @@ def test_promotion_started(catalogue_promotion, subscription_promotion_started_w
     promotion = catalogue_promotion
     webhooks = [subscription_promotion_started_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_STARTED
-    expected_payload = generate_promotion_payload(promotion)
+    expected_payload = generate_promotion_payload(
+        promotion, subscription_promotion_started_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
@@ -1749,7 +1948,9 @@ def test_promotion_ended(catalogue_promotion, subscription_promotion_ended_webho
     promotion = catalogue_promotion
     webhooks = [subscription_promotion_ended_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_ENDED
-    expected_payload = generate_promotion_payload(promotion)
+    expected_payload = generate_promotion_payload(
+        promotion, subscription_promotion_ended_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
@@ -1766,7 +1967,9 @@ def test_promotion_rule_created(
     # given
     webhooks = [subscription_promotion_rule_created_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_RULE_CREATED
-    expected_payload = generate_promotion_rule_payload(promotion_rule)
+    expected_payload = generate_promotion_rule_payload(
+        promotion_rule, subscription_promotion_rule_created_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -1785,7 +1988,9 @@ def test_promotion_rule_updated(
     # given
     webhooks = [subscription_promotion_rule_updated_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_RULE_UPDATED
-    expected_payload = generate_promotion_rule_payload(promotion_rule)
+    expected_payload = generate_promotion_rule_payload(
+        promotion_rule, subscription_promotion_rule_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -1804,7 +2009,9 @@ def test_promotion_rule_deleted(
     # given
     webhooks = [subscription_promotion_rule_deleted_webhook]
     event_type = WebhookEventAsyncType.PROMOTION_RULE_DELETED
-    expected_payload = generate_promotion_rule_payload(promotion_rule)
+    expected_payload = generate_promotion_rule_payload(
+        promotion_rule, subscription_promotion_rule_deleted_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -1822,7 +2029,9 @@ def test_invoice_requested(fulfilled_order, subscription_invoice_requested_webho
     webhooks = [subscription_invoice_requested_webhook]
     event_type = WebhookEventAsyncType.INVOICE_REQUESTED
     invoice = fulfilled_order.invoices.first()
-    expected_payload = generate_invoice_payload(invoice)
+    expected_payload = generate_invoice_payload(
+        invoice, subscription_invoice_requested_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, invoice, webhooks)
@@ -1838,7 +2047,9 @@ def test_invoice_deleted(fulfilled_order, subscription_invoice_deleted_webhook):
     webhooks = [subscription_invoice_deleted_webhook]
     event_type = WebhookEventAsyncType.INVOICE_DELETED
     invoice = fulfilled_order.invoices.first()
-    expected_payload = generate_invoice_payload(invoice)
+    expected_payload = generate_invoice_payload(
+        invoice, subscription_invoice_deleted_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, invoice, webhooks)
@@ -1854,7 +2065,9 @@ def test_invoice_sent(fulfilled_order, subscription_invoice_sent_webhook):
     webhooks = [subscription_invoice_sent_webhook]
     event_type = WebhookEventAsyncType.INVOICE_SENT
     invoice = fulfilled_order.invoices.first()
-    expected_payload = generate_invoice_payload(invoice)
+    expected_payload = generate_invoice_payload(
+        invoice, subscription_invoice_sent_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, invoice, webhooks)
@@ -1870,7 +2083,9 @@ def test_fulfillment_created(fulfillment, subscription_fulfillment_created_webho
     webhooks = [subscription_fulfillment_created_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
     expected_payload = generate_fulfillment_payload(
-        fulfillment, add_notify_customer_field=True
+        fulfillment,
+        subscription_fulfillment_created_webhook.app,
+        add_notify_customer_field=True,
     )
 
     # when
@@ -1901,7 +2116,9 @@ def test_fulfillment_with_refund_amounts(
     webhooks = [subscription_fulfillment_created_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_CREATED
     expected_payload = generate_fulfillment_payload(
-        fulfillment, add_notify_customer_field=True
+        fulfillment,
+        subscription_fulfillment_created_webhook.app,
+        add_notify_customer_field=True,
     )
     expected_payload["fulfillment"]["shippingRefundedAmount"] = {
         "amount": shipping_refund
@@ -1928,7 +2145,9 @@ def test_fulfillment_canceled(fulfillment, subscription_fulfillment_canceled_web
     # given
     webhooks = [subscription_fulfillment_canceled_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_CANCELED
-    expected_payload = generate_fulfillment_payload(fulfillment)
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, subscription_fulfillment_canceled_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
@@ -1944,7 +2163,9 @@ def test_fulfillment_approved(fulfillment, subscription_fulfillment_approved_web
     webhooks = [subscription_fulfillment_approved_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_APPROVED
     expected_payload = generate_fulfillment_payload(
-        fulfillment, add_notify_customer_field=True
+        fulfillment,
+        subscription_fulfillment_approved_webhook.app,
+        add_notify_customer_field=True,
     )
 
     # when
@@ -1969,7 +2190,9 @@ def test_fulfillment_metadata_updated(
     # given
     webhooks = [subscription_fulfillment_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED
-    expected_payload = generate_fulfillment_payload(fulfillment)
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, subscription_fulfillment_metadata_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
@@ -1986,7 +2209,9 @@ def test_fulfillment_tracking_number_updated(
     # given
     webhooks = [subscription_fulfillment_tracking_number_updated]
     event_type = WebhookEventAsyncType.FULFILLMENT_TRACKING_NUMBER_UPDATED
-    expected_payload = generate_fulfillment_payload(fulfillment)
+    expected_payload = generate_fulfillment_payload(
+        fulfillment, subscription_fulfillment_tracking_number_updated.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, fulfillment, webhooks)
@@ -2001,7 +2226,11 @@ def test_customer_created(customer_user, subscription_customer_created_webhook):
     # given
     webhooks = [subscription_customer_created_webhook]
     event_type = WebhookEventAsyncType.CUSTOMER_CREATED
-    expected_payload = json.dumps(generate_customer_payload(customer_user))
+    expected_payload = json.dumps(
+        generate_customer_payload(
+            customer_user, subscription_customer_created_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -2018,8 +2247,11 @@ def test_customer_updated(customer_user, subscription_customer_updated_webhook):
     # given
     webhooks = [subscription_customer_updated_webhook]
     event_type = WebhookEventAsyncType.CUSTOMER_UPDATED
-    expected_payload = json.dumps(generate_customer_payload(customer_user))
-
+    expected_payload = json.dumps(
+        generate_customer_payload(
+            customer_user, subscription_customer_updated_webhook.app
+        )
+    )
     # when
     deliveries = create_deliveries_for_subscriptions(
         event_type, customer_user, webhooks
@@ -2031,15 +2263,19 @@ def test_customer_updated(customer_user, subscription_customer_updated_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_customer_deleted(customer_user, subscription_customer_created_webhook):
+def test_customer_deleted(customer_user, subscription_customer_deleted_webhook):
     # given
     customer_user_id = customer_user.id
     customer_user.delete()
     customer_user.id = customer_user_id
 
-    webhooks = [subscription_customer_created_webhook]
-    event_type = WebhookEventAsyncType.CUSTOMER_CREATED
-    expected_payload = json.dumps(generate_customer_payload(customer_user))
+    webhooks = [subscription_customer_deleted_webhook]
+    event_type = WebhookEventAsyncType.CUSTOMER_DELETED
+    expected_payload = json.dumps(
+        generate_customer_payload(
+            customer_user, subscription_customer_deleted_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -2058,7 +2294,11 @@ def test_customer_metadata_updated(
     # given
     webhooks = [subscription_customer_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED
-    expected_payload = json.dumps(generate_customer_payload(customer_user))
+    expected_payload = json.dumps(
+        generate_customer_payload(
+            customer_user, subscription_customer_metadata_updated_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -2078,7 +2318,9 @@ def test_collection_created(
     collection = collection_with_products[0].collections.first()
     webhooks = [subscription_collection_created_webhook]
     event_type = WebhookEventAsyncType.COLLECTION_CREATED
-    expected_payload = generate_collection_payload(collection)
+    expected_payload = generate_collection_payload(
+        collection, subscription_collection_created_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, collection, webhooks)
@@ -2096,7 +2338,9 @@ def test_collection_updated(
     webhooks = [subscription_collection_updated_webhook]
     collection = collection_with_products[0].collections.first()
     event_type = WebhookEventAsyncType.COLLECTION_UPDATED
-    expected_payload = generate_collection_payload(collection)
+    expected_payload = generate_collection_payload(
+        collection, subscription_collection_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, collection, webhooks)
@@ -2114,7 +2358,9 @@ def test_collection_deleted(
     webhooks = [subscription_collection_deleted_webhook]
     collection = collection_with_products[0].collections.first()
     event_type = WebhookEventAsyncType.COLLECTION_DELETED
-    expected_payload = generate_collection_payload(collection)
+    expected_payload = generate_collection_payload(
+        collection, subscription_collection_deleted_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, collection, webhooks)
@@ -2132,7 +2378,9 @@ def test_collection_metadata_updated(
     webhooks = [subscription_collection_metadata_updated_webhook]
     collection = collection_with_products[0].collections.first()
     event_type = WebhookEventAsyncType.COLLECTION_METADATA_UPDATED
-    expected_payload = generate_collection_payload(collection)
+    expected_payload = generate_collection_payload(
+        collection, subscription_collection_metadata_updated_webhook.app
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, collection, webhooks)
@@ -2222,8 +2470,9 @@ def test_page_created(page, subscription_page_created_webhook):
     # given
     webhooks = [subscription_page_created_webhook]
     event_type = WebhookEventAsyncType.PAGE_CREATED
-    expected_payload = json.dumps(generate_page_payload(page))
-
+    expected_payload = json.dumps(
+        generate_page_payload(page, subscription_page_created_webhook.app)
+    )
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page, webhooks)
 
@@ -2237,7 +2486,9 @@ def test_page_updated(page, subscription_page_updated_webhook):
     # given
     webhooks = [subscription_page_updated_webhook]
     event_type = WebhookEventAsyncType.PAGE_UPDATED
-    expected_payload = json.dumps(generate_page_payload(page))
+    expected_payload = json.dumps(
+        generate_page_payload(page, subscription_page_updated_webhook.app)
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page, webhooks)
@@ -2252,7 +2503,9 @@ def test_page_deleted(page, subscription_page_deleted_webhook):
     # given
     webhooks = [subscription_page_deleted_webhook]
     event_type = WebhookEventAsyncType.PAGE_DELETED
-    expected_payload = json.dumps(generate_page_payload(page))
+    expected_payload = json.dumps(
+        generate_page_payload(page, subscription_page_deleted_webhook.app)
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page, webhooks)
@@ -2267,7 +2520,11 @@ def test_page_type_created(page_type, subscription_page_type_created_webhook):
     # given
     webhooks = [subscription_page_type_created_webhook]
     event_type = WebhookEventAsyncType.PAGE_TYPE_CREATED
-    expected_payload = json.dumps(generate_page_type_payload(page_type))
+    expected_payload = json.dumps(
+        generate_page_type_payload(
+            page_type, subscription_page_type_created_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
@@ -2282,7 +2539,11 @@ def test_page_type_updated(page_type, subscription_page_type_updated_webhook):
     # given
     webhooks = [subscription_page_type_updated_webhook]
     event_type = WebhookEventAsyncType.PAGE_TYPE_UPDATED
-    expected_payload = json.dumps(generate_page_type_payload(page_type))
+    expected_payload = json.dumps(
+        generate_page_type_payload(
+            page_type, subscription_page_type_updated_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
@@ -2301,10 +2562,75 @@ def test_page_type_deleted(page_type, subscription_page_type_deleted_webhook):
 
     webhooks = [subscription_page_type_deleted_webhook]
     event_type = WebhookEventAsyncType.PAGE_TYPE_DELETED
-    expected_payload = json.dumps(generate_page_type_payload(page_type))
+    expected_payload = json.dumps(
+        generate_page_type_payload(
+            page_type, subscription_page_type_deleted_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, page_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_type_created(product_type, subscription_product_type_created_webhook):
+    # given
+    webhooks = [subscription_product_type_created_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_TYPE_CREATED
+    expected_payload = json.dumps(
+        generate_product_type_payload(
+            product_type, subscription_product_type_created_webhook.app
+        )
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, product_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_type_updated(product_type, subscription_product_type_updated_webhook):
+    # given
+    webhooks = [subscription_product_type_updated_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_TYPE_UPDATED
+    expected_payload = json.dumps(
+        generate_product_type_payload(
+            product_type, subscription_product_type_updated_webhook.app
+        )
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, product_type, webhooks)
+
+    # then
+    assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_product_type_deleted(product_type, subscription_product_type_deleted_webhook):
+    # given
+    product_type_id = product_type.id
+    product_type.delete()
+    product_type.id = product_type_id
+
+    webhooks = [subscription_product_type_deleted_webhook]
+    event_type = WebhookEventAsyncType.PRODUCT_TYPE_DELETED
+    expected_payload = json.dumps(
+        generate_product_type_payload(
+            product_type, subscription_product_type_deleted_webhook.app
+        )
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, product_type, webhooks)
 
     # then
     assert deliveries[0].payload.get_payload() == expected_payload
@@ -2319,7 +2645,11 @@ def test_permission_group_created(
     group = permission_group_manage_users
     webhooks = [subscription_permission_group_created_webhook]
     event_type = WebhookEventAsyncType.PERMISSION_GROUP_CREATED
-    expected_payload = json.dumps(generate_permission_group_payload(group))
+    expected_payload = json.dumps(
+        generate_permission_group_payload(
+            group, subscription_permission_group_created_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, group, webhooks)
@@ -2337,7 +2667,11 @@ def test_permission_group_updated(
     group = permission_group_manage_users
     webhooks = [subscription_permission_group_updated_webhook]
     event_type = WebhookEventAsyncType.PERMISSION_GROUP_UPDATED
-    expected_payload = json.dumps(generate_permission_group_payload(group))
+    expected_payload = json.dumps(
+        generate_permission_group_payload(
+            group, subscription_permission_group_updated_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, group, webhooks)
@@ -2359,7 +2693,11 @@ def test_permission_group_deleted(
 
     webhooks = [subscription_permission_group_deleted_webhook]
     event_type = WebhookEventAsyncType.PERMISSION_GROUP_DELETED
-    expected_payload = json.dumps(generate_permission_group_payload(group))
+    expected_payload = json.dumps(
+        generate_permission_group_payload(
+            group, subscription_permission_group_deleted_webhook.app
+        )
+    )
 
     # when
     deliveries = create_deliveries_for_subscriptions(event_type, group, webhooks)
@@ -2394,7 +2732,9 @@ def test_warehouse_created(warehouse, subscription_warehouse_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, warehouse, webhooks)
 
     # then
-    expected_payload = generate_warehouse_payload(warehouse, warehouse_id)
+    expected_payload = generate_warehouse_payload(
+        warehouse, warehouse_id, subscription_warehouse_created_webhook.app
+    )
 
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -2411,7 +2751,9 @@ def test_warehouse_updated(warehouse, subscription_warehouse_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, warehouse, webhooks)
 
     # then
-    expected_payload = generate_warehouse_payload(warehouse, warehouse_id)
+    expected_payload = generate_warehouse_payload(
+        warehouse, warehouse_id, subscription_warehouse_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2433,7 +2775,9 @@ def test_warehouse_deleted(warehouse, subscription_warehouse_deleted_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, warehouse, webhooks)
 
     # then
-    expected_payload = generate_warehouse_payload(warehouse, warehouse_global_id)
+    expected_payload = generate_warehouse_payload(
+        warehouse, warehouse_global_id, subscription_warehouse_deleted_webhook.app
+    )
 
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
@@ -2452,7 +2796,9 @@ def test_warehouse_metadata_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, warehouse, webhooks)
 
     # then
-    expected_payload = generate_warehouse_payload(warehouse, warehouse_id)
+    expected_payload = generate_warehouse_payload(
+        warehouse, warehouse_id, subscription_warehouse_metadata_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2468,7 +2814,9 @@ def test_voucher_created(voucher, subscription_voucher_created_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, voucher, webhooks)
 
     # then
-    expected_payload = generate_voucher_payload(voucher, voucher_id)
+    expected_payload = generate_voucher_payload(
+        voucher, voucher_id, subscription_voucher_created_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2484,7 +2832,9 @@ def test_voucher_updated(voucher, subscription_voucher_updated_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, voucher, webhooks)
 
     # then
-    expected_payload = generate_voucher_payload(voucher, voucher_id)
+    expected_payload = generate_voucher_payload(
+        voucher, voucher_id, subscription_voucher_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2505,7 +2855,9 @@ def test_voucher_deleted(voucher, subscription_voucher_deleted_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, voucher, webhooks)
 
     # then
-    expected_payload = generate_voucher_payload(voucher, voucher_global_id)
+    expected_payload = generate_voucher_payload(
+        voucher, voucher_global_id, subscription_voucher_deleted_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2525,7 +2877,9 @@ def test_voucher_codes_created(voucher, subscription_voucher_codes_created_webho
     )
 
     # then
-    expected_payload = generate_voucher_code_payload([voucher_code])
+    expected_payload = generate_voucher_code_payload(
+        [voucher_code], subscription_voucher_codes_created_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2549,7 +2903,9 @@ def test_voucher_codes_deleted(voucher, subscription_voucher_codes_deleted_webho
     )
 
     # then
-    expected_payload = generate_voucher_code_payload([voucher_code])
+    expected_payload = generate_voucher_code_payload(
+        [voucher_code], subscription_voucher_codes_deleted_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2567,7 +2923,9 @@ def test_voucher_metadata_updated(
     deliveries = create_deliveries_for_subscriptions(event_type, voucher, webhooks)
 
     # then
-    expected_payload = generate_voucher_payload(voucher, voucher_id)
+    expected_payload = generate_voucher_payload(
+        voucher, voucher_id, subscription_voucher_metadata_updated_webhook.app
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2595,7 +2953,11 @@ def test_voucher_code_export_completed(
     )
 
     # then
-    expected_payload = generate_export_payload(user_export_file, export_file_id)
+    expected_payload = generate_export_payload(
+        user_export_file,
+        export_file_id,
+        subscription_voucher_code_export_completed_webhook.app,
+    )
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -2640,325 +3002,6 @@ def test_transaction_item_metadata_updated(
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
-
-
-def test_shipping_list_methods_for_checkout(
-    checkout_with_shipping_required,
-    subscription_shipping_list_methods_for_checkout_webhook,
-    address,
-    shipping_method,
-):
-    # given
-    checkout = checkout_with_shipping_required
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    webhooks = [subscription_shipping_list_methods_for_checkout_webhook]
-    event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-
-    internal_methods: list[ShippingMethodData] = []
-    for method in ShippingMethod.objects.all():
-        shipping_method_data = convert_to_shipping_method_data(
-            method, method.channel_listings.get(channel=checkout.channel)
-        )
-        internal_methods.append(shipping_method_data)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (checkout, internal_methods), webhooks
-    )
-    # then
-    shipping_methods = [
-        {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.id),
-            "name": sm.name,
-        }
-        for sm in internal_methods
-    ]
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert payload["checkout"] == {"id": checkout_id}
-    for method in shipping_methods:
-        assert method in payload["shippingMethods"]
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_checkout_filter_shipping_methods(
-    checkout_with_shipping_required,
-    subscription_checkout_filter_shipping_methods_webhook,
-    address,
-    shipping_method,
-):
-    # given
-    checkout = checkout_with_shipping_required
-    checkout.shipping_address = address
-    checkout.shipping_method = shipping_method
-    webhooks = [subscription_checkout_filter_shipping_methods_webhook]
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-
-    internal_methods: list[ShippingMethodData] = []
-    for method in ShippingMethod.objects.all():
-        shipping_method_data = convert_to_shipping_method_data(
-            method, method.channel_listings.get(channel=checkout.channel)
-        )
-        internal_methods.append(shipping_method_data)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (checkout, internal_methods), webhooks
-    )
-
-    # then
-    shipping_methods = [
-        {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.id),
-            "name": sm.name,
-        }
-        for sm in internal_methods
-    ]
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert payload["checkout"] == {"id": checkout_id}
-    for method in shipping_methods:
-        assert method in payload["shippingMethods"]
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_checkout_filter_shipping_methods_no_methods_in_channel(
-    checkout,
-    subscription_checkout_filter_shipping_methods_webhook,
-    address,
-    shipping_method,
-    shipping_method_channel_PLN,
-):
-    # given
-    webhooks = [subscription_checkout_filter_shipping_methods_webhook]
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (checkout, []), webhooks
-    )
-
-    # then
-    expected_payload = {"checkout": {"id": checkout_id}, "shippingMethods": []}
-    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_checkout_filter_shipping_methods_with_circular_call_for_shipping_methods(
-    checkout_ready_to_complete,
-    subscription_checkout_filter_shipping_method_webhook_with_shipping_methods,
-):
-    # given
-    webhooks = [
-        subscription_checkout_filter_shipping_method_webhook_with_shipping_methods
-    ]
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (checkout_ready_to_complete, []), webhooks
-    )
-
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-    assert payload["checkout"] is None
-
-
-def test_checkout_filter_shipping_methods_with_available_shipping_methods_field(
-    checkout_ready_to_complete,
-    subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods,
-):
-    # given
-    webhooks = [
-        subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods
-    ]
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (checkout_ready_to_complete, []), webhooks
-    )
-
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-    assert payload["checkout"] is None
-
-
-def test_checkout_filter_shipping_methods_with_circular_call_for_available_gateways(
-    checkout_ready_to_complete,
-    subscription_checkout_filter_shipping_method_webhook_with_payment_gateways,
-):
-    # given
-    webhooks = [
-        subscription_checkout_filter_shipping_method_webhook_with_payment_gateways
-    ]
-    event_type = WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (checkout_ready_to_complete, []), webhooks
-    )
-
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-    assert payload["checkout"] is None
-
-
-def test_checkout_list_methods_mismatch_in_subscription_query_definition(
-    checkout_ready_to_complete,
-    subscription_checkout_shipping_filter_and_list_missing_one_in_definition,
-):
-    # This test ensures  that subscription returns None and does not raise an error
-    # given
-    webhook = subscription_checkout_shipping_filter_and_list_missing_one_in_definition
-    event_type = WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT
-
-    # when
-    deliveries = create_delivery_for_subscription_sync_event(
-        event_type, checkout_ready_to_complete, webhook
-    )
-
-    # then
-    assert not deliveries
-
-
-def test_order_filter_shipping_methods(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook,
-    address,
-):
-    # given
-    order = order_line_with_one_allocation.order
-    order_line_with_one_allocation.is_shipping_required = True
-    order_line_with_one_allocation.save(update_fields=["is_shipping_required"])
-
-    order.currency = "USD"
-    order.shipping_address = address
-    order.save(update_fields=["shipping_address"])
-    webhooks = [subscription_order_filter_shipping_methods_webhook]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order_id = graphene.Node.to_global_id("Order", order.pk)
-    all_shipping_methods = get_all_shipping_methods_for_order(
-        order, ShippingMethodChannelListing.objects.all()
-    )
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(
-        event_type, (order, all_shipping_methods), webhooks
-    )
-
-    # then
-    shipping_methods = [
-        {
-            "id": graphene.Node.to_global_id("ShippingMethod", sm.id),
-            "name": sm.name,
-        }
-        for sm in all_shipping_methods
-    ]
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert payload["order"] == {"id": order_id}
-    for method in shipping_methods:
-        assert method in payload["shippingMethods"]
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_order_filter_shipping_methods_no_methods_in_channel(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook,
-    shipping_method_channel_PLN,
-):
-    # given
-    order = order_line_with_one_allocation.order
-    order.save(update_fields=["shipping_address"])
-    webhooks = [subscription_order_filter_shipping_methods_webhook]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order_id = graphene.Node.to_global_id("Order", order.pk)
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
-
-    # then
-    expected_payload = {"order": {"id": order_id}, "shippingMethods": []}
-
-    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
-    assert len(deliveries) == len(webhooks)
-    assert deliveries[0].webhook == webhooks[0]
-
-
-def test_order_filter_shipping_methods_with_circular_call_for_available_methods(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook_with_available_ship_methods,
-):
-    # given
-    webhooks = [
-        subscription_order_filter_shipping_methods_webhook_with_available_ship_methods
-    ]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order = order_line_with_one_allocation.order
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
-
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-
-
-def test_order_filter_shipping_methods_with_circular_call_for_shipping_methods(
-    order_line_with_one_allocation,
-    subscription_order_filter_shipping_methods_webhook_with_shipping_methods,
-):
-    # given
-    webhooks = [
-        subscription_order_filter_shipping_methods_webhook_with_shipping_methods
-    ]
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order = order_line_with_one_allocation.order
-
-    # when
-    deliveries = create_deliveries_for_subscriptions(event_type, (order, []), webhooks)
-
-    # then
-    payload = json.loads(deliveries[0].payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
-    assert payload["order"] is None
 
 
 @patch.object(logger, "info")

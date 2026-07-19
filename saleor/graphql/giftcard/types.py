@@ -8,7 +8,12 @@ from ...core.anonymize import obfuscate_email
 from ...core.exceptions import PermissionDenied
 from ...giftcard import GiftCardEvents, models
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import AccountPermissions, AppPermission, GiftcardPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    AppPermission,
+    GiftcardPermissions,
+    OrderPermissions,
+)
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import (
     check_is_owner_or_has_one_of_perms,
@@ -19,7 +24,7 @@ from ..app.types import App
 from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import DEFAULT_DEPRECATION_REASON
+from ..core.descriptions import ADDED_IN_323, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
 from ..core.scalars import Date, DateTime
@@ -64,6 +69,79 @@ class GiftCardEventBalance(BaseObjectType):
         doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
+class GiftCardEventAssignment(BaseObjectType):
+    old_assigned_to = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The customer the gift card was assigned to before this event. "
+            "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
+    current_assigned_to = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The customer the gift card is assigned to after this event. "
+            "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
+    old_assigned_to_email = graphene.String(
+        description=(
+            "Email of the customer the gift card was assigned to before this event."
+        ),
+    )
+    current_assigned_to_email = graphene.String(
+        description=(
+            "Email of the customer the gift card is assigned to after this event."
+        ),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
+
+    @staticmethod
+    def resolve_old_assigned_to(root: models.GiftCardEvent, info):
+        return _resolve_assignment_user(root, info, "previous_assigned_to_id")
+
+    @staticmethod
+    def resolve_current_assigned_to(root: models.GiftCardEvent, info):
+        return _resolve_assignment_user(root, info, "assigned_to_id")
+
+    @staticmethod
+    def resolve_old_assigned_to_email(root: models.GiftCardEvent, _info):
+        return root.parameters.get("previous_assigned_to_email")
+
+    @staticmethod
+    def resolve_current_assigned_to_email(root: models.GiftCardEvent, _info):
+        return root.parameters.get("assigned_to_email")
+
+
+def _resolve_assignment_user(root: models.GiftCardEvent, info, parameters_key: str):
+    # Gate the customer identity behind MANAGE_USERS/MANAGE_STAFF only when there is an
+    # assignee to protect; a null id (unassign, first assignment, deleted customer)
+    # returns null without raising PermissionDenied.
+    user_id = root.parameters.get(parameters_key)
+    if not user_id:
+        return None
+
+    def _resolve(event_user):
+        requester = get_user_or_app_from_context(info.context)
+        check_is_owner_or_has_one_of_perms(
+            requester,
+            event_user,
+            AccountPermissions.MANAGE_USERS,
+            AccountPermissions.MANAGE_STAFF,
+        )
+        return event_user
+
+    return UserByUserIdLoader(info.context).load(user_id).then(_resolve)
+
+
 class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     id = graphene.GlobalID(
         required=True, description="ID of the event associated with a gift card."
@@ -105,6 +183,14 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
         description="The list of old gift card tags.",
     )
     balance = graphene.Field(GiftCardEventBalance, description="The gift card balance.")
+    assigned_to = graphene.Field(
+        GiftCardEventAssignment,
+        description=(
+            "The customer assignment change recorded by the event. Only set for "
+            f"{GiftCardEvents.ASSIGNED_TO_USER.upper()} and "
+            f"{GiftCardEvents.UNASSIGNED_FROM_USER.upper()} events. " + ADDED_IN_323
+        ),
+    )
     expiry_date = Date(description="The gift card expiry date.")
     old_expiry_date = Date(description="Previous gift card expiry date.")
 
@@ -200,6 +286,15 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
         return GiftCardEventBalance(**balance_data)
 
     @staticmethod
+    def resolve_assigned_to(root: models.GiftCardEvent, _info):
+        if root.type not in (
+            GiftCardEvents.ASSIGNED_TO_USER,
+            GiftCardEvents.UNASSIGNED_FROM_USER,
+        ):
+            return None
+        return root
+
+    @staticmethod
     def resolve_expiry_date(root: models.GiftCardEvent, _info):
         expiry_date = root.parameters.get("expiry_date")
         return (
@@ -283,6 +378,24 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         description="Email address of the customer who used a gift card.",
         deprecation_reason=DEFAULT_DEPRECATION_REASON,
     )
+    assigned_to = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The customer the gift card usage is restricted to."
+            + "\n\nRequires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}. " + ADDED_IN_323
+        ),
+    )
+    assigned_to_email = graphene.String(
+        required=False,
+        description=(
+            "Email of the customer the gift card is restricted to."
+            + "\n\nRequires one of the following permissions: "
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name}, "
+            f"{AuthorizationFilters.OWNER.name}. " + ADDED_IN_323
+        ),
+    )
     last_used_on = DateTime(description="Date and time when gift card was last used.")
     expiry_date = Date(description="Expiry date of the gift card.")
     app = graphene.Field(
@@ -302,10 +415,18 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
-        description="List of events associated with the gift card.",
+        description=(
+            "List of events associated with the gift card. Requires "
+            f"{GiftcardPermissions.MANAGE_GIFT_CARD.name} permission to access all "
+            "events. Users with "
+            f"{OrderPermissions.MANAGE_ORDERS.name} permission can access only "
+            f"{GiftCardEvents.USED_IN_ORDER.upper()} and "
+            f"{GiftCardEvents.REFUNDED_IN_ORDER.upper()} events."
+        ),
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
+            OrderPermissions.MANAGE_ORDERS,
         ],
     )
     tags = PermissionsField(
@@ -357,28 +478,24 @@ class GiftCard(ModelObjectType[models.GiftCard]):
 
     @staticmethod
     def resolve_code(root: models.GiftCard, info):
-        def _resolve_code(user):
-            # Gift card code can be fetched by the staff user and app
-            # with manage gift card permission and by the card owner.
-            if requestor := get_user_or_app_from_context(info.context):
-                requestor_is_an_owner = user and requestor == user
-                if requestor_is_an_owner or requestor.has_perm(
-                    GiftcardPermissions.MANAGE_GIFT_CARD
-                ):
-                    return root.code
-
-            return PermissionDenied(
-                permissions=[
-                    AuthorizationFilters.OWNER,
-                    GiftcardPermissions.MANAGE_GIFT_CARD,
-                ]
-            )
-
-        if root.used_by_id is None:
-            return _resolve_code(None)
-
-        return (
-            UserByUserIdLoader(info.context).load(root.used_by_id).then(_resolve_code)
+        # Gift card code can be fetched by the staff user and app with manage gift
+        # card permission and by the card owner (the customer who used it or the
+        # customer it is assigned to).
+        owner_ids = {
+            uid for uid in (root.used_by_id, root.assigned_to_id) if uid is not None
+        }
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor:
+            requestor_is_owner = requestor.pk in owner_ids
+            if requestor_is_owner or requestor.has_perm(
+                GiftcardPermissions.MANAGE_GIFT_CARD
+            ):
+                return root.code
+        return PermissionDenied(
+            permissions=[
+                AuthorizationFilters.OWNER,
+                GiftcardPermissions.MANAGE_GIFT_CARD,
+            ]
         )
 
     @staticmethod
@@ -453,6 +570,46 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         )
 
     @staticmethod
+    def resolve_assigned_to(root: models.GiftCard, info):
+        def _resolve_assigned_to(user):
+            requestor = get_user_or_app_from_context(info.context)
+            check_is_owner_or_has_one_of_perms(
+                requestor, user, AccountPermissions.MANAGE_USERS
+            )
+            return user
+
+        if root.assigned_to_id is None:
+            return None
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.assigned_to_id)
+            .then(_resolve_assigned_to)
+        )
+
+    @staticmethod
+    def resolve_assigned_to_email(root: models.GiftCard, info):
+        def _resolve_assigned_to_email(user):
+            requestor = get_user_or_app_from_context(info.context)
+            # Intentional access-control decision (not broken access control):
+            # the denormalized email identifier is readable with MANAGE_GIFT_CARD
+            # alone, so staff can reason about who a card belongs to without also
+            # holding MANAGE_USERS. Fetching the full User object is stricter and
+            # is gated behind MANAGE_USERS in `resolve_assigned_to`. See ADR 0005.
+            if is_owner_or_has_one_of_perms(
+                requestor, user, GiftcardPermissions.MANAGE_GIFT_CARD
+            ):
+                return user.email if user else root.assigned_to_email
+            return obfuscate_email(user.email if user else root.assigned_to_email)
+
+        if root.assigned_to_id is None:
+            return _resolve_assigned_to_email(None)
+        return (
+            UserByUserIdLoader(info.context)
+            .load(root.assigned_to_id)
+            .then(_resolve_assigned_to_email)
+        )
+
+    @staticmethod
     def resolve_app(root: models.GiftCard, info):
         def _resolve_app(app):
             requester = get_user_or_app_from_context(info.context)
@@ -478,6 +635,18 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     @staticmethod
     def resolve_events(root: models.GiftCard, info, **kwargs):
         def filter_events(events):
+            requestor = get_user_or_app_from_context(info.context)
+            has_manage_gift_card = requestor and requestor.has_perm(
+                GiftcardPermissions.MANAGE_GIFT_CARD
+            )
+            if not has_manage_gift_card:
+                events = [
+                    event
+                    for event in events
+                    if event.type
+                    in [GiftCardEvents.USED_IN_ORDER, GiftCardEvents.REFUNDED_IN_ORDER]
+                ]
+
             event_filter = kwargs.get("filter", {})
             if event_type_value := event_filter.get("type"):
                 events = filter_events_by_type(events, event_type_value)

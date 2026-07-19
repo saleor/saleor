@@ -1,17 +1,15 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from django.conf import settings
 from prices import Money, TaxedMoney
 
-from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount
 from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.voucher import is_order_level_voucher, is_shipping_voucher
-from ..shipping.models import ShippingMethodChannelListing
 from .interface import OrderTaxedPricesData
 
 if TYPE_CHECKING:
@@ -338,22 +336,9 @@ def undiscounted_order_shipping(
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
 ) -> Money:
     """Return shipping price without any discounts."""
-    # TODO: add undiscounted_shipping_price field to order model.
-    # https://github.com/saleor/saleor/issues/14915
-
-    with allow_writer():
-        # TODO: load shipping_method with dataloader and pass as an argument
-        shipping_method = order.shipping_method
-
-    if shipping_method:
-        if (
-            listing := ShippingMethodChannelListing.objects.using(
-                database_connection_name
-            )
-            .filter(channel=order.channel, shipping_method=shipping_method)
-            .first()
-        ):
-            return Money(listing.price_amount, order.currency)
+    if order.undiscounted_base_shipping_price is not None:
+        undiscounted = cast(Money, order.undiscounted_base_shipping_price)
+        return undiscounted
     return zero_money(order.currency)
 
 

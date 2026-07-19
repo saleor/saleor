@@ -9,6 +9,7 @@ from ....app.models import App
 from ....core import EventDeliveryStatus
 from ....core import models as core_models
 from ....core.telemetry import get_task_context
+from ....core.utils import get_domain
 from ....core.utils.events import get_is_deferred_payload
 from ....discount import models as discount_models
 from ....graphql.utils import get_user_or_app_from_context
@@ -21,7 +22,10 @@ from ....webhook.transport.asynchronous.transport import (
     generate_deferred_payloads,
     send_webhook_request_async,
 )
-from ....webhook.transport.utils import prepare_deferred_payload_data
+from ....webhook.transport.utils import (
+    get_sqs_message_group_id,
+    prepare_deferred_payload_data,
+)
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
@@ -111,10 +115,8 @@ class WebhookTrigger(BaseMutation):
 
     @classmethod
     def validate_permissions(cls, info, event_type):
-        if (
-            permission := WebhookEventAsyncType.PERMISSIONS.get(event_type)
-            if event_type
-            else None
+        if permission := (
+            WebhookEventAsyncType.PERMISSIONS.get(event_type) if event_type else None
         ):
             codename = permission.value.split(".")[1]
             user_permissions = [
@@ -177,13 +179,16 @@ class WebhookTrigger(BaseMutation):
                 deferred_payload_data = prepare_deferred_payload_data(
                     object, requestor, info.context.request_time
                 )
+
+                domain = get_domain()
+                message_group_id = get_sqs_message_group_id(domain, app=None)
                 generate_deferred_payloads.apply_async(
                     kwargs={
                         "event_delivery_ids": [delivery.pk],
                         "deferred_payload_data": asdict(deferred_payload_data),
                         "telemetry_context": get_task_context().to_dict(),
                     },
-                    bind=True,
+                    MessageGroupId=message_group_id,
                 )
             else:
                 deliveries = create_deliveries_for_subscriptions(

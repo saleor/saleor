@@ -1,15 +1,20 @@
+from django.conf import settings
+from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from ....celeryconf import app
+from ....core.db.connection import allow_writer
 from ....discount import DiscountType
 from ....discount.models import CheckoutLineDiscount
+from ...lock_objects import checkout_lines_qs_select_for_update
 from ...models import Checkout, CheckoutLine
 
 # Takes about 0.1 second to process
 DUPLICATED_LINES_CHECKOUT_BATCH_SIZE = 250
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
 def clean_duplicated_gift_lines_task(created_after=None):
     extra_order_filter = {}
     if created_after:
@@ -46,5 +51,11 @@ def clean_duplicated_gift_lines_task(created_after=None):
         else:
             seen_checkouts.add(line.checkout_id)
 
-    CheckoutLine.objects.filter(id__in=lines_to_delete).delete()
+    with transaction.atomic():
+        pks = (
+            checkout_lines_qs_select_for_update()
+            .filter(id__in=lines_to_delete)
+            .values_list("id", flat=True)
+        )
+        CheckoutLine.objects.filter(id__in=pks).delete()
     clean_duplicated_gift_lines_task.delay(created_after=checkout_created_after)

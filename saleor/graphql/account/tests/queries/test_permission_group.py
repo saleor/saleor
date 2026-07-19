@@ -4,7 +4,7 @@ from .....account.models import Group
 from ....tests.utils import get_graphql_content
 
 GROUP_FEDERATION_QUERY = """
-  query GetGroupInFederation($representations: [_Any]) {
+  query GetGroupInFederation($representations: [_Any!]!) {
     _entities(representations: $representations) {
       __typename
       ... on Group {

@@ -2,15 +2,22 @@ on:
   release:
     types: [published]
 
+permissions: {}
+
 jobs:
   github-releases-to-discord:
     runs-on: ubuntu-latest
+    environment: discord-notifier
+
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Announce to Discord
-        uses: SethCohen/github-releases-to-discord@b96a33520f8ad5e6dcdecee6f1212bdf88b16550 # v1.19.0
+        uses: SethCohen/github-releases-to-discord@24d166886aee4646d448c8a389ff9e1ebcab3682 # v1.20.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           color: "11155626"

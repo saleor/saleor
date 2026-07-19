@@ -217,14 +217,6 @@ def send_fulfillment_confirmation_email_task(payload: dict, configuration: dict)
             customer_email=payload["recipient_email"],
         )
 
-        if payload.get("digital_lines"):
-            order_events.event_fulfillment_digital_links_notification(
-                order_id=from_global_id_or_none(payload["order"]["id"]),
-                user_id=from_global_id_or_none(payload["requester_user_id"]),
-                app_id=from_global_id_or_none(payload["requester_app_id"]),
-                customer_email=payload["recipient_email"],
-            )
-
 
 @app.task(
     autoretry_for=(SendGridException,),

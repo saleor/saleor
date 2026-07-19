@@ -11,14 +11,19 @@ on:
       - .github/workflows/test-semgrep-rules.yml
       - .pre-commit-config.yaml
 
+permissions: {}
+
 jobs:
   main:
     runs-on: ubuntu-22.04
     container: python:3.12-slim
 
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           sparse-checkout: |
             .semgrep
@@ -34,10 +39,12 @@ jobs:
           # Greps the semgrep version from the pre-commit configuration
           # (ensures a single source of truth and a single source to update)
           semgrep_version=$(
-            yq -r '.repos[] | select( .repo == "https://github.com/returntocorp/semgrep" ) | .rev' .pre-commit-config.yaml \
-            `# remove the 'v' character, e.g., 'v1.89.0' -> '1.89.0'` \
-            | tr -d v
-          )
+            `# Grep + tail are grabbing the 'rev' field` \
+            grep -m1 -A 1 \
+              -F 'repo: https://github.com/returntocorp/semgrep' .pre-commit-config.yaml \
+            | tail -n1 \
+            `# Extracts the version number from the YAML comment` \
+            | sed -nE 's/.*# frozen: v(.*)/\1/p')
           pip install semgrep=="$semgrep_version"
 
       - name: Run Tests

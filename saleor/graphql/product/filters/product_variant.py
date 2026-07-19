@@ -34,9 +34,11 @@ from ...attribute.shared_filters import (
     get_attribute_values_by_slug_or_name_value,
     validate_attribute_value_input,
 )
-from ...core.descriptions import ADDED_IN_322
+from ...channel.filters import get_channel_slug_from_filter_data
+from ...core.descriptions import ADDED_IN_322, ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
+    EnumWhereFilter,
     FilterInputObjectType,
     GlobalIDMultipleChoiceWhereFilter,
     ListObjectTypeFilter,
@@ -54,7 +56,12 @@ from ...utils.filters import (
     filter_where_by_range_field,
     filter_where_by_value_field,
 )
-from .shared import filter_updated_at_range
+from ..enums import StockAvailability
+from .product_helpers import (
+    where_filter_variant_stock_availability,
+    where_filter_variant_stocks,
+)
+from .shared import ProductStockFilterInput, filter_updated_at_range
 
 
 def filter_sku_list(qs, _, value):
@@ -734,6 +741,19 @@ class ProductVariantWhere(MetadataWhereFilterBase):
         method="filter_attributes",
         help_text="Filter by attributes associated with the variant." + ADDED_IN_322,
     )
+    stock_availability = EnumWhereFilter(
+        input_class=StockAvailability,
+        method="filter_stock_availability",
+        help_text=(
+            "Filter by variants having a specific stock status in the given channel."
+            + ADDED_IN_324
+        ),
+    )
+    stocks = ObjectTypeWhereFilter(
+        input_class=ProductStockFilterInput,
+        method="filter_stocks",
+        help_text="Filter by stock of the variant." + ADDED_IN_324,
+    )
 
     class Meta:
         model = ProductVariant
@@ -752,6 +772,14 @@ class ProductVariantWhere(MetadataWhereFilterBase):
         if not value:
             return qs
         return filter_variants_by_attributes(qs, value)
+
+    def filter_stock_availability(self, qs, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return where_filter_variant_stock_availability(qs, name, value, channel_slug)
+
+    @staticmethod
+    def filter_stocks(qs, name, value):
+        return where_filter_variant_stocks(qs, name, value)
 
     def is_valid(self):
         if attributes := self.data.get("attributes"):

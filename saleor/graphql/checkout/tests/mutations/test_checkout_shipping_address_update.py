@@ -11,8 +11,8 @@ from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
+from .....checkout.tests.utils import add_variant_to_checkout
 from .....checkout.utils import (
-    add_variant_to_checkout,
     add_voucher_to_checkout,
     invalidate_checkout,
 )
@@ -115,6 +115,8 @@ def test_checkout_shipping_address_with_metadata_update(
     checkout = checkout_with_item
     assert checkout.shipping_address is None
     previous_last_change = checkout.last_change
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     shipping_address = graphql_address_data
     variables = {
@@ -139,6 +141,7 @@ def test_checkout_shipping_address_with_metadata_update(
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_shipping_address is True
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -175,6 +178,9 @@ def test_checkout_shipping_address_when_variant_without_listing(
         channel_id=checkout.channel_id, **{listing_filter_field: line.variant_id}
     ).delete()
 
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
     assert checkout.shipping_address is None
     previous_last_change = checkout.last_change
 
@@ -204,6 +210,7 @@ def test_checkout_shipping_address_when_variant_without_listing(
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_shipping_address is True
+    assert checkout.search_index_dirty is True
 
 
 @mock.patch(
@@ -255,6 +262,7 @@ def test_checkout_shipping_address_update_changes_checkout_country(
     assert checkout.country == shipping_address["country"]
     assert checkout.last_change != previous_last_change
     assert checkout.save_shipping_address is True
+    assert checkout.search_index_dirty is True
 
 
 @mock.patch(
@@ -491,6 +499,36 @@ def test_checkout_shipping_address_update_channel_without_shipping_zones(
     assert errors[0]["field"] == "quantity"
     checkout.refresh_from_db()
     assert checkout.last_change == previous_last_change
+
+
+def test_checkout_shipping_address_update_channel_without_shipping_zones_excluded_from_stock_calculations(
+    user_api_client,
+    checkout_with_item,
+    graphql_address_data,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    checkout = checkout_with_item
+    checkout.channel.shipping_zones.clear()
+
+    shipping_address = graphql_address_data
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": shipping_address,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+    content = get_graphql_content(response)
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
 
 
 def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
@@ -925,12 +963,12 @@ def test_checkout_shipping_address_update_with_disabled_fields_normalization(
     assert shipping_address.street_address_1 == address_data["streetAddress1"]
 
 
-def test_checkout_update_shipping_address_with_digital(
-    api_client, checkout_with_digital_item, graphql_address_data
+def test_checkout_update_shipping_address_on_checkout_without_shipping_required(
+    api_client, checkout_without_shipping_required, graphql_address_data
 ):
-    """Test updating the shipping address of a digital order throws an error."""
+    """Test updating the shipping address of an order w/o shipping throws an error."""
 
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     variables = {
         "id": to_global_id_or_none(checkout),
         "shippingAddress": graphql_address_data,
@@ -1142,6 +1180,7 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE_WITH_ONLY_ID = """
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_shipping_address_update_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -1195,11 +1234,13 @@ def test_checkout_shipping_address_update_triggers_webhooks(
                 "requestor_model_name": "account.user",
                 "requestor_object_id": user_api_client.user.pk,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions
@@ -1401,3 +1442,39 @@ def test_checkout_shipping_address_marks_shipping_as_stale(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.delivery_methods_stale_at == new_now
+
+
+def test_checkout_shipping_address_update_with_kosovo_address(
+    user_api_client,
+    checkout_with_item,
+):
+    # given
+    checkout = checkout_with_item
+
+    shipping_address = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Rr. Nënë Tereza",
+        "city": "Pristina",
+        "postalCode": "10000",
+        "country": "XK",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "shippingAddress": shipping_address,
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutShippingAddressUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.shipping_address
+    assert checkout.shipping_address.country.code == shipping_address["country"]
+    assert checkout.shipping_address.city == shipping_address["city"].upper()
+    assert checkout.shipping_address.postal_code == shipping_address["postalCode"]

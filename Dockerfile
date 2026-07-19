@@ -9,7 +9,8 @@ RUN apt-get -y update \
 
 # Install Python dependencies
 WORKDIR /app
-COPY --from=ghcr.io/astral-sh/uv:0.8 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11.8@sha256:3b7b60a81d3c57ef471703e5c83fd4aaa33abcd403596fb22ab07db85ae91347 \
+  /uv /uvx /bin/
 ENV UV_COMPILE_BYTECODE=1 UV_SYSTEM_PYTHON=1 UV_PROJECT_ENVIRONMENT=/usr/local
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
@@ -33,6 +34,7 @@ RUN apt-get update \
   libwebp7 \
   libpq5 \
   libmagic1 \
+  libxslt1-dev `# libxslt is needed by lxml (PyPI)` \
   # Required by celery[sqs] which uses pycurl for AWS SQS support
   libcurl4 \
   # Required to allows to identify file types when handling file uploads
@@ -62,4 +64,4 @@ LABEL org.opencontainers.image.title="saleor/saleor" \
   org.opencontainers.image.authors="Saleor Commerce (https://saleor.io)" \
   org.opencontainers.image.licenses="BSD-3-Clause"
 
-CMD ["uvicorn", "saleor.asgi:application", "--host=0.0.0.0", "--port=8000", "--workers=2", "--lifespan=off", "--ws=none", "--no-server-header", "--no-access-log", "--timeout-keep-alive=35", "--timeout-graceful-shutdown=30", "--limit-max-requests=10000"]
+CMD ["uvicorn", "saleor.asgi:application", "--host=0.0.0.0", "--port=8000", "--workers=2", "--lifespan=auto", "--ws=none", "--no-server-header", "--no-access-log", "--timeout-keep-alive=35", "--timeout-graceful-shutdown=30", "--limit-max-requests=10000"]

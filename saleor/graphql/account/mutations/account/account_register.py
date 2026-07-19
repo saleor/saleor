@@ -114,11 +114,8 @@ class AccountRegister(DeprecatedModelMutation):
             response.user.NEWLY_CREATED_USER = True
         return response
 
-    @classmethod
-    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        site = get_site_promise(info.context).get()
-        if not site.settings.enable_account_confirmation_by_email:
-            return super().clean_input(info, instance, data, **kwargs)
+    @staticmethod
+    def clean_redirect_url(data: dict) -> None:
         if not data.get("redirect_url"):
             raise ValidationError(
                 {
@@ -139,9 +136,16 @@ class AccountRegister(DeprecatedModelMutation):
                 }
             ) from e
 
-        data["channel"] = clean_channel(
-            data.get("channel"), error_class=AccountErrorCode, allow_replica=False
-        ).slug
+    @classmethod
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        site = get_site_promise(info.context).get()
+
+        if site.settings.enable_account_confirmation_by_email:
+            cls.clean_redirect_url(data)
+
+            data["channel"] = clean_channel(
+                data.get("channel"), error_class=AccountErrorCode, allow_replica=False
+            ).slug
 
         data["email"] = data["email"].lower()
 
@@ -226,7 +230,12 @@ class AccountRegister(DeprecatedModelMutation):
 
     @classmethod
     def save_and_create_task(cls, user_exists, instance, cleaned_input, context_data):
-        instance.set_password(cleaned_input["password"])
+        instance.set_password(
+            # nosemgrep: python.django.security.audit.unvalidated-password.unvalidated-password
+            # Password is being validated via cls.clean_input(), which correctly invokes
+            # django.contrib.auth.password_validation.validate_password()
+            cleaned_input["password"]
+        )
         instance.is_confirmed = False
 
         user_created = False

@@ -2177,8 +2177,62 @@ def test_query_product_media_by_id_zero_size_value_original_image_returned(
     )
 
 
+def test_query_product_media_by_id_without_image_returns_thumbnail_proxy_url(
+    user_api_client, product, channel_USD
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product.media.create(image=None)
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 120,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"https://example.com/thumbnail/{media_id}/128/"
+    )
+
+
+def test_query_product_media_by_id_without_image_zero_size_returns_original_image_proxy_url(
+    user_api_client, product, channel_USD
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product.media.create(image=None)
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "size": 0,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"https://example.com/image/{media_id}/"
+    )
+
+
 QUERY_PRODUCT_IN_FEDERATION = """
-query GetProductInFederation($representations: [_Any]) {
+query GetProductInFederation($representations: [_Any!]!) {
   _entities(representations: $representations) {
     __typename
     ... on Product {
@@ -2436,7 +2490,7 @@ def test_query_product_media_for_federation(
         ],
     }
     query = """
-      query GetProductMediaInFederation($representations: [_Any]) {
+      query GetProductMediaInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on ProductMedia {
@@ -2456,138 +2510,6 @@ def test_query_product_media_for_federation(
             "url": "https://example.com/media/products/product.jpg",
         }
     ]
-
-
-QUERY_PRODUCT_WITH_VARIANT = """
-    query Product($id: ID!, $channel: String, $variant_id: ID, $sku: String){
-        product(id: $id, channel: $channel){
-           variant(id: $variant_id, sku: $sku){
-            id
-            sku
-           }
-        }
-    }
-    """
-
-
-@pytest.mark.parametrize(
-    ("variant_id", "sku", "result"),
-    [(False, "123", "123"), (True, None, "123")],
-)
-def test_product_variant_field_filtering(
-    staff_api_client,
-    product,
-    variant_id,
-    sku,
-    result,
-    channel_USD,
-):
-    # given
-    variant = product.variants.first()
-    variables = {
-        "id": graphene.Node.to_global_id("Product", product.pk),
-        "variant_id": (
-            graphene.Node.to_global_id("ProductVariant", variant.pk)
-            if variant_id
-            else None
-        ),
-        "sku": sku,
-        "channel": channel_USD.slug,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_WITH_VARIANT,
-        variables,
-    )
-
-    # then
-    content = get_graphql_content(response)
-    assert content["data"]["product"]["variant"]["sku"] == result
-
-
-def test_product_variant_field_filtering_null_response(
-    staff_api_client,
-    product,
-    channel_USD,
-):
-    # given
-    sku = "not_existing"
-    variant_id = None
-
-    variables = {
-        "id": graphene.Node.to_global_id("Product", product.pk),
-        "variant_id": variant_id,
-        "sku": sku,
-        "channel": channel_USD.slug,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_WITH_VARIANT,
-        variables,
-    )
-
-    # then
-    content = get_graphql_content(response)
-    assert content["data"]["product"]["variant"] is None
-
-
-def test_product_variant_field_filtering_argument_required_error(
-    staff_api_client,
-    product,
-    channel_USD,
-):
-    # given
-    sku = None
-    variant_id = None
-
-    variables = {
-        "id": graphene.Node.to_global_id("Product", product.pk),
-        "variant_id": variant_id,
-        "sku": sku,
-        "channel": channel_USD.slug,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_WITH_VARIANT,
-        variables,
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    error_message = "At least one of arguments is required"
-    assert error_message in content["errors"][0]["message"]
-
-
-def test_product_variant_field_filtering_argument_cannot_be_combined_error(
-    staff_api_client,
-    product,
-    channel_USD,
-):
-    # given
-    sku = "123"
-    variant = product.variants.first()
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-
-    variables = {
-        "id": graphene.Node.to_global_id("Product", product.pk),
-        "variant_id": variant_id,
-        "sku": sku,
-        "channel": channel_USD.slug,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        QUERY_PRODUCT_WITH_VARIANT,
-        variables,
-    )
-
-    # then
-    content = get_graphql_content(response, ignore_errors=True)
-    error_message = "Argument 'id' cannot be combined"
-    assert error_message in content["errors"][0]["message"]
 
 
 QUERY_PRODUCT_WITH_SORTED_MEDIA = """
@@ -3162,3 +3084,30 @@ def test_applies_limit_on_product_assigned_attributes(
         content["data"]["product"]["assignedAttributes"][0]["attribute"]["slug"]
         == first_attribute.slug
     )
+
+
+CHANNEL_FIELD_QUERY = """
+query getProduct($id: ID!) {
+    product(id: $id) {
+        id
+        channel
+    }
+}
+"""
+
+
+def test_channel_field_with_default_channel_anonymous(api_client, product, channel_USD):
+    """No `channel` argument is passed and the anonymous requestor has no product permissions, so the resolver falls back to the lazy default channel slug."""
+
+    # given
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {"id": product_id}
+
+    # when
+    response = api_client.post_graphql(CHANNEL_FIELD_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["product"]
+    assert data["id"] == product_id
+    assert data["channel"] == channel_USD.slug

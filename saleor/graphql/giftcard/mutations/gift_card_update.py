@@ -117,6 +117,8 @@ class GiftCardUpdate(GiftCardCreate):
         )
 
         instance = cls.construct_instance(instance, cleaned_input)
+        if tags_updated:
+            instance.search_index_dirty = True
 
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection

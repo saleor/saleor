@@ -2,18 +2,17 @@ import graphene
 from django.db.models import Exists, OuterRef
 from promise import Promise
 
+from ...core.search import prefix_search
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ...product.search import search_products
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
-    ADDED_IN_321,
     ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
@@ -24,11 +23,10 @@ from ..core.fields import (
     BaseField,
     ConnectionField,
     FilterConnectionField,
-    PermissionsField,
 )
 from ..core.tracing import traced_resolver
 from ..core.types import NonNullList
-from ..core.utils import from_global_id_or_error
+from ..core.utils import from_global_id_or_error, validate_and_apply_search_rank_sorting
 from ..core.validators import validate_one_of_args_is_in_query
 from ..shop.resolvers import get_database_connection_name
 from ..translations.mutations import (
@@ -102,12 +100,6 @@ from .mutations.channels import (
     ProductChannelListingUpdate,
     ProductVariantChannelListingUpdate,
 )
-from .mutations.digital_contents import (
-    DigitalContentCreate,
-    DigitalContentDelete,
-    DigitalContentUpdate,
-    DigitalContentUrlCreate,
-)
 from .resolvers import (
     resolve_categories,
     resolve_category_by_translated_slug,
@@ -115,8 +107,6 @@ from .resolvers import (
     resolve_collection_by_slug,
     resolve_collection_by_translated_slug,
     resolve_collections,
-    resolve_digital_content_by_id,
-    resolve_digital_contents,
     resolve_product,
     resolve_product_type_by_id,
     resolve_product_types,
@@ -129,6 +119,7 @@ from .sorters import (
     CategorySortingInput,
     CollectionSortingInput,
     ProductOrder,
+    ProductOrderField,
     ProductTypeSortingInput,
     ProductVariantSortingInput,
 )
@@ -137,8 +128,6 @@ from .types import (
     CategoryCountableConnection,
     Collection,
     CollectionCountableConnection,
-    DigitalContent,
-    DigitalContentCountableConnection,
     Product,
     ProductCountableConnection,
     ProductType,
@@ -146,29 +135,9 @@ from .types import (
     ProductVariant,
     ProductVariantCountableConnection,
 )
-from .utils import check_for_sorting_by_rank
 
 
 class ProductQueries(graphene.ObjectType):
-    digital_content = PermissionsField(
-        DigitalContent,
-        description="Look up digital content by ID.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of the digital content.", required=True
-        ),
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
-    digital_contents = ConnectionField(
-        DigitalContentCountableConnection,
-        description="List of digital content.",
-        permissions=[
-            ProductPermissions.MANAGE_PRODUCTS,
-        ],
-        doc_category=DOC_CATEGORY_PRODUCTS,
-    )
     categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
@@ -187,8 +156,7 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the category slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the category slug, omit to use primary slug.",
         ),
         description="Look up a category by ID or slug.",
         doc_category=DOC_CATEGORY_PRODUCTS,
@@ -202,8 +170,7 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the collection"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the collection slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the collection slug, omit to use primary slug.",
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
@@ -242,8 +209,7 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the product slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the product slug, omit to use primary slug.",
         ),
         external_reference=graphene.Argument(
             graphene.String, description="External ID of the product."
@@ -456,18 +422,6 @@ class ProductQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
 
     @staticmethod
-    def resolve_digital_content(_root, info: ResolveInfo, *, id):
-        _, id = from_global_id_or_error(id, DigitalContent)
-        return resolve_digital_content_by_id(info, id)
-
-    @staticmethod
-    def resolve_digital_contents(_root, info: ResolveInfo, **kwargs):
-        qs = resolve_digital_contents(info)
-        return create_connection_slice(
-            qs, info, kwargs, DigitalContentCountableConnection
-        )
-
-    @staticmethod
     @traced_resolver
     def resolve_product(
         _root,
@@ -521,7 +475,9 @@ class ProductQueries(graphene.ObjectType):
     @staticmethod
     @traced_resolver
     def resolve_products(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        check_for_sorting_by_rank(info, kwargs)
+        validate_and_apply_search_rank_sorting(
+            kwargs, ProductOrderField.RANK, "ProductOrder", info
+        )
         search = kwargs.get("search")
 
         requestor = get_user_or_app_from_context(info.context)
@@ -538,7 +494,7 @@ class ProductQueries(graphene.ObjectType):
             qs = resolve_products(info, requestor, channel_obj, limited_channel_access)
             if search:
                 qs = ChannelQsContext(
-                    qs=search_products(qs.qs, search), channel_slug=channel
+                    qs=prefix_search(qs.qs, search), channel_slug=channel
                 )
             kwargs["channel"] = channel
             qs = filter_connection_queryset(
@@ -640,7 +596,7 @@ class ProductQueries(graphene.ObjectType):
                 requestor=requestor,
             )
             if search:
-                products = search_products(
+                products = prefix_search(
                     models.Product.objects.using(
                         get_database_connection_name(info.context)
                     ),
@@ -722,12 +678,6 @@ class ProductMutations(graphene.ObjectType):
     product_type_update = ProductTypeUpdate.Field()
     product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
     product_reorder_attribute_values = ProductReorderAttributeValues.Field()
-
-    digital_content_create = DigitalContentCreate.Field()
-    digital_content_delete = DigitalContentDelete.Field()
-    digital_content_update = DigitalContentUpdate.Field()
-
-    digital_content_url_create = DigitalContentUrlCreate.Field()
 
     product_variant_create = ProductVariantCreate.Field()
     product_variant_delete = ProductVariantDelete.Field()

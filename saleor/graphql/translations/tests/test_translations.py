@@ -467,7 +467,8 @@ def test_attribute_value_translation(user_api_client, attribute_value_generator)
     ]
     assert attribute_value["translation"]["name"] == "Różowy"
     assert attribute_value["translation"]["richText"] == json.dumps(
-        dummy_editorjs("Pink")
+        dummy_editorjs("Pink"),
+        sort_keys=True,
     )
     assert attribute_value["translation"]["language"]["code"] == "PL"
 
@@ -2136,7 +2137,7 @@ def test_rich_text_attribute_value_create_translation(
         "AttributeValue", attribute_value.id
     )
     expected_base_text = "Nowy Opis"
-    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text), sort_keys=True)
 
     # when
     response = staff_api_client.post_graphql(
@@ -2270,7 +2271,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text(
         "AttributeValue", attribute_value.id
     )
     expected_base_text = "Nowy Opis"
-    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text), sort_keys=True)
 
     # when
     response = staff_api_client.post_graphql(
@@ -2307,7 +2308,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_long_text(
         "AttributeValue", attribute_value.id
     )
     expected_base_text = "Nowy Opis. " * 250
-    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text), sort_keys=True)
 
     # when
     response = staff_api_client.post_graphql(
@@ -2347,7 +2348,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_name_set_ma
     )
     expected_name = "Moja nazwa attrybutu"
     expected_base_text = "Nowy Opis"
-    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text), sort_keys=True)
 
     # when
     response = staff_api_client.post_graphql(
@@ -2384,7 +2385,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_empty_name(
         "AttributeValue", attribute_value.id
     )
     expected_base_text = "Nowy Opis"
-    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text), sort_keys=True)
 
     # when
     response = staff_api_client.post_graphql(
@@ -2421,7 +2422,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_name_null(
         "AttributeValue", attribute_value.id
     )
     expected_base_text = "Nowy Opis"
-    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text))
+    expected_rich_text = json.dumps(dummy_editorjs(expected_base_text), sort_keys=True)
 
     # when
     response = staff_api_client.post_graphql(
@@ -3854,8 +3855,12 @@ def test_product_attribute_value_rich_text_translation(
 
     attribute_value_response = data["translation"]["attributeValues"][0]
     assert attribute_value_response["name"] == attribute_value.name
-    assert attribute_value_response["richText"] == json.dumps(attribute_value.rich_text)
-    assert attribute_value_response["translation"]["richText"] == json.dumps(rich_text)
+    assert attribute_value_response["richText"] == json.dumps(
+        attribute_value.rich_text, sort_keys=True
+    )
+    assert attribute_value_response["translation"]["richText"] == json.dumps(
+        rich_text, sort_keys=True
+    )
 
 
 def test_product_attribute_value_plain_text_translation(
@@ -4086,8 +4091,12 @@ def test_product_variant_attribute_value_rich_text_translation(
 
     translations_response = data["translation"]["attributeValues"][0]
     assert translations_response["name"] == attribute_value.name
-    assert translations_response["richText"] == json.dumps(attribute_value.rich_text)
-    assert translations_response["translation"]["richText"] == json.dumps(rich_text)
+    assert translations_response["richText"] == json.dumps(
+        attribute_value.rich_text, sort_keys=True
+    )
+    assert translations_response["translation"]["richText"] == json.dumps(
+        rich_text, sort_keys=True
+    )
 
 
 def test_product_variant_attribute_value_plain_text_translation(
@@ -4229,8 +4238,12 @@ def test_page_attribute_value_rich_text_translation(
 
     attribute_value_response = data["translation"]["attributeValues"][0]
     assert attribute_value_response["name"] == attribute_value.name
-    assert attribute_value_response["richText"] == json.dumps(attribute_value.rich_text)
-    assert attribute_value_response["translation"]["richText"] == json.dumps(rich_text)
+    assert attribute_value_response["richText"] == json.dumps(
+        attribute_value.rich_text, sort_keys=True
+    )
+    assert attribute_value_response["translation"]["richText"] == json.dumps(
+        rich_text, sort_keys=True
+    )
 
 
 def test_page_attribute_value_plain_text_translation(
@@ -4446,7 +4459,8 @@ def test_translation_query_promotion(
     assert data["name"] == promotion.name
     assert data["translation"]["name"] == promotion_translation_fr.name
     assert data["translation"]["description"] == json.dumps(
-        promotion_translation_fr.description
+        promotion_translation_fr.description,
+        sort_keys=True,
     )
 
 
@@ -4496,5 +4510,6 @@ def test_translation_query_promotion_rule(
     assert data["name"] == promotion_rule.name
     assert data["translation"]["name"] == promotion_rule_translation_fr.name
     assert data["translation"]["description"] == json.dumps(
-        promotion_rule_translation_fr.description
+        promotion_rule_translation_fr.description,
+        sort_keys=True,
     )

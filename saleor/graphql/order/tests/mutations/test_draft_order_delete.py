@@ -7,7 +7,6 @@ from django.test import override_settings
 from .....core.models import EventDelivery
 from .....discount.models import VoucherCode
 from .....order import OrderStatus
-from .....order.actions import call_order_event
 from .....order.error_codes import OrderErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -302,10 +301,6 @@ def test_draft_order_delete_release_voucher_codes_single_use(
     assert voucher_code.is_active is True
 
 
-@patch(
-    "saleor.graphql.order.mutations.draft_order_delete.call_order_event",
-    wraps=call_order_event,
-)
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
@@ -314,7 +309,6 @@ def test_draft_order_delete_release_voucher_codes_single_use(
 def test_draft_order_delete_do_not_trigger_sync_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
     setup_order_webhooks,
     settings,
     staff_api_client,
@@ -356,7 +350,6 @@ def test_draft_order_delete_do_not_trigger_sync_webhooks(
         MessageGroupId="example.com:saleorappadditional",
     )
     assert not mocked_send_webhook_request_sync.called
-    assert wrapped_call_order_event.called
 
 
 def test_draft_order_delete_with_voucher_and_include_draft_order_in_voucher_usage_false(

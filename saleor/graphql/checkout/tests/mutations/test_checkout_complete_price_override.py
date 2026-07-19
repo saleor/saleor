@@ -127,7 +127,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_fixed(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     _ = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     shipping_price = shipping_method.channel_listings.get().price_amount
@@ -207,7 +207,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_percentag
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     _ = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     shipping_price = shipping_method.channel_listings.get().price_amount
@@ -582,11 +582,11 @@ def test_checkout_complete_with_price_override_and_gift_promotion(
     address,
     shipping_method,
     checkout_delivery,
-    digital_content,
+    product_without_shipping,
 ):
     # given
     rule = gift_promotion_rule
-    gift = digital_content.product_variant
+    gift = product_without_shipping.variants.get()
     rule.gifts.set([gift])
     gift_price = Decimal(10)
     assert gift.channel_listings.get().price_amount == gift_price
@@ -702,7 +702,7 @@ def test_checkout_complete_with_price_override_and_catalogue_promotion_and_entir
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     add_voucher_code_to_checkout(manager, checkout_info, lines, voucher_code)
     _ = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
 
     shipping_price = shipping_method.channel_listings.get().price_amount

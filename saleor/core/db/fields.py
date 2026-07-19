@@ -1,8 +1,8 @@
-import json
 from collections.abc import Callable
 from decimal import Decimal
 from functools import total_ordering
 
+import orjson
 from django.core import validators
 from django.db.models import Field, JSONField
 from django.db.models.expressions import Expression
@@ -26,7 +26,9 @@ class SanitizedJSONField(JSONField):
         """Sanitize the value for saving using the passed sanitizer."""
         if isinstance(value, Expression):
             return value
-        return json.dumps(self._sanitizer_method(value))
+        return orjson.dumps(
+            self._sanitizer_method(value), option=orjson.OPT_UTC_Z
+        ).decode("utf-8")
 
 
 @total_ordering

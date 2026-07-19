@@ -42,7 +42,7 @@ if TYPE_CHECKING:
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
     from ..core.notify import NotifyEventType
-    from ..core.taxes import TaxData, TaxType
+    from ..core.taxes import TaxType
     from ..core.utils.translations import Translation
     from ..csv.models import ExportFile
     from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
@@ -61,11 +61,10 @@ if TYPE_CHECKING:
         ProductType,
         ProductVariant,
     )
-    from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
-    from ..warehouse.models import Stock, Warehouse
+    from ..warehouse.models import Warehouse
 
 PluginConfigurationType = list[dict]
 RequestorOrLazyObject = Union[SimpleLazyObject, "Requestor"]
@@ -96,12 +95,6 @@ class ExternalAccessTokens:
     refresh_token: str | None = None
     csrf_token: str | None = None
     user: Optional["User"] = None
-
-
-@dataclass
-class ExcludedShippingMethod:
-    id: str
-    reason: str | None
 
 
 class BasePlugin:
@@ -677,7 +670,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    fulfillment_created: Callable[["Fulfillment", bool, Any], Any]
+    fulfillment_created: Callable[["Fulfillment", bool, Any, Any], Any]
 
     # Trigger when fulfillment is cancelled.
     #
@@ -686,7 +679,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    fulfillment_canceled: Callable[["Fulfillment", Any], Any]
+    fulfillment_canceled: Callable[["Fulfillment", Any, Any], Any]
 
     # Trigger when fulfillment is approved.
     #
@@ -695,7 +688,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    fulfillment_approved: Callable[["Fulfillment", Any], Any]
+    fulfillment_approved: Callable[["Fulfillment", Any, Any], Any]
 
     # Trigger when fulfillment metadata is updated.
     #
@@ -727,17 +720,6 @@ class BasePlugin:
         Any,
     ]
 
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    get_taxes_for_checkout: Callable[
-        ["CheckoutInfo", list["CheckoutLineInfo"], str, Any, dict | None],
-        Optional["TaxData"],
-    ]
-
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    get_taxes_for_order: Callable[["Order", str, Any], Optional["TaxData"]]
-
     get_client_token: Callable[[Any, Any], Any]
 
     get_order_line_tax_rate: Callable[
@@ -754,12 +736,6 @@ class BasePlugin:
 
     get_order_shipping_tax_rate: Callable[["Order", Any], Any]
     get_payment_config: Callable[[Any], Any]
-
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    get_shipping_methods_for_checkout: Callable[
-        ["Checkout", list["ShippingMethodData"], Any], list["ShippingMethodData"]
-    ]
 
     get_supported_currencies: Callable[[Any], Any]
 
@@ -1286,6 +1262,33 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     product_updated: Callable[["Product", Any, None], Any]
 
+    # Trigger when product type is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product type
+    # is created.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    product_type_created: Callable[["ProductType", Any], Any]
+
+    # Trigger when product type is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product type
+    # is deleted.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    product_type_deleted: Callable[["ProductType", Any, None], Any]
+
+    # Trigger when product type is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product type
+    # is updated.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    product_type_updated: Callable[["ProductType", Any], Any]
+
     # Trigger when product media is created.
     #
     # Overwrite this method if you need to trigger specific logic after a product media
@@ -1349,6 +1352,12 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_updated: Callable[["ProductVariant", Any, None], Any]
 
+    # Trigger when product variant discounted price is recalculated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product
+    # variant price is updated.
+    product_variant_discounted_price_updated: Callable[[Any, Any, None], Any]
+
     # Trigger when product variant metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
@@ -1357,33 +1366,6 @@ class BasePlugin:
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
     product_variant_metadata_updated: Callable[["ProductVariant", Any], Any]
-
-    # Trigger when product variant is out of stock.
-    #
-    # Overwrite this method if you need to trigger specific logic after a product
-    # variant is out of stock.
-    #
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    product_variant_out_of_stock: Callable[["Stock", None, None], Any]
-
-    # Trigger when product variant is back in stock.
-    #
-    # Overwrite this method if you need to trigger specific logic after a product
-    # variant is back in stock.
-    #
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    product_variant_back_in_stock: Callable[["Stock", None, None], Any]
-
-    # Trigger when product variant stock is updated.
-    #
-    # Overwrite this method if you need to trigger specific logic after a product
-    # variant stock is updated.
-    #
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    product_variant_stocks_updated: Callable[[list["Stock"], None, None], Any]
 
     # Trigger when a product export is completed.
     #

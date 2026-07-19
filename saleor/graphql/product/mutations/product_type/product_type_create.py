@@ -12,6 +12,7 @@ from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.validators import validate_slug_and_generate_if_needed
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import ProductTypeKindEnum
 from ...types import ProductType
 from ..utils import clean_tax_code
@@ -26,6 +27,9 @@ class ProductTypeInput(BaseInputObjectType):
             "Determines if product of this type has multiple variants. This option "
             "mainly simplifies product management in the dashboard. There is always at "
             "least one variant created under the hood."
+            f"{DEPRECATED_IN_3X_INPUT} The field has no effect on the API behavior. "
+            "This is a leftover from the past Simple/Configurable product distinction. "
+            "Products can have multiple variants regardless of this setting. "
         )
     )
     product_attributes = NonNullList(
@@ -45,7 +49,14 @@ class ProductTypeInput(BaseInputObjectType):
         description="Determines if shipping is required for products of this variant."
     )
     is_digital = graphene.Boolean(
-        description="Determines if products are digital.", required=False
+        description=(
+            "Determines if products are digital - doesn't have any effect, "
+            "it's present for backward-compatibility."
+        ),
+        deprecation_reason=(
+            "Will be removed in v3.24.0, use metadata or attributes instead."
+        ),
+        required=False,
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
     tax_code = graphene.String(
@@ -151,3 +162,8 @@ class ProductTypeCreate(DeprecatedModelMutation):
             instance.product_attributes.set(product_attributes)
         if variant_attributes is not None:
             instance.variant_attributes.set(variant_attributes)
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.product_type_created, instance)

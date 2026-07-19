@@ -14,7 +14,7 @@ from requests_hardened import HTTPSession
 
 from ....account.models import Address
 from ....checkout.fetch import CheckoutInfo, fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout
+from ....checkout.tests.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import (
     TaxDataErrorMessage,
@@ -2127,6 +2127,45 @@ def test_calculate_checkout_shipping(
     )
 
 
+@patch("saleor.plugins.avatax.get_cached_response_or_fetch")
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin"])
+def test_calculate_checkout_shipping_when_failed_to_deliver_request(
+    mocked_get_cached_response_or_fetch,
+    checkout_with_item_on_promotion,
+    checkout_delivery,
+    address,
+    ship_to_pl_address,
+    site_settings,
+    monkeypatch,
+    plugin_configuration,
+):
+    # given
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager(allow_replica=False)
+    site_settings.company_address = address
+    site_settings.save()
+
+    mocked_get_cached_response_or_fetch.return_value = {}
+
+    checkout = checkout_with_item_on_promotion
+    checkout.shipping_address = ship_to_pl_address
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    shipping_price = manager.calculate_checkout_shipping(checkout_info, lines, address)
+
+    # then
+    shipping_price = quantize_price(shipping_price, shipping_price.currency)
+    assert shipping_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
+
+
 @pytest.mark.vcr
 @pytest.mark.parametrize(
     ("expected_net", "expected_gross", "prices_entered_with_tax"),
@@ -3837,7 +3876,6 @@ def test_get_checkout_line_tax_rate(
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
-        assigned_delivery=checkout_with_item.assigned_delivery,
         user=None,
         tax_configuration=checkout_with_item.channel.tax_configuration,
         discounts=[],
@@ -3973,7 +4011,6 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
         shipping_address=address,
         billing_address=None,
         channel=checkout_with_item.channel,
-        assigned_delivery=checkout_with_item.assigned_delivery,
         user=None,
         tax_configuration=checkout_with_item.channel.tax_configuration,
         discounts=[],

@@ -13,7 +13,6 @@ from ...discount.models import (
     DiscountValueType,
 )
 from ...discount.utils.voucher import validate_voucher_in_order
-from ...graphql.core.utils import to_global_id_or_none
 from ...graphql.order.utils import OrderLineData
 from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
@@ -27,17 +26,12 @@ from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
     event_fulfillment_confirmed_notification,
-    event_fulfillment_digital_links_notification,
     event_order_cancelled_notification,
     event_order_confirmation_notification,
     event_order_refunded_notification,
     event_payment_confirmed_notification,
 )
 from ..models import Order
-from ..notifications import (
-    get_default_fulfillment_payload,
-    send_fulfillment_confirmation_to_customer,
-)
 from ..utils import (
     add_variant_to_order,
     change_order_line_quantity,
@@ -71,8 +65,11 @@ def test_order_get_subtotal(order_with_lines):
     )
 
     fetch_order_prices_if_expired(
-        order_with_lines, get_plugins_manager(allow_replica=False), force_update=True
-    )
+        order_with_lines,
+        get_plugins_manager(allow_replica=False),
+        requestor=None,
+        force_update=True,
+    ).get()
     target_subtotal = order_with_lines.total - order_with_lines.shipping_price
     assert order_with_lines.subtotal == target_subtotal
 
@@ -88,6 +85,7 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -100,6 +98,7 @@ def test_add_variant_to_order_adds_line_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     line = order.lines.last()
@@ -120,6 +119,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
     product,
     anonymous_plugins,
     catalogue_promotion_without_rules,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -172,6 +172,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -198,6 +199,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -219,6 +221,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -235,6 +238,7 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     variant = product.variants.get()
     stock = Stock.objects.get(product_variant=variant)
@@ -248,6 +252,7 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     stock.refresh_from_db()
@@ -255,7 +260,9 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-    order_with_lines, anonymous_plugins
+    order_with_lines,
+    anonymous_plugins,
+    site_settings,
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -271,6 +278,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     existing_line.refresh_from_db()
@@ -281,7 +289,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
 
 
 def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
-    order_with_lines, anonymous_plugins
+    order_with_lines, anonymous_plugins, site_settings
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -299,6 +307,7 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     stock.refresh_from_db()
@@ -309,9 +318,7 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
 
 
 def test_add_variant_to_order_adds_line_empty_product_translation(
-    order_with_lines,
-    product,
-    anonymous_plugins,
+    order_with_lines, product, anonymous_plugins, site_settings
 ):
     # given
     order = order_with_lines
@@ -327,6 +334,7 @@ def test_add_variant_to_order_adds_line_empty_product_translation(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -651,7 +659,9 @@ def test_calculate_order_weight(order_with_lines):
     assert calculated_weight == order_weight
 
 
-def test_order_weight_add_more_variant(order_with_lines, anonymous_plugins):
+def test_order_weight_add_more_variant(
+    order_with_lines, anonymous_plugins, site_settings
+):
     variant = order_with_lines.lines.first().variant
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
 
@@ -661,6 +671,7 @@ def test_order_weight_add_more_variant(order_with_lines, anonymous_plugins):
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -673,6 +684,7 @@ def test_order_weight_add_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     variant = product.variants.first()
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
@@ -683,6 +695,7 @@ def test_order_weight_add_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -691,7 +704,7 @@ def test_order_weight_add_new_variant(
     )
 
 
-def test_order_weight_change_line_quantity(staff_user, lines_info):
+def test_order_weight_change_line_quantity(staff_user, lines_info, site_settings):
     app = None
     line_info = lines_info[0]
     new_quantity = line_info.quantity + 2
@@ -704,14 +717,17 @@ def test_order_weight_change_line_quantity(staff_user, lines_info):
         line_info.quantity,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 
-def test_order_weight_delete_line(lines_info):
+def test_order_weight_delete_line(lines_info, site_settings):
     order = lines_info[0].line.order
     line_info = lines_info[0]
-    delete_order_line(line_info, get_plugins_manager(allow_replica=False))
+    delete_order_line(
+        line_info, get_plugins_manager(allow_replica=False), site_settings
+    )
     assert order.weight == _calculate_order_weight_from_lines(order)
 
 
@@ -719,6 +735,7 @@ def test_get_order_weight_non_existing_product(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     # Removing product should not affect order's weight
     order = order_with_lines
@@ -731,6 +748,7 @@ def test_get_order_weight_non_existing_product(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
     old_weight = order.weight
 
@@ -781,7 +799,9 @@ def test_validate_voucher_in_order_without_voucher(
     mock_validate_voucher.assert_not_called()
 
 
-def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
+def test_ordered_item_change_quantity(
+    staff_user, transactional_db, lines_info, site_settings
+):
     app = None
     order = lines_info[0].line.order
     assert not order.events.count()
@@ -793,6 +813,7 @@ def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
         0,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     change_order_line_quantity(
         staff_user,
@@ -802,12 +823,13 @@ def test_ordered_item_change_quantity(staff_user, transactional_db, lines_info):
         0,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     assert order.get_total_quantity() == 0
 
 
 def test_change_order_line_quantity_changes_total_prices(
-    staff_user, transactional_db, lines_info
+    staff_user, transactional_db, lines_info, site_settings
 ):
     app = None
     order = lines_info[0].line.order
@@ -822,104 +844,9 @@ def test_change_order_line_quantity_changes_total_prices(
         new_quantity,
         order,
         get_plugins_manager(allow_replica=False),
+        site_settings,
     )
     assert line_info.line.total_price == line_info.line.unit_price * new_quantity
-
-
-@patch("saleor.plugins.manager.PluginsManager.notify")
-@pytest.mark.parametrize(
-    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
-)
-def test_send_fulfillment_order_lines_mails_by_user(
-    mocked_notify,
-    staff_user,
-    fulfilled_order,
-    fulfillment,
-    digital_content,
-    has_standard,
-    has_digital,
-):
-    manager = get_plugins_manager(allow_replica=False)
-    redirect_url = "http://localhost.pl"
-    order = fulfilled_order
-    order.redirect_url = redirect_url
-    assert order.lines.count() == 2
-
-    if not has_standard:
-        line = order.lines.all()[0]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    if has_digital:
-        line = order.lines.all()[1]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=staff_user, app=None, manager=manager
-    )
-    expected_payload = get_default_fulfillment_payload(order, fulfillment)
-    expected_payload["requester_user_id"] = to_global_id_or_none(staff_user)
-    expected_payload["requester_app_id"] = None
-
-    assert mocked_notify.call_count == 1
-    call_args = mocked_notify.call_args_list[0]
-    called_args = call_args.args
-    called_kwargs = call_args.kwargs
-    assert called_args[0] == "order_fulfillment_confirmation"
-    assert len(called_kwargs) == 2
-    assert called_kwargs["payload_func"]() == expected_payload
-    assert called_kwargs["channel_slug"] == fulfilled_order.channel.slug
-
-
-@patch("saleor.plugins.manager.PluginsManager.notify")
-@pytest.mark.parametrize(
-    ("has_standard", "has_digital"), [(True, True), (True, False), (False, True)]
-)
-def test_send_fulfillment_order_lines_mails_by_app(
-    mocked_notify,
-    app,
-    fulfilled_order,
-    fulfillment,
-    digital_content,
-    has_standard,
-    has_digital,
-):
-    manager = get_plugins_manager(allow_replica=False)
-    redirect_url = "http://localhost.pl"
-    order = fulfilled_order
-    order.redirect_url = redirect_url
-    assert order.lines.count() == 2
-
-    if not has_standard:
-        line = order.lines.all()[0]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    if has_digital:
-        line = order.lines.all()[1]
-        line.variant = digital_content.product_variant
-        assert line.is_digital
-        line.save()
-
-    send_fulfillment_confirmation_to_customer(
-        order=order, fulfillment=fulfillment, user=None, app=app, manager=manager
-    )
-    expected_payload = get_default_fulfillment_payload(order, fulfillment)
-    expected_payload["requester_user_id"] = None
-    expected_payload["requester_app_id"] = to_global_id_or_none(app)
-
-    assert mocked_notify.call_count == 1
-    call_args = mocked_notify.call_args_list[0]
-    called_args = call_args.args
-    called_kwargs = call_args.kwargs
-    assert called_args[0] == "order_fulfillment_confirmation"
-    assert len(called_kwargs) == 2
-    assert called_kwargs["payload_func"]() == expected_payload
-    assert called_kwargs["channel_slug"] == fulfilled_order.channel.slug
 
 
 @pytest.mark.parametrize(
@@ -951,7 +878,6 @@ def test_email_sent_event_with_user(order, event_fun, expected_event_type):
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
-        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
         (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )
@@ -980,7 +906,6 @@ def test_email_sent_event_with_user_without_app(order, event_fun, expected_event
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
-        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
         (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )
@@ -1031,7 +956,6 @@ def test_email_sent_event_without_user_pk(order, event_fun, expected_event_type)
     [
         (event_order_cancelled_notification, OrderEventsEmails.ORDER_CANCEL),
         (event_fulfillment_confirmed_notification, OrderEventsEmails.FULFILLMENT),
-        (event_fulfillment_digital_links_notification, OrderEventsEmails.DIGITAL_LINKS),
         (event_order_refunded_notification, OrderEventsEmails.ORDER_REFUND),
     ],
 )
@@ -1248,6 +1172,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
     product,
     anonymous_plugins,
     catalogue_promotion_without_rules,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -1302,6 +1227,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_promotion_with_custom
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -1329,6 +1255,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
+    site_settings,
 ):
     # given
     order = order_with_lines
@@ -1349,6 +1276,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then
@@ -1378,6 +1306,7 @@ def test_add_variant_to_order_adds_translations_in_order_language(
     variant_translation_fr,
     settings,
     anonymous_plugins,
+    site_settings,
 ):
     # given
     language_code = "fr"
@@ -1396,6 +1325,7 @@ def test_add_variant_to_order_adds_translations_in_order_language(
         user=None,
         app=None,
         manager=anonymous_plugins,
+        site_settings=site_settings,
     )
 
     # then

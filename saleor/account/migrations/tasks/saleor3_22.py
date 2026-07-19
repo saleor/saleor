@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from django.conf import settings
 from django.db import transaction
 
 from ....celeryconf import app
@@ -11,7 +12,7 @@ from ...models import User
 BATCH_SIZE = 1000
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
 @allow_writer()
 def populate_user_number_of_orders_task(user_pk=0):
     users = User.objects.filter(pk__gt=user_pk).order_by("pk")

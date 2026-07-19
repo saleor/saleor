@@ -3,7 +3,7 @@ import datetime
 import graphene
 import pytest
 
-from .....account.models import User
+from .....account.tests.fixtures.user import dangerously_create_test_user
 from .....app.models import App
 from .....core import JobStatus
 from .....csv.models import ExportFile
@@ -150,7 +150,7 @@ def test_filter_export_files_by_user(
     permission_manage_apps,
     staff_user,
 ):
-    second_staff_user = User.objects.create_user(
+    second_staff_user = dangerously_create_test_user(
         email="staff_test2@example.com",
         password="password",
         is_staff=True,

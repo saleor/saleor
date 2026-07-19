@@ -10,6 +10,7 @@ from ...core.telemetry import DEFAULT_DURATION_BUCKETS, Scope, Unit, saleor_attr
 from ...graphql.api import backend, schema
 from ...tests.utils import get_metric_and_data_point, get_metric_data
 from ..metrics import (
+    METRIC_GRAPHQL_FIELD_USAGE,
     METRIC_GRAPHQL_QUERY_COST,
     METRIC_GRAPHQL_QUERY_COUNT,
     METRIC_GRAPHQL_QUERY_DURATION,
@@ -17,10 +18,47 @@ from ..metrics import (
     METRIC_REQUEST_COUNT,
     METRIC_REQUEST_DURATION,
     QUERY_COST_BUCKETS,
+    record_field_usage,
     record_graphql_query_count,
     record_graphql_query_duration,
 )
 from ..views import GraphQLView
+
+
+def test_record_field_usage_with_deprecated_field(get_test_metrics_data):
+    # when
+    record_field_usage("Order", "token", deprecated=True)
+
+    # then
+    metric_data, data_point = get_metric_and_data_point(
+        get_test_metrics_data(), METRIC_GRAPHQL_FIELD_USAGE, scope=Scope.CORE
+    )
+    assert metric_data.unit == Unit.CALL.value
+    assert data_point.attributes == {
+        saleor_attributes.GRAPHQL_PARENT_TYPE: "Order",
+        saleor_attributes.GRAPHQL_FIELD_NAME: "token",
+        saleor_attributes.GRAPHQL_FIELD_DEPRECATED: True,
+    }
+    assert data_point.value == 1
+
+
+def test_record_field_usage_explicit(get_test_metrics_data):
+    # when
+    record_field_usage(
+        "ShippingListMethodsForCheckout", "shippingMethods", deprecated=False
+    )
+
+    # then
+    metric_data, data_point = get_metric_and_data_point(
+        get_test_metrics_data(), METRIC_GRAPHQL_FIELD_USAGE, scope=Scope.CORE
+    )
+    assert metric_data.unit == Unit.CALL.value
+    assert data_point.attributes == {
+        saleor_attributes.GRAPHQL_PARENT_TYPE: "ShippingListMethodsForCheckout",
+        saleor_attributes.GRAPHQL_FIELD_NAME: "shippingMethods",
+    }
+    assert saleor_attributes.GRAPHQL_FIELD_DEPRECATED not in data_point.attributes
+    assert data_point.value == 1
 
 
 def test_record_graphql_query_count(get_test_metrics_data):

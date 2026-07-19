@@ -1,6 +1,6 @@
 from functools import partial
 from unittest import mock
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
@@ -27,7 +27,10 @@ def test_middleware_dont_generate_sql_requests(client, settings, assert_num_quer
         assert response.status_code == 200
 
 
-def test_jwt_middleware(client, admin_user):
+@patch("saleor.account.throttling.cache")
+def test_jwt_middleware(mocked_cache, client, admin_user, setup_mock_for_cache):
+    setup_mock_for_cache({}, mocked_cache)
+
     # We should't base on `wsgi_request` attribute to check if user is authenticated.
     # Saleor is ASGI app, also request could be changed after response is returned.
     user_details_query = """

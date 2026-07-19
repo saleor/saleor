@@ -2,6 +2,7 @@ import base64
 import math
 
 import graphene
+import orjson
 import pytest
 
 from ....tests.models import Book
@@ -28,6 +29,20 @@ class Query(graphene.ObjectType):
 
 
 schema = graphene.Schema(query=Query)
+
+
+class ListQuery(graphene.ObjectType):
+    """Query that resolves books from a list (simulates dataloader path)."""
+
+    books = ConnectionField(BookTypeCountableConnection)
+
+    @staticmethod
+    def resolve_books(_root, info, **kwargs):
+        items = [BookType(name=f"Book{i}") for i in range(24)]
+        return create_connection_slice(items, info, kwargs, BookTypeCountableConnection)
+
+
+list_schema = graphene.Schema(query=ListQuery)
 
 
 @pytest.fixture
@@ -251,6 +266,16 @@ def test_pagination_invalid_cursor_and_valid_base64(books):
     assert str(result.errors[0]) == "Received cursor is invalid."
 
 
+def test_pagination_cursor_decodes_to_non_list(books):
+    cursor = base64.b64encode(orjson.dumps({"id": "abc"})).decode("utf-8")
+    variables = {"first": 5, "after": cursor}
+
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    assert len(result.errors) == 1
+    assert str(result.errors[0]) == "Received cursor is invalid."
+
+
 QUERY_PAGINATION_WITH_FRAGMENTS = """
     fragment BookFragment on BookType {
         name
@@ -345,11 +370,120 @@ QUERY_PAGINATION_WITH_INLINE_FRAGMENTS = """
 
 
 def test_query_with_pagination_and_inline_fragments(books):
+    # given
     page_size = 10
     variables = {"first": page_size}
 
+    # when
     result = schema.execute(QUERY_PAGINATION_WITH_INLINE_FRAGMENTS, variables=variables)
 
+    # then
     assert not result.errors
     content = result.data
     assert len(content["books"]["edges"]) == page_size
+
+
+def test_list_pagination_forward_first_page_info():
+    """First page of forward list pagination has no previous page."""
+    # given
+    variables = {"first": 5}
+
+    # when
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    # then
+    assert not result.errors
+    page_info = result.data["books"]["pageInfo"]
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"] is False
+
+
+def test_list_pagination_forward_middle_page_info():
+    """Middle page of forward list pagination has both previous and next pages."""
+    # given
+    variables = {"first": 5}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    end_cursor = result.data["books"]["pageInfo"]["endCursor"]
+
+    # when
+    variables = {"first": 5, "after": end_cursor}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    # then
+    assert not result.errors
+    page_info = result.data["books"]["pageInfo"]
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"]
+
+
+def test_list_pagination_forward_last_page_info():
+    """Last page of forward list pagination has previous page but no next."""
+    # given
+    variables = {"first": 20}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    end_cursor = result.data["books"]["pageInfo"]["endCursor"]
+
+    # when
+    variables = {"first": 20, "after": end_cursor}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    # then
+    assert not result.errors
+    page_info = result.data["books"]["pageInfo"]
+    assert page_info["hasNextPage"] is False
+    assert page_info["hasPreviousPage"]
+
+
+def test_list_pagination_backward_first_page_info():
+    """First page of backward list pagination has previous page (items before)."""
+    # given
+    variables = {"last": 5}
+
+    # when
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    # then
+    assert not result.errors
+    page_info = result.data["books"]["pageInfo"]
+    assert page_info["hasNextPage"] is False
+    assert page_info["hasPreviousPage"]
+
+
+def test_list_pagination_backward_middle_page_info():
+    """Middle page of backward list pagination has both previous and next pages."""
+    # given
+    variables = {"last": 5}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    start_cursor = result.data["books"]["pageInfo"]["startCursor"]
+
+    # when
+    variables = {"last": 5, "before": start_cursor}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    # then
+    assert not result.errors
+    page_info = result.data["books"]["pageInfo"]
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"]
+
+
+def test_list_pagination_backward_last_page_info():
+    """Last page of backward list pagination has next page but no previous."""
+    # given
+    variables = {"last": 20}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    start_cursor = result.data["books"]["pageInfo"]["startCursor"]
+
+    # when
+    variables = {"last": 20, "before": start_cursor}
+    result = list_schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+
+    # then
+    assert not result.errors
+    page_info = result.data["books"]["pageInfo"]
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"] is False

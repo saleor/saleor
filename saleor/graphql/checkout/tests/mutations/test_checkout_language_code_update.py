@@ -128,6 +128,7 @@ def test_with_active_problems_flow(api_client, checkout_with_problems):
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_update_language_code_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -184,11 +185,13 @@ def test_checkout_update_language_code_triggers_webhooks(
                 "requestor_model_name": "account.user",
                 "requestor_object_id": user_api_client.user.pk,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

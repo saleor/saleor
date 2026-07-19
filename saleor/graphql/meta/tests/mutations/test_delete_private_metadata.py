@@ -4,6 +4,7 @@ import graphene
 
 from .....core.error_codes import MetadataErrorCode
 from .....core.models import ModelWithMetadata
+from .....tests import race_condition
 from ....tests.utils import get_graphql_content
 from . import (
     PRIVATE_KEY,
@@ -206,4 +207,52 @@ def test_delete_private_metadata_for_one_key(
         checkout.metadata_storage,
         checkout_id,
         key="to_clear",
+    )
+
+
+def test_delete_private_metadata_another_key_updated_in_meantime(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    key_to_remove = "to_clear"
+    order.store_value_in_private_metadata(
+        {PRIVATE_KEY: PRIVATE_VALUE, key_to_remove: PRIVATE_VALUE}
+    )
+    order.save(update_fields=["private_metadata"])
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    new_value = "updated_value"
+
+    def update_private_metadata(*args, **kwargs):
+        order.store_value_in_private_metadata({PRIVATE_KEY: new_value})
+        order.save(update_fields=["private_metadata"])
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.meta.mutations.delete_private_metadata.delete_private_metadata_keys",
+        update_private_metadata,
+    ):
+        response = execute_clear_private_metadata_for_item(
+            staff_api_client,
+            permission_manage_orders,
+            order_id,
+            "Order",
+            key=key_to_remove,
+        )
+
+    # then
+    order.refresh_from_db()
+    assert item_contains_proper_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        order,
+        order_id,
+        key=PRIVATE_KEY,
+        value=new_value,
+    )
+    assert order.get_value_from_private_metadata(key_to_remove) is None
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"],
+        order,
+        order_id,
+        key=key_to_remove,
     )

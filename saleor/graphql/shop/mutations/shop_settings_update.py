@@ -2,12 +2,14 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.error_codes import ShopErrorCode
+from ....core.jwt import JWT_SALEOR_OWNER_NAME
 from ....core.utils.url import validate_storefront_url
 from ....permission.enums import SitePermissions
+from ....site import PasswordLoginMode
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_322, ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
@@ -17,10 +19,12 @@ from ...core.utils import WebhookEventInfo
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
+from ..enums import PasswordLoginModeEnum
 from ..types import Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
+    name = graphene.String(description="Shop's name." + ADDED_IN_323)
     header_text = graphene.String(description="Header text.")
     description = graphene.String(description="SEO description.")
     track_inventory_by_default = graphene.Boolean(
@@ -29,20 +33,11 @@ class ShopSettingsInput(graphene.InputObjectType):
         )
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
-    automatic_fulfillment_digital_products = graphene.Boolean(
-        description="Enable automatic fulfillment for all digital products."
-    )
     fulfillment_auto_approve = graphene.Boolean(
         description="Enable automatic approval of all new fulfillments."
     )
     fulfillment_allow_unpaid = graphene.Boolean(
         description="Enable ability to approve fulfillments which are unpaid."
-    )
-    default_digital_max_downloads = graphene.Int(
-        description="Default number of max downloads per digital content URL."
-    )
-    default_digital_url_valid_days = graphene.Int(
-        description="Default number of days which digital content URL will be valid."
     )
     default_mail_sender_name = graphene.String(
         description="Default email sender's name."
@@ -91,6 +86,27 @@ class ShopSettingsInput(graphene.InputObjectType):
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
+    preserve_all_address_fields = graphene.Boolean(
+        description=(
+            "When enabled, address fields that are not valid for a given country "
+            "(according to Google's i18n address data) will be preserved instead of "
+            "being removed during validation. Validation errors are still returned."
+        )
+        + ADDED_IN_322,
+    )
+    password_login_mode = PasswordLoginModeEnum(
+        description="Controls whether password-based authentication is allowed."
+        + ADDED_IN_323,
+    )
+    use_legacy_shipping_zone_stock_availability = graphene.Boolean(
+        description=(
+            "When enabled, stock availability is filtered by shipping zones "
+            "and the destination address (legacy behavior). "
+            "When disabled, stock availability is determined only by the direct "
+            "warehouse-channel link, ignoring shipping zones." + ADDED_IN_323
+        ),
+    )
+
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
         description=(
@@ -154,7 +170,27 @@ class ShopSettingsUpdate(BaseMutation):
         ]
 
     @classmethod
-    def clean_input(cls, _info, _instance, data):
+    def _validate_password_login_mode_restriction(cls, info, data):
+        if "password_login_mode" in data and data["password_login_mode"] in (
+            PasswordLoginMode.DISABLED,
+            PasswordLoginMode.CUSTOMERS_ONLY,
+        ):
+            decoded_token = info.context.decoded_auth_token or {}
+            if decoded_token.get("owner") == JWT_SALEOR_OWNER_NAME:
+                raise ValidationError(
+                    {
+                        "password_login_mode": ValidationError(
+                            "Cannot restrict password login while authenticated "
+                            "with a password.",
+                            code=ShopErrorCode.PASSWORD_AUTH_RESTRICTION.value,
+                        )
+                    }
+                )
+
+    @classmethod
+    def clean_input(cls, info, _instance, data):
+        cls._validate_password_login_mode_restriction(info, data)
+
         if data.get("customer_set_password_url"):
             try:
                 validate_storefront_url(data["customer_set_password_url"])
@@ -217,6 +253,14 @@ class ShopSettingsUpdate(BaseMutation):
 
         old_metadata = dict(instance.metadata)
         old_private_metadata = dict(instance.private_metadata)
+
+        # `name` is stored on the `Site` object, not on `SiteSettings`, so it must
+        # be popped before `construct_instance` runs over the remaining input.
+        name = cleaned_input.pop("name", None)
+        if name is not None and site.name != name:
+            site.name = name
+            cls.clean_instance(info, site)
+            site.save(update_fields=["name"])
 
         instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(

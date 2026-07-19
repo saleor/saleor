@@ -41,7 +41,6 @@ class UpdateMetadata(BaseMetadataMutation):
             meta_instance = get_valid_metadata_instance(instance)
             cls.create_metadata_from_graphql_input(input, error_field_name="input")
             items = {data.key: data.value for data in input}
-            meta_instance.store_value_in_metadata(items=items)
             update_metadata(meta_instance, items)
 
         return cls.success_response(instance)

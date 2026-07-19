@@ -1,12 +1,65 @@
+from typing import Any
+
 import pytest
 
-from ....account.models import User
+from ....account.models import Group, User, UserManager
+from ....permission.enums import get_permissions
+
+
+def dangerously_get_or_create_superuser(
+    email: str, password: str | None = None, **extra_fields: Any
+) -> tuple[User, bool]:
+    """Create a superuser for unittests with the given email and password.
+
+    This should never be called for production use (due to lack of
+    validation).
+    """
+    if user := User.objects.filter(email=email).first():
+        return user, False
+    user = dangerously_create_test_user(
+        email=email, password=password, is_staff=True, is_superuser=True, **extra_fields
+    )
+    group, group_created = Group.objects.get_or_create(name="Full Access")
+    if group_created:
+        group.permissions.add(*get_permissions())
+    group.user_set.add(user)
+    return user, True
+
+
+def dangerously_create_test_user(
+    email, password=None, is_staff=False, is_active=True, **extra_fields
+):
+    """Create a user for unittests with the given email and password.
+
+    This should never be called for production use (due to lack of
+    validation).
+    """
+    email = UserManager.normalize_email(email)
+    # Google OAuth2 backend send unnecessary username field
+    extra_fields.pop("username", None)
+
+    user = User(email=email, is_active=is_active, is_staff=is_staff, **extra_fields)
+    if password:
+        # Semgrep rule that verifies whether the user's password is validated before
+        # calling `user.set_password()` is being silenced due to this function being
+        # voluntarily insecure and being dedicated for unit-testing only.
+        # We might change that in the future by requiring tests to always provide
+        # a strong password.
+        # For now, it's wrapped around a function name "dangerously_[...]" and being
+        # put inside a 'tests' namespace (saleor.account.tests.fixtures.user)
+        # in order to minimize as much as possible the risk of someone using that
+        # insecure function.
+        user.set_password(  # nosemgrep: python.django.security.audit.unvalidated-password.unvalidated-password
+            password
+        )
+    user.save()
+    return user
 
 
 @pytest.fixture
 def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
-    user = User.objects.create_user(
+    user = dangerously_create_test_user(
         "test@example.com",
         "password",
         default_billing_address=default_address,
@@ -25,7 +78,7 @@ def customer_user(address):  # pylint: disable=W0613
 @pytest.fixture
 def customer_user2(address):
     default_address = address.get_copy()
-    user = User.objects.create_user(
+    user = dangerously_create_test_user(
         "test2@example.com",
         "password",
         default_billing_address=default_address,
@@ -42,7 +95,7 @@ def customer_user2(address):
 @pytest.fixture
 def customer_users(address, customer_user, customer_user2):
     default_address = address.get_copy()
-    customer_user3 = User.objects.create_user(
+    customer_user3 = dangerously_create_test_user(
         "test3@example.com",
         "password",
         default_billing_address=default_address,
@@ -59,7 +112,7 @@ def customer_users(address, customer_user, customer_user2):
 @pytest.fixture
 def admin_user(db):
     """Return a Django admin user."""
-    return User.objects.create_user(
+    return dangerously_create_test_user(
         "admin@example.com",
         "password",
         is_staff=True,
@@ -71,7 +124,7 @@ def admin_user(db):
 @pytest.fixture
 def staff_user(db):
     """Return a staff member."""
-    return User.objects.create_user(
+    return dangerously_create_test_user(
         email="staff_test@example.com",
         password="password",
         is_staff=True,

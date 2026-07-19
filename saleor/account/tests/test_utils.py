@@ -9,36 +9,13 @@ from ..models import Address, User
 from ..utils import (
     get_user_groups_permissions,
     is_user_address_limit_reached,
-    remove_staff_member,
     remove_the_oldest_user_address,
     remove_the_oldest_user_address_if_address_limit_is_reached,
     retrieve_user_by_email,
     send_user_event,
     store_user_address,
 )
-
-
-def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
-    # given
-    order.user = staff_user
-    order.save()
-    staff_user.user_permissions.add(permission_manage_products)
-
-    # when
-    remove_staff_member(staff_user)
-
-    # then
-    staff_user = User.objects.get(pk=staff_user.pk)
-    assert not staff_user.is_staff
-    assert not staff_user.user_permissions.exists()
-
-
-def test_remove_staff_member(staff_user):
-    # when
-    remove_staff_member(staff_user)
-
-    # then
-    assert not User.objects.filter(pk=staff_user.pk).exists()
+from .fixtures.user import dangerously_create_test_user
 
 
 @override_settings(MAX_USER_ADDRESSES=2)
@@ -68,7 +45,7 @@ def test_is_user_address_limit_reached_false(customer_user, address):
 
 
 def test_store_user_address_uses_existing_one(address):
-    user = User.objects.create_user("test@example.com", "password")
+    user = dangerously_create_test_user("test@example.com", "password")
     user.addresses.add(address)
 
     expected_user_addresses_count = 1
@@ -82,7 +59,7 @@ def test_store_user_address_uses_existing_one(address):
 
 def test_store_user_address_uses_existing_one_despite_duplicated(address):
     same_address = Address.objects.create(**address.as_data())
-    user = User.objects.create_user("test@example.com", "password")
+    user = dangerously_create_test_user("test@example.com", "password")
     user.addresses.set([address, same_address])
 
     expected_user_addresses_count = 2
@@ -95,7 +72,7 @@ def test_store_user_address_uses_existing_one_despite_duplicated(address):
 
 
 def test_store_user_address_create_new_address_if_not_associated(address):
-    user = User.objects.create_user("test@example.com", "password")
+    user = dangerously_create_test_user("test@example.com", "password")
     expected_user_addresses_count = 1
 
     manager = get_plugins_manager(allow_replica=False)
@@ -109,7 +86,7 @@ def test_store_user_address_create_new_address_if_not_associated(address):
 def test_store_user_address_address_not_saved(address):
     """Test that the address count does never exceeds the limit."""
     same_address = Address.objects.create(**address.as_data())
-    user = User.objects.create_user("test@example.com", "password")
+    user = dangerously_create_test_user("test@example.com", "password")
     user.addresses.set([address, same_address])
 
     address_count = user.addresses.count()

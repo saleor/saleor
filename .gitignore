@@ -1,11 +1,13 @@
 *.py[cod]
 .*
 !.devcontainer
+!.worktree-container
 !.dockerignore
 !.github
 !.gitignore
 !.vscode
 !.python-version
+!.semgrep/
 *.log
 *.pot
 *.pyc
@@ -21,7 +23,6 @@ dist/
 /media/
 /node_modules/
 /static/
-/digital_contents/
 # Environments
 .env
 .venv
@@ -35,3 +36,4 @@ Pipfile
 
 # Exported results file
 django-queries-results.html
+!.claude/skills

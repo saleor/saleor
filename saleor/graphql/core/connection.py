@@ -1,9 +1,10 @@
-import json
+from base64 import b64encode
 from collections.abc import Callable, Iterable
 from decimal import Decimal, InvalidOperation
 from typing import TYPE_CHECKING, Any
 
 import graphene
+import orjson
 from django.conf import settings
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
@@ -12,7 +13,7 @@ from graphql import GraphQLError
 from graphql.language.ast import FragmentSpread, InlineFragment, SelectionSet
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
-from graphql_relay.utils import base64, unbase64
+from graphql_relay.utils import unbase64
 
 from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ..channel.utils import get_default_channel_slug_or_graphql_error
@@ -38,12 +39,15 @@ def to_global_cursor(values):
     if not isinstance(values, Iterable):
         values = [values]
     values = [value if value is None else str(value) for value in values]
-    return base64(json.dumps(values))
+    return b64encode(orjson.dumps(values, option=orjson.OPT_UTC_Z)).decode("utf-8")
 
 
 def from_global_cursor(cursor) -> list[str]:
     values = unbase64(cursor)
-    return json.loads(values)
+    parsed = orjson.loads(values)
+    if not isinstance(parsed, list):
+        raise ValueError("Cursor must decode to a JSON array.")
+    return parsed
 
 
 def get_field_value(instance: DjangoModel, field_name: str):
@@ -456,6 +460,24 @@ def slice_connection_iterable(
         edge_type=edge_type or connection_type.Edge,
         pageinfo_type=pageinfo_type or graphene.relay.PageInfo,
     )
+    # This function handles pagination for list-based data (e.g., from dataloaders).
+    # The graphql-relay `connection_from_list_slice` follows the strict Relay
+    # spec where `has_previous_page` is only set when using `last` and
+    # `has_next_page` only when using `first`. Our queryset-based pagination
+    # (`connection_from_queryset_slice` → `_get_page_info`) is more lenient:
+    # it sets `has_previous_page = True` whenever an `after` cursor is present
+    # (forward pagination) and `has_next_page = True` whenever a `before` cursor
+    # is present (backward pagination). Align the list path with the queryset
+    # path so that nested connection fields (e.g., `me { orders }`) behave
+    # consistently with root-level connections.
+    first = args.get("first")
+    last = args.get("last")
+    after = args.get("after")
+    before = args.get("before")
+    if first and after:
+        slice.page_info.has_previous_page = True
+    if last and before:
+        slice.page_info.has_next_page = True
 
     if "total_count" in connection_type._meta.fields:
         slice.total_count = _len
@@ -517,7 +539,11 @@ def filter_qs(
 
     filterset = filterset_class(filter_input, queryset=queryset, request=request)
     if not filterset.is_valid():
-        raise GraphQLError(json.dumps(filterset.errors.get_json_data()))
+        raise GraphQLError(
+            orjson.dumps(
+                filterset.errors.get_json_data(), option=orjson.OPT_UTC_Z
+            ).decode("utf-8")
+        )
 
     if isinstance(iterable, ChannelQsContext):
         return ChannelQsContext(filterset.qs, iterable.channel_slug)

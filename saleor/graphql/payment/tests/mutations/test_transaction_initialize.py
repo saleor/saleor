@@ -17,10 +17,15 @@ from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.prices import Money, quantize_price
-from .....giftcard.const import GIFT_CARD_PAYMENT_GATEWAY_ID
+from .....giftcard.const import (
+    GIFT_CARD_PAYMENT_GATEWAY_ID,
+    SALEOR_GIFT_CARD_BRAND,
+    SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME,
+)
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
 from .....order.models import Order
 from .....payment import (
+    PaymentMethodType,
     TransactionAction,
     TransactionEventType,
     TransactionItemIdempotencyUniqueError,
@@ -961,7 +966,9 @@ def test_checkout_when_amount_is_not_provided(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -1260,7 +1267,9 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     checkout = checkout_info.checkout
 
     expected_charged_amount = Decimal(10)
@@ -1327,7 +1336,9 @@ def test_app_with_action_field_and_handle_payments(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
@@ -1863,7 +1874,9 @@ def test_checkout_fully_paid(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -1914,7 +1927,9 @@ def test_checkout_fully_paid_pending_charge(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -1973,7 +1988,9 @@ def test_checkout_fully_authorized(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -2024,7 +2041,9 @@ def test_checkout_fully_authorized_pending_authorization(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -2355,10 +2374,8 @@ def test_updates_checkout_last_transaction_modified_at(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(
-        checkout_info,
-        plugins_manager,
-        lines,
-    )
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -2391,6 +2408,60 @@ def test_updates_checkout_last_transaction_modified_at(
     assert (
         checkout.last_transaction_modified_at != previous_last_transaction_modified_at
     )
+
+
+@pytest.mark.parametrize(
+    "current_search_index_dirty",
+    [True, False],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_updates_checkout_search_index_dirty(
+    mocked_initialize,
+    current_search_index_dirty,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    plugins_manager,
+):
+    # given
+    checkout = checkout_with_prices
+    checkout.search_index_dirty = current_search_index_dirty
+    checkout.save(update_fields=["search_index_dirty"])
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
+    expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=expected_app_identifier, response=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": None,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionInitialize"]["errors"]
+    checkout.refresh_from_db()
+    assert checkout.search_index_dirty is True
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -2949,7 +3020,9 @@ def test_lock_checkout_during_updating_checkout_amounts(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -3008,7 +3081,9 @@ def test_transaction_initialize_checkout_completed_race_condition(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=user_api_client.user
+    ).get()
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -3444,6 +3519,13 @@ def test_for_checkout_with_gift_card_payment_gateway(
         available_actions=[TransactionAction.CANCEL],
     )
 
+    transaction = checkout.payment_transactions.last()
+    assert transaction.payment_method_type == PaymentMethodType.GIFT_CARD
+    assert transaction.payment_method_name == SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME
+    assert transaction.gift_card_last_chars == gift_card_created_by_staff.display_code
+    assert transaction.gift_card_brand == SALEOR_GIFT_CARD_BRAND
+    assert transaction.gift_card == gift_card_created_by_staff
+
 
 @mock.patch("saleor.giftcard.gateway.uuid4")
 def test_for_checkout_with_gift_card_payment_gateway_gift_card_does_not_exist(
@@ -3684,7 +3766,8 @@ def test_for_checkout_with_gift_card_payment_gateway_invalidates_previous_author
         checkout_info=another_checkout_info,
         manager=manager,
         lines=[],
-    )
+        requestor=user_api_client.user,
+    ).get()
     assert (
         another_checkout_info.checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     )

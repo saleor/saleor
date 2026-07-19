@@ -10,3 +10,9 @@ class ShippingErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+
+
+class DeliveryOptionsCalculateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    INVALID = "invalid"

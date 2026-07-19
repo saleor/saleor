@@ -6,7 +6,7 @@ import django.utils.timezone
 from django.db import migrations, models
 
 import saleor.core.db.fields
-import saleor.core.utils.editorjs
+import saleor.core.editorjs
 import saleor.core.utils.json_serializer
 
 
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
                     saleor.core.db.fields.SanitizedJSONField(
                         blank=True,
                         null=True,
-                        sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                        sanitizer=saleor.core.editorjs.clean_editorjs,
                     ),
                 ),
                 (
@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
                     saleor.core.db.fields.SanitizedJSONField(
                         blank=True,
                         null=True,
-                        sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                        sanitizer=saleor.core.editorjs.clean_editorjs,
                     ),
                 ),
                 ("catalogue_predicate", models.JSONField(blank=True, default=dict)),
@@ -315,7 +315,7 @@ class Migration(migrations.Migration):
                     saleor.core.db.fields.SanitizedJSONField(
                         blank=True,
                         null=True,
-                        sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                        sanitizer=saleor.core.editorjs.clean_editorjs,
                     ),
                 ),
                 (
@@ -350,7 +350,7 @@ class Migration(migrations.Migration):
                     saleor.core.db.fields.SanitizedJSONField(
                         blank=True,
                         null=True,
-                        sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                        sanitizer=saleor.core.editorjs.clean_editorjs,
                     ),
                 ),
                 (

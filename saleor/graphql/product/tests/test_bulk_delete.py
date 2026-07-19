@@ -9,7 +9,8 @@ from prices import Money, TaxedMoney
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
+from ....checkout.tests.utils import add_variant_to_checkout
+from ....checkout.utils import calculate_checkout_quantity
 from ....discount.utils.promotion import get_active_catalogue_promotion_rules
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
@@ -28,6 +29,8 @@ from ....product.models import (
 )
 from ....thumbnail.models import Thumbnail
 from ...tests.utils import get_graphql_content
+from ..bulk_mutations.product_bulk_delete import ProductBulkDelete
+from ..bulk_mutations.product_variant_bulk_delete import ProductVariantBulkDelete
 
 MUTATION_CATEGORY_BULK_DELETE = """
     mutation categoryBulkDelete($ids: [ID!]!) {
@@ -577,6 +580,31 @@ def test_delete_products_invalid_object_typed_of_given_ids(
     assert data["count"] == 0
 
 
+def test_delete_products_exceeding_max_input_size(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    query = DELETE_PRODUCTS_MUTATION
+    limit = ProductBulkDelete._meta.max_input_size
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"ids": [product_id] * (limit + 1)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkDelete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "ids"
+    assert data["count"] == 0
+    assert Product.objects.filter(id=product.id).exists()
+
+
 @patch("saleor.product.signals.delete_from_storage_task.delay")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_products_with_images(
@@ -872,6 +900,50 @@ def test_delete_product_types(
     ).exists()
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_type_bulk_delete."
+    "get_webhooks_for_event"
+)
+@patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_delete_product_types_trigger_webhooks(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    product_type_list,
+    permission_manage_product_types_and_attributes,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    product_type_count = len(product_type_list)
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("ProductType", product_type.pk)
+            for product_type in product_type_list
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_TYPE_BULK_DELETE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeBulkDelete"]
+
+    assert not data["errors"]
+    assert data["count"] == product_type_count
+    assert mocked_webhook_trigger.call_count == product_type_count
+
+
 def test_delete_product_types_invalid_object_typed_of_given_ids(
     staff_api_client,
     product_type_list,
@@ -1046,6 +1118,30 @@ def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_call
     mocked_recalculate_orders_task.assert_not_called()
     for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty
+
+
+def test_delete_product_variants_by_sku_exceeding_max_input_size(
+    staff_api_client, variant, permission_manage_products
+):
+    # given
+    query = PRODUCT_VARIANT_BULK_DELETE_BY_SKU_MUTATION
+    limit = ProductVariantBulkDelete._meta.max_input_size
+    variables = {"skus": [variant.sku] * (limit + 1)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkDelete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["field"] == "skus"
+    assert data["count"] == 0
+    assert ProductVariant.objects.filter(id=variant.id).exists()
 
 
 PRODUCT_VARIANT_BULK_DELETE_MUTATION = """

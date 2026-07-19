@@ -13,7 +13,7 @@ from ..i18n import I18nMixin
 logger = logging.getLogger(__name__)
 
 
-def test_validate_address():
+def test_validate_address(info):
     # given
     address_data = {
         "first_name": "John Saleor",
@@ -29,14 +29,14 @@ def test_validate_address():
     }
     # when
     address = I18nMixin.validate_address(
-        address_data, address_type=AddressType.SHIPPING
+        address_data, address_type=AddressType.SHIPPING, info=info
     )
 
     # then
     assert address
 
 
-def test_validate_address_invalid_postal_code():
+def test_validate_address_invalid_postal_code(info):
     # given
     address_data = {
         "first_name": "John Saleor",
@@ -53,13 +53,15 @@ def test_validate_address_invalid_postal_code():
 
     # when
     with pytest.raises(ValidationError) as error:
-        I18nMixin.validate_address(address_data, address_type=AddressType.SHIPPING)
+        I18nMixin.validate_address(
+            address_data, address_type=AddressType.SHIPPING, info=info
+        )
 
     # then
     assert len(error.value.error_dict["postal_code"]) == 2
 
 
-def test_validate_address_no_country_code():
+def test_validate_address_no_country_code(info):
     # given
     address_data = {
         "first_name": "John Saleor",
@@ -76,13 +78,15 @@ def test_validate_address_no_country_code():
 
     # when
     with pytest.raises(ValidationError) as error:
-        I18nMixin.validate_address(address_data, address_type=AddressType.SHIPPING)
+        I18nMixin.validate_address(
+            address_data, address_type=AddressType.SHIPPING, info=info
+        )
 
     # then
     assert len(error.value.error_dict["country"]) == 1
 
 
-def test_validate_address_no_city():
+def test_validate_address_no_city(info):
     # given
     address_data = {
         "first_name": "John Saleor",
@@ -99,7 +103,9 @@ def test_validate_address_no_city():
 
     # when
     with pytest.raises(ValidationError) as error:
-        I18nMixin.validate_address(address_data, address_type=AddressType.SHIPPING)
+        I18nMixin.validate_address(
+            address_data, address_type=AddressType.SHIPPING, info=info
+        )
 
     # then
     assert len(error.value.error_dict["city"]) == 1

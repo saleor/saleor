@@ -1,6 +1,7 @@
 import graphene
 
 from .....page.models import PageType
+from .....site.error_codes import RefundSettingsErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 REFUND_SETTINGS_UPDATE_MUTATION = """
@@ -118,7 +119,7 @@ def test_refund_settings_update_change_page_type(
     assert site_settings.refund_reason_reference_type == page_type
 
 
-def test_refund_settings_update_empty_id_success(
+def test_refund_settings_update_empty_id_returns_error(
     staff_api_client, permission_manage_settings, site_settings
 ):
     # given
@@ -137,9 +138,11 @@ def test_refund_settings_update_empty_id_success(
     content = get_graphql_content(response)
     data = content["data"]["refundSettingsUpdate"]
 
-    assert not data["errors"]
-    assert data["refundSettings"]
-    assert data["refundSettings"]["reasonReferenceType"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "refundReasonReferenceType"
+    assert data["errors"][0]["code"] == RefundSettingsErrorCode.REQUIRED.name
+    assert data["errors"][0]["message"] == "This field is required."
+    assert data["refundSettings"] is None
 
 
 def test_refund_settings_update_invalid_id_format(
@@ -158,8 +161,14 @@ def test_refund_settings_update_invalid_id_format(
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["refundSettingsUpdate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == RefundSettingsErrorCode.GRAPHQL_ERROR.name
+    assert error["field"] == "refundReasonReferenceType"
+    assert error["message"] == "Invalid ID: invalid-id-format. Expected: PageType."
+    assert data["refundSettings"] is None
 
 
 def test_refund_settings_update_nonexistent_page_type(
@@ -169,7 +178,10 @@ def test_refund_settings_update_nonexistent_page_type(
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_settings)
 
-    nonexistent_id = graphene.Node.to_global_id("PageType", 99999)
+    page_type_id = 99999
+    assert not PageType.objects.filter(pk=page_type_id).exists()
+
+    nonexistent_id = graphene.Node.to_global_id("PageType", page_type_id)
     variables = {"input": {"refundReasonReferenceType": nonexistent_id}}
 
     # when
@@ -179,6 +191,8 @@ def test_refund_settings_update_nonexistent_page_type(
     )
 
     # then
+    # The "not_found" error code is not part of RefundSettingsErrorCode enum,
+    # so this results in a top-level GraphQL serialization error.
     content = get_graphql_content(response, ignore_errors=True)
     assert "errors" in content
 
@@ -200,8 +214,17 @@ def test_refund_settings_update_wrong_page_type(
     )
 
     # then
-    content = get_graphql_content(response, ignore_errors=True)
-    assert "errors" in content
+    content = get_graphql_content(response)
+    data = content["data"]["refundSettingsUpdate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == RefundSettingsErrorCode.GRAPHQL_ERROR.name
+    assert error["field"] == "refundReasonReferenceType"
+    assert (
+        error["message"]
+        == f"Invalid ID: {product_id}. Expected: PageType, received: Product."
+    )
+    assert data["refundSettings"] is None
 
 
 def test_refund_settings_update_no_permission_staff(staff_api_client, page_type):

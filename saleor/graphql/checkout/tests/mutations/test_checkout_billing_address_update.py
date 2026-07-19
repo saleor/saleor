@@ -17,7 +17,6 @@ from ..utils import assert_address_data
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
-            $checkoutId: ID,
             $id: ID,
             $billingAddress: AddressInput!
             $saveAddress: Boolean
@@ -25,7 +24,6 @@ MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
         ) {
         checkoutBillingAddressUpdate(
                 id: $id,
-                checkoutId: $checkoutId,
                 billingAddress: $billingAddress
                 validationRules: $validationRules
                 saveAddress: $saveAddress
@@ -49,6 +47,8 @@ def test_checkout_billing_address_update_by_id(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
     billing_address = graphql_address_data
@@ -65,6 +65,7 @@ def test_checkout_billing_address_update_by_id(
     checkout.refresh_from_db()
     assert_address_data(checkout.billing_address, billing_address)
     assert checkout.save_billing_address is True
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -150,6 +151,8 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     query = MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE
 
@@ -169,6 +172,7 @@ def test_checkout_billing_address_update_by_id_without_street_address_2(
     checkout.refresh_from_db()
     assert_address_data(checkout.billing_address, billing_address)
     assert checkout.save_billing_address is True
+    assert checkout.search_index_dirty is True
 
 
 @mock.patch(
@@ -184,6 +188,8 @@ def test_checkout_billing_address_update(
 ):
     checkout = checkout_with_item
     assert checkout.shipping_address is None
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
     previous_last_change = checkout.last_change
 
     query = """
@@ -217,6 +223,7 @@ def test_checkout_billing_address_update(
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
     assert checkout.save_billing_address is True
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -577,6 +584,91 @@ def test_checkout_billing_address_update_with_disabled_fields_normalization(
     assert billing_address.street_address_1 == address_data["streetAddress1"]
 
 
+@pytest.mark.parametrize("preserve_all_address_fields", [True, False])
+def test_checkout_billing_address_update_with_disabled_normalization_and_preserve_all_fields(
+    checkout_with_items, user_api_client, site_settings, preserve_all_address_fields
+):
+    # given
+    site_settings.preserve_all_address_fields = preserve_all_address_fields
+    site_settings.save(update_fields=["preserve_all_address_fields"])
+
+    address_data = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Bahnhofstrasse 1",
+        "city": "Zürich",
+        "postalCode": "8001",
+        "country": "CH",
+        "countryArea": "Zürich",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"enableFieldsNormalization": False},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items.billing_address
+    billing_address = checkout_with_items.billing_address
+    assert billing_address.city == address_data["city"]
+    assert billing_address.country_area == address_data["countryArea"]
+    assert billing_address.postal_code == address_data["postalCode"]
+    assert billing_address.street_address_1 == address_data["streetAddress1"]
+
+
+def test_checkout_billing_address_update_with_enabled_normalization_and_not_preserve_all_fields(
+    checkout_with_items, user_api_client, site_settings
+):
+    # given
+    site_settings.preserve_all_address_fields = False
+    site_settings.save(update_fields=["preserve_all_address_fields"])
+
+    address_data = {
+        "firstName": "John",
+        "lastName": "Doe",
+        "streetAddress1": "Bahnhofstrasse 1",
+        "city": "Zürich",
+        "postalCode": "8001",
+        "country": "CH",
+        # country area should be cleared during normalization as it's not preserved
+        # and not required for CH addresses
+        "countryArea": "Zürich",
+    }
+    variables = {
+        "id": to_global_id_or_none(checkout_with_items),
+        "billingAddress": address_data,
+        "validationRules": {"enableFieldsNormalization": True},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE, variables
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutBillingAddressUpdate"]
+    assert not data["errors"]
+    assert checkout_with_items.billing_address
+    billing_address = checkout_with_items.billing_address
+    assert billing_address.city == address_data["city"]
+    assert not billing_address.country_area
+    assert billing_address.postal_code == address_data["postalCode"]
+    assert billing_address.street_address_1 == address_data["streetAddress1"]
+
+
 def test_with_active_problems_flow(
     api_client,
     checkout_with_problems,
@@ -670,6 +762,7 @@ def test_checkout_billing_address_skip_validation_by_app(
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_billing_address_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -730,11 +823,13 @@ def test_checkout_billing_address_triggers_webhooks(
                 "requestor_model_name": "account.user",
                 "requestor_object_id": user_api_client.user.pk,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

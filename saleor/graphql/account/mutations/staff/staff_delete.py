@@ -1,7 +1,8 @@
 import graphene
 
 from .....account import models
-from .....account.utils import remove_staff_member
+from .....core.tracing import traced_atomic_transaction
+from .....giftcard.utils import deactivate_assigned_gift_cards
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
@@ -43,7 +44,12 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         cls.clean_instance(info, instance)
 
         db_id = instance.id
-        remove_staff_member(instance)
+        with traced_atomic_transaction():
+            # Required before deleting the user: GiftCard.assigned_to is
+            # on_delete=PROTECT, so restricted cards must be detached and
+            # deactivated first, atomically with the deletion.
+            deactivate_assigned_gift_cards([instance])
+            instance.delete()
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         instance.id = db_id

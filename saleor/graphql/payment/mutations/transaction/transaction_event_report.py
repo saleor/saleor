@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from .....app.models import App
+from .....checkout.models import Checkout
 from .....core.exceptions import PermissionDenied
 from .....core.prices import quantize_price
 from .....core.tracing import traced_atomic_transaction
@@ -24,6 +25,7 @@ from .....payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
     get_already_existing_event,
+    get_source_object,
     get_transaction_event_amount,
     invalidate_cache_for_stored_payment_methods_if_needed,
     process_order_or_checkout_with_transaction,
@@ -372,7 +374,6 @@ class TransactionEventReport(DeprecatedModelMutation):
         transaction_event = cls.construct_instance(
             transaction_event, transaction_event_data
         )
-        source_object = transaction.order or transaction.checkout
 
         metadata_collection = cls.create_metadata_from_graphql_input(
             transaction_metadata, error_field_name="metadata"
@@ -477,6 +478,11 @@ class TransactionEventReport(DeprecatedModelMutation):
                 transaction.save(update_fields=updated_fields)
 
         app_identifier = app_identifier or transaction.app_identifier
+
+        source_object: Checkout | order_models.Order | None = get_source_object(
+            transaction
+        )
+
         if app_identifier and source_object:
             invalidate_cache_for_stored_payment_methods_if_needed(
                 transaction_event, source_object, app_identifier

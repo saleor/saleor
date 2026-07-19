@@ -5,7 +5,6 @@ import pytest
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
-from ......account.search import generate_address_search_document_value
 from ......giftcard.models import GiftCard
 from ......giftcard.search import update_gift_cards_search_vector
 from .....tests.utils import get_graphql_content
@@ -114,6 +113,8 @@ def test_customer_update(
         },
     }
 
+    assert customer_user.language_code == "en"
+
     # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
@@ -165,15 +166,11 @@ def test_customer_update(
 
     assert customer_user.updated_at > updated_at
 
+    assert customer_user.language_code == "pl"
+
     customer_user.refresh_from_db()
-    assert (
-        generate_address_search_document_value(billing_address)
-        in customer_user.search_document
-    )
-    assert (
-        generate_address_search_document_value(shipping_address)
-        in customer_user.search_document
-    )
+    assert customer_user.search_vector
+    assert customer_user.search_vector
     mocked_customer_metadata_updated.assert_called_once_with(customer_user)
 
 

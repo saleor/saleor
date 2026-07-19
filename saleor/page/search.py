@@ -2,16 +2,15 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db import transaction
-from django.db.models import F, Q, QuerySet, Value
+from django.db.models import Value
 
 from ..attribute.models import Attribute, AttributeValue
 from ..attribute.search import get_search_vectors_for_attribute_values
 from ..core.context import with_promise_context
 from ..core.db.connection import allow_writer
+from ..core.editorjs import editorjs_to_text
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
-from ..core.utils.editorjs import clean_editor_js
 from ..graphql.attribute.dataloaders.assigned_attributes import (
     AttributesByPageIdAndLimitLoader,
     AttributeValuesByPageIdAndAttributeIdAndLimitLoader,
@@ -165,7 +164,7 @@ def prepare_page_search_vector_value(
     if content := page.content:
         search_vectors += [
             NoValidationSearchVector(
-                Value(clean_editor_js(content, to_string=True)),
+                Value(editorjs_to_text(content)),
                 config="simple",
                 weight="A",
             )
@@ -210,13 +209,3 @@ def generate_attributes_search_vector_value(
             attribute, values, page_id_to_title_map=page_id_to_title_map, weight="B"
         )
     return search_vectors
-
-
-def search_pages(qs: QuerySet[Page], value: str) -> QuerySet[Page]:
-    if value:
-        query = SearchQuery(value, search_type="websearch", config="simple")
-        lookup = Q(search_vector=query)
-        qs = qs.filter(lookup).annotate(
-            search_rank=SearchRank(F("search_vector"), query)
-        )
-    return qs

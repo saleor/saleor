@@ -7,7 +7,7 @@ from ...orders.utils import (
     draft_order_update,
     order_lines_create,
 )
-from ...product.utils.preparing_product import prepare_digital_product
+from ...product.utils.preparing_product import prepare_product
 from ...shop.utils.preparing_shop import prepare_default_shop
 from ...utils import assign_permissions
 
@@ -31,8 +31,12 @@ def test_complete_draft_order_with_0_price_lines_CORE_0244(
     channel_id = shop_data["channel"]["id"]
     warehouse_id = shop_data["warehouse"]["id"]
 
-    _product_id, product_variant_id, _product_variant_price = prepare_digital_product(
-        e2e_staff_api_client, channel_id, warehouse_id, 0
+    _product_id, product_variant_id, _product_variant_price = prepare_product(
+        e2e_staff_api_client,
+        warehouse_id=warehouse_id,
+        channel_id=channel_id,
+        variant_price=0,
+        is_shipping_required=False,
     )
     variant_quantity = 1
 

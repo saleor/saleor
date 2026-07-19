@@ -6,7 +6,9 @@ from django.contrib.postgres.search import (
     SearchVector,
     SearchVectorCombinable,
 )
-from django.db.models import Expression
+from django.db.models import Expression, Value
+
+from .utils.text import strip_accents
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +43,16 @@ class NoValidationSearchVector(SearchVector, NoValidationSearchVectorCombinable)
     This class is only safe to use with expressions that do not contain aggregation
     and/or over clause.
     """
+
+    def __init__(self, *expressions, config=None, weight=None):
+        processed = []
+        for expr in expressions:
+            if isinstance(expr, Value) and isinstance(expr.value, str):
+                # Normalize only string literals to make search accent-insensitive.
+                processed.append(Value(strip_accents(expr.value)))
+            else:
+                processed.append(expr)
+        super().__init__(*processed, config=config, weight=weight)
 
 
 class FlatConcat(Expression):

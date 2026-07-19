@@ -186,7 +186,7 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
         )
 
         if transaction_item.app_identifier == GIFT_CARD_PAYMENT_GATEWAY_ID:
-            refund_gift_card_transaction(transaction_item, request_event)
+            refund_gift_card_transaction(transaction_item, request_event, app=app)
             if assigned_granted_refund:
                 calculate_order_granted_refund_status(assigned_granted_refund)
         else:

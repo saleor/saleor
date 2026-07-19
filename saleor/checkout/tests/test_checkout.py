@@ -44,7 +44,6 @@ from ..utils import (
     cancel_active_payments,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
-    clear_cc_delivery_method,
     get_checkout_metadata,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
@@ -53,54 +52,6 @@ from ..utils import (
     recalculate_checkout_discount,
     remove_voucher_from_checkout,
 )
-
-
-def test_is_valid_delivery_method(
-    checkout_with_item, address, shipping_zone, checkout_delivery
-):
-    checkout = checkout_with_item
-    checkout.shipping_address = address
-    checkout.save()
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.get_delivery_method_info()
-    # no shipping method assigned
-    assert not delivery_method_info.is_valid_delivery_method()
-
-    checkout.assigned_delivery = checkout_delivery(checkout)
-    checkout.save()
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.get_delivery_method_info()
-
-    assert delivery_method_info.is_valid_delivery_method()
-
-    checkout.assigned_delivery.active = False
-    checkout.assigned_delivery.save()
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    delivery_method_info = checkout_info.get_delivery_method_info()
-
-    assert not delivery_method_info.is_method_in_valid_methods(checkout_info)
-
-
-def test_clear_cc_delivery_method(
-    checkout_with_delivery_method_for_cc,
-):
-    # given
-    assert checkout_with_delivery_method_for_cc.collection_point_id
-
-    manager = get_plugins_manager(allow_replica=False)
-    checkout_info = fetch_checkout_info(
-        checkout_with_delivery_method_for_cc, [], manager
-    )
-
-    # when
-    clear_cc_delivery_method(checkout_info)
-
-    # then
-    checkout_with_delivery_method_for_cc.refresh_from_db()
-    assert not checkout_with_delivery_method_for_cc.collection_point_id
-    assert isinstance(checkout_info.get_delivery_method_info(), DeliveryMethodBase)
 
 
 def test_last_change_update(checkout):
@@ -865,10 +816,10 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_missing_deliv
 
 
 def test_get_discount_for_checkout_shipping_voucher_not_applicable_delivery_not_required(
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
 ):
     # given
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     voucher = Voucher.objects.create(
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
@@ -1221,7 +1172,6 @@ def test_recalculate_checkout_discount_with_promotion(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            address=checkout.shipping_address,
         ).gross.amount
         == discounted_subtotal - voucher_discount
     )
@@ -1395,7 +1345,6 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     ).gross + Money("10.00", "USD")
     checkout.assigned_delivery.save()
 
@@ -1411,13 +1360,11 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert checkout_total == checkout_subtotal
 
@@ -1437,7 +1384,6 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     ).gross - Money("10.00", "USD")
     checkout.assigned_delivery.save()
 
@@ -1453,13 +1399,11 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     checkout_subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert checkout_total == checkout_subtotal
 
@@ -1802,7 +1746,6 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1824,7 +1767,6 @@ def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = payment_dummy
     payment.is_active = True
@@ -1854,7 +1796,6 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     payment = payment_dummy
     payment.is_active = True

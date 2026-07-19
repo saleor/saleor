@@ -2,13 +2,16 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from django.utils import timezone
 from prices import Money, TaxedMoney
 
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....discount import DiscountType
+from .....giftcard import GiftCardEvents, events
+from .....giftcard.models import GiftCardEvent
 from .....order import FulfillmentStatus, OrderOrigin, OrderStatus
+from .....order.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....order.events import transaction_event
 from .....order.models import Order, OrderGrantedRefund
 from .....order.utils import (
@@ -201,30 +204,6 @@ query OrdersQuery {
                 total {
                     net {
                         amount
-                    }
-                }
-                availableShippingMethods {
-                    id
-                    name
-                    description
-                    price{
-                      amount
-                    }
-                    minimumOrderPrice {
-                      amount
-                    }
-                    maximumOrderPrice{
-                      amount
-                    }
-                    maximumDeliveryDays
-                    minimumDeliveryDays
-                    metadata{
-                      key
-                      value
-                    }
-                    privateMetadata{
-                      key
-                      value
                     }
                 }
                 shippingMethods{
@@ -434,12 +413,12 @@ def test_order_query(
         lines_qs=order.lines.all(), channel_id=order.channel.id
     )
 
-    assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["shippingMethods"]) == (expected_methods.count())
     assert len(order_data["availableCollectionPoints"]) == (
         expected_collection_points.count()
     )
 
-    method = order_data["availableShippingMethods"][0]
+    method = order_data["shippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
@@ -1435,9 +1414,9 @@ def test_order_query_in_pln_channel(
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
     )
-    assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["shippingMethods"]) == (expected_methods.count())
 
-    method = order_data["availableShippingMethods"][0]
+    method = order_data["shippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
@@ -1921,6 +1900,90 @@ def test_order_query_gift_cards(
     assert (
         gift_card.current_balance.amount == gift_card_data["currentBalance"]["amount"]
     )
+
+
+QUERY_ORDER_GIFT_CARD_EVENTS = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            giftCards {
+                events {
+                    type
+                    orderId
+                }
+            }
+        }
+    }
+"""
+
+
+def test_order_query_gift_card_events_manage_orders_only_returns_used_in_order(
+    staff_api_client,
+    permission_group_manage_orders,
+    order_with_lines,
+    gift_card,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_with_lines.gift_cards.add(gift_card)
+
+    GiftCardEvent.objects.create(
+        gift_card=gift_card, type=GiftCardEvents.ISSUED, date=timezone.now()
+    )
+    events.gift_cards_bought_event([gift_card], order_with_lines, None, None)
+    events.gift_cards_used_in_order_event(
+        [(gift_card, 10.0)], order_with_lines, None, None
+    )
+
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_ORDER_GIFT_CARD_EVENTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    events_data = content["data"]["order"]["giftCards"][0]["events"]
+    assert len(events_data) == 1
+    assert events_data[0]["type"] == GiftCardEvents.USED_IN_ORDER.upper()
+    assert events_data[0]["orderId"] == order_id
+
+
+def test_order_query_gift_card_events_manage_orders_and_gift_cards_returns_all_events(
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_manage_gift_card,
+    order_with_lines,
+    gift_card,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_gift_card)
+    order_with_lines.gift_cards.add(gift_card)
+
+    GiftCardEvent.objects.create(
+        gift_card=gift_card, type=GiftCardEvents.ISSUED, date=timezone.now()
+    )
+    events.gift_cards_bought_event([gift_card], order_with_lines, None, None)
+    events.gift_cards_used_in_order_event(
+        [(gift_card, 10.0)], order_with_lines, None, None
+    )
+
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_ORDER_GIFT_CARD_EVENTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    events_data = content["data"]["order"]["giftCards"][0]["events"]
+    assert len(events_data) == 3
+    event_types = {event["type"] for event in events_data}
+    assert event_types == {
+        GiftCardEvents.ISSUED.upper(),
+        GiftCardEvents.BOUGHT.upper(),
+        GiftCardEvents.USED_IN_ORDER.upper(),
+    }
 
 
 QUERY_ORDER_PRICES = """

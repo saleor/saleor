@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.db.models import Exists, OuterRef, QuerySet
 
 from .....discount import models
@@ -21,7 +22,12 @@ from ...types import Promotion
 class PromotionBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of promotion IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                f"List of promotion IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -37,6 +43,7 @@ class PromotionBulkDelete(ModelBulkDeleteMutation):
                 description="A promotion was deleted.",
             )
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

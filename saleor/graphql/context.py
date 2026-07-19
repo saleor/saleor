@@ -27,8 +27,38 @@ def get_context_value(request: HttpRequest) -> SaleorContext:
 
 
 def clear_context(context: SaleorContext):
+    _clear_dataloaders_fields_cache(context)
     context.dataloaders.clear()
     del context.user
+
+
+def _clear_dataloaders_fields_cache(context: SaleorContext):
+    """Clear Django model fields_cache on all cached dataloader values.
+
+    Django's OneToOneField descriptors create bidirectional caches in
+    _state.fields_cache (e.g. Site ↔ SiteSettings), forming reference cycles
+    that survive after dataloaders are cleared. Breaking these caches here
+    prevents the cycles from leaking into garbage collection.
+
+    How it works:
+    - `_promise_cache` is an internal dict on the `promise` library's DataLoader
+      (BaseLoader). It maps loader keys to Promise objects — this is where the
+      dataloader stores its cached results.
+    - Each value in `_promise_cache` is a Promise, not the actual model instance.
+      `.get()` extracts the resolved value. By the time `clear_context` runs (in
+      the `finally` block after GraphQL execution), all promises are already
+      resolved — no additional DB queries are triggered here.
+    - Rejected promises (failed DB queries) raise on `.get()`, so we skip them
+      via try/except since there is no model instance to clean up.
+    """
+    for loader in context.dataloaders.values():
+        for promise in getattr(loader, "_promise_cache", {}).values():
+            try:
+                value = promise.get()
+            except Exception:
+                continue
+            if hasattr(value, "_state"):
+                value._state.fields_cache.clear()
 
 
 class RequestWithUser(HttpRequest):

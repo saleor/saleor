@@ -3,23 +3,21 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import F
 from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
-from ....core.exceptions import UnsupportedMediaProviderException
-from ....core.http_client import HTTPClient
+from ....core.editorjs import editorjs_to_text
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
-from ....core.utils.editorjs import clean_editor_js
-from ....core.utils.validators import get_oembed_data
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
 from ....product.models import CollectionProduct
-from ....thumbnail.utils import get_filename_from_url
+from ....product.tasks import fetch_product_media_image_task
 from ....warehouse.models import Warehouse
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -40,18 +38,14 @@ from ...core.types import (
     ProductBulkCreateError,
     SeoInput,
 )
-from ...core.utils import create_file_from_response, get_duplicated_values
+from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
-from ...core.validators.file import (
-    clean_image_file,
-    is_image_url,
-    is_valid_image_content_type,
-)
+from ...core.validators.file import clean_image_file
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
-from ..utils import ALT_CHAR_LIMIT
+from ..utils import probe_media_url, validate_media_input
 from .product_variant_bulk_create import (
     ProductVariantBulkCreate,
     ProductVariantBulkCreateInput,
@@ -255,7 +249,7 @@ class ProductBulkCreate(BaseMutation):
 
         description = cleaned_input.get("description")
         cleaned_input["description_plaintext"] = (
-            clean_editor_js(description, to_string=True) if description else ""
+            editorjs_to_text(description) if description else ""
         )
 
         slug = cleaned_input.get("slug")
@@ -438,38 +432,23 @@ class ProductBulkCreate(BaseMutation):
         for index, media_input in enumerate(media_inputs):
             image = media_input.get("image")
             media_url = media_input.get("media_url")
-            alt = media_input.get("alt")
+            alt = media_input.get("alt") or ""
 
-            if not image and not media_url:
+            if error := validate_media_input(
+                image, media_url, alt, ProductBulkCreateErrorCode
+            ):
+                error_message, error_code, field = error
+                path = f"media.{index}.{field}" if field else f"media.{index}"
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
-                        path=f"media.{index}",
-                        message="Image or external URL is required.",
-                        code=ProductBulkCreateErrorCode.REQUIRED.value,
+                        path=path,
+                        message=error_message,
+                        code=error_code,
                     )
                 )
                 continue
 
-            if image and media_url:
-                index_error_map[product_index].append(
-                    ProductBulkCreateError(
-                        path=f"media.{index}",
-                        message="Either image or external URL is required.",
-                        code=ProductBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.value,
-                    )
-                )
-                continue
-
-            if alt and len(alt) > ALT_CHAR_LIMIT:
-                index_error_map[product_index].append(
-                    ProductBulkCreateError(
-                        path=f"media.{index}.alt",
-                        message=f"Alt field exceeds the character "
-                        f"limit of {ALT_CHAR_LIMIT}.",
-                        code=ProductBulkCreateErrorCode.INVALID.value,
-                    )
-                )
-                continue
+            media_input["alt"] = alt
 
             if image:
                 media_input["image"] = info.context.FILES.get(image)
@@ -477,59 +456,32 @@ class ProductBulkCreate(BaseMutation):
                     media_input["image"] = clean_image_file(
                         media_input, "image", ProductBulkCreateErrorCode
                     )
+                    media_to_create.append(media_input)
                 except ValidationError as exc:
                     cls.add_indexes_to_errors(
                         product_index, exc, index_error_map, f"media.{index}"
                     )
                     continue
             elif media_url:
-                if is_image_url(media_url):
-                    with HTTPClient.send_request(
-                        "GET", media_url, stream=True, timeout=30, allow_redirects=False
-                    ) as image_data:
-                        content_type = image_data.headers.get("content-type")
-                        if is_valid_image_content_type(content_type):
-                            filename = get_filename_from_url(media_url)
-                            image_file = create_file_from_response(image_data, filename)
-                            media_input["image"] = image_file
-                        else:
-                            validation_error = ValidationError(
-                                {
-                                    "media_url": ValidationError(
-                                        "Invalid file type.",
-                                        code=ProductBulkCreateErrorCode.INVALID.value,
-                                    )
-                                }
-                            )
-                            cls.add_indexes_to_errors(
-                                product_index,
-                                validation_error,
-                                index_error_map,
-                                f"media.{index}",
-                            )
+                try:
+                    probe_result = probe_media_url(
+                        media_url, ProductBulkCreateErrorCode
+                    )
+                except ValidationError as exc:
+                    cls.add_indexes_to_errors(
+                        product_index,
+                        exc,
+                        index_error_map,
+                        f"media.{index}",
+                    )
+                    continue
+                if probe_result.is_image:
+                    media_input["external_url"] = media_url
                 else:
-                    try:
-                        oembed_data, supported_media_type = get_oembed_data(media_url)
-                        oembed_data["supported_media_type"] = supported_media_type
-                    except UnsupportedMediaProviderException as exc:
-                        validation_error = ValidationError(
-                            {
-                                "media_url": ValidationError(
-                                    exc.message,
-                                    code=ProductBulkCreateErrorCode.UNSUPPORTED_MEDIA_PROVIDER.value,
-                                )
-                            }
-                        )
-                        cls.add_indexes_to_errors(
-                            product_index,
-                            validation_error,
-                            index_error_map,
-                            f"media.{index}",
-                        )
-                        continue
+                    oembed_data = probe_result.oembed_data
+                    oembed_data["supported_media_type"] = probe_result.media_type
                     media_input["oembed_data"] = oembed_data
-
-            media_to_create.append(media_input)
+                media_to_create.append(media_input)
 
         return media_to_create
 
@@ -813,6 +765,7 @@ class ProductBulkCreate(BaseMutation):
                             "attributes": variant_data.get("attributes"),
                             "channel_listings": variant_data.get("channel_listings"),
                             "stocks": variant_data.get("stocks"),
+                            "track_inventory": variant_data.get("track_inventory"),
                         },
                     }
                     variants_instances_data.append(variant_data)
@@ -860,6 +813,9 @@ class ProductBulkCreate(BaseMutation):
 
         models.Product.objects.bulk_create(products_to_create)
         models.ProductMedia.objects.bulk_create(media_to_create)
+        transaction.on_commit(
+            lambda: cls.schedule_fetch_product_media_image_tasks(media_to_create)
+        )
         models.ProductChannelListing.objects.bulk_create(listings_to_create)
 
         for product, attributes in attributes_to_save:
@@ -869,6 +825,20 @@ class ProductBulkCreate(BaseMutation):
             variants = cls.save_variants(info, variants_input_data)
 
         return variants, updated_channels
+
+    @classmethod
+    def schedule_fetch_product_media_image_tasks(cls, media_to_create):
+        """Schedule a task for each ProductMedia object that was created, has external URL set but has no image set yet."""
+        media_to_fetch = (
+            product_media
+            for product_media in media_to_create
+            if product_media.type == ProductMediaTypes.IMAGE
+            and not product_media.image
+            and product_media.external_url
+        )
+
+        for product_media in media_to_fetch:
+            fetch_product_media_image_task.delay(product_media.pk)
 
     @classmethod
     def _save_m2m(cls, _info, instances_data):
@@ -925,6 +895,17 @@ class ProductBulkCreate(BaseMutation):
                         type=ProductMediaTypes.IMAGE,
                     )
                 )
+            elif not media_input.get("image") and media_input.get("external_url"):
+                media_to_create.append(
+                    models.ProductMedia(
+                        external_url=media_input["external_url"],
+                        image=None,
+                        alt=alt,
+                        product=product,
+                        type=ProductMediaTypes.IMAGE,
+                    )
+                )
+
             if oembed_data := media_input.get("oembed_data"):
                 media_to_create.append(
                     models.ProductMedia(

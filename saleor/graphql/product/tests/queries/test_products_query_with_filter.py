@@ -1614,14 +1614,20 @@ def test_products_query_with_is_published_filter_one_variant_without_price(
     assert len(products) == 1
 
 
+@pytest.mark.parametrize("include_shipping_zones", [True, False])
 def test_products_query_with_filter_stock_availability_as_staff(
+    include_shipping_zones,
     staff_api_client,
     product_list,
     order_line,
     permission_manage_products,
     channel_USD,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
     for product in product_list:
         stock = product.variants.first().stocks.first()
         Allocation.objects.create(
@@ -1647,7 +1653,9 @@ def test_products_query_with_filter_stock_availability_as_staff(
     assert len(products) == 3
 
 
+@pytest.mark.parametrize("include_shipping_zones", [True, False])
 def test_products_query_with_filter_stock_availability_including_reservations(
+    include_shipping_zones,
     staff_api_client,
     product_list,
     order_line,
@@ -1656,8 +1664,12 @@ def test_products_query_with_filter_stock_availability_including_reservations(
     channel_USD,
     warehouse_JPY,
     stock,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
     stocks = [product.variants.first().stocks.first() for product in product_list]
     stock.quantity = 50
     stock.product_variant = stocks[2].product_variant
@@ -1707,14 +1719,20 @@ def test_products_query_with_filter_stock_availability_including_reservations(
     )
 
 
+@pytest.mark.parametrize("include_shipping_zones", [True, False])
 def test_products_query_with_filter_stock_availability_as_user(
+    include_shipping_zones,
     user_api_client,
     product_list,
     order_line,
     permission_manage_products,
     channel_USD,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
     for product in product_list:
         stock = product.variants.first().stocks.first()
         Allocation.objects.create(
@@ -1772,14 +1790,50 @@ def test_products_query_with_filter_stock_availability_channel_without_shipping_
     assert products[0]["node"]["id"] == product_id
 
 
+def test_products_filter_stock_availability_without_shipping_zones_excluded_from_stock_calculations(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    channel_USD.shipping_zones.clear()
+    variables = {
+        "filter": {"stockAvailability": "IN_STOCK"},
+        "channel": channel_USD.slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PRODUCTS_WITH_FILTER, variables)
+    content = get_graphql_content(response)
+
+    # then - with flag disabled, product is still in stock despite no shipping zones
+    products = content["data"]["products"]["edges"]
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+
+
+@pytest.mark.parametrize("include_shipping_zones", [True, False])
 def test_products_query_with_filter_stock_availability_only_stock_in_cc_warehouse(
+    include_shipping_zones,
     user_api_client,
     product,
     order_line,
     channel_USD,
     warehouse_for_cc,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_shipping_zone_stock_availability = include_shipping_zones
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
     variant = product.variants.first()
     variant.stocks.all().delete()
 

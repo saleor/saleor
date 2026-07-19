@@ -14,6 +14,8 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
 from ....core.utils import WebhookEventInfo
+from ....site.dataloaders import get_site_promise
+from .utils import check_password_login_not_disabled
 
 
 class RequestPasswordReset(BaseMutation):
@@ -80,6 +82,9 @@ class RequestPasswordReset(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        site_settings = get_site_promise(info.context).get().settings
+        check_password_login_not_disabled(site_settings)
+
         email = data["email"]
         redirect_url = data["redirect_url"]
         user = cls.clean_user(email, redirect_url)

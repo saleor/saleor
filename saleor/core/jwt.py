@@ -18,6 +18,7 @@ from .jwt_manager import get_jwt_manager
 
 JWT_ACCESS_TYPE = "access"
 JWT_REFRESH_TYPE = "refresh"
+JWT_CONFIRM_CHANGE_EMAIL_TYPE = "confirm-email-change"
 JWT_THIRDPARTY_ACCESS_TYPE = "thirdparty"
 JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
@@ -70,24 +71,33 @@ def jwt_encode(payload: dict[str, Any]) -> str:
     return jwt_manager.encode(payload)
 
 
-def jwt_decode_with_exception_handler(
-    token: str, verify_expiration=settings.JWT_EXPIRE
-) -> dict[str, Any] | None:
+def jwt_decode_with_exception_handler(token: str) -> dict[str, Any] | None:
     try:
-        return jwt_decode(token, verify_expiration=verify_expiration)
+        return jwt_decode(token)
     except jwt.PyJWTError:
         return None
 
 
-def jwt_decode(
-    token: str, verify_expiration=settings.JWT_EXPIRE, verify_aud: bool = False
-) -> dict[str, Any]:
+def jwt_decode(token: str, verify_aud: bool = False) -> dict[str, Any]:
     jwt_manager = get_jwt_manager()
-    return jwt_manager.decode(token, verify_expiration, verify_aud=verify_aud)
+    return jwt_manager.decode(token, verify_aud=verify_aud)
 
 
-def create_token(payload: dict[str, Any], exp_delta: datetime.timedelta) -> str:
-    payload.update(jwt_base_payload(exp_delta, token_owner=JWT_SALEOR_OWNER_NAME))
+def create_token(
+    payload: dict[str, Any],
+    *,
+    user: User,
+    exp_delta: datetime.timedelta,
+    token_type: str,
+) -> str:
+    payload.update(
+        jwt_user_payload(
+            token_owner=JWT_SALEOR_OWNER_NAME,
+            user=user,
+            exp_delta=exp_delta,
+            token_type=token_type,
+        )
+    )
     return jwt_encode(payload)
 
 

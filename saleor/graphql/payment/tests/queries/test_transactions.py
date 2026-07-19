@@ -1,0 +1,242 @@
+import pytest
+
+from .....order.models import Order
+from ....tests.utils import assert_no_permission, get_graphql_content
+
+
+@pytest.fixture
+def transactions_in_different_channels(
+    order_list,
+    checkout,
+    channel_USD,
+    channel_JPY,
+    channel_PLN,
+    transaction_item_generator,
+):
+    order_list[0].channel = channel_PLN
+    order_list[1].channel = channel_JPY
+    order_list[2].channel = channel_USD
+    Order.objects.bulk_update(order_list, ["channel"])
+
+    checkout.channel = channel_USD
+    checkout.save(update_fields=["channel"])
+
+    transaction_1 = transaction_item_generator(
+        order_id=order_list[0].pk,
+        psp_reference="PSP-PLN",
+        currency="PLN",
+    )
+    transaction_2 = transaction_item_generator(
+        order_id=order_list[1].pk,
+        psp_reference="PSP-JPY",
+        currency="JPY",
+    )
+    transaction_3 = transaction_item_generator(
+        order_id=order_list[2].pk,
+        psp_reference="PSP-USD",
+        currency="USD",
+    )
+    transaction_4 = transaction_item_generator(
+        checkout_id=checkout.pk,
+        psp_reference="PSP-CHECKOUT-USD",
+        currency="USD",
+    )
+
+    return [transaction_1, transaction_2, transaction_3, transaction_4]
+
+
+TRANSACTIONS_QUERY = """
+    query Transactions($where: TransactionWhereInput){
+        transactions(first: 10, where: $where) {
+            edges {
+                node {
+                    id
+                    pspReference
+                }
+            }
+        }
+    }
+"""
+
+
+def test_transactions_query_no_permission(
+    staff_api_client, transactions_in_different_channels
+):
+    # given
+    variables = {}
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_transactions_query_by_app_with_manage_orders_returns_all(
+    transactions_in_different_channels,
+    app_api_client,
+    permission_manage_orders,
+):
+    # given
+    # App with MANAGE_ORDERS permission should see all transactions
+    app_api_client.app.permissions.add(permission_manage_orders)
+    variables = {}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == len(transactions_in_different_channels)
+
+
+def test_transactions_query_by_app_with_handle_payments_returns_only_own(
+    order_with_lines,
+    app_api_client,
+    permission_manage_payments,
+    transaction_item_generator,
+):
+    # given
+    # App with just HANDLE_PAYMENTS should only see transactions it created
+    app = app_api_client.app
+    app.permissions.add(permission_manage_payments)
+
+    # Transaction created by this app
+    own_transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP-OWN",
+        currency="USD",
+        app=app,
+    )
+    # Transaction created by another app (or no app)
+    transaction_item_generator(
+        order_id=order_with_lines.pk,
+        psp_reference="PSP-OTHER",
+        currency="USD",
+        app=None,
+    )
+
+    variables = {}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 1
+    assert transactions[0]["node"]["pspReference"] == own_transaction.psp_reference
+
+
+def test_transactions_query_by_app_with_handle_payments_no_own_transactions(
+    transactions_in_different_channels,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    # App with just HANDLE_PAYMENTS sees nothing if it didn't create any transactions
+    app_api_client.app.permissions.add(permission_manage_payments)
+    variables = {}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    # None of the transactions_in_different_channels were created by this app
+    assert len(transactions) == 0
+
+
+def test_transactions_query_by_app_with_both_permissions_returns_all(
+    transactions_in_different_channels,
+    app_api_client,
+    permission_manage_payments,
+    permission_manage_orders,
+):
+    # given
+    # App with both MANAGE_ORDERS and HANDLE_PAYMENTS should see all transactions
+    app_api_client.app.permissions.add(permission_manage_payments)
+    app_api_client.app.permissions.add(permission_manage_orders)
+    variables = {}
+
+    # when
+    response = app_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == len(transactions_in_different_channels)
+
+
+def test_transactions_query_with_manage_orders_permission(
+    transactions_in_different_channels,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    staff_api_client.user.groups.add(permission_group_manage_orders)
+    variables = {}
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == len(transactions_in_different_channels)
+
+
+def test_transactions_query_filtered_by_accessible_channels_for_user(
+    transactions_in_different_channels,
+    staff_api_client,
+    permission_group_manage_orders,
+    channel_USD,
+):
+    # given
+    permission_group_manage_orders.restricted_access_to_channels = True
+    permission_group_manage_orders.save(update_fields=["restricted_access_to_channels"])
+    permission_group_manage_orders.channels.add(channel_USD)
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    variables = {}
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+
+    # Should only see transactions from channel_USD
+    assert len(transactions) == 2
+    assert {node["node"]["pspReference"] for node in transactions} == {
+        "PSP-USD",
+        "PSP-CHECKOUT-USD",
+    }
+
+
+def test_transactions_query_by_user_with_no_channel_access(
+    transactions_in_different_channels,
+    staff_api_client,
+    permission_group_manage_orders,
+    other_channel_USD,
+):
+    # given
+    permission_group_manage_orders.channels.set([other_channel_USD])
+    permission_group_manage_orders.restricted_access_to_channels = True
+    permission_group_manage_orders.save(update_fields=["restricted_access_to_channels"])
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    variables = {}
+
+    # when
+    response = staff_api_client.post_graphql(TRANSACTIONS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    transactions = content["data"]["transactions"]["edges"]
+    assert len(transactions) == 0

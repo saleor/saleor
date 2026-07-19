@@ -988,7 +988,7 @@ def order_events(order):
 
 
 @pytest.fixture
-def fulfilled_order(order_with_lines):
+def fulfilled_order(order_with_lines, site_settings):
     order = order_with_lines
     order.invoices.create(
         url="http://www.example.com/invoice.pdf",
@@ -1014,7 +1014,8 @@ def fulfilled_order(order_with_lines):
                 line=line_2, quantity=line_2.quantity, warehouse_pk=warehouse_2_pk
             ),
         ],
-        manager=get_plugins_manager(allow_replica=False),
+        site_settings=site_settings,
+        requestor=None,
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -1032,6 +1033,7 @@ def unconfirmed_order_with_lines(order_with_lines):
 @pytest.fixture
 def fulfilled_order_without_inventory_tracking(
     order_with_line_without_inventory_tracking,
+    site_settings,
 ):
     order = order_with_line_without_inventory_tracking
     fulfillment = order.fulfillments.create(tracking_number="123")
@@ -1041,7 +1043,8 @@ def fulfilled_order_without_inventory_tracking(
     fulfillment.lines.create(order_line=line, quantity=line.quantity, stock=stock)
     fulfill_order_lines(
         [OrderLineInfo(line=line, quantity=line.quantity, warehouse_pk=warehouse_pk)],
-        get_plugins_manager(allow_replica=False),
+        site_settings=site_settings,
+        requestor=None,
     )
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
@@ -1071,23 +1074,15 @@ def fulfilled_order_with_all_cancelled_fulfillments(
         None,
         warehouse,
         get_plugins_manager(allow_replica=False),
+        calculate_stocks_with_shipping_zones=True,
     )
     return fulfilled_order
 
 
 @pytest.fixture
-def order_with_digital_line(order, digital_content, stock, site_settings):
-    site_settings.automatic_fulfillment_digital_products = True
-    site_settings.save()
-
-    variant = stock.product_variant
-    variant.digital_content = digital_content
-    variant.digital_content.save()
-
-    product_type = variant.product.product_type
-    product_type.is_shipping_required = False
-    product_type.is_digital = True
-    product_type.save()
+def order_without_shipping_required(order, product_without_shipping):
+    variant = product_without_shipping.variants.get()
+    stock = variant.stocks.get()
 
     quantity = 3
     product = variant.product

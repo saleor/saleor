@@ -4,8 +4,15 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
+from ....warehouse.channel_stock_availability import (
+    trigger_back_in_stock_in_channel_events_for_stocks,
+)
 from ....warehouse.error_codes import StockErrorCode
+from ....warehouse.webhooks.stock_events import (
+    trigger_product_variant_back_in_stock,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
@@ -13,7 +20,9 @@ from ...core.context import ChannelContext
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
-from ...plugins.dataloaders import get_plugin_manager_promise
+from ...core.utils import WebhookEventInfo
+from ...site.dataloaders import get_site_promise
+from ...utils import get_user_or_app_from_context
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
 from ..mutations.product.product_create import StockInput
@@ -43,11 +52,38 @@ class ProductVariantStocksCreate(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK,
+                description=("A product variant stock is created in a warehouse."),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL,
+                description=(
+                    "A product variant is back in stock in a channel "
+                    "(non click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+            WebhookEventInfo(
+                type=(
+                    WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT
+                ),
+                description=(
+                    "A product variant is back in stock in a channel "
+                    "(click-and-collect warehouses)."
+                    "\n\nNote: Triggered only when the "
+                    "`useLegacyShippingZoneStockAvailability` shop setting is "
+                    "disabled."
+                ),
+            ),
+        ]
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        manager = get_plugin_manager_promise(info.context).get()
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
@@ -62,9 +98,21 @@ class ProductVariantStocksCreate(BaseMutation):
             webhooks = get_webhooks_for_event(
                 WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
             )
+            requestor = get_user_or_app_from_context(info.context)
             for stock in new_stocks:
-                cls.call_event(
-                    manager.product_variant_back_in_stock, stock, webhooks=webhooks
+                call_event(
+                    trigger_product_variant_back_in_stock,
+                    stock,
+                    webhooks=webhooks,
+                    requestor=requestor,
+                )
+
+            site_settings = get_site_promise(info.context).get().settings
+            if not site_settings.use_legacy_shipping_zone_stock_availability:
+                call_event(
+                    trigger_back_in_stock_in_channel_events_for_stocks,
+                    new_stocks,
+                    site_settings,
                 )
 
         StocksByProductVariantIdLoader(info.context).clear(variant.id)

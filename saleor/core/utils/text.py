@@ -1,6 +1,12 @@
 import unicodedata
 
 
+def strip_accents(text: str) -> str:
+    """Remove diacritical marks from text, e.g. 'Magnésium' → 'Magnesium'."""
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
+
+
 def safe_truncate(text: str, max_length: int) -> str:
     """Truncate text to a safe length while avoiding breaking combining diacritical marks."""
     if max_length <= 0:

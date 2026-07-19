@@ -59,6 +59,7 @@ def test_order_bulk_cancel(
             user=staff_api_client.user,
             app=None,
             manager=ANY,
+            site_settings=ANY,
             webhook_event_map=webhook_event_map,
         )
         for order in orders
@@ -94,7 +95,7 @@ def test_order_bulk_cancel_by_user_no_channel_access(
     assert_no_permission(response)
 
 
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 def test_order_bulk_cancel_with_back_in_stock_webhook(
     product_variant_back_in_stock_webhook_mock,
     staff_api_client,
@@ -154,6 +155,7 @@ def test_order_bulk_cancel_as_app(
             user=None,
             app=app_api_client.app,
             manager=ANY,
+            site_settings=ANY,
             webhook_event_map=webhook_event_map,
         )
         for order in orders
@@ -205,6 +207,7 @@ def test_order_bulk_cancel_without_sku(
             user=staff_api_client.user,
             app=None,
             manager=ANY,
+            site_settings=ANY,
             webhook_event_map=webhook_event_map,
         )
         for order in orders

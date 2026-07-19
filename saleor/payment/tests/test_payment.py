@@ -120,7 +120,7 @@ def test_create_payment(checkout_with_item, address):
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     total = calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     data = {
@@ -161,7 +161,7 @@ def test_create_payment_from_checkout_requires_billing_address(checkout_with_ite
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     total = calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=None
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     data = {
@@ -203,7 +203,7 @@ def test_create_payment_information_for_checkout_payment(address, checkout_with_
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     total = calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     data = {
@@ -339,7 +339,7 @@ def test_create_payment_information_store(checkout_with_item, address, store):
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     total = calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     data = {
@@ -374,7 +374,7 @@ def test_create_payment_information_metadata(checkout_with_item, address, metada
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     total = calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     data = {

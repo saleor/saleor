@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from .....giftcard import GiftCardEvents, events
 from .....giftcard.models import GiftCardEvent
+from .....permission.enums import AccountPermissions
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -518,6 +519,49 @@ def test_query_gift_card_events(
     assert events_data[1]["oldExpiryDate"] == parameters["old_expiry_date"].isoformat()
 
 
+def test_query_gift_card_event_user_field_denied_for_app_with_only_manage_staff(
+    app_api_client,
+    gift_card,
+    gift_card_event,
+    permission_manage_gift_card,
+    permission_manage_apps,
+    permission_manage_staff,
+):
+    # given
+    # MANAGE_STAFF must NOT, on its own, grant an app access to the user field
+    # on a GiftCardEvent. Only MANAGE_USERS (or being the owner) does.
+    # Without this guard, an app holding MANAGE_STAFF would leak the staff
+    # user that triggered the event.
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_GIFT_CARD_EVENTS,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_apps,
+            permission_manage_staff,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    events_data = content["data"]["giftCard"]["events"]
+    assert len(events_data) == gift_card.events.count()
+    assert all(event["user"] is None for event in events_data)
+
+    permission_denied_msg = (
+        "To access this path, you need one of the following permissions: "
+        "MANAGE_USERS, MANAGE_STAFF, OWNER"
+    )
+    user_errors = [e for e in content["errors"] if e["path"][-1] == "user"]
+    assert len(user_errors) == len(events_data)
+    for error in user_errors:
+        assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+        assert error["message"] == permission_denied_msg
+
+
 def test_query_gift_card_event_with_removed_app(
     staff_api_client,
     removed_app,
@@ -830,3 +874,83 @@ def test_query_gift_card_events_filter_by_orders_no_events(
     data = content["data"]["giftCard"]
     events_data = data["events"]
     assert not events_data
+
+
+ASSIGNED_TO_QUERY = """
+    query GiftCard($id: ID!) {
+        giftCard(id: $id) {
+            assignedTo { email }
+            assignedToEmail
+        }
+    }
+"""
+
+ASSIGNED_FIELD_QUERY = """
+    query GiftCard($id: ID!) {
+        giftCard(id: $id) { %s }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    ("field", "extract"),
+    [
+        ("assignedTo { email }", lambda data: data["assignedTo"]["email"]),
+        ("assignedToEmail", lambda data: data["assignedToEmail"]),
+    ],
+)
+def test_assigned_field_visible_with_manage_users(
+    field,
+    extract,
+    staff_api_client,
+    gift_card,
+    customer_user,
+    permission_manage_gift_card,
+    permission_manage_users,
+):
+    # given each assignment field is queried in isolation so a broken
+    # authorization check on one cannot be masked by the other
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_FIELD_QUERY % field,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCard"]
+    assert extract(data) == customer_user.email, (
+        "should be visible when the user has MANAGE_USERS permission"
+    )
+
+
+def test_assigned_to_requires_manage_users(
+    staff_api_client, gift_card, customer_user, permission_manage_gift_card
+):
+    # given a requester with MANAGE_GIFT_CARD but not MANAGE_USERS
+    gift_card.assigned_to = customer_user
+    gift_card.assigned_to_email = customer_user.email
+    gift_card.save(update_fields=["assigned_to", "assigned_to_email"])
+    variables = {"id": graphene.Node.to_global_id("GiftCard", gift_card.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_TO_QUERY, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then the assignedTo user is denied while the email (MANAGE_GIFT_CARD) resolves
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["giftCard"]
+    assert data["assignedTo"] is None
+    assert data["assignedToEmail"] == customer_user.email, (
+        "should be visible when the user has MANAGE_GIFT_CARD permission"
+    )
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert AccountPermissions.MANAGE_USERS.name in errors[0]["message"]
+    assert errors[0]["path"] == ["giftCard", "assignedTo"]

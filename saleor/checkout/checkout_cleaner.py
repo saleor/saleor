@@ -13,9 +13,10 @@ from ..payment import models as payment_models
 from ..payment.error_codes import PaymentErrorCode
 from ..plugins.manager import PluginsManager
 from . import models
+from .delivery_context import clear_cc_delivery_method, is_shipping_required
 from .error_codes import CheckoutErrorCode, OrderCreateFromCheckoutErrorCode
 from .models import Checkout
-from .utils import clear_cc_delivery_method, is_fully_paid, is_shipping_required
+from .utils import is_fully_paid
 
 if TYPE_CHECKING:
     from .fetch import CheckoutInfo, CheckoutLineInfo
@@ -119,6 +120,27 @@ def _validate_gift_cards(checkout: Checkout):
     if not all_gift_cards == active_gift_cards:
         msg = "Gift card has expired. Order placement cancelled."
         raise GiftCardNotApplicable(msg)
+
+    # Re-check restricted gift cards at completion time: a card may have been
+    # assigned to another customer after it was added to the checkout.
+    # This also acts as a defense-in-depth safeguard in case an actor
+    # may successfully add a giftcard that they are not authorized
+    # to use into their checkout (shouldn't happen)
+    # defense-in-depth safeguard, not a redundant check — do not remove it.
+    #
+    # We deliberately do not acquire a row lock here. A gift card changing hands
+    # mid-checkoutComplete() is outside the threat model, and locking would have
+    # a real performance/reliability cost for an unrealistic security risk.
+    restricted = GiftCard.objects.filter(
+        checkouts=checkout.token, assigned_to_email__isnull=False
+    )
+    if checkout.user_id:
+        restricted = restricted.exclude(assigned_to_id=checkout.user_id)
+    if restricted.exists():
+        # Generic message — do not reveal the assignee.
+        raise GiftCardNotApplicable(
+            "Gift card cannot be used. Order placement cancelled."
+        )
 
 
 def validate_checkout(

@@ -1,5 +1,8 @@
 import uuid
+from datetime import datetime
+from typing import Any
 
+from django.utils import timezone
 from kombu.asynchronous.aws.sqs.message import AsyncMessage
 from kombu.transport.SQS import Channel as SqsChannel
 from kombu.transport.SQS import Transport as SqsTransport
@@ -7,10 +10,11 @@ from kombu.utils.json import dumps
 
 
 class Channel(SqsChannel):
-    def _put(self, queue, message, **kwargs):
+    def _put(self, queue: str, message: dict[str, Any], **kwargs):
         """Put message onto queue."""
         q_url = self._new_queue(queue)
         kwargs = {"QueueUrl": q_url}
+
         if "properties" in message:
             if "message_attributes" in message["properties"]:
                 # we don't want to want to have the attribute in the body
@@ -32,9 +36,14 @@ class Channel(SqsChannel):
                     ]
                 else:
                     kwargs["MessageDeduplicationId"] = str(uuid.uuid4())
-            else:
-                if "DelaySeconds" in message["properties"]:
-                    kwargs["DelaySeconds"] = message["properties"]["DelaySeconds"]
+            elif headers := message.get("headers"):
+                if eta := headers.get("eta"):
+                    datetime_eta = datetime.fromisoformat(eta)
+                    delay_in_seconds = max(
+                        0, int((datetime_eta - timezone.now()).total_seconds())
+                    )
+                    # 900 is max delay for SQS
+                    kwargs["DelaySeconds"] = min(delay_in_seconds, 900)
 
         if self.sqs_base64_encoding:
             body = AsyncMessage().encode(dumps(message))

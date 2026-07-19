@@ -1,16 +1,22 @@
 name: GraphQL Inspector
 
 on:
-  push:
-    paths: [ "**.graphql" ]
+  pull_request:
+    paths: ["**.graphql"]
+
+permissions: {}
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v5
+    permissions:
+      contents: read
+      checks: write
 
-      - uses: kamilkisiela/graphql-inspector@v3.4.0
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: graphql-hive/graphql-inspector@8733c10560f98b868d3eb4db1325c8edf64936b3 # @graphql-inspector/action@5.0.21
         with:
-          schema: "main:saleor/graphql/schema.graphql"
+          schema: "${{ github.event.pull_request.base.sha }}:saleor/graphql/schema.graphql"

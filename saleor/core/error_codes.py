@@ -9,6 +9,7 @@ class ShopErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
+    PASSWORD_AUTH_RESTRICTION = "password_auth_restriction"
 
 
 class MetadataErrorCode(Enum):
@@ -29,6 +30,8 @@ class TranslationErrorCode(Enum):
 
 class UploadErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
+    INVALID_FILE_TYPE = "invalid_file_type"
+    UNSUPPORTED_MIME_TYPE = "unsupported_mime_type"
 
 
 class CoreErrorCode(Enum):

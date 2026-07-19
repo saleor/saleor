@@ -361,7 +361,7 @@ def test_products_variants_for_federation_query_count(
     count_queries,
 ):
     query = """
-      query GetProductVariantInFederation($representations: [_Any]) {
+      query GetProductVariantInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on ProductVariant {

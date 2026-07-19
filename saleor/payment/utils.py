@@ -55,6 +55,7 @@ from . import (
     ChargeStatus,
     GatewayError,
     PaymentError,
+    PaymentMethodType,
     StorePaymentMethod,
     TransactionAction,
     TransactionEventType,
@@ -184,7 +185,6 @@ def create_checkout_payment_lines_information(
     line_items = []
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
         unit_price = calculations.checkout_line_unit_price(
@@ -208,10 +208,7 @@ def create_checkout_payment_lines_information(
             )
         )
     shipping_amount = calculations.checkout_shipping_price(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
+        manager=manager, checkout_info=checkout_info, lines=lines
     ).gross.amount
     voucher_amount = -checkout.discount_amount
 
@@ -414,7 +411,6 @@ def create_payment(
         "gateway": gateway,
         "total": total,
         "return_url": return_url,
-        "partial": False,
         "psp_reference": external_reference or "",
         "store_payment_method": store_payment_method,
         "metadata": {} if metadata is None else metadata,
@@ -504,8 +500,6 @@ def create_transaction(
         customer_id=gateway_response.customer_id,
         gateway_response=gateway_response.raw_response or {},
         action_required_data=gateway_response.action_required_data or {},
-        legacy_adyen_plugin_result_code=gateway_response.legacy_adyen_plugin_result_code,
-        legacy_adyen_plugin_payment_method=gateway_response.legacy_adyen_plugin_payment_method,
     )
     return txn
 
@@ -949,6 +943,14 @@ def parse_transaction_action_data_for_session_webhook(
             )
             payment_method_details.exp_month = parsed_payment_method_details.exp_month
             payment_method_details.exp_year = parsed_payment_method_details.exp_year
+        elif isinstance(
+            parsed_payment_method_details,
+            transaction_schemas.GiftCardPaymentMethodDetails,
+        ):
+            payment_method_details.brand = parsed_payment_method_details.brand
+            payment_method_details.last_digits = (
+                parsed_payment_method_details.last_chars
+            )
 
     return (
         TransactionSessionResponse(
@@ -1272,21 +1274,19 @@ def _get_parsed_transaction_data_for_action_webhook(
     return transaction_request_response, None
 
 
-def update_order_with_transaction_details(transaction: TransactionItem):
-    if transaction.order_id:
-        order = cast(Order, transaction.order)
-        update_order_search_vector(order, save=False)
-        updates_amounts_for_order(order, save=False)
-        order.save(
-            update_fields=[
-                "total_charged_amount",
-                "charge_status",
-                "updated_at",
-                "total_authorized_amount",
-                "authorize_status",
-                "search_vector",
-            ]
-        )
+def update_order_with_transaction_details(order: Order):
+    update_order_search_vector(order, save=False)
+    updates_amounts_for_order(order, save=False)
+    order.save(
+        update_fields=[
+            "total_charged_amount",
+            "charge_status",
+            "updated_at",
+            "total_authorized_amount",
+            "authorize_status",
+            "search_vector",
+        ]
+    )
 
 
 def update_transaction_item_with_payment_method_details(
@@ -1304,21 +1304,30 @@ def update_transaction_item_with_payment_method_details(
     if payment_method_details.name != transaction_item.payment_method_name:
         transaction_item.payment_method_name = payment_method_details.name
         updated_fields.append("payment_method_name")
-    if payment_method_details.brand != transaction_item.cc_brand:
-        transaction_item.cc_brand = payment_method_details.brand
-        updated_fields.append("cc_brand")
-    if payment_method_details.first_digits != transaction_item.cc_first_digits:
-        transaction_item.cc_first_digits = payment_method_details.first_digits
-        updated_fields.append("cc_first_digits")
-    if payment_method_details.last_digits != transaction_item.cc_last_digits:
-        transaction_item.cc_last_digits = payment_method_details.last_digits
-        updated_fields.append("cc_last_digits")
-    if payment_method_details.exp_month != transaction_item.cc_exp_month:
-        transaction_item.cc_exp_month = payment_method_details.exp_month
-        updated_fields.append("cc_exp_month")
-    if payment_method_details.exp_year != transaction_item.cc_exp_year:
-        transaction_item.cc_exp_year = payment_method_details.exp_year
-        updated_fields.append("cc_exp_year")
+
+    if payment_method_details.type == PaymentMethodType.GIFT_CARD:
+        if payment_method_details.brand != transaction_item.gift_card_brand:
+            transaction_item.gift_card_brand = payment_method_details.brand
+            updated_fields.append("gift_card_brand")
+        if payment_method_details.last_digits != transaction_item.gift_card_last_chars:
+            transaction_item.gift_card_last_chars = payment_method_details.last_digits
+            updated_fields.append("gift_card_last_chars")
+    else:
+        if payment_method_details.brand != transaction_item.cc_brand:
+            transaction_item.cc_brand = payment_method_details.brand
+            updated_fields.append("cc_brand")
+        if payment_method_details.first_digits != transaction_item.cc_first_digits:
+            transaction_item.cc_first_digits = payment_method_details.first_digits
+            updated_fields.append("cc_first_digits")
+        if payment_method_details.last_digits != transaction_item.cc_last_digits:
+            transaction_item.cc_last_digits = payment_method_details.last_digits
+            updated_fields.append("cc_last_digits")
+        if payment_method_details.exp_month != transaction_item.cc_exp_month:
+            transaction_item.cc_exp_month = payment_method_details.exp_month
+            updated_fields.append("cc_exp_month")
+        if payment_method_details.exp_year != transaction_item.cc_exp_year:
+            transaction_item.cc_exp_year = payment_method_details.exp_year
+            updated_fields.append("cc_exp_year")
     return updated_fields
 
 
@@ -1399,6 +1408,8 @@ def process_order_or_checkout_with_transaction(
                 transaction_amounts_for_checkout_updated_without_price_recalculation(
                     transaction, locked_checkout, manager, user, app
                 )
+                locked_checkout.search_index_dirty = True
+                locked_checkout.save(update_fields=["search_index_dirty"])
             else:
                 checkout_deleted = True
                 # If the checkout was deleted, we still want to update the order associated with the transaction.
@@ -1616,15 +1627,22 @@ def create_transaction_event_from_request_and_webhook_response(
             "modified_at",
         ]
     )
-
-    if transaction_item.order_id:
+    manager = get_plugins_manager(allow_replica=True)
+    source_object = get_source_object(transaction_item)
+    if isinstance(source_object, Checkout):
+        recalculate_refundable_for_checkout(transaction_item, request_event, event)
+        transaction_amounts_for_checkout_updated(
+            transaction_item, source_object, manager, app=app, user=None
+        )
+        # for transaction event only psp reference is indexed
+        if psp_reference:
+            mark_checkout_search_index_dirty(source_object)
+    elif isinstance(source_object, Order):
         # circular import
         from ..order.actions import order_transaction_updated
 
-        manager = get_plugins_manager(allow_replica=False)
-        order = cast(Order, transaction_item.order)
-        order_info = fetch_order_info(order)
-        update_order_with_transaction_details(transaction_item)
+        order_info = fetch_order_info(source_object)
+        update_order_with_transaction_details(source_object)
         order_transaction_updated(
             order_info=order_info,
             transaction_item=transaction_item,
@@ -1641,18 +1659,40 @@ def create_transaction_event_from_request_and_webhook_response(
             )
             calculate_order_granted_refund_status(granted_refund)
 
-    elif transaction_item.checkout_id:
-        manager = get_plugins_manager(allow_replica=True)
-        recalculate_refundable_for_checkout(transaction_item, request_event, event)
-        transaction_amounts_for_checkout_updated(
-            transaction_item, manager, app=app, user=None
-        )
-    source_object = transaction_item.checkout or transaction_item.order
     if event and source_object and app:
         invalidate_cache_for_stored_payment_methods_if_needed(
             event, source_object, app.identifier
         )
     return event
+
+
+def get_source_object(
+    transaction_item: TransactionItem,
+) -> Checkout | Order | None:
+    source_object: Checkout | Order | None = None
+    if transaction_item.checkout_id:
+        source_object = Checkout.objects.filter(pk=transaction_item.checkout_id).first()
+    if not source_object:
+        source_object = Order.objects.filter(
+            pk__in=TransactionItem.objects.filter(pk=transaction_item.pk).values_list(
+                "order_id", flat=True
+            )
+        ).first()
+    return source_object
+
+
+def mark_checkout_search_index_dirty(checkout: Checkout):
+    checkout.search_index_dirty = True
+    try:
+        checkout.safe_update(update_fields=["search_index_dirty"])
+    except Checkout.DoesNotExist:
+        # The checkout was concurrently deleted (e.g. completed into an order or
+        # expired). Marking the search index as dirty is a best-effort operation, so
+        # there is nothing left to re-index and the failure can be safely ignored.
+        logger.info(
+            "Skipped marking checkout %s search index as dirty: checkout no longer exists.",
+            checkout.pk,
+        )
 
 
 def _prepare_manual_event(
@@ -1910,6 +1950,9 @@ def handle_transaction_initialize_session(
             source_object,
             app.identifier,  # type: ignore[union-attr]
         )
+    if isinstance(source_object, Checkout):
+        # new transaction created, so we need to mark the checkout search index as dirty
+        mark_checkout_search_index_dirty(source_object)
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
 
@@ -1949,6 +1992,8 @@ def handle_transaction_process_session(
     invalidate_cache_for_stored_payment_methods_if_needed(
         created_event, source_object, app.identifier
     )
+    if isinstance(source_object, Checkout):
+        mark_checkout_search_index_dirty(source_object)
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return
 

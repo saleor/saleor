@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 
 from .....account.models import User
@@ -7,14 +9,20 @@ from ...utils import assign_permissions
 from ..utils import account_register, token_create
 
 
+@mock.patch("saleor.account.throttling.cache")
 @pytest.mark.e2e
 def test_should_create_account_without_email_confirmation_core_1502(
+    mocked_cache,
     e2e_not_logged_api_client,
     e2e_staff_api_client,
     shop_permissions,
     permission_manage_product_types_and_attributes,
+    setup_mock_for_cache,
 ):
     # Before
+    dummy_cache = {}
+    setup_mock_for_cache(dummy_cache, mocked_cache)
+
     permissions = [
         permission_manage_product_types_and_attributes,
         *shop_permissions,

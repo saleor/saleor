@@ -8,19 +8,23 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 import requests
 from authlib.jose import JWTClaims
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 from requests import Response
 from requests_hardened import HTTPSession
 
 from ....account.models import Group, User
+from ....account.search import update_user_search_vector
 from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
+    create_access_token,
     jwt_decode,
     jwt_encode,
     jwt_user_payload,
 )
+from ....core.jwt_manager import get_jwt_manager
 from ....permission.models import Permission
 from ..exceptions import AuthenticationError
 from ..utils import (
@@ -32,6 +36,7 @@ from ..utils import (
     create_jwt_refresh_token,
     create_jwt_token,
     create_tokens_from_oauth_payload,
+    decode_access_token,
     fetch_jwks,
     get_domain_from_email,
     get_or_create_user_from_payload,
@@ -40,6 +45,7 @@ from ..utils import (
     get_user_from_oauth_access_token_in_jwt_format,
     get_user_from_token,
     get_user_info,
+    is_jwt_shaped,
     validate_refresh_token,
 )
 
@@ -70,6 +76,85 @@ def test_fetch_jwks(mocked_cache_set):
     keys = fetch_jwks(jwks_url)
     assert len(keys) == 2
     mocked_cache_set.assert_called_once_with(JWKS_KEY, keys, JWKS_CACHE_TIME)
+
+
+@pytest.mark.parametrize(
+    ("token", "expected"),
+    [
+        # 2 dots -> signed JWT (JWS), 4 dots -> encrypted JWT (JWE).
+        ("header.payload.signature", True),
+        ("header.encrypted_key.iv.ciphertext.tag", True),
+        # A signature-less "alg:none" token still has 2 dots, so it is JWT-shaped.
+        # Rejecting it is the job of the decoder, not the shape check.
+        ("header.payload.", True),
+        # Opaque reference tokens are not JWTs and have nothing to decode.
+        ("FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3", False),
+        ("", False),
+        ("header.payload", False),
+        ("a.b.c.d", False),
+        ("a.b.c.d.e.f", False),
+    ],
+)
+def test_is_jwt_shaped(token, expected):
+    # when
+    result = is_jwt_shaped(token)
+
+    # then
+    assert result is expected
+
+
+def test_decode_access_token_opaque_token_skips_decode_and_logging(monkeypatch, caplog):
+    # given
+    opaque_token = "FeHkE_QbuU3cYy1a1eQUrCE5jRcUnBK3"
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    mocked_get_decoded_token = Mock()
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        mocked_get_decoded_token,
+    )
+
+    # when
+    result = decode_access_token(opaque_token, jwks_url)
+
+    # then
+    assert result is None
+    mocked_get_decoded_token.assert_not_called()
+    assert "Invalid OIDC access token format" not in caplog.text
+
+
+def test_decode_access_token_invalid_signature_returns_none_and_logs(
+    customer_user, caplog
+):
+    # given
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    cache.set(JWKS_KEY, get_jwt_manager().get_jwks()["keys"], JWKS_CACHE_TIME)
+
+    # tamper with the signature of an otherwise valid token so the real decoder
+    # rejects it on signature verification
+    header, payload, signature = create_access_token(customer_user).split(".")
+    tampered_signature = ("A" if signature[0] != "A" else "B") + signature[1:]
+    tampered_token = ".".join([header, payload, tampered_signature])
+
+    # when
+    result = decode_access_token(tampered_token, jwks_url)
+
+    # then
+    assert result is None
+    assert "Invalid OIDC access token format" in caplog.text
+
+
+def test_decode_access_token_valid_jwt_returns_payload(customer_user):
+    # given
+    jwks_url = "https://example.com/.well-known/jwks.json"
+    cache.set(JWKS_KEY, get_jwt_manager().get_jwks()["keys"], JWKS_CACHE_TIME)
+    token = create_access_token(customer_user)
+
+    # when
+    result = decode_access_token(token, jwks_url)
+
+    # then
+    assert result is not None
+    assert result["email"] == customer_user.email
 
 
 def test_get_or_create_user_from_token_missing_email(id_payload):
@@ -297,6 +382,66 @@ def test_get_or_create_user_from_payload_assigns_sub(
     assert user_from_payload.id == customer_user.id
     assert user_from_payload.private_metadata[f"oidc:{oauth_url}"] == sub_id
     assert customer_user.is_staff is False
+    assert not user_from_payload.has_usable_password()
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_clears_password_for_existing_user(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # When OIDC finds an existing user by email (not by sub), the old password
+    # should be invalidated to prevent login with stale credentials.
+
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|new-sub"
+    assert customer_user.has_usable_password()
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    assert not created
+    assert user_from_payload.id == customer_user.id
+    assert not user_from_payload.has_usable_password()
+    customer_user.refresh_from_db()
+    assert not customer_user.has_usable_password()
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_keeps_password_for_returning_oidc_user(
+    mocked_cache_get, mocked_cache_set, customer_user
+):
+    # When an existing OIDC user is found by email (cache miss on sub lookup),
+    # the password should NOT be cleared since they already have the OIDC identity.
+
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|existing-sub"
+    oidc_key = f"oidc:{oauth_url}"
+    customer_user.store_value_in_private_metadata({oidc_key: sub_id})
+    customer_user.save(update_fields=["private_metadata"])
+    assert customer_user.has_usable_password()
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    assert not created
+    assert user_from_payload.id == customer_user.id
+    assert user_from_payload.has_usable_password()
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
@@ -1014,13 +1159,16 @@ def test_update_user_details_user_with_new_email_in_db(
     mock_match_orders_with_new_user.assert_not_called()
 
 
+@patch(
+    "saleor.plugins.openid_connect.utils.update_user_search_vector",
+    wraps=update_user_search_vector,
+)
 def test_update_user_details_update_user_first_name(
+    update_user_search_vector_mock,
     customer_user,
 ):
     # given
-    expected_search_document = "test@example.com\ntest user_first_name\nwade\n"
     assert customer_user.first_name != "test user_first_name"
-    assert customer_user.search_document != expected_search_document
 
     # when
     updated = _update_user_details(
@@ -1036,17 +1184,21 @@ def test_update_user_details_update_user_first_name(
     # then
     customer_user.refresh_from_db()
     assert customer_user.first_name == "test user_first_name"
-    assert customer_user.search_document == expected_search_document
+    assert customer_user.search_vector
     assert updated is True
+    update_user_search_vector_mock.assert_called_once()
 
 
+@patch(
+    "saleor.plugins.openid_connect.utils.update_user_search_vector",
+    wraps=update_user_search_vector,
+)
 def test_update_user_details_update_user_last_name(
+    update_user_search_vector_mock,
     customer_user,
 ):
     # given
-    expected_search_document = "test@example.com\nleslie\ntest user_last_name\n"
     assert customer_user.last_name != "test user_last_name"
-    assert customer_user.search_document != expected_search_document
 
     # when
     updated = _update_user_details(
@@ -1062,18 +1214,24 @@ def test_update_user_details_update_user_last_name(
     # then
     customer_user.refresh_from_db()
     assert customer_user.last_name == "test user_last_name"
-    assert customer_user.search_document == expected_search_document
+    assert customer_user.search_vector
     assert updated is True
+    update_user_search_vector_mock.assert_called_once()
 
 
+@patch(
+    "saleor.plugins.openid_connect.utils.update_user_search_vector",
+    wraps=update_user_search_vector,
+)
 def test_update_user_details_nothing_changed(
+    update_user_search_vector_mock,
     customer_user,
 ):
     # given
     last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=14)
     customer_user.last_login = last_login
-    customer_user.search_document = "abc"
-    customer_user.save(update_fields=["search_document", "last_login"])
+    update_user_search_vector(customer_user, save=False)
+    customer_user.save(update_fields=["search_vector", "last_login"])
 
     first_name = customer_user.first_name
 
@@ -1092,3 +1250,4 @@ def test_update_user_details_nothing_changed(
     customer_user.refresh_from_db()
     assert customer_user.first_name == first_name
     assert updated is False
+    update_user_search_vector_mock.assert_not_called()

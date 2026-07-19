@@ -852,3 +852,51 @@ def test_checkout_create_from_order_with_the_same_variant_in_multiple_lines(
     _assert_checkout_lines(
         order_lines_map, checkout_lines, checkout_lines_from_response_map
     )
+
+
+def test_checkout_create_from_order_channel_without_shipping_zones(
+    user_api_client, order_with_lines
+):
+    # given
+    order_with_lines.user = user_api_client.user
+    order_with_lines.save()
+    Stock.objects.update(quantity=10)
+    order_with_lines.channel.shipping_zones.clear()
+
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)}
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_FROM_ORDER, variables
+    )
+
+    # then - legacy: all variants reported as unavailable
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreateFromOrder"]
+    assert len(data["unavailableVariants"]) == order_with_lines.lines.count()
+
+
+def test_checkout_create_from_order_channel_without_shipping_zones_excluded_from_stock_calculations(
+    user_api_client, order_with_lines, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    order_with_lines.user = user_api_client.user
+    order_with_lines.save()
+    Stock.objects.update(quantity=10)
+    order_with_lines.channel.shipping_zones.clear()
+
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)}
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_FROM_ORDER, variables
+    )
+
+    # then - flag disabled: all variants available despite no shipping zones
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreateFromOrder"]
+    assert not data["unavailableVariants"]
+    assert data["checkout"] is not None

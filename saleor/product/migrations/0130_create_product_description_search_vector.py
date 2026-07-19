@@ -5,30 +5,6 @@ import django.contrib.postgres.search
 from django.db import migrations, models
 
 
-def parse_draftjs_content_to_string(definitions):
-    string = ""
-    blocks = definitions.get("blocks")
-    if not blocks or not isinstance(blocks, list):
-        return ""
-    for block in blocks:
-        text = block.get("text")
-        if not text:
-            continue
-        string += f"{text} "
-
-    return string
-
-
-def parse_description_json_field(apps, schema):
-    Product = apps.get_model("product", "Product")
-
-    for product in Product.objects.iterator():
-        product.description_plaintext = parse_draftjs_content_to_string(
-            product.description_json
-        )
-        product.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("product", "0129_add_product_types_and_attributes_perm"),
@@ -85,9 +61,5 @@ class Migration(migrations.Migration):
                 ON product_product FOR EACH ROW EXECUTE FUNCTION messages_trigger();
             """,
             reverse_sql=migrations.RunSQL.noop,
-        ),
-        migrations.RunPython(
-            parse_description_json_field,
-            migrations.RunPython.noop,
         ),
     ]

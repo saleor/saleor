@@ -7,7 +7,7 @@ from ...core import ResolveInfo
 from ...core.types import MetadataError, NonNullList
 from ..permissions import PUBLIC_META_PERMISSION_MAP
 from .base import BaseMetadataMutation
-from .utils import get_valid_metadata_instance, save_instance
+from .utils import delete_metadata_keys, get_valid_metadata_instance
 
 
 class DeleteMetadata(BaseMetadataMutation):
@@ -38,7 +38,5 @@ class DeleteMetadata(BaseMetadataMutation):
         instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
             meta_instance = get_valid_metadata_instance(instance)
-            for key in keys:
-                meta_instance.delete_value_from_metadata(key)
-            save_instance(meta_instance, ["metadata"])
+            delete_metadata_keys(meta_instance, keys)
         return cls.success_response(instance)

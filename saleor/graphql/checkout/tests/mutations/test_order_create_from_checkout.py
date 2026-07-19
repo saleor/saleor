@@ -10,25 +10,28 @@ from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
+from promise import Promise
 
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
+from .....checkout.delivery_context import (
+    fetch_shipping_methods_for_checkout,
+    get_or_fetch_checkout_deliveries,
+)
 from .....checkout.error_codes import OrderCreateFromCheckoutErrorCode
 from .....checkout.fetch import (
     fetch_checkout_info,
     fetch_checkout_lines,
-    fetch_shipping_methods_for_checkout,
-    get_or_fetch_checkout_deliveries,
 )
 from .....checkout.models import Checkout, CheckoutDelivery, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
-from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.taxes import TaxDataError, TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType, RewardValueType
 from .....discount.models import CheckoutLineDiscount, OrderLineDiscount
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
+from .....order.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....order.models import Fulfillment, Order
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
@@ -182,7 +185,7 @@ def test_order_from_checkout(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -423,7 +426,7 @@ def test_order_from_checkout_with_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -493,7 +496,7 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -598,7 +601,7 @@ def test_order_from_checkout_gift_card_bought(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     amount = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     ).gross.amount
 
     payment_txn_captured.order = None
@@ -1613,7 +1616,7 @@ def test_order_from_checkout_without_inventory_tracking(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     orders_count = Order.objects.count()
@@ -1824,16 +1827,19 @@ def test_order_from_checkout_own_reservation(
         reservation.refresh_from_db()
 
 
-def test_order_from_checkout_with_digital(
+def test_order_from_checkout_with_non_shippable_product(
     app_api_client,
     permission_handle_checkouts,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     customer_user,
 ):
-    """Ensure it is possible to complete a digital checkout without shipping."""
+    """Ensure we can complete checkout with a shipping address.
 
-    checkout = checkout_with_digital_item
+    Should work even if product isn't shippable.
+    """
+
+    checkout = checkout_without_shipping_required
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # Set a billing address
@@ -1858,15 +1864,15 @@ def test_order_from_checkout_with_digital(
     assert order.billing_address
 
 
-def test_order_from_checkout_with_digital_and_shipping_address(
+def test_order_from_checkout_with_non_shippable_product_and_shipping_address(
     app_api_client,
     permission_handle_checkouts,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     customer_user,
 ):
-    """Ensure it is possible to complete a digital checkout without shipping."""
-    checkout = checkout_with_digital_item
+    """Ensure we can complete a non-shippable checkout without providing shipping."""
+    checkout = checkout_without_shipping_required
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # Set a billing address
@@ -1894,15 +1900,15 @@ def test_order_from_checkout_with_digital_and_shipping_address(
     assert order.draft_save_shipping_address is None
 
 
-def test_order_from_checkout_with_digital_saving_addresses_off(
+def test_order_from_checkout_with_non_shippable_product_saving_addresses_off(
     app_api_client,
     permission_handle_checkouts,
-    checkout_with_digital_item,
+    checkout_without_shipping_required,
     address,
     customer_user,
 ):
     # given
-    checkout = checkout_with_digital_item
+    checkout = checkout_without_shipping_required
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
 
     # Set a billing address
@@ -1982,7 +1988,7 @@ def test_order_from_checkout_0_total_value(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     orders_count = Order.objects.count()
@@ -2237,7 +2243,7 @@ def test_order_from_draft_create_with_preorder_variant(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager, checkout_info, lines, address
+        manager, checkout_info, lines
     )
     channel = checkout.channel
     channel.automatically_confirm_all_new_orders = True
@@ -2611,7 +2617,7 @@ def test_order_from_draft_create_0_total_value_from_voucher(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -2670,7 +2676,7 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = calculations.calculate_checkout_total_with_gift_cards(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -2703,8 +2709,8 @@ def test_order_from_draft_create_0_total_value_from_giftcard(
 
 
 @patch(
-    "saleor.checkout.calculations._get_taxes_for_checkout",
-    side_effect=TaxDataError("Invalid data"),
+    "saleor.checkout.calculations._get_promised_taxes_for_checkout",
+    return_value=Promise.reject(TaxDataError("Invalid data")),
 )
 def test_order_from_checkout_tax_error(
     mocked_get_taxes_for_order,
@@ -2921,7 +2927,7 @@ def test_order_from_checkout_refreshes_shipping_methods_when_stale(
 
 @freeze_time("2023-01-01 12:00:00")
 @patch(
-    "saleor.checkout.fetch.fetch_shipping_methods_for_checkout",
+    "saleor.checkout.delivery_context.fetch_shipping_methods_for_checkout",
     wraps=fetch_shipping_methods_for_checkout,
 )
 def test_order_from_checkout_do_not_refresh_shipping_methods_when_not_stale(
@@ -3254,9 +3260,9 @@ def test_order_from_checkout_builtin_shipping_method_metadata_denormalization(
             variables,
             permissions=[permission_handle_checkouts],
         )
-    content = get_graphql_content(response)
 
     # then
+    content = get_graphql_content(response)
     data = content["data"]["orderCreateFromCheckout"]
     assert not data["errors"]
     order = Order.objects.first()
@@ -3277,3 +3283,99 @@ def test_order_from_checkout_builtin_shipping_method_metadata_denormalization(
     # Ensure shipping method metadata in DB was cleared after denormalization
     shipping_method.refresh_from_db()
     assert shipping_method.metadata == {}
+
+
+MUTATION_ORDER_CREATE_FROM_CHECKOUT_WITH_REMOVE_CHECKOUT_FLAG = """
+mutation orderCreateFromCheckout(
+        $id: ID!, $removeCheckout: Boolean
+    ){
+    orderCreateFromCheckout(
+            id: $id, removeCheckout: $removeCheckout
+        ){
+        order{
+            id
+            status
+            token
+            original
+            origin
+            total {
+                currency
+                net {
+                    amount
+                }
+                gross {
+                    amount
+                }
+            }
+            shippingAddress {
+                id
+            }
+            billingAddress {
+                id
+            }
+            deliveryMethod {
+                ... on ShippingMethod {
+                    id
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+        }
+        errors{
+            field
+            message
+            code
+            variants
+        }
+    }
+}
+"""
+
+
+def test_order_from_checkout_do_not_remove_checkout(
+    app_api_client,
+    permission_handle_checkouts,
+    checkout_with_item,
+    address,
+    shipping_method,
+    checkout_delivery,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout, shipping_method)
+    checkout.billing_address = address
+    checkout.save(
+        update_fields=["assigned_delivery", "shipping_address", "billing_address"]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "removeCheckout": False,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT_WITH_REMOVE_CHECKOUT_FLAG,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    # Ensure the checkout still exists
+    assert Checkout.objects.filter(pk=checkout.pk).exists()
+
+    order = Order.objects.first()
+    checkout.refresh_from_db()
+    assert order
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert order.shipping_address.id != checkout.shipping_address.id
+    assert order.billing_address.id != checkout.billing_address.id

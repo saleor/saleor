@@ -13,15 +13,17 @@ from ...payment.gateway import get_payment_gateways
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission, SitePermissions, get_permissions
 from ...site import models as site_models
+from ...site.apps import SiteAppConfig
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..app.types import App
 from ..core import ResolveInfo
 from ..core.context import get_database_connection_name
 from ..core.descriptions import (
-    ADDED_IN_319,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import (
     DOC_CATEGORY_AUTH,
@@ -30,6 +32,7 @@ from ..core.doc_category import (
 )
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
+from ..core.scalars import DateTime
 from ..core.tracing import traced_resolver
 from ..core.types import (
     BaseObjectType,
@@ -41,7 +44,7 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
-from ..meta.types import ObjectWithMetadata
+from ..meta.types import Metadata, ObjectWithMetadata
 from ..page.types import PageType
 from ..payment.types import PaymentGateway
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -51,7 +54,11 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
-from .enums import GiftCardSettingsExpiryTypeEnum
+from .enums import (
+    AnnouncementImportanceEnum,
+    GiftCardSettingsExpiryTypeEnum,
+    PasswordLoginModeEnum,
+)
 from .filters import CountryFilterInput
 from .resolvers import resolve_available_shipping_methods, resolve_countries
 
@@ -95,6 +102,22 @@ class RefundSettings(ModelObjectType[site_models.SiteSettings]):
     @staticmethod
     def resolve_reason_reference_type(root, info):
         return root.refund_reason_reference_type
+
+
+class ReturnSettings(ModelObjectType[site_models.SiteSettings]):
+    reason_reference_type = graphene.Field(
+        PageType,
+        description="Model type used for return reasons." + ADDED_IN_323,
+    )
+
+    class Meta:
+        description = "Return related settings from site settings." + ADDED_IN_323
+        doc_category = DOC_CATEGORY_ORDERS
+        model = site_models.SiteSettings
+
+    @staticmethod
+    def resolve_reason_reference_type(root, info):
+        return root.return_reason_reference_type
 
 
 class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
@@ -160,6 +183,46 @@ class LimitInfo(graphene.ObjectType):
         description = "Store the current and allowed usage."
 
 
+class Announcement(graphene.ObjectType):
+    created_at = DateTime(
+        required=True,
+        description="The date & time at which this announcement was created.",
+    )
+    updated_at = DateTime(
+        required=True,
+        description="The date & time at which this announcement was last updated.",
+    )
+
+    title = graphene.String(required=True, description="The announcement's title.")
+    message_html = graphene.String(
+        required=True,
+        description="The announcement's description, may contain HTML formatting.",
+    )
+    importance = AnnouncementImportanceEnum(
+        required=True,
+        description=(
+            "Determine the how critical the announcement is. UNSET if no "
+            "severity level was defined for this announcement."
+        ),
+    )
+
+    type = graphene.String(
+        required=True,
+        description=(
+            'The announcement\'s type, for example "CUSTOM". Used to '
+            "programatically distinguish between message types thus allowing to "
+            "render the message differently, and allows to know the expected shape "
+            "for the `extra` field."
+        ),
+    )
+    extra = Metadata(
+        required=True, description="Additional information about this announcement."
+    )
+
+    class Meta:
+        description = "Lists current announcements that the user should see."
+
+
 class Shop(graphene.ObjectType):
     id = graphene.ID(description="ID of the shop.", required=True)
     available_payment_gateways = NonNullList(
@@ -179,6 +242,7 @@ class Shop(graphene.ObjectType):
         ),
         description="List of available payment gateways.",
         required=True,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     available_external_authentications = NonNullList(
         ExternalAuthentication,
@@ -241,7 +305,15 @@ class Shop(graphene.ObjectType):
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     description = graphene.String(description="Shop's description.")
-    domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
+    domain = graphene.Field(
+        Domain,
+        required=True,
+        description=(
+            "Shop's domain data. Can be customized using the `PUBLIC_URL` "
+            "environment variable if self-hosted. If a custom domain is needed "
+            "in your Saleor Cloud environment, then contact Saleor support."
+        ),
+    )
     languages = NonNullList(
         LanguageDisplay,
         description="List of the shops's supported languages.",
@@ -270,11 +342,6 @@ class Shop(graphene.ObjectType):
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)
-    automatic_fulfillment_digital_products = PermissionsField(
-        graphene.Boolean,
-        description="Enable automatic fulfillment for all digital products.",
-        permissions=[SitePermissions.MANAGE_SETTINGS],
-    )
     reserve_stock_duration_anonymous_user = PermissionsField(
         graphene.Int,
         description=(
@@ -297,16 +364,6 @@ class Shop(graphene.ObjectType):
             "Default number of maximum line quantity in single checkout "
             "(per single checkout line)."
         ),
-        permissions=[SitePermissions.MANAGE_SETTINGS],
-    )
-    default_digital_max_downloads = PermissionsField(
-        graphene.Int,
-        description="Default number of max downloads per digital content URL.",
-        permissions=[SitePermissions.MANAGE_SETTINGS],
-    )
-    default_digital_url_valid_days = PermissionsField(
-        graphene.Int,
-        description="Default number of days which digital content URL will be valid.",
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     company_address = graphene.Field(
@@ -342,6 +399,12 @@ class Shop(graphene.ObjectType):
         deprecation_reason=DEFAULT_DEPRECATION_REASON,
         permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
     )
+    announcements = PermissionsField(
+        NonNullList(Announcement),
+        required=True,
+        description="List of announcements for this shop.",
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
     version = PermissionsField(
         graphene.String,
         description="Saleor API version.",
@@ -361,13 +424,31 @@ class Shop(graphene.ObjectType):
             "List of tax apps that can be assigned to the channel. "
             "The list will be calculated by Saleor based on the apps "
             "that are subscribed to webhooks related to tax calculations: "
-            "CHECKOUT_CALCULATE_TAXES" + ADDED_IN_319
+            "CHECKOUT_CALCULATE_TAXES"
         ),
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AppPermission.MANAGE_APPS,
         ],
+    )
+
+    preserve_all_address_fields = PermissionsField(
+        graphene.Boolean,
+        description=(
+            "When enabled, address fields that are not valid for a given country "
+            "(according to Google's i18n address data) will be preserved instead of "
+            "being removed during validation. Validation errors are still returned."
+        )
+        + ADDED_IN_322,
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+        required=True,
+    )
+    password_login_mode = PermissionsField(
+        PasswordLoginModeEnum,
+        description="Controls whether password-based authentication is allowed."
+        + ADDED_IN_323,
+        required=True,
     )
 
     # deprecated
@@ -386,6 +467,15 @@ class Shop(graphene.ObjectType):
         deprecation_reason="Use `ShippingMethodType.taxClass` to determine "
         "whether taxes are calculated for shipping methods; if a tax class is set, "
         "the taxes will be calculated, otherwise no tax rate will be applied.",
+        required=True,
+    )
+    use_legacy_shipping_zone_stock_availability = graphene.Boolean(
+        description=(
+            "When enabled, stock availability is filtered by shipping zones "
+            "and the destination address (legacy behavior). "
+            "When disabled, stock availability is determined only by the direct "
+            "warehouse-channel link, ignoring shipping zones." + ADDED_IN_323
+        ),
         required=True,
     )
 
@@ -569,11 +659,6 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @load_site_callback
-    def resolve_automatic_fulfillment_digital_products(_, _info, site):
-        return site.settings.automatic_fulfillment_digital_products
-
-    @staticmethod
-    @load_site_callback
     def resolve_reserve_stock_duration_anonymous_user(_, _info, site):
         return site.settings.reserve_stock_duration_anonymous_user
 
@@ -586,16 +671,6 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_limit_quantity_per_checkout(_, _info, site):
         return site.settings.limit_quantity_per_checkout
-
-    @staticmethod
-    @load_site_callback
-    def resolve_default_digital_max_downloads(_, _info, site):
-        return site.settings.default_digital_max_downloads
-
-    @staticmethod
-    @load_site_callback
-    def resolve_default_digital_url_valid_days(_, _info, site):
-        return site.settings.default_digital_url_valid_days
 
     @staticmethod
     def resolve_staff_notification_recipients(_, info):
@@ -616,6 +691,17 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_limits(_, _info):
         return LimitInfo(current_usage=Limits(), allowed_usage=Limits())
+
+    @staticmethod
+    def resolve_announcements(_, _info):
+        """Return the list of announcements for this shop.
+
+        This is not implement in Saleor Core OSS. However, this can be implemented
+        by overriding ``settings.SHOP_ANNOUNCEMENT_RESOLVER_IMPORT``.
+        """
+        if SiteAppConfig.announcements_resolver is not None:
+            return SiteAppConfig.announcements_resolver()
+        return []
 
     @staticmethod
     def resolve_version(_, _info):
@@ -674,6 +760,21 @@ class Shop(graphene.ObjectType):
         return ObjectWithMetadata.resolve_private_metafields(
             site.settings, info, keys=keys
         )
+
+    @staticmethod
+    @load_site_callback
+    def resolve_preserve_all_address_fields(_, _info, site):
+        return site.settings.preserve_all_address_fields
+
+    @staticmethod
+    @load_site_callback
+    def resolve_password_login_mode(_, _info, site):
+        return site.settings.password_login_mode
+
+    @staticmethod
+    @load_site_callback
+    def resolve_use_legacy_shipping_zone_stock_availability(_, _info, site):
+        return site.settings.use_legacy_shipping_zone_stock_availability
 
     @staticmethod
     @load_site_callback

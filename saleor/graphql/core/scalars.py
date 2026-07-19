@@ -96,6 +96,8 @@ class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
         if isinstance(value, dict):
+            if value.get("value") is None:
+                return None
             weight = Weight(**{value["unit"]: value["value"]})
         else:
             weight = WeightScalar.parse_decimal(value)
@@ -199,15 +201,40 @@ class Date(graphene.Date):
         return graphene.Date.parse_value(value)
 
 
-class Minute(graphene.Int):
+class NonNegativeInt(graphene.Int):
+    """Non-negative Integer scalar implementation.
+
+    Should be used in places where value must be non-negative (0 or greater).
+    """
+
+    @staticmethod
+    def parse_value(value) -> int | None:
+        parsed_value = graphene.Int.parse_value(value)
+
+        if (parsed_value is not None) and parsed_value >= 0:
+            return parsed_value
+
+        return None
+
+    @staticmethod
+    def parse_literal(node) -> int | None:
+        parsed_value = graphene.Int.parse_literal(node)
+
+        if (parsed_value is not None) and parsed_value >= 0:
+            return parsed_value
+
+        return None
+
+
+class Minute(NonNegativeInt):
     """The `Minute` scalar type represents number of minutes by integer value."""
 
 
-class Hour(graphene.Int):
+class Hour(NonNegativeInt):
     """The `Hour` scalar type represents number of hours by integer value."""
 
 
-class Day(graphene.Int):
+class Day(NonNegativeInt):
     """The `Day` scalar type represents number of days by integer value."""
 
 

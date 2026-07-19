@@ -6,8 +6,8 @@ from django.db import IntegrityError, transaction
 from .....account import events as account_events
 from .....account import models
 from .....account.notifications import send_set_password_notification
-from .....account.search import prepare_user_search_document_value
-from .....core.tokens import token_generator
+from .....account.search import update_user_search_vector
+from .....core.tokens import password_reset_token_generator
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.url import prepare_url
 from .....permission.enums import AccountPermissions
@@ -115,8 +115,7 @@ class CustomerCreate(BaseCustomerCreate):
 
         manager = get_plugin_manager_promise(info.context).get()
 
-        instance.search_document = prepare_user_search_document_value(instance)
-        instance.save()
+        update_user_search_vector(instance)
 
         account_events.customer_account_created_event(user=instance)
 
@@ -163,7 +162,7 @@ class CustomerCreate(BaseCustomerCreate):
             plugins_manager,
             channel_slug,
         )
-        token = token_generator.make_token(instance)
+        token = password_reset_token_generator.make_token(instance)
         params = urlencode({"email": instance.email, "token": token})
 
         cls.call_event(

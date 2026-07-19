@@ -80,7 +80,7 @@ def test_app_update_mutation(
 
 
 @freeze_time("2022-05-12 12:00:00")
-@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_app_lifecycle_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_app_update_trigger_mutation(
     mocked_webhook_trigger,
@@ -457,3 +457,34 @@ def test_app_update_mutation_removed_app(
     assert app_data["app"] is None
     assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
     assert app_data["errors"][0]["field"] == "id"
+
+
+def test_app_update_rejects_manage_apps_permission(
+    app_with_token, permission_manage_products, superuser_api_client
+):
+    # given - even a superuser cannot grant MANAGE_APPS to an app
+    app = app_with_token
+    app.permissions.add(permission_manage_products)
+    app_id = graphene.Node.to_global_id("App", app.id)
+    variables = {
+        "id": app_id,
+        "permissions": [PermissionEnum.MANAGE_APPS.name],
+    }
+
+    # when
+    response = superuser_api_client.post_graphql(
+        APP_UPDATE_MUTATION, variables=variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["appUpdate"]
+
+    # then
+    errors = data["errors"]
+    assert not data["app"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "permissions"
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
+    assert error["permissions"] == [PermissionEnum.MANAGE_APPS.name]
+    app.refresh_from_db()
+    assert list(app.permissions.all()) == [permission_manage_products]

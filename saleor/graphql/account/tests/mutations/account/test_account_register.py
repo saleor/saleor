@@ -1,6 +1,7 @@
 from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
+import pytest
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
@@ -8,12 +9,12 @@ from freezegun import freeze_time
 from ......account import events as account_events
 from ......account.models import User
 from ......account.notifications import get_default_user_payload
-from ......account.search import generate_user_fields_search_document_value
 from ......account.tasks import finish_creating_user
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
-from ......core.tokens import token_generator
+from ......core.tokens import account_confirm_token_generator
 from ......core.utils.url import prepare_url
+from ......settings import AUTH_PASSWORD_VALIDATORS
 from ......tests import race_condition
 from .....tests.utils import get_graphql_content
 
@@ -99,7 +100,7 @@ mutation RegisterAccount($input: AccountRegisterInput!) {
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.account_confirm_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch(
     "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
@@ -160,9 +161,7 @@ def test_customer_register(
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["input"]["firstName"]
     assert new_user.last_name == variables["input"]["lastName"]
-    assert new_user.search_document == generate_user_fields_search_document_value(
-        new_user
-    )
+    assert new_user.search_vector
     assert not data["errors"]
     assert mocked_notify.call_count == 1
     call_args = mocked_notify.call_args_list[0]
@@ -179,7 +178,7 @@ def test_customer_register(
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.account_confirm_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch(
     "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
@@ -242,9 +241,7 @@ def test_customer_register_twice(
     assert new_user.language_code == "pl"
     assert new_user.first_name == variables["input"]["firstName"]
     assert new_user.last_name == variables["input"]["lastName"]
-    assert new_user.search_document == generate_user_fields_search_document_value(
-        new_user
-    )
+    assert new_user.search_vector
     assert not data["errors"]
     assert mocked_notify.call_count == 1
     call_args = mocked_notify.call_args_list[0]
@@ -330,7 +327,7 @@ def test_customer_register_generates_valid_token(
     assert called_kwargs["channel_slug"] == channel_PLN.slug
 
     assert not data["errors"]
-    assert token_generator.check_token(new_user, token)
+    assert account_confirm_token_generator.check_token(new_user, token)
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -483,7 +480,7 @@ def test_account_register_returns_empty_id(
 @override_settings(
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
-@patch("saleor.account.notifications.token_generator.make_token")
+@patch("saleor.account.notifications.account_confirm_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 @patch(
     "saleor.graphql.account.mutations.account.account_register.finish_creating_user",
@@ -538,3 +535,52 @@ def test_customer_register_race_codition(
     mocked_finish_creating_user.delay.assert_called_once_with(
         None, redirect_url, channel_PLN.slug, ANY
     )
+
+
+@pytest.mark.parametrize(("enable_account_confirmation_by_email"), [True, False])
+def test_validates_password_length(
+    api_client,
+    site_settings,
+    enable_account_confirmation_by_email: bool,
+    channel_PLN,
+    settings,
+):
+    """Should validate password length even when account confirmation is disabled."""
+
+    settings.ALLOWED_CLIENT_HOSTS = ["localhost"]
+    settings.AUTH_PASSWORD_VALIDATORS = AUTH_PASSWORD_VALIDATORS  # production values
+
+    site_settings.enable_account_confirmation_by_email = (
+        enable_account_confirmation_by_email
+    )
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
+    variables = {
+        "input": {
+            "email": "foo@example.com",
+            "password": "a",
+            "redirectUrl": "http://localhost:3000",
+            "firstName": "saleor",
+            "lastName": "rocks",
+            "languageCode": "PL",
+            "channel": channel_PLN.slug,
+        }
+    }
+
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["accountRegister"]
+    assert data == {
+        "errors": [
+            {
+                "code": "PASSWORD_TOO_SHORT",
+                "field": "password",
+                "message": (
+                    "This password is too short. It must contain at least 8 characters."
+                ),
+            },
+        ],
+        "user": None,
+    }

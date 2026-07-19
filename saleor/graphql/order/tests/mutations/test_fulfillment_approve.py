@@ -8,7 +8,6 @@ from .....order.actions import fulfill_order_lines
 from .....order.error_codes import OrderErrorCode
 from .....order.fetch import OrderLineInfo
 from .....order.models import OrderLine
-from .....plugins.manager import get_plugins_manager
 from .....product.models import Product
 from .....webhook.event_types import WebhookEventAsyncType
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -73,7 +72,7 @@ def test_fulfillment_approve(
     event = events[0]
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.user == staff_api_client.user
-    mock_fulfillment_approved.assert_called_once_with(fulfillment, True)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, True, True)
 
 
 def test_fulfillment_approve_by_user_no_channel_access(
@@ -136,7 +135,7 @@ def test_fulfillment_approve_by_app(
     assert event.type == OrderEvents.FULFILLMENT_FULFILLED_ITEMS
     assert event.app == app_api_client.app
     assert event.user is None
-    mock_fulfillment_approved.assert_called_once_with(fulfillment, True)
+    mock_fulfillment_approved.assert_called_once_with(fulfillment, True, True)
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
@@ -242,6 +241,7 @@ def test_fulfillment_approve_gift_cards_created(
     permission_group_manage_orders,
     gift_card_shippable_order_line,
     gift_card_non_shippable_order_line,
+    site_settings,
 ):
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     fulfillment = full_fulfillment_awaiting_approval
@@ -270,7 +270,8 @@ def test_fulfillment_approve_gift_cards_created(
                 warehouse_pk=stock_2.warehouse.pk,
             ),
         ],
-        manager=get_plugins_manager(allow_replica=False),
+        site_settings=site_settings,
+        requestor=None,
     )
 
     query = APPROVE_FULFILLMENT_MUTATION
@@ -442,7 +443,7 @@ def test_fulfillment_approve_partial_order_fulfill(
 
     assert mock_email_fulfillment.call_count == 0
     mock_fulfillment_approved.assert_called_once_with(
-        partial_fulfillment_awaiting_approval, False
+        partial_fulfillment_awaiting_approval, False, True
     )
 
 

@@ -1,10 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql import GraphQLError
 
 from ...core.exceptions import PermissionDenied
+from ...core.search import prefix_search
 from ...order import models
-from ...order.search import search_orders
 from ...permission.enums import OrderPermissions
 from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
@@ -17,6 +16,7 @@ from ..core.descriptions import (
     ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
@@ -28,13 +28,19 @@ from ..core.fields import (
 )
 from ..core.filters import FilterInputObjectType
 from ..core.scalars import UUID
-from ..core.types import TaxedMoney
-from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
+from ..core.types import NonNullList, TaxedMoney
+from ..core.utils import (
+    ext_ref_to_global_id_or_error,
+    from_global_id_or_error,
+    validate_and_apply_search_rank_sorting,
+)
 from ..core.validators import validate_one_of_args_is_in_query
+from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import get_user_or_app_from_context
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
 from .bulk_mutations.order_bulk_create import OrderBulkCreate
+from .dataloaders import OrderByIdLoader
 from .filters import (
     DraftOrderFilter,
     DraftOrderWhereInput,
@@ -83,18 +89,15 @@ from .sorters import OrderSortField, OrderSortingInput
 from .types import Order, OrderCountableConnection, OrderEventCountableConnection
 
 
-def search_string_in_kwargs(kwargs: dict) -> bool:
-    filter_search = (
-        kwargs.get("filter", {}).get("search", "") or kwargs.get("search", "") or ""
-    )
-    return bool(filter_search.strip())
-
-
-def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
-    return kwargs.get("sort_by", {}).get("field") or None
-
-
 class OrderFilterInput(FilterInputObjectType):
+    payment_status = NonNullList(
+        PaymentChargeStatusEnum,
+        description=(
+            "Filter orders by payment charge status."
+            f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_LEGACY_PAYMENTS}"
+        ),
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
         filterset_class = OrderFilter
@@ -227,27 +230,20 @@ class OrderQueries(graphene.ObjectType):
             except ValidationError:
                 return None
         _, id = from_global_id_or_error(id, Order)
-        return resolve_order(info, id)
+        wrapped_order = resolve_order(info, id)
+        if wrapped_order:
+            OrderByIdLoader(info.context).prime(id, wrapped_order.node)
+        return wrapped_order
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
-            # sort by RANK can be used only with search filter
-            if not search_string_in_kwargs(kwargs):
-                raise GraphQLError(
-                    "Sorting by RANK is available only when using a search filter."
-                )
-        if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
-            # default to sorting by RANK if search is used
-            # and no explicit sorting is requested
-            product_type = info.schema.get_type("OrderSortingInput")
-            kwargs["sort_by"] = product_type.create_container(
-                {"direction": "-", "field": ["search_rank", "id"]}
-            )
+        validate_and_apply_search_rank_sorting(
+            kwargs, OrderSortField.RANK, "OrderSortingInput", info
+        )
         search = kwargs.get("search")
         qs = resolve_orders(info, channel)
         if search:
-            qs = search_orders(qs, search)
+            qs = prefix_search(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
@@ -257,23 +253,13 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_draft_orders(_root, info: ResolveInfo, **kwargs):
-        if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
-            # sort by RANK can be used only with search filter
-            if not search_string_in_kwargs(kwargs):
-                raise GraphQLError(
-                    "Sorting by RANK is available only when using a search filter."
-                )
-        if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
-            # default to sorting by RANK if search is used
-            # and no explicit sorting is requested
-            product_type = info.schema.get_type("OrderSortingInput")
-            kwargs["sort_by"] = product_type.create_container(
-                {"direction": "-", "field": ["search_rank", "id"]}
-            )
+        validate_and_apply_search_rank_sorting(
+            kwargs, OrderSortField.RANK, "OrderSortingInput", info
+        )
         search = kwargs.get("search")
         qs = resolve_draft_orders(info)
         if search:
-            qs = search_orders(qs, search)
+            qs = prefix_search(qs, search)
         qs = filter_connection_queryset(
             qs, kwargs, allow_replica=info.context.allow_replica
         )
@@ -287,7 +273,12 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_order_by_token(_root, info: ResolveInfo, *, token):
-        return resolve_order_by_token(info, token)
+        wrapped_order = resolve_order_by_token(info, token)
+        if wrapped_order:
+            OrderByIdLoader(info.context).prime(
+                wrapped_order.node.id, wrapped_order.node
+            )
+        return wrapped_order
 
 
 class OrderMutations(graphene.ObjectType):
@@ -304,7 +295,7 @@ class OrderMutations(graphene.ObjectType):
         deprecation_reason="Use `orderNoteAdd` instead."
     )
     order_cancel = OrderCancel.Field()
-    order_capture = OrderCapture.Field()
+    order_capture = OrderCapture.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
     order_confirm = OrderConfirm.Field()
 
     order_fulfill = OrderFulfill.Field()
@@ -332,9 +323,9 @@ class OrderMutations(graphene.ObjectType):
     order_note_update = OrderNoteUpdate.Field()
 
     order_mark_as_paid = OrderMarkAsPaid.Field()
-    order_refund = OrderRefund.Field()
+    order_refund = OrderRefund.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
     order_update = OrderUpdate.Field()
     order_update_shipping = OrderUpdateShipping.Field()
-    order_void = OrderVoid.Field()
+    order_void = OrderVoid.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
     order_bulk_cancel = OrderBulkCancel.Field()
     order_bulk_create = OrderBulkCreate.Field()

@@ -9,7 +9,7 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import connection, models
-from django.db.models import F, JSONField, Max
+from django.db.models import F, JSONField, Max, Q
 from django.db.models.expressions import Exists, OuterRef
 from django.utils.timezone import now
 from django_measurement.models import MeasurementField
@@ -433,12 +433,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         return f"#{self.id}"
 
     def get_last_payment(self) -> Payment | None:
-        # Skipping a partial payment is a temporary workaround for storing a basic data
-        # about partial payment from Adyen plugin. This is something that will removed
-        # in 3.1 by introducing a partial payments feature.
-        payments: list[Payment] = [
-            payment for payment in self.payments.all() if not payment.partial
-        ]
+        payments: list[Payment] = list(self.payments.all())
         return max(payments, default=None, key=attrgetter("pk"))
 
     def is_pre_authorized(self):
@@ -542,23 +537,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     @property
     def total_balance(self):
         return self.total_charged - self.total.gross
-
-
-class OrderLineQueryset(models.QuerySet["OrderLine"]):
-    def digital(self):
-        """Return lines with digital products."""
-        for line in self.all():
-            if line.is_digital:
-                yield line
-
-    def physical(self):
-        """Return lines with physical products."""
-        for line in self.all():
-            if not line.is_digital:
-                yield line
-
-
-OrderLineManager = models.Manager.from_queryset(OrderLineQueryset)
 
 
 class OrderLine(ModelWithMetadata):
@@ -749,8 +727,6 @@ class OrderLine(ModelWithMetadata):
     # It depends on channel.draft_order_line_price_freeze_period setting.
     draft_base_price_expire_at = models.DateTimeField(blank=True, null=True)
 
-    objects = OrderLineManager()
-
     class Meta(ModelWithMetadata.Meta):
         ordering = ("created_at", "id")
 
@@ -770,15 +746,6 @@ class OrderLine(ModelWithMetadata):
     def quantity_unfulfilled(self):
         return self.quantity - self.quantity_fulfilled
 
-    @property
-    def is_digital(self) -> bool:
-        """Check if a variant is digital and contains digital content."""
-        if not self.variant:
-            return False
-        is_digital = self.variant.is_digital()
-        has_digital = hasattr(self.variant, "digital_content")
-        return is_digital and has_digital
-
 
 class Fulfillment(ModelWithMetadata):
     fulfillment_order = models.PositiveIntegerField(editable=False)
@@ -795,6 +762,15 @@ class Fulfillment(ModelWithMetadata):
     )
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    reason = models.TextField(blank=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page",
+        related_name="+",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
 
     shipping_refund_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -814,6 +790,11 @@ class Fulfillment(ModelWithMetadata):
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             BTreeIndex(fields=["status"], name="fulfillment_status_idx"),
+            BTreeIndex(
+                fields=["reason_reference"],
+                name="fulfillment_reason_ref_idx",
+                condition=Q(reason_reference__isnull=False),
+            ),
         ]
 
     def __str__(self):
@@ -863,6 +844,24 @@ class FulfillmentLine(models.Model):
         blank=True,
         null=True,
     )
+    reason = models.TextField(blank=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page",
+        related_name="+",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
+
+    class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["reason_reference"],
+                name="fulfillmentline_reason_ref_idx",
+                condition=Q(reason_reference__isnull=False),
+            ),
+        ]
 
 
 class OrderEvent(models.Model):
@@ -977,3 +976,20 @@ class OrderGrantedRefundLine(models.Model):
     )
 
     reason = models.TextField(blank=True, null=True, default="")
+    reason_reference = models.ForeignKey(
+        "page.Page",
+        related_name="+",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
+
+    class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["reason_reference"],
+                name="grantedrefundline_reason_ref_idx",
+                condition=Q(reason_reference__isnull=False),
+            ),
+        ]

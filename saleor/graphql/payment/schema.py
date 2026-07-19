@@ -3,11 +3,16 @@ import graphene
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import (
+    ADDED_IN_322,
+    ADDED_IN_323,
+    DEPRECATED_LEGACY_PAYMENTS,
+)
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.utils import from_global_id_or_error
-from .filters import PaymentFilterInput
+from .filters import PaymentFilterInput, TransactionWhereInput
 from .mutations import (
     PaymentCapture,
     PaymentCheckBalance,
@@ -27,17 +32,26 @@ from .mutations import (
     TransactionRequestRefundForGrantedRefund,
     TransactionUpdate,
 )
-from .resolvers import resolve_payment_by_id, resolve_payments, resolve_transaction
+from .resolvers import (
+    resolve_payment_by_id,
+    resolve_payments,
+    resolve_transaction,
+    resolve_transactions,
+)
+from .sorters import TransactionSortingInput
 from .types import (
     CardPaymentMethodDetails,
+    GiftCardPaymentMethodDetails,
     OtherPaymentMethodDetails,
     Payment,
     PaymentCountableConnection,
+    TransactionCountableConnection,
     TransactionItem,
 )
 
 PAYMENT_ADDITIONAL_TYPES = [
     CardPaymentMethodDetails,
+    GiftCardPaymentMethodDetails,
     OtherPaymentMethodDetails,
 ]
 
@@ -53,6 +67,7 @@ class PaymentQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
         doc_category=DOC_CATEGORY_PAYMENTS,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     payments = FilterConnectionField(
         PaymentCountableConnection,
@@ -62,6 +77,7 @@ class PaymentQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
         doc_category=DOC_CATEGORY_PAYMENTS,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     transaction = PermissionsField(
         TransactionItem,
@@ -84,6 +100,29 @@ class PaymentQueries(graphene.ObjectType):
         ),
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,
+            OrderPermissions.MANAGE_ORDERS,
+        ],
+        doc_category=DOC_CATEGORY_PAYMENTS,
+    )
+    transactions = FilterConnectionField(
+        TransactionCountableConnection,
+        where=TransactionWhereInput(
+            description="Where filtering options for transactions."
+        ),
+        sort_by=TransactionSortingInput(
+            description="Sort transactions." + ADDED_IN_323
+        ),
+        description=(
+            "List of transactions. "
+            "For apps with `MANAGE_ORDERS` permission, returns all transactions. "
+            "For apps with just `HANDLE_PAYMENTS` permission, "
+            "returns only transactions created by that app. "
+            "For staff users, returns transactions from orders and checkouts "
+            "in channels they have access to." + ADDED_IN_322
+        ),
+        permissions=[
+            PaymentPermissions.HANDLE_PAYMENTS,
+            OrderPermissions.MANAGE_ORDERS,
         ],
         doc_category=DOC_CATEGORY_PAYMENTS,
     )
@@ -115,13 +154,27 @@ class PaymentQueries(graphene.ObjectType):
         )
         return resolve_transaction(info, id)
 
+    @staticmethod
+    def resolve_transactions(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_transactions(info)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(qs, info, kwargs, TransactionCountableConnection)
+
 
 class PaymentMutations(graphene.ObjectType):
-    payment_capture = PaymentCapture.Field()
-    payment_refund = PaymentRefund.Field()
-    payment_void = PaymentVoid.Field()
-    payment_initialize = PaymentInitialize.Field()
-    payment_check_balance = PaymentCheckBalance.Field()
+    payment_capture = PaymentCapture.Field(
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS
+    )
+    payment_refund = PaymentRefund.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
+    payment_void = PaymentVoid.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
+    payment_initialize = PaymentInitialize.Field(
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS
+    )
+    payment_check_balance = PaymentCheckBalance.Field(
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS
+    )
 
     transaction_create = TransactionCreate.Field()
     transaction_update = TransactionUpdate.Field()

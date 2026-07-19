@@ -355,3 +355,24 @@ def test_channel_delete_mutation_deletes_invalid_warehouse_to_zone_relations(
     # ensure warehouse from index 1 has been deleted from shipping zone
     # without JPY channel
     assert warehouses[1] not in shipping_zones[1].warehouses.all()
+
+
+def test_channel_delete_with_empty_id_returns_validation_error(
+    permission_manage_channels, staff_api_client
+):
+    # given
+    variables = {"id": ""}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_DELETE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["channelDelete"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == ChannelErrorCode.NOT_FOUND.name

@@ -4,7 +4,13 @@ from freezegun import freeze_time
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
-from ......core.tokens import token_generator
+from ......account.tests.fixtures.user import dangerously_create_test_user
+from ......core.tokens import (
+    account_confirm_token_generator,
+    legacy_password_reset_token_generator,
+    password_reset_token_generator,
+)
+from ......site import PasswordLoginMode
 from .....core.utils import str_to_enum
 from .....tests.utils import get_graphql_content
 from ....mutations.base import INVALID_TOKEN
@@ -31,13 +37,24 @@ SET_PASSWORD_MUTATION = """
 """
 
 
+@patch("saleor.account.throttling.cache")
 @freeze_time("2018-05-31 12:00:01")
-def test_set_password(user_api_client, customer_user):
-    token = token_generator.make_token(customer_user)
+def test_set_password(mocked_cache, user_api_client, setup_mock_for_cache):
+    # given
+    setup_mock_for_cache({}, mocked_cache)
+
+    customer_user = dangerously_create_test_user(
+        email="testSetPassword1@example.com", password="old-password"
+    )
+    token = password_reset_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     variables = {"email": customer_user.email, "password": password, "token": token}
+
+    # when
     response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["setPassword"]
     assert data["user"]["id"]
@@ -52,17 +69,23 @@ def test_set_password(user_api_client, customer_user):
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.account.throttling.cache")
 @patch(
     "saleor.graphql.account.mutations.authentication.set_password.match_orders_with_new_user"
 )
 def test_set_password_confirm_user_and_match_orders(
-    match_orders_with_new_user_mock, user_api_client, customer_user
+    match_orders_with_new_user_mock, mocked_cache, user_api_client, setup_mock_for_cache
 ):
     # given
-    customer_user.is_confirmed = False
-    customer_user.save(update_fields=["is_confirmed"])
+    setup_mock_for_cache({}, mocked_cache)
 
-    token = token_generator.make_token(customer_user)
+    customer_user = dangerously_create_test_user(
+        email="testSetPassword2@example.com",
+        password="old-password",
+        is_confirmed=False,
+    )
+
+    token = password_reset_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     variables = {"email": customer_user.email, "password": password, "token": token}
@@ -86,9 +109,18 @@ def test_set_password_confirm_user_and_match_orders(
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
 
 
-def test_set_password_invalid_token(user_api_client, customer_user):
+@patch("saleor.account.throttling.cache")
+def test_set_password_invalid_token(
+    mocked_cache, user_api_client, customer_user, setup_mock_for_cache
+):
+    # given
+    setup_mock_for_cache({}, mocked_cache)
     variables = {"email": customer_user.email, "password": "pass", "token": "token"}
+
+    # when
     response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["setPassword"]["errors"]
     assert errors[0]["message"] == INVALID_TOKEN
@@ -98,9 +130,96 @@ def test_set_password_invalid_token(user_api_client, customer_user):
     assert account_errors[0]["code"] == AccountErrorCode.INVALID.name
 
 
-def test_set_password_invalid_email(user_api_client):
-    variables = {"email": "fake@example.com", "password": "pass", "token": "token"}
+@patch("saleor.account.throttling.cache")
+def test_set_password_rejects_account_confirm_token(
+    mocked_cache, user_api_client, customer_user, setup_mock_for_cache
+):
+    """When providing a token that's meant for another mutation, it should reject.
+
+    In this test, we pass an account confirmation token instead of a password reset
+    token, and we test whether it rejects it properly.
+    """
+
+    setup_mock_for_cache({}, mocked_cache)
+
+    new_password = "new-password"
+    assert not customer_user.check_password(new_password)
+
+    variables = {
+        "email": customer_user.email,
+        "password": new_password,
+    }
+
+    # Should reject invalid token
+    invalid_token = account_confirm_token_generator.make_token(customer_user)
+    content = get_graphql_content(
+        user_api_client.post_graphql(
+            SET_PASSWORD_MUTATION, {**variables, "token": invalid_token}
+        )
+    )
+    data = content["data"]["setPassword"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["message"] == INVALID_TOKEN
+    assert data["errors"][0]["code"] == AccountErrorCode.INVALID.name
+    customer_user.refresh_from_db()
+    assert not customer_user.check_password(new_password)
+
+    # Sanity check: should accept valid tokens
+    valid_token = password_reset_token_generator.make_token(customer_user)
+    variables["token"] = valid_token
+    content = get_graphql_content(
+        user_api_client.post_graphql(
+            SET_PASSWORD_MUTATION, {**variables, "token": valid_token}
+        )
+    )
+    data = content["data"]["setPassword"]
+    assert not data["errors"]
+    customer_user.refresh_from_db()
+    assert customer_user.check_password(new_password)
+
+
+@patch("saleor.account.throttling.cache")
+def test_set_password_accepts_legacy_password_reset_token(
+    mocked_cache, user_api_client, customer_user, setup_mock_for_cache
+):
+    """Ensure old tokens before adding scopes still work properly."""
+
+    # given
+    setup_mock_for_cache({}, mocked_cache)
+    password = "new-password"
+    token = legacy_password_reset_token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "password": password,
+        "token": token,
+    }
+
+    # when
     response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["setPassword"]
+    assert not data["errors"]
+    assert data["user"]["id"]
+    assert data["token"]
+    customer_user.refresh_from_db()
+    assert customer_user.check_password(password)
+
+
+@patch("saleor.account.throttling.cache")
+def test_set_password_invalid_email(
+    mocked_cache, user_api_client, setup_mock_for_cache
+):
+    # given
+    setup_mock_for_cache({}, mocked_cache)
+
+    variables = {"email": "fake@example.com", "password": "pass", "token": "token"}
+
+    # when
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 1
@@ -112,8 +231,13 @@ def test_set_password_invalid_email(user_api_client):
     assert account_errors[0]["code"] == AccountErrorCode.INVALID.name
 
 
+@patch("saleor.account.throttling.cache")
 @freeze_time("2018-05-31 12:00:01")
-def test_set_password_invalid_password(user_api_client, customer_user, settings):
+def test_set_password_invalid_password(
+    mocked_cache, user_api_client, customer_user, settings, setup_mock_for_cache
+):
+    # given
+    setup_mock_for_cache({}, mocked_cache)
     settings.AUTH_PASSWORD_VALIDATORS = [
         {
             "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -122,9 +246,13 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
         {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
     ]
 
-    token = token_generator.make_token(customer_user)
+    token = password_reset_token_generator.make_token(customer_user)
     variables = {"email": customer_user.email, "password": "1234", "token": token}
+
+    # when
     response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 2
@@ -137,3 +265,32 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
     account_errors = content["data"]["setPassword"]["errors"]
     assert account_errors[0]["code"] == str_to_enum("password_too_short")
     assert account_errors[1]["code"] == str_to_enum("password_entirely_numeric")
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_set_password_disabled_password_login(user_api_client, site_settings):
+    # given
+    site_settings.password_login_mode = PasswordLoginMode.DISABLED
+    site_settings.save(update_fields=["password_login_mode"])
+
+    customer_user = dangerously_create_test_user(
+        email="testSetPasswordDisabled@example.com", password="old-password"
+    )
+    token = password_reset_token_generator.make_token(customer_user)
+    variables = {
+        "email": customer_user.email,
+        "password": "new-password",
+        "token": token,
+    }
+
+    # when
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["setPassword"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.DISABLED_AUTHENTICATION_METHOD.name
+
+    customer_user.refresh_from_db()
+    assert customer_user.check_password("old-password")

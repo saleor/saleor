@@ -1,6 +1,7 @@
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
+from ..core.descriptions import DEPRECATED_LEGACY_PAYMENTS
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.types import BaseEnum, SortInputObjectType
 
@@ -9,16 +10,30 @@ class CheckoutSortField(BaseEnum):
     CREATION_DATE = ["created_at", "pk"]
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "pk"]
+    RANK = ["search_rank", "pk"]
 
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT
 
     @property
     def description(self):
+        descriptions = {
+            CheckoutSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+                "rank. Note: This option is available only with the `search` filter."
+            ),
+        }
+        if self.name in descriptions:
+            return f"Sort checkouts by {descriptions[self.name]}"
         if self.name in CheckoutSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort checkouts by {sort_name}."
         raise ValueError(f"Unsupported enum value: {self.value}")
+
+    @property
+    def deprecation_reason(self):
+        if self == CheckoutSortField.PAYMENT:
+            return DEPRECATED_LEGACY_PAYMENTS
+        return None
 
     @staticmethod
     def qs_with_payment(queryset: QuerySet, **_kwargs) -> QuerySet:

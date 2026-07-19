@@ -1,5 +1,3 @@
-from typing import cast
-
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -86,6 +84,12 @@ class DraftOrderComplete(BaseMutation):
         return order
 
     @classmethod
+    def handle_order_voucher(cls, order, channel):
+        if order.voucher:
+            cls.setup_voucher_customer(order, channel)
+            cls.deactivate_single_use_voucher_codes(order)
+
+    @classmethod
     def setup_voucher_customer(cls, order, channel):
         if (
             order.voucher
@@ -100,13 +104,26 @@ class DraftOrderComplete(BaseMutation):
                 )
 
     @classmethod
+    def deactivate_single_use_voucher_codes(cls, order):
+        # In case the `include_draft_order_in_voucher_usage` flag is set to True,
+        # the voucher is not deactivated during assigning it to the draft order.
+        # So we need to deactivate it when the draft order is completed.
+        if order.voucher.single_use and order.voucher_code:
+            code = VoucherCode.objects.filter(code=order.voucher_code).first()
+            if code and code.is_active:
+                code.is_active = False
+                code.save(update_fields=["is_active"])
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         user = info.context.user
-        user = cast(User, user)
+        app = get_app_promise(info.context).get()
+        requestor = app or user
 
         manager = get_plugin_manager_promise(info.context).get()
+        site_settings = get_site_promise(info.context).get().settings
         order = cls.get_node_or_error(
             info,
             id,
@@ -116,8 +133,8 @@ class DraftOrderComplete(BaseMutation):
         cls.check_channel_permissions(info, [order.channel_id])
         force_update = order.tax_error is not None
         order, _ = fetch_order_prices_if_expired(
-            order, manager, force_update=force_update
-        )
+            order, manager, requestor=requestor, force_update=force_update
+        ).get()
         if order.tax_error is not None:
             raise ValidationError(
                 "Configured Tax App returned invalid response.",
@@ -126,7 +143,13 @@ class DraftOrderComplete(BaseMutation):
         cls.validate_order(order)
 
         country = get_order_country(order)
-        validate_draft_order(order, order.lines.all(), country, manager)
+        validate_draft_order(
+            order,
+            order.lines.all(),
+            country,
+            requestor=requestor,
+            calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
+        ).get()
         with traced_atomic_transaction():
             update_fields = [
                 "status",
@@ -174,7 +197,7 @@ class DraftOrderComplete(BaseMutation):
             update_order_display_gross_prices(order)
             order.save(update_fields=update_fields)
 
-            cls.setup_voucher_customer(order, channel)
+            cls.handle_order_voucher(order, channel)
             order_lines_info = []
             lines = order.lines.all()
             for line in lines:
@@ -186,23 +209,24 @@ class DraftOrderComplete(BaseMutation):
                         line=line, quantity=line.quantity, variant=line.variant
                     )
                     order_lines_info.append(line_data)
-                    site = get_site_promise(info.context).get()
                     try:
                         with traced_atomic_transaction():
                             allocate_stocks(
                                 [line_data],
                                 country,
                                 channel,
-                                manager,
+                                site_settings,
+                                requestor,
                                 check_reservations=is_reservation_enabled(
-                                    site.settings
+                                    site_settings
                                 ),
+                                calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
                             )
                             allocate_preorders(
                                 [line_data],
                                 channel.slug,
                                 check_reservations=is_reservation_enabled(
-                                    site.settings
+                                    site_settings
                                 ),
                             )
                     except InsufficientStock as e:
@@ -220,7 +244,7 @@ class DraftOrderComplete(BaseMutation):
                 payment=order.get_last_payment(),
                 lines_data=order_lines_info,
             )
-            app = get_app_promise(info.context).get()
+
             transaction.on_commit(
                 lambda: store_user_addresses_from_draft_order(
                     order=order,

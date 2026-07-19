@@ -1,3 +1,4 @@
+import uuid
 from email.headerregistry import Address
 from email.utils import parseaddr
 from typing import Final
@@ -13,7 +14,7 @@ from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
 from ..permission.enums import SitePermissions
-from . import GiftCardSettingsExpiryType
+from . import GiftCardSettingsExpiryType, PasswordLoginMode
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
@@ -50,9 +51,6 @@ class SiteSettings(ModelWithMetadata):
         choices=WeightUnits.CHOICES,
         default=WeightUnits.KG,
     )
-    automatic_fulfillment_digital_products = models.BooleanField(default=False)
-    default_digital_max_downloads = models.IntegerField(blank=True, null=True)
-    default_digital_url_valid_days = models.IntegerField(blank=True, null=True)
     company_address = models.ForeignKey(
         "account.Address", blank=True, null=True, on_delete=models.SET_NULL
     )
@@ -67,9 +65,19 @@ class SiteSettings(ModelWithMetadata):
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     enable_account_confirmation_by_email = models.BooleanField(default=True)
     allow_login_without_confirmation = models.BooleanField(default=False)
+    password_login_mode = models.CharField(
+        max_length=32,
+        choices=PasswordLoginMode.CHOICES,
+        default=PasswordLoginMode.ENABLED,
+        db_default=PasswordLoginMode.ENABLED,
+    )
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
+    preserve_all_address_fields = models.BooleanField(
+        default=False,
+        db_default=False,
+    )
 
     # Duration in minutes
     reserve_stock_duration_anonymous_user = models.IntegerField(blank=True, null=True)
@@ -97,8 +105,29 @@ class SiteSettings(ModelWithMetadata):
 
     # refund settings
     refund_reason_reference_type = models.ForeignKey(
-        null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        to="page.PageType",
+        related_name="+",
     )
+
+    # return settings
+    return_reason_reference_type = models.ForeignKey(
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        to="page.PageType",
+        related_name="+",
+    )
+
+    # usage telemetry
+    instance_id = models.UUIDField(
+        default=uuid.uuid4,
+        null=True,
+        blank=True,
+    )
+    usage_telemetry_reported_at = models.DateTimeField(null=True, blank=True)
 
     # deprecated
     charge_taxes_on_shipping = models.BooleanField(default=True)
@@ -116,6 +145,10 @@ class SiteSettings(ModelWithMetadata):
             "only metadata-specific webhooks (e.g., `customerMetadataUpdated`, "
             "`productVariantMetadataUpdated`) are sent."
         ),
+    )
+    use_legacy_shipping_zone_stock_availability = models.BooleanField(
+        default=False,
+        db_default=True,
     )
 
     class Meta:

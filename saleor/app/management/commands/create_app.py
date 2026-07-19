@@ -50,6 +50,12 @@ class Command(BaseCommand):
             "Command doesn't return app data to stdout when this "
             "argument is provided.",
         )
+        parser.add_argument(
+            "--quiet",
+            action="store_true",
+            dest="quiet",
+            help="Hide auth token output after app creation",
+        )
 
     def send_app_data(self, target_url, data: dict[str, Any]):
         domain = get_domain()
@@ -76,6 +82,7 @@ class Command(BaseCommand):
         name = options["name"]
         is_active = options["activate"]
         target_url = options["target_url"]
+        quiet = options["quiet"]
         identifier = options["identifier"]
         permissions = list(set(options["permissions"]))
         permissions = clean_permissions(permissions)
@@ -84,11 +91,13 @@ class Command(BaseCommand):
             app.identifier = graphene.Node.to_global_id("App", app.pk)
             app.save(update_fields=["identifier"])
         app.permissions.set(permissions)
-        _, auth_token = app.tokens.create()  # type: ignore[call-arg] # method of a related manager # noqa: E501
+        _, token = app.tokens.create()  # type: ignore[call-arg] # method of a related manager # noqa: E501
         data = {
-            "auth_token": auth_token,
+            "auth_token": token,
         }
+
         if target_url:
             self.send_app_data(target_url, data)
+            return None
 
-        return json.dumps(data) if not target_url else ""
+        return json.dumps({"auth_token": token}) if not quiet else None

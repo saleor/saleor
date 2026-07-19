@@ -25,7 +25,6 @@ from ....webhook.transport.payment import (
 )
 from ....webhook.transport.synchronous.transport import (
     send_webhook_request_sync,
-    trigger_webhook_sync,
 )
 from ....webhook.transport.utils import (
     from_payment_app_id,
@@ -70,40 +69,6 @@ def webhook_data():
     data = json.dumps({"key": "value"})
     message = data.encode("utf-8")
     return WebhookTestData(secret, event_type, data, message)
-
-
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_trigger_webhook_sync(mock_request, payment_app):
-    data = '{"key": "value"}'
-    trigger_webhook_sync(
-        WebhookEventSyncType.PAYMENT_CAPTURE, data, payment_app.webhooks.first(), False
-    )
-    mock_request.assert_called_once()
-    assert not EventDelivery.objects.exists()
-
-
-@mock.patch(
-    "saleor.webhook.transport.synchronous.transport.create_delivery_for_subscription_sync_event"
-)
-@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
-def test_trigger_webhook_sync_with_subscription(
-    mock_request,
-    mock_delivery_create,
-    payment,
-    payment_app_with_subscription_webhooks,
-):
-    payment_app = payment_app_with_subscription_webhooks
-    data = '{"key": "value"}'
-    fake_delivery = "fake_delivery"
-    mock_delivery_create.return_value = fake_delivery
-    trigger_webhook_sync(
-        WebhookEventSyncType.PAYMENT_CAPTURE,
-        data,
-        payment_app.webhooks.first(),
-        False,
-        payment,
-    )
-    mock_request.assert_called_once_with(fake_delivery)
 
 
 @mock.patch(

@@ -2137,7 +2137,10 @@ def test_create_variant_invalid_variant_attributes(
                     "id": size_attr_id,
                     "values": [non_existent_attr_value, size_value_slug],
                 },
-                {"id": rich_text_attr_id, "richText": json.dumps(dummy_editorjs(" "))},
+                {
+                    "id": rich_text_attr_id,
+                    "richText": json.dumps(dummy_editorjs(" "), sort_keys=True),
+                },
             ],
             "trackInventory": True,
         }
@@ -2311,7 +2314,9 @@ def test_create_variant_with_rich_text_attribute(
     assert not content["errors"]
     assert data["name"] == sku
     assert data["sku"] == sku
-    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(rich_text)
+    assert data["attributes"][-1]["values"][0]["richText"] == json.dumps(
+        rich_text, sort_keys=True
+    )
 
     assigned_attributes = data["assignedAttributes"]
     expected_assigned_attribute = {
@@ -2720,8 +2725,8 @@ def test_variant_create_product_with_variant_attributes_variant_flag_false(
     content = get_graphql_content(response)
 
     errors = content["data"]["productVariantCreate"]["errors"]
-    assert errors
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    # hasVariants has no more effects on variant attributes
+    assert not errors
 
 
 def test_create_product_variant_with_non_unique_external_reference(

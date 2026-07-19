@@ -153,7 +153,7 @@ class TransactionAction:
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    CANCEL - Represents a cancel action. Added in Saleor 3.12.
+    CANCEL - Represents a cancel action.
     """
 
     CHARGE = "charge"
@@ -169,8 +169,6 @@ class TransactionAction:
 
 class TransactionEventType:
     """Represents possible event types.
-
-    Added in Saleor 3.12.
 
     The following types are possible:
     AUTHORIZATION_SUCCESS - represents success authorization.
@@ -292,13 +290,16 @@ class PaymentMethodType:
     The following types are possible:
     CARD - represents a card payment method.
     OTHER - represents any payment method that is not a card payment.
+    GIFT_CARD - represents a gift card payment method.
 
     """
 
     CARD = "card"
     OTHER = "other"
+    GIFT_CARD = "gift_card"
 
     CHOICES = [
         (CARD, "Card"),
         (OTHER, "Other"),
+        (GIFT_CARD, "Gift card"),
     ]

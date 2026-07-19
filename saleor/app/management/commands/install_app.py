@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
 
+from ....app.models import App
 from ....app.validators import AppURLValidator
 from ....core import JobStatus
 from ...installation_utils import fetch_manifest, install_app
@@ -23,6 +24,12 @@ class Command(BaseCommand):
             dest="activate",
             help="Activates the app after installation",
         )
+        parser.add_argument(
+            "--quiet",
+            action="store_true",
+            dest="quiet",
+            help="Hide auth token output after installation",
+        )
 
     def validate_manifest_url(self, manifest_url: str):
         url_validator = AppURLValidator()
@@ -35,12 +42,22 @@ class Command(BaseCommand):
 
     def handle(self, *args: Any, **options: Any) -> str | None:
         activate = options["activate"]
+        quiet = options["quiet"]
         manifest_url = options["manifest-url"]
 
         self.validate_manifest_url(manifest_url)
-        manifest_data = fetch_manifest(manifest_url)
-
+        manifest_data = fetch_manifest(manifest_url, max_retries=2)
         permissions = clean_permissions(manifest_data.get("permissions", []))
+
+        if quiet and (
+            app := App.objects.not_removed()
+            .filter(identifier=manifest_data.get("id"))
+            .first()
+        ):
+            self.stdout.write(
+                f"App with the same identifier is already installed: {app.name}"
+            )
+            return None
 
         app_job = AppInstallation.objects.create(
             app_name=manifest_data["name"], manifest_url=manifest_url
@@ -57,4 +74,9 @@ class Command(BaseCommand):
             app_job.status = JobStatus.FAILED
             app_job.save(update_fields=["status"])
             raise e
-        return json.dumps({"auth_token": token})
+
+        response_message = None
+        if token and not quiet:
+            response_message = json.dumps({"auth_token": token})
+
+        return response_message

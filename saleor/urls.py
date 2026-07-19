@@ -4,7 +4,7 @@ from django.contrib.staticfiles.views import serve
 from django.urls import re_path
 from django.views.decorators.csrf import csrf_exempt
 
-from .core.views import jwks
+from .core.views import jwks, serve_media_view
 from .graphql.api import backend, schema
 from .graphql.views import GraphQLView
 from .plugins.views import (
@@ -12,19 +12,13 @@ from .plugins.views import (
     handle_plugin_per_channel_webhook,
     handle_plugin_webhook,
 )
-from .product.views import digital_product
-from .thumbnail.views import handle_thumbnail
+from .thumbnail.views import handle_original_image, handle_thumbnail
 
 urlpatterns = [
     re_path(
         r"^graphql/$",
         csrf_exempt(GraphQLView.as_view(backend=backend, schema=schema)),
         name="api",
-    ),
-    re_path(
-        r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",
-        digital_product,
-        name="digital-product",
     ),
     re_path(
         r"^plugins/channel/(?P<channel_slug>[.0-9A-Za-z_\-]+)/"
@@ -50,13 +44,20 @@ urlpatterns = [
         handle_thumbnail,
         name="thumbnail",
     ),
+    re_path(
+        (r"^image/(?P<instance_id>[.0-9A-Za-z_=\-]+)/$"),
+        handle_original_image,
+        name="original-image",
+    ),
     re_path(r"^\.well-known/jwks.json$", jwks, name="jwks"),
 ]
 
 if settings.DEBUG:
     from .core import views
 
-    urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
+    urlpatterns += static(
+        "/media/", view=serve_media_view, document_root=settings.MEDIA_ROOT
+    ) + [
         re_path(r"^static/(?P<path>.*)$", serve),
         re_path(r"^$", views.home, name="home"),
     ]

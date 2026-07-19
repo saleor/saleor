@@ -322,7 +322,7 @@ def test_retrieve_channel_listings(
 
     variables = {"channel": channel_USD.slug}
 
-    expected_db_queries = 14
+    expected_db_queries = 16
     with django_assert_num_queries(expected_db_queries):
         get_graphql_content(
             staff_api_client.post_graphql(
@@ -761,7 +761,7 @@ def test_products_for_federation_query_count(
     count_queries,
 ):
     query = """
-      query GetProductInFederation($representations: [_Any]) {
+      query GetProductInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on Product {
@@ -829,7 +829,7 @@ def test_products_media_for_federation_query_count(
     )
 
     query = """
-      query GetProductMediaInFederation($representations: [_Any]) {
+      query GetProductMediaInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on ProductMedia {
@@ -880,7 +880,7 @@ def test_products_types_for_federation_query_count(
     count_queries,
 ):
     query = """
-      query GetProductTypeInFederation($representations: [_Any]) {
+      query GetProductTypeInFederation($representations: [_Any!]!) {
         _entities(representations: $representations) {
           __typename
           ... on ProductType {

@@ -115,7 +115,10 @@ class CheckoutCustomerAttach(BaseMutation):
 
         checkout.user = customer
         checkout.email = customer.email
-        checkout.save(update_fields=["email", "user", "last_change"])
+        checkout.search_index_dirty = True
+        checkout.save(
+            update_fields=["email", "user", "last_change", "search_index_dirty"]
+        )
         manager = get_plugin_manager_promise(info.context).get()
 
         call_checkout_event(

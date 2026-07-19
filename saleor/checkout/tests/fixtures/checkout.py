@@ -8,7 +8,7 @@ from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductVariantChannelListing
 from ...fetch import fetch_checkout_info, fetch_checkout_lines
 from ...models import Checkout, CheckoutDelivery, CheckoutLine, CheckoutMetadata
-from ...utils import add_variant_to_checkout
+from ..utils import add_variant_to_checkout
 
 
 @pytest.fixture
@@ -168,21 +168,6 @@ def checkout_ready_to_complete(
     )
     checkout.save()
     checkout.metadata_storage.save()
-    return checkout
-
-
-@pytest.fixture
-def checkout_with_digital_item(checkout, digital_content, address):
-    """Create a checkout with a digital line."""
-    variant = digital_content.product_variant
-    checkout_info = fetch_checkout_info(
-        checkout, [], get_plugins_manager(allow_replica=False)
-    )
-    add_variant_to_checkout(checkout_info, variant, 1)
-    checkout.discount_amount = Decimal(0)
-    checkout.billing_address = address
-    checkout.email = "customer@example.com"
-    checkout.save()
     return checkout
 
 
@@ -395,7 +380,7 @@ def checkout_with_delivery_method_for_cc(
 
 @pytest.fixture
 def checkout_with_delivery_method_for_external_shipping(checkout_with_item, address):
-    sm = checkout_with_item.shipping_methods.create(
+    sm = checkout_with_item.deliveries.create(
         external_shipping_method_id="YXBwOlFYQndPakU9OmFiY2Q=",
         name="Provider - Economy",
         price_amount=Decimal(99),

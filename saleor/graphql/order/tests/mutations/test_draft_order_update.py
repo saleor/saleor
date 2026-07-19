@@ -1,9 +1,11 @@
+from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
 import pytest
 from django.test import override_settings
+from django.utils import timezone
 from prices import TaxedMoney
 
 from .....core.models import EventDelivery
@@ -18,11 +20,13 @@ from .....order import OrderStatus
 from .....order.actions import call_order_event
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
-from .....order.models import OrderEvent
+from .....order.models import Order, OrderEvent
 from .....order.utils import update_discount_for_order_line
 from .....payment.model_helpers import get_subtotal
 from .....shipping.models import ShippingMethod
+from .....tests import race_condition
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....core.utils import snake_to_camel_case
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.draft_order_create import DraftOrderInput
@@ -222,7 +226,7 @@ def test_draft_order_update_voucher_not_available(
     content = get_graphql_content(response)
     error = content["data"]["draftOrderUpdate"]["errors"][0]
 
-    assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert error["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert error["field"] == "voucher"
 
 
@@ -2485,18 +2489,19 @@ def test_draft_order_update_replace_entire_order_voucher_with_shipping_voucher(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_draft_order_update_triggers_webhooks(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     voucher,
     app_api_client,
@@ -2548,6 +2553,23 @@ def test_draft_order_update_triggers_webhooks(
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
+    wrapped_generate_deferred_payloads.assert_called_once_with(
+        kwargs={
+            "event_delivery_ids": [draft_order_updated_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "order.order",
+                "object_id": order.pk,
+                "requestor_model_name": "app.app",
+                "requestor_object_id": app_api_client.app.pk,
+                "request_time": None,
+                "subscribable_object_data": None,
+            },
+            "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
+    )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": draft_order_updated_delivery.id,
@@ -2563,8 +2585,15 @@ def test_draft_order_update_triggers_webhooks(
         webhook_id=draft_order_updated_webhook.id
     ).exists()
 
-    tax_delivery_call, filter_shipping_call = (
-        mocked_send_webhook_request_sync.mock_calls
+    filter_shipping_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == shipping_filter_webhook.id
+    )
+    tax_delivery_call = next(
+        call
+        for call in mocked_send_webhook_request_sync.mock_calls
+        if call.args[0].webhook_id == tax_webhook.id
     )
 
     tax_delivery = tax_delivery_call.args[0]
@@ -2577,22 +2606,21 @@ def test_draft_order_update_triggers_webhooks(
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
 
-    assert wrapped_call_order_event.called
-
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async",
+    wraps=generate_deferred_payloads.apply_async,
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
 @patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     mocked_send_webhook_request_async,
     mocked_send_webhook_request_sync,
-    wrapped_call_order_event,
+    wrapped_generate_deferred_payloads,
     setup_order_webhooks,
     voucher,
     app_api_client,
@@ -2636,6 +2664,23 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
     draft_order_updated_delivery = EventDelivery.objects.get(
         webhook_id=draft_order_updated_webhook.id
     )
+    wrapped_generate_deferred_payloads.assert_called_once_with(
+        kwargs={
+            "event_delivery_ids": [draft_order_updated_delivery.id],
+            "deferred_payload_data": {
+                "model_name": "order.order",
+                "object_id": order.pk,
+                "requestor_model_name": "app.app",
+                "requestor_object_id": app_api_client.app.pk,
+                "request_time": None,
+                "subscribable_object_data": None,
+            },
+            "send_webhook_queue": settings.ORDER_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
+            "telemetry_context": ANY,
+        },
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
+    )
     mocked_send_webhook_request_async.assert_called_once_with(
         kwargs={
             "event_delivery_id": draft_order_updated_delivery.id,
@@ -2660,8 +2705,6 @@ def test_draft_order_update_triggers_webhooks_when_tax_webhook_not_needed(
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
     assert filter_shipping_call.kwargs["timeout"] == settings.WEBHOOK_SYNC_TIMEOUT
-
-    assert wrapped_call_order_event.called
 
 
 def test_draft_order_update_address_reset_save_address_flag_to_default_value(
@@ -2814,16 +2857,25 @@ def test_draft_order_update_no_billing_address_save_addresses_raising_error(
     assert error["code"] == OrderErrorCode.MISSING_ADDRESS_DATA.name
 
 
-def test_draft_order_update_with_metadata(
-    app_api_client, permission_manage_orders, draft_order, channel_PLN
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+def test_draft_order_update_with_metadata_legacy_webhook_emission_on(
+    order_updated_webhook_mock,
+    app_api_client,
+    permission_manage_orders,
+    draft_order,
+    channel_PLN,
+    site_settings,
 ):
     # given
+    site_settings.use_legacy_update_webhook_emission = True
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
     order = draft_order
     order.channel = channel_PLN
-    order.metadata = []
-    order.private_metadata = []
-
+    order.metadata = {}
+    order.private_metadata = {}
     order.save(update_fields=["channel", "private_metadata", "metadata"])
+    updated_at_before = order.updated_at
 
     query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -2875,6 +2927,86 @@ def test_draft_order_update_with_metadata(
 
     assert private_metadata_result_list[0]["key"] == private_metadata_key
     assert private_metadata_result_list[0]["value"] == private_metadata_value
+    order_updated_webhook_mock.assert_called_once_with(order, webhooks=set())
+
+    order.refresh_from_db()
+    assert order.updated_at > updated_at_before
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+def test_draft_order_update_with_metadata_legacy_webhook_emission_off(
+    order_updated_webhook_mock,
+    app_api_client,
+    permission_manage_orders,
+    draft_order,
+    channel_PLN,
+    site_settings,
+):
+    # given
+    site_settings.use_legacy_update_webhook_emission = False
+    site_settings.save(update_fields=["use_legacy_update_webhook_emission"])
+
+    order = draft_order
+    order.channel = channel_PLN
+    order.metadata = {}
+    order.private_metadata = {}
+    order.save(update_fields=["channel", "private_metadata", "metadata"])
+    updated_at_before = order.updated_at
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    public_metadata_key = "public metadata key"
+    public_metadata_value = "public metadata value"
+    private_metadata_key = "private metadata key"
+    private_metadata_value = "private metadata value"
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "metadata": [
+                {
+                    "key": public_metadata_key,
+                    "value": public_metadata_value,
+                }
+            ],
+            "privateMetadata": [
+                {
+                    "key": private_metadata_key,
+                    "value": private_metadata_value,
+                }
+            ],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    assert not data["errors"]
+
+    metadata_result_list: list[dict[str, str]] = data["order"]["metadata"]
+    private_metadata_result_list: list[dict[str, str]] = data["order"][
+        "privateMetadata"
+    ]
+
+    assert len(metadata_result_list) == 1
+    assert len(private_metadata_result_list) == 1
+
+    assert metadata_result_list[0]["key"] == public_metadata_key
+    assert metadata_result_list[0]["value"] == public_metadata_value
+
+    assert private_metadata_result_list[0]["key"] == private_metadata_key
+    assert private_metadata_result_list[0]["value"] == private_metadata_value
+    order_updated_webhook_mock.assert_not_called()
+
+    order.refresh_from_db()
+    assert order.updated_at > updated_at_before
 
 
 def test_draft_order_update_with_voucher_specific_product_and_manual_line_discount(
@@ -2915,7 +3047,7 @@ def test_draft_order_update_with_voucher_specific_product_and_manual_line_discou
         value_type=DiscountValueType.FIXED,
         value=manual_line_discount_value,
     )
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()
 
     shipping_price = order.shipping_price.net
     currency = order.currency
@@ -3063,7 +3195,7 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
         value_type=DiscountValueType.FIXED,
         value=manual_line_discount_value,
     )
-    fetch_order_prices_if_expired(order, plugins_manager, None, True)
+    fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()
 
     shipping_price = order.shipping_price.net
     currency = order.currency
@@ -3177,13 +3309,8 @@ def test_draft_order_update_with_voucher_apply_once_per_order_and_manual_line_di
 @patch(
     "saleor.graphql.order.mutations.draft_order_update.update_order_search_vector",
 )
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
 def test_draft_order_update_nothing_changed(
-    wrapped_call_order_event,
     mocked_update_order_search_vector,
     setup_order_webhooks,
     staff_api_client,
@@ -3223,9 +3350,6 @@ def test_draft_order_update_nothing_changed(
     # ensure the update fields were empty
     mocked_update_order_search_vector.assert_not_called()
 
-    # confirm that order events were not triggered
-    assert not wrapped_call_order_event.called
-
     # confirm that event delivery was generated for each async webhook.
     assert not EventDelivery.objects.filter(webhook_id=draft_order_updated_webhook.id)
 
@@ -3261,15 +3385,10 @@ def test_draft_order_update_with_language_code(
 
 
 @patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
-@patch(
     "saleor.graphql.order.mutations.draft_order_update.DraftOrderUpdate._save_order_instance"
 )
 def test_draft_order_update_no_changes(
     save_order_mock,
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3356,7 +3475,6 @@ def test_draft_order_update_no_changes(
     assert not content["data"]["draftOrderUpdate"]["errors"]
     order.refresh_from_db()
     save_order_mock.assert_not_called()
-    call_event_mock.assert_not_called()
 
 
 @patch(
@@ -3387,7 +3505,7 @@ def test_draft_order_update_emit_events(
     order.draft_save_billing_address = True
     order.draft_save_shipping_address = True
     order.voucher = voucher
-    order.voucher_code = voucher.codes.first().code
+    order.voucher_code = "OLD_CODE"
     order.customer_note = "some note"
     order.redirect_url = "http://localhost:8000/redirect"
     order.external_reference = "some_reference_string"
@@ -3411,6 +3529,9 @@ def test_draft_order_update_emit_events(
     input_fields = [
         snake_to_camel_case(key) for key in DraftOrderInput._meta.fields.keys()
     ]
+    # metadata fields are tested separately, updated atomically in `update_meta_fields`
+    input_fields.remove("metadata")
+    input_fields.remove("privateMetadata")
 
     # `discount` field is unused and deprecated
     input_fields.remove("discount")
@@ -3427,17 +3548,15 @@ def test_draft_order_update_emit_events(
     assert graphql_address_data["lastName"] != order.billing_address.last_name
 
     input = {
+        "voucherCode": voucher.codes.last().code,
         "billingAddress": graphql_address_data,
         "shippingAddress": graphql_address_data,
         "shippingMethod": new_shipping_method_id,
         "user": user_id,
         "userEmail": "new_" + order.user_email,
-        "voucherCode": voucher.codes.last().code,
         "customerNote": order.customer_note + "_new",
         "redirectUrl": "https://www.example.com",
         "externalReference": order.external_reference + "_new",
-        "metadata": [{"key": key, "value": "new_value"}],
-        "privateMetadata": [{"key": "new_key", "value": value}],
         "languageCode": "PL",
     }
     assert set(input_fields) == set(input.keys())
@@ -3465,12 +3584,7 @@ def test_draft_order_update_emit_events(
         call_event_mock.reset_mock()
 
 
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 def test_draft_order_update_address_not_changed_save_flag_changed(
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3525,15 +3639,9 @@ def test_draft_order_update_address_not_changed_save_flag_changed(
     order.refresh_from_db()
     assert order.draft_save_billing_address is True
     assert order.draft_save_shipping_address is True
-    call_event_mock.assert_called()
 
 
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 def test_draft_order_update_address_not_set(
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3567,15 +3675,9 @@ def test_draft_order_update_address_not_set(
     order.refresh_from_db()
     assert order.shipping_address
     assert order.billing_address
-    call_event_mock.assert_called()
 
 
-@patch(
-    "saleor.graphql.order.mutations.draft_order_update.call_order_event",
-    wraps=call_order_event,
-)
 def test_draft_order_update_same_shipping_method_no_shipping_price_set(
-    call_event_mock,
     staff_api_client,
     permission_group_manage_orders,
     order_with_lines,
@@ -3613,4 +3715,290 @@ def test_draft_order_update_same_shipping_method_no_shipping_price_set(
     assert not content["data"]["draftOrderUpdate"]["errors"]
     order.refresh_from_db()
     assert order.undiscounted_base_shipping_price_amount != 0
-    call_event_mock.assert_called()
+
+
+def test_draft_order_update_metadata_key_updated_in_meantime(
+    staff_api_client, permission_group_manage_orders, draft_order
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+
+    draft_order.metadata = {key_1: value_1, key_2: value_2}
+    draft_order.private_metadata = {key_1: value_2, key_2: value_1}
+    draft_order.save(update_fields=["metadata", "private_metadata"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+    value_changed_in_meantime = "value_changed_in_meantime"
+
+    def update_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=draft_order.pk)
+        order_to_update.store_value_in_metadata({key_2: value_changed_in_meantime})
+        order_to_update.store_value_in_private_metadata(
+            {key_1: value_changed_in_meantime}
+        )
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": draft_order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.draft_order_update.update_meta_fields",
+        update_metadata,
+    ):
+        response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order_data = data["order"]
+    assert order_data
+
+    draft_order.refresh_from_db()
+    resolve_metadata = {item["key"]: item["value"] for item in order_data["metadata"]}
+    assert (
+        resolve_metadata
+        == {key_1: new_value, key_2: value_changed_in_meantime}
+        == draft_order.metadata
+    )
+    resolve_private_metadata = {
+        item["key"]: item["value"] for item in order_data["privateMetadata"]
+    }
+    assert (
+        resolve_private_metadata
+        == {
+            key_2: new_value,
+            key_1: value_changed_in_meantime,
+        }
+        == draft_order.private_metadata
+    )
+
+
+def test_draft_order_update_metadata_key_deleted_in_meantime(
+    staff_api_client, permission_group_manage_orders, draft_order
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    key_1 = "public_key"
+    key_2 = "another_public_key"
+    value_1 = "public_value"
+    value_2 = "another_public_value"
+    new_value = "updated_value"
+
+    draft_order.metadata = {key_1: value_1, key_2: value_2}
+    draft_order.private_metadata = {key_1: value_2, key_2: value_1}
+    draft_order.save(update_fields=["metadata", "private_metadata"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    def delete_metadata(*args, **kwargs):
+        order_to_update = Order.objects.get(pk=draft_order.pk)
+        order_to_update.delete_value_from_metadata(key_2)
+        order_to_update.delete_value_from_private_metadata(key_1)
+        order_to_update.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "id": draft_order_id,
+        "input": {
+            "metadata": [{"key": key_1, "value": new_value}],
+            "privateMetadata": [{"key": key_2, "value": new_value}],
+        },
+    }
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.order.mutations.draft_order_update.update_meta_fields",
+        delete_metadata,
+    ):
+        response = staff_api_client.post_graphql(DRAFT_ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order_data = data["order"]
+    assert order_data["metadata"] == [{"key": key_1, "value": new_value}]
+    assert order_data["privateMetadata"] == [{"key": key_2, "value": new_value}]
+
+    draft_order.refresh_from_db()
+    assert draft_order.metadata == {key_1: new_value}
+    assert draft_order.private_metadata == {key_2: new_value}
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_expired_voucher(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher end date to the past
+    voucher.end_date = timezone.now() - timedelta(days=1)
+    voucher.save(update_fields=["end_date"])
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": voucher_id,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert errors[0]["field"] == "voucher"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_expired_voucher_code(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher end date to the past
+    voucher.end_date = timezone.now() - timedelta(days=1)
+    voucher.save(update_fields=["end_date"])
+
+    code = voucher.codes.first()
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": code.code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_inactive_voucher(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher code to inactive
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucher": voucher_id,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
+    assert errors[0]["field"] == "voucher"
+
+
+@pytest.mark.parametrize("include_draft_order_in_voucher_usage", [True, False])
+def test_draft_order_update_with_inactive_voucher_code(
+    include_draft_order_in_voucher_usage,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    voucher,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+
+    channel = order.channel
+    channel.include_draft_order_in_voucher_usage = include_draft_order_in_voucher_usage
+    channel.save(update_fields=["include_draft_order_in_voucher_usage"])
+
+    # Set voucher code to inactive
+    code = voucher.codes.first()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    variables = {
+        "id": order_id,
+        "input": {
+            "voucherCode": code.code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
+    assert errors[0]["field"] == "voucherCode"

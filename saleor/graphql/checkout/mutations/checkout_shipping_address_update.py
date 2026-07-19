@@ -22,7 +22,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -55,12 +55,6 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             description=f"Checkout token.{DEPRECATED_IN_3X_INPUT} Use `id` instead.",
             required=False,
         )
-        checkout_id = graphene.ID(
-            required=False,
-            description=(
-                f"The ID of the checkout. {DEPRECATED_IN_3X_INPUT} Use `id` instead."
-            ),
-        )
         shipping_address = AddressInput(
             required=True,
             description="The mailing address to where the checkout will be shipped.",
@@ -72,8 +66,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
                 "Indicates whether the shipping address should be saved "
                 "to the user’s address book upon checkout completion. "
                 "If not provided, the default behavior is to save the address."
-            )
-            + ADDED_IN_321,
+            ),
         )
         validation_rules = CheckoutAddressValidationRules(
             required=False,
@@ -121,6 +114,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             replace=True,
             existing_lines=lines,
             check_reservations=is_reservation_enabled(site.settings),
+            calculate_stocks_with_shipping_zones=site.settings.use_legacy_shipping_zone_stock_availability,
         )
 
     @classmethod
@@ -132,14 +126,12 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         shipping_address,
         save_address,
         validation_rules=None,
-        checkout_id=None,
         token=None,
         id=None,
     ):
         checkout = get_checkout(
             cls,
             info,
-            checkout_id=checkout_id,
             token=token,
             id=id,
             qs=models.Checkout.objects.prefetch_related(
@@ -208,10 +200,12 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
+        checkout.search_index_dirty = True
         checkout.save(
             update_fields=shipping_address_updated_fields
             + invalidate_prices_updated_fields
             + shipping_update_fields
+            + ["search_index_dirty"]
         )
 
         call_checkout_info_event(

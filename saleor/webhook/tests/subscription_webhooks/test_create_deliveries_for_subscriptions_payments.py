@@ -16,7 +16,9 @@ def test_payment_authorize(payment, subscription_payment_authorize_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
 
     # then
-    expected_payload = generate_payment_payload(payment)
+    expected_payload = generate_payment_payload(
+        payment, subscription_payment_authorize_webhook.app
+    )
     assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -31,7 +33,9 @@ def test_payment_capture(payment, subscription_payment_capture_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
 
     # then
-    expected_payload = generate_payment_payload(payment)
+    expected_payload = generate_payment_payload(
+        payment, subscription_payment_capture_webhook.app
+    )
     assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -46,7 +50,9 @@ def test_payment_refund(payment, subscription_payment_refund_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
 
     # then
-    expected_payload = generate_payment_payload(payment)
+    expected_payload = generate_payment_payload(
+        payment, subscription_payment_refund_webhook.app
+    )
     assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -61,7 +67,9 @@ def test_payment_void(payment, subscription_payment_void_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
 
     # then
-    expected_payload = generate_payment_payload(payment)
+    expected_payload = generate_payment_payload(
+        payment, subscription_payment_void_webhook.app
+    )
     assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -76,7 +84,9 @@ def test_payment_confirm(payment, subscription_payment_confirm_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
 
     # then
-    expected_payload = generate_payment_payload(payment)
+    expected_payload = generate_payment_payload(
+        payment, subscription_payment_confirm_webhook.app
+    )
     assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
@@ -91,7 +101,9 @@ def test_payment_process(payment, subscription_payment_process_webhook):
     deliveries = create_deliveries_for_subscriptions(event_type, payment, webhooks)
 
     # then
-    expected_payload = generate_payment_payload(payment)
+    expected_payload = generate_payment_payload(
+        payment, subscription_payment_process_webhook.app
+    )
     assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]

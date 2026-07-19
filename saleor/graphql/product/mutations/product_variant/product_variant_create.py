@@ -162,33 +162,25 @@ class ProductVariantCreate(DeprecatedModelMutation):
         except ValidationError as e:
             raise ValidationError({"attributes": e}) from e
 
-        # Run the validation only if product type is configurable
-        if product_type.has_variants:
-            # Attributes are provided as list of `AttributeValueInput` objects.
-            # We need to transform them into the format they're stored in the
-            # `Product` model, which is HStore field that maps attribute's PK to
-            # the value's PK.
-            try:
-                if attributes:
-                    attributes_qs = product_type.variant_attributes.all()
-                    cleaned_attributes: T_INPUT_MAP = (
-                        AttributeAssignmentMixin.clean_input(attributes, attributes_qs)
-                    )
-                    cleaned_input["attributes"] = cleaned_attributes
-                elif product_type.variant_attributes.filter(value_required=True):
-                    # if attributes were not provided on creation
-                    raise ValidationError(
-                        "All required attributes must take a value.",
-                        ProductErrorCode.REQUIRED.value,
-                    )
-            except ValidationError as e:
-                raise ValidationError({"attributes": e}) from e
-        else:
+        # Attributes are provided as list of `AttributeValueInput` objects.
+        # We need to transform them into the format they're stored in the
+        # `Product` model, which is HStore field that maps attribute's PK to
+        # the value's PK.
+        try:
             if attributes:
-                raise ValidationError(
-                    "Cannot assign attributes for product type without variants",
-                    ProductErrorCode.INVALID.value,
+                attributes_qs = product_type.variant_attributes.all()
+                cleaned_attributes: T_INPUT_MAP = AttributeAssignmentMixin.clean_input(
+                    attributes, attributes_qs
                 )
+                cleaned_input["attributes"] = cleaned_attributes
+            elif product_type.variant_attributes.filter(value_required=True):
+                # if attributes were not provided on creation
+                raise ValidationError(
+                    "All required attributes must take a value.",
+                    ProductErrorCode.REQUIRED.value,
+                )
+        except ValidationError as e:
+            raise ValidationError({"attributes": e}) from e
 
     @classmethod
     def get_product(cls, cleaned_input: dict) -> models.Product:

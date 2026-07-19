@@ -659,14 +659,8 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["productAttributeAssign"]
-    assert content["errors"][0]["field"] == "operations"
-    assert (
-        content["errors"][0]["message"] == "Variants are disabled in this product type."
-    )
-    assert (
-        content["errors"][0]["code"]
-        == ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED.name
-    )
+    # hasVariants has no more effects on variant attributes
+    assert not content["errors"]
 
 
 def test_assign_variant_attribute_having_multiselect_input_type(

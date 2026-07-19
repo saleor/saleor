@@ -2,13 +2,13 @@ import graphene
 import pytest
 
 from .....app.models import App, AppExtension
-from .....app.types import (
-    AppType,
-    DeprecatedAppExtensionMount,
-    DeprecatedAppExtensionTarget,
-)
+from .....app.types import AppType
 from .....core.jwt import jwt_decode
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 QUERY_APP_EXTENSION = """
 query ($id: ID!){
@@ -34,9 +34,9 @@ def test_app_extension_staff_user(app, staff_api_client, permission_manage_produ
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
         http_target_method="POST",
-        target=DeprecatedAppExtensionTarget.WIDGET,
+        target="widget",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -74,7 +74,7 @@ def test_app_extension_by_app(app, app_api_client, permission_manage_products):
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -113,7 +113,7 @@ def test_app_extensions_app_removed_app(
         app=removed_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -137,7 +137,7 @@ def test_app_extension_normal_user(app, user_api_client, permission_manage_produ
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -161,7 +161,7 @@ def test_app_extension_staff_user_without_all_permissions(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -193,7 +193,7 @@ def test_app_extension_staff_user_fetching_access_token(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products, permission_manage_orders)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -235,7 +235,7 @@ def test_app_extension_access_token_with_audience(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products, permission_manage_orders)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -274,7 +274,7 @@ def test_app_extension_staff_user_partial_permission(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products, permission_manage_orders)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -293,6 +293,108 @@ def test_app_extension_staff_user_partial_permission(
     extension_data = content["data"]["appExtension"]
 
     assert extension_data["accessToken"] is None
+
+
+@pytest.mark.parametrize("app_type", ["external", "custom"])
+def test_app_extension_access_token_errors_when_parent_app_has_manage_apps(
+    app_type,
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_products,
+    app_with_token,
+    external_app,
+):
+    # given
+    app = external_app if app_type == "external" else app_with_token
+    app.permissions.add(permission_manage_apps)
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+    )
+    app_extension.permissions.add(permission_manage_products)
+
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+        permissions=[permission_manage_apps, permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    expected_message = (
+        "App must not have MANAGE_APPS permission, please remove it first."
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == expected_message
+    assert content["errors"][0]["path"] == ["appExtension", "accessToken"]
+    assert content["data"]["appExtension"]["accessToken"] is None
+    assert content["data"]["appExtension"]["id"] == id
+
+
+QUERY_APP_EXTENSIONS_ACCESS_TOKEN = """
+query {
+    appExtensions(first: 10){
+        edges {
+            node {
+                id
+                accessToken
+            }
+        }
+    }
+}
+"""
+
+
+def test_app_extension_access_token_errors_via_app_extensions_connection(
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_products,
+    app_with_token,
+):
+    # given
+    app_with_token.permissions.add(permission_manage_apps)
+    app_extension = AppExtension.objects.create(
+        app=app_with_token,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+    )
+    app_extension.permissions.add(permission_manage_products)
+    expected_id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSIONS_ACCESS_TOKEN,
+        permissions=[permission_manage_apps, permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    expected_message = (
+        "App must not have MANAGE_APPS permission, please remove it first."
+    )
+    matching_errors = [
+        e
+        for e in content["errors"]
+        if e["message"] == expected_message
+        and e["path"][:2] == ["appExtensions", "edges"]
+        and e["path"][-1] == "accessToken"
+    ]
+    assert len(matching_errors) == 1
+    matching_node = next(
+        edge["node"]
+        for edge in content["data"]["appExtensions"]["edges"]
+        if edge["node"]["id"] == expected_id
+    )
+    assert matching_node["accessToken"] is None
 
 
 QUERY_APP_EXTENSION_WITH_APP = """
@@ -322,7 +424,7 @@ def test_app_extension_with_app_query_by_staff_without_permissions(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -348,7 +450,7 @@ def test_app_extension_with_app_query_by_app_without_permissions(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -390,7 +492,7 @@ def test_app_extension_with_app_query_by_app_without_permissions_other_app(
         app=another_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -415,7 +517,7 @@ def test_app_extension_with_app_query_by_owner_app(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
     app_extension.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -439,7 +541,7 @@ def test_app_extension_with_app_query_by_staff_with_permissions(
         app=external_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
 
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -464,7 +566,7 @@ def test_app_extension_with_app_query_by_customer_without_permissions(
         app=external_app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.PRODUCT_OVERVIEW_MORE_ACTIONS,
+        mount="product_overview_more_actions",
     )
 
     id = graphene.Node.to_global_id("AppExtension", app_extension.id)
@@ -480,10 +582,10 @@ def test_app_extension_with_app_query_by_customer_without_permissions(
 @pytest.mark.parametrize(
     ("target", "method"),
     [
-        (DeprecatedAppExtensionTarget.WIDGET, "POST"),
-        (DeprecatedAppExtensionTarget.WIDGET, "GET"),
-        (DeprecatedAppExtensionTarget.NEW_TAB, "POST"),
-        (DeprecatedAppExtensionTarget.NEW_TAB, "GET"),
+        ("widget", "POST"),
+        ("widget", "GET"),
+        ("new_tab", "POST"),
+        ("new_tab", "GET"),
     ],
 )
 def test_app_extension_type_settings_from_http_target_method(
@@ -497,7 +599,7 @@ def test_app_extension_type_settings_from_http_target_method(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.ORDER_DETAILS_WIDGETS,
+        mount="order_details_widgets",
         http_target_method=method,
         target=target,
     )
@@ -517,11 +619,69 @@ def test_app_extension_type_settings_from_http_target_method(
     assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
     assert extension_data["targetName"] == app_extension.target.upper()
 
-    if target == DeprecatedAppExtensionTarget.NEW_TAB:
+    if target == "new_tab":
         assert extension_data["settings"]["newTabTarget"]["method"] == method
 
-    if target == DeprecatedAppExtensionTarget.WIDGET:
+    if target == "widget":
         assert extension_data["settings"]["widgetTarget"]["method"] == method
+
+
+QUERY_APP_EXTENSION_IDENTIFIER = """
+query ($id: ID!){
+    appExtension(id: $id){
+        id
+        identifier
+    }
+}
+"""
+
+
+def test_app_extension_identifier_returned(app, staff_api_client):
+    # given
+    identifier = "refund-button"
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+        identifier=identifier,
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION_IDENTIFIER,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+    assert extension_data["identifier"] == identifier
+
+
+def test_app_extension_identifier_null_when_not_set(app, staff_api_client):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION_IDENTIFIER,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+    assert extension_data["identifier"] is None
 
 
 def test_app_extension_type_settings_from_native_settings(
@@ -536,7 +696,7 @@ def test_app_extension_type_settings_from_native_settings(
         app=app,
         label="Create product with App",
         url="https://www.example.com/app-product",
-        mount=DeprecatedAppExtensionMount.ORDER_DETAILS_WIDGETS,
+        mount="order_details_widgets",
         http_target_method=method,
         settings={"newTabTarget": {"method": method}},
         target=target,
@@ -557,8 +717,8 @@ def test_app_extension_type_settings_from_native_settings(
     assert extension_data["mountName"] == "ORDER_DETAILS_WIDGETS"
     assert extension_data["targetName"] == app_extension.target.upper()
 
-    if target == DeprecatedAppExtensionTarget.NEW_TAB:
+    if target == "new_tab":
         assert extension_data["settings"]["newTabTarget"]["method"] == method
 
-    if target == DeprecatedAppExtensionTarget.WIDGET:
+    if target == "widget":
         assert extension_data["settings"]["widgetTarget"]["method"] == method

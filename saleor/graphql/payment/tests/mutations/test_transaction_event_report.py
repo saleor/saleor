@@ -1273,7 +1273,9 @@ def test_transaction_event_updates_checkout_payment_statuses(
     # Fetch checkout lines and info to recalculate checkout total prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    fetch_checkout_data(checkout_info, plugins_manager, lines)
+    fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     current_charged_value = Decimal(20)
     psp_reference = "111-abc"
@@ -1389,6 +1391,67 @@ def test_transaction_event_updates_checkout_last_transaction_modified_at(
     assert checkout.last_transaction_modified_at == transaction.modified_at
 
 
+@pytest.mark.parametrize(
+    "current_search_index_dirty",
+    [False, True],
+)
+@freeze_time("2018-05-31 12:00:01")
+def test_transaction_event_updates_checkout_search_index_dirty_flag(
+    current_search_index_dirty,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    checkout.search_index_dirty = current_search_index_dirty
+    checkout.save(update_fields=["search_index_dirty"])
+
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction = transaction_item_generator(
+        app=app_api_client.app, checkout_id=checkout.pk
+    )
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    checkout.refresh_from_db()
+
+    assert checkout.search_index_dirty is True
+
+
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_authorized")
 def test_transaction_event_updates_checkout_full_paid_with_charged_amount(
@@ -1405,7 +1468,9 @@ def test_transaction_event_updates_checkout_full_paid_with_charged_amount(
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -1473,7 +1538,9 @@ def test_transaction_event_updates_checkout_full_paid_with_pending_charge_amount
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
         app=app_api_client.app, checkout_id=checkout.pk
@@ -1540,7 +1607,9 @@ def test_transaction_event_updates_checkout_fully_authorized(
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -3120,7 +3189,9 @@ def test_lock_checkout_during_updating_checkout_amounts(
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -3182,7 +3253,9 @@ def test_transaction_event_report_checkout_completed_race_condition(
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
@@ -3829,7 +3902,9 @@ def test_invalidate_stored_payment_methods_for_checkout(
     # Fetch checkout lines and info to recalculate checkout total prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    fetch_checkout_data(checkout_info, plugins_manager, lines)
+    fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     app = app_api_client.app
     expected_app_identifier = "webhook.app.identifier"
@@ -4018,7 +4093,9 @@ def test_stored_payment_methods_not_invalidated_for_checkout(
     # Fetch checkout lines and info to recalculate checkout total prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    fetch_checkout_data(checkout_info, plugins_manager, lines)
+    fetch_checkout_data(
+        checkout_info, plugins_manager, lines, requestor=app_api_client.app
+    ).get()
 
     app = app_api_client.app
     expected_app_identifier = "webhook.app.identifier"

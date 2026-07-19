@@ -13,10 +13,15 @@ env:
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
   SECRET_KEY: ci-test
 
+permissions: {}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     container: python:3.12
+
+    permissions:
+      contents: read
 
     services:
       postgres:
@@ -31,13 +36,13 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Install system dependencies
         run: |
           apt-get install -y libpq-dev
 
-      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
         with:
           enable-cache: true
 
@@ -52,9 +57,9 @@ jobs:
           uv run python manage.py migrate
 
       - name: Checkout base
-        uses: actions/checkout@v5
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github['base_ref'] }}
+          ref: ${{ github.event.pull_request.base.sha }}
 
       # Sync dependencies to ensure consistency with base branch
       - name: Synchronize dependencies
@@ -63,5 +68,5 @@ jobs:
 
       - name: Run tests
         run: |
-          export PYTEST_DB_URL=$DATABASE_URL
+          export PYTEST_DB_URL="$DATABASE_URL"
           uv run pytest -n 0 --reuse-db

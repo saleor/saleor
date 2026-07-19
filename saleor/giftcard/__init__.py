@@ -21,6 +21,10 @@ class GiftCardEvents:
     RESENT = "resent"
     NOTE_ADDED = "note_added"
     USED_IN_ORDER = "used_in_order"
+    REFUNDED_IN_ORDER = "refunded_in_order"
+    BALANCE_ADJUSTED = "balance_adjusted"
+    ASSIGNED_TO_USER = "assigned_to_user"
+    UNASSIGNED_FROM_USER = "unassigned_from_user"
 
     CHOICES = [
         (ISSUED, "The gift card was created be staff user or app."),
@@ -35,6 +39,10 @@ class GiftCardEvents:
         (RESENT, "The gift card was resent to the customer."),
         (NOTE_ADDED, "A note was added to the gift card."),
         (USED_IN_ORDER, "The gift card was used in order."),
+        (REFUNDED_IN_ORDER, "The gift card was refunded in order."),
+        (BALANCE_ADJUSTED, "The gift card balance was adjusted by a delta."),
+        (ASSIGNED_TO_USER, "The gift card was assigned to a customer."),
+        (UNASSIGNED_FROM_USER, "The gift card was unassigned from a customer."),
     ]
 
 

@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 import graphene
 from django.conf import settings
+from django.contrib.auth import password_validation
 from django.core.files import File
 from django.db import connection
 from django.db.models import F
@@ -25,9 +26,9 @@ from prices import Money, TaxedMoney
 
 from ...account.models import Address, Group, User
 from ...account.search import (
-    generate_address_search_document_value,
-    generate_user_fields_search_document_value,
+    update_user_search_vector,
 )
+from ...account.tests.fixtures.user import dangerously_create_test_user
 from ...account.utils import store_user_address
 from ...app.models import App
 from ...attribute.models import (
@@ -44,7 +45,7 @@ from ...channel.models import Channel
 from ...checkout import AddressType
 from ...checkout.fetch import fetch_checkout_info
 from ...checkout.models import Checkout
-from ...checkout.utils import add_variant_to_checkout
+from ...checkout.tests.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, RewardValueType, VoucherType
 from ...discount.models import (
@@ -556,12 +557,16 @@ def create_fake_user(user_password, save=True, generate_id=False):
     user = User(
         **user_params,
     )
-    user.search_document = _prepare_search_document_value(user, address)
 
     if save:
+        password_validation.validate_password(user_password, user)
         user.set_password(user_password)
         user.save()
         user.addresses.add(address)
+        update_user_search_vector(user)
+    else:
+        update_user_search_vector(user, attach_addresses_data=False, save=False)
+
     return user
 
 
@@ -750,7 +755,7 @@ def create_transaction_with_events(
     if events_to_create:
         TransactionEvent.objects.bulk_create(events_to_create)
         recalculate_transaction_amounts(transaction=transaction_item)
-        update_order_with_transaction_details(transaction_item)
+        update_order_with_transaction_details(order)
 
     return transaction_item
 
@@ -1007,6 +1012,12 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     order.lines_count = order.lines.count()
     order.save()
 
+    # `prepare_order_search_vector_value` above prefetched `payment_transactions`
+    # while the order had none, caching an empty list on the instance. Drop that
+    # stale cache so `create_fake_payment` recalculates charge amounts against the
+    # transaction it creates instead of the cached empty queryset.
+    order.refresh_from_db()
+
     create_fake_payment(order=order)
 
     # Ensure totals (including total_balance) reflect the latest transactions
@@ -1167,7 +1178,7 @@ def _create_staff_user(staff_password, email=None, superuser=False):
     if staff_user:
         return staff_user
 
-    staff_user = User.objects.create_user(
+    staff_user = dangerously_create_test_user(
         first_name=first_name,
         last_name=last_name,
         email=email,
@@ -1177,18 +1188,10 @@ def _create_staff_user(staff_password, email=None, superuser=False):
         is_staff=True,
         is_active=True,
         is_superuser=superuser,
-        search_document=_prepare_search_document_value(
-            User(email=email, first_name=first_name, last_name=last_name), address
-        ),
     )
     staff_user.addresses.add(address)
+    update_user_search_vector(staff_user)
     return staff_user
-
-
-def _prepare_search_document_value(user, address):
-    search_document_value = generate_user_fields_search_document_value(user)
-    search_document_value += generate_address_search_document_value(address)
-    return search_document_value
 
 
 def create_staff_users(staff_password, how_many=2, superuser=False):

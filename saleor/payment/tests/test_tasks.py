@@ -34,7 +34,7 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_new_last_chan
             charged_value=Decimal(100),
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
 
     with freeze_time(time_before_ttl):
@@ -71,7 +71,7 @@ def test_transaction_release_funds_for_checkout_task_checkout_not_refundable(
             charged_value=Decimal(100),
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = False
         checkout.save(update_fields=["automatically_refundable", "last_change"])
@@ -107,7 +107,7 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_new_tr_modifi
             charged_value=Decimal(100),
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
 
     with freeze_time(time_after_ttl):
@@ -144,7 +144,7 @@ def test_transaction_release_funds_for_checkout_task_checkout_with_none_status(
             charged_value=0,
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
@@ -271,7 +271,7 @@ def test_transaction_release_funds_for_checkout_task_refund_already_requested(
             last_refund_success=False,
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
@@ -308,7 +308,7 @@ def test_transaction_release_funds_for_checkout_task_cancel_already_requested(
             last_refund_success=False,
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
@@ -344,7 +344,7 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_authorizat
             authorized_value=Decimal(100),
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
@@ -392,7 +392,7 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_charge(
             charged_value=Decimal(100),
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = True
         checkout.save(update_fields=["automatically_refundable", "last_change"])
@@ -446,7 +446,7 @@ def test_transactions_to_release_funds_setting_toogle(
                 currency=current_checkout.channel.currency_code,
             )
             transaction_amounts_for_checkout_updated(
-                transaction_item, plugins_manager, user=None, app=None
+                transaction_item, current_checkout, plugins_manager, user=None, app=None
             )
             current_checkout.automatically_refundable = True
             current_checkout.save(
@@ -480,7 +480,7 @@ def test_transactions_to_release_funds_after_year(
             charged_value=Decimal(100),
         )
         transaction_amounts_for_checkout_updated(
-            transaction_item, plugins_manager, user=None, app=None
+            transaction_item, checkout, plugins_manager, user=None, app=None
         )
         checkout.automatically_refundable = True
         checkout.created_at = ttl_time - datetime.timedelta(days=366)

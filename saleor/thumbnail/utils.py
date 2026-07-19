@@ -1,3 +1,4 @@
+import mimetypes
 import os
 import secrets
 from io import BytesIO
@@ -11,6 +12,7 @@ from django.core.files.storage import default_storage
 from django.urls import reverse
 from PIL import Image
 
+from ..product import ProductMediaTypes
 from . import (
     DEFAULT_THUMBNAIL_SIZE,
     FILE_NAME_MAX_LENGTH,
@@ -47,6 +49,16 @@ def prepare_image_proxy_url(
     if format and format.lower() != ThumbnailFormat.ORIGINAL:
         kwargs["format"] = format.lower()
     return reverse("thumbnail", kwargs=kwargs)
+
+
+def get_original_image_proxy_url(
+    instance_pk: str,
+    object_type: str,
+):
+    instance_id = graphene.Node.to_global_id(object_type, instance_pk)
+    kwargs = {"instance_id": instance_id}
+
+    return reverse("original-image", kwargs=kwargs)
 
 
 def get_thumbnail_size(size: int | None) -> int:
@@ -253,10 +265,22 @@ class ProcessedIconImage(ProcessedImage):
     LOSSLESS_WEBP = True
 
 
-def get_filename_from_url(url: str) -> str:
+def get_filename_from_url(url: str, mime_type: str | None = None) -> str:
     """Prepare a unique filename for file from the URL to avoid overwriting."""
     file_name = os.path.basename(urlparse(url).path)
     name, format = os.path.splitext(file_name)
+    if not format and mime_type:
+        # If the URL does not include a file extension, guess it based on the mime type
+        format = mimetypes.guess_extension(mime_type, strict=False) or ""
     name = name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
     return f"{name}_{hash}{format}"
+
+
+def is_product_media_image_pending(object_type: str, instance) -> bool:
+    """Check if instance is a ProductMedia of IMAGE type with a pending image download."""
+    return (
+        object_type == "ProductMedia"
+        and instance.type == ProductMediaTypes.IMAGE
+        and instance.external_url
+    )

@@ -1,10 +1,5 @@
 from .categories import Category, CategoryCountableConnection
 from .collections import Collection, CollectionCountableConnection
-from .digital_contents import (
-    DigitalContent,
-    DigitalContentCountableConnection,
-    DigitalContentUrl,
-)
 from .products import (
     Product,
     ProductCountableConnection,
@@ -27,7 +22,4 @@ __all__ = [
     "ProductTypeCountableConnection",
     "ProductVariant",
     "ProductVariantCountableConnection",
-    "DigitalContent",
-    "DigitalContentCountableConnection",
-    "DigitalContentUrl",
 ]

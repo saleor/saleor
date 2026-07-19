@@ -13,10 +13,18 @@ from .utils import (
     disable_gc_for_garbage_collection_test,
 )
 
-PRODUCTS_QUERY = """
+ME_QUERY = """
 {
     me {
         email
+    }
+}
+"""
+
+SHOP_DESCRIPTION_QUERY = """
+{
+    shop {
+        description
     }
 }
 """
@@ -32,7 +40,7 @@ def test_query_remove_SaleorContext_memory_cycles(rf, staff_user):
         # Disable automatic garbage collection and set debugging flag.
         disable_gc_for_garbage_collection_test()
         # Prepare request body with GraphQL query.
-        data = {"query": PRODUCTS_QUERY}
+        data = {"query": ME_QUERY}
         data = json.dumps(data, cls=DjangoJSONEncoder)
         jwt_token = create_access_token(staff_user)
 
@@ -61,5 +69,35 @@ def test_query_remove_SaleorContext_memory_cycles(rf, staff_user):
         assert content["data"]["me"]["email"] == staff_user.email
     # Restore garbage collection settings to their original state. This should always be run to avoid interfering
     # with other tests to ensure that code should be executed in the `finally' block.
+    finally:
+        clean_up_after_garbage_collection_test()
+
+
+@pytest.mark.xdist_group(name="garbage_collection")
+def test_query_with_site_settings_no_memory_cycles(rf, site_settings):
+    # Verify that queries accessing site.settings via load_site_callback
+    # do not leave Django OneToOneField bidirectional cache cycles.
+    try:
+        # given
+        disable_gc_for_garbage_collection_test()
+        data = {"query": SHOP_DESCRIPTION_QUERY}
+        data = json.dumps(data, cls=DjangoJSONEncoder)
+
+        # when
+        content = get_graphql_content(
+            GraphQLView(backend=backend, schema=schema).handle_query(
+                rf.post(
+                    path="/graphql/",
+                    data=data,
+                    content_type="application/json",
+                )
+            ),
+            ignore_errors=True,
+        )
+        gc.collect()
+
+        # then
+        assert gc.garbage == []
+        assert content["data"]["shop"]["description"] is not None
     finally:
         clean_up_after_garbage_collection_test()

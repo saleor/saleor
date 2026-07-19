@@ -4,6 +4,7 @@ import graphene
 
 from .....core.error_codes import MetadataErrorCode
 from .....core.models import ModelWithMetadata
+from .....tests import race_condition
 from ....tests.utils import get_graphql_content
 from . import PUBLIC_KEY, PUBLIC_KEY2, PUBLIC_VALUE, PUBLIC_VALUE2
 from .test_update_metadata import item_contains_proper_public_metadata
@@ -184,4 +185,52 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
         checkout.metadata_storage,
         checkout_id,
         key="to_clear",
+    )
+
+
+def test_delete_public_metadata_another_key_updated_in_meantime(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    key_to_remove = "to_clear"
+    order.store_value_in_metadata(
+        {PUBLIC_KEY: PUBLIC_VALUE, key_to_remove: PUBLIC_VALUE},
+    )
+    order.save(update_fields=["metadata"])
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    new_value = "updated_value"
+
+    def update_metadata(*args, **kwargs):
+        order.store_value_in_metadata({PUBLIC_KEY: new_value})
+        order.save(update_fields=["metadata"])
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.meta.mutations.delete_metadata.delete_metadata_keys",
+        update_metadata,
+    ):
+        response = execute_clear_public_metadata_for_item(
+            staff_api_client,
+            permission_manage_orders,
+            order_id,
+            "Order",
+            key=key_to_remove,
+        )
+
+    # then
+    order.refresh_from_db()
+    assert item_contains_proper_public_metadata(
+        response["data"]["deleteMetadata"]["item"],
+        order,
+        order_id,
+        key=PUBLIC_KEY,
+        value=new_value,
+    )
+    assert order.get_value_from_metadata(key_to_remove) is None
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"],
+        order,
+        order_id,
+        key=key_to_remove,
     )

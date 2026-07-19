@@ -17,7 +17,7 @@ from django.utils import timezone
 from jwt import PyJWTError
 
 from ...account.models import Group, User
-from ...account.search import prepare_user_search_document_value
+from ...account.search import update_user_search_vector
 from ...account.utils import get_user_groups_permissions, send_user_event
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
@@ -152,10 +152,35 @@ def get_user_info(user_info_url, access_token) -> dict | None:
         return None
 
 
+def is_jwt_shaped(token: str) -> bool:
+    """Return whether the token is structurally a compact JWT.
+
+    authlib treats a token with 2 dots as a signed JWT (JWS) and one with 4 dots
+    as an encrypted JWT (JWE); anything else is rejected with a ``DecodeError``
+    (see ``authlib.jose.rfc7519.jwt.JWT.decode``). OIDC access tokens come in two
+    flavours: self-contained JWTs (validated locally against the JWKS) and opaque
+    reference tokens (validated by calling the user info endpoint). An opaque
+    token is just a random string and has nothing to decode, so probing it as a
+    JWT is pointless work that also raises a misleading "Invalid OIDC access
+    token format" log on every request. Mirroring authlib's own segment check
+    here lets us route opaque tokens straight to the user info path and reserve
+    the decode attempt - and its log - for tokens that actually claim to be JWTs.
+    """
+    return token.count(".") in (2, 4)
+
+
 def decode_access_token(token, jwks_url):
+    if not is_jwt_shaped(token):
+        # Opaque (non-JWT) access token - there is nothing to decode. The caller
+        # falls back to validating it via the user info endpoint. Return early to
+        # avoid the misleading "Invalid OIDC access token format" log below.
+        return None
     try:
         return get_decoded_token(token, jwks_url)
     except (JoseError, ValueError) as e:
+        # The token looked like a JWT but failed to decode/verify (e.g. bad
+        # signature, unknown key id, malformed segment). This is a genuine
+        # problem worth logging, unlike the opaque-token case handled above.
         logger.info(
             "Invalid OIDC access token format",
             extra={"error": str(e), "jwks_url": jwks_url},
@@ -388,6 +413,21 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
         raise AuthenticationError("Token validation failed") from e
 
 
+def _invalidate_password_for_new_oidc_account(
+    user: User, oidc_metadata_key: str
+) -> None:
+    """Invalidate password for pre-existing user being claimed by OIDC for the first time.
+
+    When OIDC finds a user by email who wasn't previously linked to this OIDC provider,
+    the old password must be cleared to prevent login with stale credentials. This
+    handles the case where a staff account is deleted (soft-deleted with is_staff=False)
+    and later recreated via OIDC — without this, the old password would still work.
+    """
+    if not user.get_value_from_private_metadata(oidc_metadata_key):
+        user.set_unusable_password()
+        user.save(update_fields=["password"])
+
+
 def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
@@ -401,7 +441,6 @@ def get_or_create_user_from_payload(
     sub: str | None = payload.get("sub")
     get_kwargs = {"private_metadata__contains": {oidc_metadata_key: sub}}
     if not sub:
-        get_kwargs = {"email": user_email}
         logger.warning("Missing sub section in OIDC payload")
         raise AuthenticationError("Missing subject identifier.")
 
@@ -429,14 +468,18 @@ def get_or_create_user_from_payload(
             email=user_email,
             defaults=defaults_create,
         )
+        if not created:
+            _invalidate_password_for_new_oidc_account(user, oidc_metadata_key)
         match_orders_with_new_user(user)
 
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
-        user, _ = User.objects.get_or_create(
+        user, created = User.objects.get_or_create(
             email=user_email,
             defaults=defaults_create,
         )
+        if not created:
+            _invalidate_password_for_new_oidc_account(user, oidc_metadata_key)
 
     # User logged in by OpenID are treated as confirmed by default so we only need to
     # check if user is active
@@ -487,7 +530,7 @@ def _update_user_details(
             return False
         user.email = user_email
         match_orders_with_new_user(user)
-        fields_to_save.update({"email", "search_document"})
+        fields_to_save.update({"email", "search_vector"})
 
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
@@ -505,17 +548,15 @@ def _update_user_details(
 
     if user.first_name != user_first_name:
         user.first_name = user_first_name
-        fields_to_save.update({"first_name", "search_document"})
+        fields_to_save.update({"first_name", "search_vector"})
 
     if user.last_name != user_last_name:
         user.last_name = user_last_name
-        fields_to_save.update({"last_name", "search_document"})
+        fields_to_save.update({"last_name", "search_vector"})
 
-    if not user.search_document or "search_document" in fields_to_save:
-        user.search_document = prepare_user_search_document_value(
-            user, attach_addresses_data=False
-        )
-        fields_to_save.add("search_document")
+    if not user.search_vector or "search_vector" in fields_to_save:
+        update_user_search_vector(user, save=False)
+        fields_to_save.add("search_vector")
 
     if not user.is_confirmed:
         user.is_confirmed = True
@@ -553,7 +594,7 @@ def get_user_from_token(claims: CodeIDToken) -> User:
 
 def is_owner_of_token_valid(token: str, owner: str) -> bool:
     try:
-        payload = jwt_decode(token, verify_expiration=False)
+        payload = jwt_decode(token)
         return payload.get(JWT_OWNER_FIELD, "") == owner
     except Exception:
         return False
@@ -593,7 +634,7 @@ def validate_refresh_token(refresh_token, data):
         )
 
     try:
-        refresh_payload = jwt_decode(refresh_token, verify_expiration=True)
+        refresh_payload = jwt_decode(refresh_token)
     except PyJWTError as e:
         raise ValidationError(
             {

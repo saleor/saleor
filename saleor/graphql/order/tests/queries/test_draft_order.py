@@ -15,7 +15,6 @@ from .....order.events import (
 from .....order.models import Order
 from .....order.search import prepare_order_search_vector_value
 from .....payment.models import Payment
-from .....plugins.manager import PluginsManager
 from .....tax.calculations.order import update_order_prices_with_flat_rates
 from ....tests.utils import assert_no_permission, get_graphql_content
 from .shared_query_fragments import ORDER_FRAGMENT_WITH_WEBHOOK_RELATED_FIELDS
@@ -349,7 +348,7 @@ def test_query_orders_for_order_with_events_when_tax_app_active(
     mocked_calculate_prices.assert_not_called()
 
 
-@patch.object(PluginsManager, "excluded_shipping_methods_for_order")
+@patch("saleor.order.webhooks.exclude_shipping.excluded_shipping_methods_for_order")
 def test_query_draft_orders_with_active_filter_shipping_methods_webhook(
     mocked_webhook_handler,
     settings,

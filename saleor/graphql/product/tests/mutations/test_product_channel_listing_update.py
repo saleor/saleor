@@ -6,7 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from .....checkout.fetch import fetch_checkout_info
-from .....checkout.utils import add_variant_to_checkout
+from .....checkout.tests.utils import add_variant_to_checkout
 from .....plugins.manager import get_plugins_manager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductVariant, ProductVariantChannelListing
@@ -237,7 +237,7 @@ def test_product_channel_listing_update_as_staff_user(
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
-        variant_channel_listing, True, channel_USD.currency_code
+        variant_channel_listing, channel_USD.currency_code
     )
     assert not data["errors"]
     assert product_data["slug"] == product.slug

@@ -43,6 +43,14 @@ METRIC_GRAPHQL_SLOW_OPERATION_DURATION = meter.create_metric(
     bucket_boundaries=DEFAULT_DURATION_BUCKETS,
 )
 
+METRIC_GRAPHQL_FIELD_USAGE = meter.create_metric(
+    "saleor.graphql.field.usage",
+    scope=Scope.CORE,
+    type=MetricType.COUNTER,
+    unit=Unit.CALL,
+    description="Number of times a GraphQL field was resolved.",
+)
+
 QUERY_COST_BUCKETS = [
     0,
     5,
@@ -85,6 +93,30 @@ METRIC_REQUEST_DURATION = meter.create_metric(
     unit=Unit.SECOND,
     description="Duration of API requests.",
     bucket_boundaries=DEFAULT_DURATION_BUCKETS,
+)
+
+METRIC_GRAPHQL_BATCH_SIZE = meter.create_metric(
+    "saleor.graphql.batch_size",
+    scope=Scope.CORE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.COUNT,
+    description="Number of GraphQL operations sent within a batched request.",
+)
+
+METRIC_GRAPHQL_ALIAS_COUNT = meter.create_metric(
+    "saleor.graphql.alias_count",
+    scope=Scope.CORE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.COUNT,
+    description="Number of aliases contained within a GraphQL request.",
+)
+
+METRIC_GRAPHQL_MUTATION_COUNT = meter.create_metric(
+    "saleor.graphql.mutation_count",
+    scope=Scope.CORE,
+    type=MetricType.HISTOGRAM,
+    unit=Unit.COUNT,
+    description="Number of mutations sent within a GraphQL request.",
 )
 
 
@@ -155,3 +187,25 @@ def record_request_count(
 def record_request_duration() -> AbstractContextManager[dict[str, AttributeValue]]:
     attributes: dict[str, AttributeValue] = {}
     return meter.record_duration(METRIC_REQUEST_DURATION, attributes=attributes)
+
+
+def record_field_usage(parent_type: str, field_name: str, deprecated: bool) -> None:
+    attributes: dict[str, AttributeValue] = {
+        saleor_attributes.GRAPHQL_PARENT_TYPE: parent_type,
+        saleor_attributes.GRAPHQL_FIELD_NAME: field_name,
+    }
+    if deprecated:
+        attributes[saleor_attributes.GRAPHQL_FIELD_DEPRECATED] = True
+    meter.record(METRIC_GRAPHQL_FIELD_USAGE, 1, Unit.CALL, attributes=attributes)
+
+
+def record_graphql_batch_size(batch_size: int) -> None:
+    meter.record(METRIC_GRAPHQL_BATCH_SIZE, amount=batch_size, unit=Unit.COUNT)
+
+
+def record_graphql_alias_count(count: int) -> None:
+    meter.record(METRIC_GRAPHQL_ALIAS_COUNT, amount=count, unit=Unit.COUNT)
+
+
+def record_graphql_mutation_count(count: int) -> None:
+    meter.record(METRIC_GRAPHQL_MUTATION_COUNT, amount=count, unit=Unit.COUNT)

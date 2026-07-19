@@ -1,7 +1,7 @@
 import graphene
 
 from .....account import models
-from .....account.search import prepare_user_search_document_value
+from .....account.search import update_user_search_vector
 from .....account.utils import (
     remove_the_oldest_user_address_if_address_limit_is_reached,
 )
@@ -63,9 +63,7 @@ class AddressCreate(AddressMetadataMixin, DeprecatedModelMutation, I18nMixin):
             response.user = user
             remove_the_oldest_user_address_if_address_limit_is_reached(user)
             user.addresses.add(instance)
-            user.search_document = prepare_user_search_document_value(user)
-
-            user.save(update_fields=["search_document", "updated_at"])
+            update_user_search_vector(user)
         return response
 
     @classmethod

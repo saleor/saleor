@@ -1,13 +1,16 @@
+from django.conf import settings
 from django.db.models import Exists, OuterRef
 
 from ....celeryconf import app
+from ....core.db.connection import allow_writer
 from ...models import Order, OrderLine, OrderStatus
 
 # Takes about 0.1 second to process
 DUPLICATED_LINES_ORDER_BATCH_SIZE = 200
 
 
-@app.task
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
 def clean_duplicated_gift_lines_task(created_after=None):
     extra_filter = {}
     if created_after:

@@ -24,7 +24,10 @@ from ....checkout.mutations.utils import get_checkout
 from ....checkout.types import Checkout
 from ....core import ResolveInfo
 from ....core.context import SyncWebhookControlContext
-from ....core.descriptions import DEPRECATED_IN_3X_INPUT
+from ....core.descriptions import (
+    DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION,
+)
 from ....core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
@@ -80,6 +83,10 @@ class PaymentInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
+        description = (
+            "Fields required to create a payment."
+            + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
@@ -271,14 +278,10 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             manager, gateway, input, channel_slug=checkout_info.channel.slug
         )
 
-        address = (
-            checkout.shipping_address or checkout.billing_address
-        )  # FIXME: check which address we need here
         checkout_total = calculate_checkout_total_with_gift_cards(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            address=address,
         )
         amount = input.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)

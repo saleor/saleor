@@ -70,7 +70,7 @@ def test_fulfillment_refund_products_order_lines(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
 @patch("saleor.payment.gateway.refund")
 def test_fulfillment_return_products_order_lines(
     mocked_refund,
@@ -171,4 +171,6 @@ def test_fulfillment_return_products_order_lines(
     assert data["returnFulfillment"]
     assert data["replaceFulfillment"]
 
-    back_in_stock_webhook_mock.assert_called_once_with(Stock.objects.last())
+    back_in_stock_webhook_mock.assert_called_once_with(
+        Stock.objects.last(), requestor=staff_api_client.user
+    )

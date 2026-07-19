@@ -58,6 +58,9 @@ def test_checkout_lines_delete(
     checkout_with_items,
 ):
     checkout = checkout_with_items
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
+
     checkout_lines_count = checkout.lines.count()
     previous_last_change = checkout.last_change
     line = checkout.lines.first()
@@ -86,6 +89,7 @@ def test_checkout_lines_delete(
     )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -353,6 +357,7 @@ def test_checkout_lines_delete_not_associated_with_checkout(
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_lines_delete_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -412,11 +417,13 @@ def test_checkout_lines_delete_triggers_webhooks(
                 "requestor_model_name": None,
                 "requestor_object_id": None,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

@@ -15,6 +15,7 @@ class BaseField(graphene.Field):
     description: str | None
     doc_category: str | None
     webhook_events_info: list[WebhookEventInfo] | None
+    monitor_usage: bool
 
     def __init__(self, *args, **kwargs):
         auto_webhook_events_info_message = kwargs.pop(
@@ -22,6 +23,7 @@ class BaseField(graphene.Field):
         )
         self.doc_category = kwargs.pop("doc_category", None)
         self.webhook_events_info = kwargs.pop("webhook_events_info", None)
+        self.monitor_usage = kwargs.pop("monitor_usage", False)
 
         super().__init__(*args, **kwargs)
 
@@ -34,6 +36,7 @@ class BaseField(graphene.Field):
         resolver = self.resolver or parent_resolver
         setattr(resolver, "doc_category", self.doc_category)
         setattr(resolver, "webhook_events_info", self.webhook_events_info)
+        setattr(resolver, "monitor_usage", self.monitor_usage)
         return resolver
 
 
@@ -162,5 +165,12 @@ class JSONString(graphene.JSONString):
     def parse_literal(node):
         try:
             return graphene.JSONString.parse_literal(node)
-        except JSONDecodeError:
+        except (JSONDecodeError, TypeError):
+            return None
+
+    @staticmethod
+    def parse_value(value):
+        try:
+            return graphene.JSONString.parse_value(value)
+        except (JSONDecodeError, TypeError):
             return None

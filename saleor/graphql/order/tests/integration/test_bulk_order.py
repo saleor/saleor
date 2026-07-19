@@ -392,8 +392,11 @@ def test_refresh_order_prices_from_imported_draft_order_with_unit_discount(
     # refetch order prices
     order = Order.objects.get()
     order, lines = fetch_order_prices_if_expired(
-        order, get_plugins_manager(allow_replica=True), force_update=True
-    )
+        order,
+        get_plugins_manager(allow_replica=True),
+        requestor=None,
+        force_update=True,
+    ).get()
 
     # then - ensure the order prices are updated, the discount is applied
     line = lines[0]

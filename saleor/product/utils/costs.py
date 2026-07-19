@@ -23,16 +23,12 @@ class CostsData:
 
 def get_product_costs_data(
     variant_channel_listings: Iterable[ProductVariantChannelListing],
-    has_variants: bool,
     currency: str,
 ) -> tuple[MoneyRange, tuple[float, float]]:
     purchase_costs_range = MoneyRange(
         start=zero_money(currency), stop=zero_money(currency)
     )
     margin = (0.0, 0.0)
-
-    if not has_variants:
-        return purchase_costs_range, margin
 
     costs_data = get_cost_data_from_variant_channel_listing(variant_channel_listings)
     if costs_data.costs:

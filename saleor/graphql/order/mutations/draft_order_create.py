@@ -30,7 +30,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_318, ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
@@ -41,6 +41,7 @@ from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 from ..utils import (
     OrderLineData,
@@ -94,7 +95,6 @@ class DraftOrderInput(BaseInputObjectType):
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
-        + ADDED_IN_321
     )
     user = graphene.ID(
         description="Customer associated with the draft order.", name="user"
@@ -115,18 +115,18 @@ class DraftOrderInput(BaseInputObjectType):
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
-        + ADDED_IN_321
     )
     shipping_method = graphene.ID(
         description="ID of a selected shipping method.", name="shippingMethod"
     )
     voucher = graphene.ID(
-        description="ID of the voucher associated with the order.",
+        description=f"ID of the voucher associated with the order."
+        f"{DEPRECATED_IN_3X_INPUT} Use `voucherCode` instead.",
         name="voucher",
         deprecation_reason="Use `voucherCode` instead.",
     )
     voucher_code = graphene.String(
-        description="A code of the voucher associated with the order." + ADDED_IN_318,
+        description="A code of the voucher associated with the order.",
         name="voucherCode",
     )
     customer_note = graphene.String(
@@ -145,13 +145,13 @@ class DraftOrderInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=f"Order public metadata. {ADDED_IN_321} "
+        description=f"Order public metadata. "
         f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=f"Order private metadata. {ADDED_IN_321} "
+        description=f"Order private metadata. "
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
@@ -159,7 +159,7 @@ class DraftOrderInput(BaseInputObjectType):
     language_code = graphene.Argument(
         LanguageCodeEnum,
         required=False,
-        description=(f"Order language code.{ADDED_IN_321}"),
+        description=("Order language code."),
     )
 
     class Meta:
@@ -368,14 +368,15 @@ class DraftOrderCreate(
         cleaned_input["lines_data"] = grouped_lines_data
 
     @staticmethod
-    def _save_lines(info, instance, lines_data, app, manager):
+    def _save_lines(info, instance, lines_data, app, requestor, site_settings):
         lines = []
         if lines_data:
             for line_data in lines_data:
                 new_line = create_order_line(
                     instance,
                     line_data,
-                    manager,
+                    requestor,
+                    site_settings,
                 )
                 lines.append(new_line)
 
@@ -391,6 +392,8 @@ class DraftOrderCreate(
     def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
+        site = get_site_promise(info.context).get()
+        requestor = app or info.context.user
 
         with traced_atomic_transaction():
             # Process addresses
@@ -399,7 +402,12 @@ class DraftOrderCreate(
             try:
                 # Process any lines to add
                 cls._save_lines(
-                    info, instance, cleaned_input.get("lines_data"), app, manager
+                    info,
+                    instance,
+                    cleaned_input.get("lines_data"),
+                    app,
+                    requestor,
+                    site.settings,
                 )
             except TaxError as e:
                 raise ValidationError(
@@ -413,8 +421,11 @@ class DraftOrderCreate(
                     ShippingMethodUpdateMixin.clear_shipping_method_from_order(instance)
                 else:
                     ShippingMethodUpdateMixin.process_shipping_method(
-                        instance, method, manager, update_shipping_discount=False
-                    )
+                        instance,
+                        method,
+                        requestor=app or info.context.user,
+                        update_shipping_discount=False,
+                    ).get()
 
             if "voucher" in cleaned_input:
                 cls.handle_order_voucher(

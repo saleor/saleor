@@ -1,6 +1,6 @@
 import datetime
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from celery import Task
@@ -163,6 +163,7 @@ def test_send_webhook_using_aws_sqs(
         region_name=expected_region,
         aws_access_key_id=expected_access_key_id,
         aws_secret_access_key=expected_secret_access_key,
+        config=ANY,
     )
     expected_call_args = {
         "QueueUrl": expected_queue_url,
@@ -251,6 +252,51 @@ def test_get_delivery_for_webhook_inactive_app(event_delivery, caplog):
     assert caplog.records[0].message == (
         f"Event delivery id: {event_delivery.pk} app/webhook is disabled."
     )
+    assert not_found is False
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        WebhookEventAsyncType.APP_DELETED,
+        WebhookEventAsyncType.APP_STATUS_CHANGED,
+    ],
+)
+def test_get_delivery_for_webhook_inactive_app_self_lifecycle_event(
+    event_delivery, event_type
+):
+    # given
+    event_delivery.webhook.app.is_active = False
+    event_delivery.webhook.app.save(update_fields=["is_active"])
+    event_delivery.event_type = event_type
+    event_delivery.save(update_fields=["event_type"])
+
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery == event_delivery
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.PENDING
+    assert not_found is False
+
+
+def test_get_delivery_for_webhook_inactive_webhook_self_lifecycle_event(
+    event_delivery, caplog
+):
+    # given
+    event_delivery.webhook.is_active = False
+    event_delivery.webhook.save(update_fields=["is_active"])
+    event_delivery.event_type = WebhookEventAsyncType.APP_DELETED
+    event_delivery.save(update_fields=["event_type"])
+
+    # when
+    delivery, not_found = get_delivery_for_webhook(event_delivery.pk)
+
+    # then
+    assert delivery is None
+    event_delivery.refresh_from_db()
+    assert event_delivery.status == EventDeliveryStatus.FAILED
     assert not_found is False
 
 

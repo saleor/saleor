@@ -1,3 +1,4 @@
+import threading
 from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar
@@ -18,6 +19,7 @@ R = TypeVar("R")
 
 class DataLoader[K, R](BaseLoader):
     context_key: str
+    thread_id: int
     context: SaleorContext
     database_connection_name: str
 
@@ -34,7 +36,14 @@ class DataLoader[K, R](BaseLoader):
         return loader
 
     def __init__(self, context: SaleorContext) -> None:
-        if getattr(self, "context", None) != context:
+        thread_id = threading.get_native_id()
+        current_thread_id = getattr(self, "thread_id", None)
+        if current_thread_id != thread_id:
+            assert current_thread_id is None, (
+                "Dataloaders cannot be shared between threads"
+            )
+
+            self.thread_id = thread_id
             self.context = context
             self.database_connection_name = get_database_connection_name(context)
             super().__init__()

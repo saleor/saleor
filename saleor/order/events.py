@@ -160,21 +160,6 @@ def event_fulfillment_confirmed_notification(
     )
 
 
-def event_fulfillment_digital_links_notification(
-    order_id: "UUID", user_id: int | None, app_id: int | None, customer_email: str
-):
-    return OrderEvent.objects.create(
-        order_id=order_id,
-        type=OrderEvents.EMAIL_SENT,
-        parameters={
-            "email": customer_email,
-            "email_type": OrderEventsEmails.DIGITAL_LINKS,
-        },
-        user_id=user_id,
-        app_id=app_id,
-    )
-
-
 def event_payment_confirmed_notification(
     order_id: "UUID", user_id: int | None, customer_email: str
 ):

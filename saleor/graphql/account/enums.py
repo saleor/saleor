@@ -18,13 +18,22 @@ CustomerEventsEnum: Final[graphene.Enum] = to_enum(CustomerEvents)
 CustomerEventsEnum.doc_category = DOC_CATEGORY_USERS
 
 
+def __country_code_enum_description(enum):
+    if enum is None:
+        return (
+            "Represents country codes defined by the ISO 3166-1 alpha-2 standard."
+            "\n\nThe `EU` value is DEPRECATED and will be removed in Saleor 3.21."
+        )
+    for code, name in countries:
+        if enum.value == code:
+            return name
+    return None
+
+
 CountryCodeEnum = graphene.Enum(
     "CountryCode",
     [(str_to_enum(country[0]), country[0]) for country in countries],
-    description=(
-        "Represents country codes defined by the ISO 3166-1 alpha-2 standard."
-        "\n\nThe `EU` value is DEPRECATED and will be removed in Saleor 3.21."
-    ),
+    description=__country_code_enum_description,
 )
 
 

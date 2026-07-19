@@ -8,6 +8,7 @@ import pytest
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from promise import Promise
 
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
@@ -113,6 +114,8 @@ def test_checkout_lines_add(
     assert calculate_checkout_quantity(lines) == 3
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     previous_last_change = checkout.last_change
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -143,6 +146,7 @@ def test_checkout_lines_add(
     )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -1364,7 +1368,9 @@ def test_checkout_lines_add_custom_price_and_catalogue_promotion(
 
 
 @freeze_time("2024-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.list_shipping_methods_for_checkout")
+@mock.patch(
+    "saleor.checkout.webhooks.list_shipping_methods.list_shipping_methods_for_checkout"
+)
 def test_checkout_lines_marks_shipping_methods_as_stale(
     mocked_webhook,
     app_api_client,
@@ -1373,7 +1379,7 @@ def test_checkout_lines_marks_shipping_methods_as_stale(
     checkout_delivery,
 ):
     # given
-    mocked_webhook.return_value = []
+    mocked_webhook.return_value = Promise.resolve([])
     checkout = checkout_with_item
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save(update_fields=["assigned_delivery"])
@@ -1709,8 +1715,13 @@ def test_checkout_lines_add_with_reserved_insufficient_stock(
     ],
 )
 def test_checkout_lines_for_click_and_collect_insufficient_stock(
-    user_api_client, checkout_with_item_for_cc, warehouse_for_cc, cc_option
+    user_api_client,
+    checkout_with_item_for_cc,
+    warehouse_for_cc,
+    cc_option,
+    site_settings,
 ):
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
     checkout = checkout_with_item_for_cc
     checkout.collection_point = warehouse_for_cc
 
@@ -1754,9 +1765,10 @@ def test_checkout_lines_add_with_zero_quantity(
     assert errors[0]["field"] == "quantity"
 
 
-def test_checkout_lines_add_no_channel_shipping_zones(
-    user_api_client, checkout_with_item, stock
+def test_checkout_lines_add_no_channel_shipping_zones_included_in_stock_calculations(
+    user_api_client, checkout_with_item, stock, site_settings
 ):
+    assert site_settings.use_legacy_shipping_zone_stock_availability is True
     variant = stock.product_variant
     checkout = checkout_with_item
     checkout.channel.shipping_zones.clear()
@@ -1777,6 +1789,34 @@ def test_checkout_lines_add_no_channel_shipping_zones(
     assert len(errors) == 1
     assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
     assert errors[0]["field"] == "quantity"
+
+
+def test_checkout_lines_add_no_channel_shipping_zones_excluded_from_stock_calculations(
+    user_api_client, checkout_with_item, stock, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    variant = stock.product_variant
+    checkout = checkout_with_item
+
+    checkout.channel.shipping_zones.clear()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+        "channelSlug": checkout.channel.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+    content = get_graphql_content(response)
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    data = content["data"]["checkoutLinesAdd"]
+    assert not data["errors"]
 
 
 def test_checkout_lines_add_with_unpublished_product(
@@ -2078,6 +2118,7 @@ mutation checkoutLinesAdd($id: ID, $lines: [CheckoutLineInput!]!) {
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_lines_add_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -2147,11 +2188,13 @@ def test_checkout_lines_add_triggers_webhooks(
                 "requestor_model_name": "account.user",
                 "requestor_object_id": user_api_client.user.pk,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

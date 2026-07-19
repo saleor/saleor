@@ -27,7 +27,7 @@ from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
 from .error_codes import AppErrorCode
 from .manifest_validations import clean_manifest_data
-from .models import App, AppExtension, AppInstallation
+from .models import App, AppExtension, AppInstallation, AppToken
 from .types import DEFAULT_APP_TARGET, AppType
 
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
@@ -203,17 +203,43 @@ def fetch_brand_data_async(
         )
 
 
-def fetch_manifest(manifest_url: str, timeout=settings.COMMON_REQUESTS_TIMEOUT):
+def fetch_manifest(
+    manifest_url: str,
+    timeout=settings.COMMON_REQUESTS_TIMEOUT,
+    max_retries: int = 0,
+):
     headers = {AppHeaders.SCHEMA_VERSION: schema_version}
-    response = HTTPClient.send_request(
-        "GET", manifest_url, headers=headers, timeout=timeout, allow_redirects=False
-    )
-    response.raise_for_status()
-    return response.json()
+    connect_timeout, read_timeout = timeout
+
+    def _get(attempt: int):
+        response = HTTPClient.send_request(
+            "GET",
+            manifest_url,
+            headers=headers,
+            # Give subsequent retries an incremented connect timeout.
+            timeout=(connect_timeout + attempt, read_timeout),
+            allow_redirects=False,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    for attempt in range(max_retries):
+        try:
+            return _get(attempt)
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            logger.info(
+                "Failed to fetch manifest (%s), retrying (attempt %d out of %d)...",
+                exc,
+                attempt + 1,
+                max_retries + 1,
+            )
+    return _get(max_retries)  # final attempt, explicit return to satisfy ruff RET503
 
 
-def install_app(app_installation: AppInstallation, activate: bool = False):
-    manifest_data = fetch_manifest(app_installation.manifest_url)
+def install_app(
+    app_installation: AppInstallation, activate: bool = False
+) -> tuple[App, AppToken | None]:
+    manifest_data = fetch_manifest(app_installation.manifest_url, max_retries=2)
     assigned_permissions = app_installation.permissions.all()
 
     manifest_data["permissions"] = get_permission_names(assigned_permissions)
@@ -271,6 +297,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             target=extension_data.get("target", DEFAULT_APP_TARGET),
             http_target_method=http_target_method,
             settings=extension_data.get("options", {}),
+            identifier=extension_data.get("identifier"),
         )
         extension.permissions.set(extension_data.get("permissions", []))
 
@@ -296,14 +323,16 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             )
     WebhookEvent.objects.bulk_create(webhook_events)
 
-    _, token = app.tokens.create(name="Default token")  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
+    token = None
+    if tokent_target_url := manifest_data.get("tokenTargetUrl"):
+        _, token = app.tokens.create(name="Default token")  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
 
-    try:
-        send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
-    except requests.RequestException as e:
-        fetch_brand_data_async(manifest_data, app_installation=app_installation)
-        app.delete()
-        raise e
+        try:
+            send_app_token(target_url=tokent_target_url, token=token)
+        except requests.RequestException as e:
+            fetch_brand_data_async(manifest_data, app_installation=app_installation)
+            app.delete()
+            raise e
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
     fetch_brand_data_async(manifest_data, app=app)
     return app, token

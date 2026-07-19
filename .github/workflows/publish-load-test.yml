@@ -5,44 +5,75 @@ on:
     types: [reopened, synchronize, labeled]
     branches: ["**"]
 
+permissions: {}
+
 jobs:
   init:
     if: ${{ ((github.event.action == 'labeled') && (github.event.label.name == 'load test')) || ((github.event.action != 'labeled') && contains(github.event.pull_request.labels.*.name, 'load test')) }}
     runs-on: ubuntu-latest
+    permissions: {}
+
     outputs:
       version: ${{ steps.variables.outputs.version }}
+
     steps:
       - name: Prepare variables
         id: variables
-        run:
-          set -x
-
-          branch=${{ github.event.pull_request.head.ref }}
-          branch_slug=$(echo "$branch" | sed 's@/@-@g')
-          branch_sha=${{ github.event.pull_request.head.sha }}
-          image_version="${branch_slug}-${branch_sha:0:8}"
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          branch_slug=$(echo "$HEAD_REF" | sed 's@/@-@g')
+          image_version="${branch_slug}-${HEAD_SHA:0:8}"
 
           echo "VERSION=${image_version}" >> $GITHUB_OUTPUT
 
   publish:
-    needs:
-      - init
+    needs: [init]
+    permissions:
+      contents: read
+      id-token: write # needed for AWS/ECR login (not used, but required permission)
+      packages: write # needed for GHCR
+
     uses: ./.github/workflows/publish-containers.yml
     with:
       version: ${{ needs.init.outputs.version }}
-    secrets:
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_CLOUD_CI_WEBHOOK_URL }}
-      SLACK_MENTION_GROUP_ID: ${{ secrets.SLACK_CORE_SUPPORT_GROUP_ID }}
+      notification-environment: notify-slack-releasing
+      publish-environment: publish-load-test
+    secrets: inherit
 
   deploy:
     runs-on: ubuntu-latest
+    environment: load-test-deploy
+    permissions: {}
+
     needs:
       - publish
+
     steps:
+      - name: Get Token
+        id: get-token
+        uses: saleor/saleor-internal-actions/request-vault-token@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
+        with:
+          vault-url: ${{ secrets.VAULT_URL }}
+          vault-jwt: ${{ secrets.VAULT_JWT }}
+
       - name: Trigger load test deployment
+        env:
+          BRANCH: ${{ github.event.pull_request.base.ref }}
+          VERSION: ${{ needs.publish.outputs.version }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
         run: |
-          curl -f -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
-            https://api.github.com/repos/saleor/saleor-multitenant/dispatches \
-            -d "{\"event_type\":\"deploy-load-test\",\"client_payload\":{\"version\":\"${{ needs.publish.outputs.version }}\",\"branch\":\"${{ github.event.pull_request.base.ref }}\"}}"
+          payload=$(
+              jq --arg version "$VERSION" --arg branch "$BRANCH" --null-input '
+                {
+                  "event_type": "deploy-load-test",
+                  "client_payload": {
+                    "branch": $branch,
+                    "version": $version
+                  }
+                }
+              '
+          )
+
+          gh api /repos/saleor/saleor-multitenant/dispatches --input - <<< "$payload"

@@ -19,4 +19,4 @@ def test_fetch_order_prices(
 
     # when & then
     with django_assert_num_queries(29):
-        fetch_order_prices_if_expired(order, plugins_manager, None, True)
+        fetch_order_prices_if_expired(order, plugins_manager, None, None, True).get()

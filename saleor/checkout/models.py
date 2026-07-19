@@ -7,7 +7,8 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
-from django.contrib.postgres.indexes import BTreeIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
@@ -40,7 +41,7 @@ class CheckoutDelivery(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     checkout = models.ForeignKey(
         "checkout.Checkout",
-        related_name="shipping_methods",
+        related_name="deliveries",
         on_delete=models.CASCADE,
     )
     external_shipping_method_id = models.CharField(
@@ -313,6 +314,9 @@ class Checkout(models.Model):
         max_length=TAX_ERROR_FIELD_LENGTH, blank=True, null=True
     )
 
+    search_vector = SearchVectorField(blank=True, null=True)
+    search_index_dirty = models.BooleanField(default=True, db_default=True)
+
     class Meta:
         ordering = ("-last_change", "pk")
         permissions = (
@@ -327,6 +331,10 @@ class Checkout(models.Model):
                 name="automaticcompletionattempt_idx",
             ),
             models.Index(fields=["created_at"], name="idx_checkout_created_at"),
+            GinIndex(
+                name="checkout_tsearch",
+                fields=["search_vector"],
+            ),
         ]
 
     def __iter__(self):
@@ -509,7 +517,7 @@ class CheckoutLine(ModelWithMetadata):
         return not self == other  # pragma: no cover
 
     def __repr__(self):
-        return f"CheckoutLine(variant={self.variant!r}, quantity={self.quantity!r})"
+        return f"<CheckoutLine: variant={self.variant!r}, quantity={self.quantity!r}, total={self.total_price_gross_amount} {self.currency}>"
 
     def __getstate__(self):
         return self.variant, self.quantity

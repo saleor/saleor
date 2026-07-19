@@ -1,3 +1,5 @@
+from typing import Any
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -10,7 +12,11 @@ from ....core.mutations import BaseMutation
 from ....core.types import AccountError
 from ....site.dataloaders import get_site_promise
 from ...types import User
-from .utils import _get_new_csrf_token, update_user_last_login_if_required
+from .utils import (
+    _get_new_csrf_token,
+    check_password_login_not_disabled,
+    update_user_last_login_if_required,
+)
 
 
 class CreateToken(BaseMutation):
@@ -85,18 +91,22 @@ class CreateToken(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, audience=None, email, password
     ):
-        additional_paylod = {}
+        additional_payload: dict[str, Any] = {}
+
+        site_settings = get_site_promise(info.context).get().settings
+        check_password_login_not_disabled(site_settings)
 
         csrf_token = _get_new_csrf_token()
-        refresh_additional_payload = {
+        refresh_additional_payload: dict[str, Any] = {
             "csrfToken": csrf_token,
         }
         if audience:
-            additional_paylod["aud"] = f"custom:{audience}"
+            additional_payload["aud"] = f"custom:{audience}"
             refresh_additional_payload["aud"] = f"custom:{audience}"
 
         user = cls.get_user(info, email, password)
-        access_token = create_access_token(user, additional_payload=additional_paylod)
+
+        access_token = create_access_token(user, additional_payload=additional_payload)
         refresh_token = create_refresh_token(
             user, additional_payload=refresh_additional_payload
         )

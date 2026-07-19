@@ -1,20 +1,30 @@
 from collections import defaultdict
 from collections.abc import Iterable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, NamedTuple
 from uuid import UUID
 
 import graphene
+import requests
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
 from django.db.utils import IntegrityError
-from graphql import GraphQLError
 
+from ...core.exceptions import UnsupportedMediaProviderException
+from ...core.http_client import HTTPClient
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils.validators import (
+    get_mime_type,
+    get_oembed_data,
+    is_image_mimetype,
+    is_valid_image_content_type,
+)
 from ...order import OrderStatus
 from ...order import models as order_models
+from ...product import MEDIA_URL_CHAR_LIMIT
 from ...warehouse.models import Stock
 from ..core.enums import ProductErrorCode
-from .sorters import ProductOrderField
 
 if TYPE_CHECKING:
     from ...product.models import ProductVariant
@@ -26,6 +36,110 @@ logger = logging.getLogger(__name__)
 
 
 ALT_CHAR_LIMIT = 250
+
+
+class MediaValidationError(NamedTuple):
+    message: str
+    code: str
+    field: str
+
+
+def validate_media_input(
+    image, media_url, alt, error_code_enum
+) -> MediaValidationError | None:
+    """Validate media input fields.
+
+    Returns a MediaValidationError if validation fails, None otherwise.
+    """
+    if not image and not media_url:
+        return MediaValidationError(
+            message="Image or external URL is required.",
+            code=error_code_enum.REQUIRED.value,
+            field="",
+        )
+    if image and media_url:
+        return MediaValidationError(
+            message="Either image or external URL is required.",
+            code=error_code_enum.DUPLICATED_INPUT_ITEM.value,
+            field="",
+        )
+    if alt and len(alt) > ALT_CHAR_LIMIT:
+        return MediaValidationError(
+            message=f"Alt field exceeds the character limit of {ALT_CHAR_LIMIT}.",
+            code=error_code_enum.INVALID.value,
+            field="alt",
+        )
+    if media_url and len(media_url) > MEDIA_URL_CHAR_LIMIT:
+        return MediaValidationError(
+            message=f"URL field exceeds the character limit of {MEDIA_URL_CHAR_LIMIT}.",
+            code=error_code_enum.INVALID.value,
+            field="mediaUrl",
+        )
+    return None
+
+
+@dataclass
+class MediaUrlProbeResult:
+    """Result of probing a media URL."""
+
+    is_image: bool
+    oembed_data: dict
+    media_type: str
+
+
+def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
+    """Probe a media URL to determine if it points to an image or oembed content.
+
+    Returns a MediaUrlProbeResult indicating the type of media.
+    Raises ValidationError if the URL points to an invalid image type
+    or an unsupported media provider.
+    """
+    try:
+        with HTTPClient.send_request(
+            "GET",
+            media_url,
+            stream=True,
+            allow_redirects=False,
+            timeout=settings.COMMON_REQUESTS_TIMEOUT,
+        ) as response:
+            mime_type = get_mime_type(response.headers.get("content-type"))
+    except requests.exceptions.RequestException as exc:
+        raise ValidationError(
+            {
+                "media_url": ValidationError(
+                    "Failed to fetch media from URL.",
+                    code=error_code_enum.INVALID.value,
+                )
+            }
+        ) from exc
+
+    if is_image_mimetype(mime_type):
+        if not is_valid_image_content_type(mime_type):
+            raise ValidationError(
+                {
+                    "media_url": ValidationError(
+                        "Invalid file type.",
+                        code=error_code_enum.INVALID.value,
+                    )
+                }
+            )
+        return MediaUrlProbeResult(is_image=True, oembed_data={}, media_type="")
+
+    try:
+        oembed_data, media_type = get_oembed_data(media_url)
+    except UnsupportedMediaProviderException as exc:
+        raise ValidationError(
+            {
+                "media_url": ValidationError(
+                    "Unsupported media provider or incorrect URL.",
+                    code=error_code_enum.UNSUPPORTED_MEDIA_PROVIDER.value,
+                )
+            }
+        ) from exc
+
+    return MediaUrlProbeResult(
+        is_image=False, oembed_data=oembed_data, media_type=media_type
+    )
 
 
 def get_used_attribute_values_for_variant(variant):
@@ -149,31 +263,3 @@ def update_ordered_media(ordered_media):
 
     if errors:
         raise ValidationError(errors)
-
-
-def search_string_in_kwargs(kwargs: dict) -> bool:
-    filter_search = kwargs.get("filter", {}).get("search", "") or ""
-    search = kwargs.get("search", "") or ""
-    return bool(filter_search.strip()) or bool(search.strip())
-
-
-def sort_field_from_kwargs(kwargs: dict) -> list[str] | None:
-    sort_by = kwargs.get("sort_by", {}) or {}
-    return sort_by.get("field") or sort_by.get("attribute_id")
-
-
-def check_for_sorting_by_rank(info, kwargs: dict):
-    if sort_field_from_kwargs(kwargs) == ProductOrderField.RANK:
-        # sort by RANK can be used only with search filter
-        if not search_string_in_kwargs(kwargs):
-            raise GraphQLError(
-                "Sorting by RANK is available only when using a search filter "
-                "or search argument."
-            )
-    if search_string_in_kwargs(kwargs) and not sort_field_from_kwargs(kwargs):
-        # default to sorting by RANK if search is used
-        # and no explicit sorting is requested
-        product_type = info.schema.get_type("ProductOrder")
-        kwargs["sort_by"] = product_type.create_container(
-            {"direction": "-", "field": ["search_rank", "id"]}
-        )

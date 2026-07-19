@@ -5,10 +5,14 @@ from django.core.exceptions import ValidationError
 from django.db.models import F, Q
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ....warehouse.error_codes import StockBulkUpdateErrorCode
 from ....warehouse.lock_objects import stock_qs_select_for_update
+from ....warehouse.webhooks.stock_events import (
+    trigger_product_variant_stocks_updated,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -22,7 +26,7 @@ from ...core.types import (
 )
 from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_user_or_app_from_context
 from ..types import Stock
 
 
@@ -391,13 +395,16 @@ class StockBulkUpdate(BaseMutation):
 
     @classmethod
     def post_save_actions(cls, info, instances):
-        manager = get_plugin_manager_promise(info.context).get()
         if instances:
             webhooks = get_webhooks_for_event(
                 WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
             )
-            cls.call_event(
-                manager.product_variant_stocks_updated, instances, webhooks=webhooks
+            requestor = get_user_or_app_from_context(info.context)
+            call_event(
+                trigger_product_variant_stocks_updated,
+                instances,
+                webhooks=webhooks,
+                requestor=requestor,
             )
 
     @classmethod

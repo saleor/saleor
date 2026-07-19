@@ -1,4 +1,31 @@
+from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
+from pydantic import ValidationError as PydanticValidationError
+
+
+def pydantic_to_validation_error(
+    exc: PydanticValidationError, default_error_code: str = "invalid"
+) -> ValidationError:
+    """Convert Pydantic ValidationError to Django ValidationError.
+
+    Each pydantic error can carry a per-error code by raising
+    PydanticCustomError with ``{"error_code": ...}`` in its context dict.
+    Falls back to ``"required"`` for missing-field errors, and to
+    ``default_error_code`` for all other built-in constraint errors.
+    """
+    errors: dict[str, ValidationError] = {}
+
+    for error in exc.errors():
+        field = str(error["loc"][0]) if error["loc"] else "input"
+        if error.get("type") == "missing":
+            code = "required"
+        else:
+            code = error.get("ctx", {}).get("error_code", default_error_code)
+        errors[field] = ValidationError(
+            error["msg"],
+            code=code,
+        )
+    return ValidationError(errors)
 
 
 def clear_traceback_locals(tb):

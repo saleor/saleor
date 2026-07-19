@@ -15,6 +15,7 @@ from ...permission.enums import (
 )
 from ...permission.utils import all_permissions_required
 from ..core import ResolveInfo
+from ..site.dataloaders import get_site_promise
 
 SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "addressCreate": [AccountPermissions.MANAGE_USERS],
@@ -77,6 +78,7 @@ class I18nMixin:
         format_check=True,
         required_check=True,
         enable_normalization=True,
+        preserve_all_address_fields=False,
     ):
         phone = address_data.get("phone", None)
         params = {"address_type": address_type} if address_type else {}
@@ -100,6 +102,7 @@ class I18nMixin:
             address_data.get("country"),
             instance=instance,
             enable_normalization=enable_normalization,
+            preserve_all_address_fields=preserve_all_address_fields,
         )
         validation_skipped = False
         if not address_form.is_valid():
@@ -152,10 +155,10 @@ class I18nMixin:
     def validate_address(
         cls,
         address_data: dict,
+        info: ResolveInfo,
         *,
         address_type: str | None = None,
         instance: Address | None = None,
-        info=None,
         format_check=True,
         required_check=True,
         enable_normalization=True,
@@ -174,12 +177,16 @@ class I18nMixin:
             cls.can_skip_address_validation(info)
             format_check = False
 
+        site = get_site_promise(info.context).get()
+        preserve_all_address_fields = site.settings.preserve_all_address_fields
+
         address_form = cls._validate_address_form(
             address_data,
             address_type,
             format_check=format_check,
             required_check=required_check,
             enable_normalization=enable_normalization,
+            preserve_all_address_fields=preserve_all_address_fields,
         )
         address_data = address_form.cleaned_data
 

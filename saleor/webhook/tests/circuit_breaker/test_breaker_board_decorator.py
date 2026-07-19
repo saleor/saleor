@@ -11,7 +11,7 @@ from .utils import create_breaker_board
 # mocked.
 
 
-def test_breaker_board(
+def test_breaker_board_for_promise_handler(
     settings,
     breaker_storage,
     app_with_webhook,
@@ -21,20 +21,22 @@ def test_breaker_board(
     expected_data = {"some": "data"}
     _, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage)
-    transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
-    assert hasattr(transport.trigger_webhook_sync, "__wrapped__") is True
+    transport.trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
+        transport.trigger_webhook_sync_promise
+    )
+    assert hasattr(transport.trigger_webhook_sync_promise, "__wrapped__") is True
 
     # when
     with patch(
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
         new=Mock(return_value=expected_data),
     ):
-        response_data = transport.trigger_webhook_sync(
+        response_data = transport.trigger_webhook_sync_promise(
             event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-            payload="",
+            static_payload="",
             webhook=webhook,
             allow_replica=True,
-        )
+        ).get()
     state = breaker_board.update_breaker_state(webhook.app)
 
     # then
@@ -42,23 +44,30 @@ def test_breaker_board(
     assert state == CircuitBreakerState.CLOSED
 
 
-def test_breaker_board_trip(settings, breaker_storage, app_with_webhook):
+def test_breaker_board_trip_for_promise_handler(
+    settings, breaker_storage, app_with_webhook
+):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     app, webhook = app_with_webhook
     cooldown = 30
     breaker_board = create_breaker_board(breaker_storage, cooldown_seconds=cooldown)
-    transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
+    transport.trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
+        transport.trigger_webhook_sync_promise
+    )
     breaker_board.register_error(app.id)
 
     # when
     with patch(
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
-        new=Mock(return_value=None),
+        return_value=None,
     ):
-        response_data = transport.trigger_webhook_sync(
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
-        )
+        response_data = transport.trigger_webhook_sync_promise(
+            event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            static_payload="",
+            webhook=webhook,
+            allow_replica=True,
+        ).get()
     state = breaker_board.update_breaker_state(app)
 
     # then
@@ -66,13 +75,17 @@ def test_breaker_board_trip(settings, breaker_storage, app_with_webhook):
     assert state == CircuitBreakerState.OPEN
 
 
-def test_breaker_board_enter_half_open(settings, breaker_storage, app_with_webhook):
+def test_breaker_board_enter_half_open_for_promise_handler(
+    settings, breaker_storage, app_with_webhook
+):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     expected_data = {"some": "data"}
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage)
-    transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
+    transport.trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
+        transport.trigger_webhook_sync_promise
+    )
     breaker_board.storage.set_app_state(app.id, CircuitBreakerState.OPEN, 100)
 
     # when
@@ -80,9 +93,12 @@ def test_breaker_board_enter_half_open(settings, breaker_storage, app_with_webho
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
         new=Mock(return_value=expected_data),
     ):
-        response_data = transport.trigger_webhook_sync(
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
-        )
+        response_data = transport.trigger_webhook_sync_promise(
+            event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            static_payload="",
+            webhook=webhook,
+            allow_replica=True,
+        ).get()
     state = breaker_board.update_breaker_state(app)
 
     # then
@@ -90,13 +106,17 @@ def test_breaker_board_enter_half_open(settings, breaker_storage, app_with_webho
     assert state == CircuitBreakerState.HALF_OPEN
 
 
-def test_breaker_board_closes_on_half_open(settings, breaker_storage, app_with_webhook):
+def test_breaker_board_closes_on_half_open_for_promise_handler(
+    settings, breaker_storage, app_with_webhook
+):
     # given
     settings.BREAKER_BOARD_SYNC_EVENTS = ["shipping_list_methods_for_checkout"]
     expected_data = {"some": "data"}
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage, success_count_recovery=1)
-    transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
+    transport.trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
+        transport.trigger_webhook_sync_promise
+    )
     breaker_board.storage.set_app_state(app.id, CircuitBreakerState.HALF_OPEN, 0)
 
     # when
@@ -104,9 +124,12 @@ def test_breaker_board_closes_on_half_open(settings, breaker_storage, app_with_w
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
         new=Mock(return_value=expected_data),
     ):
-        response_data = transport.trigger_webhook_sync(
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
-        )
+        response_data = transport.trigger_webhook_sync_promise(
+            event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            static_payload="",
+            webhook=webhook,
+            allow_replica=True,
+        ).get()
     state = breaker_board.update_breaker_state(app)
 
     # then
@@ -114,7 +137,7 @@ def test_breaker_board_closes_on_half_open(settings, breaker_storage, app_with_w
     assert state == CircuitBreakerState.CLOSED
 
 
-def test_breaker_board_closes_stays_half_open_below_threshold(
+def test_breaker_board_closes_stays_half_open_below_threshold_for_promise_handler(
     settings, breaker_storage, app_with_webhook
 ):
     # given
@@ -122,7 +145,9 @@ def test_breaker_board_closes_stays_half_open_below_threshold(
     expected_data = {"some": "data"}
     app, webhook = app_with_webhook
     breaker_board = create_breaker_board(breaker_storage, success_count_recovery=2)
-    transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
+    transport.trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
+        transport.trigger_webhook_sync_promise
+    )
     breaker_board.storage.set_app_state(app.id, CircuitBreakerState.HALF_OPEN, 0)
 
     # when
@@ -130,9 +155,12 @@ def test_breaker_board_closes_stays_half_open_below_threshold(
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
         new=Mock(return_value=expected_data),
     ):
-        response_data = transport.trigger_webhook_sync(
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
-        )
+        response_data = transport.trigger_webhook_sync_promise(
+            event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            static_payload="",
+            webhook=webhook,
+            allow_replica=True,
+        ).get()
     state = breaker_board.update_breaker_state(app)
 
     # then
@@ -140,7 +168,7 @@ def test_breaker_board_closes_stays_half_open_below_threshold(
     assert state == CircuitBreakerState.HALF_OPEN
 
 
-def test_breaker_board_reopens_on_half_open(
+def test_breaker_board_reopens_on_half_open_for_promise_handler(
     settings, breaker_storage, app_with_webhook
 ):
     # given
@@ -150,7 +178,9 @@ def test_breaker_board_reopens_on_half_open(
     breaker_board = create_breaker_board(
         breaker_storage, cooldown_seconds=cooldown, failure_min_count_recovery=1
     )
-    transport.trigger_webhook_sync = breaker_board(transport.trigger_webhook_sync)
+    transport.trigger_webhook_sync_promise = breaker_board.wrap_promise_func(
+        transport.trigger_webhook_sync_promise
+    )
     breaker_board.register_error(app.id)
     breaker_board.storage.set_app_state(
         app.id, CircuitBreakerState.HALF_OPEN, int(time.time())
@@ -161,9 +191,12 @@ def test_breaker_board_reopens_on_half_open(
         "saleor.webhook.transport.synchronous.transport.send_webhook_request_sync",
         new=Mock(return_value=None),
     ):
-        response_data = transport.trigger_webhook_sync(
-            WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT, "", webhook, True
-        )
+        response_data = transport.trigger_webhook_sync_promise(
+            event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+            static_payload="",
+            webhook=webhook,
+            allow_replica=True,
+        ).get()
     state = breaker_board.update_breaker_state(app)
 
     # then

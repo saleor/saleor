@@ -626,6 +626,40 @@ def test_checkout_create(api_client, stock, graphql_address_data, channel_USD):
     assert new_checkout.shipping_address.validation_skipped is False
 
 
+@pytest.mark.parametrize(
+    ("_case", "lines_input"),
+    [
+        ("omitted", {}),
+        ("empty_list", {"lines": []}),
+        ("explicit_null", {"lines": None}),
+    ],
+)
+def test_checkout_create_without_lines(_case, lines_input, api_client, channel_USD):
+    """Create checkout when lines are omitted, empty, or null - no lines are created."""
+    # given
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            **lines_input,
+        }
+    }
+    assert not Checkout.objects.exists()
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+    assert content["errors"] == []
+
+    new_checkout = Checkout.objects.get()
+    assert new_checkout.lines.exists() is False
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert checkout_data["lines"] == []
+    assert checkout_data["quantity"] == 0
+
+
 def test_checkout_create_with_custom_price(
     app_api_client,
     stock,
@@ -1105,6 +1139,37 @@ def test_checkout_create_no_channel_shipping_zones(
     assert len(errors) == 1
     assert errors[0]["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
     assert errors[0]["field"] == "quantity"
+
+
+def test_checkout_create_no_channel_shipping_zones_excluded_from_stock_calculations(
+    api_client, stock, graphql_address_data, channel_USD, site_settings
+):
+    # given
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    channel_USD.shipping_zones.clear()
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # then - no INSUFFICIENT_STOCK error when flag is disabled
+    errors = content["errors"]
+    assert not errors
+    assert content["checkout"]
 
 
 def test_checkout_create_multiple_warehouse(
@@ -2754,6 +2819,7 @@ MUTATION_CHECKOUT_CREATE_WITH_ONLY_ID = """
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_create_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -2817,11 +2883,13 @@ def test_checkout_create_triggers_webhooks(
                 "requestor_model_name": None,
                 "requestor_object_id": None,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

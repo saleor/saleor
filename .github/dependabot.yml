@@ -4,8 +4,16 @@ updates:
   directory: "/"
   schedule:
     interval: "weekly"
+  cooldown:
+    default-days: 21 # 3 weeks
+  groups:
+    all-github-action-updates:
+      patterns:
+        - "*"
 - package-ecosystem: "uv"
   directory: "/"
   schedule:
     interval: "weekly"
   open-pull-requests-limit: 10
+  cooldown:
+    default-days: 21 # 3 weeks

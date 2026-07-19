@@ -6,7 +6,8 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ......account.error_codes import PermissionGroupErrorCode
-from ......account.models import Group, User
+from ......account.models import Group
+from ......account.tests.fixtures.user import dangerously_create_test_user
 from ......channel.models import Channel
 from ......core.utils.json_serializer import CustomJsonEncoder
 from ......permission.enums import AccountPermissions, AppPermission, OrderPermissions
@@ -429,14 +430,15 @@ def test_permission_group_update_mutation_removing_perm_left_not_manageable_perm
     permission_group_manage_apps,
     permission_group_manage_users,
 ):
-    """Ensure user cannot remove permissions if it left not meanagable perms."""
+    """Ensure user cannot remove permissions if it left not manageable perms."""
+
+    group = permission_group_manage_users
+    group_user = group.user_set.first()
     staff_api_client.user.groups.add(
         permission_group_manage_apps, permission_group_manage_users
     )
-    group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
-    group_user = group.user_set.first()
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
@@ -1174,7 +1176,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
     permission_manage_products,
 ):
     staff_user = staff_users[0]
-    staff_user3 = User.objects.create_user(
+    staff_user3 = dangerously_create_test_user(
         email="staff3_test@example.com",
         password="password",
         is_staff=True,

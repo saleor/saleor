@@ -1,3 +1,4 @@
+from ...account.search import update_user_search_vector
 from ...core.postgres import FlatConcatSearchVector
 from ...core.search_tasks import (
     set_order_search_document_values,
@@ -7,9 +8,12 @@ from ...core.search_tasks import (
 
 def test_set_user_search_document_values(customer_user, customer_user2):
     # given
-    assert customer_user.search_document == ""
-    customer_user2.search_document = "existing_search_document"
-    customer_user2.save(update_fields=["search_document"])
+    assert not customer_user.search_vector
+
+    update_user_search_vector(customer_user2)
+    customer_user2.refresh_from_db()
+    assert customer_user2.search_vector
+    search_vector_customer_2 = customer_user2.search_vector
 
     # when
     set_user_search_document_values()
@@ -17,8 +21,9 @@ def test_set_user_search_document_values(customer_user, customer_user2):
     # then
     customer_user.refresh_from_db()
     customer_user2.refresh_from_db()
-    assert customer_user.email in customer_user.search_document
-    assert customer_user2.search_document == "existing_search_document"
+    assert customer_user.search_vector
+    assert customer_user.email in customer_user.search_vector
+    assert customer_user2.search_vector == search_vector_customer_2
 
 
 def test_set_order_search_document_values_already_present(

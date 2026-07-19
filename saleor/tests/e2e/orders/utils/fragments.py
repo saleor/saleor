@@ -11,6 +11,7 @@ fragment OrderLine on OrderLine {
     translatedProductName
     productVariantId
     isShippingRequired
+    isGift
     quantity
     quantityFulfilled
     unitPrice {

@@ -13,9 +13,7 @@ from .....checkout import base_calculations, calculations
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.utils import (
-    add_variant_to_checkout,
-)
+from .....checkout.tests.utils import add_variant_to_checkout
 from .....core.models import EventDelivery
 from .....discount import DiscountValueType, VoucherType
 from .....plugins.manager import get_plugins_manager
@@ -98,10 +96,7 @@ def test_checkout_add_voucher_for_entire_order(api_client, checkout_with_item, v
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     taxed_total = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_item.shipping_address,
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
 
     # when
@@ -281,7 +276,6 @@ def test_checkout_add_products_voucher_code_checkout_with_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     voucher_discount_value = (
@@ -310,7 +304,6 @@ def test_checkout_add_products_voucher_code_checkout_with_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + Money(
@@ -365,7 +358,6 @@ def test_checkout_add_voucher_code_checkout_on_promotion(
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    address = checkout.shipping_address
 
     voucher_discount_value = (
         voucher_percentage.channel_listings.filter(channel=checkout.channel)
@@ -379,7 +371,6 @@ def test_checkout_add_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=address,
     )
 
     variables = {
@@ -431,7 +422,6 @@ def test_checkout_add_specific_product_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     variables = {
@@ -454,7 +444,6 @@ def test_checkout_add_specific_product_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + Money(
@@ -498,7 +487,6 @@ def test_checkout_add_collection_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     variables = {
@@ -521,7 +509,6 @@ def test_checkout_add_collection_voucher_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     assert not data["errors"]
@@ -561,7 +548,6 @@ def test_checkout_add_category_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     variables = {
         "id": to_global_id_or_none(checkout),
@@ -583,7 +569,6 @@ def test_checkout_add_category_code_checkout_on_promotion(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + Money(
@@ -706,7 +691,6 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout.shipping_address,
     )
 
     variables = {
@@ -884,10 +868,7 @@ def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     taxed_total = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout_with_item.shipping_address,
+        manager=manager, checkout_info=checkout_info, lines=lines
     )
     total_with_gift_card = taxed_total.gross.amount - gift_card.current_balance_amount
 
@@ -913,7 +894,6 @@ def test_checkout_get_total_with_many_gift_card(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout_with_gift_card.shipping_address,
     )
     total_with_gift_card = (
         taxed_total.gross.amount - gift_card_created_by_staff.current_balance_amount
@@ -1376,6 +1356,7 @@ MUTATION_CHECKOUT_ADD_PROMO_CODE_WITH_ONLY_ID = """
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_add_voucher_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -1432,11 +1413,13 @@ def test_checkout_add_voucher_triggers_webhooks(
                 "requestor_model_name": None,
                 "requestor_object_id": None,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

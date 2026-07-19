@@ -10,7 +10,6 @@ from .....core.tracing import traced_atomic_transaction
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_319
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import AccountError
@@ -47,7 +46,6 @@ class AccountAddressCreate(
                 "ID of customer the application is impersonating. "
                 "The field can be used and is required by apps only. "
                 "Requires IMPERSONATE_USER and AUTHENTICATED_APP permission."
-                + ADDED_IN_319
             ),
         )
 
@@ -105,8 +103,7 @@ class AccountAddressCreate(
         super().save(info, instance, cleaned_input)
         remove_the_oldest_user_address_if_address_limit_is_reached(user)
         instance.user_addresses.add(user)
-        user.search_document = search.prepare_user_search_document_value(user)
-        user.save(update_fields=["search_document", "updated_at"])
+        search.update_user_search_vector(user)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.customer_updated, user)
         cls.call_event(manager.address_created, instance)

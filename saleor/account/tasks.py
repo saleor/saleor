@@ -6,7 +6,10 @@ from django.utils import timezone
 
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
-from ..core.tokens import token_generator
+from ..core.tokens import (
+    account_confirm_token_generator,
+    password_reset_token_generator,
+)
 from ..core.utils.events import call_event
 from ..core.utils.url import prepare_url
 from ..graphql.plugins.dataloaders import get_plugin_manager_promise
@@ -54,7 +57,7 @@ def trigger_send_password_reset_notification(
         staff=user.is_staff,
     )
 
-    token = token_generator.make_token(user)
+    token = password_reset_token_generator.make_token(user)
     redirect_params = _prepare_redirect_url(user, redirect_url, token)
 
     if user.is_staff:
@@ -85,10 +88,7 @@ def finish_creating_user(user_pk, redirect_url, channel_slug, context_data):
         return
 
     user = User.objects.get(pk=user_pk)
-    user.search_document = search.prepare_user_search_document_value(
-        user, attach_addresses_data=False
-    )
-    user.save(update_fields=["search_document"])
+    search.update_user_search_vector(user)
 
     context_data["allow_replica"] = True
     context = RequestorAwareContext.from_context_data(context_data)
@@ -98,7 +98,7 @@ def finish_creating_user(user_pk, redirect_url, channel_slug, context_data):
 
     if site.settings.enable_account_confirmation_by_email:
         # Notifications will be deprecated in the future
-        token = token_generator.make_token(user)
+        token = account_confirm_token_generator.make_token(user)
         notifications.send_account_confirmation(
             user=user,
             redirect_url=redirect_url,

@@ -55,6 +55,18 @@ class ProductTypeEnum(BaseEnum):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
 
+    @property
+    def deprecation_reason(self):
+        deprecations = {
+            ProductTypeEnum.DIGITAL.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+                "DIGITAL will removed in Saleor 3.24.0, use metadata or "
+                "attributes instead."
+            )
+        }
+        if self.name in deprecations:
+            return deprecations[self.name]
+        return None
+
 
 class VariantAttributeScope(BaseEnum):
     ALL = "all"

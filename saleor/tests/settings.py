@@ -50,8 +50,6 @@ PATTERNS_IGNORED_IN_QUERY_CAPTURES: list[Pattern | SimpleLazyObject] = [
 
 INSTALLED_APPS.append("saleor.tests")  # noqa: F405
 
-JWT_EXPIRE = True
-
 DEFAULT_CHANNEL_SLUG = "main"
 
 RSA_PRIVATE_KEY = """-----BEGIN RSA PRIVATE KEY-----

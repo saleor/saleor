@@ -7,7 +7,6 @@ from freezegun import freeze_time
 
 from ......account.error_codes import AccountErrorCode
 from ......account.models import Address
-from ......account.search import generate_address_search_document_value
 from ......checkout import AddressType
 from ......webhook.event_types import WebhookEventAsyncType
 from .....tests.utils import assert_no_permission, get_graphql_content
@@ -63,10 +62,7 @@ def test_customer_create_address(user_api_client, graphql_address_data):
     assert address.metadata == {"public": "public_value"}
     assert address.validation_skipped is False
     assert user.addresses.count() == user_addresses_count + 1
-    assert (
-        generate_address_search_document_value(user.addresses.last())
-        in user.search_document
-    )
+    assert user.search_vector
 
 
 @freeze_time("2022-05-12 12:00:00")

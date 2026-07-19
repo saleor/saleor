@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
@@ -12,9 +12,9 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.db.fields import MoneyField, SanitizedJSONField
+from ..core.editorjs import clean_editorjs
 from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
-from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
 from ..permission.enums import ShippingPermissions
@@ -25,9 +25,9 @@ from .postal_codes import filter_shipping_methods_by_postal_code_rules
 if TYPE_CHECKING:
     from ..account.models import Address
     from ..checkout.fetch import CheckoutLineInfo
-    from ..checkout.models import Checkout
+    from ..checkout.models import Checkout, CheckoutLine
     from ..order.fetch import OrderLineInfo
-    from ..order.models import Order
+    from ..order.models import Order, OrderLine
 
 
 def _applicable_weight_based_methods(weight, qs):
@@ -174,7 +174,13 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
         price: Money,
         shipping_address: Optional["Address"] = None,
         country_code: str | None = None,
-        lines: list["CheckoutLineInfo"] | list["OrderLineInfo"] | None = None,
+        lines: (
+            list["CheckoutLineInfo"]
+            | list["OrderLineInfo"]
+            | list["CheckoutLine"]
+            | list["OrderLine"]
+            | None
+        ) = None,
         database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
     ):
         if not shipping_address:
@@ -185,11 +191,19 @@ class ShippingMethodQueryset(models.QuerySet["ShippingMethod"]):
 
         if lines is None:
             # TODO: lines should comes from args in get_valid_shipping_methods_for_order
-            lines = list(
-                instance.lines.prefetch_related("variant__product")
-                .using(database_connection_name)
-                .all()
+            lines = cast(
+                # Cast is needed b/c mypy forgets the model type and collapses it to
+                # list[ModelWithMetadata] instead of list[CheckoutLine] | list[OrderLine]
+                list["CheckoutLine"] | list["OrderLine"],
+                list(
+                    instance.lines.prefetch_related("variant__product")
+                    .using(database_connection_name)
+                    .all()
+                ),
             )
+
+        # Not null anymore
+        lines = cast(list["CheckoutLineInfo"] | list["OrderLineInfo"], lines)
         instance_product_ids = {
             line.variant.product_id for line in lines if line.variant
         }
@@ -240,7 +254,7 @@ class ShippingMethod(ModelWithMetadata):
     excluded_products = models.ManyToManyField("product.Product", blank=True)
     maximum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
     minimum_delivery_days = models.PositiveIntegerField(null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     tax_class = models.ForeignKey(
         TaxClass,
         related_name="shipping_methods",
@@ -339,7 +353,7 @@ class ShippingMethodTranslation(Translation):
     shipping_method = models.ForeignKey(
         ShippingMethod, related_name="translations", on_delete=models.CASCADE
     )
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
 
     class Meta:
         unique_together = (("language_code", "shipping_method"),)

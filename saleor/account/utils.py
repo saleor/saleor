@@ -129,33 +129,6 @@ def change_user_default_address(
         set_user_default_shipping_address(user, address)
 
 
-def create_superuser(credentials):
-    user, created = User.objects.get_or_create(
-        email=credentials["email"],
-        defaults={"is_active": True, "is_staff": True, "is_superuser": True},
-    )
-    if created:
-        user.set_password(credentials["password"])
-        user.save()
-        msg = f"Superuser - {credentials['email']}/{credentials['password']}"
-    else:
-        msg = f"Superuser already exists - {credentials['email']}"
-    return msg
-
-
-def remove_staff_member(staff):
-    """Remove staff member account only if it has no orders placed.
-
-    Otherwise, switches is_staff status to False.
-    """
-    if staff.orders.exists():
-        staff.is_staff = False
-        staff.user_permissions.clear()
-        staff.save()
-    else:
-        staff.delete()
-
-
 def retrieve_user_by_email(email):
     """Retrieve user by email.
 

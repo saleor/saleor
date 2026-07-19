@@ -1,4 +1,3 @@
-import uuid
 from functools import partial
 from typing import cast
 
@@ -33,13 +32,18 @@ from ..core.connection import (
     CountableConnection,
     create_connection_slice,
     create_connection_slice_for_sync_webhook_control_context,
+    filter_connection_queryset,
 )
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_322,
+    DEPRECATED_LEGACY_PAYMENTS,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.fields import ConnectionField, PermissionsField
+from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
 from ..core.scalars import UUID, DateTime
 from ..core.tracing import traced_resolver
 from ..core.types import (
@@ -56,7 +60,8 @@ from ..core.types import (
 from ..core.utils import from_global_id_or_error, str_to_enum, to_global_id_or_none
 from ..giftcard.dataloaders import GiftCardsByUserLoader
 from ..meta.types import ObjectWithMetadata
-from ..order.dataloaders import OrderByIdLoader, OrderLineByIdLoader, OrdersByUserLoader
+from ..order.dataloaders import OrderByIdLoader, OrdersByUserLoader
+from ..order.filters import CustomerOrderWhereInput
 from ..payment.types import StoredPaymentMethod
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -106,7 +111,6 @@ class AddressInput(BaseInputObjectType):
             "library. Some mutations may require additional permissions to use the "
             "the field. More info about permissions can be found in relevant mutation."
         )
-        + ADDED_IN_319
         + PREVIEW_FEATURE,
         default_value=False,
         required=False,
@@ -229,9 +233,6 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
     order = graphene.Field(
         "saleor.graphql.order.types.Order", description="The concerned order."
     )
-    order_line = graphene.Field(
-        "saleor.graphql.order.types.OrderLine", description="The concerned order line."
-    )
 
     class Meta:
         description = "History log of the customer."
@@ -282,22 +283,6 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
             return (
                 OrderByIdLoader(info.context)
                 .load(root.order_id)
-                .then(_wrap_with_sync_webhook_control_context)
-            )
-        return None
-
-    @staticmethod
-    def resolve_order_line(root: models.CustomerEvent, info: ResolveInfo):
-        if "order_line_pk" in root.parameters:
-
-            def _wrap_with_sync_webhook_control_context(line):
-                if not line:
-                    return None
-                return SyncWebhookControlContext(node=line, allow_sync_webhooks=False)
-
-            return (
-                OrderLineByIdLoader(info.context)
-                .load(uuid.UUID(root.parameters["order_line_pk"]))
                 .then(_wrap_with_sync_webhook_control_context)
             )
         return None
@@ -407,8 +392,11 @@ class User(ModelObjectType[models.User]):
         description="A note about the customer.",
         permissions=[AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF],
     )
-    orders = ConnectionField(
+    orders = FilterConnectionField(
         "saleor.graphql.order.types.OrderCountableConnection",
+        where=CustomerOrderWhereInput(
+            description="Where filtering options for orders." + ADDED_IN_322
+        ),
         description=(
             "List of user's orders. The query will not initiate any external requests, "
             "including filtering available shipping methods, or performing external "
@@ -459,6 +447,7 @@ class User(ModelObjectType[models.User]):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True
@@ -684,6 +673,42 @@ class User(ModelObjectType[models.User]):
             )
         requester = user_or_app
 
+        where_input = kwargs.get("where")
+
+        if where_input:
+            # Queryset-based path to support `where` filtering.
+            def _build_orders_qs(accessible_channels=None):
+                database_connection_name = get_database_connection_name(info.context)
+                qs = models.Order.objects.using(database_connection_name).filter(
+                    user_id=root.id
+                )
+                if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+                    qs = qs.non_draft()
+                # Return only orders from channels that the user has access to.
+                # The app has access to all channels.
+                if root != requester and accessible_channels is not None:
+                    channel_ids = [channel.id for channel in accessible_channels]
+                    qs = qs.filter(channel_id__in=channel_ids)
+                qs = filter_connection_queryset(
+                    qs, kwargs, allow_replica=info.context.allow_replica
+                )
+                return create_connection_slice_for_sync_webhook_control_context(
+                    qs,
+                    info,
+                    kwargs,
+                    OrderCountableConnection,
+                    allow_sync_webhooks=False,
+                )
+
+            if isinstance(requester, models.User) and root != requester:
+                return (
+                    AccessibleChannelsByUserIdLoader(info.context)
+                    .load(requester.id)
+                    .then(_build_orders_qs)
+                )
+            return _build_orders_qs()
+
+        # Dataloader-based path for unfiltered queries.
         def _resolve_orders(data):
             orders = data[0]
             accessible_channels = data[1] if len(data) == 2 else None
@@ -692,7 +717,6 @@ class User(ModelObjectType[models.User]):
                 orders = [
                     order for order in orders if order.status != OrderStatus.DRAFT
                 ]
-
             # Return only orders from channels that the user has access to.
             # The app has access to all channels.
             if root != user_or_app and accessible_channels is not None:
@@ -700,7 +724,6 @@ class User(ModelObjectType[models.User]):
                 orders = [
                     order for order in orders if order.channel_id in accessible_channels
                 ]
-
             return create_connection_slice_for_sync_webhook_control_context(
                 orders,
                 info,
@@ -714,7 +737,6 @@ class User(ModelObjectType[models.User]):
             to_fetch.append(
                 AccessibleChannelsByUserIdLoader(info.context).load(requester.id)
             )
-
         return Promise.all(to_fetch).then(_resolve_orders)
 
     @staticmethod

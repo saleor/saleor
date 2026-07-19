@@ -23,7 +23,7 @@ from ..core.utils.url import build_absolute_uri, prepare_url
 from ..discount import DiscountType
 from ..graphql.core.utils import to_global_id_or_none
 from ..product import ProductMediaTypes
-from ..product.models import DigitalContentUrl, Product, ProductMedia, ProductVariant
+from ..product.models import Product, ProductMedia, ProductVariant
 from ..thumbnail import THUMBNAIL_SIZES
 from ..thumbnail.utils import get_image_or_proxy_url
 from .models import FulfillmentLine, Order, OrderLine
@@ -181,10 +181,6 @@ def get_product_variant_payload(variant: ProductVariant):
 
 
 def get_order_line_payload(line: "OrderLine", attribute_data: AttributeData):
-    digital_url: str | None = None
-    if line.is_digital:
-        content = DigitalContentUrl.objects.filter(line=line).first()
-        digital_url = content.get_absolute_url() if content else None
     variant_dependent_fields = {}
     if line.variant:
         variant_dependent_fields = {
@@ -216,8 +212,6 @@ def get_order_line_payload(line: "OrderLine", attribute_data: AttributeData):
         "total_tax_amount": quantize_price(line.total_price.tax.amount, currency),
         "tax_rate": line.tax_rate,
         "is_shipping_required": line.is_shipping_required,
-        "is_digital": line.is_digital,
-        "digital_url": digital_url,
         "unit_discount_value": line.unit_discount_value,
         "unit_discount_reason": line.unit_discount_reason,
         "unit_discount_type": line.unit_discount_type,
@@ -389,9 +383,6 @@ def get_default_fulfillment_payload(order, fulfillment):
         [line.order_line for line in lines]
     )
 
-    physical_lines = [line for line in lines if not line.order_line.is_digital]
-    digital_lines = [line for line in lines if line.order_line.is_digital]
-
     payload = {
         "order": get_default_order_payload(
             order, order.redirect_url, attribute_data=attribute_data
@@ -401,13 +392,11 @@ def get_default_fulfillment_payload(order, fulfillment):
             "is_tracking_number_url": fulfillment.is_tracking_number_url,
         },
         "physical_lines": [
-            get_default_fulfillment_line_payload(line, attribute_data)
-            for line in physical_lines
+            get_default_fulfillment_line_payload(line, attribute_data) for line in lines
         ],
-        "digital_lines": [
-            get_default_fulfillment_line_payload(line, attribute_data)
-            for line in digital_lines
-        ],
+        # Note: saleor keeps 'digital_lines' for backward compatibility but this
+        #       may be removed once ProductType supports metadata
+        "digital_lines": [],
         "recipient_email": order.get_customer_email(),
         **get_site_context(),
     }

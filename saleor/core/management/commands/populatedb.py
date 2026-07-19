@@ -5,7 +5,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from ....account.utils import create_superuser
+from ....account.tests.fixtures.user import dangerously_get_or_create_superuser
 from ...utils.random_data import (
     add_address_to_admin,
     create_catalogue_promotions,
@@ -83,6 +83,7 @@ class Command(BaseCommand):
         user_password = options["user_password"]
         staff_password = options["staff_password"]
         superuser_password = options["superuser_password"]
+        superuser_email = "admin@example.com"
 
         create_images = not options["withoutimages"]
         for msg in create_channels():
@@ -123,13 +124,20 @@ class Command(BaseCommand):
             self.stdout.write(msg)
 
         if options["createsuperuser"]:
-            credentials = {
-                "email": "admin@example.com",
-                "password": superuser_password,
-            }
-            msg = create_superuser(credentials)
-            self.stdout.write(msg)
-            add_address_to_admin(credentials["email"])
+            superuser, created = dangerously_get_or_create_superuser(
+                email=superuser_email,
+                password=superuser_password,
+            )
+            if created:
+                self.stdout.write(
+                    f"Superuser created successfully: "
+                    f"{superuser.email}, password: {superuser_password}"
+                )
+            else:
+                self.stderr.write(
+                    f"Superuser already exists in database ({superuser.email})"
+                )
+            add_address_to_admin(superuser.email)
         if not options["skipsequencereset"]:
             self.sequence_reset()
 

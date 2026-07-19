@@ -11,8 +11,8 @@ from .....checkout import base_calculations
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.tests.utils import add_variant_to_checkout
 from .....checkout.utils import (
-    add_variant_to_checkout,
     add_voucher_to_checkout,
     calculate_checkout_quantity,
     invalidate_checkout,
@@ -72,6 +72,8 @@ def test_checkout_line_delete(
     assert checkout.lines.count() == 1
     line = checkout.lines.first()
     assert line.quantity == 3
+    checkout.search_index_dirty = False
+    checkout.save(update_fields=["search_index_dirty"])
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
 
@@ -96,6 +98,7 @@ def test_checkout_line_delete(
     )
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout.call_count == 1
+    assert checkout.search_index_dirty is True
 
 
 @pytest.mark.parametrize(
@@ -264,12 +267,12 @@ def test_checkout_lines_delete_with_not_applicable_voucher(
 def test_checkout_line_marks_shipping_as_stale_if_removed_product_with_shipping(
     user_api_client,
     checkout_with_item,
-    digital_content,
+    product_without_shipping,
     address,
     checkout_delivery,
 ):
     checkout = checkout_with_item
-    digital_variant = digital_content.product_variant
+    variant = product_without_shipping.variants.get()
     checkout.shipping_address = address
     checkout.assigned_delivery = checkout_delivery(checkout)
     checkout.save()
@@ -277,7 +280,7 @@ def test_checkout_line_marks_shipping_as_stale_if_removed_product_with_shipping(
     checkout_info = fetch_checkout_info(
         checkout, [], get_plugins_manager(allow_replica=False)
     )
-    add_variant_to_checkout(checkout_info, digital_variant, 1)
+    add_variant_to_checkout(checkout_info, variant, 1)
     line = checkout.lines.first()
 
     line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
@@ -383,6 +386,7 @@ MUTATION_CHECKOUT_LINE_DELETE_WITH_ONLY_ID = """
     "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
 )
 @override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+@override_settings(WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME="deferred_queue")
 def test_checkout_line_delete_triggers_webhooks(
     mocked_generate_deferred_payloads,
     mocked_send_webhook_request_async,
@@ -449,11 +453,13 @@ def test_checkout_line_delete_triggers_webhooks(
                 "requestor_model_name": None,
                 "requestor_object_id": None,
                 "request_time": None,
+                "subscribable_object_data": None,
             },
             "send_webhook_queue": settings.CHECKOUT_WEBHOOK_EVENTS_CELERY_QUEUE_NAME,
             "telemetry_context": ANY,
         },
-        bind=True,
+        queue=settings.WEBHOOK_DEFERRED_PAYLOAD_QUEUE_NAME,
+        MessageGroupId="example.com",
     )
 
     # Deferred payload covers the sync and async actions

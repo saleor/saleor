@@ -15,8 +15,8 @@ from prices import Money, fixed_discount, percentage_discount
 from ..app.models import App
 from ..channel.models import Channel
 from ..core.db.fields import MoneyField, SanitizedJSONField
+from ..core.editorjs import clean_editorjs
 from ..core.models import ModelWithMetadata
-from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
 from ..permission.enums import DiscountPermissions
@@ -50,7 +50,7 @@ class NotApplicable(ValueError):
 
 
 class VoucherQueryset(models.QuerySet["Voucher"]):
-    def active(self, date):
+    def active(self, date, validate_usage_limit=True):
         subquery = (
             VoucherCode.objects.filter(voucher_id=OuterRef("pk"))
             .order_by()
@@ -58,13 +58,16 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
             .annotate(total_used=Sum("used"))
             .values("total_used")
         )
-        return self.filter(
-            Q(usage_limit__isnull=True) | Q(usage_limit__gt=Subquery(subquery)),
-            Q(end_date__isnull=True) | Q(end_date__gte=date),
-            start_date__lte=date,
+        lookup = (Q(end_date__isnull=True) | Q(end_date__gte=date)) & Q(
+            start_date__lte=date
         )
+        if validate_usage_limit:
+            lookup &= Q(usage_limit__isnull=True) | Q(
+                usage_limit__gt=Subquery(subquery)
+            )
+        return self.filter(lookup)
 
-    def active_in_channel(self, date, channel_slug: str):
+    def active_in_channel(self, date, channel_slug: str, validate_usage_limit=True):
         channels = Channel.objects.filter(
             slug=str(channel_slug), is_active=True
         ).values("id")
@@ -72,7 +75,7 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
             Exists(channels.filter(pk=OuterRef("channel_id"))),
         ).values("id")
 
-        return self.active(date).filter(
+        return self.active(date, validate_usage_limit).filter(
             Exists(channel_listings.filter(voucher_id=OuterRef("pk")))
         )
 
@@ -323,7 +326,7 @@ class Promotion(ModelWithMetadata):
         choices=PromotionType.CHOICES,
         default=PromotionType.CATALOGUE,
     )
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
@@ -360,7 +363,7 @@ class Promotion(ModelWithMetadata):
 
 class PromotionTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     promotion = models.ForeignKey(
         Promotion, related_name="translations", on_delete=models.CASCADE
     )
@@ -378,7 +381,7 @@ class PromotionTranslation(Translation):
 class PromotionRule(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255, blank=True, null=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     promotion = models.ForeignKey(
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
@@ -451,7 +454,7 @@ class PromotionRule_Variants(models.Model):
 
 class PromotionRuleTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
     promotion_rule = models.ForeignKey(
         PromotionRule, related_name="translations", on_delete=models.CASCADE
     )

@@ -23,14 +23,11 @@ def jwt_refresh_token_middleware(get_response):
         if jwt_refresh_token:
             expires = None
             secure = not settings.DEBUG
-            if settings.JWT_EXPIRE:
-                refresh_token_payload = jwt_decode_with_exception_handler(
-                    jwt_refresh_token
+            refresh_token_payload = jwt_decode_with_exception_handler(jwt_refresh_token)
+            if refresh_token_payload and refresh_token_payload.get("exp"):
+                expires = datetime.datetime.fromtimestamp(
+                    refresh_token_payload["exp"], tz=datetime.UTC
                 )
-                if refresh_token_payload and refresh_token_payload.get("exp"):
-                    expires = datetime.datetime.fromtimestamp(
-                        refresh_token_payload["exp"], tz=datetime.UTC
-                    )
             response.set_cookie(
                 JWT_REFRESH_TOKEN_COOKIE_NAME,
                 jwt_refresh_token,

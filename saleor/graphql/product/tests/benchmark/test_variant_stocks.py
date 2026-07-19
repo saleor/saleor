@@ -13,7 +13,10 @@ from ....tests.utils import get_graphql_content
     "saleor.graphql.product.bulk_mutations."
     "product_variant_stocks_create.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_create.trigger_product_variant_back_in_stock"
+)
 def test_product_variants_stocks_create(
     product_variant_back_in_stock_webhook_mock,
     mocked_get_webhooks_for_event,
@@ -84,7 +87,7 @@ def test_product_variants_stocks_create(
     )
     assert product_variant_back_in_stock_webhook_mock.call_count == 2
     product_variant_back_in_stock_webhook_mock.assert_called_with(
-        Stock.objects.last(), webhooks=[any_webhook]
+        Stock.objects.last(), webhooks=[any_webhook], requestor=staff_api_client.user
     )
 
 
@@ -94,7 +97,10 @@ def test_product_variants_stocks_create(
     "saleor.graphql.product.bulk_mutations."
     "product_variant_stocks_create.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_create.trigger_product_variant_back_in_stock"
+)
 def test_product_variants_stocks_create_with_single_webhook_called(
     product_variant_back_in_stock_webhook_mock,
     mocked_get_webhooks_for_event,
@@ -160,7 +166,7 @@ def test_product_variants_stocks_create_with_single_webhook_called(
         == stocks_count + len(stocks)
     )
     product_variant_back_in_stock_webhook_mock.assert_called_with(
-        Stock.objects.last(), webhooks=[any_webhook]
+        Stock.objects.last(), webhooks=[any_webhook], requestor=staff_api_client.user
     )
 
 
@@ -297,7 +303,10 @@ PRODUCT_VARIANT_STOCKS_DELETE_MUTATION = """
     "saleor.graphql.product.bulk_mutations."
     "product_variant_stocks_delete.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_delete.trigger_product_variant_out_of_stock"
+)
 def test_product_variants_stocks_delete_by_id(
     product_variant_out_of_stock_webhook_mock,
     mocked_get_webhooks_for_event,
@@ -346,7 +355,7 @@ def test_product_variants_stocks_delete_by_id(
     )
     assert stock_to_delete not in Stock.objects.all()
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        stock_to_delete, webhooks=[any_webhook]
+        stock_to_delete, webhooks=[any_webhook], requestor=staff_api_client.user
     )
 
 
@@ -356,7 +365,10 @@ def test_product_variants_stocks_delete_by_id(
     "saleor.graphql.product.bulk_mutations."
     "product_variant_stocks_delete.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_delete.trigger_product_variant_out_of_stock"
+)
 def test_product_variants_stocks_delete_by_sku(
     product_variant_out_of_stock_webhook_mock,
     mocked_get_webhooks_for_event,
@@ -404,7 +416,7 @@ def test_product_variants_stocks_delete_by_sku(
     )
     assert stock_to_delete not in Stock.objects.all()
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        stock_to_delete, webhooks=[any_webhook]
+        stock_to_delete, webhooks=[any_webhook], requestor=staff_api_client.user
     )
 
 
@@ -414,7 +426,10 @@ def test_product_variants_stocks_delete_by_sku(
     "saleor.graphql.product.bulk_mutations."
     "product_variant_stocks_delete.get_webhooks_for_event"
 )
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+@patch(
+    "saleor.graphql.product.bulk_mutations."
+    "product_variant_stocks_delete.trigger_product_variant_out_of_stock"
+)
 def test_product_variants_stocks_delete_with_out_of_stock_webhook_many_calls(
     product_variant_out_of_stock_webhook_mock,
     mocked_get_webhooks_for_event,

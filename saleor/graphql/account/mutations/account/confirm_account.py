@@ -3,7 +3,11 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from .....account import models
 from .....account.error_codes import AccountErrorCode
-from .....core.tokens import token_generator
+from .....core.tokens import (
+    account_confirm_token_generator,
+    legacy_account_confirm_token_generator,
+    try_generators,
+)
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....webhook.event_types import WebhookEventAsyncType
@@ -49,14 +53,21 @@ class ConfirmAccount(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         error = False
         try:
-            user = models.User.objects.get(email=data["email"])
+            user = models.User.objects.get(
+                email=data["email"], is_active=True, is_confirmed=False
+            )
         except ObjectDoesNotExist:
             # If user doesn't exists in the database we create fake user for calculation
             # purpose, as we don't want to indicate non existence of user in the system.
             error = True
             user = models.User()
 
-        valid_token = token_generator.check_token(user, data["token"])
+        valid_token = try_generators(
+            current_generator=account_confirm_token_generator,
+            fallback_generator=legacy_account_confirm_token_generator,
+            user=user,
+            token=data["token"],
+        )
         if not valid_token or error:
             raise ValidationError(
                 {
@@ -66,9 +77,8 @@ class ConfirmAccount(BaseMutation):
                 }
             )
 
-        user.is_active = True
         user.is_confirmed = True
-        user.save(update_fields=["is_active", "is_confirmed", "updated_at"])
+        user.save(update_fields=["is_confirmed", "updated_at"])
 
         match_orders_with_new_user(user)
         assign_user_gift_cards(user)

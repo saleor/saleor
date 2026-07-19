@@ -3,6 +3,7 @@ from unittest.mock import ANY, patch
 
 from prices import Money, TaxedMoney
 
+from ...page.models import Page, PageType
 from ...payment.interface import RefundData
 from ...plugins.manager import get_plugins_manager
 from ...warehouse.models import Allocation, Stock
@@ -23,6 +24,7 @@ def test_create_return_fulfillment_only_order_lines(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -49,6 +51,7 @@ def test_create_return_fulfillment_only_order_lines(
             ],
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -101,6 +104,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -128,6 +132,7 @@ def test_create_return_fulfillment_only_order_lines_with_refund(
             order_lines=order_lines_to_refund,
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
             refund=True,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -181,6 +186,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -208,6 +214,7 @@ def test_create_return_fulfillment_only_order_lines_included_shipping_costs(
             order_lines=order_lines_to_refund,
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
             refund=True,
             refund_shipping_costs=True,
         )
@@ -267,6 +274,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -304,6 +312,7 @@ def test_create_return_fulfillment_only_order_lines_with_replace_request(
             order_lines=order_lines_data,
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 
@@ -402,6 +411,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
@@ -421,6 +431,7 @@ def test_create_return_fulfillment_only_fulfillment_lines(
                 for line in fulfillment_lines
             ],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -453,6 +464,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
@@ -479,6 +491,7 @@ def test_create_return_fulfillment_only_fulfillment_lines_replace_order(
             order_lines=[],
             fulfillment_lines=fulfillment_lines_to_return,
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
 
     returned_fulfillment, replaced_fulfillment, replace_order = response
@@ -567,6 +580,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     variant,
     warehouse,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     fulfilled_order.payments.add(payment_dummy_fully_charged)
     payment = fulfilled_order.get_last_payment()
@@ -626,6 +640,7 @@ def test_create_return_fulfillment_with_lines_already_refunded(
             order_lines=[],
             fulfillment_lines=fulfillment_lines_to_process,
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
             refund=True,
         )
 
@@ -668,6 +683,104 @@ def test_create_return_fulfillment_with_lines_already_refunded(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_created")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_create_return_fulfillment_with_already_refunded_lines_persists_reason(
+    mocked_order_updated,
+    mocked_draft_order_created,
+    fulfilled_order,
+    staff_user,
+    variant,
+    warehouse,
+    django_capture_on_commit_callbacks,
+    site_settings,
+):
+    # given - a return (without a new refund, so the primary fulfillment status is
+    # RETURNED) that includes an already-refunded line. The already-refunded line is
+    # split into a secondary REFUNDED_AND_RETURNED fulfillment. The order-level reason
+    # must be recorded on both fulfillments.
+    page_type = PageType.objects.create(name="Return Reasons", slug="return-reasons")
+    page = Page.objects.create(
+        slug="damaged-product",
+        title="Damaged Product",
+        page_type=page_type,
+        is_published=True,
+    )
+    reason = "Order-level return reason"
+
+    order_line_ids = fulfilled_order.lines.all().values_list("id", flat=True)
+    fulfillment_lines_to_return = list(
+        FulfillmentLine.objects.filter(order_line_id__in=order_line_ids)
+    )
+
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(channel_listing)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    unit_price = TaxedMoney(net=net, gross=gross)
+    order_line = fulfilled_order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=5,
+        quantity_fulfilled=2,
+        variant=variant,
+        unit_price=unit_price,
+        tax_rate=Decimal("0.23"),
+        total_price=unit_price * 5,
+    )
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
+    )
+    refunded_fulfillment = Fulfillment.objects.create(
+        order=fulfilled_order, status=FulfillmentStatus.REFUNDED
+    )
+    refunded_fulfillment_line = refunded_fulfillment.lines.create(
+        order_line=order_line, quantity=2
+    )
+
+    fulfillment_lines_to_process = [
+        FulfillmentLineData(line=line, quantity=2)
+        for line in fulfillment_lines_to_return
+    ]
+    fulfillment_lines_to_process.append(
+        FulfillmentLineData(line=refunded_fulfillment_line, quantity=2)
+    )
+
+    # when - returned without a refund
+    with django_capture_on_commit_callbacks(execute=True):
+        create_fulfillments_for_returned_products(
+            user=staff_user,
+            app=None,
+            order=fulfilled_order,
+            payment=None,
+            order_lines=[],
+            fulfillment_lines=fulfillment_lines_to_process,
+            manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
+            refund=False,
+            reason=reason,
+            reason_reference=page,
+        )
+
+    # then - both produced fulfillments carry the order-level reason
+    returned_fulfillment = Fulfillment.objects.get(
+        order=fulfilled_order, status=FulfillmentStatus.RETURNED
+    )
+    refunded_and_returned_fulfillment = Fulfillment.objects.get(
+        order=fulfilled_order, status=FulfillmentStatus.REFUNDED_AND_RETURNED
+    )
+    assert returned_fulfillment.reason == reason
+    assert returned_fulfillment.reason_reference == page
+    assert refunded_and_returned_fulfillment.reason == reason
+    assert refunded_and_returned_fulfillment.reason_reference == page
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_created")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.payment.gateway.refund")
 def test_create_return_fulfillment_only_order_lines_with_old_ids(
     mocked_refund,
@@ -677,6 +790,7 @@ def test_create_return_fulfillment_only_order_lines_with_old_ids(
     payment_dummy_fully_charged,
     staff_user,
     django_capture_on_commit_callbacks,
+    site_settings,
 ):
     order_with_lines.payments.add(payment_dummy_fully_charged)
     payment = order_with_lines.get_last_payment()
@@ -705,6 +819,7 @@ def test_create_return_fulfillment_only_order_lines_with_old_ids(
             ],
             fulfillment_lines=[],
             manager=get_plugins_manager(allow_replica=False),
+            site_settings=site_settings,
         )
     returned_fulfillment, replaced_fulfillment, replace_order = response
 

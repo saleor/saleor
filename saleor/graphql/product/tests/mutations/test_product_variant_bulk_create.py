@@ -840,7 +840,9 @@ def test_product_variant_bulk_create_with_rich_text_attribute(
             "sku": sku,
             "weight": 2.5,
             "trackInventory": True,
-            "attributes": [{"id": attribute_id, "richText": json.dumps(rich_text)}],
+            "attributes": [
+                {"id": attribute_id, "richText": json.dumps(rich_text, sort_keys=True)}
+            ],
         }
     ]
 
@@ -858,7 +860,9 @@ def test_product_variant_bulk_create_with_rich_text_attribute(
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
     attributes = data["results"][0]["productVariant"]["attributes"]
-    assert attributes[-1]["values"][0]["richText"] == json.dumps(rich_text)
+    assert attributes[-1]["values"][0]["richText"] == json.dumps(
+        rich_text, sort_keys=True
+    )
 
     assigned_attributes = data["results"][0]["productVariant"]["assignedAttributes"]
     expected_assigned_attribute = {

@@ -1,12 +1,17 @@
 import datetime
 import json
 import os
+from io import BytesIO
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
 import graphene
 import PIL
 import pytest
+from measurement.measures import Weight
+from requests import RequestException
+from requests.exceptions import InvalidSchema
+from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
@@ -14,6 +19,7 @@ from .....attribute.tests.model_helpers import (
 )
 from .....core.exceptions import UnsupportedMediaProviderException
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
+from .....product import MEDIA_URL_CHAR_LIMIT
 from .....product.error_codes import ProductBulkCreateErrorCode
 from .....product.models import Product
 from .....product.tests.utils import (
@@ -24,6 +30,7 @@ from .....product.tests.utils import (
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import (
     get_graphql_content,
+    get_graphql_content_from_response,
     get_multipart_request_body_with_multiple_files,
 )
 
@@ -261,6 +268,69 @@ def test_product_bulk_create_with_base_data(
 
     for rule in get_active_catalogue_promotion_rules():
         assert rule.variants_dirty is True
+
+
+def test_product_bulk_create_with_description_as_json_object_does_not_crash(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+):
+    """Ensure Saleor properly handles invalid JSON inputs in rich text inputs.
+
+    Regression for Sentry SALEOR-CORE-845: a client sending the `description`
+    JSONString variable as a JSON object (dict) instead of a JSON-encoded
+    string used to raise TypeError from graphene's `parse_value` and surface
+    as an unhandled 500-style error. After the fix, the invalid value is
+    rejected as a normal GraphQL validation error.
+    """
+
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    # Expects a JSON string (`str`), but we pass an object instead (invalid)
+    description = {"foo": "bar"}
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "description": description,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    input_dump = json.dumps(
+        [
+            {
+                "category": category_id,
+                "description": description,
+                "name": product_name,
+                "productType": product_type_id,
+            }
+        ],
+        sort_keys=True,
+    )
+    description_dump = json.dumps(description, sort_keys=True)
+    expected_message = (
+        f'Variable "$products" got invalid value {input_dump}.\n'
+        f'In element #0: In field "description": '
+        f'Expected type "JSONString", found {description_dump}.'
+    )
+    assert "errors" in content
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == expected_message
+    assert not Product.objects.filter(name=product_name).exists()
 
 
 def test_product_bulk_create_with_base_data_and_collections(
@@ -813,6 +883,66 @@ def test_product_bulk_create_with_media_invalid_extension(
     assert len(error_2) == 1
 
 
+def test_product_bulk_create_with_media_file_size_exceeds_limit(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+    media_root,
+    settings,
+):
+    # given
+    settings.MAX_IMAGE_FILE_SIZE = 1
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name = "test name"
+    base_product_slug = "product-test-slug"
+
+    image_file, image_name = create_image(image_name="prod_img")
+
+    media = {
+        "alt": "",
+        "image": image_name,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": f"{base_product_slug}-1",
+            "description": description_json_string,
+            "media": [media],
+        },
+    ]
+
+    files = [image_file]
+    map_dict = {
+        0: ["variables.products.0.media.0.image"],
+    }
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}, files, map_dict
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
+    assert errors[0]["path"] == "media.0.image"
+    assert "File size exceeds the maximum allowed size" in errors[0]["message"]
+
+
 def test_product_bulk_create_with_media_invalid_media_type(
     staff_api_client,
     product_type,
@@ -983,8 +1113,10 @@ def test_product_bulk_create_with_media_image_with_invalid_exif(
     assert len(error_1) == 1
 
 
+@patch("saleor.graphql.product.utils.HTTPClient")
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_with_media_url(
+    mock_HTTPClient,
     staff_api_client,
     product_type,
     category,
@@ -993,6 +1125,9 @@ def test_product_bulk_create_with_media_with_media_url(
     media_root,
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/html; charset=utf-8")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     description_json_string = json.dumps(description_json)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
@@ -1077,21 +1212,21 @@ def test_product_bulk_create_with_media_with_media_url(
     )
 
 
+@patch("saleor.graphql.product.utils.HTTPClient")
 @patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.is_image_url",
-    return_value=False,
-)
-@patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.get_oembed_data",
+    "saleor.graphql.product.utils.get_oembed_data",
 )
 def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     mocked_get_oembed_data,
-    _mocked_is_image_url,
+    mock_HTTPClient,
     staff_api_client,
     product_type,
     permission_manage_products,
 ):
     # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
     mocked_get_oembed_data.side_effect = UnsupportedMediaProviderException()
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
@@ -1140,12 +1275,60 @@ def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     assert len(errors) == 1
 
 
+def test_product_bulk_create_with_media_url_character_limit(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    product_name_1 = "test name 1"
+    product_name_2 = "test name 2"
+
+    too_long_url = "https://example.com/" + "a" * MEDIA_URL_CHAR_LIMIT
+    media = {
+        "alt": "",
+        "mediaUrl": too_long_url,
+    }
+
+    products = [
+        {
+            "productType": product_type_id,
+            "name": product_name_1,
+        },
+        {
+            "productType": product_type_id,
+            "name": product_name_2,
+            "media": [media],
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products, "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 1
+    errors = data["results"][1]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert errors[0]["path"] == "media.0.mediaUrl"
+    assert errors[0]["message"] == (
+        f"URL field exceeds the character limit of {MEDIA_URL_CHAR_LIMIT}."
+    )
+
+
 @patch(
     "saleor.graphql.core.validators.file.is_supported_image_mimetype",
     return_value=False,
 )
 @patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
+    "saleor.graphql.product.utils.HTTPClient",
 )
 def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     mocked_http_client,
@@ -1209,9 +1392,7 @@ def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     assert len(error_1) == 1
 
 
-@patch(
-    "saleor.graphql.product.bulk_mutations.product_bulk_create.HTTPClient",
-)
+@patch("saleor.graphql.product.utils.HTTPClient")
 def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     mock_HTTPClient,
     staff_api_client,
@@ -1222,7 +1403,7 @@ def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     # given
     mock_response = Mock()
     mock_response.headers = Mock()
-    mock_response.headers.get = Mock(return_value="text/plain")
+    mock_response.headers.get = Mock(return_value="image/not-supported")
     mock_response.raw = Mock()
     mock_response.raw.read = Mock(return_value=b"fake_image_data")
     mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
@@ -1266,8 +1447,12 @@ def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     assert len(error_1) == 1
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.fetch_product_media_image_task.delay"
+)
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
+    mock_fetch_product_media_image_task,
     staff_api_client,
     product_type,
     category,
@@ -1313,22 +1498,65 @@ def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
     assert data["results"][0]["product"]["media"][0]["alt"] == alt
     assert data["results"][0]["product"]["media"][0]["url"] != url
 
-    # Validate the image file
     product = Product.objects.first()
     product_image = product.media.last()
-    assert product_image.image.file
-    img_name, format = os.path.splitext(expected_file_name)
-    file_name = product_image.image.name
-    assert file_name != expected_file_name
-    assert file_name.startswith(f"products/{img_name}")
-    assert file_name.endswith(format)
 
-    # Open the image and validate its content
-    image_path = product_image.image.path
-    with PIL.Image.open(image_path) as img:
-        assert img.format == "PNG"  # Ensure the image format is PNG
-        assert img.size[0] > 0  # Ensure the image has dimensions
-        assert img.size[1] > 0  # Ensure the image has dimensions
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
+
+
+@patch(
+    "saleor.graphql.product.bulk_mutations.product_bulk_create.fetch_product_media_image_task.delay"
+)
+@patch("saleor.graphql.product.utils.HTTPClient")
+def test_product_bulk_create_with_no_extension_media_url(
+    mock_HTTPClient,
+    mock_fetch_product_media_image_task,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="image/png")
+    # generate PNG image content
+    image_content = BytesIO()
+    PIL.Image.new("RGB", size=(100, 100)).save(image_content, format="PNG")
+    image_content = image_content.read()
+    mock_response.content = image_content
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+    variables = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "mediaUrl": "https://saleor.io/image-path",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        variables={"products": variables},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)["data"]["productBulkCreate"]
+
+    # then
+    assert not content["results"][0]["errors"]
+    _, product_id = graphene.Node.from_global_id(content["results"][0]["product"]["id"])
+    product_image = Product.objects.get(id=product_id).media.first()
+
+    assert bool(product_image.image) is False
+    assert product_image.external_url is not None
+    mock_fetch_product_media_image_task.assert_called_once_with(product_image.pk)
 
 
 def test_product_bulk_create_with_attributes(
@@ -2133,39 +2361,75 @@ def test_product_bulk_create_with_variants(
     size_attr_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
     non_existent_attr_value = "The cake is a lie"
 
+    track_inventory_prod_1 = True
+    weight_prod_1 = 2.5
+    quantity_limit_prod_1 = 5
+    metadata_key = "md key"
+    metadata_value_prod_1 = "md value prod 1"
+    private_metadata_key = "private md key"
+    private_metadata_value_prod_1 = "private md value prod 1"
     sku_1 = str(uuid4())[:12]
     variant_1_name = "new-variant-1-name"
+    ext_ref_1 = "ext-ref-variant-1"
 
     sku_2 = str(uuid4())[:12]
     variant_2_name = "new-variant-2-name"
+    ext_ref_2 = "ext-ref-variant-2"
 
     sku_3 = str(uuid4())[:12]
     variant_3_name = "new-variant-3-name"
+    track_inventory_variant_3 = False
+    weight_variant_3 = 3.0
+    quantity_limit_variant_3 = 10
+    metadata_value_variant_3 = "md value variant 3"
+    private_metadata_value_variant_3 = "private md value variant 3"
+    ext_ref_3 = "ext-ref-variant-3"
 
     variants_prod_1 = [
         {
             "sku": sku_1,
-            "weight": 2.5,
-            "trackInventory": True,
+            "weight": weight_prod_1,
+            "trackInventory": track_inventory_prod_1,
             "name": variant_1_name,
             "attributes": [{"id": size_attr_id, "values": [non_existent_attr_value]}],
+            "quantityLimitPerCustomer": quantity_limit_prod_1,
+            "externalReference": ext_ref_1,
+            "metadata": [{"key": metadata_key, "value": metadata_value_prod_1}],
+            "privateMetadata": [
+                {"key": private_metadata_key, "value": private_metadata_value_prod_1}
+            ],
         },
         {
             "sku": sku_2,
-            "weight": 2.5,
-            "trackInventory": True,
+            "weight": weight_prod_1,
+            "trackInventory": track_inventory_prod_1,
             "name": variant_2_name,
             "attributes": [{"id": size_attr_id, "values": [non_existent_attr_value]}],
+            "quantityLimitPerCustomer": quantity_limit_prod_1,
+            "externalReference": ext_ref_2,
+            "metadata": [{"key": metadata_key, "value": metadata_value_prod_1}],
+            "privateMetadata": [
+                {"key": private_metadata_key, "value": private_metadata_value_prod_1}
+            ],
         },
     ]
 
     variants_prod_2 = [
         {
             "sku": sku_3,
-            "weight": 2.5,
-            "trackInventory": True,
+            "weight": weight_variant_3,
+            "trackInventory": track_inventory_variant_3,
             "name": variant_3_name,
             "attributes": [{"id": size_attr_id, "values": [non_existent_attr_value]}],
+            "quantityLimitPerCustomer": quantity_limit_variant_3,
+            "externalReference": ext_ref_3,
+            "metadata": [{"key": metadata_key, "value": metadata_value_variant_3}],
+            "privateMetadata": [
+                {
+                    "key": private_metadata_key,
+                    "value": private_metadata_value_variant_3,
+                }
+            ],
         }
     ]
 
@@ -2218,6 +2482,14 @@ def test_product_bulk_create_with_variants(
     for variant in product_1_variants:
         assert variant.name in [variant_1_name, variant_2_name]
         assert variant.sku in [sku_1, sku_2]
+        assert variant.track_inventory == track_inventory_prod_1
+        assert variant.weight == Weight(kg=weight_prod_1)
+        assert variant.quantity_limit_per_customer == quantity_limit_prod_1
+        assert variant.external_reference in [ext_ref_1, ext_ref_2]
+        assert variant.metadata == {metadata_key: metadata_value_prod_1}
+        assert variant.private_metadata == {
+            private_metadata_key: private_metadata_value_prod_1
+        }
         attribute_assignment = variant.attributes.first()
         assert variant.attributes.count() == 1
         assert attribute_assignment.attribute == size_attribute
@@ -2226,6 +2498,14 @@ def test_product_bulk_create_with_variants(
     for variant in product_2_variants:
         assert variant.name == variant_3_name
         assert variant.sku == sku_3
+        assert variant.track_inventory == track_inventory_variant_3
+        assert variant.weight == Weight(kg=weight_variant_3)
+        assert variant.quantity_limit_per_customer == quantity_limit_variant_3
+        assert variant.external_reference == ext_ref_3
+        assert variant.metadata == {metadata_key: metadata_value_variant_3}
+        assert variant.private_metadata == {
+            private_metadata_key: private_metadata_value_variant_3
+        }
         attribute_assignment = variant.attributes.first()
         assert variant.attributes.count() == 1
         assert attribute_assignment.attribute == size_attribute
@@ -3168,3 +3448,133 @@ def test_product_bulk_create_with_media_incorrect_alt(
     assert error_2[0]["path"] == "media.0.alt"
     assert len(error_2) == 1
     assert data["count"] == 0
+
+
+def test_product_bulk_create_with_media_when_alt_is_null(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    image_file, image_name = create_image()
+    variables = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "alt": None,
+                    "image": image_name,
+                }
+            ],
+        },
+    ]
+
+    # when
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": variables},
+        [image_file],
+        {0: ["variables.products.0.media.0.image"]},
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)["data"]["productBulkCreate"]
+
+    # then
+    assert not content["results"][0]["errors"]
+    assert content["results"][0]["product"]["media"][0]["alt"] == ""
+
+
+@patch("saleor.graphql.product.utils.HTTPClient")
+def test_product_bulk_create_with_media_url_when_alt_is_null(
+    mock_HTTPClient,
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    image_file, _ = create_image()
+    mock_response = Mock()
+    mock_response.headers.get.return_value = image_file.content_type
+    mock_response.content = image_file.read()
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+    variables = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "alt": None,
+                    "mediaUrl": "https://saleor.io/image-path",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        variables={"products": variables},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)["data"]["productBulkCreate"]
+
+    # then
+    assert not content["results"][0]["errors"]
+    assert content["results"][0]["product"]["media"][0]["alt"] == ""
+
+
+@pytest.mark.parametrize(
+    "exception",
+    [
+        RequestException("Connection refused"),
+        InvalidIPAddress("10.0.0.1"),
+        InvalidSchema("No adapters found for url"),
+    ],
+)
+@patch("saleor.graphql.product.utils.HTTPClient")
+def test_product_bulk_create_with_media_url_request_exception(
+    mock_HTTPClient,
+    exception,
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+):
+    # given
+    mock_HTTPClient.send_request.side_effect = exception
+    products = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "name": "test name 1",
+            "media": [
+                {
+                    "alt": "some media",
+                    "mediaUrl": "https://www.example.com/image.jpg",
+                }
+            ],
+        },
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert data["count"] == 0
+    assert len(data["results"][0]["errors"]) == 1
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert error["path"] == "media.0.mediaUrl"
+    assert error["message"] == "Failed to fetch media from URL."

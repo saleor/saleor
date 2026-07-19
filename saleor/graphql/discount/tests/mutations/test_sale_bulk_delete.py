@@ -1,6 +1,7 @@
 from unittest import mock
 
 import graphene
+from django.conf import settings
 
 from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Promotion, PromotionRule
@@ -18,6 +19,34 @@ SALE_BULK_DELETE_MUTATION = """
         }
     }
     """
+
+
+def test_delete_sales_exceeding_max_input_size(
+    staff_api_client,
+    promotion_converted_from_sale,
+    permission_manage_discounts,
+):
+    # given
+    sale = promotion_converted_from_sale
+    query = SALE_BULK_DELETE_MUTATION
+    limit = settings.BULK_DELETE_LIMIT
+    sale_id = graphene.Node.to_global_id("Sale", sale.old_sale_id)
+    variables = {"ids": [sale_id] * (limit + 1)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_discounts]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["saleBulkDelete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["field"] == "ids"
+    assert data["count"] == 0
+    assert Promotion.objects.filter(id=sale.id).exists()
 
 
 @mock.patch("saleor.graphql.discount.mutations.bulk_mutations.get_webhooks_for_event")

@@ -658,7 +658,7 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_user(
     payload = get_default_fulfillment_payload(order, fulfillment)
     payload["requester_user_id"] = to_global_id_or_none(staff_user)
     payload["requester_app_id"] = None
-    payload["digital_lines"] = [{"fulfillmentLine": {"id": 1}}]
+    payload["digital_lines"] = []
     recipient_email = payload["recipient_email"]
 
     send_fulfillment_confirmation_email_task(
@@ -678,18 +678,12 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_user(
         template_str=expected_template_str,
     )
 
-    event_email_sent, event_digital_email_sent = order.events.all().order_by("pk")
+    event_email_sent = order.events.get()  # Should only find 1 row
     assert event_email_sent.user == staff_user
     assert not event_email_sent.app
     assert event_email_sent.parameters == {
         "email": order.user_email,
         "email_type": OrderEventsEmails.FULFILLMENT,
-    }
-    assert event_digital_email_sent.user == staff_user
-    assert not event_digital_email_sent.app
-    assert event_digital_email_sent.parameters == {
-        "email": order.user_email,
-        "email_type": OrderEventsEmails.DIGITAL_LINKS,
     }
 
 
@@ -711,7 +705,7 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_app(
     payload = get_default_fulfillment_payload(order, fulfillment)
     payload["requester_user_id"] = None
     payload["requester_app_id"] = to_global_id_or_none(app)
-    payload["digital_lines"] = [{"fulfillmentLine": {"id": 1}}]
+    payload["digital_lines"] = []
     recipient_email = payload["recipient_email"]
 
     send_fulfillment_confirmation_email_task(
@@ -731,18 +725,12 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_app(
         template_str=expected_template_str,
     )
 
-    event_email_sent, event_digital_email_sent = order.events.all().order_by("pk")
+    event_email_sent = order.events.get()  # Should only find 1 row
     assert not event_email_sent.user
     assert event_email_sent.app == app
     assert event_email_sent.parameters == {
         "email": order.user_email,
         "email_type": OrderEventsEmails.FULFILLMENT,
-    }
-    assert not event_digital_email_sent.user
-    assert event_digital_email_sent.app == app
-    assert event_digital_email_sent.parameters == {
-        "email": order.user_email,
-        "email_type": OrderEventsEmails.DIGITAL_LINKS,
     }
 
 

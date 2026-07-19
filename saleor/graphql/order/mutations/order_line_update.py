@@ -18,6 +18,7 @@ from ...core.context import SyncWebhookControlContext
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Order, OrderLine
 from .draft_order_create import OrderLineInput
 from .utils import EditableOrderValidationMixin, call_event_by_order_status
@@ -73,6 +74,7 @@ class OrderLineUpdate(
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input, instance_tracker=None):
         manager = get_plugin_manager_promise(info.context).get()
+        site = get_site_promise(info.context).get()
 
         order_is_unconfirmed = instance.order.is_unconfirmed()
         line_allocation = instance.allocations.first()
@@ -99,6 +101,7 @@ class OrderLineUpdate(
                     instance.quantity,
                     order,
                     manager,
+                    site.settings,
                     allocate_stock=order_is_unconfirmed,
                 )
             except InsufficientStock as e:
@@ -108,7 +111,7 @@ class OrderLineUpdate(
                 ) from e
             invalidate_order_prices(order)
             recalculate_order_weight(order)
-            order.save(update_fields=["should_refresh_prices", "weight"])
+            order.save(update_fields=["should_refresh_prices", "weight", "updated_at"])
 
             call_event_by_order_status(order, manager)
 

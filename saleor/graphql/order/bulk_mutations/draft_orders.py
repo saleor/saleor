@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from uuid import UUID
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....channel import models as channel_models
@@ -25,7 +26,12 @@ class DraftOrderBulkDelete(
 ):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of draft order IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                f"List of draft order IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -35,6 +41,7 @@ class DraftOrderBulkDelete(
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def get_ids_with_related_objects(cls, ids, /):
@@ -124,6 +131,10 @@ class DraftOrderBulkDelete(
         """Perform a mutation that deletes a list of model instances."""
         if not ids:
             return 0, None
+
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
+
         try:
             instances = cls.get_nodes_or_error(ids, "id", Order, schema=info.schema)
         except ValidationError as error:
@@ -152,7 +163,12 @@ class DraftOrderLinesBulkDelete(
 ):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of order lines IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                f"List of order lines IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -162,6 +178,7 @@ class DraftOrderLinesBulkDelete(
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def clean_instance(cls, _info: ResolveInfo, instance):

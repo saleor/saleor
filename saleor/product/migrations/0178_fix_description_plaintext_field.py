@@ -3,7 +3,7 @@
 from django.db import migrations
 from django.db.models import Q
 
-from ...core.utils.editorjs import clean_editor_js
+from ...core.editorjs import editorjs_to_text
 
 BATCH_SIZE = 2000
 
@@ -32,9 +32,7 @@ def set_description_plaintext_if_description_exists(apps, schema_editor):
     for batch_pks in queryset_in_batches(queryset):
         products = Product.objects.filter(pk__in=batch_pks)
         for product in products:
-            product.description_plaintext = clean_editor_js(
-                product.description, to_string=True
-            )
+            product.description_plaintext = editorjs_to_text(product.description)
             product.search_index_dirty = True
 
         Product.objects.bulk_update(
