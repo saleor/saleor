@@ -1,5 +1,6 @@
 import django_filters
 
+from ..core.descriptions import DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.filters import (
     FilterInputObjectType,
@@ -27,6 +28,10 @@ class PaymentFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
         filterset_class = PaymentFilter
+        description = (
+            "Filtering options for payments."
+            + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
 
 
 def filter_transaction_by_ids(qs, _, value):

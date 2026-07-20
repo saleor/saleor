@@ -1,6 +1,7 @@
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
+from ..core.descriptions import DEPRECATED_LEGACY_PAYMENTS
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.types import BaseEnum, SortInputObjectType
 
@@ -19,6 +20,12 @@ class CheckoutSortField(BaseEnum):
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort checkouts by {sort_name}."
         raise ValueError(f"Unsupported enum value: {self.value}")
+
+    @property
+    def deprecation_reason(self):
+        if self == CheckoutSortField.PAYMENT:
+            return DEPRECATED_LEGACY_PAYMENTS
+        return None
 
     @staticmethod
     def qs_with_payment(queryset: QuerySet, **_kwargs) -> QuerySet:

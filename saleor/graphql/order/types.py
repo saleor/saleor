@@ -78,6 +78,7 @@ from ..core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -1644,7 +1645,10 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         required=True,
     )
     payments = NonNullList(
-        Payment, description="List of payments for the order.", required=True
+        Payment,
+        description="List of payments for the order.",
+        required=True,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
