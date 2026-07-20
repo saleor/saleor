@@ -6,6 +6,9 @@
 !.github
 !.gitignore
 !.vscode
+!.claude/
+.claude/*
+!.claude/skills/
 *.log
 *.pot
 *.pyc
@@ -35,3 +38,5 @@ Pipfile
 
 # Exported results file
 django-queries-results.html
+
+!.claude/skills
