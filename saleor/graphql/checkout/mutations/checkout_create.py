@@ -22,7 +22,7 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321, ADDED_IN_323
+from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -35,6 +35,7 @@ from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .utils import (
+    PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     apply_gift_reward_if_applicable_on_checkout_creation,
     check_lines_quantity,
     check_permissions_for_custom_prices,
@@ -113,13 +114,7 @@ class CheckoutLineInput(BaseInputObjectType):
     )
     price_override_reason = graphene.String(
         required=False,
-        description=(
-            "Reason explaining why a custom `price` was set on the line, for "
-            "debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` "
-            "permission and only together with a `price` override. Blank values are "
-            "stored as no reason. Limited to 255 characters; longer values are "
-            "truncated." + ADDED_IN_323
-        ),
+        description=PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     )
     force_new_line = graphene.Boolean(
         required=False,

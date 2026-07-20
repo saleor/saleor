@@ -32,6 +32,7 @@ from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_323
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
 
@@ -460,6 +461,14 @@ def check_permissions_for_custom_prices(app, lines):
 PRICE_OVERRIDE_REASON_MAX_LENGTH = models.CheckoutLine._meta.get_field(
     "price_override_reason"
 ).max_length
+
+PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION = (
+    "Reason explaining why a custom `price` was set on the line, for debugging "
+    "and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` permission and "
+    "only when the line has a `price` override. Setting a new `price` without a "
+    "reason clears the previous reason. Blank values are stored as no reason. "
+    "Limited to 255 characters; longer values are truncated." + ADDED_IN_323
+)
 
 
 def _clean_price_override_reason(reason: str | None) -> str | None:

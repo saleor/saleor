@@ -9,11 +9,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_321,
-    ADDED_IN_323,
-    DEPRECATED_IN_3X_INPUT,
-)
+from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
@@ -26,6 +22,7 @@ from ...utils import ERROR_COULD_NO_RESOLVE_GLOBAL_ID
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
+    PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     CheckoutLineData,
     check_lines_quantity,
     get_variants_and_total_quantities,
@@ -57,14 +54,7 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
     )
     price_override_reason = graphene.String(
         required=False,
-        description=(
-            "Reason explaining why a custom `price` was set on the line, for "
-            "debugging and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` "
-            "permission and only when the line has a `price` override. Setting a new "
-            "`price` without a reason clears the previous reason. Blank values are "
-            "stored as no reason. Limited to 255 characters; longer values are "
-            "truncated." + ADDED_IN_323
-        ),
+        description=PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     )
     line_id = graphene.ID(
         description="ID of the line.",
