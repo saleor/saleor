@@ -406,6 +406,7 @@ def _create_line_for_order(
         base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         is_price_overridden=is_price_overridden,
+        price_override_reason=checkout_line.price_override_reason,
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
         **get_tax_class_kwargs_for_order_line(tax_class),
