@@ -833,7 +833,6 @@ def send_webhook_request_async(
             delivery.id,
         )
         delivery.status = EventDeliveryStatus.SUCCESS
-        attempt_update(attempt, response, with_save=False)
     clear_successful_delivery(delivery)
 
 
@@ -915,7 +914,6 @@ def send_webhooks_async_for_app(
                     delivery.id,
                 )
                 delivery.status = EventDeliveryStatus.SUCCESS
-                attempt_update(attempt, response, with_save=False)
         except ValueError as e:
             response = WebhookResponse(
                 content=str(e), status=EventDeliveryStatus.FAILED

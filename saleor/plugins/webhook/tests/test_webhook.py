@@ -55,7 +55,6 @@ from ....webhook.transport.asynchronous.transport import (
     send_webhook_request_async,
     trigger_webhooks_async,
 )
-from ....webhook.transport.utils import attempt_update
 from ....webhook.utils import get_webhooks_for_event
 from ...manager import get_plugins_manager
 from .utils import generate_request_headers
@@ -1859,10 +1858,6 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
     )
 
 
-@mock.patch(
-    "saleor.webhook.transport.asynchronous.transport.attempt_update",
-    wraps=attempt_update,
-)
 @mock.patch("saleor.webhook.transport.asynchronous.transport.clear_successful_delivery")
 @mock.patch(
     "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
@@ -1870,7 +1865,6 @@ def test_event_delivery_retry(mocked_webhook_send, event_delivery, settings):
 def test_send_webhook_request_async_with_success_response(
     mocked_send_response,
     mocked_clear_delivery,
-    mocked_attempt_update,
     event_delivery,
     webhook_response,
 ):
@@ -1890,11 +1884,6 @@ def test_send_webhook_request_async_with_success_response(
         event_delivery.webhook.custom_headers,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
-    attempt = EventDeliveryAttempt.objects.get(delivery=event_delivery)
-
-    mocked_attempt_update.assert_called_once_with(
-        attempt, webhook_response, with_save=False
-    )
 
 
 @mock.patch(
