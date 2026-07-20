@@ -101,14 +101,14 @@ def get_assignment_model_and_fk(instance: T_INSTANCE):
     )
 
 
-def _get_assigned_attribute_values_qs(instance: T_INSTANCE, attribute: "Attribute"):
+def _get_assigned_attribute_values_qs(instance: T_INSTANCE, attribute_ids: list[int]):
     """Build a queryset of values currently assigned to the given instance."""
     if isinstance(instance, product_models.ProductVariant):
         # variant has old attribute structure so need to handle it differently
         attribute_variant = Exists(
             attribute_models.AttributeVariant.objects.filter(
                 pk=OuterRef("assignment_id"),
-                attribute_id=attribute.pk,
+                attribute_id__in=attribute_ids,
             )
         )
         assigned_variant = Exists(
@@ -125,7 +125,7 @@ def _get_assigned_attribute_values_qs(instance: T_INSTANCE, attribute: "Attribut
     assigned_values = assignment_model.objects.filter(**{instance_fk: instance.pk})
     return attribute_models.AttributeValue.objects.filter(
         Exists(assigned_values.filter(value_id=OuterRef("id"))),
-        attribute_id=attribute.pk,
+        attribute_id__in=attribute_ids,
     )
 
 
@@ -134,15 +134,20 @@ def get_assigned_attribute_value_if_exists(
 ):
     """Unified method to find an existing assigned value."""
     return (
-        _get_assigned_attribute_values_qs(instance, attribute)
+        _get_assigned_attribute_values_qs(instance, [attribute.pk])
         .filter(**{lookup_field: value})
         .first()
     )
 
 
-def get_assigned_attribute_value(instance: T_INSTANCE, attribute: "Attribute"):
-    """Return the value currently assigned to the instance for the attribute."""
-    return _get_assigned_attribute_values_qs(instance, attribute).first()
+def get_assigned_attribute_values_map(
+    instance: T_INSTANCE, attribute_ids: list[int]
+) -> dict[int, attribute_models.AttributeValue]:
+    """Map attribute id to the value currently assigned to the instance."""
+    values_map: dict[int, attribute_models.AttributeValue] = {}
+    for value in _get_assigned_attribute_values_qs(instance, attribute_ids):
+        values_map.setdefault(value.attribute_id, value)
+    return values_map
 
 
 def has_input_modified_attribute_values(
