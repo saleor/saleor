@@ -30,6 +30,70 @@ def gift_card_issued_event(
     )
 
 
+def gift_card_balance_adjusted_event(
+    gift_card: GiftCard,
+    old_current_balance: Decimal,
+    old_initial_balance: Decimal,
+    user: User | None,
+    app: App | None,
+) -> GiftCardEvent:
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.BALANCE_ADJUSTED,
+        parameters={
+            "balance": {
+                "currency": gift_card.currency,
+                "current_balance": gift_card.current_balance_amount,
+                "initial_balance": gift_card.initial_balance_amount,
+                "old_current_balance": old_current_balance,
+                "old_initial_balance": old_initial_balance,
+            }
+        },
+    )
+
+
+def gift_card_assigned_event(
+    gift_card: GiftCard,
+    previous_user_id: int | None,
+    previous_email: str | None,
+    user: User | None,
+    app: App | None,
+) -> GiftCardEvent:
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.ASSIGNED_TO_USER,
+        parameters={
+            "previous_assigned_to_id": previous_user_id,
+            "previous_assigned_to_email": previous_email,
+            "assigned_to_id": gift_card.assigned_to_id,
+            "assigned_to_email": gift_card.assigned_to_email,
+        },
+    )
+
+
+def gift_card_unassigned_event(
+    gift_card: GiftCard,
+    previous_user_id: int | None,
+    previous_email: str | None,
+    user: User | None,
+    app: App | None,
+) -> GiftCardEvent:
+    return GiftCardEvent.objects.create(
+        gift_card=gift_card,
+        user=user,
+        app=app,
+        type=GiftCardEvents.UNASSIGNED_FROM_USER,
+        parameters={
+            "previous_assigned_to_id": previous_user_id,
+            "previous_assigned_to_email": previous_email,
+        },
+    )
+
+
 def gift_cards_issued_event(
     gift_cards: Iterable[GiftCard],
     user: User | None,

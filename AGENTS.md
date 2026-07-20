@@ -10,6 +10,14 @@
 ### GraphQL permissions
 - Use PermissionsField to describe field restrictions
 
+# Architecture
+
+- Do not use Django signals (e.g. `post_save`, `pre_delete`, `@receiver`). Call the relevant logic explicitly from the code that triggers it instead of wiring it through signal handlers. (The one exception is the `post_migrate` signal used to trigger data-migration tasks — see Data Migrations below.)
+
+# Code style
+
+- Use global import statements. Place all imports at the top of the file rather than inside functions, methods, or other local scopes.
+
 # Testing
 
 ## Running in a git worktree
@@ -246,6 +254,25 @@ Build the index `CONCURRENTLY` instead so it does not block concurrent traffic.
 
 # Code style
 
+## Correctness (Django): use `pk` instead of `id`
+
+Don't use the `id` DB field in Django models, instead use `pk` when referencing the object ID
+field from a model.
+
+Don't:
+
+```py
+book = Book.objects.get(id=1)
+id = book.id
+```
+
+Do:
+
+```py
+book = Book.objects.get(pk=1)
+id = book.pk
+```
+
 ## Prefer docstrings over comments
 
 When describing behavior prefer to use docstring over a comment:
@@ -265,3 +292,42 @@ Do:
 def foo():
   """Doc string"""
 ```
+
+## Agent skills
+
+### Issue tracker
+
+Issue tracking is opted out — skills must not create issues, PRDs, or triage records anywhere, and should treat "publish to the issue tracker" steps as not applicable. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Not applicable — there is no issue queue, so the triage state machine and label vocabulary are unused. See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+# Performance
+
+- Avoid unnecessarely broad `Model.save()` calls and unnecessarely broad `Model.refresh_from_db()`.
+  Instead, use tuples that select specific DB fields, e.g.,
+  `invoice.refresh_from_db(fields=("id",))`, or `invoice.save(update_fields=("number",))`
+- Avoid iterating over the same objects multiple times (meaning multiple O(N) operations)
+
+  Don't:
+
+  ```py
+  assigned_ids = [giftcard.pk for giftcards in assigned_cards]
+  deactivated_ids = [giftcard.pk for giftcards in assigned_cards if giftcard.active]
+  ```
+
+  Do:
+
+  ```py
+  assigned_ids = []
+  deactivated_ids = []
+  for giftcard in giftcards:
+      assigned_ids.append(giftcard.pk)
+      if giftcard.active is True:
+          deactivated_ids.append(giftcard.pk)
+  ```

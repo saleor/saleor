@@ -144,6 +144,7 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
         order_id,
     )
 
-    assert (
-        order_details["availableShippingMethods"][0]["id"] == second_shipping_method_id
-    )
+    active_shipping_methods = [
+        method for method in order_details["shippingMethods"] if method["active"]
+    ]
+    assert active_shipping_methods[0]["id"] == second_shipping_method_id

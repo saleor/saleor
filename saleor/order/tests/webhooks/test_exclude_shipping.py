@@ -30,12 +30,6 @@ query OrderQuery($id: ID) {
       active
       message
     }
-    availableShippingMethods {
-      id
-      name
-      active
-      message
-    }
   }
 }
 """

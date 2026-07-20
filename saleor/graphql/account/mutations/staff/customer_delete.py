@@ -1,6 +1,8 @@
 import graphene
 
 from .....account import models
+from .....core.tracing import traced_atomic_transaction
+from .....giftcard.utils import deactivate_assigned_gift_cards
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
@@ -38,9 +40,17 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
-        results = super().perform_mutation(root, info, **data)
+        with traced_atomic_transaction():
+            results = super().perform_mutation(root, info, **data)
         cls.post_process(info)
         return results
+
+    @classmethod
+    def clean_instance(cls, info: ResolveInfo, instance) -> None:
+        super().clean_instance(info, instance)
+        # Runs inside the deletion transaction, right before the user is
+        # removed. Required because GiftCard.assigned_to is on_delete=PROTECT.
+        deactivate_assigned_gift_cards([instance])
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

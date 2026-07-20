@@ -94,6 +94,9 @@ dev = [
     "coverage~=7.14",
     "deptry>=0.23.0,<0.24",
     "django-extensions~=4.1",
+    # TODO: once on django-stubs >= 6.0.2, revert the PublishedQuerySet TypeVar
+    # workaround in saleor/core/models.py back to bound="PublishableModel".
+    # The fix landed in https://github.com/typeddjango/django-stubs/commit/461fb9ba8d26667cb43cfb55827acdc6d4ed42ed
     "django-stubs[compatible-mypy]>=5.1.3,<6",
     "fakeredis~=2.26",
     "freezegun>=1,<2",
@@ -160,7 +163,7 @@ addopts = [
     "--record-mode=none",
     "--ds=saleor.tests.settings",
     "--disable-socket",
-    "--allow-hosts=127.0.0.1,::1,cache",
+    "--allow-hosts=127.0.0.1,::1,cache,host.docker.internal,host.containers.internal",
     "--allow-unix-socket",
     "--pdbcls=IPython.terminal.debugger:TerminalPdb",
     "--dist=loadgroup",
