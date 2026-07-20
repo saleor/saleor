@@ -256,7 +256,8 @@ def add_variants_to_checkout(
 
         if to_update:
             checkout_lines_bulk_update(
-                to_update, ["quantity", "price_override", "metadata"]
+                to_update,
+                ["quantity", "price_override", "price_override_reason", "metadata"],
             )
 
         if to_create:
@@ -313,6 +314,11 @@ def _append_line_to_update(to_update, to_delete, line_data, replace, line):
         if line not in to_delete:
             line.price_override = line_data.custom_price
             to_update.append(line)
+    if line_data.custom_price_reason_to_update:
+        if line not in to_delete:
+            line.price_override_reason = line_data.custom_price_reason
+            if line not in to_update:
+                to_update.append(line)
 
 
 def _append_line_to_delete(to_delete, line_data, line):
@@ -341,6 +347,7 @@ def _append_line_to_create(
             quantity=line_data.quantity,
             currency=checkout.currency,
             price_override=line_data.custom_price,
+            price_override_reason=line_data.custom_price_reason,
             undiscounted_unit_price_amount=variant_price_amount,
             prior_unit_price_amount=variant_prior_price_amount,
         )
