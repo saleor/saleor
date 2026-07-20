@@ -337,6 +337,17 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
     is_gift = graphene.Boolean(
         description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
     )
+    price_override_reason = PermissionsField(
+        graphene.String,
+        description=(
+            "Reason explaining why a custom price was set on the line, provided by "
+            "the app that set the price override." + ADDED_IN_323
+        ),
+        permissions=[
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+            CheckoutPermissions.HANDLE_CHECKOUTS,
+        ],
+    )
 
     class Meta:
         default_resolver = (
