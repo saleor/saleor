@@ -7277,11 +7277,6 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   """Whether shipping is required for this product type."""
   isShippingRequired: Boolean!
 
-  """
-  Whether the product type is digital - doesn't have any effect, it's present for backward-compatibility.
-  """
-  isDigital: Boolean! @deprecated(reason: "Will be removed in v3.24.0, use metadata or attributes instead.")
-
   """Weight of the product type."""
   weight: Weight
 
@@ -15446,7 +15441,6 @@ enum ProductTypeConfigurable @doc(category: "Products") {
 }
 
 enum ProductTypeEnum @doc(category: "Products") {
-  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0, use metadata or attributes instead.")
   SHIPPABLE
 }
 
@@ -25197,11 +25191,6 @@ input ProductTypeInput @doc(category: "Products") {
 
   """Determines if shipping is required for products of this variant."""
   isShippingRequired: Boolean
-
-  """
-  Determines if products are digital - doesn't have any effect, it's present for backward-compatibility.
-  """
-  isDigital: Boolean
 
   """Weight of the ProductType items."""
   weight: WeightScalar
