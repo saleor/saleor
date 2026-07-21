@@ -2634,7 +2634,7 @@ def test_has_input_modified_attribute_values_no_changes_plain_text(
             plain_text_attribute: [
                 {
                     "attribute": plain_text_attribute,
-                    "slug": f"{variant.id}_{plain_text_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{plain_text_attribute.id}",
                     "defaults": {
                         "plain_text": text_value.plain_text,
                         "name": text_value.name,
@@ -2667,7 +2667,7 @@ def test_has_input_modified_attribute_values_with_changes_plain_text(
             plain_text_attribute: [
                 {
                     "attribute": plain_text_attribute,
-                    "slug": f"{variant.id}_{plain_text_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{plain_text_attribute.id}",
                     "defaults": {
                         "plain_text": different_text,
                         "name": different_text[:200],
@@ -2699,7 +2699,7 @@ def test_has_input_modified_attribute_values_no_changes_rich_text(
             rich_text_attribute: [
                 {
                     "attribute": rich_text_attribute,
-                    "slug": f"{variant.id}_{rich_text_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{rich_text_attribute.id}",
                     "defaults": {
                         "rich_text": rich_text_value.rich_text,
                         "name": rich_text_value.name,
@@ -2734,7 +2734,7 @@ def test_has_input_modified_attribute_values_with_changes_rich_text(
             rich_text_attribute: [
                 {
                     "attribute": rich_text_attribute,
-                    "slug": f"{variant.id}_{rich_text_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{rich_text_attribute.id}",
                     "defaults": {
                         "rich_text": different_rich_text,
                         "name": "New content"[:200],
@@ -2766,7 +2766,7 @@ def test_has_input_modified_attribute_values_no_changes_numeric(
             numeric_attribute: [
                 {
                     "attribute": numeric_attribute,
-                    "slug": f"{variant.id}_{numeric_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{numeric_attribute.id}",
                     "defaults": {
                         "name": str(numeric_value.numeric),
                         "numeric": numeric_value.numeric,
@@ -2799,7 +2799,7 @@ def test_has_input_modified_attribute_values_with_changes_numeric(
             numeric_attribute: [
                 {
                     "attribute": numeric_attribute,
-                    "slug": f"{variant.id}_{numeric_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{numeric_attribute.id}",
                     "defaults": {
                         "name": str(different_numeric),
                         "numeric": different_numeric,
@@ -2829,7 +2829,7 @@ def test_has_input_modified_attribute_values_no_changes_date(variant, date_attri
             date_attribute: [
                 {
                     "attribute": date_attribute,
-                    "slug": f"{variant.id}_{date_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{date_attribute.id}",
                     "defaults": {
                         "name": str(date_value.date_time.date()),
                         "date_time": date_value.date_time,
@@ -2863,7 +2863,7 @@ def test_has_input_modified_attribute_values_with_changes_date(variant, date_att
             date_attribute: [
                 {
                     "attribute": date_attribute,
-                    "slug": f"{variant.id}_{date_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{date_attribute.id}",
                     "defaults": {
                         "name": str(different_date),
                         "date_time": different_date_time,
@@ -2895,7 +2895,7 @@ def test_has_input_modified_attribute_values_no_changes_date_time(
             date_time_attribute: [
                 {
                     "attribute": date_time_attribute,
-                    "slug": f"{variant.id}_{date_time_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{date_time_attribute.id}",
                     "defaults": {
                         "name": str(date_time_value.date_time),
                         "date_time": date_time_value.date_time,
@@ -2928,7 +2928,7 @@ def test_has_input_modified_attribute_values_with_changes_date_time(
             date_time_attribute: [
                 {
                     "attribute": date_time_attribute,
-                    "slug": f"{variant.id}_{date_time_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{date_time_attribute.id}",
                     "defaults": {
                         "name": str(different_date_time),
                         "date_time": different_date_time,
@@ -2997,7 +2997,7 @@ def test_has_input_modified_attribute_values_mixed_bulk_actions(
             plain_text_attribute: [
                 {
                     "attribute": plain_text_attribute,
-                    "slug": f"{variant.id}_{plain_text_attribute.id}",
+                    "slug": f"productvariant-{variant.id}_{plain_text_attribute.id}",
                     "defaults": {
                         "plain_text": text_value.plain_text,
                         "name": text_value.name,
