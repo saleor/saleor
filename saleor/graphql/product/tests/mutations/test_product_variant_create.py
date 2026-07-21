@@ -1865,7 +1865,7 @@ def test_create_variant_with_numeric_attribute(
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug
     assert (
         data["attributes"][0]["values"][0]["slug"]
-        == f"{variant_pk}_{numeric_attribute.pk}"
+        == f"productvariant-{variant_pk}_{numeric_attribute.pk}"
     )
 
     assigned_attributes = data["assignedAttributes"]
@@ -2439,7 +2439,7 @@ def test_create_variant_with_date_attribute(
                 "dateTime": None,
                 "date": str(date_value),
                 "name": str(date_value),
-                "slug": f"{variant.id}_{date_attribute.id}",
+                "slug": f"productvariant-{variant.id}_{date_attribute.id}",
             }
         ],
     }
@@ -2509,7 +2509,7 @@ def test_create_variant_with_date_time_attribute(
                 "dateTime": date_time_value.isoformat(),
                 "date": None,
                 "name": str(date_time_value),
-                "slug": f"{variant.id}_{date_time_attribute.id}",
+                "slug": f"productvariant-{variant.id}_{date_time_attribute.id}",
             }
         ],
     }
