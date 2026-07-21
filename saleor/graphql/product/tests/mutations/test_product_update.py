@@ -799,7 +799,7 @@ def test_update_product_with_numeric_attribute_value(
                 "id": ANY,
                 "name": new_value,
                 "slug": slugify(
-                    f"{product.id}_{numeric_attribute.id}", allow_unicode=True
+                    f"product-{product.id}_{numeric_attribute.id}", allow_unicode=True
                 ),
                 "reference": None,
                 "file": None,
@@ -841,7 +841,9 @@ def test_update_product_with_numeric_attribute_value_new_value_is_not_created(
 
     attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     product_type.product_attributes.add(numeric_attribute)
-    slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
+    slug_value = slugify(
+        f"product-{product.id}_{numeric_attribute.id}", allow_unicode=True
+    )
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0", numeric=20.0
     )
@@ -1155,7 +1157,7 @@ def test_update_product_with_plain_text_attribute_value(
         "values": [
             {
                 "id": ANY,
-                "slug": f"{product.id}_{plain_text_attribute.id}",
+                "slug": f"product-{product.id}_{plain_text_attribute.id}",
                 "name": text,
                 "reference": None,
                 "file": None,
@@ -1220,7 +1222,7 @@ def test_update_product_with_plain_text_attribute_value_required(
         "values": [
             {
                 "id": ANY,
-                "slug": f"{product.id}_{plain_text_attribute.id}",
+                "slug": f"product-{product.id}_{plain_text_attribute.id}",
                 "name": text,
                 "reference": None,
                 "file": None,
@@ -2897,7 +2899,7 @@ def test_update_product_with_numeric_attribute_value_by_numeric_field(
                 "id": ANY,
                 "name": new_value,
                 "slug": slugify(
-                    f"{product.id}_{numeric_attribute.id}", allow_unicode=True
+                    f"product-{product.id}_{numeric_attribute.id}", allow_unicode=True
                 ),
                 "reference": None,
                 "file": None,
@@ -2936,7 +2938,9 @@ def test_update_product_with_numeric_attribute_by_numeric_field_null_value(
 
     attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     product_type.product_attributes.add(numeric_attribute)
-    slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
+    slug_value = slugify(
+        f"product-{product.id}_{numeric_attribute.id}", allow_unicode=True
+    )
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0", numeric=20.0
     )
@@ -2980,7 +2984,9 @@ def test_update_product_with_numeric_attribute_by_numeric_field_new_value_not_cr
 
     attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
     product_type.product_attributes.add(numeric_attribute)
-    slug_value = slugify(f"{product.id}_{numeric_attribute.id}", allow_unicode=True)
+    slug_value = slugify(
+        f"product-{product.id}_{numeric_attribute.id}", allow_unicode=True
+    )
     value = AttributeValue.objects.create(
         attribute=numeric_attribute, slug=slug_value, name="20.0", numeric=20.0
     )
