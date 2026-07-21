@@ -15456,9 +15456,6 @@ enum ProductTypeSortField @doc(category: "Products") {
   """Sort products by name."""
   NAME
 
-  """Sort products by type."""
-  DIGITAL @deprecated(reason: "DIGITAL will removed in Saleor 3.24.0. Use SHIPPING_REQUIRED instead.")
-
   """Sort products by shipping."""
   SHIPPING_REQUIRED
 }

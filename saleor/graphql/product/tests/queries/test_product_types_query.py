@@ -117,15 +117,6 @@ QUERY_PRODUCT_TYPES_WITH_SORT = """
     [
         ({"field": "NAME", "direction": "ASC"}, ["Digital", "Subscription", "Tools"]),
         ({"field": "NAME", "direction": "DESC"}, ["Tools", "Subscription", "Digital"]),
-        # is_digital
-        (
-            {"field": "DIGITAL", "direction": "ASC"},
-            ["Subscription", "Tools", "Digital"],
-        ),
-        (
-            {"field": "DIGITAL", "direction": "DESC"},
-            ["Digital", "Tools", "Subscription"],
-        ),
         # is_shipping_required
         (
             {"field": "SHIPPING_REQUIRED", "direction": "ASC"},

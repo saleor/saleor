@@ -26,7 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
 - Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.
 - Removed the deprecated `note` field from the `Checkout` type. Use `customerNote` instead.
-- Removed the deprecated `isDigital` field from the `ProductType` type, the `isDigital` input from `ProductTypeInput`, and the `DIGITAL` value from the `ProductTypeEnum` filter. These had no effect; use metadata or attributes instead.
+- Removed the deprecated `isDigital` field from the `ProductType` type, the `isDigital` input from `ProductTypeInput`, the `DIGITAL` value from the `ProductTypeEnum` filter, and the `DIGITAL` value from `ProductTypeSortField`. These had no effect; use metadata or attributes instead (or `SHIPPING_REQUIRED` for sorting).
 
 ### Webhooks
 
