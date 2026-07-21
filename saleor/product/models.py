@@ -130,8 +130,8 @@ class ProductType(ModelWithMetadata):
     kind = models.CharField(max_length=32, choices=ProductTypeKind.CHOICES)
     is_shipping_required = models.BooleanField(default=True)
 
-    # Note: has no effect, it's only kept for backward-compatibility as some users
-    #       use that field. Will be removed in Saleor v3.24.0
+    # TODO: remove this column with a migration. Has no effect and the whole
+    #       GraphQL surface (field, input, filter, sort) was removed in v3.24.0.
     is_digital = models.BooleanField(default=False)
 
     weight = MeasurementField(
