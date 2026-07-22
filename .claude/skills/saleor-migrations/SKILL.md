@@ -12,8 +12,8 @@ long table lock stalls every pod. Follow these rules.
 
 - **One model per migration, and one field change per migration.** Each schema operation holds a lock
   on the table for its duration; batching several into one migration multiplies the locked time.
-- The only valid reason to combine is separating a schema migration from its data migration (they must
-  be separate).
+- The only valid reason to combine is separating a schema migration from its data migration.
+- Always separate schema changes and data migration.
 - Don't add a migration that re-alters a column an earlier migration already changed — check the
   existing migration history first.
 - Give migrations descriptive names that reflect the actual operation
@@ -49,14 +49,15 @@ Keep any legacy enum values / code retained only for migration safety tracked as
 - Use a module/task **constant** (like `BATCH_SIZE`) for internal tuning knobs, not an env var nobody
   will set.
 - When cleaning up (e.g. removing a permission), address **all** models that hold the value
-  (App, AppExtension, AppInstallation…), or document why one is handled elsewhere.
-- Watch for per-iteration DB queries; batch related lookups.
+  (App, AppExtension, AppInstallation, …), or document why one is handled elsewhere.
+- Watch for per-iteration DB queries (`O(N)` vs `O(1)`); batch related lookups.
 
 ## Cross-branch ports
 
 - Keep a ported migration's **filename identical** to its counterpart on the other branch, and add a
   merge migration where histories diverge.
-
+- Keep a ported migration's **filename identical** to its counterpart on the other branch, and add a
+  merge migration where histories diverge using `./manage.py makemigrations --merge`.
 ## Before requesting review
 
 - Each migration touches one model / one field? Indexes created concurrently?

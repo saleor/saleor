@@ -9,7 +9,7 @@ many processes at once. Write code with that in mind:
 
 - **No in-process/local state as source of truth.** Never rely on module globals, in-memory caches,
   or a value set by a previous request being present on the next one — the next call hits a different
-  pod. Shared state lives in Postgres/Redis.
+  pod. Shared state lives in Postgres and Valkey or Redis.
 - **Assume every operation runs concurrently with itself.** Use atomic DB operations
   (`F()`, `update_or_create`, `select_for_update`) instead of check-then-act — see *Concurrency and
   Thread Safety* below.
@@ -100,6 +100,7 @@ database/cache or collide with another worktree's stack.
 - Don't hardcode a "nonexistent" primary key (e.g. `99999`) — `--reuse-db` can reassign it; derive a
   guaranteed-absent id (create then delete, or `max(pk)+1`).
 - Use reserved test domains (`example.com`, `*.test`) for any URL in a test, never a real one.
+- For IPs, use network addresses so they cannot reach an actual server, e.g., `8.8.8.0` or `1.1.1.0`
 - Parametrize near-identical test bodies; keep each test minimal (drop unrelated setup); name tests
   for the exact behavior asserted (no double negatives).
 
@@ -312,6 +313,11 @@ The shared Postgres is the scaling bottleneck — every pod hits it. Keep querie
 - **Don't denormalize user PII** (email, etc.) into other tables or event params — store only the
   reference id. Register any new user-referencing/PII field with the anonymizer app, and ensure PII is
   deleted with the user (`on_delete=PROTECT` + deactivate, not `SET_NULL` that leaves orphaned data).
+# File Uploads & File Downloads
+
 - **Treat any downloaded file or URL as untrusted**: `Content-Type` headers are spoofable (confirm the
   real type from magic bytes), enforce an allowed-format allowlist (reject SVG and other
   executable/vector formats), enforce a maximum size, and check the HTTP status before reading the body.
+- Verify the file extension matches the detected file type
+
+See saleor/graphql/core/validators/file.py for how to properly validate files.

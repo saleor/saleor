@@ -13,12 +13,12 @@ also use `saleor-graphql-api-change` and `saleor-migrations`.)
 
 - **Run pre-commit** and fix everything it flags (formatting, lint, mypy). PRs regularly bounce for
   this alone.
-- **Ensure new/changed tests pass locally** before requesting review (in a worktree, run inside the
-  worktree container — see AGENTS.md).
+- **Ensure new/changed tests pass locally** before requesting review (see AGENTS.md
+  for how to run tests).
 - Remove debug/test scaffolding (stray `str(...)` casts, prints, unused imports).
 - If you touched the GraphQL schema, **regenerate `schema.graphql`**.
-- For dependency changes, use the pinned Poetry version and change only the target dependency so
-  `poetry.lock` doesn't churn.
+- For dependency changes, use the pinned `uv` version and change only the target dependency so
+  `uv.lock` doesn't churn.
 
 ## CHANGELOG
 

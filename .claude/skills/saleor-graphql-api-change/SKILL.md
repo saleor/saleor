@@ -53,10 +53,15 @@ checklist for any change to a GraphQL field, mutation, input, enum, or webhook e
 - Pass the **type class** to `get_node_or_error(only_type=PageType)`, not the string `"PageType"`
   (gives real typing, drops a `cast`).
 - Name new sort/filter enum fields to match the type's existing field names (`createdAt`/`modifiedAt`).
-- Don't use `default_value=[]` on a list input (graphene treats it as a shared literal) — leave it
+- Don't use `default_value=[]` on Graphene inputs (graphene treats it as a shared literal) — leave it
   optional and default inside the mutation body.
+- Don't put any mutable values inside `default_value` Graphene input fields, nor in any
+  other defaults (such as function signatures) where this memory pointer or value
+  could get mutated (thus potentially leading to unexpected behaviors).
 - Guard restricted fields with `PermissionsField`, and add a **separate authorization test per
   permission-gated field**.
+- Ensure `class Meta` always defines the `permissions` property unless you are explicitly
+  told that you shouldn't.
 
 ## Webhook event types
 
