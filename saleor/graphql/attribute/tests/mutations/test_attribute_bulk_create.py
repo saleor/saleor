@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import graphene
 
+from .....attribute import AttributeType
 from .....attribute.error_codes import AttributeBulkCreateErrorCode
 from .....attribute.models import Attribute, AttributeValue
 from ....core.enums import ErrorPolicyEnum
@@ -809,3 +810,61 @@ def test_attribute_bulk_create_with_invalid_reference_types(
         assert len(result["errors"]) == 1
         assert result["errors"][0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
         assert result["errors"][0]["path"] == "referenceTypes"
+
+
+def test_attribute_bulk_create_customer_attribute(
+    staff_api_client, permission_manage_customer_types_and_attributes
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    attribute_name = "Loyalty level"
+    attributes = [
+        {"name": attribute_name, "type": AttributeTypeEnum.CUSTOMER_TYPE.name}
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {"attributes": attributes},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+    assert data["count"] == 1
+    assert data["results"][0]["attribute"]["name"] == attribute_name
+
+    attribute = Attribute.objects.get(slug="loyalty-level")
+    assert attribute.type == AttributeType.CUSTOMER_TYPE
+
+
+def test_attribute_bulk_create_customer_attribute_without_permission(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_page_types_and_attributes,
+        permission_manage_product_types_and_attributes,
+    )
+    attributes = [
+        {"name": "Loyalty level", "type": AttributeTypeEnum.CUSTOMER_TYPE.name}
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_MUTATION,
+        {"attributes": attributes},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AttributeBulkCreateErrorCode.REQUIRED.name
+    assert not Attribute.objects.filter(slug="loyalty-level").exists()

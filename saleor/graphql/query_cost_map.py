@@ -261,6 +261,10 @@ COST_MAP = {
     "CollectionChannelListing": {
         "channel": {"complexity": 1},
     },
+    "CustomerType": {
+        "attributes": {"complexity": 1},
+        "availableAttributes": {"complexity": 1, "multipliers": ["first", "last"]},
+    },
     "Fulfillment": {
         "lines": {"complexity": 1},
         "warehouse": {"complexity": 1},

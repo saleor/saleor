@@ -1153,3 +1153,75 @@ def test_attribute_bulk_update_invalid_reference_types(
         assert len(result["errors"]) == 1
         assert result["errors"][0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
         assert result["errors"][0]["path"] == "referenceTypes"
+
+
+def test_attribute_bulk_update_customer_attribute(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    new_name = "Membership tier"
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", loyalty_customer_attribute.pk
+            ),
+            "fields": {"name": new_name},
+        }
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+    assert data["count"] == 1
+    assert data["results"][0]["attribute"]["name"] == new_name
+    loyalty_customer_attribute.refresh_from_db()
+    assert loyalty_customer_attribute.name == new_name
+
+
+def test_attribute_bulk_update_customer_attribute_without_permission(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
+    loyalty_customer_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_page_types_and_attributes,
+        permission_manage_product_types_and_attributes,
+    )
+    old_name = loyalty_customer_attribute.name
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id(
+                "Attribute", loyalty_customer_attribute.pk
+            ),
+            "fields": {"name": "Membership tier"},
+        }
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION,
+        {"attributes": attributes},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
+    loyalty_customer_attribute.refresh_from_db()
+    assert loyalty_customer_attribute.name == old_name

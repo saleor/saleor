@@ -893,3 +893,34 @@ def page_type_attribute_list() -> list[Attribute]:
             ]
         )
     )
+
+
+@pytest.fixture
+def loyalty_customer_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="loyalty-level",
+        name="Loyalty level",
+        type=AttributeType.CUSTOMER_TYPE,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="Gold", slug="gold")
+    AttributeValue.objects.create(attribute=attribute, name="Silver", slug="silver")
+    return attribute
+
+
+@pytest.fixture
+def segment_customer_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="segment", name="Segment", type=AttributeType.CUSTOMER_TYPE
+    )
+    AttributeValue.objects.create(attribute=attribute, name="Retail", slug="retail")
+    return attribute
+
+
+@pytest.fixture
+def hidden_customer_attribute(db):
+    return Attribute.objects.create(
+        slug="internal-score",
+        name="Internal score",
+        type=AttributeType.CUSTOMER_TYPE,
+        visible_in_storefront=False,
+    )
