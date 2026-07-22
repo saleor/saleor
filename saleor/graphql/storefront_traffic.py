@@ -37,7 +37,7 @@ def get_allow_storefront_traffic() -> bool:
         allow_storefront_traffic = (
             SiteSettings.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             .values_list("allow_storefront_traffic", flat=True)
-            .get(site_id=settings.SITE_ID)
+            .get(site=Site.objects.get_current())
         )
         set_allow_storefront_traffic_cache(allow_storefront_traffic)
     return allow_storefront_traffic
