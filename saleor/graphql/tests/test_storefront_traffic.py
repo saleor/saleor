@@ -1,25 +1,25 @@
 from types import SimpleNamespace
 
-import jwt
 import pytest
-from django.contrib.sites.models import Site
+from jwt import InvalidTokenError
 
-from saleor.graphql.storefront_traffic import is_storefront_traffic_blocked
+from saleor.graphql.storefront_traffic import (
+    clear_allow_storefront_traffic_cache,
+    is_storefront_traffic_blocked,
+)
 
 
 def _set_allow_storefront_traffic(site_settings, allowed):
     site_settings.allow_storefront_traffic = allowed
     site_settings.save(update_fields=["allow_storefront_traffic"])
-    # get_current() reads a process-global cache; refresh it.
-    Site.objects.clear_cache()
+    clear_allow_storefront_traffic_cache()
 
 
 @pytest.fixture(autouse=True)
-def _clear_site_cache():
-    # Guard against a cached Site leaking between tests in this module.
-    Site.objects.clear_cache()
+def _clear_storefront_traffic_cache():
+    clear_allow_storefront_traffic_cache()
     yield
-    Site.objects.clear_cache()
+    clear_allow_storefront_traffic_cache()
 
 
 def test_blocks_anonymous_request_when_disabled(site_settings):
@@ -75,15 +75,6 @@ def test_user_traffic(
     assert is_storefront_traffic_blocked(req) is expected_blocked
 
 
-def test_missing_principal_attributes_are_treated_as_storefront(site_settings):
-    # given: a request object without app/user attributes at all
-    _set_allow_storefront_traffic(site_settings, False)
-    request = SimpleNamespace()
-
-    # when / then
-    assert is_storefront_traffic_blocked(request) is True
-
-
 @pytest.mark.parametrize(
     ("_case", "allow_storefront_traffic", "expected_blocked"),
     [
@@ -102,7 +93,17 @@ def test_invalid_token_user_resolution(
 
         @property
         def user(self):
-            raise jwt.InvalidTokenError("Invalid token.")
+            raise InvalidTokenError("Invalid token.")
 
     # when / then
     assert is_storefront_traffic_blocked(Request()) is expected_blocked
+
+
+def test_unexpected_user_object_is_not_privileged(site_settings):
+    # given
+    _set_allow_storefront_traffic(site_settings, False)
+    request = SimpleNamespace(app=None, user=object())
+
+    # when / then
+    with pytest.warns(UserWarning, match="An invalid user object was found"):
+        assert is_storefront_traffic_blocked(request) is True

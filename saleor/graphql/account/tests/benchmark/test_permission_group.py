@@ -350,7 +350,7 @@ def test_groups_for_federation_query_count(
     }
 
     Site.objects.clear_cache()
-    with django_assert_num_queries(3):
+    with django_assert_num_queries(2):
         response = api_client.post_graphql(query, variables)
         content = get_graphql_content(response)
         assert len(content["data"]["_entities"]) == 1

@@ -5,6 +5,10 @@ import pytest
 from .....core.error_codes import ShopErrorCode
 from .....core.jwt import JWT_OWNER_FIELD
 from .....site.models import Site
+from ....storefront_traffic import (
+    get_allow_storefront_traffic,
+    set_allow_storefront_traffic_cache,
+)
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import PasswordLoginModeEnum
 
@@ -717,6 +721,7 @@ def test_shop_settings_update_sets_allow_storefront_traffic(
     # given
     site_settings.allow_storefront_traffic = True
     site_settings.save(update_fields=["allow_storefront_traffic"])
+    set_allow_storefront_traffic_cache(True)
     variables = {"input": {"allowStorefrontTraffic": False}}
 
     # when
@@ -733,6 +738,7 @@ def test_shop_settings_update_sets_allow_storefront_traffic(
     assert data["shop"]["allowStorefrontTraffic"] is False
     site_settings.refresh_from_db()
     assert site_settings.allow_storefront_traffic is False
+    assert get_allow_storefront_traffic() is False
 
 
 def test_shop_settings_update_allow_storefront_traffic_requires_permission(

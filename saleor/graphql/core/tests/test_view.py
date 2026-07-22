@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django.contrib.sites.models import Site
 from django.shortcuts import render
 from django.test import override_settings
 from freezegun import freeze_time
@@ -20,6 +19,7 @@ from ...metrics import METRIC_GRAPHQL_BATCH_SIZE
 from ...storefront_traffic import (
     STOREFRONT_TRAFFIC_ERROR_CODE,
     STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+    clear_allow_storefront_traffic_cache,
 )
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
@@ -461,10 +461,10 @@ INTROSPECTION_RESULT = {"__schema": {"queryType": {"name": "Query"}}}
 @mock.patch("saleor.graphql.views.cache.set")
 @mock.patch("saleor.graphql.views.cache.get")
 @override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
-def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, api_client):
+def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, staff_api_client):
     cache_get_mock.return_value = None
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
-    response = api_client.post_graphql(INTROSPECTION_QUERY)
+    response = staff_api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
     cache_get_mock.assert_called_once_with(cache_key)
@@ -477,11 +477,11 @@ def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, api_clien
 @mock.patch("saleor.graphql.views.cache.get")
 @override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
 def test_introspection_query_is_cached_only_once(
-    cache_get_mock, cache_set_mock, api_client
+    cache_get_mock, cache_set_mock, staff_api_client
 ):
     cache_get_mock.return_value = ExecutionResult(data=INTROSPECTION_RESULT)
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
-    response = api_client.post_graphql(INTROSPECTION_QUERY)
+    response = staff_api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
     cache_get_mock.assert_called_once_with(cache_key)
@@ -492,9 +492,9 @@ def test_introspection_query_is_cached_only_once(
 @mock.patch("saleor.graphql.views.cache.get")
 @override_settings(DEBUG=True, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
 def test_introspection_query_is_not_cached_in_debug_mode(
-    cache_get_mock, cache_set_mock, api_client
+    cache_get_mock, cache_set_mock, staff_api_client
 ):
-    response = api_client.post_graphql(INTROSPECTION_QUERY)
+    response = staff_api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
     cache_get_mock.assert_not_called()
@@ -611,13 +611,12 @@ EXPECTED_STOREFRONT_TRAFFIC_ERROR = {
 
 @pytest.fixture
 def storefront_traffic_disabled(site_settings):
-    """Disable storefront traffic and keep the process-global site cache honest."""
+    """Disable storefront traffic and keep the guard cache honest."""
     site_settings.allow_storefront_traffic = False
     site_settings.save(update_fields=["allow_storefront_traffic"])
-    Site.objects.clear_cache()
+    clear_allow_storefront_traffic_cache()
     yield site_settings
-    # Prevent the cached `False` from leaking into other tests in this process.
-    Site.objects.clear_cache()
+    clear_allow_storefront_traffic_cache()
 
 
 def test_anonymous_request_blocked_when_disabled(
@@ -634,7 +633,7 @@ def test_anonymous_request_blocked_when_disabled(
 
 def test_anonymous_request_allowed_when_enabled_by_default(api_client, site_settings):
     # given: default flag (True)
-    Site.objects.clear_cache()
+    clear_allow_storefront_traffic_cache()
 
     # when
     response = api_client.post_graphql("{ __typename }")
@@ -674,7 +673,7 @@ def test_user_request(
     # given: a user-authenticated request — customers follow the flag, staff always allowed
     site_settings.allow_storefront_traffic = allow_storefront_traffic
     site_settings.save(update_fields=["allow_storefront_traffic"])
-    Site.objects.clear_cache()
+    clear_allow_storefront_traffic_cache()
     client = request.getfixturevalue(client_fixture)
 
     # when
@@ -686,8 +685,7 @@ def test_user_request(
         assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
     else:
         assert response.json()["data"] == {"__typename": "Query"}
-    # keep the process-global site cache honest for other tests
-    Site.objects.clear_cache()
+    clear_allow_storefront_traffic_cache()
 
 
 def test_invalid_token_treated_as_anonymous_when_disabled(

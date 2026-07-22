@@ -14932,7 +14932,7 @@ type Shop implements ObjectWithMetadata {
   trackInventoryByDefault: Boolean
 
   """
-  Determines whether the GraphQL API accepts storefront requests (anonymous requests and authenticated non-staff customers). When disabled, only apps and staff users may call the API directly; all other requests are rejected with an HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
+  Determines whether the GraphQL API accepts storefront requests (anonymous requests and authenticated non-staff customers). When disabled, only apps and staff users may call the API directly; all other requests are rejected with an HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code. Changes can take up to 5 minutes to propagate to all API workers.
   
   Added in Saleor 3.23.
   """
@@ -23064,7 +23064,7 @@ input ShopSettingsInput {
   allowLoginWithoutConfirmation: Boolean
 
   """
-  Determines whether the GraphQL API accepts storefront requests (anonymous requests and authenticated non-staff customers). When disabled, only apps and staff users may call the API directly; all other requests are rejected with an HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
+  Determines whether the GraphQL API accepts storefront requests (anonymous requests and authenticated non-staff customers). When disabled, only apps and staff users may call the API directly; all other requests are rejected with an HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code. Changes can take up to 5 minutes to propagate to all API workers.
   
   Added in Saleor 3.23.
   """
