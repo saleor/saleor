@@ -584,3 +584,28 @@ def test_validates_password_length(
         ],
         "user": None,
     }
+
+
+@override_settings(ALLOWED_CLIENT_HOSTS=["localhost"])
+def test_register_assigns_default_customer_type(
+    api_client, channel_PLN, default_customer_type
+):
+    # given
+    email = "customer-type@example.com"
+    variables = {
+        "input": {
+            "email": email,
+            "password": "Password",
+            "redirectUrl": "http://localhost:3000",
+            "channel": channel_PLN.slug,
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["accountRegister"]["errors"]
+    new_user = User.objects.get(email=email)
+    assert new_user.customer_type == default_customer_type

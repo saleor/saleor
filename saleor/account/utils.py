@@ -56,16 +56,13 @@ class RequestorAwareContext:
         }
 
 
-def get_default_customer_type(allow_replica: bool = True) -> CustomerType:
+def get_default_customer_type(
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> CustomerType:
     """Return the default customer type.
 
     :raises NoDefaultCustomerType: When the default customer type is missing.
     """
-    if allow_replica:
-        database_connection_name = settings.DATABASE_CONNECTION_REPLICA_NAME
-    else:
-        database_connection_name = settings.DATABASE_CONNECTION_DEFAULT_NAME
-
     customer_type = (
         CustomerType.objects.using(database_connection_name)
         .filter(is_default=True)

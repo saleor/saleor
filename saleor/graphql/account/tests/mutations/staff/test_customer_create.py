@@ -596,3 +596,22 @@ def test_customer_create_race_condition(
 
         # make sure that addresses were not saved.
         assert not Address.objects.exclude(id=address.id).exists()
+
+
+def test_create_assigns_default_customer_type(
+    staff_api_client, permission_manage_users, default_customer_type
+):
+    # given
+    email = "customer-type@example.com"
+    variables = {"email": email}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["customerCreate"]["errors"]
+    new_user = User.objects.get(email=email)
+    assert new_user.customer_type == default_customer_type

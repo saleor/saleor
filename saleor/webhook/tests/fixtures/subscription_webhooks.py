@@ -880,6 +880,27 @@ def subscription_page_type_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_customer_type_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.CUSTOMER_TYPE_CREATED, WebhookEventAsyncType.CUSTOMER_TYPE_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_customer_type_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.CUSTOMER_TYPE_UPDATED, WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_customer_type_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.CUSTOMER_TYPE_DELETED, WebhookEventAsyncType.CUSTOMER_TYPE_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_permission_group_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PERMISSION_GROUP_CREATED,
