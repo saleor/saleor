@@ -64,12 +64,16 @@ jobs:
               ref: `refs/tags/${process.env.VERSION}`,
               sha: context.sha
             })
+      - name: Checkout tagged commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.sha }}
       - name: Create github release
         env:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
           IS_LATEST: ${{ steps.check-latest.outputs.IS_LATEST }}
         run: |
-          gh release create -d "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag
+          gh release create -d "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag saleor/schema.graphql
 
   publish:
     needs: [create-release-tag]
