@@ -60,7 +60,10 @@ Keep any legacy enum values / code retained only for migration safety tracked as
   merge migration where histories diverge using `./manage.py makemigrations --merge`.
 ## Before requesting review
 
-- Each migration touches one model / one field? Indexes created concurrently?
-- Destructive column changes staged (db_default → remove ORM → later drop)?
-- `post_migrate` sender is this app? Data migration is all-or-nothing?
-- Ran the migration locally (`manage.py migrate`) and it applies cleanly?
+- Confirm each migration touches a single model and a single field, and that any index or constraint
+  is created concurrently rather than with a blocking operation.
+- Confirm every destructive column change is staged across releases (add `db_default`, then remove the
+  field from the ORM, then drop the column in a later version).
+- Confirm each `post_migrate` handler passes its own app config as the sender, and that every data
+  migration is all-or-nothing rather than aborting partway.
+- Run the migration locally with `manage.py migrate` and confirm it applies cleanly.

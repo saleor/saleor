@@ -75,7 +75,10 @@ checklist for any change to a GraphQL field, mutation, input, enum, or webhook e
 
 ## Before requesting review
 
-- Regenerated `schema.graphql`? `ADDED_IN`/`DEPRECATED_IN` correct for the target release?
-- Deprecations emit `@deprecated` (check the generated schema), not just prose?
-- New/changed input/output contract covered by a unit test (including nullability changes)?
-- See the `saleor-pr-checklist` skill for the general PR gate.
+- Have you regenerated `schema.graphql`, and are the `ADDED_IN`/`DEPRECATED_IN` annotations correct
+  for the release this change actually ships in?
+- Do the deprecations show up as `@deprecated` directives in the generated schema, rather than only as
+  prose in a description?
+- Is every new or changed input/output contract covered by a unit test, including any nullability
+  changes?
+- Follow the `saleor-pr-checklist` skill for the general PR gate before opening the PR.

@@ -86,8 +86,11 @@ database/cache or collide with another worktree's stack.
   alone doesn't prove the action was blocked.
 - **Never assert a value the test itself just set and saved** — that verifies the ORM, not the code
   under test. Set state *or* assert it, not both.
-- **Deep-copy an input before passing it to code that may mutate it**, then assert the `copy.deepcopy`
-  snapshot against the expected value. Comparing a mutated object to itself can never fail.
+- **Never assert a mutable input against itself after passing it to code that may mutate it** — the
+  comparison can never fail. Design the test so the expected value is independent of the input (build
+  it from literals/a separate fixture). Reach for `copy.deepcopy` only as a last resort when there is a
+  real mutation risk and no cleaner option — it is expensive (it pickles) and does not scale to a large
+  suite.
 - **Prefer real fixtures/tokens over mocking internals.** Generate a genuinely valid/invalid token
   (e.g. via the real `create_access_token*` factories or pyjwt) rather than mocking `get_decoded_token`
   to return a canned payload — otherwise real breakage isn't caught.
@@ -97,8 +100,9 @@ database/cache or collide with another worktree's stack.
   so the test fails fast if a default changes.
 - Use `Model.objects.get()` when exactly one row is expected (it asserts uniqueness) instead of
   `.first()` + a not-None check, and `qs.exists()` instead of `qs.count() == 0`.
-- Don't hardcode a "nonexistent" primary key (e.g. `99999`) — `--reuse-db` can reassign it; derive a
-  guaranteed-absent id (create then delete, or `max(pk)+1`).
+- Don't hardcode a "nonexistent" primary key (e.g. `99999`) — `--reuse-db` can reassign it. Use a
+  negative id such as `-1`; Postgres has no unsigned integer types, so it can never match a real row
+  (and it avoids the extra `max(pk)` query).
 - Use reserved test domains (`example.com`, `*.test`) for any URL in a test, never a real one.
 - For IPs, use network addresses so they cannot reach an actual server, e.g., `8.8.8.0` or `1.1.1.0`
 - Parametrize near-identical test bodies; keep each test minimal (drop unrelated setup); name tests

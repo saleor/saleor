@@ -34,7 +34,8 @@ also use `saleor-graphql-api-change` and `saleor-migrations`.)
 Skim your own diff for the top recurring review comments (all detailed in AGENTS.md):
 
 - **Tests:** exact-value assertions (no `> 0` / `assert not errors`); negative tests assert the side
-  effect didn't happen; no asserting a value the test just set; deepcopy before mutation; real
+  effect didn't happen; no asserting a value the test just set; design tests so a shared input can't
+  mutate the expected value, rather than papering over it with an expensive `copy.deepcopy`; real
   fixtures over mocked internals; the fix has a regression test reproducing the *real* bug.
 - **Layering:** business logic in the domain layer, not the mutation; no `graphql`-layer imports from
   non-GraphQL code; validate at the point of production.

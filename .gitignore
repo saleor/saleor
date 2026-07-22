@@ -6,9 +6,11 @@
 !.github
 !.gitignore
 !.vscode
-!.claude/
+
+# Track only .claude/skills/; keep the rest of .claude/ (local settings, state) ignored.
 .claude/*
 !.claude/skills/
+
 *.log
 *.pot
 *.pyc
@@ -38,5 +40,3 @@ Pipfile
 
 # Exported results file
 django-queries-results.html
-
-!.claude/skills
