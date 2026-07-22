@@ -14,7 +14,8 @@ STOREFRONT_TRAFFIC_CACHE_TIMEOUT = 5 * 60
 
 
 def _get_allow_storefront_traffic_cache_key() -> str:
-    return f"allow_storefront_traffic:{settings.SITE_ID}"
+    site = Site.objects.get_current()
+    return f"allow_storefront_traffic:{site.pk}"
 
 
 def set_allow_storefront_traffic_cache(allow_storefront_traffic: bool) -> None:
