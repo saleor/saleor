@@ -1223,6 +1223,9 @@ def async_subscription_webhooks_with_root_objects(
     subscription_page_type_created_webhook,
     subscription_page_type_updated_webhook,
     subscription_page_type_deleted_webhook,
+    subscription_customer_type_created_webhook,
+    subscription_customer_type_updated_webhook,
+    subscription_customer_type_deleted_webhook,
     subscription_permission_group_created_webhook,
     subscription_permission_group_updated_webhook,
     subscription_permission_group_deleted_webhook,
@@ -1258,6 +1261,7 @@ def async_subscription_webhooks_with_root_objects(
     fulfillment,
     stock,
     customer_user,
+    customer_type,
     collection,
     checkout,
     page,
@@ -1518,6 +1522,18 @@ def async_subscription_webhooks_with_root_objects(
         events.PAGE_TYPE_CREATED: [subscription_page_type_created_webhook, page_type],
         events.PAGE_TYPE_UPDATED: [subscription_page_type_updated_webhook, page_type],
         events.PAGE_TYPE_DELETED: [subscription_page_type_deleted_webhook, page_type],
+        events.CUSTOMER_TYPE_CREATED: [
+            subscription_customer_type_created_webhook,
+            customer_type,
+        ],
+        events.CUSTOMER_TYPE_UPDATED: [
+            subscription_customer_type_updated_webhook,
+            customer_type,
+        ],
+        events.CUSTOMER_TYPE_DELETED: [
+            subscription_customer_type_deleted_webhook,
+            customer_type,
+        ],
         events.PERMISSION_GROUP_CREATED: [
             subscription_permission_group_created_webhook,
             permission_group_manage_users,

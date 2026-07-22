@@ -75,6 +75,8 @@ COST_MAP = {
         "collection": {"complexity": 1},
         "collections": {"complexity": 1, "multipliers": ["first", "last"]},
         "customers": {"complexity": 1, "multipliers": ["first", "last"]},
+        "customerType": {"complexity": 1},
+        "customerTypes": {"complexity": 1, "multipliers": ["first", "last"]},
         "draftOrders": {"complexity": 1, "multipliers": ["first", "last"]},
         "exportFile": {"complexity": 1},
         "exportFiles": {"complexity": 1, "multipliers": ["first", "last"]},
@@ -424,6 +426,7 @@ COST_MAP = {
     "User": {
         "avatar": {"complexity": 1},
         "checkout": {"complexity": 1},
+        "customerType": {"complexity": 1},
         "editableGroups": {"complexity": 1},
         "events": {"complexity": 1},
         "giftCards": {"complexity": 1, "multipliers": ["first", "last"]},

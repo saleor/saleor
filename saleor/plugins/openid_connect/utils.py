@@ -18,7 +18,11 @@ from jwt import PyJWTError
 
 from ...account.models import Group, User
 from ...account.search import update_user_search_vector
-from ...account.utils import get_user_groups_permissions, send_user_event
+from ...account.utils import (
+    get_default_customer_type,
+    get_user_groups_permissions,
+    send_user_event,
+)
 from ...core.http_client import HTTPClient
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
@@ -465,6 +469,7 @@ def get_or_create_user_from_payload(
             **get_kwargs
         )
     except User.DoesNotExist:
+        defaults_create["customer_type"] = get_default_customer_type()
         user, created = User.objects.get_or_create(
             email=user_email,
             defaults=defaults_create,
@@ -475,6 +480,7 @@ def get_or_create_user_from_payload(
 
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
+        defaults_create["customer_type"] = get_default_customer_type()
         user, created = User.objects.get_or_create(
             email=user_email,
             defaults=defaults_create,

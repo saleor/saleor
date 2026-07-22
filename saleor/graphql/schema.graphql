@@ -1584,6 +1584,52 @@ type Query {
   ): UserCountableConnection @doc(category: "Users")
 
   """
+  Look up a customer type by ID.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES, MANAGE_USERS.
+  """
+  customerType(
+    """ID of the customer type."""
+    id: ID!
+  ): CustomerType @doc(category: "Users")
+
+  """
+  List of the customer types.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES, MANAGE_USERS.
+  """
+  customerTypes(
+    """Where filtering options for customer types."""
+    where: CustomerTypeWhereInput
+
+    """Search customer types by name or slug."""
+    search: String
+
+    """Sort customer types."""
+    sortBy: CustomerTypeSortingInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CustomerTypeCountableConnection @doc(category: "Users")
+
+  """
   List of permission groups.
   
   Requires one of the following permissions: MANAGE_STAFF.
@@ -1997,6 +2043,27 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A customer account metadata is updated."""
   CUSTOMER_METADATA_UPDATED
+
+  """
+  A new customer type is created.
+  
+  Added in Saleor 3.23.
+  """
+  CUSTOMER_TYPE_CREATED
+
+  """
+  A customer type is updated.
+  
+  Added in Saleor 3.23.
+  """
+  CUSTOMER_TYPE_UPDATED
+
+  """
+  A customer type is deleted.
+  
+  Added in Saleor 3.23.
+  """
+  CUSTOMER_TYPE_DELETED
 
   """A new collection is created."""
   COLLECTION_CREATED
@@ -2601,6 +2668,27 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A customer account metadata is updated."""
   CUSTOMER_METADATA_UPDATED
+
+  """
+  A new customer type is created.
+  
+  Added in Saleor 3.23.
+  """
+  CUSTOMER_TYPE_CREATED
+
+  """
+  A customer type is updated.
+  
+  Added in Saleor 3.23.
+  """
+  CUSTOMER_TYPE_UPDATED
+
+  """
+  A customer type is deleted.
+  
+  Added in Saleor 3.23.
+  """
+  CUSTOMER_TYPE_DELETED
 
   """A new collection is created."""
   COLLECTION_CREATED
@@ -3449,6 +3537,13 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """External ID of this user."""
   externalReference: String
+
+  """
+  The customer type assigned to the user. Requires one of the following permissions: MANAGE_USERS, OWNER.
+  
+  Added in Saleor 3.23.
+  """
+  customerType: CustomerType
 
   """The date when the user last time log in to the system."""
   lastLogin: DateTime
@@ -14044,6 +14139,57 @@ type PaymentSource @doc(category: "Payments") {
   metadata: [MetadataItem!]!
 }
 
+"""
+Represents a type of customer. It allows to segment users and defines what attributes are available to users of this type.
+
+Added in Saleor 3.23.
+"""
+type CustomerType implements Node & ObjectWithMetadata @doc(category: "Users") {
+  """The ID of the customer type."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the customer type."""
+  name: String!
+
+  """Slug of the customer type."""
+  slug: String!
+
+  """
+  Whether this is the default customer type. The default customer type is assigned to every newly created user and cannot be deleted.
+  """
+  isDefault: Boolean!
+}
+
 """Represents the app's brand data."""
 type AppBrand @doc(category: "Apps") {
   """App's logos details."""
@@ -14310,6 +14456,9 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   CUSTOMER_UPDATED
   CUSTOMER_DELETED
   CUSTOMER_METADATA_UPDATED
+  CUSTOMER_TYPE_CREATED
+  CUSTOMER_TYPE_UPDATED
+  CUSTOMER_TYPE_DELETED
   COLLECTION_CREATED
   COLLECTION_UPDATED
   COLLECTION_DELETED
@@ -17584,6 +17733,60 @@ enum UserSortField @doc(category: "Users") {
   Sort users by rank. Note: This option is available only with the `search` filter.
   """
   RANK
+}
+
+type CustomerTypeCountableConnection @doc(category: "Users") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [CustomerTypeCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type CustomerTypeCountableEdge @doc(category: "Users") {
+  """The item at the end of the edge."""
+  node: CustomerType!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input CustomerTypeWhereInput @doc(category: "Users") {
+  """Filter by metadata fields."""
+  metadata: MetadataFilterInput
+  ids: [ID!]
+
+  """Filter by customer type name."""
+  name: StringFilterInput
+
+  """Filter by customer type slug."""
+  slug: StringFilterInput
+
+  """Filter by whether the customer type is the default one."""
+  isDefault: Boolean
+
+  """List of conditions that must be met."""
+  AND: [CustomerTypeWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CustomerTypeWhereInput!]
+}
+
+input CustomerTypeSortingInput @doc(category: "Users") {
+  """Specifies the direction in which to sort customer types."""
+  direction: OrderDirection!
+
+  """Sort customer types by the selected field."""
+  field: CustomerTypeSortField!
+}
+
+enum CustomerTypeSortField @doc(category: "Users") {
+  """Sort customer types by name."""
+  NAME
+
+  """Sort customer types by slug."""
+  SLUG
 }
 
 type GroupCountableConnection @doc(category: "Users") {
@@ -22328,6 +22531,54 @@ type Mutation {
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
   ): CustomerBulkUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
+
+  """
+  Creates a new customer type.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TYPE_CREATED (async): A new customer type was created.
+  """
+  customerTypeCreate(
+    """Fields required to create a customer type."""
+    input: CustomerTypeCreateInput!
+  ): CustomerTypeCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_CREATED], syncEvents: [])
+
+  """
+  Updates a customer type.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
+  """
+  customerTypeUpdate(
+    """ID of the customer type to update."""
+    id: ID!
+
+    """Fields required to update a customer type."""
+    input: CustomerTypeUpdateInput!
+  ): CustomerTypeUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: [])
+
+  """
+  Deletes a customer type. Users of the deleted customer type are reassigned to the default customer type.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TYPE_DELETED (async): A customer type was deleted.
+  """
+  customerTypeDelete(
+    """ID of the customer type to delete."""
+    id: ID!
+  ): CustomerTypeDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_DELETED], syncEvents: [])
 
   """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
@@ -33862,6 +34113,144 @@ input CustomerBulkUpdateInput @doc(category: "Users") {
 }
 
 """
+Creates a new customer type.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- CUSTOMER_TYPE_CREATED (async): A new customer type was created.
+"""
+type CustomerTypeCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_CREATED], syncEvents: []) {
+  errors: [CustomerTypeCreateError!]!
+  customerType: CustomerType
+}
+
+type CustomerTypeCreateError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerTypeCreateErrorCode!
+}
+
+enum CustomerTypeCreateErrorCode @doc(category: "Users") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+input CustomerTypeCreateInput @doc(category: "Users") {
+  """Name of the customer type."""
+  name: String
+
+  """
+  Slug of the customer type. If not provided, it will be generated from the name.
+  """
+  slug: String
+
+  """
+  Determines if the customer type should become the default one, assigned to every newly created user. Passing `true` clears the flag on the current default customer type - exactly one default customer type always exists.
+  """
+  isDefault: Boolean
+}
+
+"""
+Updates a customer type.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
+"""
+type CustomerTypeUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: []) {
+  errors: [CustomerTypeUpdateError!]!
+  customerType: CustomerType
+}
+
+type CustomerTypeUpdateError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerTypeUpdateErrorCode!
+}
+
+enum CustomerTypeUpdateErrorCode @doc(category: "Users") {
+  CANNOT_UNSET_DEFAULT
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+input CustomerTypeUpdateInput @doc(category: "Users") {
+  """Name of the customer type."""
+  name: String
+
+  """
+  Slug of the customer type. If not provided, it will be generated from the name.
+  """
+  slug: String
+
+  """
+  Determines if the customer type should become the default one, assigned to every newly created user. Passing `true` clears the flag on the current default customer type - exactly one default customer type always exists.
+  """
+  isDefault: Boolean
+}
+
+"""
+Deletes a customer type. Users of the deleted customer type are reassigned to the default customer type.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- CUSTOMER_TYPE_DELETED (async): A customer type was deleted.
+"""
+type CustomerTypeDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_DELETED], syncEvents: []) {
+  errors: [CustomerTypeDeleteError!]!
+  customerType: CustomerType
+}
+
+type CustomerTypeDeleteError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerTypeDeleteErrorCode!
+}
+
+enum CustomerTypeDeleteErrorCode @doc(category: "Users") {
+  CANNOT_DELETE_DEFAULT
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
 Creates a new staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
@@ -36776,6 +37165,72 @@ type CustomerMetadataUpdated implements Event @doc(category: "Users") {
 
   """The user the event relates to."""
   user: User
+}
+
+"""
+Event sent when new customer type is created.
+
+Added in Saleor 3.23.
+"""
+type CustomerTypeCreated implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The customer type the event relates to."""
+  customerType: CustomerType
+}
+
+"""
+Event sent when customer type is updated.
+
+Added in Saleor 3.23.
+"""
+type CustomerTypeUpdated implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The customer type the event relates to."""
+  customerType: CustomerType
+}
+
+"""
+Event sent when customer type is deleted.
+
+Added in Saleor 3.23.
+"""
+type CustomerTypeDeleted implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The customer type the event relates to."""
+  customerType: CustomerType
 }
 
 """Event sent when new collection is created."""
