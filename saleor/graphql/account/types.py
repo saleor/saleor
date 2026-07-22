@@ -7,13 +7,20 @@ from graphene import relay
 from promise import Promise
 
 from ...account import models
+from ...attribute import models as attribute_models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...graphql.meta.inputs import MetadataInput, MetadataInputDescription
 from ...order import OrderStatus
 from ...payment.interface import ListStoredPaymentMethodsRequestData
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    AppPermission,
+    CustomerTypePermissions,
+    OrderPermissions,
+)
+from ...permission.utils import one_of_permissions_or_auth_filter_required
 from ...plugins.manager import PluginsManager
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
@@ -23,6 +30,8 @@ from ...thumbnail.utils import (
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
+from ..attribute.filters import AttributeWhereInput, filter_attribute_search
+from ..attribute.types import Attribute, AttributeCountableConnection
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
@@ -34,7 +43,12 @@ from ..core.connection import (
     create_connection_slice_for_sync_webhook_control_context,
     filter_connection_queryset,
 )
-from ..core.context import SyncWebhookControlContext, get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    ChannelQsContext,
+    SyncWebhookControlContext,
+    get_database_connection_name,
+)
 from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_322,
@@ -72,6 +86,8 @@ from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
     AccessibleChannelsByUserIdLoader,
     AddressByIdLoader,
+    CustomerAttributesAllByCustomerTypeIdLoader,
+    CustomerAttributesVisibleInStorefrontByCustomerTypeIdLoader,
     CustomerEventsByUserLoader,
     CustomerTypeByIdLoader,
     DefaultCustomerTypeLoader,
@@ -331,6 +347,28 @@ class CustomerType(ModelObjectType[models.CustomerType]):
             "is assigned to every newly created user and cannot be deleted."
         ),
     )
+    attributes = NonNullList(
+        Attribute,
+        description=(
+            "Customer attributes assigned to this customer type. Attributes that "
+            "are not visible in the storefront require one of the following "
+            "permissions to be included: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.name}."
+        ),
+    )
+    available_attributes = FilterConnectionField(
+        AttributeCountableConnection,
+        where=AttributeWhereInput(
+            description="Where filtering options for attributes."
+        ),
+        search=graphene.String(description="Search attributes."),
+        description="Customer attributes that can be assigned to the customer type.",
+        permissions=[
+            AccountPermissions.MANAGE_USERS,
+            CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+        ],
+    )
 
     class Meta:
         description = (
@@ -340,6 +378,44 @@ class CustomerType(ModelObjectType[models.CustomerType]):
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.CustomerType
         doc_category = DOC_CATEGORY_USERS
+
+    @staticmethod
+    def resolve_attributes(root: models.CustomerType, info: ResolveInfo):
+        def wrap_with_channel_context(attributes):
+            return [ChannelContext(attribute, None) for attribute in attributes]
+
+        if one_of_permissions_or_auth_filter_required(
+            info.context,
+            [
+                AccountPermissions.MANAGE_USERS,
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+            ],
+        ):
+            return (
+                CustomerAttributesAllByCustomerTypeIdLoader(info.context)
+                .load(root.pk)
+                .then(wrap_with_channel_context)
+            )
+        return (
+            CustomerAttributesVisibleInStorefrontByCustomerTypeIdLoader(info.context)
+            .load(root.pk)
+            .then(wrap_with_channel_context)
+        )
+
+    @staticmethod
+    def resolve_available_attributes(
+        root: models.CustomerType, info: ResolveInfo, search=None, **kwargs
+    ):
+        qs = attribute_models.Attribute.objects.get_unassigned_customer_type_attributes(
+            root.pk
+        ).using(get_database_connection_name(info.context))
+        qs = filter_connection_queryset(
+            qs, kwargs, info.context, allow_replica=info.context.allow_replica
+        )
+        if search:
+            qs = filter_attribute_search(qs, None, search)
+        qs = ChannelQsContext(qs=qs, channel_slug=None)
+        return create_connection_slice(qs, info, kwargs, AttributeCountableConnection)
 
 
 class CustomerTypeCountableConnection(CountableConnection):
