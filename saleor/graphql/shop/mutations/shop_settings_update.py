@@ -284,6 +284,9 @@ class ShopSettingsUpdate(BaseMutation):
         instance.save()
 
         if should_update_storefront_traffic_cache:
+            # Note: we do not use any locks here as we do not expect any use-case
+            #       where this mutation would be called concurrently with different
+            #       modes.
             set_allow_storefront_traffic_cache(instance.allow_storefront_traffic)
 
         if (
