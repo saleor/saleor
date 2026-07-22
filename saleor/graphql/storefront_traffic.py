@@ -48,6 +48,8 @@ def _is_privileged(request: SaleorContext) -> bool:
 
     try:
         user = request.user
+    # Needed because Saleor implicitly authenticates the user when
+    # access the property `.user` (magic)
     except InvalidTokenError:
         return False
 
