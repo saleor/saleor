@@ -81,8 +81,7 @@ class ShopSettingsInput(graphene.InputObjectType):
             "(anonymous requests and authenticated non-staff customers). When "
             "disabled, only apps and staff users may call the API directly; all "
             "other requests are rejected with an HTTP 401 and the "
-            "`STOREFRONT_TRAFFIC_NOT_ALLOWED` error code. Changes can take up "
-            "to 5 minutes to propagate to all API workers." + ADDED_IN_323
+            "`STOREFRONT_TRAFFIC_NOT_ALLOWED` error code." + ADDED_IN_323
         ),
     )
     metadata = common_types.NonNullList(

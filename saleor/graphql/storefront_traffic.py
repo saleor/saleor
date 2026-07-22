@@ -1,6 +1,7 @@
 import warnings
 
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.core.cache import cache
 from jwt import InvalidTokenError
 
@@ -72,7 +73,11 @@ def is_storefront_traffic_blocked(request: SaleorContext) -> bool:
 
     App-authenticated and staff-user requests may always call the API directly.
     Other requests follow the cached shop setting.
+
+    The cheap cached setting is checked first so the expensive ``_is_privileged``
+    call (which implicitly authenticates the user) only runs when storefront
+    traffic is disallowed.
     """
-    if _is_privileged(request):
+    if get_allow_storefront_traffic():
         return False
-    return not get_allow_storefront_traffic()
+    return not _is_privileged(request)
