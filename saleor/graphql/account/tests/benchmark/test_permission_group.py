@@ -1,6 +1,5 @@
 import graphene
 import pytest
-from django.contrib.sites.models import Site
 
 from .....account.models import Group
 from .....permission.enums import AccountPermissions, OrderPermissions
@@ -349,8 +348,7 @@ def test_groups_for_federation_query_count(
         ],
     }
 
-    Site.objects.clear_cache()
-    with django_assert_num_queries(2):
+    with django_assert_num_queries(1):
         response = api_client.post_graphql(query, variables)
         content = get_graphql_content(response)
         assert len(content["data"]["_entities"]) == 1
