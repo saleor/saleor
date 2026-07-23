@@ -12,7 +12,7 @@ from .....attribute.tests.model_helpers import (
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ATTRIBUTE_DELETE_MUTATION = """
     mutation deleteAttribute($id: ID!) {
@@ -159,7 +159,7 @@ def test_delete_attribute_update_search_index_dirty_in_page(
     staff_api_client,
     page,
     page_type,
-    permission_manage_product_types_and_attributes,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     attribute = page_type.page_attributes.first()
@@ -170,7 +170,7 @@ def test_delete_attribute_update_search_index_dirty_in_page(
     staff_api_client.post_graphql(
         ATTRIBUTE_DELETE_MUTATION,
         variables,
-        permissions=[permission_manage_product_types_and_attributes],
+        permissions=[permission_manage_page_types_and_attributes],
     )
 
     # then
@@ -261,3 +261,72 @@ def test_delete_attribute_by_external_reference_not_existing(
     # then
     errors = content["data"]["attributeDelete"]["errors"]
     assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_delete_page_attribute_with_page_type_permission(
+    staff_api_client,
+    size_page_attribute,
+    permission_manage_page_types_and_attributes,
+):
+    # given
+    attribute = size_page_attribute
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_page_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeDelete"]
+    assert data["attribute"]["id"] == variables["id"]
+    with pytest.raises(attribute._meta.model.DoesNotExist):
+        attribute.refresh_from_db()
+
+
+def test_delete_page_attribute_without_page_type_permission(
+    staff_api_client,
+    size_page_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attribute = size_page_attribute
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    assert_no_permission(response)
+    assert attribute._meta.model.objects.filter(pk=attribute.pk).exists()
+
+
+def test_delete_product_attribute_without_product_type_permission(
+    staff_api_client,
+    color_attribute,
+    permission_manage_page_types_and_attributes,
+):
+    # given
+    attribute = color_attribute
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_page_types_and_attributes],
+    )
+
+    # then
+    assert_no_permission(response)
+    assert attribute._meta.model.objects.filter(pk=attribute.pk).exists()
