@@ -4,6 +4,7 @@ from oauthlib.common import generate_token
 
 from ....app import models
 from ....app.error_codes import AppErrorCode
+from ....core.exceptions import PermissionDenied
 from ....permission.enums import AppPermission
 from ...account.utils import can_manage_app
 from ...core import ResolveInfo
@@ -43,12 +44,16 @@ class AppTokenCreate(DeprecatedModelMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, /, **data):
+        user = info.context.user
+        if not user or not user.is_authenticated:
+            raise PermissionDenied(message="Only staff users can create app tokens.")
         input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
         cleaned_input = cls.clean_input(info, instance, input_data)
         instance = cls.construct_instance(instance, cleaned_input)
         auth_token = generate_token()
         instance.set_auth_token(auth_token)
+        instance.created_by = user
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
