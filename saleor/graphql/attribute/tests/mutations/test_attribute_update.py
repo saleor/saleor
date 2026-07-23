@@ -12,7 +12,7 @@ from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import MeasurementUnitsEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 UPDATE_ATTRIBUTE_MUTATION = """
     mutation updateAttribute(
@@ -851,3 +851,70 @@ def test_update_attribute_name_similar_value(
     assert len(values_edges) == 2
     slugs = [node["node"]["slug"] for node in values_edges]
     assert set(slugs) == {"15", "15-2"}
+
+
+def test_update_page_attribute_with_page_type_permission(
+    staff_api_client, size_page_attribute, permission_manage_page_types_and_attributes
+):
+    # given
+    attribute = size_page_attribute
+    name = "Updated page attribute name"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id, "input": {"name": name}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_page_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+    attribute.refresh_from_db()
+    assert data["attribute"]["name"] == name
+    assert attribute.name == name
+
+
+def test_update_page_attribute_without_page_type_permission(
+    staff_api_client,
+    size_page_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attribute = size_page_attribute
+    name = "Updated page attribute name"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id, "input": {"name": name}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_update_product_attribute_without_product_type_permission(
+    staff_api_client, color_attribute, permission_manage_page_types_and_attributes
+):
+    # given
+    attribute = color_attribute
+    name = "Updated product attribute name"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id, "input": {"name": name}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_page_types_and_attributes],
+    )
+
+    # then
+    assert_no_permission(response)
