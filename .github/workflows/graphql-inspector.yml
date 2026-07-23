@@ -11,6 +11,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: kamilkisiela/graphql-inspector@v3.4.0
+      - uses: graphql-hive/graphql-inspector@8733c10560f98b868d3eb4db1325c8edf64936b3 # @graphql-inspector/action@5.0.21
         with:
           schema: "3.21:saleor/graphql/schema.graphql"

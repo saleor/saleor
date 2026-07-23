@@ -1,7 +1,9 @@
 import graphene
 
+from ....attribute import AttributeType
 from ....attribute import models as models
-from ....permission.enums import ProductTypePermissions
+from ....core.exceptions import PermissionDenied
+from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
@@ -22,8 +24,12 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Meta:
         model = models.Attribute
         object_type = Attribute
-        description = "Deletes an attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        description = (
+            "Deletes an attribute.\n\nRequires one of the following permissions, "
+            "depending on the attribute type: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -37,3 +43,37 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_deleted, instance)
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        """Perform a mutation that deletes a model instance."""
+        # Concrete permission is checked after instance is resolved.
+        type_permissions = (
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+        )
+        if not cls.check_permissions(info.context, type_permissions):
+            raise PermissionDenied(permissions=type_permissions)
+
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
+
+        # Check permissions based on attribute type
+        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
+        if instance.type == AttributeType.PRODUCT_TYPE:
+            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        else:
+            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        if not cls.check_permissions(info.context, permissions):
+            raise PermissionDenied(permissions=permissions)
+
+        cls.clean_instance(info, instance)
+        db_id = instance.id
+        instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        cls.post_save_action(info, instance, None)
+        return cls.success_response(instance)
