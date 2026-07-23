@@ -177,10 +177,18 @@ class GraphQLView(View):
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         # Reject disallowed storefront traffic before parsing/executing anything.
         # Runs once per HTTP request, so batches get a single 401.
-        # `get_context_value` resolves app/user and is cached, so the later call
-        # in `execute_graphql_request` is free.
+        # `get_context_value` attaches a `request.user` SimpleLazyObject whose
+        # closure captures `request` (a reference cycle). `execute_graphql_request`
+        # is the only place that pairs a context with `clear_context`, and the
+        # error/early-return paths never reach it — so clear our context here to
+        # avoid leaking the cycle. `execute_graphql_request` rebuilds and clears
+        # its own; `request._cached_user` survives, so re-auth stays free.
         context = get_context_value(request)
-        if is_storefront_traffic_blocked(context):
+        try:
+            blocked = is_storefront_traffic_blocked(context)
+        finally:
+            clear_context(context)
+        if blocked:
             return JsonResponse(
                 data={
                     "errors": [

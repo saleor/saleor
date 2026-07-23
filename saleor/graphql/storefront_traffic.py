@@ -62,13 +62,15 @@ def _is_privileged(request: SaleorContext) -> bool:
         return False
 
     try:
+        # Needed because Saleor implicitly authenticates the user when
+        # accessing the property `.user` (magic). `request.user` is a
+        # SimpleLazyObject, so the assignment does not authenticate — the first
+        # access does. Force it inside this try (via `if not user`) so the
+        # implicit auth and any InvalidTokenError it raises are caught here.
         user = request.user
-    # Needed because Saleor implicitly authenticates the user when
-    # access the property `.user` (magic)
+        if not user:
+            return False
     except InvalidTokenError:
-        return False
-
-    if not user:
         return False
 
     if isinstance(user, User) is False:
