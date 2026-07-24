@@ -1,9 +1,21 @@
 import django_filters
-from django.db.models import Count, Exists, OuterRef, Q
+from django.db.models import Count, Exists, OuterRef, Q, QuerySet, Subquery
+from django.db.models.functions import Coalesce
 
-from ...account.models import Address, User
+from ...account.models import Address, CustomerType, User
+from ...attribute.models import (
+    AssignedUserAttributeValue,
+    AttributeCustomerType,
+    AttributeValue,
+)
 from ...core.search import prefix_search
 from ...order.models import Order
+from ..attribute.shared_filters import (
+    AssignedAttributeWhereInput,
+    filter_objects_by_attributes,
+    validate_attribute_value_input,
+)
+from ..core.descriptions import ADDED_IN_323
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.filters import (
     BooleanWhereFilter,
@@ -14,9 +26,14 @@ from ..core.filters import (
     ObjectTypeFilter,
     ObjectTypeWhereFilter,
 )
-from ..core.filters.where_filters import MetadataWhereBase
+from ..core.filters.where_filters import (
+    ListObjectTypeWhereFilter,
+    MetadataWhereBase,
+    OperationObjectTypeWhereFilter,
+)
 from ..core.filters.where_input import (
     FilterInputDescriptions,
+    GlobalIDFilterInput,
     IntFilterInput,
     StringFilterInput,
     WhereInputObjectType,
@@ -28,6 +45,7 @@ from ..core.types import (
     IntRangeInput,
     NonNullList,
 )
+from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     filter_by_id,
     filter_by_ids,
@@ -186,6 +204,48 @@ class AddressFilterInput(BaseInputObjectType):
         description = "Filtering options for addresses."
 
 
+def _get_assigned_user_attribute_for_attribute_value(
+    attribute_values: QuerySet[AttributeValue],
+    db_connection_name: str,
+):
+    """Build an expression matching users by assigned attribute values.
+
+    Values of attributes that are not assigned to the user's customer type
+    are skipped, as such values are not exposed on the user. Users without
+    an explicitly assigned customer type belong to the default one.
+    """
+    default_customer_type_id = Subquery(
+        CustomerType.objects.using(db_connection_name)
+        .filter(is_default=True)
+        .values("id")[:1]
+    )
+    attribute_assigned_to_customer_type = AttributeCustomerType.objects.using(
+        db_connection_name
+    ).filter(
+        attribute_id=OuterRef("value__attribute_id"),
+        customer_type_id=Coalesce(
+            OuterRef(OuterRef("customer_type_id")), default_customer_type_id
+        ),
+    )
+    return Q(
+        Exists(
+            AssignedUserAttributeValue.objects.using(db_connection_name).filter(
+                Exists(attribute_values.filter(id=OuterRef("value_id"))),
+                Exists(attribute_assigned_to_customer_type),
+                user_id=OuterRef("id"),
+            )
+        )
+    )
+
+
+def filter_users_by_attributes(qs, value):
+    return filter_objects_by_attributes(
+        qs,
+        value,
+        _get_assigned_user_attribute_for_attribute_value,
+    )
+
+
 class CustomerWhereFilterInput(MetadataWhereBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("User"))
     email = ObjectTypeWhereFilter(
@@ -231,6 +291,20 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         input_class=IntFilterInput,
         method="filter_number_of_orders",
         help_text="Filter by number of orders placed by the user.",
+    )
+    customer_type = OperationObjectTypeWhereFilter(
+        input_class=GlobalIDFilterInput,
+        method="filter_customer_type",
+        help_text=(
+            "Filter by customer type. Filtering by the default customer type "
+            "also matches users without an explicitly assigned customer type."
+            + ADDED_IN_323
+        ),
+    )
+    attributes = ListObjectTypeWhereFilter(
+        input_class=AssignedAttributeWhereInput,
+        method="filter_attributes",
+        help_text="Filter by attributes associated with the customer." + ADDED_IN_323,
     )
 
     @staticmethod
@@ -284,6 +358,38 @@ class CustomerWhereFilterInput(MetadataWhereBase):
         if value is None:
             return qs.none()
         return filter_where_range_field_with_conditions(qs, "number_of_orders", value)
+
+    @staticmethod
+    def filter_customer_type(qs, _, value):
+        if not value:
+            return qs.none()
+        if eq := value.get("eq"):
+            _, pks = resolve_global_ids_to_primary_keys([eq], "CustomerType", True)
+        elif one_of := value.get("one_of"):
+            _, pks = resolve_global_ids_to_primary_keys(one_of, "CustomerType", True)
+        else:
+            return qs.none()
+        lookup = Q(customer_type_id__in=pks)
+        if (
+            CustomerType.objects.using(qs.db)
+            .filter(is_default=True, pk__in=pks)
+            .exists()
+        ):
+            # Users without an explicitly assigned customer type belong to the
+            # default one.
+            lookup |= Q(customer_type_id__isnull=True)
+        return qs.filter(lookup)
+
+    @staticmethod
+    def filter_attributes(qs, _, value):
+        if not value:
+            return qs.none()
+        return filter_users_by_attributes(qs, value)
+
+    def is_valid(self):
+        if attributes := self.data.get("attributes"):
+            validate_attribute_value_input(attributes, self.queryset.db)
+        return super().is_valid()
 
 
 class CustomerWhereInput(WhereInputObjectType):
