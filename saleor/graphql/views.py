@@ -1,6 +1,7 @@
 import decimal
 import hashlib
 import importlib
+import re
 import time
 from inspect import isclass
 from typing import Any, cast
@@ -57,6 +58,27 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
+
+# Control characters that should never appear unescaped in a GraphQL request
+# body. Covers C0 (0x00-0x1F) except whitespace (\t \n \r) plus DEL and C1
+# (0x7F-0x9F). More info: https://en.wikipedia.org/wiki/C0_and_C1_control_codes
+# NUL bytes trip psycopg with an unhandled DataError; the rest can enable log
+# and header injections and have no legitimate use in JSON or GraphQL
+# source text.
+FORBIDDEN_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]")
+
+
+def _contains_control_chars(value) -> bool:
+    if isinstance(value, str):
+        return FORBIDDEN_CONTROL_CHARS.search(value) is not None
+    if isinstance(value, dict):
+        return any(
+            _contains_control_chars(k) or _contains_control_chars(v)
+            for k, v in value.items()
+        )
+    if isinstance(value, list):
+        return any(_contains_control_chars(item) for item in value)
+    return False
 
 
 def default_serializer(obj):
@@ -528,11 +550,26 @@ class GraphQLView(View):
 
     @staticmethod
     def parse_body(request: HttpRequest):
+        # Reject text GraphQL bodies containing control characters rather than
+        # stripping them - assume the request is rogue. Multipart bodies are
+        # not checked here because uploaded files legitimately contain control
+        # bytes in binary payloads.
         content_type = request.content_type
         if content_type == "application/graphql":
-            return {"query": request.body.decode("utf-8")}
+            body = request.body.decode("utf-8")
+            if FORBIDDEN_CONTROL_CHARS.search(body):
+                raise ValueError("Request body contains control characters.")
+            return {"query": body}
         if content_type == "application/json":
-            body = orjson.loads(request.body)
+            body_str = request.body.decode("utf-8")
+            if FORBIDDEN_CONTROL_CHARS.search(body_str):
+                raise ValueError("Request body contains control characters.")
+            body = orjson.loads(body_str)
+            # JSON allows control chars to be escaped (e.g. "\u0000"), which
+            # passes the raw-body check above but decodes into an actual
+            # control codepoint inside parsed strings.
+            if _contains_control_chars(body):
+                raise ValueError("Request body contains control characters.")
             if isinstance(body, dict) or isinstance(body, list):
                 return body
 
