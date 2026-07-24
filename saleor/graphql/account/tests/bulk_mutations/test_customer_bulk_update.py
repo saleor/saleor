@@ -6,6 +6,7 @@ import pytest
 from .....account import models
 from .....account.error_codes import CustomerBulkUpdateErrorCode
 from .....account.events import CustomerEvents
+from .....attribute.models import AssignedUserAttributeValue
 from .....giftcard.models import GiftCard
 from .....giftcard.search import update_gift_cards_search_vector
 from ....core.enums import ErrorPolicyEnum
@@ -1143,3 +1144,143 @@ def test_bulk_metadata_and_customer_data_update_sends_both_webhooks(
     # Verify both webhooks were sent
     assert mocked_customer_updated.call_count == 2
     assert mocked_customer_metadata_updated.call_count == 2
+
+
+CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION = """
+    mutation CustomerBulkUpdate($customers: [CustomerBulkUpdateInput!]!){
+        customerBulkUpdate(customers: $customers){
+            results{
+                errors {
+                    path
+                    message
+                    code
+                }
+                customer{
+                    id
+                    customerType {
+                        id
+                    }
+                }
+            }
+            count
+        }
+    }
+"""
+
+
+def test_customers_bulk_update_with_customer_type_and_attributes(
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    description_customer_attribute,
+    default_customer_type,
+):
+    # given
+    customer = customer_users[0]
+    assert customer.customer_type != customer_type_with_attributes
+    customer_type_id = graphene.Node.to_global_id(
+        "CustomerType", customer_type_with_attributes.pk
+    )
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    description_text = "Bulk-updated customer."
+    customers_input = [
+        {
+            "id": graphene.Node.to_global_id("User", customer.pk),
+            "input": {
+                "customerType": customer_type_id,
+                "attributes": [
+                    {
+                        "id": graphene.Node.to_global_id(
+                            "Attribute", loyalty_customer_attribute.pk
+                        ),
+                        "dropdown": {
+                            "id": graphene.Node.to_global_id("AttributeValue", value.pk)
+                        },
+                    },
+                    {
+                        "id": graphene.Node.to_global_id(
+                            "Attribute", description_customer_attribute.pk
+                        ),
+                        "plainText": description_text,
+                    },
+                ],
+            },
+        }
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assert data["results"][0]["customer"]["customerType"]["id"] == customer_type_id
+    customer.refresh_from_db()
+    assert customer.customer_type == customer_type_with_attributes
+    assigned_values = AssignedUserAttributeValue.objects.filter(user=customer)
+    assert assigned_values.count() == 2
+    assert (
+        assigned_values.get(value__attribute=loyalty_customer_attribute).value == value
+    )
+    description_value = assigned_values.get(
+        value__attribute=description_customer_attribute
+    ).value
+    assert description_value.plain_text == description_text
+
+
+def test_customers_bulk_update_with_attribute_not_in_customer_type(
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    customer_type,
+    loyalty_customer_attribute,
+    default_customer_type,
+):
+    # given: the attribute is not assigned to the customer type from the input
+    customer = customer_users[0]
+    assert not customer_type.customer_attributes.filter(
+        pk=loyalty_customer_attribute.pk
+    ).exists()
+    customers_input = [
+        {
+            "id": graphene.Node.to_global_id("User", customer.pk),
+            "input": {
+                "customerType": graphene.Node.to_global_id(
+                    "CustomerType", customer_type.pk
+                ),
+                "attributes": [
+                    {
+                        "id": graphene.Node.to_global_id(
+                            "Attribute", loyalty_customer_attribute.pk
+                        ),
+                        "dropdown": {"value": "gold"},
+                    }
+                ],
+            },
+        }
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["path"] == "input.attributes"
+    assert errors[0]["code"] == CustomerBulkUpdateErrorCode.NOT_FOUND.name
+    assert not AssignedUserAttributeValue.objects.filter(user=customer).exists()

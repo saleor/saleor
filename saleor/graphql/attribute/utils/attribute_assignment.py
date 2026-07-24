@@ -126,9 +126,11 @@ class AttributeAssignmentMixin:
         attributes_qs: "QuerySet",
         creation: bool = True,
         is_page_attributes: bool = False,
+        error_class=None,
     ) -> T_INPUT_MAP:
         """Resolve, validate, and prepare attribute input."""
-        error_class = PageErrorCode if is_page_attributes else ProductErrorCode
+        if error_class is None:
+            error_class = PageErrorCode if is_page_attributes else ProductErrorCode
 
         id_to_values_input_map, ext_ref_to_values_input_map = (
             cls._prepare_attribute_input_maps(raw_input, error_class)
@@ -233,7 +235,9 @@ class AttributeAssignmentMixin:
         )
 
         if creation:
-            cls._validate_required_attributes(attributes_qs, cleaned_input, errors)
+            cls._validate_required_attributes(
+                attributes_qs, cleaned_input, errors, error_class
+            )
 
         if errors:
             raise ValidationError(errors)
@@ -278,6 +282,7 @@ class AttributeAssignmentMixin:
         attributes_qs: "QuerySet[attribute_models.Attribute]",
         cleaned_input: T_INPUT_MAP,
         errors: list[ValidationError],
+        error_class,
     ):
         """Validate that all required attributes are provided."""
         supplied_pks = {attr.pk for attr, _ in cleaned_input}
@@ -291,7 +296,7 @@ class AttributeAssignmentMixin:
             ]
             error = ValidationError(
                 "All attributes flagged as having a value required must be supplied.",
-                code=ProductErrorCode.REQUIRED.value,
+                code=error_class.REQUIRED.value,
                 params={"attributes": missing_ids},
             )
             errors.append(error)
