@@ -5,7 +5,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
-from .....account.models import Address, User
+from .....account.models import Address, CustomerType, User
 from .....account.tests.fixtures.user import dangerously_create_test_user
 from .....order import OrderOrigin
 from ....tests.utils import get_graphql_content
@@ -609,3 +609,157 @@ def test_customers_filter_by_last_name(
     assert len(customers) == len(expected_indexes)
     emails = {node["node"]["email"] for node in customers}
     assert emails == {customer_users[i].email for i in expected_indexes}
+
+
+def test_customers_filter_by_customer_type(
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+    customer_type,
+    default_customer_type,
+):
+    # given
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    customer_with_type = customer_users[0]
+    customer_with_type.customer_type = customer_type
+    customer_with_default_type = customer_users[1]
+    customer_with_default_type.customer_type = default_customer_type
+    User.objects.bulk_update(
+        [customer_with_type, customer_with_default_type], ["customer_type"]
+    )
+    variables = {
+        "where": {
+            "customerType": {
+                "eq": graphene.Node.to_global_id("CustomerType", customer_type.pk)
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == 1
+    assert customers[0]["node"]["email"] == customer_with_type.email
+
+
+def test_customers_filter_by_customer_type_one_of(
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+    customer_type,
+    default_customer_type,
+):
+    # given
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    second_customer_type = CustomerType.objects.create(name="B2C", slug="b2c")
+    customer_users[0].customer_type = customer_type
+    customer_users[1].customer_type = second_customer_type
+    customer_users[2].customer_type = default_customer_type
+    User.objects.bulk_update(customer_users, ["customer_type"])
+    variables = {
+        "where": {
+            "customerType": {
+                "oneOf": [
+                    graphene.Node.to_global_id("CustomerType", customer_type.pk),
+                    graphene.Node.to_global_id("CustomerType", second_customer_type.pk),
+                ]
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == 2
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_users[0].email, customer_users[1].email}
+
+
+def test_customers_filter_by_customer_type_one_of_with_default_includes_users_without_type(
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+    customer_type,
+    default_customer_type,
+):
+    # given: one user with a type from the filter, one without any type, one
+    # with a type outside the filter
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    other_customer_type = CustomerType.objects.create(name="B2C", slug="b2c")
+    customer_with_type = customer_users[0]
+    customer_with_type.customer_type = customer_type
+    customer_with_other_type = customer_users[1]
+    customer_with_other_type.customer_type = other_customer_type
+    User.objects.bulk_update(
+        [customer_with_type, customer_with_other_type], ["customer_type"]
+    )
+    customer_without_type = customer_users[2]
+    assert customer_without_type.customer_type_id is None
+    variables = {
+        "where": {
+            "customerType": {
+                "oneOf": [
+                    graphene.Node.to_global_id("CustomerType", customer_type.pk),
+                    graphene.Node.to_global_id(
+                        "CustomerType", default_customer_type.pk
+                    ),
+                ]
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == 2
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_with_type.email, customer_without_type.email}
+
+
+def test_customers_filter_by_default_customer_type_includes_users_without_type(
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+    customer_type,
+    default_customer_type,
+):
+    # given: one user with the default type, one without any type, one with
+    # a different type
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    customer_with_default_type = customer_users[0]
+    customer_with_default_type.customer_type = default_customer_type
+    customer_with_other_type = customer_users[1]
+    customer_with_other_type.customer_type = customer_type
+    User.objects.bulk_update(
+        [customer_with_default_type, customer_with_other_type], ["customer_type"]
+    )
+    customer_without_type = customer_users[2]
+    assert customer_without_type.customer_type_id is None
+    variables = {
+        "where": {
+            "customerType": {
+                "eq": graphene.Node.to_global_id(
+                    "CustomerType", default_customer_type.pk
+                )
+            }
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    assert len(customers) == 2
+    emails = {node["node"]["email"] for node in customers}
+    assert emails == {customer_with_default_type.email, customer_without_type.email}

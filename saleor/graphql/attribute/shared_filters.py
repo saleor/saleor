@@ -1,7 +1,8 @@
+from collections.abc import Callable
 from typing import Literal, TypedDict, cast
 
 import graphene
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from graphql import GraphQLError
 
 from ...attribute import AttributeInputType
@@ -566,3 +567,339 @@ def validate_attribute_value_input(attributes: list[dict], db_connection_name: s
                 "Provided 'value' do not match the attribute input type."
             )
         )
+
+
+# Builds an expression matching objects of the filtered queryset that have
+# any of the given attribute values assigned. This is the only entity-specific
+# part of the attribute `where` filtering - each entity provides its own
+# implementation that joins its assigned-value model (and applies the
+# type-membership guard skipping values of attributes that are no longer
+# assigned to the object's type).
+GetAssignedAttributeExpression = Callable[[QuerySet[AttributeValue], str], Q]
+
+
+def filter_by_slug_or_name(
+    attr_id: int | None,
+    attr_value: dict,
+    db_connection_name: str,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    attribute_values = get_attribute_values_by_slug_or_name_value(
+        attr_id=attr_id,
+        attr_value=attr_value,
+        db_connection_name=db_connection_name,
+    )
+    return get_assigned_attribute_expression(attribute_values, db_connection_name)
+
+
+def filter_by_numeric_attribute(
+    attr_id: int | None,
+    numeric_value: dict[str, Number | list[Number] | dict[str, Number]],
+    db_connection_name: str,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    attribute_values = get_attribute_values_by_numeric_value(
+        attr_id=attr_id,
+        numeric_value=numeric_value,
+        db_connection_name=db_connection_name,
+    )
+    return get_assigned_attribute_expression(attribute_values, db_connection_name)
+
+
+def filter_by_boolean_attribute(
+    attr_id: int | None,
+    boolean_value: bool,
+    db_connection_name: str,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    attribute_values = get_attribute_values_by_boolean_value(
+        attr_id=attr_id,
+        boolean_value=boolean_value,
+        db_connection_name=db_connection_name,
+    )
+    return get_assigned_attribute_expression(attribute_values, db_connection_name)
+
+
+def filter_by_date_attribute(
+    attr_id: int | None,
+    date_value: dict[str, str],
+    db_connection_name: str,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    attribute_values = get_attribute_values_by_date_value(
+        attr_id=attr_id,
+        date_value=date_value,
+        db_connection_name=db_connection_name,
+    )
+    return get_assigned_attribute_expression(attribute_values, db_connection_name)
+
+
+def filter_by_date_time_attribute(
+    attr_id: int | None,
+    date_value: dict[str, str],
+    db_connection_name: str,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    attribute_values = get_attribute_values_by_date_time_value(
+        attr_id=attr_id,
+        date_value=date_value,
+        db_connection_name=db_connection_name,
+    )
+    return get_assigned_attribute_expression(attribute_values, db_connection_name)
+
+
+def _filter_contains_single_expression(
+    attr_id: int | None,
+    db_connection_name: str,
+    referenced_attr_values: QuerySet[AttributeValue],
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    if attr_id:
+        referenced_attr_values = referenced_attr_values.filter(
+            attribute_id=attr_id,
+        )
+    return get_assigned_attribute_expression(referenced_attr_values, db_connection_name)
+
+
+def _filter_by_contains_referenced_identifiers(
+    attr_id: int | None,
+    attr_value: CONTAINS_TYPING,
+    db_connection_name: str,
+    get_referenced_attr_values: Callable[[list[str], str], QuerySet[AttributeValue]],
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    """Build an expression filtering objects by referenced-object identifiers.
+
+    - If `contains_all` is provided, only objects that reference all of the
+    specified referenced objects will match.
+    - If `contains_any` is provided, objects that reference at least one of
+    the specified referenced objects will match.
+    """
+    contains_all = attr_value.get("contains_all")
+    contains_any = attr_value.get("contains_any")
+
+    if contains_all:
+        expression = Q()
+        for identifier in contains_all:
+            referenced_attr_values = get_referenced_attr_values(
+                [identifier], db_connection_name
+            )
+            expression &= _filter_contains_single_expression(
+                attr_id=attr_id,
+                db_connection_name=db_connection_name,
+                referenced_attr_values=referenced_attr_values,
+                get_assigned_attribute_expression=get_assigned_attribute_expression,
+            )
+        return expression
+
+    if contains_any:
+        referenced_attr_values = get_referenced_attr_values(
+            contains_any, db_connection_name
+        )
+        return _filter_contains_single_expression(
+            attr_id=attr_id,
+            db_connection_name=db_connection_name,
+            referenced_attr_values=referenced_attr_values,
+            get_assigned_attribute_expression=get_assigned_attribute_expression,
+        )
+    return Q()
+
+
+_REFERENCED_ID_LOOKUP_MAP: dict[
+    str, Callable[[list[int], str], QuerySet[AttributeValue]]
+] = {
+    "Page": get_attribute_values_by_referenced_page_ids,
+    "Product": get_attribute_values_by_referenced_product_ids,
+    "ProductVariant": get_attribute_values_by_referenced_variant_ids,
+    "Category": get_attribute_values_by_referenced_category_ids,
+    "Collection": get_attribute_values_by_referenced_collection_ids,
+}
+
+
+def filter_by_contains_referenced_object_ids(
+    attr_id: int | None,
+    attr_value: CONTAINS_TYPING,
+    db_connection_name: str,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+) -> Q:
+    contains_all = attr_value.get("contains_all")
+    contains_any = attr_value.get("contains_any")
+
+    grouped_ids = clean_up_referenced_global_ids(contains_any or contains_all or [])
+
+    expression = Q()
+    if contains_all:
+        for type_name, get_referenced_attr_values in _REFERENCED_ID_LOOKUP_MAP.items():
+            for object_id in grouped_ids[type_name]:
+                referenced_attr_values = get_referenced_attr_values(
+                    [object_id], db_connection_name
+                )
+                expression &= _filter_contains_single_expression(
+                    attr_id=attr_id,
+                    db_connection_name=db_connection_name,
+                    referenced_attr_values=referenced_attr_values,
+                    get_assigned_attribute_expression=(
+                        get_assigned_attribute_expression
+                    ),
+                )
+        return expression
+    if contains_any:
+        for type_name, get_referenced_attr_values in _REFERENCED_ID_LOOKUP_MAP.items():
+            if object_ids := grouped_ids[type_name]:
+                referenced_attr_values = get_referenced_attr_values(
+                    list(object_ids), db_connection_name
+                )
+                expression |= _filter_contains_single_expression(
+                    attr_id=attr_id,
+                    db_connection_name=db_connection_name,
+                    referenced_attr_values=referenced_attr_values,
+                    get_assigned_attribute_expression=(
+                        get_assigned_attribute_expression
+                    ),
+                )
+        return expression
+    return Q()
+
+
+_REFERENCED_SLUG_LOOKUP_MAP: dict[
+    Literal[
+        "page_slugs",
+        "product_slugs",
+        "product_variant_skus",
+        "category_slugs",
+        "collection_slugs",
+    ],
+    Callable[[list[str], str], QuerySet[AttributeValue]],
+] = {
+    "page_slugs": get_attribute_values_by_referenced_page_slugs,
+    "product_slugs": get_attribute_values_by_referenced_product_slugs,
+    "product_variant_skus": get_attribute_values_by_referenced_variant_skus,
+    "category_slugs": get_attribute_values_by_referenced_category_slugs,
+    "collection_slugs": get_attribute_values_by_referenced_collection_slugs,
+}
+
+
+def filter_objects_by_reference_attributes(
+    attr_id: int | None,
+    attr_value: dict[
+        Literal[
+            "referenced_ids",
+            "page_slugs",
+            "product_slugs",
+            "product_variant_skus",
+            "category_slugs",
+            "collection_slugs",
+        ],
+        CONTAINS_TYPING,
+    ],
+    db_connection_name: str,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    filter_expression = Q()
+
+    if "referenced_ids" in attr_value:
+        filter_expression &= filter_by_contains_referenced_object_ids(
+            attr_id,
+            attr_value["referenced_ids"],
+            db_connection_name,
+            get_assigned_attribute_expression,
+        )
+    for key, get_referenced_attr_values in _REFERENCED_SLUG_LOOKUP_MAP.items():
+        if key in attr_value:
+            filter_expression &= _filter_by_contains_referenced_identifiers(
+                attr_id,
+                attr_value[key],
+                db_connection_name,
+                get_referenced_attr_values,
+                get_assigned_attribute_expression,
+            )
+    return filter_expression
+
+
+def filter_objects_by_attributes(
+    qs,
+    value,
+    get_assigned_attribute_expression: GetAssignedAttributeExpression,
+):
+    attribute_slugs = {
+        attr_filter["slug"] for attr_filter in value if "slug" in attr_filter
+    }
+    attributes_map = {
+        attr.slug: attr
+        for attr in Attribute.objects.using(qs.db).filter(slug__in=attribute_slugs)
+    }
+    if len(attribute_slugs) != len(attributes_map.keys()):
+        # Filter over non existing attribute
+        return qs.none()
+
+    attr_filter_expression = Q()
+
+    attr_without_values_input = []
+    for attr_filter in value:
+        if "slug" in attr_filter and "value" not in attr_filter:
+            attr_without_values_input.append(attributes_map[attr_filter["slug"]])
+
+    if attr_without_values_input:
+        atr_value_qs = AttributeValue.objects.using(qs.db).filter(
+            attribute_id__in=[attr.id for attr in attr_without_values_input]
+        )
+        attr_filter_expression = get_assigned_attribute_expression(atr_value_qs, qs.db)
+
+    for attr_filter in value:
+        attr_value = attr_filter.get("value")
+        if not attr_value:
+            # attrs without value input are handled separately
+            continue
+
+        attr_id = None
+        if attr_slug := attr_filter.get("slug"):
+            attr = attributes_map[attr_slug]
+            attr_id = attr.id
+
+        attr_value = attr_filter["value"]
+
+        if "slug" in attr_value or "name" in attr_value:
+            attr_filter_expression &= filter_by_slug_or_name(
+                attr_id,
+                attr_value,
+                qs.db,
+                get_assigned_attribute_expression,
+            )
+        elif "numeric" in attr_value:
+            attr_filter_expression &= filter_by_numeric_attribute(
+                attr_id,
+                attr_value["numeric"],
+                qs.db,
+                get_assigned_attribute_expression,
+            )
+        elif "boolean" in attr_value:
+            attr_filter_expression &= filter_by_boolean_attribute(
+                attr_id,
+                attr_value["boolean"],
+                qs.db,
+                get_assigned_attribute_expression,
+            )
+        elif "date" in attr_value:
+            attr_filter_expression &= filter_by_date_attribute(
+                attr_id,
+                attr_value["date"],
+                qs.db,
+                get_assigned_attribute_expression,
+            )
+        elif "date_time" in attr_value:
+            attr_filter_expression &= filter_by_date_time_attribute(
+                attr_id,
+                attr_value["date_time"],
+                qs.db,
+                get_assigned_attribute_expression,
+            )
+        elif "reference" in attr_value:
+            attr_filter_expression &= filter_objects_by_reference_attributes(
+                attr_id,
+                attr_value["reference"],
+                qs.db,
+                get_assigned_attribute_expression,
+            )
+    if attr_filter_expression != Q():
+        return qs.filter(attr_filter_expression)
+    return qs.none()
