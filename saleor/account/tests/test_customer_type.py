@@ -48,7 +48,7 @@ def test_second_default_customer_type_is_rejected(default_customer_type):
     assert CustomerType.objects.filter(is_default=True).exists() is True
 
     # when / then
-    with pytest.raises(IntegrityError):
+    with pytest.raises(IntegrityError, match="unique_default_customer_type"):
         CustomerType.objects.create(name="Other", slug="other", is_default=True)
 
 
@@ -70,7 +70,7 @@ def test_deleting_customer_type_assigned_to_user_is_protected(
     customer_user.save(update_fields=["customer_type"])
 
     # when / then
-    with pytest.raises(ProtectedError):
+    with pytest.raises(ProtectedError, match="User.customer_type"):
         customer_type.delete()
 
 
