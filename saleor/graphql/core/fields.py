@@ -5,6 +5,7 @@ import graphene
 from django.conf import settings
 from graphene.relay import Connection, is_node
 
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import message_one_of_permissions_required
 from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS, WHERE_FILTERSET_CLASS, WHERE_NAME
@@ -60,7 +61,11 @@ class PermissionsField(BaseField):
     def get_resolver(self, parent_resolver):
         resolver = self.resolver or parent_resolver
         if self.permissions:
-            resolver = one_of_permissions_required(self.permissions)(resolver)
+            # Read chokepoint: a field gated on MANAGE_X also accepts its READ_X
+            # twin. Mutations gate via BaseMutation.check_permissions, which never
+            # calls this, so writes stay MANAGE-only.
+            permissions = expand_read_permissions(self.permissions)
+            resolver = one_of_permissions_required(permissions)(resolver)
         resolver = super().get_resolver(resolver)
         return resolver
 

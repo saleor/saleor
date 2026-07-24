@@ -89,6 +89,16 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
+def permission_read_users():
+    return Permission.objects.get(codename="read_users")
+
+
+@pytest.fixture
+def permission_read_staff():
+    return Permission.objects.get(codename="read_staff")
+
+
+@pytest.fixture
 def permission_manage_settings():
     return Permission.objects.get(codename="manage_settings")
 

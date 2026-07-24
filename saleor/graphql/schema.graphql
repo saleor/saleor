@@ -3033,6 +3033,8 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_USERS
   MANAGE_STAFF
   IMPERSONATE_USER
+  READ_USERS
+  READ_STAFF
   MANAGE_APPS
   MANAGE_OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This permission will be removed in Saleor 3.24.")
   MANAGE_CHECKOUTS
