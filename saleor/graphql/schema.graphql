@@ -3061,159 +3061,22 @@ type AppToken implements Node @doc(category: "Apps") {
 
   """Last 4 characters of the token."""
   authToken: String
-}
-
-"""Represents app data."""
-type AppExtension implements Node @doc(category: "Apps") {
-  """The ID of the app extension."""
-  id: ID!
-
-  """List of the app extension's permissions."""
-  permissions: [Permission!]!
-
-  """Label of the extension to show in the dashboard."""
-  label: String!
-
-  """URL of a view where extension's iframe is placed."""
-  url: String!
 
   """
-  Name of the extension mount point in the dashboard. Value returned in UPPERCASE.
+  The date and time when the token was created. Null for tokens created before this was tracked.
   
   Added in Saleor 3.22.
   """
-  mountName: String!
+  createdAt: DateTime
 
   """
-  Name of the extension target in the dashboard. Value returned in UPPERCASE.
-  
-  Added in Saleor 3.22.
-  """
-  targetName: String!
-
-  """
-  App extension settings.
-  
-  Added in Saleor 3.22.
-  """
-  settings: JSON!
-
-  """
-  Extension identifier, unique per app. Null when the app does not declare one.
-  
-  Added in Saleor 3.23.
-  """
-  identifier: String
-
-  """The app assigned to app extension."""
-  app: App!
-
-  """JWT token used to authenticate by third-party app extension."""
-  accessToken: String
-}
-
-scalar JSON
-
-"""
-Represents a problem associated with an app.
-
-Added in Saleor 3.22.
-"""
-type AppProblem implements Node @doc(category: "Apps") {
-  """
-  The ID of the app problem.
-  
-  Added in Saleor 3.22.
-  """
-  id: ID!
-
-  """
-  The date and time when the problem was created.
-  
-  Added in Saleor 3.22.
-  """
-  createdAt: DateTime!
-
-  """
-  The date and time when the problem was last updated.
-  
-  Added in Saleor 3.22.
-  """
-  updatedAt: DateTime!
-
-  """
-  Number of occurrences.
-  
-  Added in Saleor 3.22.
-  """
-  count: Int!
-
-  """
-  Whether the problem has reached critical threshold.
-  
-  Added in Saleor 3.22.
-  """
-  isCritical: Boolean!
-
-  """
-  Dismissal information. Null if the problem has not been dismissed.
-  
-  Added in Saleor 3.22.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, MANAGE_APPS.
-  """
-  dismissed: AppProblemDismissed
-
-  """
-  The problem message.
-  
-  Added in Saleor 3.22.
-  """
-  message: String!
-
-  """
-  Key identifying the type of problem.
-  
-  Added in Saleor 3.22.
-  """
-  key: String!
-}
-
-"""
-Dismissal information for an app problem.
-
-Added in Saleor 3.22.
-"""
-type AppProblemDismissed {
-  """
-  Whether the problem was dismissed by an App or a User.
-  
-  Added in Saleor 3.22.
-  """
-  by: AppProblemDismissedByEnum!
-
-  """
-  The user who dismissed this problem. Null if dismissed by an app or the user was deleted.
+  The user who created this token. Null if created by non-user means or the user was deleted.
   
   Added in Saleor 3.22.
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
-  user: User
-
-  """
-  Email of the user who dismissed this problem. Preserved even if the user is deleted.
-  
-  Added in Saleor 3.22.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
-  """
-  userEmail: String
-}
-
-enum AppProblemDismissedByEnum @doc(category: "Apps") {
-  APP
-  USER
+  createdBy: User
 }
 
 """Represents user data."""
@@ -13502,6 +13365,8 @@ enum TokenizedPaymentFlowEnum @doc(category: "Payments") {
   INTERACTIVE
 }
 
+scalar JSON
+
 """Represents an problem in the checkout."""
 union CheckoutProblem = CheckoutProblemDeliveryMethodStale | CheckoutProblemDeliveryMethodInvalid | CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
@@ -13880,6 +13745,157 @@ type PaymentSource @doc(category: "Payments") {
   Can be accessed without permissions.
   """
   metadata: [MetadataItem!]!
+}
+
+"""Represents app data."""
+type AppExtension implements Node @doc(category: "Apps") {
+  """The ID of the app extension."""
+  id: ID!
+
+  """List of the app extension's permissions."""
+  permissions: [Permission!]!
+
+  """Label of the extension to show in the dashboard."""
+  label: String!
+
+  """URL of a view where extension's iframe is placed."""
+  url: String!
+
+  """
+  Name of the extension mount point in the dashboard. Value returned in UPPERCASE.
+  
+  Added in Saleor 3.22.
+  """
+  mountName: String!
+
+  """
+  Name of the extension target in the dashboard. Value returned in UPPERCASE.
+  
+  Added in Saleor 3.22.
+  """
+  targetName: String!
+
+  """
+  App extension settings.
+  
+  Added in Saleor 3.22.
+  """
+  settings: JSON!
+
+  """
+  Extension identifier, unique per app. Null when the app does not declare one.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
+  """The app assigned to app extension."""
+  app: App!
+
+  """JWT token used to authenticate by third-party app extension."""
+  accessToken: String
+}
+
+"""
+Represents a problem associated with an app.
+
+Added in Saleor 3.22.
+"""
+type AppProblem implements Node @doc(category: "Apps") {
+  """
+  The ID of the app problem.
+  
+  Added in Saleor 3.22.
+  """
+  id: ID!
+
+  """
+  The date and time when the problem was created.
+  
+  Added in Saleor 3.22.
+  """
+  createdAt: DateTime!
+
+  """
+  The date and time when the problem was last updated.
+  
+  Added in Saleor 3.22.
+  """
+  updatedAt: DateTime!
+
+  """
+  Number of occurrences.
+  
+  Added in Saleor 3.22.
+  """
+  count: Int!
+
+  """
+  Whether the problem has reached critical threshold.
+  
+  Added in Saleor 3.22.
+  """
+  isCritical: Boolean!
+
+  """
+  Dismissal information. Null if the problem has not been dismissed.
+  
+  Added in Saleor 3.22.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, MANAGE_APPS.
+  """
+  dismissed: AppProblemDismissed
+
+  """
+  The problem message.
+  
+  Added in Saleor 3.22.
+  """
+  message: String!
+
+  """
+  Key identifying the type of problem.
+  
+  Added in Saleor 3.22.
+  """
+  key: String!
+}
+
+"""
+Dismissal information for an app problem.
+
+Added in Saleor 3.22.
+"""
+type AppProblemDismissed {
+  """
+  Whether the problem was dismissed by an App or a User.
+  
+  Added in Saleor 3.22.
+  """
+  by: AppProblemDismissedByEnum!
+
+  """
+  The user who dismissed this problem. Null if dismissed by an app or the user was deleted.
+  
+  Added in Saleor 3.22.
+  
+  Requires one of the following permissions: MANAGE_STAFF.
+  """
+  user: User
+
+  """
+  Email of the user who dismissed this problem. Preserved even if the user is deleted.
+  
+  Added in Saleor 3.22.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  userEmail: String
+}
+
+enum AppProblemDismissedByEnum @doc(category: "Apps") {
+  APP
+  USER
 }
 
 """Represents the app's brand data."""

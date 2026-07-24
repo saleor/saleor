@@ -526,6 +526,20 @@ class AppToken(BaseObjectType):
     id = graphene.GlobalID(required=True, description="The ID of the app token.")
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
+    created_at = DateTime(
+        description=(
+            "The date and time when the token was created. "
+            "Null for tokens created before this was tracked." + ADDED_IN_322
+        )
+    )
+    created_by = PermissionsField(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The user who created this token. "
+            "Null if created by non-user means or the user was deleted." + ADDED_IN_322
+        ),
+        permissions=[AccountPermissions.MANAGE_STAFF],
+    )
 
     class Meta:
         description = "Represents token data."
@@ -545,6 +559,12 @@ class AppToken(BaseObjectType):
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info: ResolveInfo):
         return root.token_last_4
+
+    @staticmethod
+    def resolve_created_by(root: models.AppToken, info: ResolveInfo):
+        if not root.created_by_id:
+            return None
+        return UserByUserIdLoader(info.context).load(root.created_by_id)
 
 
 class AppProblemDismissed(graphene.ObjectType):
