@@ -35,6 +35,28 @@ class UserSortField(BaseEnum):
         return queryset.annotate(order_count=Count("orders__id"))
 
 
+class CustomerTypeSortField(BaseEnum):
+    NAME = ["name", "slug"]
+    SLUG = ["slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
+    @property
+    def description(self):
+        if self.name in CustomerTypeSortField.__enum__._member_names_:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort customer types by {sort_name}."
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class CustomerTypeSortingInput(SortInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        sort_enum = CustomerTypeSortField
+        type_name = "customer types"
+
+
 class UserSortingInput(SortInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_USERS

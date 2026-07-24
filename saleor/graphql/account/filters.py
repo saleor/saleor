@@ -1,5 +1,5 @@
 import django_filters
-from django.db.models import Count, Exists, OuterRef
+from django.db.models import Count, Exists, OuterRef, Q
 
 from ...account.models import Address, User
 from ...core.search import prefix_search
@@ -109,6 +109,50 @@ class CustomerFilter(MetadataFilterBase):
             "placed_orders",
             "search",
         ]
+
+
+def filter_customer_type_search(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(Q(name__trigram_similar=value) | Q(slug__trigram_similar=value))
+
+
+class CustomerTypeWhere(MetadataWhereBase):
+    ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("CustomerType"))
+    name = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_name",
+        help_text="Filter by customer type name.",
+    )
+    slug = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_slug",
+        help_text="Filter by customer type slug.",
+    )
+    is_default = BooleanWhereFilter(
+        method="filter_is_default",
+        help_text="Filter by whether the customer type is the default one.",
+    )
+
+    @staticmethod
+    def filter_name(qs, _, value):
+        return filter_where_by_value_field(qs, "name", value)
+
+    @staticmethod
+    def filter_slug(qs, _, value):
+        return filter_where_by_value_field(qs, "slug", value)
+
+    @staticmethod
+    def filter_is_default(qs, _, value):
+        if value is None:
+            return qs.none()
+        return qs.filter(is_default=value)
+
+
+class CustomerTypeWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        filterset_class = CustomerTypeWhere
 
 
 class CountryCodeEnumFilterInput(BaseInputObjectType):

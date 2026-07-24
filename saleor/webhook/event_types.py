@@ -6,6 +6,7 @@ from ..permission.enums import (
     BasePermissionEnum,
     ChannelPermissions,
     CheckoutPermissions,
+    CustomerTypePermissions,
     DiscountPermissions,
     GiftcardPermissions,
     MenuPermissions,
@@ -118,6 +119,10 @@ class WebhookEventAsyncType:
     CUSTOMER_UPDATED = "customer_updated"
     CUSTOMER_DELETED = "customer_deleted"
     CUSTOMER_METADATA_UPDATED = "customer_metadata_updated"
+
+    CUSTOMER_TYPE_CREATED = "customer_type_created"
+    CUSTOMER_TYPE_UPDATED = "customer_type_updated"
+    CUSTOMER_TYPE_DELETED = "customer_type_deleted"
 
     COLLECTION_CREATED = "collection_created"
     COLLECTION_UPDATED = "collection_updated"
@@ -550,6 +555,24 @@ class WebhookEventAsyncType:
         CUSTOMER_METADATA_UPDATED: {
             "name": "Customer metadata updated",
             "permission": AccountPermissions.MANAGE_USERS,
+        },
+        CUSTOMER_TYPE_CREATED: {
+            "name": "Customer type created",
+            "permission": (
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES
+            ),
+        },
+        CUSTOMER_TYPE_UPDATED: {
+            "name": "Customer type updated",
+            "permission": (
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES
+            ),
+        },
+        CUSTOMER_TYPE_DELETED: {
+            "name": "Customer type deleted",
+            "permission": (
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES
+            ),
         },
         COLLECTION_CREATED: {
             "name": "Collection created",

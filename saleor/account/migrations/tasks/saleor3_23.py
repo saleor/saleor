@@ -70,7 +70,7 @@ ASSIGN_DEFAULT_CUSTOMER_TYPE_BATCH_SIZE = 100
 def assign_default_customer_type_to_users_task():
     """Assign the default customer type to users that don't have any type yet."""
 
-    default_customer_type = get_default_customer_type(allow_replica=False)
+    default_customer_type = get_default_customer_type()
 
     with transaction.atomic():
         batch_pks = list(

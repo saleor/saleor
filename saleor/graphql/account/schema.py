@@ -2,12 +2,16 @@ import graphene
 
 from ...core.search import prefix_search
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import AccountPermissions, OrderPermissions
+from ...permission.enums import (
+    AccountPermissions,
+    CustomerTypePermissions,
+    OrderPermissions,
+)
 from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_322, ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
@@ -25,9 +29,11 @@ from .bulk_mutations import (
 from .enums import CountryCodeEnum
 from .filters import (
     CustomerFilter,
+    CustomerTypeWhereInput,
     CustomerWhereInput,
     PermissionGroupFilter,
     StaffUserFilter,
+    filter_customer_type_search,
 )
 from .mutations.account import (
     AccountAddressCreate,
@@ -57,6 +63,11 @@ from .mutations.authentication import (
     SetPassword,
     VerifyToken,
 )
+from .mutations.customer_type import (
+    CustomerTypeCreate,
+    CustomerTypeDelete,
+    CustomerTypeUpdate,
+)
 from .mutations.permission_group import (
     PermissionGroupCreate,
     PermissionGroupDelete,
@@ -79,16 +90,25 @@ from .mutations.staff import (
 from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
+    resolve_customer_type,
+    resolve_customer_types,
     resolve_customers,
     resolve_permission_group,
     resolve_permission_groups,
     resolve_staff_users,
     resolve_user,
 )
-from .sorters import PermissionGroupSortingInput, UserSortField, UserSortingInput
+from .sorters import (
+    CustomerTypeSortingInput,
+    PermissionGroupSortingInput,
+    UserSortField,
+    UserSortingInput,
+)
 from .types import (
     Address,
     AddressValidationData,
+    CustomerType,
+    CustomerTypeCountableConnection,
     Group,
     GroupCountableConnection,
     User,
@@ -158,6 +178,36 @@ class AccountQueries(graphene.ObjectType):
         search=graphene.String(description="Search customers." + ADDED_IN_322),
         description="List of the shop's customers. This list includes all users who registered through the accountRegister mutation. Additionally, staff users who have placed an order using their account will also appear in this list.",
         permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],
+        doc_category=DOC_CATEGORY_USERS,
+    )
+    customer_type = PermissionsField(
+        CustomerType,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the customer type.", required=True
+        ),
+        description="Look up a customer type by ID." + ADDED_IN_323,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+            CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+            AccountPermissions.MANAGE_USERS,
+        ],
+        doc_category=DOC_CATEGORY_USERS,
+    )
+    customer_types = FilterConnectionField(
+        CustomerTypeCountableConnection,
+        where=CustomerTypeWhereInput(
+            description="Where filtering options for customer types."
+        ),
+        search=graphene.String(description="Search customer types by name or slug."),
+        sort_by=CustomerTypeSortingInput(description="Sort customer types."),
+        description="List of the customer types." + ADDED_IN_323,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+            CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+            AccountPermissions.MANAGE_USERS,
+        ],
         doc_category=DOC_CATEGORY_USERS,
     )
     permission_groups = FilterConnectionField(
@@ -241,6 +291,23 @@ class AccountQueries(graphene.ObjectType):
             qs, kwargs, allow_replica=info.context.allow_replica
         )
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
+
+    @staticmethod
+    def resolve_customer_type(_root, info: ResolveInfo, *, id):
+        _, id = from_global_id_or_error(id, CustomerType)
+        return resolve_customer_type(info, id)
+
+    @staticmethod
+    def resolve_customer_types(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_customer_types(info)
+        if search := kwargs.get("search"):
+            qs = filter_customer_type_search(qs, None, search)
+        qs = filter_connection_queryset(
+            qs, kwargs, allow_replica=info.context.allow_replica
+        )
+        return create_connection_slice(
+            qs, info, kwargs, CustomerTypeCountableConnection
+        )
 
     @staticmethod
     def resolve_permission_groups(_root, info: ResolveInfo, **kwargs):
@@ -327,6 +394,10 @@ class AccountMutations(graphene.ObjectType):
     customer_delete = CustomerDelete.Field()
     customer_bulk_delete = CustomerBulkDelete.Field()
     customer_bulk_update = CustomerBulkUpdate.Field()
+
+    customer_type_create = CustomerTypeCreate.Field()
+    customer_type_update = CustomerTypeUpdate.Field()
+    customer_type_delete = CustomerTypeDelete.Field()
 
     staff_create = StaffCreate.Field()
     staff_update = StaffUpdate.Field()

@@ -38,6 +38,7 @@ from ..core.context import SyncWebhookControlContext, get_database_connection_na
 from ..core.descriptions import (
     ADDED_IN_319,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
 )
@@ -67,10 +68,13 @@ from ..payment.types import StoredPaymentMethod
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
+    DEFAULT_CUSTOMER_TYPE_LOADER_KEY,
     AccessibleChannelsByGroupIdLoader,
     AccessibleChannelsByUserIdLoader,
     AddressByIdLoader,
     CustomerEventsByUserLoader,
+    CustomerTypeByIdLoader,
+    DefaultCustomerTypeLoader,
     RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
@@ -316,6 +320,34 @@ class UserPermission(Permission):
         return groups
 
 
+class CustomerType(ModelObjectType[models.CustomerType]):
+    id = graphene.GlobalID(required=True, description="The ID of the customer type.")
+    name = graphene.String(required=True, description="Name of the customer type.")
+    slug = graphene.String(required=True, description="Slug of the customer type.")
+    is_default = graphene.Boolean(
+        required=True,
+        description=(
+            "Whether this is the default customer type. The default customer type "
+            "is assigned to every newly created user and cannot be deleted."
+        ),
+    )
+
+    class Meta:
+        description = (
+            "Represents a type of customer. It allows to segment users and defines "
+            "what attributes are available to users of this type." + ADDED_IN_323
+        )
+        interfaces = [relay.Node, ObjectWithMetadata]
+        model = models.CustomerType
+        doc_category = DOC_CATEGORY_USERS
+
+
+class CustomerTypeCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+        node = CustomerType
+
+
 def is_newly_created_user(
     user: models.User,
 ):
@@ -462,6 +494,14 @@ class User(ModelObjectType[models.User]):
     )
     external_reference = graphene.String(
         description="External ID of this user.", required=False
+    )
+    customer_type = graphene.Field(
+        CustomerType,
+        description=(
+            "The customer type assigned to the user. Requires one of the following "
+            f"permissions: {AccountPermissions.MANAGE_USERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}." + ADDED_IN_323
+        ),
     )
 
     last_login = DateTime(
@@ -857,6 +897,20 @@ class User(ModelObjectType[models.User]):
                 root.default_shipping_address_id
             )
         return None
+
+    @staticmethod
+    def resolve_customer_type(root: models.User, info: ResolveInfo):
+        requestor = get_user_or_app_from_context(info.context)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root, AccountPermissions.MANAGE_USERS
+        )
+        if root.customer_type_id:
+            return CustomerTypeByIdLoader(info.context).load(root.customer_type_id)
+        # Users created before the customer type backfill finishes may still have
+        # no type assigned - present them as having the default one.
+        return DefaultCustomerTypeLoader(info.context).load(
+            DEFAULT_CUSTOMER_TYPE_LOADER_KEY
+        )
 
 
 class UserCountableConnection(CountableConnection):

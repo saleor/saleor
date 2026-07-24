@@ -2,7 +2,9 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import TypeVar, cast
 
-from ...account.models import Address, CustomerEvent, Group, User
+from ...account.exceptions import NoDefaultCustomerType
+from ...account.models import Address, CustomerEvent, CustomerType, Group, User
+from ...account.utils import get_default_customer_type
 from ...channel.models import Channel
 from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
@@ -24,6 +26,32 @@ class UserByUserIdLoader(DataLoader[str, User]):
     def batch_load(self, keys):
         user_map = User.objects.using(self.database_connection_name).in_bulk(keys)
         return [user_map.get(user_id) for user_id in keys]
+
+
+class CustomerTypeByIdLoader(DataLoader[int, CustomerType]):
+    context_key = "customer_type_by_id"
+
+    def batch_load(self, keys):
+        customer_type_map = CustomerType.objects.using(
+            self.database_connection_name
+        ).in_bulk(keys)
+        return [customer_type_map.get(customer_type_id) for customer_type_id in keys]
+
+
+DEFAULT_CUSTOMER_TYPE_LOADER_KEY = "default"
+
+
+class DefaultCustomerTypeLoader(DataLoader[str, CustomerType]):
+    context_key = "default_customer_type"
+
+    def batch_load(self, keys):
+        try:
+            default_customer_type = get_default_customer_type(
+                database_connection_name=self.database_connection_name
+            )
+        except NoDefaultCustomerType:
+            default_customer_type = None
+        return [default_customer_type for _ in keys]
 
 
 class CustomerEventsByUserLoader(DataLoader[str, list[CustomerEvent]]):

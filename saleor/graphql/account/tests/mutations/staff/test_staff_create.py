@@ -509,3 +509,22 @@ def test_staff_create_with_upper_case_email(
     data = content["data"]["staffCreate"]
     assert not data["errors"]
     assert data["user"]["email"] == email.lower()
+
+
+def test_create_assigns_default_customer_type(
+    staff_api_client, permission_manage_staff, default_customer_type
+):
+    # given
+    email = "staff-customer-type@example.com"
+    variables = {"input": {"email": email}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["staffCreate"]["errors"]
+    new_user = User.objects.get(email=email)
+    assert new_user.customer_type == default_customer_type

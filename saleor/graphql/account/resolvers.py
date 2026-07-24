@@ -42,6 +42,20 @@ def resolve_customers(info):
     )
 
 
+def resolve_customer_type(info, id):
+    return (
+        models.CustomerType.objects.using(get_database_connection_name(info.context))
+        .filter(id=id)
+        .first()
+    )
+
+
+def resolve_customer_types(info):
+    return models.CustomerType.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
+
+
 def resolve_permission_group(info, id):
     return (
         models.Group.objects.using(get_database_connection_name(info.context))
