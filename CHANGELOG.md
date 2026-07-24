@@ -34,6 +34,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Log a warning when a synchronous webhook is triggered inside an open database transaction, making it easier to find call sites that need to be moved outside the transaction - #19425 by @ayesha-waris
+
 #### Search improvements
 
 ### Deprecations
