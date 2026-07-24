@@ -213,8 +213,6 @@ class WebhookEventAsyncType:
     VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
     VOUCHER_CODE_EXPORT_COMPLETED = "voucher_code_export_completed"
 
-    OBSERVABILITY = "observability"
-
     THUMBNAIL_CREATED = "thumbnail_created"
 
     SHOP_METADATA_UPDATED = "shop_metadata_updated"
@@ -830,10 +828,6 @@ class WebhookEventAsyncType:
         VOUCHER_CODE_EXPORT_COMPLETED: {
             "name": "Voucher code export completed",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
-        },
-        OBSERVABILITY: {
-            "name": "Observability",
-            "permission": AppPermission.MANAGE_OBSERVABILITY,
         },
         THUMBNAIL_CREATED: {
             "name": "Thumbnail created",

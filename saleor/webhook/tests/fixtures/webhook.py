@@ -42,21 +42,6 @@ def any_webhook(app):
 
 
 @pytest.fixture
-def observability_webhook(db, permission_manage_observability):
-    app = App.objects.create(name="Observability App", is_active=True)
-    app.tokens.create(name="Default")
-    app.permissions.add(permission_manage_observability)
-
-    webhook = Webhook.objects.create(
-        name="observability-webhook-1",
-        app=app,
-        target_url="https://observability-app.com/api/",
-    )
-    webhook.events.create(event_type=WebhookEventAsyncType.OBSERVABILITY)
-    return webhook
-
-
-@pytest.fixture
 def webhooks_without_events(apps_without_webhooks):
     NUMBER_OF_WEBHOOKS_PER_APP = 6
     webhooks = []

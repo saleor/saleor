@@ -2198,9 +2198,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A voucher code export is completed."""
   VOUCHER_CODE_EXPORT_COMPLETED
 
-  """An observability event is created."""
-  OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
-
   """A thumbnail is created."""
   THUMBNAIL_CREATED
 
@@ -2807,9 +2804,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A voucher code export is completed."""
   VOUCHER_CODE_EXPORT_COMPLETED
 
-  """An observability event is created."""
-  OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
-
   """A thumbnail is created."""
   THUMBNAIL_CREATED
 
@@ -3009,7 +3003,6 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_STAFF
   IMPERSONATE_USER
   MANAGE_APPS
-  MANAGE_OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This permission will be removed in Saleor 3.24.")
   MANAGE_CHECKOUTS
   HANDLE_CHECKOUTS
   HANDLE_TAXES
@@ -14215,7 +14208,6 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_CODES_DELETED
   VOUCHER_METADATA_UPDATED
   VOUCHER_CODE_EXPORT_COMPLETED
-  OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
   THUMBNAIL_CREATED
   SHOP_METADATA_UPDATED
 }
