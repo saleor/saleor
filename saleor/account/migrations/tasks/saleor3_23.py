@@ -1,9 +1,12 @@
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db import transaction
 
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
-from ...models import CustomerEvent
+from ...lock_objects import user_qs_select_for_update
+from ...models import CustomerEvent, User
+from ...utils import get_default_customer_type
 
 # Kills the task if it recurses more than 10000 times (=> 10M rows),
 # something is likely wrong if it does. Assuming 1 task = 1sec, it would
@@ -57,3 +60,31 @@ def delete_digital_customer_events(
         delete_digital_customer_events.delay(
             current_depth=current_depth + 1, max_depth=max_depth
         )
+
+
+ASSIGN_DEFAULT_CUSTOMER_TYPE_BATCH_SIZE = 100
+
+
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+@allow_writer()
+def assign_default_customer_type_to_users_task():
+    """Assign the default customer type to users that don't have any type yet."""
+
+    default_customer_type = get_default_customer_type(allow_replica=False)
+
+    with transaction.atomic():
+        batch_pks = list(
+            user_qs_select_for_update()
+            .filter(customer_type__isnull=True)
+            .values_list("pk", flat=True)[:ASSIGN_DEFAULT_CUSTOMER_TYPE_BATCH_SIZE]
+        )
+        if batch_pks:
+            User.objects.filter(pk__in=batch_pks).update(
+                customer_type=default_customer_type
+            )
+
+    if batch_pks:
+        task_logger.info(
+            "Assigned the default customer type to %d users", len(batch_pks)
+        )
+        assign_default_customer_type_to_users_task.delay()

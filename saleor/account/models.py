@@ -19,7 +19,12 @@ from ..app.models import App
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
-from ..permission.enums import AccountPermissions, BasePermissionEnum, get_permissions
+from ..permission.enums import (
+    AccountPermissions,
+    BasePermissionEnum,
+    CustomerTypePermissions,
+    get_permissions,
+)
 from ..permission.models import Permission, PermissionsMixin, _user_has_perm
 from ..site.models import SiteSettings
 from . import CustomerEvents
@@ -136,6 +141,32 @@ class UserManager(BaseUserManager["User"]):
         return self.get_queryset().filter(is_staff=True)
 
 
+class CustomerType(ModelWithMetadata):
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
+    is_default = models.BooleanField(default=False)
+
+    class Meta(ModelWithMetadata.Meta):
+        ordering = ("slug",)
+        permissions = (
+            (
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.codename,
+                "Manage customer types and attributes.",
+            ),
+        )
+        constraints = [
+            models.UniqueConstraint(
+                fields=["is_default"],
+                condition=Q(is_default=True),
+                name="unique_default_customer_type",
+            ),
+        ]
+        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["name", "slug"])]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class User(
     PermissionsMixin, ModelWithMetadata, AbstractBaseUser, ModelWithExternalReference
 ):
@@ -170,6 +201,19 @@ class User(
     # deprecated field - should be removed in 3.23
     search_document = models.TextField(blank=True, default="")
     uuid = models.UUIDField(default=uuid4, unique=True)
+
+    # Already existing users may have their customer type empty until a migration
+    # backfills it. Field readers are supposed to rely on default customer type when
+    # null is encountered.
+    # New users have their customer type set.
+    customer_type = models.ForeignKey(
+        CustomerType,
+        related_name="users",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        db_index=False,
+    )
 
     # Denormalized number of orders placed by the user
     number_of_orders = models.PositiveIntegerField(default=0, db_default=0)
@@ -224,6 +268,10 @@ class User(
             BTreeIndex(
                 fields=["date_joined"],
                 name="user_date_joined_idx",
+            ),
+            BTreeIndex(
+                fields=["customer_type"],
+                name="user_customer_type_idx",
             ),
             BTreeIndex(
                 fields=["email"],
