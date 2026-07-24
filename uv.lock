@@ -2621,7 +2621,7 @@ requires-dist = [
     { name = "django-measurement", specifier = "~=3.0" },
     { name = "django-mptt", specifier = ">=0,<1" },
     { name = "django-phonenumber-field", specifier = ">=8.4.0,<9" },
-    { name = "django-storages", extras = ["google"], specifier = "~=1.11" },
+    { name = "django-storages", extras = ["google"], specifier = "~=1.14" },
     { name = "django-stubs-ext", specifier = ">=5.1.3,<6" },
     { name = "faker", specifier = ">=26.0.0,<27.0" },
     { name = "google-cloud-pubsub", specifier = ">=1.7,<3.0" },
