@@ -183,3 +183,43 @@ class RestrictedChannelAccessByUserIdLoader(DataLoader[int, bool]):
             ]
 
         return [user_to_restricted_access[user_id] for user_id in keys]
+
+
+class AddressByUserIdLoader(DataLoader[int, list[Address]]):
+    context_key = "address_by_user"
+
+    def batch_load(self, keys):
+        UserAddress = User.addresses.through
+        user_addresses = UserAddress.objects.using(
+            self.database_connection_name
+        ).filter(user_id__in=keys)
+
+        address_ids = [ua.address_id for ua in user_addresses]
+        addresses = Address.objects.using(self.database_connection_name).in_bulk(
+            address_ids
+        )
+
+        address_by_user_map = defaultdict(list)
+        for ua in user_addresses:
+            address_by_user_map[ua.user_id].append(addresses[ua.address_id])
+
+        return [address_by_user_map.get(user_id, []) for user_id in keys]
+
+
+class PermissionGroupByUserLoader(DataLoader[int, list[Group]]):
+    context_key = "permission_group_by_user"
+
+    def batch_load(self, keys):
+        UserGroup = User.groups.through
+        user_groups = UserGroup.objects.using(
+            self.database_connection_name
+        ).filter(user_id__in=keys)
+
+        group_ids = [ug.group_id for ug in user_groups]
+        groups = Group.objects.using(self.database_connection_name).in_bulk(group_ids)
+
+        group_by_user_map = defaultdict(list)
+        for ug in user_groups:
+            group_by_user_map[ug.user_id].append(groups[ug.group_id])
+
+        return [group_by_user_map.get(user_id, []) for user_id in keys]
