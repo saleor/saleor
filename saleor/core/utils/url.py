@@ -61,3 +61,35 @@ def sanitize_url_for_logging(url: str) -> str:
             else f"***:***@{url_parts.hostname}"
         )
     return url_parts.geturl()
+
+
+def ensure_http_url_or_rooted_path(url: str) -> str:
+    """Ensure URL is absolute http(s) or rooted relative path."""
+    if not isinstance(url, str):
+        raise ValueError("URL must be a string.")
+
+    if url == "":
+        return url
+
+    if any(char.isspace() for char in url):
+        raise ValueError("URL cannot contain whitespace characters.")
+
+    parsed = urlparse(url)
+
+    if parsed.scheme:
+        if parsed.scheme not in {"http", "https"}:
+            raise ValueError("URL scheme must be http or https.")
+        if not parsed.netloc:
+            raise ValueError("URL must include network location.")
+        return url
+
+    if url.startswith("//"):
+        raise ValueError("Protocol-relative URLs are not supported.")
+
+    if not url.startswith("/"):
+        raise ValueError("Relative URL must start with '/'.")
+
+    if parsed.netloc:
+        raise ValueError("Relative URL must not include network location.")
+
+    return url
