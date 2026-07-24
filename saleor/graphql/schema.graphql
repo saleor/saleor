@@ -17750,6 +17750,20 @@ input CustomerWhereInput @doc(category: "Users") {
   """Filter by number of orders placed by the user."""
   numberOfOrders: IntFilterInput
 
+  """
+  Filter by customer type. Filtering by the default customer type also matches users without an explicitly assigned customer type.
+  
+  Added in Saleor 3.23.
+  """
+  customerType: GlobalIDFilterInput
+
+  """
+  Filter by attributes associated with the customer.
+  
+  Added in Saleor 3.23.
+  """
+  attributes: [AssignedAttributeWhereInput!]
+
   """List of conditions that must be met."""
   AND: [CustomerWhereInput!]
 
