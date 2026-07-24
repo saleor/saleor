@@ -31,7 +31,12 @@ from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
 from ..attribute.filters import AttributeWhereInput, filter_attribute_search
-from ..attribute.types import Attribute, AttributeCountableConnection
+from ..attribute.types import (
+    Attribute,
+    AttributeCountableConnection,
+    ObjectWithAttributes,
+)
+from ..attribute.utils.shared import AssignedAttributeData
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
@@ -43,6 +48,7 @@ from ..core.connection import (
     create_connection_slice_for_sync_webhook_control_context,
     filter_connection_queryset,
 )
+from ..core.const import DEFAULT_NESTED_LIST_LIMIT
 from ..core.context import (
     ChannelContext,
     ChannelQsContext,
@@ -60,7 +66,7 @@ from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
-from ..core.scalars import UUID, DateTime
+from ..core.scalars import UUID, DateTime, PositiveInt
 from ..core.tracing import traced_resolver
 from ..core.types import (
     BaseInputObjectType,
@@ -86,6 +92,7 @@ from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
     AccessibleChannelsByUserIdLoader,
     AddressByIdLoader,
+    BaseCustomerAttributesByCustomerTypeIdLoader,
     CustomerAttributesAllByCustomerTypeIdLoader,
     CustomerAttributesVisibleInStorefrontByCustomerTypeIdLoader,
     CustomerEventsByUserLoader,
@@ -579,6 +586,40 @@ class User(ModelObjectType[models.User]):
             f"{AuthorizationFilters.OWNER.name}." + ADDED_IN_323
         ),
     )
+    assigned_attribute = graphene.Field(
+        "saleor.graphql.attribute.types.AssignedAttribute",
+        slug=graphene.Argument(
+            graphene.String,
+            description="Slug of the attribute",
+            required=True,
+        ),
+        description=(
+            "Get a single attribute assigned to the user by attribute slug. "
+            "The attribute is looked up among the attributes of the user's "
+            "customer type. Requires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}. The owner can access only "
+            "attributes that are visible in the storefront." + ADDED_IN_323
+        ),
+    )
+    assigned_attributes = NonNullList(
+        "saleor.graphql.attribute.types.AssignedAttribute",
+        required=True,
+        description=(
+            "List of attributes assigned to the user through the user's "
+            "customer type. Requires one of the following permissions: "
+            f"{AccountPermissions.MANAGE_USERS.name}, "
+            f"{AuthorizationFilters.OWNER.name}. The owner can access only "
+            "attributes that are visible in the storefront." + ADDED_IN_323
+        ),
+        limit=PositiveInt(
+            description=(
+                "Maximum number of attributes to return. "
+                f"Default is {DEFAULT_NESTED_LIST_LIMIT}."
+            ),
+            default_value=DEFAULT_NESTED_LIST_LIMIT,
+        ),
+    )
 
     last_login = DateTime(
         description="The date when the user last time log in to the system."
@@ -606,7 +647,7 @@ class User(ModelObjectType[models.User]):
 
     class Meta:
         description = "Represents user data."
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [relay.Node, ObjectWithMetadata, ObjectWithAttributes]
         model = get_user_model()
         doc_category = DOC_CATEGORY_USERS
 
@@ -986,6 +1027,82 @@ class User(ModelObjectType[models.User]):
         # no type assigned - present them as having the default one.
         return DefaultCustomerTypeLoader(info.context).load(
             DEFAULT_CUSTOMER_TYPE_LOADER_KEY
+        )
+
+    @staticmethod
+    def _load_customer_type_attributes(root: models.User, info: ResolveInfo, loader):
+        """Load the attributes of the user's customer type.
+
+        Users created before the customer type backfill finishes may still have
+        no type assigned - fall back to the default type's attributes.
+        """
+        if root.customer_type_id:
+            return loader.load(root.customer_type_id)
+        return (
+            DefaultCustomerTypeLoader(info.context)
+            .load(DEFAULT_CUSTOMER_TYPE_LOADER_KEY)
+            .then(lambda customer_type: loader.load(customer_type.pk))
+        )
+
+    @classmethod
+    def resolve_assigned_attributes(
+        cls,
+        root: models.User,
+        info: ResolveInfo,
+        limit: int = DEFAULT_NESTED_LIST_LIMIT,
+    ):
+        requestor = get_user_or_app_from_context(info.context)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root, AccountPermissions.MANAGE_USERS
+        )
+
+        def with_attributes(attributes: list[attribute_models.Attribute]):
+            return [
+                AssignedAttributeData(
+                    attribute=attribute, channel_slug=None, user_id=root.pk
+                )
+                for attribute in attributes[:limit]
+            ]
+
+        loader: BaseCustomerAttributesByCustomerTypeIdLoader
+        if one_of_permissions_or_auth_filter_required(
+            info.context, [AccountPermissions.MANAGE_USERS]
+        ):
+            loader = CustomerAttributesAllByCustomerTypeIdLoader(info.context)
+        else:
+            loader = CustomerAttributesVisibleInStorefrontByCustomerTypeIdLoader(
+                info.context
+            )
+        return cls._load_customer_type_attributes(root, info, loader).then(
+            with_attributes
+        )
+
+    @classmethod
+    def resolve_assigned_attribute(
+        cls, root: models.User, info: ResolveInfo, slug: str
+    ):
+        requestor = get_user_or_app_from_context(info.context)
+        check_is_owner_or_has_one_of_perms(
+            requestor, root, AccountPermissions.MANAGE_USERS
+        )
+        has_manage_users = one_of_permissions_or_auth_filter_required(
+            info.context, [AccountPermissions.MANAGE_USERS]
+        )
+
+        def with_attributes(attributes: list[attribute_models.Attribute]):
+            for attribute in attributes:
+                if attribute.slug != slug:
+                    continue
+                if not has_manage_users and not attribute.visible_in_storefront:
+                    return None
+                return AssignedAttributeData(
+                    attribute=attribute, channel_slug=None, user_id=root.pk
+                )
+            return None
+
+        loader = CustomerAttributesAllByCustomerTypeIdLoader(info.context)
+        return cls._load_customer_type_attributes(root, info, loader).then(
+            with_attributes
         )
 
 

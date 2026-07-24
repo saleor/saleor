@@ -15,6 +15,7 @@ from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....app.dataloaders import get_app_promise
+from ....attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelWithExtRefMutation
@@ -171,18 +172,29 @@ class CustomerUpdate(BaseCustomerCreate, ModelWithExtRefMutation):
             )
             cls._save_m2m(info, instance, cleaned_input)
 
+            attributes_modified = False
+            if attributes := cleaned_input.get("attributes"):
+                AttributeAssignmentMixin.save(instance, attributes)
+                attributes_modified = True
+
             cls.generate_events(
                 info, instance, instance_tracker, non_metadata_modified_fields
             )
 
-        if non_metadata_modified_fields or metadata_modified_fields:
+        if (
+            non_metadata_modified_fields
+            or metadata_modified_fields
+            or attributes_modified
+        ):
             site = get_site_promise(info.context).get()
             use_legacy_webhooks_emission = (
                 site.settings.use_legacy_update_webhook_emission
             )
             manager = get_plugin_manager_promise(info.context).get()
-            if non_metadata_modified_fields or (
-                metadata_modified_fields and use_legacy_webhooks_emission
+            if (
+                non_metadata_modified_fields
+                or attributes_modified
+                or (metadata_modified_fields and use_legacy_webhooks_emission)
             ):
                 cls.call_event(manager.customer_updated, instance)
 

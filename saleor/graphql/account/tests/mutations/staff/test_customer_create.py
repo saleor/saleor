@@ -1,10 +1,13 @@
 from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
+import graphene
+
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
 from ......account.models import Address, User
 from ......account.notifications import get_default_user_payload
+from ......attribute.models import AssignedUserAttributeValue
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
 from ......core.utils.url import prepare_url
@@ -615,3 +618,258 @@ def test_create_assigns_default_customer_type(
     assert not content["data"]["customerCreate"]["errors"]
     new_user = User.objects.get(email=email)
     assert new_user.customer_type == default_customer_type
+
+
+CUSTOMER_CREATE_WITH_ATTRIBUTES_MUTATION = """
+    mutation CreateCustomer(
+        $email: String, $customerType: ID, $attributes: [AttributeValueInput!]
+    ) {
+        customerCreate(input: {
+            email: $email,
+            customerType: $customerType,
+            attributes: $attributes
+        }) {
+            errors {
+                field
+                code
+                message
+                attributes
+            }
+            user {
+                id
+                email
+                customerType {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def test_create_with_customer_type_and_attributes(
+    staff_api_client,
+    permission_manage_users,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    description_customer_attribute,
+    default_customer_type,
+):
+    # given
+    email = "attributes@example.com"
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    description_text = "A very important customer."
+    variables = {
+        "email": email,
+        "customerType": graphene.Node.to_global_id(
+            "CustomerType", customer_type_with_attributes.pk
+        ),
+        "attributes": [
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                ),
+                "dropdown": {
+                    "id": graphene.Node.to_global_id("AttributeValue", value.pk)
+                },
+            },
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", description_customer_attribute.pk
+                ),
+                "plainText": description_text,
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_WITH_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert not data["errors"]
+    new_user = User.objects.get(email=email)
+    assert new_user.customer_type == customer_type_with_attributes
+    assert data["user"]["customerType"]["id"] == graphene.Node.to_global_id(
+        "CustomerType", customer_type_with_attributes.pk
+    )
+    assigned_values = AssignedUserAttributeValue.objects.filter(user=new_user)
+    assert assigned_values.count() == 2
+    assert (
+        assigned_values.get(value__attribute=loyalty_customer_attribute).value == value
+    )
+    description_value = assigned_values.get(
+        value__attribute=description_customer_attribute
+    ).value
+    assert description_value.plain_text == description_text
+
+
+def test_create_with_attributes_of_default_customer_type(
+    staff_api_client,
+    permission_manage_users,
+    default_customer_type,
+    loyalty_customer_attribute,
+):
+    # given
+    default_customer_type.customer_attributes.add(loyalty_customer_attribute)
+    email = "default-type-attributes@example.com"
+    value = loyalty_customer_attribute.values.get(slug="silver")
+    variables = {
+        "email": email,
+        "attributes": [
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                ),
+                "dropdown": {
+                    "id": graphene.Node.to_global_id("AttributeValue", value.pk)
+                },
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_WITH_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert not data["errors"]
+    new_user = User.objects.get(email=email)
+    assert new_user.customer_type == default_customer_type
+    assigned_values = AssignedUserAttributeValue.objects.filter(user=new_user)
+    assert assigned_values.count() == 1
+    assert assigned_values.first().value == value
+
+
+def test_create_with_attribute_not_in_customer_type(
+    staff_api_client,
+    permission_manage_users,
+    customer_type,
+    loyalty_customer_attribute,
+    default_customer_type,
+):
+    # given: the attribute is not assigned to the given customer type
+    assert not customer_type.customer_attributes.filter(
+        pk=loyalty_customer_attribute.pk
+    ).exists()
+    email = "wrong-attribute@example.com"
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", loyalty_customer_attribute.pk
+    )
+    variables = {
+        "email": email,
+        "customerType": graphene.Node.to_global_id("CustomerType", customer_type.pk),
+        "attributes": [{"id": attribute_id, "dropdown": {"value": "gold"}}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_WITH_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "attributes"
+    assert error["code"] == AccountErrorCode.NOT_FOUND.name
+    assert f"Could not resolve attributes: ID: {attribute_id}." == error["message"]
+    assert not User.objects.filter(email=email).exists()
+
+
+def test_create_with_missing_required_attribute(
+    staff_api_client,
+    permission_manage_users,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    description_customer_attribute,
+    segment_customer_attribute,
+    default_customer_type,
+):
+    # given
+    loyalty_customer_attribute.value_required = True
+    loyalty_customer_attribute.save(update_fields=["value_required"])
+    customer_type_with_attributes.customer_attributes.add(segment_customer_attribute)
+
+    email = "missing-required@example.com"
+    variables = {
+        "email": email,
+        "customerType": graphene.Node.to_global_id(
+            "CustomerType", customer_type_with_attributes.pk
+        ),
+        "attributes": [
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", segment_customer_attribute.pk
+                ),
+                "dropdown": {"value": "Retail"},
+            },
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", description_customer_attribute.pk
+                ),
+                "plainText": "Provided, but the required attribute is not.",
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_WITH_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "attributes"
+    assert error["code"] == AccountErrorCode.REQUIRED.name
+    assert error["attributes"] == [
+        graphene.Node.to_global_id("Attribute", loyalty_customer_attribute.pk)
+    ]
+    assert not User.objects.filter(email=email).exists()
+
+
+def test_create_with_invalid_customer_type_id(
+    staff_api_client,
+    permission_manage_users,
+    default_customer_type,
+):
+    # given: an ID of a different type passed as customerType
+    email = "invalid-type-id@example.com"
+    variables = {
+        "email": email,
+        "customerType": graphene.Node.to_global_id("PageType", 1),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_WITH_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "customerType"
+    assert error["code"] == AccountErrorCode.GRAPHQL_ERROR.name
+    assert not User.objects.filter(email=email).exists()

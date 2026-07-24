@@ -41,6 +41,10 @@ def generate_user_search_vector_value(
     attach_addresses_data: bool = True,
     already_prefetched: bool = False,
 ) -> list[NoValidationSearchVector]:
+    # Customer attribute values are deliberately not indexed here - customers
+    # can be filtered with `where: {attributes: ...}`, but the free-text
+    # `search` does not match attribute values. Indexing them would require
+    # marking users as search-dirty on every attribute value write.
     search_vectors = [
         NoValidationSearchVector(
             Value(user.first_name),
