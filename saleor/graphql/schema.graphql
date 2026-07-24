@@ -20408,32 +20408,6 @@ type Mutation {
   ): PromotionBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_DELETED], syncEvents: [])
 
   """
-  Creates a new sale. 
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  
-  Triggers the following webhook events:
-  - SALE_CREATED (async): A sale was created.
-  """
-  saleCreate(
-    """Fields required to create a sale."""
-    input: SaleInput!
-  ): SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: []) @deprecated(reason: "Use `promotionCreate` mutation instead.")
-
-  """
-  Deletes a sale. 
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  
-  Triggers the following webhook events:
-  - SALE_DELETED (async): A sale was deleted.
-  """
-  saleDelete(
-    """ID of a sale to delete."""
-    id: ID!
-  ): SaleDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: []) @deprecated(reason: "Use `promotionDelete` mutation instead.")
-
-  """
   Deletes sales. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
@@ -20447,84 +20421,6 @@ type Mutation {
     """
     ids: [ID!]!
   ): SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: [])
-
-  """
-  Updates a sale. 
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  
-  Triggers the following webhook events:
-  - SALE_UPDATED (async): A sale was updated.
-  - SALE_TOGGLE (async): Optionally triggered when a sale is started or stopped.
-  """
-  saleUpdate(
-    """ID of a sale to update."""
-    id: ID!
-
-    """Fields required to update a sale."""
-    input: SaleInput!
-  ): SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED, SALE_TOGGLE], syncEvents: []) @deprecated(reason: "Use `promotionUpdate` mutation instead.")
-
-  """
-  Adds products, categories, collections to a sale. 
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  
-  Triggers the following webhook events:
-  - SALE_UPDATED (async): A sale was updated.
-  """
-  saleCataloguesAdd(
-    """ID of a sale."""
-    id: ID!
-
-    """Fields required to modify catalogue IDs of sale."""
-    input: CatalogueInput!
-  ): SaleAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) @deprecated(reason: "Use `promotionRuleCreate` and `promotionRuleUpdate` mutations instead.")
-
-  """
-  Removes products, categories, collections from a sale. 
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  
-  Triggers the following webhook events:
-  - SALE_UPDATED (async): A sale was updated.
-  """
-  saleCataloguesRemove(
-    """ID of a sale."""
-    id: ID!
-
-    """Fields required to modify catalogue IDs of sale."""
-    input: CatalogueInput!
-  ): SaleRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) @deprecated(reason: "Use `promotionRuleUpdate` and `promotionRuleDelete` mutations instead.")
-
-  """
-  Creates/updates translations for a sale. 
-  
-  Requires one of the following permissions: MANAGE_TRANSLATIONS.
-  """
-  saleTranslate(
-    """Sale ID or SaleTranslatableContent ID."""
-    id: ID!
-
-    """Fields required to update sale translations."""
-    input: NameTranslationInput!
-
-    """Translation language code."""
-    languageCode: LanguageCodeEnum!
-  ): SaleTranslate @doc(category: "Discounts") @deprecated(reason: "Use `promotionTranslate` mutation instead.")
-
-  """
-  Manage sale's availability in channels. 
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  saleChannelListingUpdate(
-    """ID of a sale to update."""
-    id: ID!
-
-    """Fields required to update sale channel listings."""
-    input: SaleChannelListingInput!
-  ): SaleChannelListingUpdate @doc(category: "Discounts") @deprecated(reason: "Use `promotionRuleUpdate` mutation instead.")
 
   """
   Creates a new voucher. 
@@ -29993,61 +29889,6 @@ enum DiscountErrorCode @doc(category: "Discounts") {
 }
 
 """
-Creates a new sale. 
-
-Requires one of the following permissions: MANAGE_DISCOUNTS.
-
-Triggers the following webhook events:
-- SALE_CREATED (async): A sale was created.
-"""
-type SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: []) {
-  discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [DiscountError!]!
-  sale: Sale
-}
-
-input SaleInput @doc(category: "Discounts") {
-  """Voucher name."""
-  name: String
-
-  """Fixed or percentage."""
-  type: DiscountValueTypeEnum
-
-  """Value of the voucher."""
-  value: PositiveDecimal
-
-  """Products related to the discount."""
-  products: [ID!]
-  variants: [ID!]
-
-  """Categories related to the discount."""
-  categories: [ID!]
-
-  """Collections related to the discount."""
-  collections: [ID!]
-
-  """Start date of the voucher in ISO 8601 format."""
-  startDate: DateTime
-
-  """End date of the voucher in ISO 8601 format."""
-  endDate: DateTime
-}
-
-"""
-Deletes a sale. 
-
-Requires one of the following permissions: MANAGE_DISCOUNTS.
-
-Triggers the following webhook events:
-- SALE_DELETED (async): A sale was deleted.
-"""
-type SaleDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: []) {
-  discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [DiscountError!]!
-  sale: Sale
-}
-
-"""
 Deletes sales. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
@@ -30060,104 +29901,6 @@ type SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: 
   count: Int!
   discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [DiscountError!]!
-}
-
-"""
-Updates a sale. 
-
-Requires one of the following permissions: MANAGE_DISCOUNTS.
-
-Triggers the following webhook events:
-- SALE_UPDATED (async): A sale was updated.
-- SALE_TOGGLE (async): Optionally triggered when a sale is started or stopped.
-"""
-type SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED, SALE_TOGGLE], syncEvents: []) {
-  discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [DiscountError!]!
-  sale: Sale
-}
-
-"""
-Adds products, categories, collections to a sale. 
-
-Requires one of the following permissions: MANAGE_DISCOUNTS.
-
-Triggers the following webhook events:
-- SALE_UPDATED (async): A sale was updated.
-"""
-type SaleAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) {
-  """Sale of which catalogue IDs will be modified."""
-  sale: Sale
-  discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [DiscountError!]!
-}
-
-input CatalogueInput @doc(category: "Discounts") {
-  """Products related to the discount."""
-  products: [ID!]
-
-  """Categories related to the discount."""
-  categories: [ID!]
-
-  """Collections related to the discount."""
-  collections: [ID!]
-
-  """Product variant related to the discount."""
-  variants: [ID!]
-}
-
-"""
-Removes products, categories, collections from a sale. 
-
-Requires one of the following permissions: MANAGE_DISCOUNTS.
-
-Triggers the following webhook events:
-- SALE_UPDATED (async): A sale was updated.
-"""
-type SaleRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) {
-  """Sale of which catalogue IDs will be modified."""
-  sale: Sale
-  discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [DiscountError!]!
-}
-
-"""
-Creates/updates translations for a sale. 
-
-Requires one of the following permissions: MANAGE_TRANSLATIONS.
-"""
-type SaleTranslate @doc(category: "Discounts") {
-  translationErrors: [TranslationError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [TranslationError!]!
-  sale: Sale
-}
-
-"""
-Manage sale's availability in channels. 
-
-Requires one of the following permissions: MANAGE_DISCOUNTS.
-"""
-type SaleChannelListingUpdate @doc(category: "Discounts") {
-  """An updated sale instance."""
-  sale: Sale
-  discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [DiscountError!]!
-}
-
-input SaleChannelListingInput @doc(category: "Discounts") {
-  """List of channels to which the sale should be assigned."""
-  addChannels: [SaleChannelListingAddInput!]
-
-  """List of channels from which the sale should be unassigned."""
-  removeChannels: [ID!]
-}
-
-input SaleChannelListingAddInput @doc(category: "Discounts") {
-  """ID of a channel."""
-  channelId: ID!
-
-  """The value of the discount."""
-  discountValue: PositiveDecimal!
 }
 
 """
@@ -30298,6 +30041,20 @@ type VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEv
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [DiscountError!]!
+}
+
+input CatalogueInput @doc(category: "Discounts") {
+  """Products related to the discount."""
+  products: [ID!]
+
+  """Categories related to the discount."""
+  categories: [ID!]
+
+  """Collections related to the discount."""
+  collections: [ID!]
+
+  """Product variant related to the discount."""
+  variants: [ID!]
 }
 
 """
