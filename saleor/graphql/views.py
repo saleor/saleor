@@ -48,6 +48,11 @@ from .metrics import (
     record_request_duration,
 )
 from .query_cost_map import COST_MAP, QUERY_COST_FAILED_OPERATION
+from .storefront_traffic import (
+    STOREFRONT_TRAFFIC_ERROR_CODE,
+    STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+    is_storefront_traffic_blocked,
+)
 from .utils import (
     format_error,
     get_source_service_name_value,
@@ -170,6 +175,35 @@ class GraphQLView(View):
         )
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
+        # Reject disallowed storefront traffic before parsing/executing anything.
+        # Runs once per HTTP request, so batches get a single 401.
+        #
+        # `get_context_value` attaches a `request.user` SimpleLazyObject whose
+        # closure captures `request` — a reference cycle. `execute_graphql_request`
+        # is the only place paired with `clear_context`, and the error/early-return
+        # paths below never reach it, so break that cycle here via `del context.user`.
+        # We deliberately do NOT clear `context.dataloaders`: they stay primed so
+        # `execute_graphql_request` reuses them (no extra queries), and it deletes
+        # `user` again after rebuilding. `request._cached_user` survives, so re-auth
+        # stays free.
+        context = get_context_value(request)
+        try:
+            blocked = is_storefront_traffic_blocked(context)
+        finally:
+            del context.user
+        if blocked:
+            return JsonResponse(
+                data={
+                    "errors": [
+                        {
+                            "message": STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+                            "extensions": {"code": STOREFRONT_TRAFFIC_ERROR_CODE},
+                        }
+                    ]
+                },
+                status=401,
+            )
+
         try:
             data = self.parse_body(request)
         except RequestDataTooBig:

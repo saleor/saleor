@@ -19,6 +19,7 @@ from ...core.utils import WebhookEventInfo
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
+from ...storefront_traffic import set_allow_storefront_traffic_cache
 from ..enums import PasswordLoginModeEnum
 from ..types import Shop
 
@@ -73,6 +74,15 @@ class ShopSettingsInput(graphene.InputObjectType):
     )
     allow_login_without_confirmation = graphene.Boolean(
         description="Enable possibility to login without account confirmation."
+    )
+    allow_storefront_traffic = graphene.Boolean(
+        description=(
+            "Determines whether the GraphQL API accepts storefront requests "
+            "(anonymous requests and authenticated non-staff customers). When "
+            "disabled, only apps and staff users may call the API directly; all "
+            "other requests are rejected with an HTTP 401 and the "
+            "`STOREFRONT_TRAFFIC_NOT_ALLOWED` error code." + ADDED_IN_323
+        ),
     )
     metadata = common_types.NonNullList(
         MetadataInput,
@@ -262,12 +272,21 @@ class ShopSettingsUpdate(BaseMutation):
             cls.clean_instance(info, site)
             site.save(update_fields=["name"])
 
+        should_update_storefront_traffic_cache = (
+            "allow_storefront_traffic" in cleaned_input
+        )
         instance = cls.construct_instance(instance, cleaned_input)
         cls.validate_and_update_metadata(
             instance, metadata_collection, private_metadata_collection
         )
         cls.clean_instance(info, instance)
         instance.save()
+
+        if should_update_storefront_traffic_cache:
+            # Note: we do not use any locks here as we do not expect any use-case
+            #       where this mutation would be called concurrently with different
+            #       modes.
+            set_allow_storefront_traffic_cache(instance.allow_storefront_traffic)
 
         if (
             instance.metadata != old_metadata
