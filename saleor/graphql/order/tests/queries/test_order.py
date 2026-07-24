@@ -1878,6 +1878,40 @@ def test_query_order_fields_order_with_old_id_staff_with_perm(
     assert content["data"]["order"]["userEmail"] == order.user_email
 
 
+def test_query_order_fields_order_with_old_id_and_anonymous_request(
+    order, app_api_client, permission_manage_orders
+):
+    # given
+    order.user = None
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id", "user_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.id)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ORDER_FIELDS_BY_ID,
+        variables,
+        permissions=(permission_manage_orders,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1[0] + "........"
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1[0] + "........"
+    )
+    assert (
+        content["data"]["order"]["userEmail"] == order.user_email[0] + "...@example.com"
+    )
+
+
 def test_query_order_fields_by_old_id_app_no_perm(order, app_api_client):
     """Test that old order IDs require proper app permissions to access sensitive fields."""
     # given
