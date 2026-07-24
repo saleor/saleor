@@ -2,18 +2,20 @@ from collections import defaultdict
 
 from django.db.models import Exists, OuterRef, Q
 
+from ..account.models import User
 from ..page.models import Page
 from ..product.models import Product, ProductVariant
 from .models import (
     AssignedPageAttributeValue,
     AssignedProductAttributeValue,
+    AssignedUserAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     AttributeValue,
     AttributeVariant,
 )
 
-T_INSTANCE = Product | ProductVariant | Page
+T_INSTANCE = Product | ProductVariant | Page | User
 
 
 instance_to_function_variables_mapping = {
@@ -26,6 +28,7 @@ instance_to_function_variables_mapping = {
         "variant",
     ),
     "Page": (AssignedPageAttributeValue, "page"),
+    "User": (AssignedUserAttributeValue, "user"),
 }
 
 

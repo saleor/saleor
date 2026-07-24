@@ -7,6 +7,7 @@ from ....account import events as account_events
 from ....account import models
 from ....account.error_codes import AccountErrorCode
 from ....account.search import update_user_search_vector
+from ....account.utils import get_default_customer_type
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.utils import metadata_manager
@@ -17,10 +18,12 @@ from ....graphql.utils import get_user_or_app_from_context
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
 from ...account.i18n import I18nMixin
-from ...account.types import Address, AddressInput, User
+from ...account.types import Address, AddressInput, CustomerType, User
 from ...app.dataloaders import get_app_promise
+from ...attribute.types import AttributeValueInput
+from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core import ResolveInfo, SaleorContext
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation, ModelDeleteMutation
@@ -220,6 +223,22 @@ class CustomerInput(UserInput, UserAddressInput):
     is_confirmed = graphene.Boolean(
         required=False, description="User account is confirmed."
     )
+    customer_type = graphene.ID(
+        required=False,
+        description=(
+            "ID of the customer type to assign to the user. If not provided "
+            "when creating a customer, the default customer type is assigned."
+            + ADDED_IN_323
+        ),
+    )
+    attributes = NonNullList(
+        AttributeValueInput,
+        required=False,
+        description=(
+            "List of attribute values to assign to the user. The attributes "
+            "must belong to the customer type the user ends up with." + ADDED_IN_323
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -264,10 +283,34 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
         abstract = True
 
     @classmethod
+    def clean_attributes(
+        cls,
+        attributes: list[dict],
+        customer_type: models.CustomerType,
+        creation: bool,
+    ):
+        attributes_qs = customer_type.customer_attributes.all()
+        return AttributeAssignmentMixin.clean_input(
+            attributes,
+            attributes_qs,
+            creation=creation,
+            error_class=AccountErrorCode,
+        )
+
+    @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         shipping_address_data = data.pop(SHIPPING_ADDRESS_FIELD, None)
         billing_address_data = data.pop(BILLING_ADDRESS_FIELD, None)
+        customer_type_id = data.pop("customer_type", None)
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+
+        if customer_type_id:
+            cleaned_input["customer_type"] = cls.get_node_or_error(
+                info,
+                customer_type_id,
+                field="customer_type",
+                only_type=CustomerType,
+            )
 
         if shipping_address_data:
             shipping_address_metadata: list[MetadataInput] = shipping_address_data.pop(
@@ -337,6 +380,27 @@ class BaseCustomerCreate(DeprecatedModelMutation, I18nMixin):
         # The confirmation will take place when the user sets the password.
         if not instance.id:
             cleaned_input["is_confirmed"] = False
+
+        attributes = cleaned_input.get("attributes")
+        if attributes:
+            # The customer type from the input takes precedence over the
+            # current one, so the values are validated against the type the
+            # user ends up with.
+            # TODO: when the customer type changes, values of attributes that
+            # are not part of the new type persist in the database and are only
+            # hidden from the API. Migrating or pruning those values is left
+            # for a future iteration.
+            customer_type = cleaned_input.get("customer_type")
+            if customer_type is None and instance.customer_type_id:
+                customer_type = instance.customer_type
+            if customer_type is None:
+                customer_type = get_default_customer_type()
+            try:
+                cleaned_input["attributes"] = cls.clean_attributes(
+                    attributes, customer_type, creation=instance.pk is None
+                )
+            except ValidationError as e:
+                raise ValidationError({"attributes": e}) from e
 
         return cleaned_input
 

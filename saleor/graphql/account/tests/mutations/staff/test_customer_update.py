@@ -5,6 +5,7 @@ import pytest
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
+from ......attribute.models import AssignedUserAttributeValue
 from ......giftcard.models import GiftCard
 from ......giftcard.search import update_gift_cards_search_vector
 from .....tests.utils import get_graphql_content
@@ -826,3 +827,214 @@ def test_customer_confirm_assign_gift_cards_and_orders(
 
     order.refresh_from_db()
     assert order.user == customer_user
+
+
+CUSTOMER_UPDATE_ATTRIBUTES_MUTATION = """
+    mutation UpdateCustomer(
+        $id: ID!, $customerType: ID, $attributes: [AttributeValueInput!]
+    ) {
+        customerUpdate(id: $id, input: {
+            customerType: $customerType,
+            attributes: $attributes
+        }) {
+            errors {
+                field
+                code
+                message
+            }
+            user {
+                id
+                customerType {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+def test_update_with_attributes_assigns_values(
+    mocked_customer_updated,
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    description_customer_attribute,
+    default_customer_type,
+):
+    # given
+    customer_user.customer_type = customer_type_with_attributes
+    customer_user.save(update_fields=["customer_type"])
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    description_text = "Long-time customer."
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.id),
+        "attributes": [
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                ),
+                "dropdown": {
+                    "id": graphene.Node.to_global_id("AttributeValue", value.pk)
+                },
+            },
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", description_customer_attribute.pk
+                ),
+                "plainText": description_text,
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerUpdate"]
+    assert not data["errors"]
+    assigned_values = AssignedUserAttributeValue.objects.filter(user=customer_user)
+    assert assigned_values.count() == 2
+    assert (
+        assigned_values.get(value__attribute=loyalty_customer_attribute).value == value
+    )
+    description_value = assigned_values.get(
+        value__attribute=description_customer_attribute
+    ).value
+    assert description_value.plain_text == description_text
+    mocked_customer_updated.assert_called_once_with(customer_user)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+def test_update_changes_customer_type(
+    mocked_customer_updated,
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type,
+    default_customer_type,
+):
+    # given
+    customer_user.customer_type = default_customer_type
+    customer_user.save(update_fields=["customer_type"])
+    customer_type_id = graphene.Node.to_global_id("CustomerType", customer_type.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.id),
+        "customerType": customer_type_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerUpdate"]
+    assert not data["errors"]
+    assert data["user"]["customerType"]["id"] == customer_type_id
+    customer_user.refresh_from_db()
+    assert customer_user.customer_type == customer_type
+    mocked_customer_updated.assert_called_once_with(customer_user)
+
+
+def test_update_attributes_validated_against_new_customer_type(
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    description_customer_attribute,
+    default_customer_type,
+):
+    # given: the user's current type has the attributes, but the new type
+    # from the input does not
+    customer_user.customer_type = customer_type_with_attributes
+    customer_user.save(update_fields=["customer_type"])
+    new_customer_type = default_customer_type
+    assert not new_customer_type.customer_attributes.filter(
+        pk__in=[loyalty_customer_attribute.pk, description_customer_attribute.pk]
+    ).exists()
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", loyalty_customer_attribute.pk
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.id),
+        "customerType": graphene.Node.to_global_id(
+            "CustomerType", new_customer_type.pk
+        ),
+        "attributes": [
+            {"id": attribute_id, "dropdown": {"value": "gold"}},
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", description_customer_attribute.pk
+                ),
+                "plainText": "A very important customer.",
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerUpdate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "attributes"
+    assert error["code"] == AccountErrorCode.NOT_FOUND.name
+    customer_user.refresh_from_db()
+    assert customer_user.customer_type == customer_type_with_attributes
+
+
+def test_update_customer_type_change_keeps_attribute_values(
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    default_customer_type,
+):
+    # given: the user has a value assigned for an attribute of the current type
+    customer_user.customer_type = customer_type_with_attributes
+    customer_user.save(update_fields=["customer_type"])
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=value)
+
+    # when: the type changes to one without that attribute
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.id),
+        "customerType": graphene.Node.to_global_id(
+            "CustomerType", default_customer_type.pk
+        ),
+    }
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then: the value persists in the database
+    content = get_graphql_content(response)
+    assert not content["data"]["customerUpdate"]["errors"]
+    customer_user.refresh_from_db()
+    assert customer_user.customer_type == default_customer_type
+    assigned_values = AssignedUserAttributeValue.objects.filter(user=customer_user)
+    assert assigned_values.count() == 1
+    assert assigned_values.first().value == value

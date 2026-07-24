@@ -428,6 +428,8 @@ COST_MAP = {
         "countries": {"complexity": 1},
     },
     "User": {
+        "assignedAttribute": {"complexity": 1},
+        "assignedAttributes": {"complexity": 1, "multipliers": ["limit"]},
         "avatar": {"complexity": 1},
         "checkout": {"complexity": 1},
         "customerType": {"complexity": 1},

@@ -917,6 +917,16 @@ def segment_customer_attribute(db):
 
 
 @pytest.fixture
+def description_customer_attribute(db):
+    return Attribute.objects.create(
+        slug="description",
+        name="Description",
+        type=AttributeType.CUSTOMER_TYPE,
+        input_type=AttributeInputType.PLAIN_TEXT,
+    )
+
+
+@pytest.fixture
 def hidden_customer_attribute(db):
     return Attribute.objects.create(
         slug="internal-score",

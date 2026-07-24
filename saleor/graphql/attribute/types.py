@@ -63,6 +63,7 @@ from ..translations.types import AttributeTranslation, AttributeValueTranslation
 from .dataloaders.assigned_attributes import (
     AttributeValuesByPageIdAndAttributeIdAndLimitLoader,
     AttributeValuesByProductIdAndAttributeIdAndLimitLoader,
+    AttributeValuesByUserIdAndAttributeIdAndLimitLoader,
     AttributeValuesByVariantIdAndAttributeIdAndLimitLoader,
 )
 from .dataloaders.attributes import (
@@ -713,6 +714,10 @@ def get_attribute_values(
     if root.page_id:
         return AttributeValuesByPageIdAndAttributeIdAndLimitLoader(info.context).load(
             (root.page_id, root.attribute.id, limit)
+        )
+    if root.user_id:
+        return AttributeValuesByUserIdAndAttributeIdAndLimitLoader(info.context).load(
+            (root.user_id, root.attribute.id, limit)
         )
     return Promise.resolve([])
 
