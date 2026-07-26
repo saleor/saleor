@@ -1,5 +1,6 @@
 import logging
 import time
+from collections.abc import Iterable
 from io import BytesIO
 
 import requests
@@ -9,7 +10,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
 from django.core.files.storage import default_storage
-from django.db import DatabaseError
+from django.db import DatabaseError, transaction
 from django.urls import reverse
 from requests import HTTPError, Response
 
@@ -26,7 +27,7 @@ from ..thumbnail.utils import get_filename_from_url
 from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
 from .error_codes import AppErrorCode
-from .manifest_validations import clean_manifest_data
+from .manifest_validations import MANIFEST_SCALAR_FIELDS, clean_manifest_data
 from .models import App, AppExtension, AppInstallation, AppToken
 from .types import DEFAULT_APP_TARGET, AppType
 
@@ -236,6 +237,67 @@ def fetch_manifest(
     return _get(max_retries)  # final attempt, explicit return to satisfy ruff RET503
 
 
+def _create_app_extension(app: App, extension_data: dict) -> AppExtension:
+    # Manifest is already "clean" so values use serialization aliases (camelCase)
+    options = extension_data.get("options", {})
+    new_tab_target = options.get("newTabTarget")
+    widget_target = options.get("widgetTarget")
+
+    # Ensure proper extraction of the method values from the options
+    http_target_method = None
+
+    if (
+        new_tab_target
+        and isinstance(new_tab_target, dict)
+        and "method" in new_tab_target
+    ):
+        http_target_method = new_tab_target["method"]
+
+    if widget_target and isinstance(widget_target, dict) and "method" in widget_target:
+        http_target_method = widget_target["method"]
+
+    extension = AppExtension.objects.create(
+        app=app,
+        label=extension_data.get("label"),
+        url=extension_data.get("url"),
+        mount=extension_data.get("mount"),
+        target=extension_data.get("target", DEFAULT_APP_TARGET),
+        http_target_method=http_target_method,
+        settings=extension_data.get("options", {}),
+        identifier=extension_data.get("identifier"),
+    )
+    extension.permissions.set(extension_data.get("permissions", []))
+    return extension
+
+
+def _create_manifest_webhooks(app: App, manifest_webhooks: list[dict]) -> list[Webhook]:
+    """Create webhooks (and their events) from cleaned manifest webhook data.
+
+    Shared by install and reload so the two paths can never build webhook rows
+    differently. The caller decides which webhooks to create (e.g. reload passes
+    only the to-create subset).
+    """
+    webhooks = Webhook.objects.bulk_create(
+        Webhook(
+            app=app,
+            name=webhook["name"],
+            is_active=webhook["isActive"],
+            target_url=webhook["targetUrl"],
+            subscription_query=webhook["query"],
+            custom_headers=webhook.get("customHeaders", None),
+        )
+        for webhook in manifest_webhooks
+    )
+    WebhookEvent.objects.bulk_create(
+        WebhookEvent(webhook=db_webhook, event_type=event_type)
+        for db_webhook, manifest_webhook in zip(
+            webhooks, manifest_webhooks, strict=True
+        )
+        for event_type in manifest_webhook["events"]
+    )
+    return webhooks
+
+
 def install_app(
     app_installation: AppInstallation, activate: bool = False
 ) -> tuple[App, AppToken | None]:
@@ -267,61 +329,9 @@ def install_app(
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
-        # Manifest is already "clean" so values use serialization aliases (camelCase)
-        options = extension_data.get("options", {})
-        new_tab_target = options.get("newTabTarget")
-        widget_target = options.get("widgetTarget")
+        _create_app_extension(app, extension_data)
 
-        # Ensure proper extraction of the method values from the options
-        http_target_method = None
-
-        if (
-            new_tab_target
-            and isinstance(new_tab_target, dict)
-            and "method" in new_tab_target
-        ):
-            http_target_method = new_tab_target["method"]
-
-        if (
-            widget_target
-            and isinstance(widget_target, dict)
-            and "method" in widget_target
-        ):
-            http_target_method = widget_target["method"]
-
-        extension = AppExtension.objects.create(
-            app=app,
-            label=extension_data.get("label"),
-            url=extension_data.get("url"),
-            mount=extension_data.get("mount"),
-            target=extension_data.get("target", DEFAULT_APP_TARGET),
-            http_target_method=http_target_method,
-            settings=extension_data.get("options", {}),
-            identifier=extension_data.get("identifier"),
-        )
-        extension.permissions.set(extension_data.get("permissions", []))
-
-    webhooks = Webhook.objects.bulk_create(
-        Webhook(
-            app=app,
-            name=webhook["name"],
-            is_active=webhook["isActive"],
-            target_url=webhook["targetUrl"],
-            subscription_query=webhook["query"],
-            custom_headers=webhook.get("customHeaders", None),
-        )
-        for webhook in manifest_data.get("webhooks", [])
-    )
-
-    webhook_events = []
-    for db_webhook, manifest_webhook in zip(
-        webhooks, manifest_data.get("webhooks", []), strict=False
-    ):
-        for event_type in manifest_webhook["events"]:
-            webhook_events.append(
-                WebhookEvent(webhook=db_webhook, event_type=event_type)
-            )
-    WebhookEvent.objects.bulk_create(webhook_events)
+    _create_manifest_webhooks(app, manifest_data.get("webhooks", []))
 
     token = None
     if tokent_target_url := manifest_data.get("tokenTargetUrl"):
@@ -336,3 +346,247 @@ def install_app(
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
     fetch_brand_data_async(manifest_data, app=app)
     return app, token
+
+
+def _dedupe_manifest_webhooks(manifest_webhooks: list[dict]) -> list[dict]:
+    """Drop manifest webhooks with a duplicated name, keeping the first occurrence.
+
+    Webhooks are matched by name during a manifest reload; duplicated names in
+    a manifest are the app author's bug and are resolved deterministically.
+    """
+    seen: set[str] = set()
+    deduped = []
+    for webhook in manifest_webhooks:
+        if webhook["name"] in seen:
+            continue
+        seen.add(webhook["name"])
+        deduped.append(webhook)
+    return deduped
+
+
+def canonicalize_manifest_json(value):
+    """Recursively sort dict keys so equal data serializes to an identical string.
+
+    JSONField (jsonb) values return from Postgres in normalized — not authored —
+    key order, so two semantically-equal manifests can dump to different JSON
+    strings. Sorting keys before the value is handed to the JSONString scalar
+    keeps the manifest-reload preview diff free of phantom key-order noise.
+    """
+    if isinstance(value, dict):
+        return {key: canonicalize_manifest_json(value[key]) for key in sorted(value)}
+    if isinstance(value, list):
+        return [canonicalize_manifest_json(item) for item in value]
+    return value
+
+
+def _serialize_webhook_for_preview(
+    name: str, target_url: str, query: str | None, events: Iterable[str], custom_headers
+) -> dict:
+    return {
+        "name": name,
+        "targetUrl": target_url,
+        "query": query or "",
+        "events": sorted(events),
+        "customHeaders": custom_headers or {},
+    }
+
+
+def _serialize_extension_for_preview(
+    identifier, label, url, mount, target, permission_names: Iterable[str], options
+) -> dict:
+    return {
+        "identifier": identifier,
+        "label": label,
+        "url": url,
+        "mount": mount,
+        "target": target,
+        "permissions": sorted(permission_names),
+        "options": options or {},
+    }
+
+
+def _serialize_app_extensions(app: App) -> list[dict]:
+    return sorted(
+        (
+            _serialize_extension_for_preview(
+                extension.identifier,
+                extension.label,
+                extension.url,
+                extension.mount,
+                extension.target,
+                get_permission_names(extension.permissions.all()),
+                extension.settings,
+            )
+            for extension in app.extensions.prefetch_related("permissions")
+        ),
+        key=lambda extension: (extension["identifier"] or "", extension["label"]),
+    )
+
+
+def _serialize_manifest_extensions(manifest_data: dict) -> list[dict]:
+    return sorted(
+        (
+            _serialize_extension_for_preview(
+                extension.get("identifier"),
+                extension.get("label"),
+                extension.get("url"),
+                extension.get("mount"),
+                extension.get("target", DEFAULT_APP_TARGET),
+                get_permission_names(extension.get("permissions", [])),
+                extension.get("options", {}),
+            )
+            for extension in manifest_data.get("extensions", [])
+        ),
+        key=lambda extension: (extension["identifier"] or "", extension["label"]),
+    )
+
+
+def _serialize_app_webhooks(app: App) -> list[dict]:
+    return sorted(
+        (
+            _serialize_webhook_for_preview(
+                webhook.name,
+                webhook.target_url,
+                webhook.subscription_query,
+                (event.event_type for event in webhook.events.all()),
+                webhook.custom_headers,
+            )
+            for webhook in app.webhooks.prefetch_related("events")
+        ),
+        key=lambda webhook: webhook["name"],
+    )
+
+
+def _serialize_manifest_webhooks(manifest_data: dict) -> list[dict]:
+    return sorted(
+        (
+            _serialize_webhook_for_preview(
+                webhook["name"],
+                webhook["targetUrl"],
+                webhook["query"],
+                webhook["events"],
+                webhook.get("customHeaders"),
+            )
+            for webhook in _dedupe_manifest_webhooks(manifest_data.get("webhooks", []))
+        ),
+        key=lambda webhook: webhook["name"],
+    )
+
+
+def serialize_app_as_manifest(app: App) -> dict:
+    """Serialize an installed app's state into the manifest shape.
+
+    Covers only the fields a manifest reload applies (scalar fields,
+    permissions, extensions, webhooks) so it can be compared against
+    ``serialize_manifest_for_preview`` output with no diff noise.
+    """
+    manifest = {
+        manifest_key: getattr(app, attr)
+        for manifest_key, attr in MANIFEST_SCALAR_FIELDS
+    }
+    manifest["id"] = app.identifier
+    manifest["permissions"] = sorted(get_permission_names(app.permissions.all()))
+    manifest["extensions"] = _serialize_app_extensions(app)
+    manifest["webhooks"] = _serialize_app_webhooks(app)
+    return manifest
+
+
+def serialize_manifest_for_preview(manifest_data: dict) -> dict:
+    """Serialize cleaned manifest data into the same shape as ``serialize_app_as_manifest``."""
+    manifest = {
+        manifest_key: manifest_data.get(manifest_key)
+        for manifest_key, _ in MANIFEST_SCALAR_FIELDS
+    }
+    manifest["id"] = manifest_data.get("id")
+    manifest["permissions"] = sorted(
+        get_permission_names(manifest_data.get("permissions", []))
+    )
+    manifest["extensions"] = _serialize_manifest_extensions(manifest_data)
+    manifest["webhooks"] = _serialize_manifest_webhooks(manifest_data)
+    return manifest
+
+
+def _resync_app_webhooks(app: App, manifest_webhooks: list[dict]):
+    """Reconcile the app's webhooks with its manifest webhooks.
+
+    Webhooks are matched by name — the only identity a manifest webhook has.
+    Matched webhooks are updated in place, keeping their ``is_active`` flag
+    (an admin's activation choice survives a reload) and ``secret_key``.
+    A webhook renamed in the manifest is therefore deleted and recreated.
+    """
+    manifest_webhooks = _dedupe_manifest_webhooks(manifest_webhooks)
+    existing_by_name: dict[str, Webhook] = {}
+    for webhook in app.webhooks.order_by("pk").prefetch_related("events"):
+        # Duplicated names among existing webhooks: the first one is matchable,
+        # the rest are deleted below as unmatched.
+        existing_by_name.setdefault(webhook.name, webhook)
+
+    matched_ids = set()
+    webhooks_to_create = []
+    for manifest_webhook in manifest_webhooks:
+        existing = existing_by_name.get(manifest_webhook["name"])
+        if existing is None:
+            webhooks_to_create.append(manifest_webhook)
+            continue
+
+        matched_ids.add(existing.pk)
+        update_fields = []
+        if existing.target_url != manifest_webhook["targetUrl"]:
+            existing.target_url = manifest_webhook["targetUrl"]
+            update_fields.append("target_url")
+        if (existing.subscription_query or "") != (manifest_webhook["query"] or ""):
+            existing.subscription_query = manifest_webhook["query"]
+            update_fields.append("subscription_query")
+        custom_headers = manifest_webhook.get("customHeaders") or {}
+        if (existing.custom_headers or {}) != custom_headers:
+            existing.custom_headers = custom_headers
+            update_fields.append("custom_headers")
+        if update_fields:
+            existing.save(update_fields=update_fields)
+
+        current_events = sorted(event.event_type for event in existing.events.all())
+        manifest_events = sorted(manifest_webhook["events"])
+        if current_events != manifest_events:
+            existing.events.all().delete()
+            WebhookEvent.objects.bulk_create(
+                WebhookEvent(webhook=existing, event_type=event_type)
+                for event_type in manifest_events
+            )
+
+    app.webhooks.exclude(pk__in=matched_ids).delete()
+
+    _create_manifest_webhooks(app, webhooks_to_create)
+
+
+def resync_app_from_manifest(app: App, manifest_data: dict) -> App:
+    """Update an installed app in place from its cleaned manifest data.
+
+    Applies the manifest's scalar fields, identifier, permissions, extensions
+    and webhooks. The app's ``is_active`` flag, tokens and existing webhooks'
+    ``is_active``/``secret_key`` are never modified.
+    """
+    with transaction.atomic():
+        # Adopting the manifest id lets an app installed before identifiers were
+        # recorded (identifier == "") converge; for an app that already has one
+        # the mutation guarantees a match, so this is a no-op write.
+        app.identifier = manifest_data["id"]
+        for manifest_key, attr in MANIFEST_SCALAR_FIELDS:
+            setattr(app, attr, manifest_data.get(manifest_key))
+        app.save(
+            update_fields=["identifier", *(attr for _, attr in MANIFEST_SCALAR_FIELDS)]
+        )
+        app.permissions.set(manifest_data.get("permissions", []))
+        # AppExtension rows have no stable per-row identity, so unchanged
+        # extensions are left untouched and only a real change triggers a
+        # wholesale rebuild — reissuing extension IDs (which dashboard mounts and
+        # URLs reference) on every reload would otherwise break open sessions.
+        if _serialize_app_extensions(app) != _serialize_manifest_extensions(
+            manifest_data
+        ):
+            app.extensions.all().delete()
+            for extension_data in manifest_data.get("extensions", []):
+                _create_app_extension(app, extension_data)
+        _resync_app_webhooks(app, manifest_data.get("webhooks", []))
+
+    fetch_brand_data_async(manifest_data, app=app)
+    return app

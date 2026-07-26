@@ -111,7 +111,9 @@ def _ensure_app_permissions_allowed(required_permissions: list[str]) -> None:
     )
 
 
-def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
+def clean_manifest_data(
+    manifest_data, raise_for_saleor_version=False, exclude_app: App | None = None
+):
     # Structural validation: required fields, field types, URL formats, brand logo.
     try:
         ManifestSchema.model_validate(manifest_data)
@@ -142,11 +144,12 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         app_permissions = []
 
     manifest_data["permissions"] = app_permissions
-    if (
-        app := App.objects.not_removed()
-        .filter(identifier=manifest_data.get("id"))
-        .first()
-    ):
+    installed_apps = App.objects.not_removed().filter(
+        identifier=manifest_data.get("id")
+    )
+    if exclude_app is not None:
+        installed_apps = installed_apps.exclude(pk=exclude_app.pk)
+    if app := installed_apps.first():
         errors["identifier"].append(
             ValidationError(
                 f"App with the same identifier is already installed: {app.name}",
@@ -163,11 +166,50 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         )
 
     if not errors:
+        _clean_field_lengths(manifest_data, errors)
         _clean_extensions(manifest_data, app_permissions, errors)
         _clean_webhooks(manifest_data, errors)
 
     if errors:
         raise ValidationError(errors)
+
+
+# Manifest scalar key -> App model attribute it is stored in. Single source of
+# truth for the manifest<->model field correspondence, shared with the reload
+# serializers/writer in installation_utils so they can never drift.
+MANIFEST_SCALAR_FIELDS: tuple[tuple[str, str], ...] = (
+    ("name", "name"),
+    ("about", "about_app"),
+    ("version", "version"),
+    ("author", "author"),
+    ("audience", "audience"),
+    ("appUrl", "app_url"),
+    ("configurationUrl", "configuration_url"),
+    ("dataPrivacy", "data_privacy"),
+    ("dataPrivacyUrl", "data_privacy_url"),
+    ("homepageUrl", "homepage_url"),
+    ("supportUrl", "support_url"),
+)
+
+
+def _clean_field_lengths(manifest_data, errors):
+    """Reject values that would overflow their App column.
+
+    Without this a too-long value raises a DataError deep in ``.save()`` (a 500
+    on reload); the limits are read from the model so they can't drift from the
+    schema. Unbounded columns (``TextField``) report ``max_length`` as ``None``
+    and are skipped.
+    """
+    for manifest_field, model_field in MANIFEST_SCALAR_FIELDS:
+        max_length = App._meta.get_field(model_field).max_length
+        value = manifest_data.get(manifest_field)
+        if max_length and value and len(value) > max_length:
+            errors[manifest_field].append(
+                ValidationError(
+                    f"Value exceeds the maximum length of {max_length} characters.",
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
 
 
 def _clean_extension_permissions(extension, app_permissions, errors):

@@ -8,6 +8,7 @@ from .app_install import AppInstall
 from .app_problem_create import AppProblemCreate
 from .app_problem_dismiss import AppProblemDismiss
 from .app_reenable_sync_webhooks import AppReenableSyncWebhooks
+from .app_reload_manifest import AppReloadManifest
 from .app_retry_install import AppRetryInstall
 from .app_token_create import AppTokenCreate
 from .app_token_delete import AppTokenDelete
@@ -30,4 +31,5 @@ __all__ = [
     "AppTokenVerify",
     "AppUpdate",
     "AppReenableSyncWebhooks",
+    "AppReloadManifest",
 ]

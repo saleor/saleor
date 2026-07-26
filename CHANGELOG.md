@@ -21,6 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Added `appReloadManifest` mutation that reloads an installed app from its manifest URL, re-syncing the app's fields, permissions, extensions and webhooks without reinstalling. Pass `dryRun: true` to get a preview (`currentManifest` / `incomingManifest`) of the changes without applying them.
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
 - `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
 - Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.

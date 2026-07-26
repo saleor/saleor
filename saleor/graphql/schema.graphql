@@ -21656,6 +21656,29 @@ type Mutation {
     appId: ID!
   ): AppReenableSyncWebhooks @doc(category: "Apps")
 
+  """
+  Reload an installed app from its manifest URL: the app's fields, permissions, extensions and webhooks are updated to match the manifest. Webhooks are matched by name; a webhook renamed in the manifest is deleted and recreated. The `isActive` flag of existing webhooks and of the app itself, and app tokens, are never modified. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
+  
+  Added in Saleor 3.24.
+  
+  Triggers the following webhook events:
+  - APP_UPDATED (async): An app was reloaded from its manifest.
+  """
+  appReloadManifest(
+    """
+    If true, fetch and validate the manifest and return the preview without applying any changes.
+    """
+    dryRun: Boolean = false
+
+    """
+    The `incomingManifest` returned by a prior dry run. When provided on apply, the mutation refuses to apply if the manifest fetched now differs from it — so an admin never silently applies changes the manifest gained since the preview was reviewed.
+    """
+    expectedIncomingManifest: JSONString
+
+    """ID of the app to reload."""
+    id: ID!
+  ): AppReloadManifest @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_UPDATED], syncEvents: [])
+
   """Create JWT token."""
   tokenCreate(
     """
@@ -32697,6 +32720,41 @@ type AppReenableSyncWebhooks @doc(category: "Apps") {
   app: App
   appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [AppError!]!
+}
+
+"""
+Reload an installed app from its manifest URL: the app's fields, permissions, extensions and webhooks are updated to match the manifest. Webhooks are matched by name; a webhook renamed in the manifest is deleted and recreated. The `isActive` flag of existing webhooks and of the app itself, and app tokens, are never modified. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
+
+Added in Saleor 3.24.
+
+Triggers the following webhook events:
+- APP_UPDATED (async): An app was reloaded from its manifest.
+"""
+type AppReloadManifest @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_UPDATED], syncEvents: []) {
+  """App reloaded from its manifest."""
+  app: App
+
+  """Current and incoming manifest, for reviewing the changes."""
+  preview: AppManifestReloadPreview
+  appErrors: [AppError!]! @deprecated(reason: "Use `errors` field instead.")
+  errors: [AppError!]!
+}
+
+"""
+Preview of the changes a manifest reload would apply.
+
+Added in Saleor 3.24.
+"""
+type AppManifestReloadPreview @doc(category: "Apps") {
+  """
+  The installed app's current state, serialized in the manifest shape. Covers only the fields a reload applies.
+  """
+  currentManifest: JSONString!
+
+  """
+  The freshly fetched manifest, serialized in the same shape as `currentManifest`.
+  """
+  incomingManifest: JSONString!
 }
 
 """Create JWT token."""
