@@ -64,29 +64,6 @@ class ManifestExtensionSchema(BaseModel):
     options: dict = {}
     identifier: str | None = None
 
-    @field_validator("identifier")
-    @classmethod
-    def validate_identifier(cls, v: str | None) -> str | None:
-        """Validate the identifier length.
-
-        Normalization (stripping whitespace, treating blank values as not
-        provided) happens later in ``manifest_validations``: the validated
-        model returned by ``model_validate`` is discarded, so any value
-        returned here would not reach the manifest data. Length is checked
-        here because it is a purely structural constraint. The raw value is
-        measured (whitespace included) since that is what would be persisted.
-        """
-        if v is None:
-            return None
-        if len(v) > EXTENSION_IDENTIFIER_MAX_LENGTH:
-            raise PydanticCustomError(
-                AppErrorCode.INVALID.value,
-                "Identifier is too long. Maximum length is "
-                f"{EXTENSION_IDENTIFIER_MAX_LENGTH} characters.",
-                {"error_code": AppErrorCode.INVALID.value},
-            )
-        return v
-
 
 class ManifestWebhookSchema(BaseModel):
     model_config = _CAMEL_CONFIG
@@ -99,29 +76,6 @@ class ManifestWebhookSchema(BaseModel):
     sync_events: list[str] = []
     custom_headers: dict | None = None
     identifier: str | None = None
-
-    @field_validator("identifier")
-    @classmethod
-    def validate_identifier(cls, v: str | None) -> str | None:
-        """Validate the identifier length.
-
-        Normalization (stripping whitespace, treating blank values as not
-        provided) happens later in ``manifest_validations``: the validated
-        model returned by ``model_validate`` is discarded, so any value
-        returned here would not reach the manifest data. Length is checked
-        here because it is a purely structural constraint. The raw value is
-        measured (whitespace included) since that is what would be persisted.
-        """
-        if v is None:
-            return None
-        if len(v) > WEBHOOK_IDENTIFIER_MAX_LENGTH:
-            raise PydanticCustomError(
-                AppErrorCode.INVALID.value,
-                "Identifier is too long. Maximum length is "
-                f"{WEBHOOK_IDENTIFIER_MAX_LENGTH} characters.",
-                {"error_code": AppErrorCode.INVALID.value},
-            )
-        return v
 
     @field_validator("target_url")
     @classmethod

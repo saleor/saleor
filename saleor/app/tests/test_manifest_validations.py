@@ -7,9 +7,7 @@ from ..manifest_schema import (
     EXTENSION_IDENTIFIER_MAX_LENGTH,
     ICON_MIME_TYPES,
     WEBHOOK_IDENTIFIER_MAX_LENGTH,
-    ManifestExtensionSchema,
     ManifestSchema,
-    ManifestWebhookSchema,
 )
 from ..manifest_validations import clean_manifest_data
 
@@ -471,37 +469,21 @@ def test_clean_manifest_data_rejects_too_long_identifier():
     assert error.message == expected_message
 
 
-def test_manifest_extension_schema_rejects_too_long_identifier():
-    # given - identifier exceeding the maximum allowed length
-    identifier = "a" * (EXTENSION_IDENTIFIER_MAX_LENGTH + 1)
-    extension_data = _extension("First", identifier=identifier)
+@pytest.mark.django_db
+def test_clean_manifest_data_length_check_ignores_surrounding_whitespace():
+    # given - at-max identifier padded with whitespace: over the limit raw,
+    # at the limit once stripped (the value that is actually persisted)
+    stripped = "a" * EXTENSION_IDENTIFIER_MAX_LENGTH
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [_extension("First", identifier=f"  {stripped}  ")],
+    }
 
     # when
-    with pytest.raises(PydanticValidationError) as exc_info:
-        ManifestExtensionSchema.model_validate(extension_data)
+    clean_manifest_data(manifest_data)
 
     # then
-    expected_message = (
-        f"Identifier is too long. Maximum length is "
-        f"{EXTENSION_IDENTIFIER_MAX_LENGTH} characters."
-    )
-    errors = exc_info.value.errors()
-    assert len(errors) == 1
-    assert errors[0]["loc"] == ("identifier",)
-    assert errors[0]["msg"] == expected_message
-    assert errors[0]["ctx"]["error_code"] == AppErrorCode.INVALID.value
-
-
-def test_manifest_extension_schema_accepts_identifier_at_max_length():
-    # given - identifier exactly at the maximum allowed length
-    identifier = "a" * EXTENSION_IDENTIFIER_MAX_LENGTH
-    extension_data = _extension("First", identifier=identifier)
-
-    # when
-    schema = ManifestExtensionSchema.model_validate(extension_data)
-
-    # then
-    assert schema.identifier == identifier
+    assert manifest_data["extensions"][0]["identifier"] == stripped
 
 
 @pytest.mark.django_db
@@ -597,37 +579,62 @@ def test_clean_manifest_data_strips_surrounding_whitespace_from_webhook_identifi
     assert manifest_data["webhooks"][0]["identifier"] == "order-created"
 
 
-def test_manifest_webhook_schema_rejects_too_long_identifier():
-    # given - identifier exceeding the maximum allowed length
-    identifier = "a" * (WEBHOOK_IDENTIFIER_MAX_LENGTH + 1)
-    webhook_data = _webhook("First", identifier=identifier)
+@pytest.mark.django_db
+def test_clean_manifest_data_accepts_webhook_identifier_at_max_length():
+    # given - identifier exactly at the maximum allowed length
+    identifier = "a" * WEBHOOK_IDENTIFIER_MAX_LENGTH
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", identifier=identifier)],
+    }
 
     # when
-    with pytest.raises(PydanticValidationError) as exc_info:
-        ManifestWebhookSchema.model_validate(webhook_data)
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert manifest_data["webhooks"][0]["identifier"] == identifier
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_too_long_webhook_identifier():
+    # given - identifier exceeding the maximum allowed length
+    identifier = "a" * (WEBHOOK_IDENTIFIER_MAX_LENGTH + 1)
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", identifier=identifier)],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
 
     # then
     expected_message = (
         f"Identifier is too long. Maximum length is "
         f"{WEBHOOK_IDENTIFIER_MAX_LENGTH} characters."
     )
-    errors = exc_info.value.errors()
-    assert len(errors) == 1
-    assert errors[0]["loc"] == ("identifier",)
-    assert errors[0]["msg"] == expected_message
-    assert errors[0]["ctx"]["error_code"] == AppErrorCode.INVALID.value
+    webhook_errors = exc_info.value.error_dict["webhooks"]
+    assert len(webhook_errors) == 1
+    error = webhook_errors[0]
+    assert error.code == AppErrorCode.INVALID.value
+    assert error.message == expected_message
 
 
-def test_manifest_webhook_schema_accepts_identifier_at_max_length():
-    # given - identifier exactly at the maximum allowed length
-    identifier = "a" * WEBHOOK_IDENTIFIER_MAX_LENGTH
-    webhook_data = _webhook("First", identifier=identifier)
+@pytest.mark.django_db
+def test_clean_manifest_data_webhook_length_check_ignores_surrounding_whitespace():
+    # given - at-max identifier padded with whitespace: over the limit raw,
+    # at the limit once stripped (the value that is actually persisted)
+    stripped = "a" * WEBHOOK_IDENTIFIER_MAX_LENGTH
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", identifier=f"  {stripped}  ")],
+    }
 
     # when
-    schema = ManifestWebhookSchema.model_validate(webhook_data)
+    clean_manifest_data(manifest_data)
 
     # then
-    assert schema.identifier == identifier
+    assert manifest_data["webhooks"][0]["identifier"] == stripped
 
 
 def test_manifest_schema_deprecated_fields_accepted():
