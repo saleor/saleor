@@ -770,7 +770,7 @@ class ProductVariantWhere(MetadataWhereFilterBase):
     @staticmethod
     def filter_attributes(qs, _, value):
         if not value:
-            return qs
+            return qs.none()
         return filter_variants_by_attributes(qs, value)
 
     def filter_stock_availability(self, qs, name, value):
