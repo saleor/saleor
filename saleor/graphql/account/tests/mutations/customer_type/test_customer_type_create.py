@@ -101,6 +101,44 @@ def test_create_as_default_transfers_default_flag(
     assert CustomerType.objects.filter(is_default=True).count() == 1
 
 
+@patch(
+    "saleor.graphql.account.mutations.customer_type.customer_type_create"
+    ".customer_type_qs_select_for_update"
+)
+def test_create_as_default_clears_default_row_invisible_to_locking_statement(
+    mocked_lock_qs,
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    default_customer_type,
+):
+    # given: the locking statement does not return the default row - as
+    # happens when a concurrent transaction inserted it while this one waited
+    # for the lock (a blocked SELECT FOR UPDATE cannot see newly inserted
+    # rows), the default-clearing update must still find and clear it
+    mocked_lock_qs.return_value = CustomerType.objects.exclude(
+        pk=default_customer_type.pk
+    )
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    variables = {"input": {"name": "Wholesale", "isDefault": True}}
+
+    # when
+    response = staff_api_client.post_graphql(CUSTOMER_TYPE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerTypeCreate"]
+    assert data["errors"] == []
+    assert data["customerType"]["isDefault"] is True
+
+    default_customer_type.refresh_from_db()
+    assert default_customer_type.is_default is False
+    customer_type = CustomerType.objects.get(slug="wholesale")
+    assert customer_type.is_default is True
+    assert CustomerType.objects.filter(is_default=True).count() == 1
+
+
 def test_create_with_duplicated_slug(
     staff_api_client,
     permission_manage_customer_types_and_attributes,

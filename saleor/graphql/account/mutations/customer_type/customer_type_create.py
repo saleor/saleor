@@ -51,9 +51,10 @@ class CustomerTypeCreateInput(BaseInputObjectType):
 class CustomerTypeDefaultTransferMixin:
     """Atomically transfer the default flag when `isDefault: true` is passed.
 
-    The whole mutation runs in a transaction that locks customer type rows and
-    clears the current default before the instance is validated and saved, so
-    the partial unique constraint on `is_default` is never violated.
+    The whole mutation runs in a transaction that locks all customer type rows
+    to serialize concurrent default transfers, then clears the current default
+    before the instance is validated and saved, so the partial unique
+    constraint on `is_default` is never violated and the last writer wins.
     """
 
     @classmethod
@@ -62,12 +63,10 @@ class CustomerTypeDefaultTransferMixin:
         if not input_data.get("is_default"):
             return super().perform_mutation(root, info, **data)  # type: ignore[misc]
         with traced_atomic_transaction():
-            locked_pks = list(
-                customer_type_qs_select_for_update().values_list("pk", flat=True)
-            )
-            models.CustomerType.objects.filter(
-                pk__in=locked_pks, is_default=True
-            ).update(is_default=False)
+            # Evaluate the queryset to acquire the locks.
+            # Deliberately do not use the queryset for clearing the default flag.
+            list(customer_type_qs_select_for_update())
+            models.CustomerType.objects.filter(is_default=True).update(is_default=False)
             return super().perform_mutation(root, info, **data)  # type: ignore[misc]
 
 
