@@ -10,8 +10,9 @@ from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
+from .exceptions import NoDefaultCustomerType
 from .lock_objects import user_qs_select_for_update
-from .models import Group, User
+from .models import CustomerType, Group, User
 
 if TYPE_CHECKING:
     from ..plugins.manager import PluginsManager
@@ -53,6 +54,26 @@ class RequestorAwareContext:
             "user_pk": context.user.pk if context.user else None,
             "app_pk": context.app.pk if context.app else None,
         }
+
+
+def get_default_customer_type(allow_replica: bool = True) -> CustomerType:
+    """Return the default customer type.
+
+    :raises NoDefaultCustomerType: When the default customer type is missing.
+    """
+    if allow_replica:
+        database_connection_name = settings.DATABASE_CONNECTION_REPLICA_NAME
+    else:
+        database_connection_name = settings.DATABASE_CONNECTION_DEFAULT_NAME
+
+    customer_type = (
+        CustomerType.objects.using(database_connection_name)
+        .filter(is_default=True)
+        .first()
+    )
+    if customer_type is None:
+        raise NoDefaultCustomerType()
+    return customer_type
 
 
 def store_user_address(

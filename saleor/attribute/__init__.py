@@ -97,6 +97,11 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
 class AttributeType:
     PRODUCT_TYPE = "product-type"
     PAGE_TYPE = "page-type"
+    # Not in CHOICES yet: the GraphQL AttributeTypeEnum is generated from
+    # CHOICES, and `attributeCreate` resolves permissions with a bare
+    # PRODUCT_TYPE/else branch, so listing this value would expose it in the
+    # API before the customer-type permission handling exists.
+    CUSTOMER_TYPE = "customer-type"
 
     CHOICES = [(PRODUCT_TYPE, "Product type"), (PAGE_TYPE, "Page type")]
 
