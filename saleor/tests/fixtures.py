@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 import graphene
 import pytest
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -1697,3 +1698,11 @@ def tax_configuration_avatax_plugin(channel_USD):
     tc.tax_app_id = "plugin:avatax"
     tc.save()
     return tc
+
+
+@pytest.fixture
+def cache_clear():
+    """Clear the cache before & after a test case."""
+    cache.clear()
+    yield
+    cache.clear()

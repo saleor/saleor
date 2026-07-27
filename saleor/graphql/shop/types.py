@@ -56,6 +56,7 @@ from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .enums import (
+    AccountConfirmModeEnum,
     AnnouncementImportanceEnum,
     GiftCardSettingsExpiryTypeEnum,
     PasswordLoginModeEnum,
@@ -472,6 +473,16 @@ class Shop(graphene.ObjectType):
         required=True,
     )
 
+    account_confirm_merge_mode = AccountConfirmModeEnum(
+        description=(
+            "Controls the method used for merging existing orders and giftcards "
+            "when password-based authentication is used. "
+            "Learn more at "
+            "https://docs.saleor.io/upgrade-guides/core/migrate-account-merging"
+        ),
+        required=True,
+    )
+
     # legacy settings
     use_legacy_update_webhook_emission = graphene.Boolean(
         description=(
@@ -773,3 +784,8 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_use_legacy_update_webhook_emission(_, _info, site):
         return site.settings.use_legacy_update_webhook_emission
+
+    @staticmethod
+    @load_site_callback
+    def resolve_account_confirm_merge_mode(_, _info, site):
+        return site.settings.account_confirm_merge_mode

@@ -15268,6 +15268,11 @@ type Shop implements ObjectWithMetadata {
   useLegacyShippingZoneStockAvailability: Boolean!
 
   """
+  Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+  """
+  accountConfirmMergeMode: AccountConfirmModeEnum!
+
+  """
   Use legacy update webhook emission. When enabled, update webhooks (e.g. `customerUpdated`,`productVariantUpdated`) are sent even when only metadata changes. When disabled, update webhooks are not sent for metadata-only changes; only metadata-specific webhooks (e.g., `customerMetadataUpdated`, `productVariantMetadataUpdated`) are sent.
   
   Added in Saleor 3.22.
@@ -15411,6 +15416,25 @@ enum PasswordLoginModeEnum @doc(category: "Authentication") {
   ENABLED
   CUSTOMERS_ONLY
   DISABLED
+}
+
+"""
+AccountConfirmMode set the account merging mode for anonymous objects.
+
+    This dictates the behavior of the `confirmAccount()` mutation for
+    password-based authentication when attempting to merge orders & giftcard
+    that aren't associated to a user account.
+
+    Modes:
+
+    - MERGE_DISABLED disables merging only when the authentication method
+      is password (i.e., when not using OIDC)
+    - REQUIRE_PASSWORD enables account merging who accounts that use password
+      authentication but it requires the user to enter their password
+"""
+enum AccountConfirmModeEnum @doc(category: "Authentication") {
+  MERGE_DISABLED
+  REQUIRE_PASSWORD
 }
 
 """Gift card related settings from site settings."""
@@ -21967,6 +21991,11 @@ type Mutation {
     """E-mail of the user performing account confirmation."""
     email: String!
 
+    """
+    Password of the user confirming their account. Required when `REQUIRED_PASSWORD` mode is enabled in shop settings. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+    """
+    password: String
+
     """A one-time token required to confirm the account."""
     token: String!
   ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: [])
@@ -23434,6 +23463,11 @@ input ShopSettingsInput {
   Added in Saleor 3.22.
   """
   useLegacyUpdateWebhookEmission: Boolean @deprecated
+
+  """
+  Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+  """
+  accountConfirmMergeMode: AccountConfirmModeEnum
 }
 
 """
