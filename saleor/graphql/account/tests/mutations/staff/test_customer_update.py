@@ -3,6 +3,7 @@ from unittest.mock import patch
 import graphene
 
 from ......account import events as account_events
+from ......account import models
 from ......account.error_codes import AccountErrorCode
 from ......account.search import generate_address_search_document_value
 from ......giftcard.models import GiftCard
@@ -492,6 +493,90 @@ def test_customer_update_generates_event_when_changing_email_by_app(
     assert email_changed_event.type == account_events.CustomerEvents.EMAIL_ASSIGNED
     assert email_changed_event.user is None
     assert email_changed_event.parameters == {"message": "mirumee@example.com"}
+
+
+def test_customer_update_existing_user_does_not_merge_with_existing_account(
+    staff_api_client,
+    staff_user,
+    customer_user,
+    gift_card,
+    order,
+    permission_manage_users,
+):
+    """Ensure customerUpdate() doesn't allowing merging with existing users.
+
+    When setting the email address of a customer to an email address that already
+    is associated to an account, it should reject the change and shouldn't merge
+    the account (i.e., orders and giftcards shouldn't associated).
+
+    When there is no account associated, then it should automatically merge.
+    """
+    staff_user.user_permissions.add(permission_manage_users)
+
+    user_for_update = customer_user
+    existing_email = "existing-user@example.com"
+    existing_user = models.User.objects.create(email=existing_email)
+
+    assert user_for_update.email != existing_user.email
+
+    # Create anonymous objects assigned to the targeted email
+    order.user = gift_card.created_by = None
+    order.user_email = gift_card.created_by_email = existing_email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+    order.save(update_fields=["user", "user_email"])
+
+    # When attempting to merge onto an existing account, it should reject
+    # the request, and shouldn't assign the anonymous objects.
+    query = UPDATE_CUSTOMER_EMAIL_MUTATION
+    variables = {
+        "id": graphene.Node.to_global_id("User", user_for_update.pk),
+        "email": existing_email,
+    }
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["customerUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors == [
+        {
+            "field": "email",
+            "message": "User with this Email already exists.",
+        }
+    ]
+
+    customer_user.refresh_from_db(fields=("email",))
+    assert customer_user.email != existing_email, "shoudln't have updated the customer"
+
+    gift_card.refresh_from_db(fields=("created_by", "created_by_email"))
+    assert gift_card.created_by is None, "shouldn't have merged the gift card"
+    assert gift_card.created_by_email == existing_email, (
+        "shouldn't have changed the email"
+    )
+
+    order.refresh_from_db(fields=("user", "user_email"))
+    assert order.user is None, "shouldn't have merged the gift card"
+    assert order.user_email == existing_email, "shouldn't have changed the email"
+
+    # sanity check: if the conflicting user is gone, the same update should merge
+    existing_user.delete()
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["customerUpdate"]["errors"]
+    assert len(errors) == 0
+
+    customer_user.refresh_from_db(fields=("email",))
+    assert customer_user.email == existing_email, "should have updated the customer"
+
+    gift_card.refresh_from_db(fields=("created_by", "created_by_email"))
+    assert gift_card.created_by == customer_user, "should have merged the gift card"
+    assert gift_card.created_by_email == existing_email, (
+        "shouldn't have changed the email"
+    )
+
+    order.refresh_from_db(fields=("user", "user_email"))
+    assert order.user == customer_user, "should have merged the gift card"
+    assert order.user_email == existing_email, "shouldn't have changed the email"
 
 
 def test_customer_update_assign_gift_cards_and_orders(

@@ -965,6 +965,14 @@ PRODUCT_MAX_INDEXED_ATTRIBUTE_VALUES = 100
 PRODUCT_MAX_INDEXED_VARIANTS = 1000
 
 
+# Sets the default behavior for new Saleor installations.
+# When set to 'False', it disables account merging by default in DB
+# migrations, and when to 'True', it enables account merging but requires
+# password confirmation.
+# This setting has no effect against existing Saleor installations and
+# shouldn't be changed.
+ACCOUNT_CONFIRM_ASSOCIATE_ANONYMOUS_OBJECTS = False
+
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.
 

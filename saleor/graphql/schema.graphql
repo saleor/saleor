@@ -9681,6 +9681,11 @@ type Shop implements ObjectWithMetadata {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean! @deprecated(reason: "Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
+
+  """
+  Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+  """
+  accountConfirmMergeMode: AccountConfirmModeEnum!
 }
 
 """
@@ -12403,6 +12408,11 @@ type Limits {
 
   """Defines the number of warehouses."""
   warehouses: Int
+}
+
+enum AccountConfirmModeEnum @doc(category: "Authentication") {
+  MERGE_DISABLED
+  REQUIRE_PASSWORD
 }
 
 """Gift card related settings from site settings."""
@@ -18262,6 +18272,11 @@ type Mutation {
     """E-mail of the user performing account confirmation."""
     email: String!
 
+    """
+    Password of the user confirming their account. Required when `REQUIRED_PASSWORD` mode is enabled in shop settings. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+    """
+    password: String
+
     """A one-time token required to confirm the account."""
     token: String!
   ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: [])
@@ -19692,6 +19707,11 @@ input ShopSettingsInput {
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean @deprecated(reason: "To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.")
+
+  """
+  Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+  """
+  accountConfirmMergeMode: AccountConfirmModeEnum
 }
 
 """

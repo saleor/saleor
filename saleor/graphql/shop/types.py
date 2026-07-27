@@ -48,7 +48,7 @@ from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
-from .enums import GiftCardSettingsExpiryTypeEnum
+from .enums import AccountConfirmModeEnum, GiftCardSettingsExpiryTypeEnum
 from .filters import CountryFilterInput
 from .resolvers import resolve_available_shipping_methods, resolve_countries
 
@@ -369,6 +369,16 @@ class Shop(graphene.ObjectType):
         required=True,
     )
 
+    account_confirm_merge_mode = AccountConfirmModeEnum(
+        description=(
+            "Controls the method used for merging existing orders and giftcards "
+            "when password-based authentication is used. "
+            "Learn more at "
+            "https://docs.saleor.io/upgrade-guides/core/migrate-account-merging"
+        ),
+        required=True,
+    )
+
     class Meta:
         description = (
             "Represents a shop resource containing general shop data and configuration."
@@ -637,3 +647,8 @@ class Shop(graphene.ObjectType):
         return ObjectWithMetadata.resolve_private_metafields(
             site.settings, info, keys=keys
         )
+
+    @staticmethod
+    @load_site_callback
+    def resolve_account_confirm_merge_mode(_, _info, site):
+        return site.settings.account_confirm_merge_mode
