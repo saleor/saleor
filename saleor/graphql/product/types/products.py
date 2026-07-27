@@ -94,9 +94,6 @@ from ...core.types import (
 )
 from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
-from ...core.validators import (
-    validate_one_of_args_is_in_query,
-)
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -1033,13 +1030,6 @@ class Product(ChannelContextType[models.Product]):
         description="Get a single product image by ID.",
         deprecation_reason="Use the `mediaById` field instead.",
     )
-    variant = graphene.Field(
-        ProductVariant,
-        id=graphene.Argument(graphene.ID, description="ID of the variant."),
-        sku=graphene.Argument(graphene.String, description="SKU of the variant."),
-        description="Get a single variant by SKU or ID.",
-        deprecation_reason="Use top-level `variant` query.",
-    )
     variants = NonNullList(
         ProductVariant,
         description=(
@@ -1480,40 +1470,6 @@ class Product(ChannelContextType[models.Product]):
         return ImagesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_variant(root: ChannelContext[models.Product], info, id=None, sku=None):
-        validate_one_of_args_is_in_query("id", id, "sku", sku)
-
-        def get_product_variant(
-            product_variants,
-        ) -> ProductVariant | None:
-            if id:
-                id_type, variant_id = graphene.Node.from_global_id(id)
-                if id_type != "ProductVariant":
-                    return None
-
-                return next(
-                    (
-                        variant
-                        for variant in product_variants
-                        if variant.node.id == int(variant_id)
-                    ),
-                    None,
-                )
-            if sku:
-                return next(
-                    (
-                        variant
-                        for variant in product_variants
-                        if variant.node.sku == sku
-                    ),
-                    None,
-                )
-            return None
-
-        variants = Product.resolve_variants(root, info)
-        return variants.then(get_product_variant)
-
-    @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
@@ -1779,16 +1735,6 @@ class ProductType(ModelObjectType[models.ProductType]):
     )
     is_shipping_required = graphene.Boolean(
         required=True, description="Whether shipping is required for this product type."
-    )
-    is_digital = graphene.Boolean(
-        required=True,
-        description=(
-            "Whether the product type is digital - doesn't have any effect, "
-            "it's present for backward-compatibility."
-        ),
-        deprecation_reason=(
-            "Will be removed in v3.24.0, use metadata or attributes instead."
-        ),
     )
     weight = graphene.Field(Weight, description="Weight of the product type.")
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)

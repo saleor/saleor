@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("site", "0050_sitesettings_return_reason_reference_type"),
+        ("site", "0051_merge_20260717_1400"),
     ]
 
     operations = [

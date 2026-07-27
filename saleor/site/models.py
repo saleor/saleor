@@ -14,7 +14,7 @@ from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
 from ..permission.enums import SitePermissions
-from . import GiftCardSettingsExpiryType, PasswordLoginMode
+from . import AccountConfirmMode, GiftCardSettingsExpiryType, PasswordLoginMode
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
@@ -150,6 +150,16 @@ class SiteSettings(ModelWithMetadata):
     use_legacy_shipping_zone_stock_availability = models.BooleanField(
         default=False,
         db_default=True,
+    )
+
+    account_confirm_merge_mode = models.CharField(
+        max_length=30,
+        choices=AccountConfirmMode.CHOICES,
+        default=(
+            AccountConfirmMode.REQUIRE_PASSWORD
+            if settings.ACCOUNT_CONFIRM_ASSOCIATE_ANONYMOUS_OBJECTS
+            else AccountConfirmMode.MERGE_DISABLED
+        ),
     )
 
     class Meta:

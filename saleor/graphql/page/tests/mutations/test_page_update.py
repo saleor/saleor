@@ -733,7 +733,7 @@ def test_update_page_with_plain_text_attribute_new_value(
         "attribute": {"slug": plain_text_attribute_page_type.slug},
         "values": [
             {
-                "slug": f"{page.pk}_{plain_text_attribute_page_type.pk}",
+                "slug": f"page-{page.pk}_{plain_text_attribute_page_type.pk}",
                 "name": text,
                 "file": None,
                 "reference": None,
@@ -910,7 +910,7 @@ def test_update_page_with_plain_text_attribute_existing_value(
         "Attribute", plain_text_attribute_page_type.pk
     )
     attribute_value = plain_text_attribute_page_type.values.first()
-    attribute_value.slug = f"{page.pk}_{plain_text_attribute_page_type.pk}"
+    attribute_value.slug = f"page-{page.pk}_{plain_text_attribute_page_type.pk}"
     attribute_value.save(update_fields=["slug"])
 
     text = attribute_value.plain_text
@@ -977,7 +977,7 @@ def test_update_page_with_required_plain_text_attribute_empty_value(
         "Attribute", plain_text_attribute_page_type.pk
     )
     attribute_value = plain_text_attribute_page_type.values.first()
-    attribute_value.slug = f"{page.pk}_{plain_text_attribute_page_type.pk}"
+    attribute_value.slug = f"page-{page.pk}_{plain_text_attribute_page_type.pk}"
     attribute_value.save(update_fields=["slug"])
 
     plain_text_attribute_page_type.value_required = True
@@ -2007,7 +2007,9 @@ def test_update_page_with_numeric_attribute(
     assert len(attributes) == 1
     assert attributes[0]["attribute"]["slug"] == numeric_attribute.slug
     assert len(attributes[0]["values"]) == 1
-    assert attributes[0]["values"][0]["slug"] == f"{page.pk}_{numeric_attribute.pk}"
+    assert (
+        attributes[0]["values"][0]["slug"] == f"page-{page.pk}_{numeric_attribute.pk}"
+    )
     assert attributes[0]["values"][0]["name"] == numeric_name
 
     assigned_attributes = data["page"]["assignedAttributes"]

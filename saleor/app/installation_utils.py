@@ -203,19 +203,43 @@ def fetch_brand_data_async(
         )
 
 
-def fetch_manifest(manifest_url: str, timeout=settings.COMMON_REQUESTS_TIMEOUT):
+def fetch_manifest(
+    manifest_url: str,
+    timeout=settings.COMMON_REQUESTS_TIMEOUT,
+    max_retries: int = 0,
+):
     headers = {AppHeaders.SCHEMA_VERSION: schema_version}
-    response = HTTPClient.send_request(
-        "GET", manifest_url, headers=headers, timeout=timeout, allow_redirects=False
-    )
-    response.raise_for_status()
-    return response.json()
+    connect_timeout, read_timeout = timeout
+
+    def _get(attempt: int):
+        response = HTTPClient.send_request(
+            "GET",
+            manifest_url,
+            headers=headers,
+            # Give subsequent retries an incremented connect timeout.
+            timeout=(connect_timeout + attempt, read_timeout),
+            allow_redirects=False,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    for attempt in range(max_retries):
+        try:
+            return _get(attempt)
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            logger.info(
+                "Failed to fetch manifest (%s), retrying (attempt %d out of %d)...",
+                exc,
+                attempt + 1,
+                max_retries + 1,
+            )
+    return _get(max_retries)  # final attempt, explicit return to satisfy ruff RET503
 
 
 def install_app(
     app_installation: AppInstallation, activate: bool = False
 ) -> tuple[App, AppToken | None]:
-    manifest_data = fetch_manifest(app_installation.manifest_url)
+    manifest_data = fetch_manifest(app_installation.manifest_url, max_retries=2)
     assigned_permissions = app_installation.permissions.all()
 
     manifest_data["permissions"] = get_permission_names(assigned_permissions)

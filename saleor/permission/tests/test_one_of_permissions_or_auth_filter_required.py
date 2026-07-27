@@ -286,3 +286,30 @@ def test_permissions_for_customer(permissions, expected_result, customer_user):
 
     # then
     assert result is expected_result
+
+
+@pytest.mark.parametrize(
+    "permissions",
+    [
+        # one permission
+        [CheckoutPermissions.MANAGE_CHECKOUTS],
+        # multiple permissions
+        [
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+            AuthorizationFilters.AUTHENTICATED_USER,
+        ],
+    ],
+)
+def test_permissions_for_anonymous_user(permissions):
+    """An anonymous user shouldn't be flagged as having the permission."""
+
+    # given
+    context = Mock()
+    context.app = None
+    context.user = None
+
+    # when
+    result = all_permissions_required(context, permissions)
+
+    # then
+    assert result is False

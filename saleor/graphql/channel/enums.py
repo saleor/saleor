@@ -3,6 +3,7 @@ from typing import Final
 import graphene
 
 from ...channel import AllocationStrategy, MarkAsPaidStrategy, TransactionFlowStrategy
+from ..core.descriptions import DEPRECATED_LEGACY_PAYMENTS
 from ..core.doc_category import (
     DOC_CATEGORY_CHANNELS,
     DOC_CATEGORY_PAYMENTS,
@@ -17,10 +18,18 @@ AllocationStrategyEnum: Final[graphene.Enum] = to_enum(
 )
 AllocationStrategyEnum.doc_category = DOC_CATEGORY_PRODUCTS
 
+
+def mark_as_paid_strategy_deprecation_reason(enum):
+    if enum.value == MarkAsPaidStrategy.PAYMENT_FLOW:
+        return DEPRECATED_LEGACY_PAYMENTS
+    return None
+
+
 MarkAsPaidStrategyEnum: Final[graphene.Enum] = to_enum(
     MarkAsPaidStrategy,
     type_name="MarkAsPaidStrategyEnum",
     description=MarkAsPaidStrategy.__doc__,
+    deprecation_reason=mark_as_paid_strategy_deprecation_reason,
 )
 MarkAsPaidStrategyEnum.doc_category = DOC_CATEGORY_CHANNELS
 

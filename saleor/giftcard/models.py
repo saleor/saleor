@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinLengthValidator
 from django.db import models
@@ -63,6 +63,18 @@ class GiftCard(ModelWithMetadata):
     )
     created_by_email = models.EmailField(null=True, blank=True)
     used_by_email = models.EmailField(null=True, blank=True)
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        # PROTECT (not SET_NULL): deleting an assignee must go through
+        # deactivate_assigned_gift_cards() so the card is detached AND
+        # deactivated together. A raw delete is refused rather than silently
+        # leaving an active card restricted to a ghost user.
+        on_delete=models.PROTECT,
+        related_name="assigned_gift_cards",
+    )
+    assigned_to_email = models.EmailField(null=True, blank=True)
     app = models.ForeignKey(
         App,
         blank=True,
@@ -121,8 +133,19 @@ class GiftCard(ModelWithMetadata):
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
         )
-        indexes = [GinIndex(name="giftcard_tsearch", fields=["search_vector"])]
+        indexes = [
+            GinIndex(name="giftcard_tsearch", fields=["search_vector"]),
+            BTreeIndex(fields=["assigned_to"], name="giftcard_assigned_to_idx"),
+        ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
+        constraints = [
+            # Defense-in-depth backstop: no code path should ever persist a
+            # negative balance (writers clamp to zero), but the DB enforces it.
+            models.CheckConstraint(
+                condition=Q(current_balance_amount__gte=0),
+                name="giftcard_current_balance_non_negative",
+            ),
+        ]
 
     @property
     def display_code(self):

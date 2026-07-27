@@ -39,7 +39,6 @@ def test_product_types(user_api_client, product_type, channel_USD):
     [
         ({"configurable": "CONFIGURABLE"}, 2),  # has_variants
         ({"configurable": "SIMPLE"}, 1),  # !has_variants
-        ({"productType": "DIGITAL"}, 1),
         ({"productType": "SHIPPABLE"}, 2),  # is_shipping_required
         ({"kind": "NORMAL"}, 2),
         ({"kind": "GIFT_CARD"}, 1),
@@ -118,15 +117,6 @@ QUERY_PRODUCT_TYPES_WITH_SORT = """
     [
         ({"field": "NAME", "direction": "ASC"}, ["Digital", "Subscription", "Tools"]),
         ({"field": "NAME", "direction": "DESC"}, ["Tools", "Subscription", "Digital"]),
-        # is_digital
-        (
-            {"field": "DIGITAL", "direction": "ASC"},
-            ["Subscription", "Tools", "Digital"],
-        ),
-        (
-            {"field": "DIGITAL", "direction": "DESC"},
-            ["Digital", "Tools", "Subscription"],
-        ),
         # is_shipping_required
         (
             {"field": "SHIPPING_REQUIRED", "direction": "ASC"},

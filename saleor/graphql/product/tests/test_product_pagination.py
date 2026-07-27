@@ -961,10 +961,6 @@ def test_product_types_pagination_with_sorting(
         ),
         ({"search": "ProductType1"}, ["ProductType1", "ProductTypeProductType1"]),
         ({"search": "pt_pt"}, ["ProductTypeProductType1", "ProductTypeProductType2"]),
-        (
-            {"productType": "DIGITAL"},
-            ["ProductType1", "ProductType3"],
-        ),
         ({"productType": "SHIPPABLE"}, ["ProductType2", "ProductTypeProductType2"]),
         ({"configurable": "CONFIGURABLE"}, ["ProductType1", "ProductTypeProductType1"]),
         ({"configurable": "SIMPLE"}, ["ProductType2", "ProductType3"]),
