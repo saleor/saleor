@@ -5,6 +5,7 @@ import graphene
 import pytest
 
 from .....app.models import App
+from .....webhook.models import Webhook
 from ....core.enums import WebhookErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import WebhookEventTypeAsyncEnum
@@ -18,6 +19,7 @@ WEBHOOK_UPDATE = """
           code
         }
         webhook {
+          identifier
           syncEvents {
             eventType
           }
@@ -65,6 +67,70 @@ def test_webhook_update_by_app(app_api_client, app, webhook):
     )
     assert data["webhook"]["isActive"] is False
     assert data["webhook"]["customHeaders"] == json.dumps(custom_headers)
+
+
+def test_webhook_update_identifier(app_api_client, webhook):
+    # given
+    identifier = "order-created-handler"
+    assert webhook.identifier is None
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id, "input": {"identifier": identifier}}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert not data["errors"]
+    assert data["webhook"]["identifier"] == identifier
+    webhook.refresh_from_db()
+    assert webhook.identifier == identifier
+
+
+def test_webhook_update_blank_identifier_clears_it(app_api_client, webhook):
+    # given
+    webhook.identifier = "order-created-handler"
+    webhook.save(update_fields=["identifier"])
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id, "input": {"identifier": "   "}}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then - blank clears the identifier back to NULL
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert not data["errors"]
+    assert data["webhook"]["identifier"] is None
+    webhook.refresh_from_db()
+    assert webhook.identifier is None
+
+
+def test_webhook_update_duplicate_identifier_for_same_app(app_api_client, app, webhook):
+    # given - the app owns another webhook already using the target identifier
+    identifier = "order-created-handler"
+    Webhook.objects.create(
+        app=app, target_url="https://www.example.com/other", identifier=identifier
+    )
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id, "input": {"identifier": identifier}}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then - rejected and the webhook keeps its previous (unset) identifier
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": "Webhook with this App and Identifier already exists.",
+            "code": WebhookErrorCode.UNIQUE.name,
+        }
+    ]
+    webhook.refresh_from_db()
+    assert webhook.identifier is None
 
 
 def test_webhook_update_by_other_app(app_api_client, webhook):

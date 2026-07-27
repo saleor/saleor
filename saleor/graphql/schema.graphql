@@ -22508,6 +22508,13 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   """The name of the webhook."""
   name: String
 
+  """
+  The unique identifier of the webhook, set by the app. Unique per app. Maximum length is 256 characters.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
   """The url to receive the payload."""
   targetUrl: String
 
@@ -22563,6 +22570,13 @@ type WebhookUpdate @doc(category: "Webhooks") {
 input WebhookUpdateInput @doc(category: "Webhooks") {
   """The new name of the webhook."""
   name: String
+
+  """
+  The unique identifier of the webhook, set by the app. Unique per app. Maximum length is 256 characters. Pass a blank value to clear it.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
 
   """The url to receive the payload."""
   targetUrl: String
@@ -32630,6 +32644,7 @@ enum AppErrorCode @doc(category: "Apps") {
   INVALID_MANIFEST_FORMAT
   INVALID_CUSTOM_HEADERS
   DUPLICATED_EXTENSION_IDENTIFIER
+  DUPLICATED_WEBHOOK_IDENTIFIER
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED

@@ -34,7 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
-- Added `identifier` field to the `Webhook` type. It holds an app-provided, stable identifier that is unique per app.
+- Added `identifier` field to the `Webhook` type. It holds an app-provided, stable identifier that is unique per app. It can be set through the app manifest (`webhooks[].identifier`) and the `webhookCreate`/`webhookUpdate` mutations.
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).
 - `Attribute` fields `name`, `slug` and `type` are now non-nullable in schema.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.

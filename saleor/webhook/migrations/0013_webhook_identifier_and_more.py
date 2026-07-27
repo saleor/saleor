@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="webhook",
             name="identifier",
-            field=models.CharField(max_length=256, null=True),
+            field=models.CharField(blank=True, max_length=256, null=True),
         ),
         migrations.AddConstraint(
             model_name="webhook",

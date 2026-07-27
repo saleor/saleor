@@ -35,7 +35,12 @@ class Webhook(models.Model):
         default=list,
         size=MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT,
     )
-    identifier = models.CharField(max_length=256, null=True)
+    # blank=True is required because webhookCreate/webhookUpdate run full_clean:
+    # Django's field validation rejects an unset value (None is in empty_values)
+    # when blank=False, even with null=True, which would break every mutation
+    # that doesn't set an identifier. Empty string stays blocked by the
+    # identifier_not_blank CheckConstraint below.
+    identifier = models.CharField(max_length=256, null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)

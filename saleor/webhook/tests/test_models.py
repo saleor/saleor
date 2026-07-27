@@ -14,7 +14,7 @@ def test_webhook_identifier_must_be_unique_per_app(app):
     Webhook.objects.create(app=app, target_url=TARGET_URL, identifier=identifier)
 
     # when / then - reusing the identifier within the same app is rejected
-    with pytest.raises(IntegrityError), atomic():
+    with pytest.raises(IntegrityError, match="unique_webhook_identifier"), atomic():
         Webhook.objects.create(app=app, target_url=TARGET_URL, identifier=identifier)
 
 
@@ -45,5 +45,5 @@ def test_webhook_allows_multiple_null_identifiers_per_app(app):
 
 def test_webhook_identifier_cannot_be_blank(app):
     # given / when / then - a blank identifier is rejected at the database level
-    with pytest.raises(IntegrityError), atomic():
+    with pytest.raises(IntegrityError, match="webhook_identifier_not_blank"), atomic():
         Webhook.objects.create(app=app, target_url=TARGET_URL, identifier="")

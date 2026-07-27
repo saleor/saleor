@@ -228,6 +228,28 @@ def _clean_extension_identifier(extension, seen_identifiers, errors):
     seen_identifiers.add(identifier)
 
 
+def _clean_webhook_identifier(webhook, seen_identifiers, errors):
+    """Normalize and ensure the webhook identifier is unique within the manifest.
+
+    Blank or whitespace-only identifiers are treated as not provided (``None``)
+    and may repeat freely. Non-empty identifiers must be unique per app.
+    """
+    identifier = (webhook.get("identifier") or "").strip() or None
+    webhook["identifier"] = identifier
+
+    if identifier is None:
+        return
+
+    if identifier in seen_identifiers:
+        errors["webhooks"].append(
+            ValidationError(
+                f"Duplicate webhook identifier: {identifier}.",
+                code=AppErrorCode.DUPLICATED_WEBHOOK_IDENTIFIER.value,
+            )
+        )
+    seen_identifiers.add(identifier)
+
+
 def _clean_webhooks(manifest_data, errors):
     webhooks = manifest_data.get("webhooks", [])
 
@@ -238,7 +260,10 @@ def _clean_webhooks(manifest_data, errors):
         str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventSyncType.CHOICES
     }
 
+    seen_identifiers: set[str] = set()
     for webhook in webhooks:
+        _clean_webhook_identifier(webhook, seen_identifiers, errors)
+
         webhook["isActive"] = webhook.get("isActive", True)
 
         webhook["events"] = []
