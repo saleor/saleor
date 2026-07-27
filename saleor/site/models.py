@@ -13,7 +13,7 @@ from ..core.models import ModelWithMetadata
 from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
 from ..permission.enums import SitePermissions
-from . import GiftCardSettingsExpiryType
+from . import AccountConfirmMode, GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
@@ -102,6 +102,16 @@ class SiteSettings(ModelWithMetadata):
     # refund settings
     refund_reason_reference_type = models.ForeignKey(
         null=True, blank=True, on_delete=models.SET_NULL, to="page.PageType"
+    )
+
+    account_confirm_merge_mode = models.CharField(
+        max_length=30,
+        choices=AccountConfirmMode.CHOICES,
+        default=(
+            AccountConfirmMode.REQUIRE_PASSWORD
+            if settings.ACCOUNT_CONFIRM_ASSOCIATE_ANONYMOUS_OBJECTS
+            else AccountConfirmMode.MERGE_DISABLED
+        ),
     )
 
     # deprecated

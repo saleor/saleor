@@ -17,6 +17,7 @@ from ...core.utils import WebhookEventInfo
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
+from ..enums import AccountConfirmModeEnum
 from ..types import Shop
 
 
@@ -133,6 +134,15 @@ class ShopSettingsInput(graphene.InputObjectType):
             "`productVariantMetadataUpdated`) are sent."
             + ADDED_IN_322
             + DEPRECATED_IN_3X_INPUT
+        ),
+    )
+
+    account_confirm_merge_mode = AccountConfirmModeEnum(
+        description=(
+            "Controls the method used for merging existing orders and giftcards "
+            "when password-based authentication is used. "
+            "Learn more at "
+            "https://docs.saleor.io/upgrade-guides/core/migrate-account-merging"
         ),
     )
 

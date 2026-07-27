@@ -24,3 +24,27 @@ class AnnouncementImportance:
         (LOW, "Low"),
         (UNSET, "Unset"),
     ]
+
+
+class AccountConfirmMode:
+    """AccountConfirmMode set the account merging mode for anonymous objects.
+
+    This dictates the behavior of the `confirmAccount()` mutation for
+    password-based authentication when attempting to merge orders & giftcard
+    that aren't associated to a user account.
+
+    Modes:
+
+    - MERGE_DISABLED disables merging only when the authentication method
+      is password (i.e., when not using OIDC)
+    - REQUIRE_PASSWORD enables account merging who accounts that use password
+      authentication but it requires the user to enter their password
+    """
+
+    MERGE_DISABLED = "merge_disabled"
+    REQUIRE_PASSWORD = "require_password"
+
+    CHOICES = [
+        (MERGE_DISABLED, "Account merging disabled"),
+        (REQUIRE_PASSWORD, "Require password for merging"),
+    ]
