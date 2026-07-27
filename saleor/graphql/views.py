@@ -63,6 +63,20 @@ from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
+# Sentinel result returned by `execute_graphql_request` when a request is rejected
+# as disallowed storefront traffic. `get_response` matches it by identity and maps
+# it to a 401 without running it through `format_error` (which would relocate and
+# annotate the error and log it as a failed query).
+STOREFRONT_TRAFFIC_BLOCKED = ExecutionResult(invalid=True)
+STOREFRONT_TRAFFIC_BLOCKED_RESPONSE: GraphQLOperationResult = {
+    "errors": [
+        {
+            "message": STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+            "extensions": {"code": STOREFRONT_TRAFFIC_ERROR_CODE},
+        }
+    ]
+}
+
 
 def default_serializer(obj):
     if isinstance(obj, decimal.Decimal):
@@ -175,35 +189,6 @@ class GraphQLView(View):
         )
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
-        # Reject disallowed storefront traffic before parsing/executing anything.
-        # Runs once per HTTP request, so batches get a single 401.
-        #
-        # `get_context_value` attaches a `request.user` SimpleLazyObject whose
-        # closure captures `request` — a reference cycle. `execute_graphql_request`
-        # is the only place paired with `clear_context`, and the error/early-return
-        # paths below never reach it, so break that cycle here via `del context.user`.
-        # We deliberately do NOT clear `context.dataloaders`: they stay primed so
-        # `execute_graphql_request` reuses them (no extra queries), and it deletes
-        # `user` again after rebuilding. `request._cached_user` survives, so re-auth
-        # stays free.
-        context = get_context_value(request)
-        try:
-            blocked = is_storefront_traffic_blocked(context)
-        finally:
-            del context.user
-        if blocked:
-            return JsonResponse(
-                data={
-                    "errors": [
-                        {
-                            "message": STOREFRONT_TRAFFIC_ERROR_MESSAGE,
-                            "extensions": {"code": STOREFRONT_TRAFFIC_ERROR_CODE},
-                        }
-                    ]
-                },
-                status=401,
-            )
-
         try:
             data = self.parse_body(request)
         except RequestDataTooBig:
@@ -322,6 +307,8 @@ class GraphQLView(View):
     ) -> tuple[GraphQLOperationResult | None, int]:
         with observability.report_gql_operation() as operation:
             execution_result = self.execute_graphql_request(request, data)
+            if execution_result is STOREFRONT_TRAFFIC_BLOCKED:
+                return STOREFRONT_TRAFFIC_BLOCKED_RESPONSE, 401
             status_code = 200
             result: GraphQLOperationResult = {}
             if execution_result.errors:
@@ -497,6 +484,13 @@ class GraphQLView(View):
                 span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
 
             try:
+                # Reject disallowed storefront traffic before executing. App and
+                # staff-user requests are always allowed; anonymous and customer
+                # requests follow the cached shop setting. Checked here so it reuses
+                # the single context created above (cleaned by the `finally`) rather
+                # than building and tearing down a second one.
+                if is_storefront_traffic_blocked(context):
+                    return STOREFRONT_TRAFFIC_BLOCKED
                 response = None
                 error_type = None
                 should_use_cache_for_scheme = query_contains_schema & (

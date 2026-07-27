@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="sitesettings",
             name="allow_storefront_traffic",
-            field=models.BooleanField(default=True),
+            field=models.BooleanField(default=True, db_default=True),
         ),
     ]

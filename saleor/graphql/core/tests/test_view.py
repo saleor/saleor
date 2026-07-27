@@ -704,7 +704,7 @@ def test_invalid_token_treated_as_anonymous_when_disabled(
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
 
 
-def test_anonymous_batch_rejected_once_when_disabled(
+def test_anonymous_batch_rejected_when_disabled(
     api_client, storefront_traffic_disabled, settings
 ):
     # given: a batch of anonymous queries, flag off
@@ -714,9 +714,9 @@ def test_anonymous_batch_rejected_once_when_disabled(
     # when
     response = api_client.post(data=queries)
 
-    # then: a single top-level 401, not a per-entry list
+    # then: every entry is rejected with 401 (the guard runs per operation)
     assert response.status_code == 401
-    assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
+    assert response.json() == [EXPECTED_STOREFRONT_TRAFFIC_ERROR] * len(queries)
 
 
 def test_anonymous_introspection_blocked_when_disabled(
