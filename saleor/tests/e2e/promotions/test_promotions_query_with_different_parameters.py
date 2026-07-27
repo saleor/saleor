@@ -6,7 +6,6 @@ from freezegun import freeze_time
 
 from ..metadata.utils import update_metadata
 from ..promotions.utils import create_promotion, promotions_query
-from ..sales.utils import create_sale
 from ..utils import assign_permissions
 
 # Should be able to query promotions with a different parameters CORE_2118
@@ -133,40 +132,6 @@ def test_step_3_query_promotions_first_10_start_date_before_CORE_2118(
         assert current_promotion["id"] != promotion_dnm["id"]
 
 
-# Step 4 - Returns 10 old sale promotions in descending order
-@pytest.mark.e2e
-def test_step_4_old_sales_CORE_2118(
-    e2e_staff_api_client,
-    permission_manage_discounts,
-):
-    assign_permissions(
-        e2e_staff_api_client,
-        [permission_manage_discounts],
-    )
-
-    for i in range(10):
-        sale_name = f"Old sale {i + 1}"
-        create_sale(
-            e2e_staff_api_client,
-            sale_name,
-            sale_type="FIXED",
-        )
-
-    promotion_dnm = create_promotion(
-        e2e_staff_api_client, "Promotion does not match", "CATALOGUE"
-    )
-
-    old_sale_promotions = promotions_query(
-        e2e_staff_api_client,
-        first=11,
-        where={"isOldSale": True},
-    )
-    assert len(old_sale_promotions) == 10
-
-    for i in range(10):
-        assert old_sale_promotions[i]["node"]["id"] != promotion_dnm["id"]
-
-
 # Step 5 - Returns 10 promotions with metadata
 @pytest.mark.e2e
 def test_step_5_promotions_with_metadata_CORE_211(
@@ -267,77 +232,6 @@ def test_step_7_promotions_with_name_eq_CORE_2118(
     )
     assert len(promotions_list) == 1
     assert promotions_list[0]["node"]["name"] == "Promotion 3"
-
-
-# Step 8 - Returns old sale promotions with a name
-@pytest.mark.e2e
-def test_step_8_query_old_sales_with_name_CORE_2118(
-    e2e_staff_api_client,
-    permission_manage_discounts,
-):
-    assign_permissions(
-        e2e_staff_api_client,
-        [permission_manage_discounts],
-    )
-
-    for i in range(3):
-        sale_name = f"Old sale {i + 1}"
-        create_sale(
-            e2e_staff_api_client,
-            sale_name,
-            sale_type="FIXED",
-        )
-
-    promotion_dnm = create_promotion(e2e_staff_api_client, "Old sale 2", "CATALOGUE")
-
-    promotions = promotions_query(
-        e2e_staff_api_client,
-        first=4,
-        where={"AND": [{"name": {"eq": "Old sale 2"}}, {"isOldSale": True}]},
-    )
-    assert len(promotions) == 1
-    assert promotions[0]["node"]["name"] == "Old sale 2"
-    assert promotions[0]["node"]["id"] != promotion_dnm["id"]
-
-
-# Step 9 - Returns 10 old sale promotions with one of the names
-@pytest.mark.e2e
-def test_step_9_query_old_sales_with_one_of_the_names_CORE_2118(
-    e2e_staff_api_client,
-    permission_manage_discounts,
-):
-    assign_permissions(
-        e2e_staff_api_client,
-        [permission_manage_discounts],
-    )
-
-    for i in range(3):
-        sale_name = f"Old sale {i + 1}"
-        create_sale(
-            e2e_staff_api_client,
-            sale_name,
-            sale_type="FIXED",
-        )
-    for i in range(3):
-        sale_name = f"Test {i + 1}"
-        create_sale(
-            e2e_staff_api_client,
-            sale_name,
-            sale_type="PERCENTAGE",
-        )
-
-    promotions_list = promotions_query(
-        e2e_staff_api_client,
-        first=7,
-        sort_by={"field": "NAME", "direction": "ASC"},
-        where={
-            "AND": [{"name": {"oneOf": ["Old sale 2", "Test 3"]}}, {"isOldSale": True}]
-        },
-    )
-
-    assert len(promotions_list) == 2
-    assert promotions_list[0]["node"]["name"] == "Old sale 2"
-    assert promotions_list[1]["node"]["name"] == "Test 3"
 
 
 # Step 10 - Returns promotions with end date after a date

@@ -13,7 +13,6 @@ from ..core.utils import from_global_id_or_error
 from ..translations.mutations import (
     PromotionRuleTranslate,
     PromotionTranslate,
-    SaleTranslate,
     VoucherTranslate,
 )
 from .filters import PromotionWhereInput, SaleFilter, VoucherFilter
@@ -25,12 +24,6 @@ from .mutations import (
     PromotionRuleDelete,
     PromotionRuleUpdate,
     PromotionUpdate,
-    SaleAddCatalogues,
-    SaleChannelListingUpdate,
-    SaleCreate,
-    SaleDelete,
-    SaleRemoveCatalogues,
-    SaleUpdate,
     VoucherAddCatalogues,
     VoucherChannelListingUpdate,
     VoucherCodeBulkDelete,
@@ -213,28 +206,7 @@ class DiscountMutations(graphene.ObjectType):
     promotion_rule_translate = PromotionRuleTranslate.Field()
     promotion_bulk_delete = PromotionBulkDelete.Field()
 
-    sale_create = SaleCreate.Field(
-        deprecation_reason="Use `promotionCreate` mutation instead."
-    )
-    sale_delete = SaleDelete.Field(
-        deprecation_reason="Use `promotionDelete` mutation instead."
-    )
     sale_bulk_delete = SaleBulkDelete.Field()
-    sale_update = SaleUpdate.Field(
-        deprecation_reason="Use `promotionUpdate` mutation instead."
-    )
-    sale_catalogues_add = SaleAddCatalogues.Field(
-        deprecation_reason="Use `promotionRuleCreate` and `promotionRuleUpdate` mutations instead."
-    )
-    sale_catalogues_remove = SaleRemoveCatalogues.Field(
-        deprecation_reason="Use `promotionRuleUpdate` and `promotionRuleDelete` mutations instead."
-    )
-    sale_translate = SaleTranslate.Field(
-        deprecation_reason="Use `promotionTranslate` mutation instead."
-    )
-    sale_channel_listing_update = SaleChannelListingUpdate.Field(
-        deprecation_reason="Use `promotionRuleUpdate` mutation instead."
-    )
 
     voucher_create = VoucherCreate.Field()
     voucher_delete = VoucherDelete.Field()
