@@ -2,11 +2,12 @@ from unittest.mock import patch
 
 import graphene
 
-from .....payment import TransactionKind
-from .....payment.gateways.dummy_credit_card import (
+from saleor.plugins.tests.gateways.dummy_credit_card import (
     TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
 )
+
+from .....payment import TransactionKind
 from .....payment.models import ChargeStatus
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -161,7 +162,9 @@ def test_payment_capture_gateway_error(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+    monkeypatch.setattr(
+        "saleor.plugins.tests.gateways.dummy.dummy_success", lambda: False
+    )
 
     # when
     response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
@@ -182,8 +185,8 @@ def test_payment_capture_gateway_error(
 
 
 @patch(
-    "saleor.payment.gateways.dummy_credit_card.plugin."
-    "DeprecatedDummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
+    "saleor.plugins.tests.gateways.dummy_credit_card."
+    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
     True,
 )
 def test_payment_capture_gateway_dummy_credit_card_error(
@@ -206,7 +209,7 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
     )
 
     # when

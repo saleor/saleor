@@ -925,8 +925,6 @@ SHOP_ANNOUNCEMENT_RESOLVER_IMPORT = None
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin",
     "saleor.plugins.webhook.plugin.WebhookPlugin",
-    "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
-    "saleor.payment.gateways.dummy_credit_card.plugin.DeprecatedDummyCreditCardGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",

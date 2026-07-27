@@ -2,19 +2,19 @@ from decimal import Decimal
 
 import pytest
 
-from .....plugins.manager import get_plugins_manager
-from .... import ChargeStatus, PaymentError, TransactionKind, gateway
-from .. import (
+from saleor.payment import ChargeStatus, PaymentError, TransactionKind, gateway
+from saleor.plugins.manager import get_plugins_manager
+from saleor.plugins.tests.gateways.dummy_credit_card import (
     PREAUTHORIZED_TOKENS,
     TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
+    DummyCreditCardGatewayPlugin,
     authorize,
     capture,
     process_payment,
     refund,
     void,
 )
-from ..plugin import DeprecatedDummyCreditCardGatewayPlugin
 
 NO_LONGER_ACTIVE = "This payment is no longer active."
 CANNOT_BE_AUTHORIZED_AGAIN = "Charged transactions cannot be authorized again."
@@ -27,9 +27,9 @@ CANNOT_CHARGE_MORE_THAN_UNCAPTURED = "Unable to charge more than un-captured amo
 
 @pytest.fixture(autouse=True)
 def setup_dummy_credit_card_gateway(settings):
-    DeprecatedDummyCreditCardGatewayPlugin.DEFAULT_ACTIVE = True
+    DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE = True
     settings.PLUGINS = [
-        "saleor.payment.gateways.dummy_credit_card.plugin.DeprecatedDummyCreditCardGatewayPlugin"
+        "saleor.plugins.tests.gateways.dummy_credit_card.DummyCreditCardGatewayPlugin"
     ]
     return settings
 
@@ -80,7 +80,7 @@ def test_authorize_failed(is_active, charge_status, error, payment_dummy_credit_
 
 def test_authorize_gateway_error(payment_dummy_credit_card, monkeypatch):
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
     )
     with pytest.raises(PaymentError) as e:
         gateway.authorize(
@@ -96,7 +96,7 @@ def test_authorize_gateway_error(payment_dummy_credit_card, monkeypatch):
 def test_authorize_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch):
     # given
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
     )
 
     # when
@@ -159,7 +159,7 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
     payment_txn_preauth.save()
 
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
     )
     with pytest.raises(PaymentError) as e:
         gateway.void(
@@ -174,7 +174,7 @@ def test_void_gateway_error(payment_txn_preauth, monkeypatch):
 def test_void_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch):
     # given
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
     )
 
     # when
@@ -357,7 +357,7 @@ def test_refund_failed(
 
 def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
     )
     payment = payment_txn_captured
     payment.gateway = "mirumee.payments.dummy_credit_card"
@@ -417,7 +417,7 @@ def test_process_payment_failed(token, error, payment_dummy_credit_card):
 def test_refund_method_error(dummy_payment_data, dummy_gateway_config, monkeypatch):
     # given
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
     )
 
     # when
@@ -436,8 +436,8 @@ def test_process_payment_pre_authorized(
     token = PREAUTHORIZED_TOKENS[1]
     dummy_gateway_config.auto_capture = False
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.plugin."
-        "DeprecatedDummyCreditCardGatewayPlugin._get_gateway_config",
+        "saleor.plugins.tests.gateways.dummy_credit_card."
+        "DummyCreditCardGatewayPlugin._get_gateway_config",
         lambda _: dummy_gateway_config,
     )
 
@@ -465,8 +465,8 @@ def test_process_payment_pre_authorized_and_capture(
     token = PREAUTHORIZED_TOKENS[1]
     dummy_gateway_config.auto_capture = True
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.plugin."
-        "DeprecatedDummyCreditCardGatewayPlugin._get_gateway_config",
+        "saleor.plugins.tests.gateways.dummy_credit_card."
+        "DummyCreditCardGatewayPlugin._get_gateway_config",
         lambda _: dummy_gateway_config,
     )
 
@@ -494,8 +494,8 @@ def test_process_payment_pre_authorized_and_capture_error(
     token = TOKEN_EXPIRED
     dummy_gateway_config.auto_capture = True
     monkeypatch.setattr(
-        "saleor.payment.gateways.dummy_credit_card.plugin."
-        "DeprecatedDummyCreditCardGatewayPlugin._get_gateway_config",
+        "saleor.plugins.tests.gateways.dummy_credit_card."
+        "DummyCreditCardGatewayPlugin._get_gateway_config",
         lambda _: dummy_gateway_config,
     )
 
