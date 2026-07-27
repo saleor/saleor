@@ -1681,6 +1681,13 @@ type Webhook implements Node @doc(category: "Webhooks") {
   """The name of webhook."""
   name: String
 
+  """
+  The unique identifier of the webhook, set by the app. Unique per app, null when not set.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
   """List of webhook events."""
   events: [WebhookEvent!]! @deprecated(reason: "Use `asyncEvents` or `syncEvents` instead.")
 

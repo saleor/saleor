@@ -35,6 +35,7 @@ class Webhook(models.Model):
         default=list,
         size=MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT,
     )
+    identifier = models.CharField(max_length=256, null=True)
 
     class Meta:
         ordering = ("pk",)
@@ -43,6 +44,16 @@ class Webhook(models.Model):
                 name="filterable_channel_slugs_idx",
                 fields=["filterable_channel_slugs"],
             )
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["app", "identifier"],
+                name="unique_webhook_identifier",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(identifier=""),
+                name="webhook_identifier_not_blank",
+            ),
         ]
 
     def __str__(self):
