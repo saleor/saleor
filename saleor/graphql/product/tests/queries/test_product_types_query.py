@@ -68,7 +68,6 @@ def test_product_type_query_with_filter(
                 slug="digital-type",
                 has_variants=True,
                 is_shipping_required=False,
-                is_digital=True,
                 kind=ProductTypeKind.NORMAL,
             ),
             ProductType(
@@ -76,7 +75,6 @@ def test_product_type_query_with_filter(
                 slug="tools",
                 has_variants=True,
                 is_shipping_required=True,
-                is_digital=False,
                 kind=ProductTypeKind.NORMAL,
             ),
             ProductType(
@@ -84,7 +82,6 @@ def test_product_type_query_with_filter(
                 slug="books",
                 has_variants=False,
                 is_shipping_required=True,
-                is_digital=False,
                 kind=ProductTypeKind.GIFT_CARD,
             ),
         ]
@@ -138,21 +135,18 @@ def test_product_type_query_with_sort(
                 slug="digital",
                 has_variants=True,
                 is_shipping_required=False,
-                is_digital=True,
             ),
             ProductType(
                 name="Tools",
                 slug="tools",
                 has_variants=True,
                 is_shipping_required=True,
-                is_digital=False,
             ),
             ProductType(
                 name="Subscription",
                 slug="subscription",
                 has_variants=False,
                 is_shipping_required=False,
-                is_digital=False,
             ),
         ]
     )
