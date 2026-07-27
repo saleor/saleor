@@ -64,7 +64,7 @@ def test_manage_apps_only_cannot_see_created_by(
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
 
 
-def test_created_by_null_when_user_deleted(
+def test_created_by_null_is_handled_properly(
     staff_api_client, permission_manage_apps, permission_manage_staff
 ):
     # given - token whose creator was later deleted (FK set to null)

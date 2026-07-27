@@ -21,8 +21,7 @@ not the pattern to copy for new work.
 ## Consequence
 
 - Durable "who created this token" attribution that must outlive the user is
-  **not** solved by denormalizing PII onto `AppToken`. It will be handled by a
-  dedicated audit-trail mechanism that persists that information in a compliant,
-  retention-aware way.
-- Until such an audit trail exists, creator information is best-effort: it is
+  **not** solved by denormalizing PII onto `AppToken`. This should instead be
+  handled by a separate audit log component.
+- Creator information in this table is best-effort: it is
   accurate while the user exists and becomes null once the user is deleted.

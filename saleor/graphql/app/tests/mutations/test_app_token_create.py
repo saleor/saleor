@@ -156,25 +156,25 @@ def test_app_token_create_no_permissions(staff_api_client, staff_user):
 
 
 def test_app_token_create_stores_creator(
-    permission_manage_apps, staff_api_client, staff_user, permission_manage_orders
+    permission_manage_apps, staff_api_client, staff_user
 ):
     # given
+    staff_user.user_permissions.add(permission_manage_apps)
     app = App.objects.create(name="New_app")
-    staff_user.user_permissions.add(permission_manage_orders)
-    app.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("App", app.id)
+    qs = app.tokens.all()
+    assert qs.exists() is False
+    id = graphene.Node.to_global_id("App", app.pk)
     variables = {"name": "Default token", "app": id}
 
     # when
     response = staff_api_client.post_graphql(
         APP_TOKEN_CREATE_MUTATION,
         variables={"input": variables},
-        permissions=(permission_manage_apps,),
     )
 
     # then
     get_graphql_content(response)
-    token = app.tokens.get()
+    token = qs.get()
     assert token.created_by == staff_user
 
 

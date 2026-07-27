@@ -45,6 +45,9 @@ class AppTokenCreate(DeprecatedModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, /, **data):
         user = info.context.user
+
+        # Ensure this is a user that is sending this mutation (not an app).
+        # The actual permission check is done via `Meta.permissions`
         if not user or not user.is_authenticated:
             raise PermissionDenied(message="Only staff users can create app tokens.")
         input_data = data.get("input", {})
