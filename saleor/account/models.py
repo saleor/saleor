@@ -161,7 +161,6 @@ class CustomerType(ModelWithMetadata):
                 name="unique_default_customer_type",
             ),
         ]
-        indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["name", "slug"])]
 
     def __str__(self) -> str:
         return self.name

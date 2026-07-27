@@ -65,9 +65,6 @@ class Migration(migrations.Migration):
                     django.contrib.postgres.indexes.GinIndex(
                         fields=["metadata"], name="customertype_meta_idx"
                     ),
-                    django.contrib.postgres.indexes.GinIndex(
-                        fields=["name", "slug"], name="account_cus_name_a6e3ba_gin"
-                    ),
                 ],
                 "constraints": [
                     models.UniqueConstraint(
