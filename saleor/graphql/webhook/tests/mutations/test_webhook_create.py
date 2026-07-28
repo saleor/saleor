@@ -20,6 +20,7 @@ WEBHOOK_CREATE = """
         }
         webhook {
           id
+          identifier
           asyncEvents {
             eventType
           }
@@ -69,6 +70,137 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
     events = new_webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
+
+
+def test_webhook_create_with_identifier(app_api_client, permission_manage_orders):
+    # given
+    identifier = "order-created-handler"
+    variables = {
+        "input": {
+            "name": "New integration",
+            "identifier": identifier,
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_CREATE,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookCreate"]
+    assert data["errors"] == []
+    assert data["webhook"]["identifier"] == identifier
+    assert Webhook.objects.get().identifier == identifier
+
+
+def test_webhook_create_blank_identifier_stored_as_none(
+    app_api_client, permission_manage_orders
+):
+    # given
+    variables = {
+        "input": {
+            "name": "New integration",
+            "identifier": "   ",
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_CREATE,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookCreate"]
+    assert data["errors"] == []
+    assert data["webhook"]["identifier"] is None
+    assert Webhook.objects.get().identifier is None
+
+
+def test_webhook_create_duplicate_identifier_for_same_app(
+    app_api_client, permission_manage_orders
+):
+    # given - the app already owns a webhook with this identifier
+    identifier = "order-created-handler"
+    app = app_api_client.app
+    Webhook.objects.create(
+        app=app, target_url="https://www.example.com/existing", identifier=identifier
+    )
+    variables = {
+        "input": {
+            "name": "New integration",
+            "identifier": identifier,
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_CREATE,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+
+    # then - rejected and no second webhook created
+    content = get_graphql_content(response)
+    data = content["data"]["webhookCreate"]
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": "Webhook with this App and Identifier already exists.",
+            "code": WebhookErrorCode.UNIQUE.name,
+        }
+    ]
+    assert data["webhook"] is None
+    assert Webhook.objects.filter(app=app, identifier=identifier).count() == 1
+
+
+def test_webhook_create_too_long_identifier(app_api_client, permission_manage_orders):
+    # given
+    identifier = "a" * 257
+    variables = {
+        "input": {
+            "name": "New integration",
+            "identifier": identifier,
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_CREATED.name],
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_CREATE,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookCreate"]
+    assert data["errors"] == [
+        {
+            "field": "identifier",
+            "message": "Ensure this value has at most 256 characters (it has 257).",
+            "code": WebhookErrorCode.INVALID.name,
+        }
+    ]
+    assert data["webhook"] is None
+    assert Webhook.objects.exists() is False
 
 
 def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orders):
