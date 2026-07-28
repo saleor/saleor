@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....account import models
+from .....account.lock_objects import customer_type_qs_select_for_update
 from .....account.utils import get_default_customer_type
 from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import CustomerTypePermissions
@@ -68,8 +69,13 @@ class CustomerTypeDelete(ModelDeleteMutation):
             id, only_type=CustomerType, field="pk"
         )
         with traced_atomic_transaction():
+            # Evaluate the queryset to acquire the locks.
+            list(customer_type_qs_select_for_update())
             default_customer_type = get_default_customer_type()
             if str(default_customer_type.pk) != str(customer_type_pk):
+                # Deliberate lack of CUSTOMER_UPDATED events due to
+                # an unbounded number of users that may be affected.
+                # CUSTOMER_TYPE_DELETED event already implies the change.
                 models.User.objects.filter(customer_type_id=customer_type_pk).update(
                     customer_type=default_customer_type
                 )
