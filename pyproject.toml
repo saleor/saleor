@@ -139,11 +139,11 @@ envfile = ".env"
 help = "Start development server with hot reload"
 cmd = "uvicorn saleor.asgi:application --reload"
 
-<<<<<<< HEAD
 [tool.poe.tasks.worker]
 help = "Start Celery worker"
 cmd = "celery --app saleor.celeryconf:app worker -E"
-=======
+
+[tool.uv]
 # Applies the 21 days cooldown (3 weeks) recommendation from Snyk
 # (https://snyk.io/articles/npm-security-best-practices-shai-hulud-attack/#2-2-snyk-cooldown-in-automatic-p-rs)
 exclude-newer = "3 weeks"
@@ -191,7 +191,6 @@ markers = [
 [tool.poe.tasks]
 start.help = "Start development server with hot reload"
 start.cmd = "uvicorn saleor.asgi:application --reload"
->>>>>>> upstream/main
 
 [tool.poe.tasks.scheduler]
 help = "Start Celery Beat scheduler"
