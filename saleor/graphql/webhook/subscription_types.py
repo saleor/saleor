@@ -50,10 +50,6 @@ from ..core.context import (
     get_database_connection_name,
 )
 from ..core.descriptions import (
-    ADDED_IN_318,
-    ADDED_IN_319,
-    ADDED_IN_320,
-    ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
     ADDED_IN_324,

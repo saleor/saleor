@@ -2,10 +2,12 @@ from typing import Final
 
 import graphene
 
+from ...site import (
     AccountConfirmMode,
     AnnouncementImportance,
     GiftCardSettingsExpiryType,
     PasswordLoginMode,
+)
 from ..core.doc_category import (
     DOC_CATEGORY_AUTH,
     DOC_CATEGORY_GIFT_CARDS,

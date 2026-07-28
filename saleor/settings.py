@@ -930,7 +930,6 @@ BUILTIN_PLUGINS = [
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.DeprecatedBraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.DeprecatedRazorpayGatewayPlugin",
-    "saleor.payment.gateways.authorize_net.plugin.AuthorizeNetGatewayPlugin",
     "saleor.payment.gateways.cash_on_delivery.plugin.CashOnDeliveryGatewayPlugin",
     "saleor.payment.gateways.hyperpay.plugin.HyperPayGatewayPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
