@@ -2283,6 +2283,63 @@ PAGE_TYPE_DELETED = (
 """
 )
 
+PRODUCT_TYPE_CREATED = (
+    fragments.PRODUCT_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on ProductTypeCreated{
+          productType{
+            ...ProductTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PRODUCT_TYPE_UPDATED = (
+    fragments.PRODUCT_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on ProductTypeUpdated{
+          productType{
+            ...ProductTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+PRODUCT_TYPE_DELETED = (
+    fragments.PRODUCT_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on ProductTypeDeleted{
+          productType{
+            ...ProductTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 PERMISSION_GROUP_CREATED = (
     fragments.PERMISSION_GROUP_DETAILS
     + fragments.RECIPIENT_APP_DETAILS

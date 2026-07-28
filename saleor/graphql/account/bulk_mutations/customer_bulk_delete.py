@@ -1,6 +1,9 @@
 import graphene
+from django.conf import settings
 
 from ....account import models
+from ....core.tracing import traced_atomic_transaction
+from ....giftcard.utils import deactivate_assigned_gift_cards
 from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -17,7 +20,12 @@ from ..types import User
 class UserBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of user IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                f"List of user IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -39,6 +47,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
                 description="A customer account was deleted.",
             )
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
@@ -49,7 +58,12 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = list(queryset)
-        queryset.delete()
+        with traced_atomic_transaction():
+            # Required before deleting the users: GiftCard.assigned_to is
+            # on_delete=PROTECT, so restricted cards must be detached and
+            # deactivated first, atomically with the deletion.
+            deactivate_assigned_gift_cards(queryset)
+            queryset.delete()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.CUSTOMER_DELETED)
         manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:

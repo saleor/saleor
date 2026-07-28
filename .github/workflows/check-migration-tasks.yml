@@ -3,6 +3,10 @@ name: Check Migration Tasks Configuration
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
+    paths:
+      - "**/migrations/tasks/**"
+      - "saleor/celeryconf.py"
+      - .github/workflows/check-migration-tasks.yml
 
 permissions: {}
 
@@ -14,7 +18,7 @@ jobs:
     if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip celery check') }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
 

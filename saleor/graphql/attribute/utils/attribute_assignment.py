@@ -22,6 +22,7 @@ from .shared import (
     T_ERROR_DICT,
     T_INSTANCE,
     AttrValuesInput,
+    get_assigned_attribute_values_map,
     get_assignment_model_and_fk,
 )
 from .type_handlers import (
@@ -311,7 +312,7 @@ class AttributeAssignmentMixin:
                 <Attribute>: [
                     {
                         "attribute": <Attribute>,
-                        "slug": "instance_id_attribute_id",
+                        "slug": "<assigned value slug or model_name-instance_id_attribute_id>",
                         "defaults": {"name": "...", "plain_text": "..."}
                     }
                 ],
@@ -362,7 +363,37 @@ class AttributeAssignmentMixin:
                 for action, value_data in prepared_values:
                     pre_save_bulk[action][attribute].append(value_data)
 
+        cls._use_assigned_value_slugs(instance, pre_save_bulk)
         return pre_save_bulk
+
+    @classmethod
+    def _use_assigned_value_slugs(
+        cls, instance: T_INSTANCE, pre_save_bulk: T_PRE_SAVE_BULK
+    ):
+        """Update values assigned to the instance in place under their existing slug.
+
+        Update-or-create actions match values by slug, and the handlers
+        generate the entity-aware `{model name}-{instance pk}_{attribute pk}`
+        format. Values assigned before that format was introduced (or with
+        hand-crafted slugs) would not be matched and would be replaced with
+        new rows, losing their translations and external references — so for
+        attributes with a value already assigned to the instance, match that
+        value by its existing slug instead.
+        """
+        update_or_create = pre_save_bulk.get(
+            AttributeValueBulkActionEnum.UPDATE_OR_CREATE
+        )
+        if not update_or_create:
+            return
+        assigned_values = get_assigned_attribute_values_map(
+            instance, [attribute.pk for attribute in update_or_create]
+        )
+        for attribute, values in update_or_create.items():
+            assigned_value = assigned_values.get(attribute.pk)
+            if not assigned_value:
+                continue
+            for value_data in values:
+                value_data["slug"] = assigned_value.slug
 
     @classmethod
     def save(

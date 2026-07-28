@@ -11,7 +11,7 @@ from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
+from ....core.descriptions import PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error, NonNullList
@@ -53,17 +53,13 @@ class PromotionRuleUpdateInput(PromotionRuleBaseInput):
     add_gifts = NonNullList(
         graphene.ID,
         description=(
-            "List of variant IDs available as a gift to add."
-            + ADDED_IN_319
-            + PREVIEW_FEATURE
+            "List of variant IDs available as a gift to add." + PREVIEW_FEATURE
         ),
     )
     remove_gifts = NonNullList(
         graphene.ID,
         description=(
-            "List of variant IDs available as a gift to remove."
-            + ADDED_IN_319
-            + PREVIEW_FEATURE
+            "List of variant IDs available as a gift to remove." + PREVIEW_FEATURE
         ),
     )
 

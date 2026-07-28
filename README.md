@@ -189,7 +189,7 @@ Get more details (e.g., how to run Saleor on your local machine) in our [Contrib
 
 ## License
 
-Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/saleor/saleor/blob/master/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
+Disclaimer: Everything you see here is open and free to use as long as you comply with the [license](https://github.com/saleor/saleor/blob/main/LICENSE). There are no hidden charges. We promise to do our best to fix bugs and improve the code.
 
 #### Crafted with ❤️ by [Saleor Commerce](https://saleor.io)
 

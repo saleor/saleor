@@ -17,7 +17,6 @@ from ..utils import assert_address_data
 
 MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
     mutation checkoutBillingAddressUpdate(
-            $checkoutId: ID,
             $id: ID,
             $billingAddress: AddressInput!
             $saveAddress: Boolean
@@ -25,7 +24,6 @@ MUTATION_CHECKOUT_BILLING_ADDRESS_UPDATE = """
         ) {
         checkoutBillingAddressUpdate(
                 id: $id,
-                checkoutId: $checkoutId,
                 billingAddress: $billingAddress
                 validationRules: $validationRules
                 saveAddress: $saveAddress

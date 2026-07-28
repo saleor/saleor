@@ -30,9 +30,7 @@ def filter_product_type_configurable(qs, _, value):
 
 
 def filter_product_type(qs, _, value):
-    if value == ProductTypeEnum.DIGITAL:
-        qs = qs.filter(is_digital=True)
-    elif value == ProductTypeEnum.SHIPPABLE:
+    if value == ProductTypeEnum.SHIPPABLE:
         qs = qs.filter(is_shipping_required=True)
     return qs
 

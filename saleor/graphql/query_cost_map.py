@@ -294,7 +294,6 @@ COST_MAP = {
     },
     "Order": {
         "availableCollectionPoints": {"complexity": 1},
-        "availableShippingMethods": {"complexity": 1},
         "billingAddress": {"complexity": 1},
         "channel": {"complexity": 1},
         "deliveryMethod": {"complexity": 1},

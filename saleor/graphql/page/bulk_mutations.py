@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef
@@ -25,7 +26,12 @@ from .types import Page, PageType
 class PageBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of page IDs to delete."
+            graphene.ID,
+            required=True,
+            description=(
+                f"List of page IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
         )
 
     class Meta:
@@ -35,12 +41,15 @@ class PageBulkDelete(ModelBulkDeleteMutation):
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids
     ):
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
         try:
             pks = cls.get_global_ids_or_error(ids, only_type=Page, field="pk")
         except ValidationError as error:
@@ -117,7 +126,10 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = NonNullList(
             graphene.ID,
-            description="List of page type IDs to delete",
+            description=(
+                f"List of page type IDs to delete. The number of items is limited to {settings.BULK_DELETE_LIMIT} by default. "
+                "Exceeding the limit returns an `INVALID` error."
+            ),
             required=True,
         )
 
@@ -128,12 +140,15 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, ids
     ):
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
         try:
             pks = cls.get_global_ids_or_error(ids, only_type=PageType, field="pk")
         except ValidationError as error:

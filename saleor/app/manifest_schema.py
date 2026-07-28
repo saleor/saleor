@@ -11,6 +11,8 @@ from .error_codes import AppErrorCode
 from .types import DEFAULT_APP_TARGET
 from .validators import AppURLValidator, image_url_validator
 
+EXTENSION_IDENTIFIER_MAX_LENGTH = 256
+
 _CAMEL_CONFIG = ConfigDict(
     extra="ignore",
     populate_by_name=True,
@@ -59,6 +61,30 @@ class ManifestExtensionSchema(BaseModel):
     target: str = DEFAULT_APP_TARGET
     permissions: list[str] = []
     options: dict = {}
+    identifier: str | None = None
+
+    @field_validator("identifier")
+    @classmethod
+    def validate_identifier(cls, v: str | None) -> str | None:
+        """Validate the identifier length.
+
+        Normalization (stripping whitespace, treating blank values as not
+        provided) happens later in ``manifest_validations``: the validated
+        model returned by ``model_validate`` is discarded, so any value
+        returned here would not reach the manifest data. Length is checked
+        here because it is a purely structural constraint. The raw value is
+        measured (whitespace included) since that is what would be persisted.
+        """
+        if v is None:
+            return None
+        if len(v) > EXTENSION_IDENTIFIER_MAX_LENGTH:
+            raise PydanticCustomError(
+                AppErrorCode.INVALID.value,
+                "Identifier is too long. Maximum length is "
+                f"{EXTENSION_IDENTIFIER_MAX_LENGTH} characters.",
+                {"error_code": AppErrorCode.INVALID.value},
+            )
+        return v
 
 
 class ManifestWebhookSchema(BaseModel):

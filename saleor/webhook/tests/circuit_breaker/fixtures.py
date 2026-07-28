@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import fakeredis
 import pytest
 
@@ -46,17 +44,3 @@ def app_with_webhook(db):
         ]
     )
     return app, webhook
-
-
-@pytest.fixture
-def success_response_function_mock():
-    mocked_func = MagicMock()
-    mocked_func.return_value = {"data": "some"}
-    return mocked_func
-
-
-@pytest.fixture
-def failed_response_function_mock():
-    mocked_func = MagicMock()
-    mocked_func.return_value = None
-    return mocked_func

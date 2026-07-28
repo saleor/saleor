@@ -8,6 +8,7 @@ from .....product.utils.search_helpers import (
 )
 from ....core import ResolveInfo
 from ....core.types import ProductError
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductType
 from .product_type_create import ProductTypeCreate, ProductTypeInput
 
@@ -41,7 +42,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         super().save(info, instance, cleaned_input)
 
     @classmethod
-    def post_save_action(cls, _info: ResolveInfo, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         if (
             "product_attributes" in cleaned_input
             or "variant_attributes" in cleaned_input
@@ -52,3 +53,6 @@ class ProductTypeUpdate(ProductTypeCreate):
                 )
             )
             mark_products_search_vector_as_dirty_in_batches(product_ids)
+
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.product_type_updated, instance)

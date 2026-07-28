@@ -35,6 +35,7 @@ from .utils import (
     get_variants_and_total_quantities,
     group_lines_input_on_add,
     mark_checkout_deliveries_as_stale_if_needed,
+    validate_price_override_reason,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -172,6 +173,8 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info.get_delivery_method_info(),
             lines=lines,
         )
+
+        validate_price_override_reason(checkout_lines_data, lines)
 
         variants_ids_to_validate = {
             variant.id

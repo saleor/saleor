@@ -304,6 +304,23 @@ def generate_page_type_payload(page_type, app):
     }
 
 
+def generate_product_type_payload(product_type, app):
+    return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
+        "productType": {
+            "id": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "name": product_type.name,
+            "slug": product_type.slug,
+            "kind": product_type.kind.upper(),
+            "hasVariants": product_type.has_variants,
+            "isShippingRequired": product_type.is_shipping_required,
+        },
+    }
+
+
 def generate_permission_group_payload(group, app):
     return {
         "recipient": {

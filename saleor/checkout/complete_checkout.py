@@ -41,6 +41,7 @@ from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
 from ..order import OrderOrigin, OrderStatus
+from ..order import delivery_context as order_delivery_context
 from ..order.actions import order_created
 from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
@@ -80,7 +81,6 @@ from .checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
-from .delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
@@ -219,7 +219,7 @@ def _process_shipping_data_for_order(
         # method.
         checkout_metadata = get_or_create_checkout_metadata(checkout_info.checkout)
         checkout_metadata.store_value_in_private_metadata(
-            {PRIVATE_META_APP_SHIPPING_ID: shipping_method.id}
+            {order_delivery_context.PRIVATE_META_APP_SHIPPING_ID: shipping_method.id}
         )
         checkout_metadata.save()
 
@@ -406,6 +406,7 @@ def _create_line_for_order(
         base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         is_price_overridden=is_price_overridden,
+        price_override_reason=checkout_line.price_override_reason,
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
         **get_tax_class_kwargs_for_order_line(tax_class),

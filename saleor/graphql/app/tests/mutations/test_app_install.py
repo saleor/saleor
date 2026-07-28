@@ -237,3 +237,25 @@ def test_install_app_mutation_with_null_permissions(
     # then
     assert data["appInstallation"]
     assert not data["errors"]
+
+
+def test_app_install_rejects_manage_apps_permission(superuser_api_client):
+    # given - even a superuser cannot grant MANAGE_APPS to an installed app
+    variables = {
+        "app_name": "Privileged integration",
+        "manifest_url": "http://localhost:3000/manifest",
+        "permissions": [PermissionEnum.MANAGE_APPS.name],
+    }
+
+    # when
+    data = _mutate_app_install(superuser_api_client, variables)
+
+    # then
+    errors = data["errors"]
+    assert not data["appInstallation"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "permissions"
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
+    assert error["permissions"] == [PermissionEnum.MANAGE_APPS.name]
+    assert AppInstallation.objects.count() == 0

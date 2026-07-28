@@ -15,7 +15,6 @@ from .....account.models import Address
 from .....channel import MarkAsPaidStrategy
 from .....checkout import calculations
 from .....checkout.delivery_context import (
-    PRIVATE_META_APP_SHIPPING_ID,
     fetch_shipping_methods_for_checkout,
     get_or_fetch_checkout_deliveries,
 )
@@ -38,6 +37,7 @@ from .....discount.models import (
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderOrigin, OrderStatus
+from .....order.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....order.models import Fulfillment, Order
 from .....payment import TransactionEventType
 from .....payment.model_helpers import get_subtotal

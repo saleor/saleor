@@ -6,7 +6,11 @@ from .....app.models import App
 from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app
 from .....webhook.models import Webhook
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import AppTypeEnum
 
 QUERY_APPS_WITH_FILTER = """
@@ -380,6 +384,43 @@ def test_apps_query_for_normal_user(
 
     # then
     assert_no_permission(response)
+
+
+@pytest.mark.parametrize("app_type", [AppType.THIRDPARTY, AppType.LOCAL])
+def test_apps_query_access_token_errors_when_app_has_manage_apps(
+    app_type,
+    staff_api_client,
+    permission_manage_apps,
+    app,
+):
+    # given
+    app.type = app_type
+    app.save(update_fields=["type"])
+    app.permissions.add(permission_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APPS_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS,
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    expected_message = (
+        "App must not have MANAGE_APPS permission, please remove it first."
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == expected_message
+    assert content["errors"][0]["path"] == [
+        "apps",
+        "edges",
+        0,
+        "node",
+        "accessToken",
+    ]
+    edges = content["data"]["apps"]["edges"]
+    assert len(edges) == 1
+    assert edges[0]["node"]["accessToken"] is None
+    assert edges[0]["node"]["id"] == graphene.Node.to_global_id("App", app.id)
 
 
 QUERY_APPS_WITH_METADATA = """

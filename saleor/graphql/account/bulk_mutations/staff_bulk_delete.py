@@ -1,8 +1,11 @@
 from collections import defaultdict
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from ....account import models
+from ....core.tracing import traced_atomic_transaction
+from ....giftcard.utils import deactivate_assigned_gift_cards
 from ....permission.enums import AccountPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
@@ -33,11 +36,15 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
                 description="A staff account was deleted.",
             ),
         ]
+        max_input_size = settings.BULK_DELETE_LIMIT
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, ids, **data
     ):
+        if size_error := cls.validate_input_size(ids):
+            return 0, size_error
+
         instances = cls.get_nodes_or_error(ids, "id", User)
         errors = cls.clean_instances(info, instances)
         count = len(instances)
@@ -64,7 +71,12 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = list(queryset)
-        queryset.delete()
+        with traced_atomic_transaction():
+            # Required before deleting the users: GiftCard.assigned_to is
+            # on_delete=PROTECT, so restricted cards must be detached and
+            # deactivated first, atomically with the deletion.
+            deactivate_assigned_gift_cards(queryset)
+            queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.STAFF_DELETED)
         for instance in instances:

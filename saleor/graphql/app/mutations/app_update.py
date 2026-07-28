@@ -13,7 +13,7 @@ from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from ..types import App
-from ..utils import ensure_can_manage_permissions
+from ..utils import ensure_app_permissions_allowed, ensure_can_manage_permissions
 from .app_create import AppInput
 
 
@@ -59,6 +59,7 @@ class AppUpdate(DeprecatedModelMutation):
         # clean and prepare permissions
         if "permissions" in cleaned_input:
             permissions = cleaned_input.pop("permissions")
+            ensure_app_permissions_allowed(permissions)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input

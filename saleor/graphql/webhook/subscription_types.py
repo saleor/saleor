@@ -56,7 +56,10 @@ from ..core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
+    ADDED_IN_324,
     DEPRECATED_IN_3X_EVENT,
+    DEPRECATED_LEGACY_PAYMENTS,
+    DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -902,6 +905,42 @@ class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when product metadata is updated."
+
+
+class ProductTypeBase(AbstractType):
+    product_type = graphene.Field(
+        "saleor.graphql.product.types.ProductType",
+        description="The product type the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_product_type(root, _info: ResolveInfo):
+        _, product_type = root
+        return product_type
+
+
+class ProductTypeCreated(SubscriptionObjectType, ProductTypeBase):
+    class Meta:
+        root_type = "ProductType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new product type is created." + ADDED_IN_324
+
+
+class ProductTypeUpdated(SubscriptionObjectType, ProductTypeBase):
+    class Meta:
+        root_type = "ProductType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product type is updated." + ADDED_IN_324
+
+
+class ProductTypeDeleted(SubscriptionObjectType, ProductTypeBase):
+    class Meta:
+        root_type = "ProductType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product type is deleted." + ADDED_IN_324
 
 
 class ProductMediaBase(AbstractType):
@@ -2534,7 +2573,7 @@ class VoucherCodesCreated(SubscriptionObjectType, VoucherCodeBase):
         root_type = "VoucherCode"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when new voucher codes were created." + ADDED_IN_319
+        description = "Event sent when new voucher codes were created."
 
 
 class VoucherCodesDeleted(SubscriptionObjectType, VoucherCodeBase):
@@ -2542,7 +2581,7 @@ class VoucherCodesDeleted(SubscriptionObjectType, VoucherCodeBase):
         root_type = "VoucherCode"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when voucher codes were deleted." + ADDED_IN_319
+        description = "Event sent when voucher codes were deleted."
 
 
 class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
@@ -2563,7 +2602,7 @@ class VoucherCodeExportCompleted(SubscriptionObjectType):
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when voucher code export is completed." + ADDED_IN_318
+        description = "Event sent when voucher code export is completed."
         doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
@@ -2590,6 +2629,7 @@ class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
         description="Look up a payment.",
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
 
     @staticmethod
@@ -2603,7 +2643,7 @@ class PaymentAuthorize(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Authorize payment."
+        description = "Authorize payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2612,7 +2652,7 @@ class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Capture payment."
+        description = "Capture payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2621,7 +2661,7 @@ class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Refund payment."
+        description = "Refund payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2630,7 +2670,7 @@ class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Void payment."
+        description = "Void payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2639,7 +2679,7 @@ class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Confirm payment."
+        description = "Confirm payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2648,7 +2688,7 @@ class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Process payment."
+        description = "Process payment." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2657,7 +2697,9 @@ class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
-        description = "List payment gateways."
+        description = (
+            "List payment gateways." + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
@@ -2826,56 +2868,42 @@ class Subscription(SubscriptionObjectType):
     )
     draft_order_created = BaseField(
         DraftOrderCreated,
-        description=(
-            "Event sent when new draft order is created."
-            + ADDED_IN_320
-            + PREVIEW_FEATURE
-        ),
+        description=("Event sent when new draft order is created." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     draft_order_updated = BaseField(
         DraftOrderUpdated,
-        description=(
-            "Event sent when draft order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when draft order is updated." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     draft_order_deleted = BaseField(
         DraftOrderDeleted,
-        description=(
-            "Event sent when draft order is deleted." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when draft order is deleted." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_created = BaseField(
         OrderCreated,
-        description=(
-            "Event sent when new order is created." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when new order is created." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_updated = BaseField(
         OrderUpdated,
-        description=(
-            "Event sent when order is updated." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when order is updated." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_confirmed = BaseField(
         OrderConfirmed,
-        description=(
-            "Event sent when order is confirmed." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when order is confirmed." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
@@ -2884,7 +2912,6 @@ class Subscription(SubscriptionObjectType):
         OrderPaid,
         description=(
             "Payment has been made. The order may be partially or fully paid."
-            + ADDED_IN_320
             + PREVIEW_FEATURE
         ),
         resolver=default_channel_filterable_resolver,
@@ -2893,9 +2920,7 @@ class Subscription(SubscriptionObjectType):
     )
     order_fully_paid = BaseField(
         OrderFullyPaid,
-        description=(
-            "Event sent when order is fully paid." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when order is fully paid." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
@@ -2904,7 +2929,7 @@ class Subscription(SubscriptionObjectType):
         OrderRefunded,
         description=(
             "The order received a refund. The order may be partially or fully "
-            "refunded." + ADDED_IN_320 + PREVIEW_FEATURE
+            "refunded." + PREVIEW_FEATURE
         ),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
@@ -2912,106 +2937,139 @@ class Subscription(SubscriptionObjectType):
     )
     order_fully_refunded = BaseField(
         OrderFullyRefunded,
-        description=("The order is fully refunded." + ADDED_IN_320 + PREVIEW_FEATURE),
+        description=("The order is fully refunded." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_fulfilled = BaseField(
         OrderFulfilled,
-        description=(
-            "Event sent when order is fulfilled." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when order is fulfilled." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_cancelled = BaseField(
         OrderCancelled,
-        description=(
-            "Event sent when order is cancelled." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when order is cancelled." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_expired = BaseField(
         OrderExpired,
-        description=(
-            "Event sent when order becomes expired." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when order becomes expired." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_metadata_updated = BaseField(
         OrderMetadataUpdated,
-        description=(
-            "Event sent when order metadata is updated."
-            + ADDED_IN_320
-            + PREVIEW_FEATURE
-        ),
+        description=("Event sent when order metadata is updated." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_bulk_created = BaseField(
         OrderBulkCreated,
-        description=(
-            "Event sent when orders are imported." + ADDED_IN_320 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when orders are imported." + PREVIEW_FEATURE),
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
 
     checkout_created = BaseField(
         CheckoutCreated,
-        description=(
-            "Event sent when new checkout is created." + ADDED_IN_321 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when new checkout is created." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_updated = BaseField(
         CheckoutUpdated,
-        description=(
-            "Event sent when checkout is updated." + ADDED_IN_321 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when checkout is updated." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_fully_paid = BaseField(
         CheckoutFullyPaid,
-        description=(
-            "Event sent when checkout is fully-paid." + ADDED_IN_321 + PREVIEW_FEATURE
-        ),
+        description=("Event sent when checkout is fully-paid." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_fully_authorized = BaseField(
         CheckoutFullyAuthorized,
-        description=(
-            "Event sent when checkout is fully authorized."
-            + ADDED_IN_321
-            + PREVIEW_FEATURE
-        ),
+        description=("Event sent when checkout is fully authorized." + PREVIEW_FEATURE),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_metadata_updated = BaseField(
         CheckoutMetadataUpdated,
+        description=("Event sent when checkout metadata is updated." + PREVIEW_FEATURE),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_CHECKOUT,
+    )
+    product_variant_discounted_price_updated = BaseField(
+        ProductVariantDiscountedPriceUpdated,
         description=(
-            "Event sent when checkout metadata is updated."
-            + ADDED_IN_321
+            "Event sent when product variant discounted price is recalculated."
+            + ADDED_IN_322
             + PREVIEW_FEATURE
         ),
         resolver=default_channel_filterable_resolver,
         channels=channels_argument,
-        doc_category=DOC_CATEGORY_CHECKOUT,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+    product_variant_out_of_stock_in_channel = BaseField(
+        ProductVariantOutOfStockInChannel,
+        description=(
+            "Event sent when a product variant becomes out of stock across all "
+            "non click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+    product_variant_back_in_stock_in_channel = BaseField(
+        ProductVariantBackInStockInChannel,
+        description=(
+            "Event sent when a product variant becomes available again across "
+            "non click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+    product_variant_out_of_stock_for_click_and_collect = BaseField(
+        ProductVariantOutOfStockForClickAndCollect,
+        description=(
+            "Event sent when a product variant becomes out of stock across all "
+            "click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
+    )
+    product_variant_back_in_stock_for_click_and_collect = BaseField(
+        ProductVariantBackInStockForClickAndCollect,
+        description=(
+            "Event sent when a product variant becomes available again across "
+            "click-and-collect warehouses in a channel."
+            "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
+            "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_PRODUCTS,
     )
     product_variant_discounted_price_updated = BaseField(
         ProductVariantDiscountedPriceUpdated,
@@ -3244,6 +3302,9 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,
     WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED: ProductExportCompleted,
+    WebhookEventAsyncType.PRODUCT_TYPE_CREATED: ProductTypeCreated,
+    WebhookEventAsyncType.PRODUCT_TYPE_UPDATED: ProductTypeUpdated,
+    WebhookEventAsyncType.PRODUCT_TYPE_DELETED: ProductTypeDeleted,
     WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: ProductMediaCreated,
     WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: ProductMediaUpdated,
     WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: ProductMediaDeleted,

@@ -12,7 +12,7 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import ADDED_IN_318, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import ConnectionField, PermissionsField
 from ...core.scalars import DateTime
@@ -71,7 +71,7 @@ class VoucherCode(ModelObjectType[models.VoucherCode]):
     created_at = DateTime(required=True, description="Date time of code creation.")
 
     class Meta:
-        description = "Represents voucher code." + ADDED_IN_318 + PREVIEW_FEATURE
+        description = "Represents voucher code." + PREVIEW_FEATURE
         model = models.VoucherCode
 
 
@@ -86,7 +86,7 @@ class Voucher(ChannelContextType[models.Voucher]):
     name = graphene.String(description="The name of the voucher.")
     codes = ConnectionField(
         VoucherCodeCountableConnection,
-        description="List of codes available for this voucher." + ADDED_IN_318,
+        description="List of codes available for this voucher.",
     )
     code = graphene.String(
         description="The code of the voucher." + DEPRECATED_IN_3X_INPUT
@@ -115,7 +115,6 @@ class Voucher(ChannelContextType[models.Voucher]):
         required=True,
         description=(
             "Determine if the voucher codes can be used once or multiple times."
-            + ADDED_IN_318
             + PREVIEW_FEATURE
         ),
     )

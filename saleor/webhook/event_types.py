@@ -14,6 +14,7 @@ from ..permission.enums import (
     PageTypePermissions,
     PaymentPermissions,
     ProductPermissions,
+    ProductTypePermissions,
     ShippingPermissions,
     SitePermissions,
 )
@@ -129,6 +130,10 @@ class WebhookEventAsyncType:
     PRODUCT_DELETED = "product_deleted"
     PRODUCT_METADATA_UPDATED = "product_metadata_updated"
     PRODUCT_EXPORT_COMPLETED = "product_export_completed"
+
+    PRODUCT_TYPE_CREATED = "product_type_created"
+    PRODUCT_TYPE_UPDATED = "product_type_updated"
+    PRODUCT_TYPE_DELETED = "product_type_deleted"
 
     PRODUCT_MEDIA_CREATED = "product_media_created"
     PRODUCT_MEDIA_UPDATED = "product_media_updated"
@@ -586,6 +591,18 @@ class WebhookEventAsyncType:
         PRODUCT_EXPORT_COMPLETED: {
             "name": "Product export completed",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+        },
+        PRODUCT_TYPE_CREATED: {
+            "name": "Product type created",
+            "permission": ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+        },
+        PRODUCT_TYPE_UPDATED: {
+            "name": "Product type updated",
+            "permission": ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+        },
+        PRODUCT_TYPE_DELETED: {
+            "name": "Product type deleted",
+            "permission": ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
         },
         PRODUCT_MEDIA_CREATED: {
             "name": "Product media created",

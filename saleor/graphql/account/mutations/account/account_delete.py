@@ -10,6 +10,8 @@ from .....core.tokens import (
     legacy_account_delete_token_generator,
     try_generators,
 )
+from .....core.tracing import traced_atomic_transaction
+from .....giftcard.utils import deactivate_assigned_gift_cards
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
@@ -82,7 +84,12 @@ class AccountDelete(ModelDeleteMutation):
 
         db_id = user.id
 
-        user.delete()
+        with traced_atomic_transaction():
+            # Required before deleting the user: GiftCard.assigned_to is
+            # on_delete=PROTECT, so restricted cards must be detached and
+            # deactivated first, atomically with the deletion.
+            deactivate_assigned_gift_cards([user])
+            user.delete()
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.
         user.id = db_id

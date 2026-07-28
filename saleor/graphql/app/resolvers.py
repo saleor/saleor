@@ -1,6 +1,7 @@
 from urllib.parse import urljoin, urlparse
 
 from django.db.models import Exists, OuterRef
+from graphql import GraphQLError
 
 from ...app import models
 from ...app.types import DEFAULT_APP_TARGET, POPUP_EXTENSION_TARGET
@@ -8,6 +9,7 @@ from ...core.jwt import (
     create_access_token_for_app,
     create_access_token_for_app_extension,
 )
+from ...permission.enums import AppPermission
 from ..core.context import get_database_connection_name
 from ..core.utils import from_global_id_or_error
 from .enums import AppTypeEnum
@@ -28,6 +30,11 @@ def resolve_apps(info):
 
 
 def resolve_access_token_for_app(info, root):
+    if root.has_perm(AppPermission.MANAGE_APPS):
+        raise GraphQLError(
+            "App must not have MANAGE_APPS permission, please remove it first."
+        )
+
     if root.type != AppTypeEnum.THIRDPARTY.value:
         return None
 
@@ -41,6 +48,11 @@ def resolve_access_token_for_app(info, root):
 
 
 def resolve_access_token_for_app_extension(info, root, app):
+    if app.has_perm(AppPermission.MANAGE_APPS):
+        raise GraphQLError(
+            "App must not have MANAGE_APPS permission, please remove it first."
+        )
+
     user = info.context.user
     if not user:
         return None

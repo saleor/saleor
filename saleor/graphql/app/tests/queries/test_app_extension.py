@@ -4,7 +4,11 @@ import pytest
 from .....app.models import App, AppExtension
 from .....app.types import AppType
 from .....core.jwt import jwt_decode
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 QUERY_APP_EXTENSION = """
 query ($id: ID!){
@@ -291,6 +295,108 @@ def test_app_extension_staff_user_partial_permission(
     assert extension_data["accessToken"] is None
 
 
+@pytest.mark.parametrize("app_type", ["external", "custom"])
+def test_app_extension_access_token_errors_when_parent_app_has_manage_apps(
+    app_type,
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_products,
+    app_with_token,
+    external_app,
+):
+    # given
+    app = external_app if app_type == "external" else app_with_token
+    app.permissions.add(permission_manage_apps)
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+    )
+    app_extension.permissions.add(permission_manage_products)
+
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION,
+        variables,
+        permissions=[permission_manage_apps, permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    expected_message = (
+        "App must not have MANAGE_APPS permission, please remove it first."
+    )
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == expected_message
+    assert content["errors"][0]["path"] == ["appExtension", "accessToken"]
+    assert content["data"]["appExtension"]["accessToken"] is None
+    assert content["data"]["appExtension"]["id"] == id
+
+
+QUERY_APP_EXTENSIONS_ACCESS_TOKEN = """
+query {
+    appExtensions(first: 10){
+        edges {
+            node {
+                id
+                accessToken
+            }
+        }
+    }
+}
+"""
+
+
+def test_app_extension_access_token_errors_via_app_extensions_connection(
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_products,
+    app_with_token,
+):
+    # given
+    app_with_token.permissions.add(permission_manage_apps)
+    app_extension = AppExtension.objects.create(
+        app=app_with_token,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+    )
+    app_extension.permissions.add(permission_manage_products)
+    expected_id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSIONS_ACCESS_TOKEN,
+        permissions=[permission_manage_apps, permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    expected_message = (
+        "App must not have MANAGE_APPS permission, please remove it first."
+    )
+    matching_errors = [
+        e
+        for e in content["errors"]
+        if e["message"] == expected_message
+        and e["path"][:2] == ["appExtensions", "edges"]
+        and e["path"][-1] == "accessToken"
+    ]
+    assert len(matching_errors) == 1
+    matching_node = next(
+        edge["node"]
+        for edge in content["data"]["appExtensions"]["edges"]
+        if edge["node"]["id"] == expected_id
+    )
+    assert matching_node["accessToken"] is None
+
+
 QUERY_APP_EXTENSION_WITH_APP = """
 query ($id: ID!){
     appExtension(id: $id){
@@ -518,6 +624,64 @@ def test_app_extension_type_settings_from_http_target_method(
 
     if target == "widget":
         assert extension_data["settings"]["widgetTarget"]["method"] == method
+
+
+QUERY_APP_EXTENSION_IDENTIFIER = """
+query ($id: ID!){
+    appExtension(id: $id){
+        id
+        identifier
+    }
+}
+"""
+
+
+def test_app_extension_identifier_returned(app, staff_api_client):
+    # given
+    identifier = "refund-button"
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+        identifier=identifier,
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION_IDENTIFIER,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+    assert extension_data["identifier"] == identifier
+
+
+def test_app_extension_identifier_null_when_not_set(app, staff_api_client):
+    # given
+    app_extension = AppExtension.objects.create(
+        app=app,
+        label="Create product with App",
+        url="https://www.example.com/app-product",
+        mount="product_overview_more_actions",
+    )
+    id = graphene.Node.to_global_id("AppExtension", app_extension.id)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_EXTENSION_IDENTIFIER,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    extension_data = content["data"]["appExtension"]
+    assert extension_data["identifier"] is None
 
 
 def test_app_extension_type_settings_from_native_settings(

@@ -8,10 +8,6 @@ query OrderByCheckoutIdDetails($checkout_id: ID!) {
       node {
         chargeStatus
         authorizeStatus
-        availableShippingMethods {
-          id
-          active
-        }
         paymentStatus
         isPaid
         payments {

@@ -888,11 +888,14 @@ GRAPHQL_SPANS_MARK_SLOW_AFTER: float = 30.0
 
 GRAPHQL_PAGINATION_LIMIT = 100
 GRAPHQL_MIDDLEWARE: list[str] = []
+GRAPHQL_BATCH_MAX_COUNT: int = int(os.environ.get("GRAPHQL_BATCH_MAX_COUNT", 1))
 GRAPHQL_ALIAS_COUNT_LIMIT: int = int(os.environ.get("GRAPHQL_ALIAS_COUNT_LIMIT", 100))
 GRAPHQL_MUTATION_COUNT_LIMIT: int = int(
     os.environ.get("GRAPHQL_MUTATION_COUNT_LIMIT", 4)
 )
-GRAPHQL_BATCH_MAX_COUNT: int = int(os.environ.get("GRAPHQL_BATCH_MAX_COUNT", 1))
+
+# Maximum number of IDs accepted by a single bulk delete mutation call
+BULK_DELETE_LIMIT: int = int(os.environ.get("BULK_DELETE_LIMIT", 100))
 
 # Set GRAPHQL_QUERY_MAX_COMPLEXITY=0 in env to disable (not recommended)
 GRAPHQL_QUERY_MAX_COMPLEXITY = int(
@@ -1046,12 +1049,23 @@ CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS = int(
     os.environ.get("CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS", 5)
 )
 
+# Sets the default behavior for new Saleor installations.
+# When set to 'False', it disables account merging by default in DB
+# migrations, and when to 'True', it enables account merging but requires
+# password confirmation.
+# This setting has no effect against existing Saleor installations and
+# shouldn't be changed.
+ACCOUNT_CONFIRM_ASSOCIATE_ANONYMOUS_OBJECTS = False
+
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.
 
 executor.SubscriberExecutionContext = PatchedSubscriberExecutionContext  # type: ignore[assignment,misc]
 
 patch_executor()
+
+# Default queue into which messages will be pushed.
+CELERY_TASK_DEFAULT_QUEUE = os.environ.get("CELERY_TASK_DEFAULT_QUEUE", "celery")
 
 # Optional queue names for Celery tasks.
 # Set None to route to the default queue, or a string value to use a separate one

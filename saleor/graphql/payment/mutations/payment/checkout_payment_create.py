@@ -24,7 +24,10 @@ from ....checkout.mutations.utils import get_checkout
 from ....checkout.types import Checkout
 from ....core import ResolveInfo
 from ....core.context import SyncWebhookControlContext
-from ....core.descriptions import DEPRECATED_IN_3X_INPUT
+from ....core.descriptions import (
+    DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION,
+)
 from ....core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
@@ -80,6 +83,10 @@ class PaymentInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
+        description = (
+            "Fields required to create a payment."
+            + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
 
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):

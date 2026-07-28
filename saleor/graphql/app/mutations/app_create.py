@@ -3,7 +3,6 @@ import graphene
 from ....app import models
 from ....permission.enums import AppPermission, get_permissions
 from ....webhook.event_types import WebhookEventAsyncType
-from ...core.descriptions import ADDED_IN_319
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -13,7 +12,7 @@ from ...decorators import staff_member_required
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ..types import App
-from ..utils import ensure_can_manage_permissions
+from ..utils import ensure_app_permissions_allowed, ensure_can_manage_permissions
 
 
 class AppInput(BaseInputObjectType):
@@ -21,7 +20,7 @@ class AppInput(BaseInputObjectType):
     identifier = graphene.String(
         description=(
             "Canonical app ID. If not provided, "
-            "the identifier will be generated based on app.id." + ADDED_IN_319
+            "the identifier will be generated based on app.id."
         )
     )
     permissions = NonNullList(
@@ -69,6 +68,7 @@ class AppCreate(DeprecatedModelMutation):
         if "permissions" in cleaned_input:
             requestor = get_user_or_app_from_context(info.context)
             permissions = cleaned_input.pop("permissions")
+            ensure_app_permissions_allowed(permissions)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input

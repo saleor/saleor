@@ -13,7 +13,6 @@ from django.utils import timezone
 from .....account.models import Address
 from .....checkout import calculations
 from .....checkout.delivery_context import (
-    PRIVATE_META_APP_SHIPPING_ID,
     fetch_shipping_methods_for_checkout,
     get_or_fetch_checkout_deliveries,
 )
@@ -30,6 +29,7 @@ from .....discount.models import CheckoutLineDiscount, OrderLineDiscount, Promot
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
+from .....order.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....order.models import Fulfillment, Order
 from .....payment import ChargeStatus, PaymentError, TransactionKind
 from .....payment.error_codes import PaymentErrorCode

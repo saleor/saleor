@@ -1,10 +1,17 @@
+import json
+from unittest import mock
 from unittest.mock import patch
 
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductType
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
 from ...enums import ProductTypeKindEnum
 
@@ -49,6 +56,64 @@ mutation updateProductType(
             }
         }
 """
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_product_type_update_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    product_type,
+    permission_manage_product_types_and_attributes,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_product_types_and_attributes)
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductType", product_type.id),
+        "name": "New name",
+        "hasVariants": product_type.has_variants,
+        "isShippingRequired": product_type.is_shipping_required,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_TYPE_UPDATE_MUTATION, variables)
+    product_type.refresh_from_db()
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeUpdate"]
+
+    assert not data["errors"]
+    assert data["productType"]
+    mocked_webhook_trigger.assert_called_once_with(
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("ProductType", product_type.id),
+                "name": product_type.name,
+                "slug": product_type.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.PRODUCT_TYPE_UPDATED,
+        [any_webhook],
+        product_type,
+        SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
+    )
 
 
 def test_product_type_update_mutation(

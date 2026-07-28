@@ -30,7 +30,6 @@ def prepare_product_gift_card(
         product_type_name="Gift card product type",
         slug="gc-type",
         is_shipping_required=False,
-        is_digital=True,
         kind="GIFT_CARD",
     )
     assert product_type_data["kind"] == "GIFT_CARD"

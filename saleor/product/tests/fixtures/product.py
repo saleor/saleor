@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from django.core.files import File
-from django.db import connection
+from django.db import connection, transaction
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
@@ -1093,44 +1093,54 @@ def lots_of_products_with_variants(product_type, channel_USD):
     products_count = 10000
     slug_generator = (f"test-slug-{i}" for i in range(products_count))
 
-    for batch in chunks(range(products_count), 500):
-        batch_len = len(batch)
-        variants = []
-        product_listings = []
-        products = [
-            Product(
-                name=i,
-                slug=next(slug_generator),
-                product_type_id=product_type.pk,
-            )
-            for i in range(batch_len)
-        ]
-        for product in Product.objects.bulk_create(products):
-            product_listings.append(
-                ProductChannelListing(
-                    channel=channel_USD,
-                    product=product,
-                    visible_in_listings=True,
-                    available_for_purchase_at="2022-01-01",
-                    currency=channel_USD.currency_code,
+    # Starts a transaction in order to allow us to delete the data immediately
+    # as soon as the test case completes
+    with transaction.atomic():
+        sid = transaction.savepoint()
+
+        for batch in chunks(range(products_count), 500):
+            batch_len = len(batch)
+            variants = []
+            product_listings = []
+            products = [
+                Product(
+                    name=i,
+                    slug=next(slug_generator),
+                    product_type_id=product_type.pk,
                 )
-            )
-            for x in range(variants_per_product):
-                variant = ProductVariant(name=x, product_id=product.id)
-                variants.append(variant)
-        ProductVariant.objects.bulk_create(variants)
-        variant_listings = []
-        for variant in variants:
-            price = random.randint(1, 100)
-            variant_listings.append(
-                ProductVariantChannelListing(
-                    variant=variant,
-                    channel=channel_USD,
-                    currency=channel_USD.currency_code,
-                    price_amount=price,
-                    discounted_price_amount=price,
+                for i in range(batch_len)
+            ]
+            for product in Product.objects.bulk_create(products):
+                product_listings.append(
+                    ProductChannelListing(
+                        channel=channel_USD,
+                        product=product,
+                        visible_in_listings=True,
+                        available_for_purchase_at="2022-01-01",
+                        currency=channel_USD.currency_code,
+                    )
                 )
-            )
-        ProductVariantChannelListing.objects.bulk_create(variant_listings)
-        ProductChannelListing.objects.bulk_create(product_listings)
-    return Product.objects.all()
+                for x in range(variants_per_product):
+                    variant = ProductVariant(name=x, product_id=product.id)
+                    variants.append(variant)
+            ProductVariant.objects.bulk_create(variants)
+            variant_listings = []
+            for variant in variants:
+                price = random.randint(1, 100)
+                variant_listings.append(
+                    ProductVariantChannelListing(
+                        variant=variant,
+                        channel=channel_USD,
+                        currency=channel_USD.currency_code,
+                        price_amount=price,
+                        discounted_price_amount=price,
+                    )
+                )
+            ProductVariantChannelListing.objects.bulk_create(variant_listings)
+            ProductChannelListing.objects.bulk_create(product_listings)
+        yield Product.objects.all()
+
+        # Manually rolls back the data created by this mutation. This avoids
+        # having SQL timeouts during Django's internal test clean-ups due to
+        # having large amounts of data to process
+        transaction.savepoint_rollback(sid)

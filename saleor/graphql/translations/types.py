@@ -35,7 +35,7 @@ from ..attribute.dataloaders.assigned_attributes import (
     AttributeValuesByVariantIdAndAttributeIdAndLimitLoader,
 )
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_TYPE, RICH_CONTENT
+from ..core.descriptions import DEPRECATED_IN_3X_TYPE, RICH_CONTENT
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -320,14 +320,14 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
         if all_permissions_required(info.context, [ProductPermissions.MANAGE_PRODUCTS]):
             return (
                 AttributesByProductVariantIdAndSelectionAndLimitLoader(info.context)
-                .load((root.id, variant_selection, limit))
+                .load((root.id, limit, variant_selection))
                 .then(with_attributes)
             )
         return (
             AttributesVisibleToCustomerByProductVariantIdAndSelectionAndLimitLoader(
                 info.context
             )
-            .load((root.id, variant_selection, limit))
+            .load((root.id, limit, variant_selection))
             .then(with_attributes)
         )
 
@@ -342,7 +342,7 @@ class ProductTranslation(BaseTranslationType[product_models.ProductTranslation])
     )
     seo_title = graphene.String(description="Translated SEO title.")
     seo_description = graphene.String(description="Translated SEO description.")
-    slug = graphene.String(description="Translated product slug." + ADDED_IN_321)
+    slug = graphene.String(description="Translated product slug.")
     name = graphene.String(description="Translated product name.")
     description = JSONString(
         description="Translated description of the product." + RICH_CONTENT
@@ -381,7 +381,7 @@ class ProductTranslatableContent(ModelObjectType[product_models.Product]):
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
-    slug = graphene.String(description="Slug to translate." + ADDED_IN_321)
+    slug = graphene.String(description="Slug to translate.")
     name = graphene.String(required=True, description="Product's name to translate.")
     description = JSONString(
         description="Product's description to translate." + RICH_CONTENT
@@ -459,7 +459,7 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
     )
     seo_title = graphene.String(description="Translated SEO title.")
     seo_description = graphene.String(description="Translated SEO description.")
-    slug = graphene.String(description="Translated collection slug." + ADDED_IN_321)
+    slug = graphene.String(description="Translated collection slug.")
     name = graphene.String(description="Translated collection name.")
     description = JSONString(
         description="Translated description of the collection." + RICH_CONTENT
@@ -497,7 +497,7 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
-    slug = graphene.String(description="Slug to translate" + ADDED_IN_321)
+    slug = graphene.String(description="Slug to translate")
     name = graphene.String(required=True, description="Collection's name to translate.")
     description = JSONString(
         description="Collection's description to translate." + RICH_CONTENT
@@ -551,7 +551,7 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     )
     seo_title = graphene.String(description="Translated SEO title.")
     seo_description = graphene.String(description="Translated SEO description.")
-    slug = graphene.String(description="Translated category slug." + ADDED_IN_321)
+    slug = graphene.String(description="Translated category slug.")
     name = graphene.String(description="Translated category name.")
     description = JSONString(
         description="Translated description of the category." + RICH_CONTENT
@@ -590,7 +590,7 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     )
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
-    slug = graphene.String(description="Slug to translate." + ADDED_IN_321)
+    slug = graphene.String(description="Slug to translate.")
     name = graphene.String(
         required=True, description="Name of the category translatable content."
     )
@@ -633,7 +633,7 @@ class PageTranslation(BaseTranslationType[page_models.PageTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the page translation.")
     seo_title = graphene.String(description="Translated SEO title.")
     seo_description = graphene.String(description="Translated SEO description.")
-    slug = graphene.String(description="Translated page slug." + ADDED_IN_321)
+    slug = graphene.String(description="Translated page slug.")
     title = graphene.String(description="Translated page title.")
     content = JSONString(description="Translated content of the page." + RICH_CONTENT)
     content_json = JSONString(
@@ -667,7 +667,7 @@ class PageTranslatableContent(ModelObjectType[page_models.Page]):
     page_id = graphene.ID(required=True, description="The ID of the page to translate.")
     seo_title = graphene.String(description="SEO title to translate.")
     seo_description = graphene.String(description="SEO description to translate.")
-    slug = graphene.String(description="Slug to translate." + ADDED_IN_321)
+    slug = graphene.String(description="Slug to translate.")
     title = graphene.String(required=True, description="Page title to translate.")
     content = JSONString(description="Content of the page to translate." + RICH_CONTENT)
     content_json = JSONString(

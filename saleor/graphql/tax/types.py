@@ -5,7 +5,6 @@ from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..channel.types import Channel
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_319, ADDED_IN_321
 from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
@@ -57,7 +56,6 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
             "iterate over all installed tax apps. If multiple tax apps exist with provided "
             "tax app id use the `App` with newest `created` date. "
             "Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`."
-            + ADDED_IN_319
         ),
         required=False,
     )
@@ -65,7 +63,7 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
         description=(
             "Determines whether to use weighted tax for shipping. When set to true, "
             "the tax rate for shipping will be calculated based on the weighted average "
-            "of tax rates from the order or checkout lines." + ADDED_IN_321
+            "of tax rates from the order or checkout lines."
         ),
     )
 
@@ -126,7 +124,6 @@ class TaxConfigurationPerCountry(ModelObjectType[models.TaxConfigurationPerCount
         description=(
             "The tax app `App.identifier` that will be used to calculate the taxes for the given channel "
             "and country. If not provided, use the value from the channel's tax configuration."
-            + ADDED_IN_319
         ),
         required=False,
     )
@@ -134,7 +131,7 @@ class TaxConfigurationPerCountry(ModelObjectType[models.TaxConfigurationPerCount
         description=(
             "Determines whether to use weighted tax for shipping. When set to true, "
             "the tax rate for shipping will be calculated based on the weighted average "
-            "of tax rates from the order or checkout lines." + ADDED_IN_321
+            "of tax rates from the order or checkout lines."
         ),
     )
 

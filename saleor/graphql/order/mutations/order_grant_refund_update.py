@@ -11,12 +11,9 @@ from ....page.models import Page
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import (
-    ADDED_IN_320,
     ADDED_IN_322,
     ADDED_IN_323,
     PREVIEW_FEATURE,
-)
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -112,9 +109,7 @@ class OrderGrantRefundUpdateInput(BaseInputObjectType):
             "If `amount` is not provided in the input and calculated automatically by "
             "Saleor, the `min(calculatedAmount, transaction.chargedAmount)` will be "
             "used."
-            "Field will be required starting from Saleor 3.21."
-            + ADDED_IN_320
-            + PREVIEW_FEATURE
+            "Field will be required starting from Saleor 3.21." + PREVIEW_FEATURE
         ),
         required=False,
     )

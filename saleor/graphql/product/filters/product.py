@@ -36,10 +36,7 @@ from ...core.filters.where_input import (
 )
 from ...core.scalars import DateTime
 from ...core.types import (
-    BaseInputObjectType,
     DateTimeRangeInput,
-    IntRangeInput,
-    NonNullList,
     PriceRangeInput,
 )
 from ...utils.filters import (
@@ -78,17 +75,11 @@ from .product_helpers import (
     where_filter_stocks,
     where_filter_updated_at_range,
 )
-from .shared import filter_updated_at_range
+from .shared import ProductStockFilterInput, filter_updated_at_range
 
 T_PRODUCT_FILTER_QUERIES = dict[int, list[int]]
 
-
-class ProductStockFilterInput(BaseInputObjectType):
-    warehouse_ids = NonNullList(graphene.ID, required=False)
-    quantity = graphene.Field(IntRangeInput, required=False)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+__all__ = ["ProductStockFilterInput"]
 
 
 class ProductFilter(MetadataFilterBase):

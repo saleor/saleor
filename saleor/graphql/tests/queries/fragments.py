@@ -349,6 +349,17 @@ fragment PageTypeDetails on PageType{
 }
 """
 
+PRODUCT_TYPE_DETAILS = """
+fragment ProductTypeDetails on ProductType{
+  id
+  name
+  slug
+  kind
+  hasVariants
+  isShippingRequired
+}
+"""
+
 
 PERMISSION_GROUP_DETAILS = """
 fragment PermissionGroupDetails on Group{

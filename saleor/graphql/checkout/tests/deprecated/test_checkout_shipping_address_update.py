@@ -10,9 +10,9 @@ from ...mutations.utils import mark_checkout_deliveries_as_stale_if_needed
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
     mutation checkoutShippingAddressUpdate(
-            $checkoutId: ID, $token: UUID, $shippingAddress: AddressInput!) {
+            $id: ID, $token: UUID, $shippingAddress: AddressInput!) {
         checkoutShippingAddressUpdate(
-                checkoutId: $checkoutId,
+                id: $id,
                 token: $token,
                 shippingAddress: $shippingAddress
         ) {
@@ -45,7 +45,7 @@ def test_checkout_shipping_address_update_by_id(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     shipping_address = graphql_address_data
-    variables = {"checkoutId": checkout_id, "shippingAddress": shipping_address}
+    variables = {"id": checkout_id, "shippingAddress": shipping_address}
 
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE, variables
@@ -150,7 +150,7 @@ def test_checkout_shipping_address_update_both_token_and_id_given(
 
     shipping_address = graphql_address_data
     variables = {
-        "checkoutId": checkout_id,
+        "id": checkout_id,
         "token": checkout.token,
         "shippingAddress": shipping_address,
     }

@@ -455,6 +455,7 @@ class CheckoutLine(ModelWithMetadata):
         blank=True,
         null=True,
     )
+    price_override_reason = models.CharField(max_length=255, null=True, blank=True)
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
     )

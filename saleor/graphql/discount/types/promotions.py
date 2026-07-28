@@ -6,7 +6,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
-from ...core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
+from ...core.descriptions import PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, DateTime, PositiveDecimal
@@ -31,7 +31,7 @@ class Promotion(ModelObjectType[models.Promotion]):
     type = PromotionTypeEnum(
         description=(
             "The type of the promotion. Implicate if the discount is applied on "
-            "catalogue or order level." + ADDED_IN_319 + PREVIEW_FEATURE
+            "catalogue or order level." + PREVIEW_FEATURE
         )
     )
     description = JSON(description="Description of the promotion.")
@@ -86,7 +86,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     reward_value = PositiveDecimal(
         description=(
             "The reward value of the promotion rule. Defines the discount value "
-            "applied when the rule conditions are met." + ADDED_IN_319 + PREVIEW_FEATURE
+            "applied when the rule conditions are met." + PREVIEW_FEATURE
         )
     )
     reward_value_type = RewardValueTypeEnum(
@@ -95,7 +95,6 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     predicate_type = PromotionTypeEnum(
         description=(
             "The type of the predicate that must be met to apply the reward."
-            + ADDED_IN_319
             + PREVIEW_FEATURE
         )
     )
@@ -107,26 +106,21 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     order_predicate = JSON(
         description=(
             "The checkout/order predicate that must be met to apply the rule reward."
-            + ADDED_IN_319
             + PREVIEW_FEATURE
         ),
     )
     reward_type = RewardTypeEnum(
-        description="The reward type of the promotion rule."
-        + ADDED_IN_319
-        + PREVIEW_FEATURE
+        description="The reward type of the promotion rule." + PREVIEW_FEATURE
     )
     translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
     gift_ids = NonNullList(
         graphene.ID,
         description="Product variant IDs available as a gift to choose."
-        + ADDED_IN_319
         + PREVIEW_FEATURE,
     )
     gifts_limit = graphene.Int(
         default_value=1,
         description="Defines the maximum number of gifts to choose from the gifts list."
-        + ADDED_IN_319
         + PREVIEW_FEATURE,
     )
 

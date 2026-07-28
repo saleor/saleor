@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from typing import cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -15,7 +16,7 @@ from ....permission.enums import GiftcardPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import DeprecatedModelMutation
 from ...core.scalars import Date
@@ -37,14 +38,14 @@ class GiftCardInput(BaseInputObjectType):
     metadata = NonNullList(
         MetadataInput,
         description=(
-            f"Gift Card public metadata. {ADDED_IN_321} "
+            f"Gift Card public metadata. "
             f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
         ),
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=f"Gift Card private metadata. {ADDED_IN_321} "
+        description=f"Gift Card private metadata. "
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
@@ -89,6 +90,12 @@ class GiftCardCreateInput(GiftCardInput):
         ),
     )
     note = graphene.String(description="The gift card note from the staff member.")
+    assigned_to = graphene.ID(
+        required=False,
+        description=(
+            "ID of the customer the gift card is restricted to. " + ADDED_IN_323
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_GIFT_CARDS
@@ -167,6 +174,17 @@ class GiftCardCreate(DeprecatedModelMutation):
                 )
             cleaned_input["customer_user"] = User.objects.filter(email=email).first()
 
+        if assigned_to_id := data.get("assigned_to"):
+            assigned_user = cast(
+                User | None,
+                cls.get_node_or_error(
+                    info, assigned_to_id, only_type="User", field="assigned_to"
+                ),
+            )
+            if assigned_user:
+                cleaned_input["assigned_to"] = assigned_user
+                cleaned_input["assigned_to_email"] = assigned_user.email
+
         return cleaned_input
 
     @staticmethod
@@ -233,6 +251,14 @@ class GiftCardCreate(DeprecatedModelMutation):
             user=user,
             app=app,
         )
+        if instance.assigned_to_id:
+            events.gift_card_assigned_event(
+                gift_card=instance,
+                previous_user_id=None,
+                previous_email=None,
+                user=user,
+                app=app,
+            )
         manager = get_plugin_manager_promise(info.context).get()
         if note := cleaned_input.get("note"):
             events.gift_card_note_added_event(

@@ -9,7 +9,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID, PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
@@ -22,6 +22,7 @@ from ...utils import ERROR_COULD_NO_RESOLVE_GLOBAL_ID
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
+    PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     CheckoutLineData,
     check_lines_quantity,
     get_variants_and_total_quantities,
@@ -51,6 +52,10 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
             "will be provided multiple times, the last price will be used."
         ),
     )
+    price_override_reason = graphene.String(
+        required=False,
+        description=PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
+    )
     line_id = graphene.ID(
         description="ID of the line.",
         required=False,
@@ -59,7 +64,7 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
     metadata = NonNullList(
         MetadataInput,
         description=(
-            f"Checkout line public metadata. Will add and update keys. To delete keys use deleteMetadata mutation. {ADDED_IN_321} "
+            f"Checkout line public metadata. Will add and update keys. To delete keys use deleteMetadata mutation. "
             f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
         ),
         required=False,

@@ -1,11 +1,18 @@
+import json
+from unittest import mock
 from unittest.mock import ANY
 
 import graphene
 import pytest
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
 from .....attribute import AttributeType
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductType
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
 from ...enums import ProductTypeKindEnum
 
@@ -139,6 +146,65 @@ def test_product_type_create_mutation(
     va_values = data["variantAttributes"][0]["choices"]["edges"]
     assert sorted([value["node"]["name"] for value in va_values]) == sorted(
         [value.name for value in va.values.all()]
+    )
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_product_type_create_trigger_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_product_types_and_attributes)
+
+    name = "Test product type"
+    slug = "test-product-type"
+
+    variables = {
+        "name": name,
+        "slug": slug,
+        "kind": ProductTypeKindEnum.NORMAL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_TYPE_CREATE_MUTATION, variables)
+    product_type = ProductType.objects.last()
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]
+
+    assert not data["errors"]
+    assert data["productType"]
+    mocked_webhook_trigger.assert_called_once_with(
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("ProductType", product_type.id),
+                "name": product_type.name,
+                "slug": product_type.slug,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.PRODUCT_TYPE_CREATED,
+        [any_webhook],
+        product_type,
+        SimpleLazyObject(lambda: staff_api_client.user),
+        allow_replica=False,
     )
 
 

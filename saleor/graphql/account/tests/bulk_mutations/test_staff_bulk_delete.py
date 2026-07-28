@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+from django.conf import settings
 
 from .....account.error_codes import AccountErrorCode
 from .....account.models import Group, User
@@ -46,6 +47,32 @@ def test_delete_staff_members(
         id__in=[user.id for user in [staff_1, staff_2]]
     ).exists()
     assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
+
+
+def test_delete_staff_members_exceeding_max_input_size(
+    staff_api_client, user_list, permission_manage_staff
+):
+    # given
+    *_, staff_1, _staff_2 = user_list
+    query = STAFF_BULK_DELETE_MUTATION
+    limit = settings.BULK_DELETE_LIMIT
+    staff_id = graphene.Node.to_global_id("User", staff_1.id)
+    variables = {"ids": [staff_id] * (limit + 1)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["staffBulkDelete"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AccountErrorCode.INVALID.name
+    assert errors[0]["field"] == "ids"
+    assert data["count"] == 0
+    assert User.objects.filter(id=staff_1.id).exists()
 
 
 @patch("saleor.graphql.account.bulk_mutations.staff_bulk_delete.get_webhooks_for_event")

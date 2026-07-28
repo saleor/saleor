@@ -14,7 +14,6 @@ mutation ProductTypeUpdate($id: ID!, $input: ProductTypeInput!) {
       slug
       kind
       isShippingRequired
-      isDigital
       hasVariants
       productAttributes {
         id
