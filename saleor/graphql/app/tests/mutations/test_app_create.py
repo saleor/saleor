@@ -1,3 +1,4 @@
+import datetime
 import json
 from unittest import mock
 
@@ -108,6 +109,33 @@ def test_app_create_no_identifier_mutation(
     assert default_token[-4:] == app.tokens.get().token_last_4
     assert app.uuid is not None
     assert app.identifier == graphene.Node.to_global_id("App", app.pk)
+
+
+@freeze_time("2022-05-12 12:00:00")
+def test_default_token_creator_tracking(
+    permission_manage_apps,
+    staff_api_client,
+):
+    """The token minted by appCreate is timestamped but has no creator.
+
+    Only `appTokenCreate` attributes a token to a staff user; the default
+    token created alongside the app is not attributed to anyone.
+    """
+    # given
+    variables = {"name": "New integration", "permissions": []}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    get_graphql_content(response)
+    token = App.objects.get().tokens.get()
+    assert token.created_by is None
+    assert token.created_at == datetime.datetime(
+        2022, 5, 12, 12, 0, tzinfo=datetime.UTC
+    )
 
 
 @freeze_time("2022-05-12 12:00:00")
