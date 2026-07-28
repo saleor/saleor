@@ -14,6 +14,9 @@ def validate_storefront_url(url):
     Raise ValidationError if URL isn't in RFC 1808 format
     or it isn't allowed by ALLOWED_CLIENT_HOSTS in settings.
     """
+    if not url or not isinstance(url, str):
+        raise ValidationError("Invalid URL. URL must be a non-empty string.")
+    url = url.strip()
     try:
         parsed_url = urlparse(url)
         domain, _ = split_domain_port(parsed_url.netloc)
