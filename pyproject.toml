@@ -188,10 +188,6 @@ markers = [
     "slow",
 ]
 
-[tool.poe.tasks]
-start.help = "Start development server with hot reload"
-start.cmd = "uvicorn saleor.asgi:application --reload"
-
 [tool.poe.tasks.scheduler]
 help = "Start Celery Beat scheduler"
 cmd = "celery --app saleor.celeryconf:app beat --scheduler saleor.schedulers.schedulers.DatabaseScheduler"
