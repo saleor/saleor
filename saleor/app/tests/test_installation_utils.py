@@ -675,6 +675,47 @@ def test_install_app_with_webhook(
     assert webhook.custom_headers == {"x-key": "Value"}
 
 
+def test_install_app_with_webhook_identifier(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    identifier = "order-created-handler"
+    app_manifest_webhook["identifier"] = identifier
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    webhook = app.webhooks.get()
+    assert webhook.identifier == identifier
+
+
+def test_install_app_with_webhook_blank_identifier_stored_as_none(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest_webhook["identifier"] = "   "
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    webhook = app.webhooks.get()
+    assert webhook.identifier is None
+
+
 def test_install_app_webhook_incorrect_url(
     app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):

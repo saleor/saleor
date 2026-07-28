@@ -309,6 +309,7 @@ def install_app(
             target_url=webhook["targetUrl"],
             subscription_query=webhook["query"],
             custom_headers=webhook.get("customHeaders", None),
+            identifier=webhook.get("identifier"),
         )
         for webhook in manifest_data.get("webhooks", [])
     )
