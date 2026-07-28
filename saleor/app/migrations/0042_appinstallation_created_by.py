@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("account", "0099_remove_digitalcontent_customerevent_type"),
-        ("app", "0042_merge_20260728_1011"),
+        ("app", "0041_apptoken_creator_tracking"),
     ]
 
     operations = [
