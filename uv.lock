@@ -250,18 +250,6 @@ wheels = [
 ]
 
 [[package]]
-name = "braintree"
-version = "4.31.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c4/0b/aa7b9074d0758165953ef6c62a96aacec888fd57138e0eb3f25be9515e67/braintree-4.31.0.tar.gz", hash = "sha256:de383469ae0f824efba7e2d726c13927090d6a9305e1c49de1cb258b2868d43d", size = 103599, upload-time = "2024-10-29T17:31:57.906Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/88/9397720744fc5f795eebbdbd3dd25daa394c31423929026626d22f85fb2d/braintree-4.31.0-py2.py3-none-any.whl", hash = "sha256:426011f92418703809007f387c3ce13b03535ad6f67244171ff2b417369e3693", size = 149758, upload-time = "2024-10-29T17:31:56.269Z" },
-]
-
-[[package]]
 name = "cachetools"
 version = "5.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2485,7 +2473,6 @@ dependencies = [
     { name = "babel", marker = "platform_python_implementation != 'PyPy'" },
     { name = "boto3", marker = "platform_python_implementation != 'PyPy'" },
     { name = "botocore", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "braintree", marker = "platform_python_implementation != 'PyPy'" },
     { name = "celery", extra = ["redis", "sqs"], marker = "platform_python_implementation != 'PyPy'" },
     { name = "cryptography", marker = "platform_python_implementation != 'PyPy'" },
     { name = "dj-database-url", marker = "platform_python_implementation != 'PyPy'" },
@@ -2595,7 +2582,6 @@ requires-dist = [
     { name = "babel", specifier = ">=2.18.0,<2.19" },
     { name = "boto3", specifier = "~=1.43" },
     { name = "botocore", specifier = "~=1.42" },
-    { name = "braintree", specifier = ">=4.2,<4.32" },
     { name = "celery", extras = ["redis", "sqs"], specifier = ">=5.6.3,<6.0.0" },
     { name = "cryptography", specifier = ">=49.0.0" },
     { name = "dj-database-url", specifier = ">=3.1.2,<4" },
