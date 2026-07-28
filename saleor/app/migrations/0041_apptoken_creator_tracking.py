@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("account", "0099_remove_digitalcontent_customerevent_type"),
-        ("app", "0041_merge_20260714_1040"),
+        ("app", "0040_appextension_identifier_unique_constraint"),
     ]
 
     operations = [
