@@ -1616,6 +1616,42 @@ class CustomerDeleted(SubscriptionObjectType, UserBase):
         description = "Event sent when customer user is deleted." + ADDED_IN_323
 
 
+class CustomerTypeBase(AbstractType):
+    customer_type = graphene.Field(
+        "saleor.graphql.account.types.CustomerType",
+        description="The customer type the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_customer_type(root, _info: ResolveInfo):
+        _, customer_type = root
+        return customer_type
+
+
+class CustomerTypeCreated(SubscriptionObjectType, CustomerTypeBase):
+    class Meta:
+        root_type = "CustomerType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new customer type is created." + ADDED_IN_323
+
+
+class CustomerTypeUpdated(SubscriptionObjectType, CustomerTypeBase):
+    class Meta:
+        root_type = "CustomerType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when customer type is updated." + ADDED_IN_323
+
+
+class CustomerTypeDeleted(SubscriptionObjectType, CustomerTypeBase):
+    class Meta:
+        root_type = "CustomerType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when customer type is deleted." + ADDED_IN_323
+
+
 class CollectionBase(AbstractType):
     collection = graphene.Field(
         "saleor.graphql.product.types.collections.Collection",
@@ -3290,6 +3326,9 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.CUSTOMER_UPDATED: CustomerUpdated,
     WebhookEventAsyncType.CUSTOMER_DELETED: CustomerDeleted,
     WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: CustomerMetadataUpdated,
+    WebhookEventAsyncType.CUSTOMER_TYPE_CREATED: CustomerTypeCreated,
+    WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED: CustomerTypeUpdated,
+    WebhookEventAsyncType.CUSTOMER_TYPE_DELETED: CustomerTypeDeleted,
     WebhookEventAsyncType.COLLECTION_CREATED: CollectionCreated,
     WebhookEventAsyncType.COLLECTION_UPDATED: CollectionUpdated,
     WebhookEventAsyncType.COLLECTION_DELETED: CollectionDeleted,

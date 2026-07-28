@@ -3,6 +3,7 @@ import graphene
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
     ADDED_IN_318,
+    ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_LEGACY_PAYMENTS,
 )
@@ -88,6 +89,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CUSTOMER_UPDATED: "A customer account is updated.",
     WebhookEventAsyncType.CUSTOMER_DELETED: "A customer account is deleted.",
     WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: "A customer account metadata is updated.",
+    WebhookEventAsyncType.CUSTOMER_TYPE_CREATED: "A new customer type is created."
+    + ADDED_IN_323,
+    WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED: "A customer type is updated."
+    + ADDED_IN_323,
+    WebhookEventAsyncType.CUSTOMER_TYPE_DELETED: "A customer type is deleted."
+    + ADDED_IN_323,
     WebhookEventAsyncType.GIFT_CARD_CREATED: "A new gift card created.",
     WebhookEventAsyncType.GIFT_CARD_UPDATED: "A gift card is updated.",
     WebhookEventAsyncType.GIFT_CARD_DELETED: "A gift card is deleted.",

@@ -1251,3 +1251,25 @@ def test_update_user_details_nothing_changed(
     assert customer_user.first_name == first_name
     assert updated is False
     update_user_search_vector_mock.assert_not_called()
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_assigns_default_customer_type(
+    mocked_cache_get, mocked_cache_set, default_customer_type
+):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    customer_email = "email.customer@example.com"
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    assert created is True
+    assert user_from_payload.customer_type == default_customer_type

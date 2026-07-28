@@ -7,6 +7,7 @@ from .....account import events as account_events
 from .....account import models
 from .....account.notifications import send_set_password_notification
 from .....account.search import update_user_search_vector
+from .....account.utils import get_default_customer_type
 from .....core.tokens import password_reset_token_generator
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.url import prepare_url
@@ -107,6 +108,9 @@ class CustomerCreate(BaseCustomerCreate):
         if default_billing_address := cleaned_input.get(BILLING_ADDRESS_FIELD):
             addresses_to_set_on_user.append(default_billing_address)
             default_billing_address.save()
+
+        if instance.customer_type_id is None:
+            instance.customer_type = get_default_customer_type()
 
         cls._save(instance)
 
