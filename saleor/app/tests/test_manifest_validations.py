@@ -6,7 +6,7 @@ from ..error_codes import AppErrorCode
 from ..manifest_schema import (
     EXTENSION_IDENTIFIER_MAX_LENGTH,
     ICON_MIME_TYPES,
-    ManifestExtensionSchema,
+    WEBHOOK_IDENTIFIER_MAX_LENGTH,
     ManifestSchema,
 )
 from ..manifest_validations import clean_manifest_data
@@ -321,6 +321,17 @@ def _extension(label, identifier=None):
     return extension
 
 
+def _webhook(name, identifier=None):
+    webhook = {
+        "name": name,
+        "targetUrl": "https://example.com/webhook",
+        "query": "subscription { event { ... on OrderCreated { order { id } } } }",
+    }
+    if identifier is not None:
+        webhook["identifier"] = identifier
+    return webhook
+
+
 @pytest.mark.django_db
 def test_clean_manifest_data_accepts_unique_extension_identifiers():
     # given - two extensions with distinct identifiers
@@ -458,37 +469,172 @@ def test_clean_manifest_data_rejects_too_long_identifier():
     assert error.message == expected_message
 
 
-def test_manifest_extension_schema_rejects_too_long_identifier():
-    # given - identifier exceeding the maximum allowed length
-    identifier = "a" * (EXTENSION_IDENTIFIER_MAX_LENGTH + 1)
-    extension_data = _extension("First", identifier=identifier)
+@pytest.mark.django_db
+def test_clean_manifest_data_length_check_ignores_surrounding_whitespace():
+    # given - at-max identifier padded with whitespace: over the limit raw,
+    # at the limit once stripped (the value that is actually persisted)
+    stripped = "a" * EXTENSION_IDENTIFIER_MAX_LENGTH
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "extensions": [_extension("First", identifier=f"  {stripped}  ")],
+    }
 
     # when
-    with pytest.raises(PydanticValidationError) as exc_info:
-        ManifestExtensionSchema.model_validate(extension_data)
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert manifest_data["extensions"][0]["identifier"] == stripped
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_accepts_unique_webhook_identifiers():
+    # given - two webhooks with distinct identifiers
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [
+            _webhook("First", identifier="first-webhook"),
+            _webhook("Second", identifier="second-webhook"),
+        ],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then - identifiers are preserved on the cleaned manifest
+    assert manifest_data["webhooks"][0]["identifier"] == "first-webhook"
+    assert manifest_data["webhooks"][1]["identifier"] == "second-webhook"
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_duplicate_webhook_identifiers():
+    # given - two webhooks reuse the same identifier within one manifest
+    duplicate_identifier = "order-created-handler"
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [
+            _webhook("First", identifier=duplicate_identifier),
+            _webhook("Second", identifier=duplicate_identifier),
+        ],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    webhook_errors = exc_info.value.error_dict["webhooks"]
+    assert len(webhook_errors) == 1
+    error = webhook_errors[0]
+    assert error.code == AppErrorCode.DUPLICATED_WEBHOOK_IDENTIFIER.value
+    assert error.message == f"Duplicate webhook identifier: {duplicate_identifier}."
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_allows_multiple_webhooks_without_identifier():
+    # given - several webhooks omit the identifier entirely
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First"), _webhook("Second")],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then - absent identifiers are normalized to None and do not collide
+    assert manifest_data["webhooks"][0]["identifier"] is None
+    assert manifest_data["webhooks"][1]["identifier"] is None
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_coerces_blank_webhook_identifier_to_none():
+    # given - blank and whitespace-only identifiers
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [
+            _webhook("First", identifier="   "),
+            _webhook("Second", identifier=""),
+        ],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then - both are treated as not provided, so no duplicate error is raised
+    assert manifest_data["webhooks"][0]["identifier"] is None
+    assert manifest_data["webhooks"][1]["identifier"] is None
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_strips_surrounding_whitespace_from_webhook_identifier():
+    # given - identifier padded with whitespace
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", identifier="  order-created  ")],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert manifest_data["webhooks"][0]["identifier"] == "order-created"
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_accepts_webhook_identifier_at_max_length():
+    # given - identifier exactly at the maximum allowed length
+    identifier = "a" * WEBHOOK_IDENTIFIER_MAX_LENGTH
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", identifier=identifier)],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert manifest_data["webhooks"][0]["identifier"] == identifier
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_too_long_webhook_identifier():
+    # given - identifier exceeding the maximum allowed length
+    identifier = "a" * (WEBHOOK_IDENTIFIER_MAX_LENGTH + 1)
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", identifier=identifier)],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
 
     # then
     expected_message = (
         f"Identifier is too long. Maximum length is "
-        f"{EXTENSION_IDENTIFIER_MAX_LENGTH} characters."
+        f"{WEBHOOK_IDENTIFIER_MAX_LENGTH} characters."
     )
-    errors = exc_info.value.errors()
-    assert len(errors) == 1
-    assert errors[0]["loc"] == ("identifier",)
-    assert errors[0]["msg"] == expected_message
-    assert errors[0]["ctx"]["error_code"] == AppErrorCode.INVALID.value
+    webhook_errors = exc_info.value.error_dict["webhooks"]
+    assert len(webhook_errors) == 1
+    error = webhook_errors[0]
+    assert error.code == AppErrorCode.INVALID.value
+    assert error.message == expected_message
 
 
-def test_manifest_extension_schema_accepts_identifier_at_max_length():
-    # given - identifier exactly at the maximum allowed length
-    identifier = "a" * EXTENSION_IDENTIFIER_MAX_LENGTH
-    extension_data = _extension("First", identifier=identifier)
+@pytest.mark.django_db
+def test_clean_manifest_data_webhook_length_check_ignores_surrounding_whitespace():
+    # given - at-max identifier padded with whitespace: over the limit raw,
+    # at the limit once stripped (the value that is actually persisted)
+    stripped = "a" * WEBHOOK_IDENTIFIER_MAX_LENGTH
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", identifier=f"  {stripped}  ")],
+    }
 
     # when
-    schema = ManifestExtensionSchema.model_validate(extension_data)
+    clean_manifest_data(manifest_data)
 
     # then
-    assert schema.identifier == identifier
+    assert manifest_data["webhooks"][0]["identifier"] == stripped
 
 
 def test_manifest_schema_deprecated_fields_accepted():
