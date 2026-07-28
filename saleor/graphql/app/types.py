@@ -536,7 +536,8 @@ class AppToken(BaseObjectType):
         "saleor.graphql.account.types.User",
         description=(
             "The user who created this token. "
-            "Null if created by non-user means or the user was deleted." + ADDED_IN_323
+            "Null for tokens created before this was tracked, "
+            "or if the user has been deleted." + ADDED_IN_323
         ),
         permissions=[AccountPermissions.MANAGE_STAFF],
     )
