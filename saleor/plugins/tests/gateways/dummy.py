@@ -50,46 +50,55 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def authorize(
-    payment_information: PaymentData, config: GatewayConfig
+def _dummy_payment_method_info() -> PaymentMethodInfo:
+    return PaymentMethodInfo(
+        last_4="1234",
+        exp_year=2222,
+        exp_month=12,
+        brand="dummy_visa",
+        name="Holder name",
+        type="card",
+    )
+
+
+def _build_gateway_response(
+    payment_information: PaymentData,
+    kind: str,
+    error: str | None = None,
+    *,
+    payment_method_info: PaymentMethodInfo | None = None,
 ) -> GatewayResponse:
-    success = dummy_success()
-    error = None
-    if not success:
-        error = "Unable to authorize transaction"
     return GatewayResponse(
-        is_success=success,
+        is_success=not error,
         action_required=False,
-        kind=TransactionKind.AUTH,
+        kind=kind,
         amount=payment_information.amount,
         currency=payment_information.currency,
         transaction_id=payment_information.token or "",
         error=error,
-        payment_method_info=PaymentMethodInfo(
-            last_4="1234",
-            exp_year=2222,
-            exp_month=12,
-            brand="dummy_visa",
-            name="Holder name",
-            type="card",
-        ),
+        payment_method_info=payment_method_info,
+    )
+
+
+def authorize(
+    payment_information: PaymentData, config: GatewayConfig
+) -> GatewayResponse:
+    error = None
+    if not dummy_success():
+        error = "Unable to authorize transaction"
+    return _build_gateway_response(
+        payment_information,
+        TransactionKind.AUTH,
+        error,
+        payment_method_info=_dummy_payment_method_info(),
     )
 
 
 def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     error = None
-    success = dummy_success()
-    if not success:
+    if not dummy_success():
         error = "Unable to void the transaction."
-    return GatewayResponse(
-        is_success=success,
-        action_required=False,
-        kind=TransactionKind.VOID,
-        amount=payment_information.amount,
-        currency=payment_information.currency,
-        transaction_id=payment_information.token or "",
-        error=error,
-    )
+    return _build_gateway_response(payment_information, TransactionKind.VOID, error)
 
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
@@ -98,57 +107,28 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     if not error and not dummy_success():
         error = "Unable to process capture"
 
-    return GatewayResponse(
-        is_success=not error,
-        action_required=False,
-        kind=TransactionKind.CAPTURE,
-        amount=payment_information.amount,
-        currency=payment_information.currency,
-        transaction_id=payment_information.token or "",
-        error=error,
-        payment_method_info=PaymentMethodInfo(
-            last_4="1234",
-            exp_year=2222,
-            exp_month=12,
-            brand="dummy_visa",
-            name="Holder name",
-            type="card",
-        ),
+    return _build_gateway_response(
+        payment_information,
+        TransactionKind.CAPTURE,
+        error,
+        payment_method_info=_dummy_payment_method_info(),
     )
 
 
 def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform confirm transaction."""
     error = None
-    success = dummy_success()
-    if not success:
+    if not dummy_success():
         error = "Unable to process capture"
 
-    return GatewayResponse(
-        is_success=success,
-        action_required=False,
-        kind=TransactionKind.CAPTURE,
-        amount=payment_information.amount,
-        currency=payment_information.currency,
-        transaction_id=payment_information.token or "",
-        error=error,
-    )
+    return _build_gateway_response(payment_information, TransactionKind.CAPTURE, error)
 
 
 def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     error = None
-    success = dummy_success()
-    if not success:
+    if not dummy_success():
         error = "Unable to process refund"
-    return GatewayResponse(
-        is_success=success,
-        action_required=False,
-        kind=TransactionKind.REFUND,
-        amount=payment_information.amount,
-        currency=payment_information.currency,
-        transaction_id=payment_information.token or "",
-        error=error,
-    )
+    return _build_gateway_response(payment_information, TransactionKind.REFUND, error)
 
 
 def process_payment(
