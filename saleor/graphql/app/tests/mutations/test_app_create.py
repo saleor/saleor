@@ -116,11 +116,7 @@ def test_default_token_creator_tracking(
     permission_manage_apps,
     staff_api_client,
 ):
-    """The token minted by appCreate is timestamped but has no creator.
-
-    Only `appTokenCreate` attributes a token to a staff user; the default
-    token created alongside the app is not attributed to anyone.
-    """
+    """The default token is attributed to the staff user who created the app."""
     # given
     variables = {"name": "New integration", "permissions": []}
 
@@ -132,7 +128,7 @@ def test_default_token_creator_tracking(
     # then
     get_graphql_content(response)
     token = App.objects.get().tokens.get()
-    assert token.created_by is None
+    assert token.created_by == staff_api_client.user
     assert token.created_at == datetime.datetime(
         2022, 5, 12, 12, 0, tzinfo=datetime.UTC
     )

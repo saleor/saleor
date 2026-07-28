@@ -3102,7 +3102,7 @@ type AppToken implements Node @doc(category: "Apps") {
   createdAt: DateTime
 
   """
-  The user who created this token. Null if created by non-user means or the user was deleted.
+  The user who created this token. Null for tokens created before this was tracked, or if the user has been deleted.
   
   Added in Saleor 3.23.
   

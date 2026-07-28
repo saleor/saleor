@@ -72,6 +72,10 @@ class AppInstall(DeprecatedModelMutation):
             requestor = get_user_or_app_from_context(info.context)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
+
+        # Carried over to the token minted by `install_app`, which runs in a
+        # Celery task with no request context of its own.
+        cleaned_input["created_by"] = info.context.user
         return cleaned_input
 
     @classmethod
