@@ -1,8 +1,6 @@
-from unittest.mock import patch
-
 import graphene
 
-from saleor.plugins.tests.gateways.dummy_credit_card import (
+from saleor.plugins.tests.gateways.dummy import (
     TOKEN_EXPIRED,
     TOKEN_VALIDATION_MAPPING,
 )
@@ -184,12 +182,7 @@ def test_payment_capture_gateway_error(
     assert not txn.is_success
 
 
-@patch(
-    "saleor.plugins.tests.gateways.dummy_credit_card."
-    "DummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
-    True,
-)
-def test_payment_capture_gateway_dummy_credit_card_error(
+def test_payment_capture_gateway_declined_card_error(
     staff_api_client, permission_group_manage_orders, payment_txn_preauth, monkeypatch
 ):
     # given
@@ -198,9 +191,6 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     error = TOKEN_VALIDATION_MAPPING[token]
 
     payment = payment_txn_preauth
-    payment.gateway = "mirumee.payments.dummy_credit_card"
-    payment.save()
-
     transaction = payment.transactions.last()
     transaction.token = token
     transaction.save()
@@ -209,7 +199,7 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr(
-        "saleor.plugins.tests.gateways.dummy_credit_card.dummy_success", lambda: False
+        "saleor.plugins.tests.gateways.dummy.dummy_success", lambda: False
     )
 
     # when

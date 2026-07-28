@@ -1,3 +1,15 @@
+"""Fake payment gateway driving the legacy, plugin-based `Payment` flow in tests.
+
+It is not part of the shipped plugin set (`settings.BUILTIN_PLUGINS`) and has to be
+enabled explicitly through `settings.PLUGINS`.
+
+The gateway succeeds by default. Two hooks make it fail on demand:
+
+- monkeypatching `dummy_success` to return `False` fails any operation, and
+- a payment token listed in `TOKEN_VALIDATION_MAPPING` fails the capture with the
+  mapped message, which simulates a card rejected by the provider.
+"""
+
 import uuid
 
 from saleor.payment import ChargeStatus, TransactionKind
@@ -9,13 +21,29 @@ from saleor.payment.interface import (
     PaymentMethodInfo,
     TokenConfig,
 )
-from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
+from saleor.plugins.base_plugin import BasePlugin
 
 GATEWAY_NAME = "Dummy"
+
+TOKEN_EXPIRED = "0069"
+TOKEN_INSUFFICIENT_FUNDS = "9995"
+TOKEN_INCORRECT_CVV = "0127"
+TOKEN_DECLINE = "0002"
+
+TOKEN_VALIDATION_MAPPING = {
+    TOKEN_EXPIRED: "Card expired",
+    TOKEN_INSUFFICIENT_FUNDS: "Insufficient funds",
+    TOKEN_INCORRECT_CVV: "Incorrect CVV",
+    TOKEN_DECLINE: "Card declined",
+}
 
 
 def dummy_success():
     return True
+
+
+def validate_token(token: str | None):
+    return TOKEN_VALIDATION_MAPPING.get(token, None) if token else None
 
 
 def get_client_token(**_):
@@ -66,13 +94,12 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Perform capture transaction."""
-    error = None
-    success = dummy_success()
-    if not success:
+    error = validate_token(payment_information.token)
+    if not error and not dummy_success():
         error = "Unable to process capture"
 
     return GatewayResponse(
-        is_success=success,
+        is_success=not error,
         action_required=False,
         kind=TransactionKind.CAPTURE,
         amount=payment_information.amount,
@@ -127,21 +154,19 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
 def process_payment(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
-    """Process the payment."""
+    """Process the payment.
+
+    A payment token holding a `ChargeStatus` value drives the payment to that status;
+    anything else is captured straight away.
+    """
     token = payment_information.token
 
-    # Process payment normally if payment token is valid
     if token not in dict(ChargeStatus.CHOICES):
         return capture(payment_information, config)
 
-    # Process payment by charge status which is selected in the payment form
-    # Note that is for testing by dummy gateway only
     charge_status = token
     authorize_response = authorize(payment_information, config)
-    if charge_status == ChargeStatus.NOT_CHARGED:
-        return authorize_response
-
-    if not config.auto_capture:
+    if charge_status == ChargeStatus.NOT_CHARGED or not config.auto_capture:
         return authorize_response
 
     capture_response = capture(payment_information, config)
@@ -151,48 +176,20 @@ def process_payment(
 
 
 class DummyGatewayPlugin(BasePlugin):
-    """Fake payment gateway used only by the test suite.
-
-    It is not part of the shipped plugin set and must be enabled explicitly
-    through ``settings.PLUGINS`` in tests.
-    """
+    """Fake payment gateway plugin. See the module docstring."""
 
     PLUGIN_ID = "mirumee.payments.dummy"
     PLUGIN_NAME = GATEWAY_NAME
     DEFAULT_ACTIVE = True
-    DEFAULT_CONFIGURATION = [
-        {"name": "Store customers card", "value": False},
-        {"name": "Automatic payment capture", "value": True},
-        {"name": "Supported currencies", "value": "USD, PLN"},
-    ]
-    CONFIG_STRUCTURE = {
-        "Store customers card": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should store cards.",
-            "label": "Store customers card",
-        },
-        "Automatic payment capture": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Determines if Saleor should automatically capture payments.",
-            "label": "Automatic payment capture",
-        },
-        "Supported currencies": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "Determines currencies supported by gateway."
-            " Please enter currency codes separated by a comma.",
-            "label": "Supported currencies",
-        },
-    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            auto_capture=configuration["Automatic payment capture"],
-            supported_currencies=configuration["Supported currencies"],
+            auto_capture=True,
+            supported_currencies="USD, PLN",
             connection_params={},
-            store_customer=configuration["Store customers card"],
+            store_customer=False,
         )
 
     def _get_gateway_config(self):

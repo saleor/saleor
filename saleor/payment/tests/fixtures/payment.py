@@ -94,32 +94,6 @@ def payment_dummy_fully_charged(payment_dummy):
 
 
 @pytest.fixture
-def payment_dummy_credit_card(db, order_with_lines):
-    return Payment.objects.create(
-        gateway="mirumee.payments.dummy_credit_card",
-        order=order_with_lines,
-        is_active=True,
-        cc_first_digits="4111",
-        cc_last_digits="1111",
-        cc_brand="visa",
-        cc_exp_month=12,
-        cc_exp_year=2027,
-        total=order_with_lines.total.gross.amount,
-        currency=order_with_lines.total.gross.currency,
-        billing_first_name=order_with_lines.billing_address.first_name,
-        billing_last_name=order_with_lines.billing_address.last_name,
-        billing_company_name=order_with_lines.billing_address.company_name,
-        billing_address_1=order_with_lines.billing_address.street_address_1,
-        billing_address_2=order_with_lines.billing_address.street_address_2,
-        billing_city=order_with_lines.billing_address.city,
-        billing_postal_code=order_with_lines.billing_address.postal_code,
-        billing_country_code=order_with_lines.billing_address.country.code,
-        billing_country_area=order_with_lines.billing_address.country_area,
-        billing_email=order_with_lines.user_email,
-    )
-
-
-@pytest.fixture
 def payment_txn_preauth(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
