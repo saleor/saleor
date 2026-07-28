@@ -128,7 +128,7 @@ from ...webhook.utils import (
 from ..base_plugin import BasePlugin
 
 if TYPE_CHECKING:
-    from ...account.models import Address, Group, User
+    from ...account.models import Address, CustomerType, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...core.utils.translations import Translation
     from ...csv.models import ExportFile
@@ -1708,6 +1708,52 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_metadata_updated_event(
             WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED, customer, webhooks=webhooks
+        )
+        return previous_value
+
+    def _trigger_customer_type_event(self, event_type, customer_type, webhooks=None):
+        if webhooks := self._get_webhooks_for_event(event_type, webhooks):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("CustomerType", customer_type.id),
+                    "name": customer_type.name,
+                    "slug": customer_type.slug,
+                    "meta": self._generate_meta(),
+                }
+            )
+            self.trigger_webhooks_async(
+                payload, event_type, webhooks, customer_type, self.requestor
+            )
+
+    def customer_type_created(
+        self, customer_type: "CustomerType", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_customer_type_event(
+            WebhookEventAsyncType.CUSTOMER_TYPE_CREATED, customer_type
+        )
+        return previous_value
+
+    def customer_type_updated(
+        self, customer_type: "CustomerType", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_customer_type_event(
+            WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED, customer_type
+        )
+        return previous_value
+
+    def customer_type_deleted(
+        self, customer_type: "CustomerType", previous_value: None, webhooks=None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_customer_type_event(
+            WebhookEventAsyncType.CUSTOMER_TYPE_DELETED,
+            customer_type,
+            webhooks=webhooks,
         )
         return previous_value
 
