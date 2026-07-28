@@ -328,7 +328,6 @@ def test_get_default_fulfillment_payload(fulfillment, site_settings):
             "tracking_number": fulfillment.tracking_number,
             "is_tracking_number_url": fulfillment.is_tracking_number_url,
         },
-        "digital_lines": [],
         "recipient_email": order.get_customer_email(),
         **get_site_context_payload(site_settings.site),
     }
