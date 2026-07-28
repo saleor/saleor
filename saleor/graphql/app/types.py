@@ -529,14 +529,14 @@ class AppToken(BaseObjectType):
     created_at = DateTime(
         description=(
             "The date and time when the token was created. "
-            "Null for tokens created before this was tracked." + ADDED_IN_322
+            "Null for tokens created before this was tracked." + ADDED_IN_323
         )
     )
     created_by = PermissionsField(
         "saleor.graphql.account.types.User",
         description=(
             "The user who created this token. "
-            "Null if created by non-user means or the user was deleted." + ADDED_IN_322
+            "Null if created by non-user means or the user was deleted." + ADDED_IN_323
         ),
         permissions=[AccountPermissions.MANAGE_STAFF],
     )

@@ -3065,14 +3065,14 @@ type AppToken implements Node @doc(category: "Apps") {
   """
   The date and time when the token was created. Null for tokens created before this was tracked.
   
-  Added in Saleor 3.22.
+  Added in Saleor 3.23.
   """
   createdAt: DateTime
 
   """
   The user who created this token. Null if created by non-user means or the user was deleted.
   
-  Added in Saleor 3.22.
+  Added in Saleor 3.23.
   
   Requires one of the following permissions: MANAGE_STAFF.
   """
