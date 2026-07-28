@@ -2344,18 +2344,6 @@ wheels = [
 ]
 
 [[package]]
-name = "razorpay"
-version = "1.4.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/97/fb/14d5baeffc5b812775bc34cb7d416aa090be6f5779c04aaf45d2ba17458b/razorpay-1.4.2.tar.gz", hash = "sha256:0d812030ba29e776e66d1ceaacc31635810fde18b66ff2591e582eb651bb5131", size = 194335, upload-time = "2024-03-19T12:12:08.904Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/3d/07a25e3c6f3d65a319da30300f055d946860e90f705c05bb39524dc46f30/razorpay-1.4.2-py3-none-any.whl", hash = "sha256:aaf525baebc5001e5c54ae317a372c3c17c81314cedcbbf71aa0a2d3419a9757", size = 174302, upload-time = "2024-03-19T12:12:06.883Z" },
-]
-
-[[package]]
 name = "redis"
 version = "5.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2535,7 +2523,6 @@ dependencies = [
     { name = "python-magic", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'win32'" },
     { name = "python-magic-bin", marker = "platform_python_implementation != 'PyPy' and sys_platform == 'win32'" },
     { name = "pytimeparse", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "razorpay", marker = "platform_python_implementation != 'PyPy'" },
     { name = "redis", marker = "platform_python_implementation != 'PyPy'" },
     { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
     { name = "requests-hardened", marker = "platform_python_implementation != 'PyPy'" },
@@ -2645,7 +2632,6 @@ requires-dist = [
     { name = "python-magic", marker = "sys_platform != 'win32'", specifier = ">=0.4.27,<0.5" },
     { name = "python-magic-bin", marker = "sys_platform == 'win32'", specifier = ">=0.4.14,<0.5" },
     { name = "pytimeparse", specifier = ">=1.1.8,<2" },
-    { name = "razorpay", specifier = "~=1.2" },
     { name = "redis", specifier = ">=5.0.1,<6" },
     { name = "requests", specifier = ">=2.33.0,<3" },
     { name = "requests-hardened", specifier = ">=1.3.0b1,<2.0.0" },
