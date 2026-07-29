@@ -1284,3 +1284,49 @@ def test_customers_bulk_update_with_attribute_not_in_customer_type(
     assert errors[0]["path"] == "input.attributes"
     assert errors[0]["code"] == CustomerBulkUpdateErrorCode.NOT_FOUND.name
     assert not AssignedUserAttributeValue.objects.filter(user=customer).exists()
+
+
+def test_customers_bulk_update_with_invalid_customer_type_id(
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    default_customer_type,
+):
+    # given
+    customer = customer_users[0]
+    original_first_name = customer.first_name
+    new_first_name = "BulkUpdatedName"
+    assert original_first_name != new_first_name
+    invalid_customer_type_id = graphene.Node.to_global_id("PageType", 1)
+    customers_input = [
+        {
+            "id": graphene.Node.to_global_id("User", customer.pk),
+            "input": {
+                "firstName": new_first_name,
+                "customerType": invalid_customer_type_id,
+            },
+        }
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["path"] == "input.customerType"
+    assert errors[0]["code"] == CustomerBulkUpdateErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["message"] == (
+        f"Invalid ID: {invalid_customer_type_id}. "
+        "Expected: CustomerType, received: PageType."
+    )
+    customer.refresh_from_db()
+    assert customer.first_name == original_first_name
+    assert customer.customer_type is None
