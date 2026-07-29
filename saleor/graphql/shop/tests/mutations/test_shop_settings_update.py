@@ -852,8 +852,10 @@ def test_shop_settings_update_name(
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
     assert data["shop"]["name"] == new_name
-    site = Site.objects.get_current()
-    assert site.name == new_name
+    # Read the row back rather than `Site.objects.get_current()`, which may serve a
+    # site cached earlier in the process and miss the update.
+    site_settings.site.refresh_from_db(fields=("name",))
+    assert site_settings.site.name == new_name
 
 
 def test_shop_settings_update_name_too_long(
@@ -877,8 +879,11 @@ def test_shop_settings_update_name_too_long(
     errors = content["data"]["shopSettingsUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "name"
-    site = Site.objects.get_current()
-    assert site.name == original_name
+    # Read the row back rather than `Site.objects.get_current()`, which may serve a
+    # site cached earlier in the process and hide a write that should not have
+    # happened.
+    site_settings.site.refresh_from_db(fields=("name",))
+    assert site_settings.site.name == original_name
 
 
 SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION = """

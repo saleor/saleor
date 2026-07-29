@@ -16,13 +16,11 @@ STOREFRONT_TRAFFIC_CACHE_TIMEOUT = 5 * 60
 
 
 def _get_allow_storefront_traffic_cache_key() -> str:
-    """Build the cache key from ``settings.SITE_ID`` directly.
+    """Namespace the cache key per site, so tenants cannot read each other's flag.
 
-    Using ``Site.objects.get_current()`` here would populate the patched,
-    process-global ``THREADED_SITE_CACHE`` on every request. That cache is not
-    invalidated by ``Site``/``SiteSettings`` saves (Django's ``clear_site_cache``
-    signal targets the unused original ``SITE_CACHE``), so it would leak stale
-    site data across requests and tests.
+    ``get_current`` reads the process-global site cache, so this costs no query once
+    that cache is warm — which it is in production and, via the autouse fixture in
+    ``saleor/graphql/conftest.py``, in tests.
     """
     site = Site.objects.get_current()
     return f"allow_storefront_traffic:{site.pk}"
