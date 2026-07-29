@@ -5,10 +5,12 @@ from typing import TypeVar, cast
 from ...account.exceptions import NoDefaultCustomerType
 from ...account.models import Address, CustomerEvent, CustomerType, Group, User
 from ...account.utils import get_default_customer_type
+from ...attribute.models import Attribute, AttributeCustomerType
 from ...channel.models import Channel
 from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
+from ..attribute.dataloaders.attributes import AttributesByAttributeId
 from ..core.dataloaders import DataLoader
 
 
@@ -52,6 +54,67 @@ class DefaultCustomerTypeLoader(DataLoader[str, CustomerType]):
         except NoDefaultCustomerType:
             default_customer_type = None
         return [default_customer_type for _ in keys]
+
+
+class BaseCustomerAttributesByCustomerTypeIdLoader(DataLoader[int, list[Attribute]]):
+    """Loads customer attributes by customer type ID."""
+
+    context_key = "customer_attributes_by_customertype"
+
+    @staticmethod
+    def filter_attributes(attributes: list[Attribute]) -> list[Attribute]:
+        """Filter attributes based on custom logic, if needed."""
+        return attributes
+
+    def batch_load(self, keys):
+        customer_type_attribute_pairs = (
+            AttributeCustomerType.objects.using(self.database_connection_name)
+            .filter(customer_type_id__in=keys)
+            .values_list("customer_type_id", "attribute_id")
+        )
+        attribute_ids = {attr_id for _, attr_id in customer_type_attribute_pairs}
+
+        def map_attributes(attributes):
+            attributes = self.filter_attributes(attributes)
+            attributes_map = {attr.id: attr for attr in attributes}
+            customer_type_to_attributes_map = defaultdict(list)
+            for customer_type_id, attr_id in customer_type_attribute_pairs:
+                if attr_id in attributes_map:
+                    # Only add attributes that are in the attributes_map to ensure
+                    # that filtered attributes are respected.
+                    customer_type_to_attributes_map[customer_type_id].append(
+                        attributes_map.get(attr_id)
+                    )
+            return [
+                customer_type_to_attributes_map.get(customer_type_id, [])
+                for customer_type_id in keys
+            ]
+
+        return (
+            AttributesByAttributeId(self.context)
+            .load_many(attribute_ids)
+            .then(map_attributes)
+        )
+
+
+class CustomerAttributesAllByCustomerTypeIdLoader(
+    BaseCustomerAttributesByCustomerTypeIdLoader
+):
+    """Loads all customer attributes by customer type ID."""
+
+    context_key = "customer_attributes_all_by_customertype"
+
+
+class CustomerAttributesVisibleInStorefrontByCustomerTypeIdLoader(
+    BaseCustomerAttributesByCustomerTypeIdLoader
+):
+    """Loads storefront-visible customer attributes by customer type ID."""
+
+    context_key = "customer_attributes_visible_in_storefront_by_customertype"
+
+    @staticmethod
+    def filter_attributes(attributes: list[Attribute]) -> list[Attribute]:
+        return [attr for attr in attributes if attr and attr.visible_in_storefront]
 
 
 class CustomerEventsByUserLoader(DataLoader[str, list[CustomerEvent]]):

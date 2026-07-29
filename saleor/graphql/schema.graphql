@@ -7677,6 +7677,7 @@ input MetadataFilter {
 enum AttributeTypeEnum @doc(category: "Attributes") {
   PRODUCT_TYPE
   PAGE_TYPE
+  CUSTOMER_TYPE
 }
 
 """Where filtering options."""
@@ -14195,6 +14196,40 @@ type CustomerType implements Node & ObjectWithMetadata @doc(category: "Users") {
   Whether this is the default customer type. The default customer type is assigned to every newly created user and cannot be deleted.
   """
   isDefault: Boolean!
+
+  """
+  Customer attributes assigned to this customer type. Attributes that are not visible in the storefront require one of the following permissions to be included: MANAGE_USERS, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  """
+  attributes: [Attribute!]
+
+  """
+  Customer attributes that can be assigned to the customer type.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  """
+  availableAttributes(
+    """Where filtering options for attributes."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
 }
 
 """Represents the app's brand data."""
@@ -21677,7 +21712,7 @@ type Mutation {
   """
   Deletes an attribute.
   
-  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
+  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_DELETED (async): An attribute was deleted.
@@ -21693,7 +21728,7 @@ type Mutation {
   """
   Updates attribute.
   
-  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
+  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
@@ -22615,6 +22650,53 @@ type Mutation {
     """ID of the customer type to delete."""
     id: ID!
   ): CustomerTypeDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_DELETED], syncEvents: [])
+
+  """
+  Assign attributes to a given customer type.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  """
+  customerTypeAssignAttributes(
+    """The IDs of the attributes to assign. Maximum of 100 items."""
+    attributeIds: [ID!]!
+
+    """ID of the customer type to assign the attributes to."""
+    customerTypeId: ID!
+  ): CustomerTypeAssignAttributes @doc(category: "Users")
+
+  """
+  Unassign attributes from a given customer type. Values already assigned to users are kept in the database, but are hidden until the attribute is assigned to the user's customer type again.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  """
+  customerTypeUnassignAttributes(
+    """The IDs of the attributes to unassign. Maximum of 100 items."""
+    attributeIds: [ID!]!
+
+    """
+    ID of the customer type from which the attributes should be unassigned.
+    """
+    customerTypeId: ID!
+  ): CustomerTypeUnassignAttributes @doc(category: "Users")
+
+  """
+  Reorder the attributes of a customer type.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  """
+  customerTypeReorderAttributes(
+    """ID of a customer type."""
+    customerTypeId: ID!
+
+    """The list of attribute reordering operations."""
+    moves: [ReorderInput!]!
+  ): CustomerTypeReorderAttributes @doc(category: "Users")
 
   """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
@@ -32421,7 +32503,7 @@ input AttributeValueCreateInput @doc(category: "Attributes") {
 """
 Deletes an attribute.
 
-Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
+Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_DELETED (async): An attribute was deleted.
@@ -32435,7 +32517,7 @@ type AttributeDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
 """
 Updates attribute.
 
-Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
+Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
@@ -34301,6 +34383,109 @@ type CustomerTypeDeleteError @doc(category: "Users") {
 
 enum CustomerTypeDeleteErrorCode @doc(category: "Users") {
   CANNOT_DELETE_DEFAULT
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Assign attributes to a given customer type.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+"""
+type CustomerTypeAssignAttributes @doc(category: "Users") {
+  """The updated customer type."""
+  customerType: CustomerType
+  errors: [CustomerTypeAssignAttributesError!]!
+}
+
+type CustomerTypeAssignAttributesError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerTypeAssignAttributesErrorCode!
+
+  """List of attributes IDs which causes the error."""
+  attributes: [ID!]
+}
+
+enum CustomerTypeAssignAttributesErrorCode @doc(category: "Users") {
+  ATTRIBUTE_ALREADY_ASSIGNED
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Unassign attributes from a given customer type. Values already assigned to users are kept in the database, but are hidden until the attribute is assigned to the user's customer type again.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+"""
+type CustomerTypeUnassignAttributes @doc(category: "Users") {
+  """The updated customer type."""
+  customerType: CustomerType
+  errors: [CustomerTypeUnassignAttributesError!]!
+}
+
+type CustomerTypeUnassignAttributesError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerTypeUnassignAttributesErrorCode!
+}
+
+enum CustomerTypeUnassignAttributesErrorCode @doc(category: "Users") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Reorder the attributes of a customer type.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+"""
+type CustomerTypeReorderAttributes @doc(category: "Users") {
+  """Customer type from which attributes are reordered."""
+  customerType: CustomerType
+  errors: [CustomerTypeReorderAttributesError!]!
+}
+
+type CustomerTypeReorderAttributesError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerTypeReorderAttributesErrorCode!
+
+  """List of attributes IDs which causes the error."""
+  attributes: [ID!]
+}
+
+enum CustomerTypeReorderAttributesErrorCode @doc(category: "Users") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND

@@ -19,7 +19,11 @@ from ....attribute.lock_objects import (
 )
 from ....core.tracing import traced_atomic_transaction
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
+from ....permission.enums import (
+    CustomerTypePermissions,
+    PageTypePermissions,
+    ProductTypePermissions,
+)
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
@@ -378,9 +382,17 @@ class AttributeBulkUpdate(BaseMutation):
         attribute_data["instance"] = attr
 
         # check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
+        permissions: (
+            tuple[ProductTypePermissions]
+            | tuple[PageTypePermissions]
+            | tuple[CustomerTypePermissions]
+        )
         if attr.type == AttributeTypeEnum.PRODUCT_TYPE.value:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        elif attr.type == AttributeTypeEnum.CUSTOMER_TYPE.value:
+            permissions = (
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+            )
         else:
             permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
 
