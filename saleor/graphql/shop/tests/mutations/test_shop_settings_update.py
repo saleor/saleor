@@ -892,7 +892,7 @@ SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION = """
 
 
 def test_shop_settings_update_sets_allow_storefront_traffic(
-    staff_api_client, site_settings, permission_manage_settings
+    staff_api_client, site_settings, permission_manage_settings, rf
 ):
     # given
     site_settings.allow_storefront_traffic = True
@@ -914,7 +914,7 @@ def test_shop_settings_update_sets_allow_storefront_traffic(
     assert data["shop"]["allowStorefrontTraffic"] is False
     site_settings.refresh_from_db()
     assert site_settings.allow_storefront_traffic is False
-    assert get_allow_storefront_traffic() is False
+    assert get_allow_storefront_traffic(rf.post("/graphql/")) is False
 
 
 @pytest.mark.parametrize(

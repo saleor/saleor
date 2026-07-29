@@ -295,7 +295,9 @@ class ShopSettingsUpdate(BaseMutation):
             # Note: we do not use any locks here as we do not expect any use-case
             #       where this mutation would be called concurrently with different
             #       modes.
-            set_allow_storefront_traffic_cache(instance.allow_storefront_traffic)
+            set_allow_storefront_traffic_cache(
+                instance.allow_storefront_traffic, info.context
+            )
 
         if (
             instance.metadata != old_metadata

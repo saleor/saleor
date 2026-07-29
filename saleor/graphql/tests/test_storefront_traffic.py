@@ -1,10 +1,13 @@
 from types import SimpleNamespace
 
 import pytest
+from django.core.exceptions import ImproperlyConfigured
+from django.test import override_settings
 from jwt import InvalidTokenError
 
 from saleor.core.auth import SALEOR_AUTH_HEADER
 from saleor.graphql.storefront_traffic import (
+    _get_allow_storefront_traffic_cache_key,
     clear_allow_storefront_traffic_cache,
     is_storefront_traffic_blocked,
 )
@@ -132,3 +135,40 @@ def test_unexpected_user_object_is_not_privileged(site_settings):
     # when / then
     with pytest.warns(UserWarning, match="An invalid user object was found"):
         assert is_storefront_traffic_blocked(request) is True
+
+
+def test_cache_key_uses_site_id_when_configured():
+    # given
+    site_id = 7
+    request = SimpleNamespace(get_host=lambda: "ignored.example.com")
+
+    # when / then: the host is irrelevant, the configured site wins
+    with override_settings(SITE_ID=site_id):
+        cache_key = _get_allow_storefront_traffic_cache_key(request)
+    assert cache_key == f"allow_storefront_traffic:{site_id}"
+
+
+def test_cache_key_falls_back_to_host_without_site_id():
+    # given: a multi-tenant deployment serving several sites from one process
+    host = "tenant.example.com"
+    request = SimpleNamespace(get_host=lambda: host)
+
+    # when
+    with override_settings(SITE_ID=None):
+        cache_key = _get_allow_storefront_traffic_cache_key(request)
+
+    # then
+    assert cache_key == f"allow_storefront_traffic:{host}"
+
+
+def test_cache_key_without_site_id_and_without_request():
+    # when / then
+    with (
+        override_settings(SITE_ID=None),
+        pytest.raises(ImproperlyConfigured) as exc_info,
+    ):
+        _get_allow_storefront_traffic_cache_key(None)
+    assert str(exc_info.value) == (
+        "Without settings.SITE_ID the site can only be identified by the request "
+        "host, so a request is required to namespace the storefront traffic cache."
+    )

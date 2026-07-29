@@ -1,55 +1,78 @@
 import warnings
 
 from django.conf import settings
-from django.contrib.sites.models import Site
 from django.core.cache import cache
+from django.core.exceptions import ImproperlyConfigured
 from jwt import InvalidTokenError
 
 from ..account.models import User
 from ..core.auth import get_token_from_request
 from ..site.models import SiteSettings
 from .core import SaleorContext
+from .site.dataloaders import get_site_promise
 
 STOREFRONT_TRAFFIC_ERROR_CODE = "STOREFRONT_TRAFFIC_NOT_ALLOWED"
 STOREFRONT_TRAFFIC_ERROR_MESSAGE = "Storefront traffic is not allowed."
 STOREFRONT_TRAFFIC_CACHE_TIMEOUT = 5 * 60
 
 
-def _get_allow_storefront_traffic_cache_key() -> str:
-    """Build the cache key from ``settings.SITE_ID`` directly.
+def _get_allow_storefront_traffic_cache_key(request: SaleorContext | None) -> str:
+    """Namespace the cache key per site without loading the ``Site``.
 
-    Using ``Site.objects.get_current()`` here would populate the patched,
-    process-global ``THREADED_SITE_CACHE`` on every request. That cache is not
-    invalidated by ``Site``/``SiteSettings`` saves (Django's ``clear_site_cache``
-    signal targets the unused original ``SITE_CACHE``), so it would leak stale
-    site data across requests and tests.
+    Resolves the site the same way ``SiteManager.get_current`` does — by
+    ``settings.SITE_ID`` when it is configured, otherwise by the request host, which
+    is how multi-tenant deployments serve several sites from one process. Both are
+    read straight off the settings/request, so the hot path stays free of queries.
+
+    Calling ``Site.objects.get_current()`` instead would populate the patched,
+    process-global ``THREADED_SITE_CACHE``. That cache is not invalidated by
+    ``Site``/``SiteSettings`` saves (Django's ``clear_site_cache`` signal targets the
+    unused original ``SITE_CACHE``), so it would leak stale site data across requests
+    and tests.
     """
-    site = Site.objects.get_current()
-    return f"allow_storefront_traffic:{site.pk}"
+    if site_id := getattr(settings, "SITE_ID", None):
+        return f"allow_storefront_traffic:{site_id}"
+    if request is None:
+        raise ImproperlyConfigured(
+            "Without settings.SITE_ID the site can only be identified by the request "
+            "host, so a request is required to namespace the storefront traffic cache."
+        )
+    return f"allow_storefront_traffic:{request.get_host()}"
 
 
-def set_allow_storefront_traffic_cache(allow_storefront_traffic: bool) -> None:
+def set_allow_storefront_traffic_cache(
+    allow_storefront_traffic: bool, request: SaleorContext | None = None
+) -> None:
+    """Cache the flag for the request's site.
+
+    ``request`` is only consulted when ``settings.SITE_ID`` is unset, so single-site
+    deployments may omit it.
+    """
     cache.set(
-        _get_allow_storefront_traffic_cache_key(),
+        _get_allow_storefront_traffic_cache_key(request),
         allow_storefront_traffic,
         STOREFRONT_TRAFFIC_CACHE_TIMEOUT,
     )
 
 
-def clear_allow_storefront_traffic_cache() -> None:
-    cache.delete(_get_allow_storefront_traffic_cache_key())
+def clear_allow_storefront_traffic_cache(request: SaleorContext | None = None) -> None:
+    cache.delete(_get_allow_storefront_traffic_cache_key(request))
 
 
-def get_allow_storefront_traffic() -> bool:
-    cache_key = _get_allow_storefront_traffic_cache_key()
+def get_allow_storefront_traffic(request: SaleorContext) -> bool:
+    cache_key = _get_allow_storefront_traffic_cache_key(request)
     allow_storefront_traffic = cache.get(cache_key)
     if allow_storefront_traffic is None:
+        # Only on a cache miss. The dataloader resolves the site exactly like
+        # `get_current` (SITE_ID, else host with a port-stripping fallback) but keeps
+        # the result on the request instead of the process-global site cache.
+        site = get_site_promise(request).get()
         allow_storefront_traffic = (
             SiteSettings.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             .values_list("allow_storefront_traffic", flat=True)
-            .get(site=Site.objects.get_current())
+            .get(site_id=site.pk)
         )
-        set_allow_storefront_traffic_cache(allow_storefront_traffic)
+        set_allow_storefront_traffic_cache(allow_storefront_traffic, request)
     return allow_storefront_traffic
 
 
@@ -101,6 +124,6 @@ def is_storefront_traffic_blocked(request: SaleorContext) -> bool:
     """
     if request.app:
         return False
-    if get_allow_storefront_traffic():
+    if get_allow_storefront_traffic(request):
         return False
     return not _is_staff_user(request)

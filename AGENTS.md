@@ -25,6 +25,20 @@ many processes at once. Write code with that in mind:
 - **Make tasks idempotent and safe to retry** — the broker may deliver a task more than once, and pods
   can be killed/rescheduled mid-run.
 
+## Multi-tenancy: never assume one site
+
+A deployment may serve **several sites from one process**, so `settings.SITE_ID` can be unset. Code
+that needs the current site must resolve it the way `SiteManager.get_current` does — `settings.SITE_ID`
+when configured, otherwise `request.get_host()` — and must never bake a single site into a cache key,
+a module global, or a query filter. Anything keyed per site (cache entries, in-memory maps) must carry
+the site in the key, or one tenant will read another's data.
+
+Resolve the site with the `get_site_promise` dataloader rather than `Site.objects.get_current()`: the
+latter populates the patched, process-global `THREADED_SITE_CACHE` (`saleor/site/patch_sites.py`),
+which is never invalidated by `Site`/`SiteSettings` saves, so a later read in the same process returns
+stale data. Prefer deriving a cache key from `SITE_ID`/host (no query) over loading the `Site` on every
+request.
+
 ## Graphql
 
 ###  API versioning
