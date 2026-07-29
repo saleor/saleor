@@ -930,5 +930,5 @@ def test_shop_settings_update_allow_storefront_traffic_requires_permission(
 
     # then
     assert_no_permission(response)
-    site_settings.refresh_from_db()
+    site_settings.refresh_from_db(fields=("allow_storefront_traffic",))
     assert site_settings.allow_storefront_traffic is True

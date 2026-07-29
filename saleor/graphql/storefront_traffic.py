@@ -23,7 +23,8 @@ def _get_allow_storefront_traffic_cache_key() -> str:
     signal targets the unused original ``SITE_CACHE``), so it would leak stale
     site data across requests and tests.
     """
-    return f"allow_storefront_traffic:{settings.SITE_ID}"
+    site = Site.objects.get_current()
+    return f"allow_storefront_traffic:{site.pk}"
 
 
 def set_allow_storefront_traffic_cache(allow_storefront_traffic: bool) -> None:
@@ -45,7 +46,7 @@ def get_allow_storefront_traffic() -> bool:
         allow_storefront_traffic = (
             SiteSettings.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
             .values_list("allow_storefront_traffic", flat=True)
-            .get(site_id=settings.SITE_ID)
+            .get(site=Site.objects.get_current())
         )
         set_allow_storefront_traffic_cache(allow_storefront_traffic)
     return allow_storefront_traffic
@@ -70,6 +71,8 @@ def _is_privileged(request: SaleorContext) -> bool:
         user = request.user
         if not user:
             return False
+    # Needed because Saleor implicitly authenticates the user when
+    # access the property `.user` (magic)
     except InvalidTokenError:
         return False
 
