@@ -22622,13 +22622,13 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
   """
-  customerAttributeAssign(
+  customerTypeAssignAttributes(
     """The IDs of the attributes to assign. Maximum of 100 items."""
     attributeIds: [ID!]!
 
     """ID of the customer type to assign the attributes to."""
     customerTypeId: ID!
-  ): CustomerAttributeAssign @doc(category: "Users")
+  ): CustomerTypeAssignAttributes @doc(category: "Users")
 
   """
   Unassign attributes from a given customer type. Values already assigned to users are kept in the database, but are hidden until the attribute is assigned to the user's customer type again.
@@ -22637,7 +22637,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
   """
-  customerAttributeUnassign(
+  customerTypeUnassignAttributes(
     """The IDs of the attributes to unassign. Maximum of 100 items."""
     attributeIds: [ID!]!
 
@@ -22645,7 +22645,7 @@ type Mutation {
     ID of the customer type from which the attributes should be unassigned.
     """
     customerTypeId: ID!
-  ): CustomerAttributeUnassign @doc(category: "Users")
+  ): CustomerTypeUnassignAttributes @doc(category: "Users")
 
   """
   Reorder the attributes of a customer type.
@@ -34339,13 +34339,13 @@ Added in Saleor 3.23.
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
 """
-type CustomerAttributeAssign @doc(category: "Users") {
+type CustomerTypeAssignAttributes @doc(category: "Users") {
   """The updated customer type."""
   customerType: CustomerType
-  errors: [CustomerAttributeAssignError!]!
+  errors: [CustomerTypeAssignAttributesError!]!
 }
 
-type CustomerAttributeAssignError @doc(category: "Users") {
+type CustomerTypeAssignAttributesError @doc(category: "Users") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -34355,13 +34355,13 @@ type CustomerAttributeAssignError @doc(category: "Users") {
   message: String
 
   """The error code."""
-  code: CustomerAttributeAssignErrorCode!
+  code: CustomerTypeAssignAttributesErrorCode!
 
   """List of attributes IDs which causes the error."""
   attributes: [ID!]
 }
 
-enum CustomerAttributeAssignErrorCode @doc(category: "Users") {
+enum CustomerTypeAssignAttributesErrorCode @doc(category: "Users") {
   ATTRIBUTE_ALREADY_ASSIGNED
   GRAPHQL_ERROR
   INVALID
@@ -34375,13 +34375,13 @@ Added in Saleor 3.23.
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
 """
-type CustomerAttributeUnassign @doc(category: "Users") {
+type CustomerTypeUnassignAttributes @doc(category: "Users") {
   """The updated customer type."""
   customerType: CustomerType
-  errors: [CustomerAttributeUnassignError!]!
+  errors: [CustomerTypeUnassignAttributesError!]!
 }
 
-type CustomerAttributeUnassignError @doc(category: "Users") {
+type CustomerTypeUnassignAttributesError @doc(category: "Users") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -34391,10 +34391,10 @@ type CustomerAttributeUnassignError @doc(category: "Users") {
   message: String
 
   """The error code."""
-  code: CustomerAttributeUnassignErrorCode!
+  code: CustomerTypeUnassignAttributesErrorCode!
 }
 
-enum CustomerAttributeUnassignErrorCode @doc(category: "Users") {
+enum CustomerTypeUnassignAttributesErrorCode @doc(category: "Users") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND

@@ -6,7 +6,7 @@ from ....attribute.types import Attribute
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_USERS
-from ....core.enums import CustomerAttributeUnassignErrorCode
+from ....core.enums import CustomerTypeUnassignAttributesErrorCode
 from ....core.mutations import BaseMutation
 from ....core.types import Error, NonNullList
 from ....utils import resolve_global_ids_to_primary_keys
@@ -15,8 +15,8 @@ from ...types import CustomerType
 ATTRIBUTES_LIMIT = 100
 
 
-class CustomerAttributeUnassignError(Error):
-    code = CustomerAttributeUnassignErrorCode(
+class CustomerTypeUnassignAttributesError(Error):
+    code = CustomerTypeUnassignAttributesErrorCode(
         description="The error code.", required=True
     )
 
@@ -24,7 +24,7 @@ class CustomerAttributeUnassignError(Error):
         doc_category = DOC_CATEGORY_USERS
 
 
-class CustomerAttributeUnassign(BaseMutation):
+class CustomerTypeUnassignAttributes(BaseMutation):
     customer_type = graphene.Field(
         CustomerType, description="The updated customer type."
     )
@@ -54,7 +54,7 @@ class CustomerAttributeUnassign(BaseMutation):
             + ADDED_IN_323
         )
         doc_category = DOC_CATEGORY_USERS
-        error_type_class = CustomerAttributeUnassignError
+        error_type_class = CustomerTypeUnassignAttributesError
         permissions = (CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,)
 
     @classmethod
@@ -67,7 +67,7 @@ class CustomerAttributeUnassign(BaseMutation):
                     "attribute_ids": ValidationError(
                         f"Cannot unassign more than {ATTRIBUTES_LIMIT} attributes "
                         "in a single mutation.",
-                        code=CustomerAttributeUnassignErrorCode.INVALID.value,
+                        code=CustomerTypeUnassignAttributesErrorCode.INVALID.value,
                     )
                 }
             )

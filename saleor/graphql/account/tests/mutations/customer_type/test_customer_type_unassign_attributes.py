@@ -1,13 +1,13 @@
 import graphene
 
-from ......account.error_codes import CustomerAttributeUnassignErrorCode
+from ......account.error_codes import CustomerTypeUnassignAttributesErrorCode
 from .....tests.utils import assert_no_permission, get_graphql_content
 
-CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION = """
-    mutation CustomerAttributeUnassign(
+CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION = """
+    mutation CustomerTypeUnassignAttributes(
         $customerTypeId: ID!, $attributeIds: [ID!]!
     ) {
-        customerAttributeUnassign(
+        customerTypeUnassignAttributes(
             customerTypeId: $customerTypeId, attributeIds: $attributeIds
         ) {
             customerType {
@@ -49,12 +49,12 @@ def test_unassign_by_staff(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeUnassign"]
+    data = content["data"]["customerTypeUnassignAttributes"]
     assert data["errors"] == []
     assert [attr["slug"] for attr in data["customerType"]["attributes"]] == [
         segment_customer_attribute.slug
@@ -80,12 +80,12 @@ def test_unassign_by_app(
 
     # when
     response = app_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeUnassign"]
+    data = content["data"]["customerTypeUnassignAttributes"]
     assert data["errors"] == []
     assert customer_type.customer_attributes.count() == 0
 
@@ -104,7 +104,7 @@ def test_unassign_by_staff_no_permission(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
@@ -133,12 +133,12 @@ def test_unassign_keeps_attribute_values(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeUnassign"]
+    data = content["data"]["customerTypeUnassignAttributes"]
     assert data["errors"] == []
     loyalty_customer_attribute.refresh_from_db()
     assert loyalty_customer_attribute.values.count() == values_count
@@ -165,16 +165,16 @@ def test_unassign_more_than_limit(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeUnassign"]
+    data = content["data"]["customerTypeUnassignAttributes"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributeIds"
-    assert error["code"] == CustomerAttributeUnassignErrorCode.INVALID.name
+    assert error["code"] == CustomerTypeUnassignAttributesErrorCode.INVALID.name
     assert (
         error["message"]
         == "Cannot unassign more than 100 attributes in a single mutation."

@@ -11,7 +11,7 @@ from ....attribute.types import Attribute
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_USERS
-from ....core.enums import CustomerAttributeAssignErrorCode
+from ....core.enums import CustomerTypeAssignAttributesErrorCode
 from ....core.mutations import BaseMutation
 from ....core.types import Error, NonNullList
 from ...types import CustomerType
@@ -19,8 +19,8 @@ from ...types import CustomerType
 ATTRIBUTES_LIMIT = 100
 
 
-class CustomerAttributeAssignError(Error):
-    code = CustomerAttributeAssignErrorCode(
+class CustomerTypeAssignAttributesError(Error):
+    code = CustomerTypeAssignAttributesErrorCode(
         description="The error code.", required=True
     )
     attributes = NonNullList(
@@ -33,7 +33,7 @@ class CustomerAttributeAssignError(Error):
         doc_category = DOC_CATEGORY_USERS
 
 
-class CustomerAttributeAssign(BaseMutation):
+class CustomerTypeAssignAttributes(BaseMutation):
     customer_type = graphene.Field(
         CustomerType, description="The updated customer type."
     )
@@ -55,7 +55,7 @@ class CustomerAttributeAssign(BaseMutation):
     class Meta:
         description = "Assign attributes to a given customer type." + ADDED_IN_323
         doc_category = DOC_CATEGORY_USERS
-        error_type_class = CustomerAttributeAssignError
+        error_type_class = CustomerTypeAssignAttributesError
         permissions = (CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,)
 
     @classmethod
@@ -80,7 +80,7 @@ class CustomerAttributeAssign(BaseMutation):
             ]
             error = ValidationError(
                 "Some of the attributes do not exist.",
-                code=CustomerAttributeAssignErrorCode.NOT_FOUND.value,
+                code=CustomerTypeAssignAttributesErrorCode.NOT_FOUND.value,
                 params={"attributes": missing_attributes_ids},
             )
             errors["attribute_ids"].append(error)
@@ -93,7 +93,7 @@ class CustomerAttributeAssign(BaseMutation):
         if invalid_attributes_ids:
             error = ValidationError(
                 "Only customer attributes can be assigned.",
-                code=CustomerAttributeAssignErrorCode.INVALID.value,
+                code=CustomerTypeAssignAttributesErrorCode.INVALID.value,
                 params={"attributes": invalid_attributes_ids},
             )
             errors["attribute_ids"].append(error)
@@ -112,7 +112,7 @@ class CustomerAttributeAssign(BaseMutation):
             error = ValidationError(
                 "Some of the attributes have been already assigned to this "
                 "customer type.",
-                code=CustomerAttributeAssignErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.value,
+                code=CustomerTypeAssignAttributesErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.value,
                 params={"attributes": assigned_attributes_ids},
             )
             errors["attribute_ids"].append(error)
@@ -127,7 +127,7 @@ class CustomerAttributeAssign(BaseMutation):
                     "attribute_ids": ValidationError(
                         f"Cannot assign more than {ATTRIBUTES_LIMIT} attributes "
                         "in a single mutation.",
-                        code=CustomerAttributeAssignErrorCode.INVALID.value,
+                        code=CustomerTypeAssignAttributesErrorCode.INVALID.value,
                     )
                 }
             )

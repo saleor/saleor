@@ -233,15 +233,15 @@ CustomerBulkUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 CustomerBulkUpdateErrorCode.doc_category = DOC_CATEGORY_USERS
 
-CustomerAttributeAssignErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    account_error_codes.CustomerAttributeAssignErrorCode
+CustomerTypeAssignAttributesErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeAssignAttributesErrorCode
 )
-CustomerAttributeAssignErrorCode.doc_category = DOC_CATEGORY_USERS
+CustomerTypeAssignAttributesErrorCode.doc_category = DOC_CATEGORY_USERS
 
-CustomerAttributeUnassignErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    account_error_codes.CustomerAttributeUnassignErrorCode
+CustomerTypeUnassignAttributesErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeUnassignAttributesErrorCode
 )
-CustomerAttributeUnassignErrorCode.doc_category = DOC_CATEGORY_USERS
+CustomerTypeUnassignAttributesErrorCode.doc_category = DOC_CATEGORY_USERS
 
 CustomerTypeCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     account_error_codes.CustomerTypeCreateErrorCode

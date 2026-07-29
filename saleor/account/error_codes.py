@@ -77,14 +77,14 @@ class CustomerTypeDeleteErrorCode(Enum):
     NOT_FOUND = "not_found"
 
 
-class CustomerAttributeAssignErrorCode(Enum):
+class CustomerTypeAssignAttributesErrorCode(Enum):
     ATTRIBUTE_ALREADY_ASSIGNED = "attribute_already_assigned"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
 
 
-class CustomerAttributeUnassignErrorCode(Enum):
+class CustomerTypeUnassignAttributesErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"

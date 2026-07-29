@@ -1,14 +1,14 @@
 import graphene
 
-from ......account.error_codes import CustomerAttributeAssignErrorCode
+from ......account.error_codes import CustomerTypeAssignAttributesErrorCode
 from ......attribute.models import AttributeCustomerType
 from .....tests.utils import assert_no_permission, get_graphql_content
 
-CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION = """
-    mutation CustomerAttributeAssign(
+CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION = """
+    mutation CustomerTypeAssignAttributes(
         $customerTypeId: ID!, $attributeIds: [ID!]!
     ) {
-        customerAttributeAssign(
+        customerTypeAssignAttributes(
             customerTypeId: $customerTypeId, attributeIds: $attributeIds
         ) {
             customerType {
@@ -49,12 +49,12 @@ def test_assign_by_staff(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert data["errors"] == []
     assert [attr["slug"] for attr in data["customerType"]["attributes"]] == [
         loyalty_customer_attribute.slug
@@ -80,12 +80,12 @@ def test_assign_by_app(
 
     # when
     response = app_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert data["errors"] == []
     assert customer_type.customer_attributes.get() == loyalty_customer_attribute
 
@@ -103,7 +103,7 @@ def test_assign_by_staff_no_permission(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
@@ -129,16 +129,16 @@ def test_assign_not_customer_attribute(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributeIds"
-    assert error["code"] == CustomerAttributeAssignErrorCode.INVALID.name
+    assert error["code"] == CustomerTypeAssignAttributesErrorCode.INVALID.name
     assert error["message"] == "Only customer attributes can be assigned."
     assert error["attributes"] == [attribute_id]
     assert customer_type.customer_attributes.count() == 0
@@ -165,18 +165,18 @@ def test_assign_attribute_already_assigned(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributeIds"
     assert (
         error["code"]
-        == CustomerAttributeAssignErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name
+        == CustomerTypeAssignAttributesErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name
     )
     assert error["attributes"] == [attribute_id]
 
@@ -200,16 +200,16 @@ def test_assign_invalid_object_type_as_customer_type_id(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "customerTypeId"
-    assert error["code"] == CustomerAttributeAssignErrorCode.GRAPHQL_ERROR.name
+    assert error["code"] == CustomerTypeAssignAttributesErrorCode.GRAPHQL_ERROR.name
 
 
 def test_assign_more_than_limit(
@@ -231,16 +231,16 @@ def test_assign_more_than_limit(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributeIds"
-    assert error["code"] == CustomerAttributeAssignErrorCode.INVALID.name
+    assert error["code"] == CustomerTypeAssignAttributesErrorCode.INVALID.name
     assert (
         error["message"]
         == "Cannot assign more than 100 attributes in a single mutation."
@@ -268,12 +268,12 @@ def test_assign_sets_sort_order(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert data["errors"] == []
     assignments = AttributeCustomerType.objects.filter(customer_type=customer_type)
     assert assignments.count() == 2
@@ -300,16 +300,16 @@ def test_assign_nonexistent_attribute(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributeIds"
-    assert error["code"] == CustomerAttributeAssignErrorCode.NOT_FOUND.name
+    assert error["code"] == CustomerTypeAssignAttributesErrorCode.NOT_FOUND.name
     assert error["message"] == "Some of the attributes do not exist."
     assert error["attributes"] == [attribute_id]
     assert customer_type.customer_attributes.count() == 0
@@ -336,16 +336,16 @@ def test_assign_nonexistent_attribute_does_not_assign_valid_ones(
 
     # when
     response = staff_api_client.post_graphql(
-        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+        CUSTOMER_TYPE_ASSIGN_ATTRIBUTES_MUTATION, variables
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["customerAttributeAssign"]
+    data = content["data"]["customerTypeAssignAttributes"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
     assert error["field"] == "attributeIds"
-    assert error["code"] == CustomerAttributeAssignErrorCode.NOT_FOUND.name
+    assert error["code"] == CustomerTypeAssignAttributesErrorCode.NOT_FOUND.name
     assert error["message"] == "Some of the attributes do not exist."
     assert error["attributes"] == [missing_attribute_id]
     assert customer_type.customer_attributes.count() == 0
