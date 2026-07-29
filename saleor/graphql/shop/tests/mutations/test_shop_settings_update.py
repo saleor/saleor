@@ -917,14 +917,23 @@ def test_shop_settings_update_sets_allow_storefront_traffic(
     assert get_allow_storefront_traffic() is False
 
 
+@pytest.mark.parametrize(
+    ("_case", "client_fixture"),
+    [
+        ("staff_without_permission", "staff_api_client"),
+        ("anonymous", "api_client"),
+    ],
+)
 def test_shop_settings_update_allow_storefront_traffic_requires_permission(
-    staff_api_client, site_settings
+    _case, client_fixture, request, site_settings
 ):
     # given: no MANAGE_SETTINGS granted
+    assert site_settings.allow_storefront_traffic is True
     variables = {"input": {"allowStorefrontTraffic": False}}
+    client = request.getfixturevalue(client_fixture)
 
     # when
-    response = staff_api_client.post_graphql(
+    response = client.post_graphql(
         SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION, variables
     )
 
