@@ -180,3 +180,37 @@ def test_unassign_more_than_limit(
         == "Cannot unassign more than 100 attributes in a single mutation."
     )
     assert customer_type.customer_attributes.get() == loyalty_customer_attribute
+
+
+def test_unassign_ignores_nonexistent_and_unassigned_attributes(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+    loyalty_customer_attribute,
+    segment_customer_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    customer_type.customer_attributes.add(loyalty_customer_attribute)
+    variables = {
+        "customerTypeId": graphene.Node.to_global_id("CustomerType", customer_type.pk),
+        "attributeIds": [
+            graphene.Node.to_global_id("Attribute", loyalty_customer_attribute.pk),
+            graphene.Node.to_global_id("Attribute", segment_customer_attribute.pk),
+            graphene.Node.to_global_id("Attribute", -1),
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerTypeUnassignAttributes"]
+    assert data["errors"] == []
+    assert data["customerType"]["attributes"] == []
+    assert customer_type.customer_attributes.exists() is False
