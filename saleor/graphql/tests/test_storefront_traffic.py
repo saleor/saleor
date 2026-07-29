@@ -98,6 +98,7 @@ def test_invalid_token_user_resolution(
 ):
     # given: evaluating request.user raises for an invalid/stale token
     _set_allow_storefront_traffic(site_settings, allow_storefront_traffic)
+    user_reads = []
 
     class Request:
         app = None
@@ -105,10 +106,17 @@ def test_invalid_token_user_resolution(
 
         @property
         def user(self):
+            user_reads.append(True)
             raise InvalidTokenError("Invalid token.")
 
-    # when / then
-    assert is_storefront_traffic_blocked(Request()) is expected_blocked
+    # when
+    blocked = is_storefront_traffic_blocked(Request())
+
+    # then
+    assert blocked is expected_blocked
+    # Without this the expected result could also be reached by never reading
+    # `.user`, leaving the InvalidTokenError branch untested.
+    assert len(user_reads) == 1
 
 
 def test_unexpected_user_object_is_not_privileged(site_settings):
