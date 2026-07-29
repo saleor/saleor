@@ -1286,6 +1286,57 @@ def test_customers_bulk_update_with_attribute_not_in_customer_type(
     assert not AssignedUserAttributeValue.objects.filter(user=customer).exists()
 
 
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+def test_customers_bulk_update_with_only_attributes_triggers_customer_updated(
+    mocked_customer_updated,
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    default_customer_type,
+):
+    # given: input carrying only attributes, so no other change can
+    # trigger the customer_updated webhook
+    customer = customer_users[0]
+    customer.customer_type = customer_type_with_attributes
+    customer.save(update_fields=["customer_type"])
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    customers_input = [
+        {
+            "id": graphene.Node.to_global_id("User", customer.pk),
+            "input": {
+                "attributes": [
+                    {
+                        "id": graphene.Node.to_global_id(
+                            "Attribute", loyalty_customer_attribute.pk
+                        ),
+                        "dropdown": {
+                            "id": graphene.Node.to_global_id("AttributeValue", value.pk)
+                        },
+                    }
+                ],
+            },
+        }
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assigned_values = AssignedUserAttributeValue.objects.filter(user=customer)
+    assert assigned_values.get().value == value
+    mocked_customer_updated.assert_called_once_with(customer, webhooks=ANY)
+
+
 def test_customers_bulk_update_with_invalid_customer_type_id(
     staff_api_client,
     customer_users,
