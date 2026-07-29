@@ -12,7 +12,6 @@ from ....attribute import models as attribute_models
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page import models as page_models
-from ....page.error_codes import PageErrorCode
 from ....product import models as product_models
 from ....product.error_codes import ProductErrorCode
 from ...core.utils import from_global_id_or_error
@@ -125,13 +124,9 @@ class AttributeAssignmentMixin:
         raw_input: list[dict],
         attributes_qs: "QuerySet",
         creation: bool = True,
-        is_page_attributes: bool = False,
-        error_class=None,
+        error_class=ProductErrorCode,
     ) -> T_INPUT_MAP:
         """Resolve, validate, and prepare attribute input."""
-        if error_class is None:
-            error_class = PageErrorCode if is_page_attributes else ProductErrorCode
-
         id_to_values_input_map, ext_ref_to_values_input_map = (
             cls._prepare_attribute_input_maps(raw_input, error_class)
         )
