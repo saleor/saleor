@@ -87,14 +87,19 @@ def test_user_traffic(
 
 
 @pytest.mark.parametrize(
-    ("_case", "allow_storefront_traffic", "expected_blocked"),
+    ("_case", "allow_storefront_traffic", "expected_blocked", "expected_user_reads"),
     [
-        ("enabled", True, False),
-        ("disabled", False, True),
+        # The flag alone settles the allowed case, so the user is never resolved.
+        ("enabled", True, False, 0),
+        ("disabled", False, True, 1),
     ],
 )
 def test_invalid_token_user_resolution(
-    _case, allow_storefront_traffic, expected_blocked, site_settings
+    _case,
+    allow_storefront_traffic,
+    expected_blocked,
+    expected_user_reads,
+    site_settings,
 ):
     # given: evaluating request.user raises for an invalid/stale token
     _set_allow_storefront_traffic(site_settings, allow_storefront_traffic)
@@ -116,7 +121,7 @@ def test_invalid_token_user_resolution(
     assert blocked is expected_blocked
     # Without this the expected result could also be reached by never reading
     # `.user`, leaving the InvalidTokenError branch untested.
-    assert len(user_reads) == 1
+    assert len(user_reads) == expected_user_reads
 
 
 def test_unexpected_user_object_is_not_privileged(site_settings):

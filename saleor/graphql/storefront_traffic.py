@@ -53,27 +53,27 @@ def get_allow_storefront_traffic() -> bool:
     return allow_storefront_traffic
 
 
-def _is_privileged(request: SaleorContext) -> bool:
-    if request.app:
-        return True
+def _is_staff_user(request: SaleorContext) -> bool:
+    """Resolve the request's user and report whether it is a staff member.
 
+    ``get_context_value`` only binds ``request.user`` as a ``SimpleLazyObject``, so
+    reading it here is what actually runs the authentication stack (a JWT decode plus
+    a database read). Call this last, once the cheaper checks have failed to settle
+    the decision on their own.
+    """
     if not get_token_from_request(request):
-        # Anonymous request (no credentials): it can never be privileged, so we
-        # avoid resolving `request.user`, which would run the (expensive)
-        # authentication stack — a per-request cost on the storefront hot path.
+        # No credentials at all, so there is no user to resolve.
         return False
 
     try:
-        # Needed because Saleor implicitly authenticates the user when
-        # accessing the property `.user` (magic). `request.user` is a
-        # SimpleLazyObject, so the assignment does not authenticate — the first
-        # access does. Force it inside this try (via `if not user`) so the
-        # implicit auth and any InvalidTokenError it raises are caught here.
+        # Needed because Saleor implicitly authenticates the user when accessing the
+        # property `.user` (magic). Binding the SimpleLazyObject does not
+        # authenticate — the first attribute access does. Force it inside this try
+        # (via `if not user`) so the implicit auth and any InvalidTokenError it
+        # raises are caught here.
         user = request.user
         if not user:
             return False
-    # Needed because Saleor implicitly authenticates the user when
-    # access the property `.user` (magic)
     except InvalidTokenError:
         return False
 
@@ -93,11 +93,14 @@ def is_storefront_traffic_blocked(request: SaleorContext) -> bool:
     App-authenticated and staff-user requests may always call the API directly.
     Other requests follow the cached shop setting.
 
-    ``_is_privileged`` is checked first: the view already resolves and caches the
-    app/user via ``get_context_value`` before this guard runs, so the check is
-    cheap and lets privileged requests skip the storefront-setting cache/DB
-    lookup entirely.
+    The checks run cheapest first. ``request.app`` is already resolved by
+    ``get_context_value``, so reading it is free. The shop setting is a cached
+    lookup. Only when traffic is actually disabled do we resolve ``request.user``
+    and pay for authentication — on the common path, where traffic is allowed, that
+    cost is never incurred.
     """
-    if _is_privileged(request):
+    if request.app:
         return False
-    return not get_allow_storefront_traffic()
+    if get_allow_storefront_traffic():
+        return False
+    return not _is_staff_user(request)
