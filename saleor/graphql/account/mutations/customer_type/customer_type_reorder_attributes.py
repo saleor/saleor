@@ -58,9 +58,7 @@ class CustomerTypeReorderAttributes(BaseReorderAttributesMutation):
         )
 
         try:
-            customer_type = models.CustomerType.objects.prefetch_related(
-                "attributecustomertype"
-            ).get(pk=pk)
+            customer_type = models.CustomerType.objects.get(pk=pk)
         except ObjectDoesNotExist as e:
             raise ValidationError(
                 {

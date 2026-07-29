@@ -38,9 +38,11 @@ def test_reorder_by_staff(
     staff_api_client.user.user_permissions.add(
         permission_manage_customer_types_and_attributes
     )
-    customer_type.customer_attributes.add(
-        loyalty_customer_attribute, segment_customer_attribute
-    )
+    # Two separate calls to make the insertion order (and thus the initial
+    # NULL-sort_order ordering, which falls back to pk) deterministic -
+    # a single add() iterates an unordered set of target ids internally.
+    customer_type.customer_attributes.add(loyalty_customer_attribute)
+    customer_type.customer_attributes.add(segment_customer_attribute)
     assigned_slugs = [
         assignment.attribute.slug
         for assignment in AttributeCustomerType.objects.filter(
@@ -104,6 +106,8 @@ def test_reorder_by_staff_no_permission(
 
     # then
     assert_no_permission(response)
+    assignment = AttributeCustomerType.objects.get(customer_type=customer_type)
+    assert assignment.sort_order is None
 
 
 def test_reorder_invalid_customer_type(
