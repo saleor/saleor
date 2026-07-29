@@ -367,7 +367,11 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 )
             lookup |= single_customer_lookup
 
-        customers = models.User.objects.customers().filter(lookup)
+        customers = (
+            models.User.objects.customers()
+            .filter(lookup)
+            .select_related("customer_type")
+        )
         return list(customers)
 
     @classmethod
@@ -397,6 +401,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     def update_customers(cls, info, cleaned_inputs_map, index_error_map):
         instances_data_and_errors_list: list = []
         customers_list = cls.get_customers(cleaned_inputs_map)
+        default_customer_type = None
 
         for index, cleaned_input in cleaned_inputs_map.items():
             if not cleaned_input:
@@ -435,11 +440,13 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     if attributes_input:
                         # Validate the values against the customer type the
                         # user ends up with.
-                        customer_type = (
-                            new_instance.customer_type
-                            if new_instance.customer_type_id
-                            else get_default_customer_type()
-                        )
+                        if new_instance.customer_type_id:
+                            customer_type = new_instance.customer_type
+                        else:
+                            if default_customer_type is None:
+                                default_customer_type = get_default_customer_type()
+                            customer_type = default_customer_type
+
                         try:
                             cleaned_attributes = BaseCustomerCreate.clean_attributes(
                                 attributes_input, customer_type, creation=False
