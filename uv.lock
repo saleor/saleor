@@ -250,18 +250,6 @@ wheels = [
 ]
 
 [[package]]
-name = "braintree"
-version = "4.31.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c4/0b/aa7b9074d0758165953ef6c62a96aacec888fd57138e0eb3f25be9515e67/braintree-4.31.0.tar.gz", hash = "sha256:de383469ae0f824efba7e2d726c13927090d6a9305e1c49de1cb258b2868d43d", size = 103599, upload-time = "2024-10-29T17:31:57.906Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/88/9397720744fc5f795eebbdbd3dd25daa394c31423929026626d22f85fb2d/braintree-4.31.0-py2.py3-none-any.whl", hash = "sha256:426011f92418703809007f387c3ce13b03535ad6f67244171ff2b417369e3693", size = 149758, upload-time = "2024-10-29T17:31:56.269Z" },
-]
-
-[[package]]
 name = "cachetools"
 version = "5.5.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1124,11 +1112,11 @@ wheels = [
 
 [[package]]
 name = "idna"
-version = "3.17"
+version = "3.18"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b9/28/99c51f664567218d824af024c0251650fb27e4ca066df188dab0769c5b91/idna-3.17.tar.gz", hash = "sha256:5eb0cb53bc467c12eadcf6de83163ad8527cec9416f44b9b61b19caedad2b87f", size = 196048, upload-time = "2026-05-28T14:32:38.55Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/63/9496c57188a2ee585e0f1db071d75089a11e98aa86eb99d9d7618fc1edce/idna-3.18.tar.gz", hash = "sha256:ffb385a7e039654cef1ab9ef32c6fafe283c0c0467bba1d9029738ce4a14a848", size = 196711, upload-time = "2026-06-02T14:34:07.794Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/a7/f76514cc40ad6234098ecdebda08732d75964776c51a42845b7da10649e2/idna-3.17-py3-none-any.whl", hash = "sha256:466e48829084efe2548012b855df21540b96f2e20e51bd124c851536556a592c", size = 65316, upload-time = "2026-05-28T14:32:37.035Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl", hash = "sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2", size = 65455, upload-time = "2026-06-02T14:34:06.319Z" },
 ]
 
 [[package]]
@@ -1317,11 +1305,11 @@ wheels = [
 
 [[package]]
 name = "markdown"
-version = "3.9"
+version = "3.10.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8d/37/02347f6d6d8279247a5837082ebc26fc0d5aaeaf75aa013fcbb433c777ab/markdown-3.9.tar.gz", hash = "sha256:d2900fe1782bd33bdbbd56859defef70c2e78fc46668f8eb9df3128138f2cb6a", size = 364585, upload-time = "2025-09-04T20:25:22.885Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/f4/69fa6ed85ae003c2378ffa8f6d2e3234662abd02c10d216c0ba96081a238/markdown-3.10.2.tar.gz", hash = "sha256:994d51325d25ad8aa7ce4ebaec003febcce822c3f8c911e3b17c52f7f589f950", size = 368805, upload-time = "2026-02-09T14:57:26.942Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/70/ae/44c4a6a4cbb496d93c6257954260fe3a6e91b7bed2240e5dad2a717f5111/markdown-3.9-py3-none-any.whl", hash = "sha256:9f4d91ed810864ea88a6f32c07ba8bee1346c0cc1f6b1f9f6c822f2a9667d280", size = 107441, upload-time = "2025-09-04T20:25:21.784Z" },
+    { url = "https://files.pythonhosted.org/packages/de/1f/77fa3081e4f66ca3576c896ae5d31c3002ac6607f9747d2e3aa49227e464/markdown-3.10.2-py3-none-any.whl", hash = "sha256:e91464b71ae3ee7afd3017d9f358ef0baf158fd9a298db92f1d4761133824c36", size = 108180, upload-time = "2026-02-09T14:57:25.787Z" },
 ]
 
 [[package]]
@@ -2356,18 +2344,6 @@ wheels = [
 ]
 
 [[package]]
-name = "razorpay"
-version = "1.4.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/97/fb/14d5baeffc5b812775bc34cb7d416aa090be6f5779c04aaf45d2ba17458b/razorpay-1.4.2.tar.gz", hash = "sha256:0d812030ba29e776e66d1ceaacc31635810fde18b66ff2591e582eb651bb5131", size = 194335, upload-time = "2024-03-19T12:12:08.904Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e9/3d/07a25e3c6f3d65a319da30300f055d946860e90f705c05bb39524dc46f30/razorpay-1.4.2-py3-none-any.whl", hash = "sha256:aaf525baebc5001e5c54ae317a372c3c17c81314cedcbbf71aa0a2d3419a9757", size = 174302, upload-time = "2024-03-19T12:12:06.883Z" },
-]
-
-[[package]]
 name = "redis"
 version = "5.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2497,7 +2473,6 @@ dependencies = [
     { name = "babel", marker = "platform_python_implementation != 'PyPy'" },
     { name = "boto3", marker = "platform_python_implementation != 'PyPy'" },
     { name = "botocore", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "braintree", marker = "platform_python_implementation != 'PyPy'" },
     { name = "celery", extra = ["redis", "sqs"], marker = "platform_python_implementation != 'PyPy'" },
     { name = "cryptography", marker = "platform_python_implementation != 'PyPy'" },
     { name = "dj-database-url", marker = "platform_python_implementation != 'PyPy'" },
@@ -2548,7 +2523,6 @@ dependencies = [
     { name = "python-magic", marker = "platform_python_implementation != 'PyPy' and sys_platform != 'win32'" },
     { name = "python-magic-bin", marker = "platform_python_implementation != 'PyPy' and sys_platform == 'win32'" },
     { name = "pytimeparse", marker = "platform_python_implementation != 'PyPy'" },
-    { name = "razorpay", marker = "platform_python_implementation != 'PyPy'" },
     { name = "redis", marker = "platform_python_implementation != 'PyPy'" },
     { name = "requests", marker = "platform_python_implementation != 'PyPy'" },
     { name = "requests-hardened", marker = "platform_python_implementation != 'PyPy'" },
@@ -2608,7 +2582,6 @@ requires-dist = [
     { name = "babel", specifier = ">=2.18.0,<2.19" },
     { name = "boto3", specifier = "~=1.43" },
     { name = "botocore", specifier = "~=1.42" },
-    { name = "braintree", specifier = ">=4.2,<4.32" },
     { name = "celery", extras = ["redis", "sqs"], specifier = ">=5.6.3,<6.0.0" },
     { name = "cryptography", specifier = ">=49.0.0" },
     { name = "dj-database-url", specifier = ">=3.1.2,<4" },
@@ -2630,10 +2603,10 @@ requires-dist = [
     { name = "graphene", specifier = "<3.0" },
     { name = "graphql-core", specifier = ">=2.3.2,<3" },
     { name = "graphql-relay", specifier = ">=2.0.1,<3" },
-    { name = "idna", specifier = ">=3.17" },
+    { name = "idna", specifier = ">=3.18" },
     { name = "kombu", extras = ["sqs"], specifier = ">=4.6.11,<6.0.0" },
     { name = "lxml", specifier = ">=6.1.1,<7" },
-    { name = "markdown", specifier = ">=3.1.1,<4" },
+    { name = "markdown", specifier = ">=3.10.2,<4" },
     { name = "measurement", specifier = ">=3.2.2,<4" },
     { name = "micawber", specifier = ">=0.6.2,<0.7" },
     { name = "nh3", specifier = ">=0.2.20" },
@@ -2659,7 +2632,6 @@ requires-dist = [
     { name = "python-magic", marker = "sys_platform != 'win32'", specifier = ">=0.4.27,<0.5" },
     { name = "python-magic-bin", marker = "sys_platform == 'win32'", specifier = ">=0.4.14,<0.5" },
     { name = "pytimeparse", specifier = ">=1.1.8,<2" },
-    { name = "razorpay", specifier = "~=1.2" },
     { name = "redis", specifier = ">=5.0.1,<6" },
     { name = "requests", specifier = ">=2.33.0,<3" },
     { name = "requests-hardened", specifier = ">=1.3.0b1,<2.0.0" },

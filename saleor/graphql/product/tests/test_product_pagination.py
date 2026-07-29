@@ -859,32 +859,27 @@ def product_types_for_pagination(db):
             ProductType(
                 name="ProductType1",
                 slug="pt_1",
-                is_digital=True,
                 is_shipping_required=False,
             ),
             ProductType(
                 name="ProductTypeProductType1",
                 slug="pt_pt_1",
-                is_digital=False,
                 is_shipping_required=False,
             ),
             ProductType(
                 name="ProductTypeProductType2",
                 slug="pt_pt_2",
-                is_digital=False,
                 is_shipping_required=True,
             ),
             ProductType(
                 name="ProductType2",
                 slug="pt_2",
-                is_digital=False,
                 is_shipping_required=True,
                 has_variants=False,
             ),
             ProductType(
                 name="ProductType3",
                 slug="pt_3",
-                is_digital=True,
                 is_shipping_required=False,
                 has_variants=False,
             ),

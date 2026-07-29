@@ -1658,6 +1658,13 @@ type Webhook implements Node @doc(category: "Webhooks") {
   """The name of webhook."""
   name: String
 
+  """
+  The unique identifier of the webhook, set by the app. Unique per app, null when not set.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
   """List of webhook events."""
   events: [WebhookEvent!]! @deprecated(reason: "Use `asyncEvents` or `syncEvents` instead.")
 
@@ -13085,7 +13092,6 @@ enum OrderEventsEmailsEnum @doc(category: "Orders") {
   ORDER_CANCEL
   ORDER_REFUND
   FULFILLMENT_CONFIRMATION
-  DIGITAL_LINKS
 }
 
 type OrderEventOrderLineObject @doc(category: "Orders") {
@@ -13852,7 +13858,6 @@ enum CustomerEventsEnum @doc(category: "Users") {
   EMAIL_CHANGED
   PLACED_ORDER
   NOTE_ADDED_TO_ORDER
-  DIGITAL_LINK_DOWNLOADED
   CUSTOMER_DELETED
   NAME_ASSIGNED
   EMAIL_ASSIGNED
@@ -22361,6 +22366,13 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   """The name of the webhook."""
   name: String
 
+  """
+  The unique identifier of the webhook, set by the app. Unique per app. Maximum length is 256 characters.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
   """The url to receive the payload."""
   targetUrl: String
 
@@ -22416,6 +22428,13 @@ type WebhookUpdate @doc(category: "Webhooks") {
 input WebhookUpdateInput @doc(category: "Webhooks") {
   """The new name of the webhook."""
   name: String
+
+  """
+  The unique identifier of the webhook, set by the app. Unique per app. Maximum length is 256 characters. Pass a blank value to clear it.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
 
   """The url to receive the payload."""
   targetUrl: String
@@ -32287,6 +32306,7 @@ enum AppErrorCode @doc(category: "Apps") {
   INVALID_MANIFEST_FORMAT
   INVALID_CUSTOM_HEADERS
   DUPLICATED_EXTENSION_IDENTIFIER
+  DUPLICATED_WEBHOOK_IDENTIFIER
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
