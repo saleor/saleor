@@ -114,6 +114,12 @@ def sort_queryset_by_default(
 
     ordering_fields = [field.replace("-", "") for field in default_ordering]
     direction = "-" if "-" in default_ordering[0] else ""
+    # Cursor pagination needs a unique, non-nullable tie-breaker. Without one, rows
+    # sharing the same ordering values are either skipped or served over and over
+    # again, as the cursor cannot advance past them.
+    if not {"pk", "id"} & set(ordering_fields):
+        ordering_fields.append("pk")
+        default_ordering.append(f"{direction}pk")
     if reversed:
         reversed_direction = REVERSED_DIRECTION[direction]
         default_ordering = [f"{reversed_direction}{field}" for field in ordering_fields]
