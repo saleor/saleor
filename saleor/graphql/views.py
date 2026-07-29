@@ -33,7 +33,6 @@ from requests_hardened.ip_filter import InvalidIPAddress
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
 from ..core.telemetry import Scope, SpanKind, saleor_attributes, tracer
-from ..webhook import observability
 from . import GraphQLOperationResult
 from .api import API_PATH, schema
 from .context import clear_context, get_context_value
@@ -139,7 +138,6 @@ class GraphQLView(View):
                 f"Cannot import '{middleware_name}' graphene middleware!"
             ) from e
 
-    @observability.report_view
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
@@ -266,10 +264,6 @@ class GraphQLView(View):
             if error_type:
                 request_duration_attrs[error_attributes.ERROR_TYPE] = error_type
 
-            with observability.report_api_call(request) as api_call:
-                api_call.response = response
-                api_call.report()
-
             request_duration = time.monotonic() - request_start_time
 
             if request_duration > settings.GRAPHQL_SPANS_MARK_SLOW_AFTER:
@@ -286,25 +280,20 @@ class GraphQLView(View):
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> tuple[GraphQLOperationResult | None, int]:
-        with observability.report_gql_operation() as operation:
-            execution_result = self.execute_graphql_request(request, data)
-            status_code = 200
-            result: GraphQLOperationResult = {}
-            if execution_result.errors:
-                result["errors"] = [
-                    self.format_error(e) for e in execution_result.errors
-                ]
-                # Error handling form `GraphQL-Core-Legacy` creates a multiple references cycles in
-                # the error object. We need to clear them.
-                clear_errors(execution_result.errors)
-            if execution_result.invalid:
-                status_code = 400
-            else:
-                result["data"] = execution_result.data
-            if execution_result.extensions:
-                result["extensions"] = execution_result.extensions
-            operation.result_invalid = execution_result.invalid
-            operation.result = dict(result)
+        execution_result = self.execute_graphql_request(request, data)
+        status_code = 200
+        result: GraphQLOperationResult = {}
+        if execution_result.errors:
+            result["errors"] = [self.format_error(e) for e in execution_result.errors]
+            # Error handling form `GraphQL-Core-Legacy` creates a multiple references cycles in
+            # the error object. We need to clear them.
+            clear_errors(execution_result.errors)
+        if execution_result.invalid:
+            status_code = 400
+        else:
+            result["data"] = execution_result.data
+        if execution_result.extensions:
+            result["extensions"] = execution_result.extensions
         return result, status_code
 
     def get_root_value(self):
@@ -350,11 +339,6 @@ class GraphQLView(View):
 
             query, variables, operation_name = self.get_graphql_params(request, data)
             document, error = self.parse_query(query)
-
-            with observability.report_gql_operation() as operation:
-                operation.query = document
-                operation.name = operation_name
-                operation.variables = variables
 
             if error:
                 error_description = self.format_span_error_description(error)
