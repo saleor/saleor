@@ -458,49 +458,43 @@ query IntrospectionQuery {
 INTROSPECTION_RESULT = {"__schema": {"queryType": {"name": "Query"}}}
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+# Patch the `cache` name in the views module rather than `cache.get`/`cache.set` on the
+# cache object itself: the object is shared, so patching its methods would also capture
+# the storefront traffic guard's own lookups and break the call assertions below.
+@mock.patch("saleor.graphql.views.cache")
 @override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
-def test_introspection_query_is_cached(
-    cache_get_mock, cache_set_mock, staff_api_client
-):
-    cache_get_mock.return_value = None
+def test_introspection_query_is_cached(cache_mock, api_client):
+    cache_mock.get.return_value = None
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
-    response = staff_api_client.post_graphql(INTROSPECTION_QUERY)
+    response = api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
-    cache_get_mock.assert_called_once_with(cache_key)
-    cache_set_mock.assert_called_once_with(
+    cache_mock.get.assert_called_once_with(cache_key)
+    cache_mock.set.assert_called_once_with(
         cache_key, ExecutionResult(data=INTROSPECTION_RESULT)
     )
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+@mock.patch("saleor.graphql.views.cache")
 @override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
-def test_introspection_query_is_cached_only_once(
-    cache_get_mock, cache_set_mock, staff_api_client
-):
-    cache_get_mock.return_value = ExecutionResult(data=INTROSPECTION_RESULT)
+def test_introspection_query_is_cached_only_once(cache_mock, api_client):
+    cache_mock.get.return_value = ExecutionResult(data=INTROSPECTION_RESULT)
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
-    response = staff_api_client.post_graphql(INTROSPECTION_QUERY)
+    response = api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
-    cache_get_mock.assert_called_once_with(cache_key)
-    cache_set_mock.assert_not_called()
+    cache_mock.get.assert_called_once_with(cache_key)
+    cache_mock.set.assert_not_called()
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+@mock.patch("saleor.graphql.views.cache")
 @override_settings(DEBUG=True, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
-def test_introspection_query_is_not_cached_in_debug_mode(
-    cache_get_mock, cache_set_mock, staff_api_client
-):
-    response = staff_api_client.post_graphql(INTROSPECTION_QUERY)
+def test_introspection_query_is_not_cached_in_debug_mode(cache_mock, api_client):
+    response = api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
-    cache_get_mock.assert_not_called()
-    cache_set_mock.assert_not_called()
+    cache_mock.get.assert_not_called()
+    cache_mock.set.assert_not_called()
 
 
 def test_generate_cache_key_use_saleor_version():
@@ -611,12 +605,6 @@ EXPECTED_STOREFRONT_TRAFFIC_ERROR = {
 }
 
 
-# The guard caches the flag in Redis under a site-scoped key, and every xdist worker
-# shares one Redis while having its own database. Pin all tests that touch the flag to
-# a single worker so they cannot overwrite each other's cached value mid-run.
-STOREFRONT_TRAFFIC_XDIST_GROUP = pytest.mark.xdist_group(name="storefront_traffic")
-
-
 @pytest.fixture
 def set_allow_storefront_traffic(site_settings):
     """Set the storefront traffic flag and keep the guard cache honest."""
@@ -640,7 +628,6 @@ def test_storefront_traffic_allowed_by_default(site_settings):
     assert site_settings.allow_storefront_traffic is True
 
 
-@STOREFRONT_TRAFFIC_XDIST_GROUP
 @pytest.mark.parametrize(
     ("_case", "client_fixture", "allow_storefront_traffic", "expected_status"),
     [
@@ -677,7 +664,6 @@ def test_request_per_principal(
         assert response.json()["data"] == {"__typename": "Query"}
 
 
-@STOREFRONT_TRAFFIC_XDIST_GROUP
 @pytest.mark.parametrize(
     ("_case", "authorization_header"),
     [
@@ -702,7 +688,6 @@ def test_unusable_authorization_header_blocked_when_disabled(
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
 
 
-@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_anonymous_batch_rejected_when_disabled(
     api_client, storefront_traffic_disabled, settings
 ):
@@ -718,7 +703,6 @@ def test_anonymous_batch_rejected_when_disabled(
     assert response.json() == [EXPECTED_STOREFRONT_TRAFFIC_ERROR] * len(queries)
 
 
-@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_anonymous_introspection_blocked_when_disabled(
     api_client, storefront_traffic_disabled
 ):
@@ -731,7 +715,6 @@ def test_anonymous_introspection_blocked_when_disabled(
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
 
 
-@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_real_public_query_blocked_when_disabled(
     api_client, storefront_traffic_disabled, channel_USD
 ):
@@ -752,7 +735,6 @@ def test_real_public_query_blocked_when_disabled(
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
 
 
-@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_real_public_mutation_blocked_when_disabled(
     api_client, storefront_traffic_disabled, customer_user
 ):
