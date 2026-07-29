@@ -65,16 +65,32 @@ class CustomerAttributeAssign(BaseMutation):
         customer_type: account_models.CustomerType,
         attr_pks: list[int],
     ):
-        """Ensure the attributes are customer attributes and are not yet assigned."""
-        invalid_attributes = attribute_models.Attribute.objects.filter(
-            pk__in=attr_pks
-        ).exclude(type=AttributeType.CUSTOMER_TYPE)
+        """Ensure the attributes exist, are customer attributes, and are not assigned."""
+        attr_type_by_pk = dict(
+            attribute_models.Attribute.objects.filter(pk__in=attr_pks).values_list(
+                "pk", "type"
+            )
+        )
 
-        if invalid_attributes:
-            invalid_attributes_ids = [
-                graphene.Node.to_global_id("Attribute", attr.pk)
-                for attr in invalid_attributes
+        found_pks = {str(pk) for pk in attr_type_by_pk}
+        missing_pks = [pk for pk in attr_pks if str(pk) not in found_pks]
+        if missing_pks:
+            missing_attributes_ids = [
+                graphene.Node.to_global_id("Attribute", pk) for pk in missing_pks
             ]
+            error = ValidationError(
+                "Some of the attributes do not exist.",
+                code=CustomerAttributeAssignErrorCode.NOT_FOUND.value,
+                params={"attributes": missing_attributes_ids},
+            )
+            errors["attribute_ids"].append(error)
+
+        invalid_attributes_ids = [
+            graphene.Node.to_global_id("Attribute", pk)
+            for pk, attr_type in attr_type_by_pk.items()
+            if attr_type != AttributeType.CUSTOMER_TYPE
+        ]
+        if invalid_attributes_ids:
             error = ValidationError(
                 "Only customer attributes can be assigned.",
                 code=CustomerAttributeAssignErrorCode.INVALID.value,

@@ -281,3 +281,71 @@ def test_assign_sets_sort_order(
         loyalty_customer_attribute.pk,
         segment_customer_attribute.pk,
     }
+
+
+def test_assign_nonexistent_attribute(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    attribute_id = graphene.Node.to_global_id("Attribute", -1)
+    variables = {
+        "customerTypeId": graphene.Node.to_global_id("CustomerType", customer_type.pk),
+        "attributeIds": [attribute_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerAttributeAssign"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "attributeIds"
+    assert error["code"] == CustomerAttributeAssignErrorCode.NOT_FOUND.name
+    assert error["message"] == "Some of the attributes do not exist."
+    assert error["attributes"] == [attribute_id]
+    assert customer_type.customer_attributes.count() == 0
+
+
+def test_assign_nonexistent_attribute_does_not_assign_valid_ones(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+    loyalty_customer_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    valid_attribute_id = graphene.Node.to_global_id(
+        "Attribute", loyalty_customer_attribute.pk
+    )
+    missing_attribute_id = graphene.Node.to_global_id("Attribute", -1)
+    variables = {
+        "customerTypeId": graphene.Node.to_global_id("CustomerType", customer_type.pk),
+        "attributeIds": [valid_attribute_id, missing_attribute_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_ATTRIBUTE_ASSIGN_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerAttributeAssign"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "attributeIds"
+    assert error["code"] == CustomerAttributeAssignErrorCode.NOT_FOUND.name
+    assert error["message"] == "Some of the attributes do not exist."
+    assert error["attributes"] == [missing_attribute_id]
+    assert customer_type.customer_attributes.count() == 0
