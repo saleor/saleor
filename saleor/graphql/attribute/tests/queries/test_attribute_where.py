@@ -2140,3 +2140,19 @@ def test_attributes_filter_by_choices_search(
     assert len(choices) == len(indexes)
     returned_choices = {node["node"]["name"] for node in choices}
     assert returned_choices == {values[index].name for index in indexes}
+
+
+def test_attributes_filter_by_customer_type(
+    api_client, color_attribute, loyalty_customer_attribute
+):
+    # given
+    variables = {"where": {"type": {"eq": AttributeTypeEnum.CUSTOMER_TYPE.name}}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == 1
+    assert nodes[0]["node"]["slug"] == loyalty_customer_attribute.slug

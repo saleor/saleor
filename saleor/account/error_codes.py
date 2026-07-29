@@ -77,6 +77,25 @@ class CustomerTypeDeleteErrorCode(Enum):
     NOT_FOUND = "not_found"
 
 
+class CustomerTypeAssignAttributesErrorCode(Enum):
+    ATTRIBUTE_ALREADY_ASSIGNED = "attribute_already_assigned"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+
+
+class CustomerTypeUnassignAttributesErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+
+
+class CustomerTypeReorderAttributesErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+
+
 class PermissionGroupErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"

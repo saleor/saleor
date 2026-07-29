@@ -4,6 +4,7 @@ from ....attribute import AttributeType
 from ....core.exceptions import PermissionDenied
 from ....permission.enums import (
     BasePermissionEnum,
+    CustomerTypePermissions,
     PageTypePermissions,
     ProductTypePermissions,
 )
@@ -14,6 +15,9 @@ ATTRIBUTE_TYPE_PERMISSION_MAP: dict[str, BasePermissionEnum] = {
         ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
     ),
     AttributeType.PAGE_TYPE: PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+    AttributeType.CUSTOMER_TYPE: (
+        CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES
+    ),
 }
 
 
