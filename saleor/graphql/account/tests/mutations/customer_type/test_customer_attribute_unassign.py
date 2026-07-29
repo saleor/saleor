@@ -1,5 +1,6 @@
 import graphene
 
+from ......account.error_codes import CustomerAttributeUnassignErrorCode
 from .....tests.utils import assert_no_permission, get_graphql_content
 
 CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION = """
@@ -141,3 +142,41 @@ def test_unassign_keeps_attribute_values(
     assert data["errors"] == []
     loyalty_customer_attribute.refresh_from_db()
     assert loyalty_customer_attribute.values.count() == values_count
+
+
+def test_unassign_more_than_limit(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+    loyalty_customer_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    customer_type.customer_attributes.add(loyalty_customer_attribute)
+    attribute_ids = [
+        graphene.Node.to_global_id("Attribute", loyalty_customer_attribute.pk)
+    ] + [graphene.Node.to_global_id("Attribute", index) for index in range(100)]
+    variables = {
+        "customerTypeId": graphene.Node.to_global_id("CustomerType", customer_type.pk),
+        "attributeIds": attribute_ids,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_ATTRIBUTE_UNASSIGN_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerAttributeUnassign"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "attributeIds"
+    assert error["code"] == CustomerAttributeUnassignErrorCode.INVALID.name
+    assert (
+        error["message"]
+        == "Cannot unassign more than 100 attributes in a single mutation."
+    )
+    assert customer_type.customer_attributes.get() == loyalty_customer_attribute
