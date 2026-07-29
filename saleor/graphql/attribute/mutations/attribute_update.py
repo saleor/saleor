@@ -6,7 +6,11 @@ from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.exceptions import PermissionDenied
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
+from ....permission.enums import (
+    CustomerTypePermissions,
+    PageTypePermissions,
+    ProductTypePermissions,
+)
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
@@ -127,7 +131,8 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
             "Updates attribute.\n\nRequires one of the following permissions, "
             "depending on the attribute type: "
             "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
-            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, "
+            "MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes."
         )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
@@ -168,6 +173,7 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         type_permissions = (
             ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
             PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+            CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
         )
         if not cls.check_permissions(info.context, type_permissions):
             raise PermissionDenied(permissions=type_permissions)
@@ -175,9 +181,17 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
 
         # Check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
+        permissions: (
+            tuple[ProductTypePermissions]
+            | tuple[PageTypePermissions]
+            | tuple[CustomerTypePermissions]
+        )
         if instance.type == AttributeType.PRODUCT_TYPE:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        elif instance.type == AttributeType.CUSTOMER_TYPE:
+            permissions = (
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+            )
         else:
             permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         if not cls.check_permissions(info.context, permissions):
