@@ -9,6 +9,11 @@ from saleor.graphql.storefront_traffic import (
     is_storefront_traffic_blocked,
 )
 
+# The guard caches the flag in Redis under a site-scoped key, and every xdist worker
+# shares one Redis while having its own database. Pin this whole module to a single
+# worker so its tests cannot overwrite each other's cached value mid-run.
+pytestmark = pytest.mark.xdist_group(name="storefront_traffic")
+
 
 def _make_request(app=None, user=None, authenticated=False):
     """Build a fake request. ``authenticated`` adds an auth token to the META.

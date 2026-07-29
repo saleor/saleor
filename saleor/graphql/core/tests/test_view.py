@@ -611,71 +611,59 @@ EXPECTED_STOREFRONT_TRAFFIC_ERROR = {
 }
 
 
+# The guard caches the flag in Redis under a site-scoped key, and every xdist worker
+# shares one Redis while having its own database. Pin all tests that touch the flag to
+# a single worker so they cannot overwrite each other's cached value mid-run.
+STOREFRONT_TRAFFIC_XDIST_GROUP = pytest.mark.xdist_group(name="storefront_traffic")
+
+
 @pytest.fixture
-def storefront_traffic_disabled(site_settings):
-    """Disable storefront traffic and keep the guard cache honest."""
-    site_settings.allow_storefront_traffic = False
-    site_settings.save(update_fields=["allow_storefront_traffic"])
-    clear_allow_storefront_traffic_cache()
-    yield site_settings
-    clear_allow_storefront_traffic_cache()
+def set_allow_storefront_traffic(site_settings):
+    """Set the storefront traffic flag and keep the guard cache honest."""
 
+    def set_flag(allowed):
+        site_settings.allow_storefront_traffic = allowed
+        site_settings.save(update_fields=["allow_storefront_traffic"])
+        clear_allow_storefront_traffic_cache()
+        return site_settings
 
-def test_anonymous_request_blocked_when_disabled(
-    api_client, storefront_traffic_disabled
-):
-    # given: no credentials, flag off
-    # when
-    response = api_client.post_graphql("{ __typename }")
-
-    # then
-    assert response.status_code == 401
-    assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
-
-
-def test_anonymous_request_allowed_when_enabled_by_default(api_client, site_settings):
-    # given: default flag (True)
+    yield set_flag
     clear_allow_storefront_traffic_cache()
 
-    # when
-    response = api_client.post_graphql("{ __typename }")
 
-    # then
-    assert response.status_code == 200
-    assert response.json()["data"] == {"__typename": "Query"}
+@pytest.fixture
+def storefront_traffic_disabled(set_allow_storefront_traffic):
+    return set_allow_storefront_traffic(False)
 
 
-def test_app_request_allowed_when_disabled(app_api_client, storefront_traffic_disabled):
-    # given: an app principal and flag off — always allowed
-    # when
-    response = app_api_client.post_graphql("{ __typename }")
-
-    # then
-    assert response.status_code == 200
-    assert response.json()["data"] == {"__typename": "Query"}
+def test_storefront_traffic_allowed_by_default(site_settings):
+    assert site_settings.allow_storefront_traffic is True
 
 
+@STOREFRONT_TRAFFIC_XDIST_GROUP
 @pytest.mark.parametrize(
     ("_case", "client_fixture", "allow_storefront_traffic", "expected_status"),
     [
+        ("anonymous_disabled", "api_client", False, 401),
+        ("anonymous_enabled", "api_client", True, 200),
+        ("app_disabled", "app_api_client", False, 200),
+        ("app_enabled", "app_api_client", True, 200),
         ("customer_disabled", "user_api_client", False, 401),
         ("customer_enabled", "user_api_client", True, 200),
         ("staff_disabled", "staff_api_client", False, 200),
         ("staff_enabled", "staff_api_client", True, 200),
     ],
 )
-def test_user_request(
+def test_request_per_principal(
     _case,
     client_fixture,
     allow_storefront_traffic,
     expected_status,
     request,
-    site_settings,
+    set_allow_storefront_traffic,
 ):
-    # given: a user-authenticated request — customers follow the flag, staff always allowed
-    site_settings.allow_storefront_traffic = allow_storefront_traffic
-    site_settings.save(update_fields=["allow_storefront_traffic"])
-    clear_allow_storefront_traffic_cache()
+    # given: anonymous and customer traffic follows the flag, apps and staff never do
+    set_allow_storefront_traffic(allow_storefront_traffic)
     client = request.getfixturevalue(client_fixture)
 
     # when
@@ -687,16 +675,26 @@ def test_user_request(
         assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
     else:
         assert response.json()["data"] == {"__typename": "Query"}
-    clear_allow_storefront_traffic_cache()
 
 
-def test_invalid_token_treated_as_anonymous_when_disabled(
-    api_client, storefront_traffic_disabled
+@STOREFRONT_TRAFFIC_XDIST_GROUP
+@pytest.mark.parametrize(
+    ("_case", "authorization_header"),
+    [
+        ("invalid_token", "Bearer not-a-real-token"),
+        ("scheme_without_token", "Bearer"),
+        ("scheme_with_trailing_space", "Bearer "),
+        ("unknown_scheme", "Invalid"),
+        ("unknown_scheme_with_token", "Invalid not-a-real-token"),
+    ],
+)
+def test_unusable_authorization_header_blocked_when_disabled(
+    _case, authorization_header, api_client, storefront_traffic_disabled
 ):
-    # given: a malformed bearer token (resolves to neither app nor user), flag off
+    # given: an Authorization header that resolves to neither app nor user, flag off
     # when
     response = api_client.post_graphql(
-        "{ __typename }", HTTP_AUTHORIZATION="Bearer not-a-real-token"
+        "{ __typename }", HTTP_AUTHORIZATION=authorization_header
     )
 
     # then
@@ -704,6 +702,7 @@ def test_invalid_token_treated_as_anonymous_when_disabled(
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
 
 
+@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_anonymous_batch_rejected_when_disabled(
     api_client, storefront_traffic_disabled, settings
 ):
@@ -719,6 +718,7 @@ def test_anonymous_batch_rejected_when_disabled(
     assert response.json() == [EXPECTED_STOREFRONT_TRAFFIC_ERROR] * len(queries)
 
 
+@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_anonymous_introspection_blocked_when_disabled(
     api_client, storefront_traffic_disabled
 ):
@@ -731,6 +731,7 @@ def test_anonymous_introspection_blocked_when_disabled(
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
 
 
+@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_real_public_query_blocked_when_disabled(
     api_client, storefront_traffic_disabled, channel_USD
 ):
@@ -751,6 +752,7 @@ def test_real_public_query_blocked_when_disabled(
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
 
 
+@STOREFRONT_TRAFFIC_XDIST_GROUP
 def test_real_public_mutation_blocked_when_disabled(
     api_client, storefront_traffic_disabled, customer_user
 ):
