@@ -307,6 +307,10 @@ class GraphQLView(View):
     ) -> tuple[GraphQLOperationResult | None, int]:
         with observability.report_gql_operation() as operation:
             execution_result = self.execute_graphql_request(request, data)
+            # The request was rejected as disallowed storefront traffic, so the query
+            # was never executed and there is no result to format. Return the canned
+            # error with a 401 and skip the `format_error` / observability handling
+            # below, which is meant for real execution failures.
             if execution_result is STOREFRONT_TRAFFIC_BLOCKED:
                 return STOREFRONT_TRAFFIC_BLOCKED_RESPONSE, 401
             status_code = 200
