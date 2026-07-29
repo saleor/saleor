@@ -1658,6 +1658,13 @@ type Webhook implements Node @doc(category: "Webhooks") {
   """The name of webhook."""
   name: String
 
+  """
+  The unique identifier of the webhook, set by the app. Unique per app, null when not set.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
   """List of webhook events."""
   events: [WebhookEvent!]! @deprecated(reason: "Use `asyncEvents` or `syncEvents` instead.")
 
@@ -12948,7 +12955,6 @@ enum OrderEventsEmailsEnum @doc(category: "Orders") {
   ORDER_CANCEL
   ORDER_REFUND
   FULFILLMENT_CONFIRMATION
-  DIGITAL_LINKS
 }
 
 type OrderEventOrderLineObject @doc(category: "Orders") {
@@ -13717,7 +13723,6 @@ enum CustomerEventsEnum @doc(category: "Users") {
   EMAIL_CHANGED
   PLACED_ORDER
   NOTE_ADDED_TO_ORDER
-  DIGITAL_LINK_DOWNLOADED
   CUSTOMER_DELETED
   NAME_ASSIGNED
   EMAIL_ASSIGNED
@@ -15131,6 +15136,11 @@ type Shop implements ObjectWithMetadata {
   Added in Saleor 3.22.
   """
   useLegacyUpdateWebhookEmission: Boolean @deprecated
+
+  """
+  Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+  """
+  accountConfirmMergeMode: AccountConfirmModeEnum!
 }
 
 """External authentication plugin."""
@@ -15269,6 +15279,25 @@ enum PasswordLoginModeEnum @doc(category: "Authentication") {
   ENABLED
   CUSTOMERS_ONLY
   DISABLED
+}
+
+"""
+AccountConfirmMode set the account merging mode for anonymous objects.
+
+    This dictates the behavior of the `confirmAccount()` mutation for
+    password-based authentication when attempting to merge orders & giftcard
+    that aren't associated to a user account.
+
+    Modes:
+
+    - MERGE_DISABLED disables merging only when the authentication method
+      is password (i.e., when not using OIDC)
+    - REQUIRE_PASSWORD enables account merging who accounts that use password
+      authentication but it requires the user to enter their password
+"""
+enum AccountConfirmModeEnum @doc(category: "Authentication") {
+  MERGE_DISABLED
+  REQUIRE_PASSWORD
 }
 
 """Gift card related settings from site settings."""
@@ -21278,9 +21307,9 @@ type Mutation {
   ): AttributeCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
 
   """
-  Deletes an attribute. 
+  Deletes an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_DELETED (async): An attribute was deleted.
@@ -21294,9 +21323,9 @@ type Mutation {
   ): AttributeDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: [])
 
   """
-  Updates attribute. 
+  Updates attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
@@ -21806,6 +21835,11 @@ type Mutation {
   confirmAccount(
     """E-mail of the user performing account confirmation."""
     email: String!
+
+    """
+    Password of the user confirming their account. Required when `REQUIRED_PASSWORD` mode is enabled in shop settings. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+    """
+    password: String
 
     """A one-time token required to confirm the account."""
     token: String!
@@ -22341,6 +22375,13 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   """The name of the webhook."""
   name: String
 
+  """
+  The unique identifier of the webhook, set by the app. Unique per app. Maximum length is 256 characters.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
+
   """The url to receive the payload."""
   targetUrl: String
 
@@ -22396,6 +22437,13 @@ type WebhookUpdate @doc(category: "Webhooks") {
 input WebhookUpdateInput @doc(category: "Webhooks") {
   """The new name of the webhook."""
   name: String
+
+  """
+  The unique identifier of the webhook, set by the app. Unique per app. Maximum length is 256 characters. Pass a blank value to clear it.
+  
+  Added in Saleor 3.23.
+  """
+  identifier: String
 
   """The url to receive the payload."""
   targetUrl: String
@@ -23246,6 +23294,11 @@ input ShopSettingsInput {
   Added in Saleor 3.22.
   """
   useLegacyUpdateWebhookEmission: Boolean @deprecated
+
+  """
+  Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
+  """
+  accountConfirmMergeMode: AccountConfirmModeEnum
 }
 
 """
@@ -31744,9 +31797,9 @@ input AttributeValueCreateInput @doc(category: "Attributes") {
 }
 
 """
-Deletes an attribute. 
+Deletes an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_DELETED (async): An attribute was deleted.
@@ -31758,9 +31811,9 @@ type AttributeDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
 }
 
 """
-Updates attribute. 
+Updates attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
@@ -32255,6 +32308,7 @@ enum AppErrorCode @doc(category: "Apps") {
   INVALID_MANIFEST_FORMAT
   INVALID_CUSTOM_HEADERS
   DUPLICATED_EXTENSION_IDENTIFIER
+  DUPLICATED_WEBHOOK_IDENTIFIER
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED

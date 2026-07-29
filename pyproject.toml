@@ -19,7 +19,6 @@ dependencies = [
     "babel>=2.18.0,<2.19",
     "boto3~=1.43",
     "botocore~=1.42",
-    "braintree>=4.2,<4.32",
     "cryptography>=49.0.0",
     "dj-database-url>=3.1.2,<4",
     "dj-email-url>=1,<2",
@@ -40,7 +39,7 @@ dependencies = [
     "graphql-core>=2.3.2,<3",
     "graphql-relay>=2.0.1,<3",
     "lxml>=6.1.1,<7",
-    "markdown>=3.1.1,<4",
+    "markdown>=3.10.2,<4",
     "measurement>=3.2.2,<4",
     "micawber>=0.6.2,<0.7",
     "oauthlib~=3.1",
@@ -55,7 +54,6 @@ dependencies = [
     "python-http-client>=3.3.7,<4",
     "python-json-logger>=0.1.11,<3.3.0",
     "pytimeparse>=1.1.8,<2",
-    "razorpay~=1.2",
     "redis>=5.0.1,<6",
     "requests>=2.33.0,<3",
     "requests-hardened>=1.3.0b1,<2.0.0",
@@ -80,7 +78,7 @@ dependencies = [
     "python-magic>=0.4.27,<0.5 ; sys_platform != 'win32'",
     "python-magic-bin>=0.4.14,<0.5 ; sys_platform == 'win32'",
     "nh3>=0.2.20",
-    "idna>=3.17",
+    "idna>=3.18",
     "orjson>=3.11.9",
 ]
 

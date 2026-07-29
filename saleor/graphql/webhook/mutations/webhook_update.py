@@ -8,7 +8,7 @@ from ....webhook import models
 from ....webhook.validators import HEADERS_LENGTH_LIMIT, HEADERS_NUMBER_LIMIT
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.types import BaseInputObjectType, NonNullList, WebhookError
@@ -20,6 +20,14 @@ from . import WebhookCreate
 
 class WebhookUpdateInput(BaseInputObjectType):
     name = graphene.String(description="The new name of the webhook.", required=False)
+    identifier = graphene.String(
+        description=(
+            "The unique identifier of the webhook, set by the app. Unique per "
+            "app. Maximum length is 256 characters. Pass a blank value to clear "
+            "it." + ADDED_IN_323
+        ),
+        required=False,
+    )
     target_url = graphene.String(
         description="The url to receive the payload.", required=False
     )

@@ -18,6 +18,7 @@ CUSTOMER_BULK_UPDATE_MUTATION = """
         $errorPolicy: ErrorPolicyEnum
     ){
         customerBulkUpdate(customers: $customers, errorPolicy: $errorPolicy){
+            errors { code message }
             results{
                 errors {
                     path
@@ -27,6 +28,7 @@ CUSTOMER_BULK_UPDATE_MUTATION = """
                 customer{
                     id
                     firstName
+                    email
                     defaultShippingAddress {
                         metadata {
                             key
@@ -1143,3 +1145,107 @@ def test_bulk_metadata_and_customer_data_update_sends_both_webhooks(
     # Verify both webhooks were sent
     assert mocked_customer_updated.call_count == 2
     assert mocked_customer_metadata_updated.call_count == 2
+
+
+def test_customer_update_existing_user_does_not_merge_with_existing_account(
+    staff_api_client,
+    staff_user,
+    customer_user,
+    gift_card,
+    order,
+    permission_manage_users,
+):
+    """Ensure customerBulkUpdate() doesn't allowing merging with existing users.
+
+    When setting the email address of a customer to an email address that already
+    is associated to an account, it should reject the change and shouldn't merge
+    the account (i.e., orders and giftcards shouldn't associated).
+
+    When there is no account associated, then it should automatically merge.
+    """
+    staff_user.user_permissions.add(permission_manage_users)
+
+    user_for_update = customer_user
+    existing_email = "existing-user@example.com"
+    existing_user = models.User.objects.create(email=existing_email)
+
+    assert user_for_update.email != existing_user.email
+
+    # Create anonymous objects assigned to the targeted email
+    order.user = gift_card.created_by = None
+    order.user_email = gift_card.created_by_email = existing_email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+    order.save(update_fields=["user", "user_email"])
+
+    # When attempting to merge onto an existing account, it should reject
+    # the request, and shouldn't assign the anonymous objects.
+    query = CUSTOMER_BULK_UPDATE_MUTATION
+    variables = {
+        "customers": [
+            {
+                "id": graphene.Node.to_global_id("User", user_for_update.pk),
+                "input": {"email": existing_email},
+            }
+        ],
+        "errorPolicy": ErrorPolicyEnum.REJECT_EVERYTHING.name,
+    }
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    root_errors = content["data"]["customerBulkUpdate"]["errors"]
+    assert root_errors == [], "shouldn't have return errors at the root"
+    results = content["data"]["customerBulkUpdate"]["results"]
+    assert len(results) == 1
+    assert results == [
+        {
+            "customer": None,
+            "errors": [
+                {
+                    "code": "UNIQUE",
+                    "path": "input.email",
+                    "message": "User with this Email already exists.",
+                }
+            ],
+        }
+    ]
+
+    customer_user.refresh_from_db(fields=("email",))
+    assert customer_user.email != existing_email, "shoudln't have updated the customer"
+
+    gift_card.refresh_from_db(fields=("created_by", "created_by_email"))
+    assert gift_card.created_by is None, "shouldn't have merged the gift card"
+    assert gift_card.created_by_email == existing_email, (
+        "shouldn't have changed the email"
+    )
+
+    order.refresh_from_db(fields=("user", "user_email"))
+    assert order.user is None, "shouldn't have merged the gift card"
+    assert order.user_email == existing_email, "shouldn't have changed the email"
+
+    # sanity check: if the conflicting user is gone, the same update should merge
+    existing_user.delete()
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    root_errors = content["data"]["customerBulkUpdate"]["errors"]
+    assert root_errors == [], "shouldn't have return errors at the root"
+    results = content["data"]["customerBulkUpdate"]["results"]
+    assert len(results) == 1
+    assert len(results[0]["errors"]) == 0, "shouldn't have failed the bulk update"
+
+    result_customer = results[0]["customer"]
+    assert result_customer is not None, "should have returned the updated object"
+    assert result_customer["email"] == existing_email, "should have updated the email"
+
+    customer_user.refresh_from_db(fields=("email",))
+    assert customer_user.email == existing_email, "should have updated the customer"
+
+    gift_card.refresh_from_db(fields=("created_by", "created_by_email"))
+    assert gift_card.created_by == customer_user, "should have merged the gift card"
+    assert gift_card.created_by_email == existing_email, (
+        "shouldn't have changed the email"
+    )
+
+    order.refresh_from_db(fields=("user", "user_email"))
+    assert order.user == customer_user, "should have merged the gift card"
+    assert order.user_email == existing_email, "shouldn't have changed the email"

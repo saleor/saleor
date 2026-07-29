@@ -2,11 +2,13 @@ import graphene
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 
+from ....attribute import AttributeType
 from ....attribute import models as models
 from ....attribute.lock_objects import attribute_value_qs_select_for_update
+from ....core.exceptions import PermissionDenied
 from ....page import models as page_models
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
-from ....permission.enums import ProductTypePermissions
+from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....product import models as product_models
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
@@ -32,8 +34,12 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Meta:
         model = models.Attribute
         object_type = Attribute
-        description = "Deletes an attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        description = (
+            "Deletes an attribute.\n\nRequires one of the following permissions, "
+            "depending on the attribute type: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -59,7 +65,25 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         """Perform a mutation that deletes a model instance."""
+        # Concrete permission is checked after instance is resolved.
+        type_permissions = (
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+        )
+        if not cls.check_permissions(info.context, type_permissions):
+            raise PermissionDenied(permissions=type_permissions)
+
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
+
+        # Check permissions based on attribute type
+        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
+        if instance.type == AttributeType.PRODUCT_TYPE:
+            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        else:
+            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        if not cls.check_permissions(info.context, permissions):
+            raise PermissionDenied(permissions=permissions)
+
         product_ids = cls.get_product_ids_to_search_index_update(instance)
         page_ids = cls.get_page_ids_to_search_index_update(instance)
 
