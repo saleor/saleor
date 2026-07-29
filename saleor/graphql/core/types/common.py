@@ -26,7 +26,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_WEBHOOKS,
 )
 from ...core.scalars import DateTime, Decimal
-from ..descriptions import ADDED_IN_318
+from ..descriptions import ADDED_IN_318, ADDED_IN_323
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -187,6 +187,11 @@ class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
+    )
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error." + ADDED_IN_323,
+        required=False,
     )
 
     class Meta:

@@ -3331,7 +3331,7 @@ enum AppProblemDismissedByEnum @doc(category: "Apps") {
 }
 
 """Represents user data."""
-type User implements Node & ObjectWithMetadata @doc(category: "Users") {
+type User implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Users") {
   """The ID of the user."""
   id: ID!
 
@@ -3364,6 +3364,26 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   """
   metafields(keys: [String!]): Metadata
+
+  """
+  Get a single attribute assigned to the user by attribute slug. The attribute is looked up among the attributes of the user's customer type. Requires one of the following permissions: MANAGE_USERS, OWNER. The owner can access only attributes that are visible in the storefront.
+  
+  Added in Saleor 3.23.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
+
+  """
+  List of attributes assigned to the user through the user's customer type. Requires one of the following permissions: MANAGE_USERS, OWNER. The owner can access only attributes that are visible in the storefront.
+  
+  Added in Saleor 3.23.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
 
   """The email address of the user."""
   email: String!
@@ -3563,9 +3583,48 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   ): [StoredPaymentMethod!]
 }
 
-"""Represents user address data."""
-type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
-  """The ID of the address."""
+"""
+An object with attributes.
+
+Added in Saleor 3.22.
+"""
+interface ObjectWithAttributes @doc(category: "Attributes") {
+  """
+  Get a single attribute attached to the object by attribute slug.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute @doc(category: "Attributes")
+
+  """
+  List of attributes assigned to the object.
+  
+  Added in Saleor 3.22.
+  """
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
+}
+
+"""
+Represents an attribute assigned to an object.
+
+Added in Saleor 3.22.
+"""
+interface AssignedAttribute @doc(category: "Attributes") {
+  """Attribute assigned to an object."""
+  attribute: Attribute!
+}
+
+"""
+Custom attribute of a product. Attributes can be assigned to products and variants at the product type level.
+"""
+type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes") {
+  """The ID of the attribute."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3598,504 +3657,60 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   """
   metafields(keys: [String!]): Metadata
 
-  """The given name of the address."""
-  firstName: String!
+  """The input type to use for entering attribute values in the dashboard."""
+  inputType: AttributeInputTypeEnum
 
-  """The family name of the address."""
-  lastName: String!
-
-  """Company or organization name."""
-  companyName: String!
-
-  """The first line of the address."""
-  streetAddress1: String!
-
-  """The second line of the address."""
-  streetAddress2: String!
-
-  """The city of the address."""
-  city: String!
-
-  """The district of the address."""
-  cityArea: String!
-
-  """The postal code of the address."""
-  postalCode: String!
-
-  """The country of the address."""
-  country: CountryDisplay!
-
-  """The country area of the address."""
-  countryArea: String!
-
-  """The phone number assigned the address."""
-  phone: String
-
-  """Address is user's default shipping address."""
-  isDefaultShippingAddress: Boolean
-
-  """Address is user's default billing address."""
-  isDefaultBillingAddress: Boolean
-}
-
-type CountryDisplay {
-  """Country code."""
-  code: String!
-
-  """Country name."""
-  country: String!
-
-  """Country tax."""
-  vat: VAT @deprecated(reason: "Always returns `null`. Use `TaxClassCountryRate` type to manage tax rates per country.")
-}
-
-"""Represents a VAT rate for a country."""
-type VAT @doc(category: "Taxes") {
-  """Country code."""
-  countryCode: String!
-
-  """Standard VAT rate in percent."""
-  standardRate: Float
-
-  """Country's VAT rate exceptions for specific types of goods."""
-  reducedRates: [ReducedRate!]!
-}
-
-"""Represents a reduced VAT rate for a particular type of goods."""
-type ReducedRate @doc(category: "Taxes") {
-  """Reduced VAT rate in percent."""
-  rate: Float!
-
-  """A type of goods."""
-  rateType: String!
-}
-
-"""Checkout object."""
-type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
-  """The ID of the checkout."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
+  """The entity type which can be used as a reference."""
+  entityType: AttributeEntityTypeEnum
 
   """
-  A single key from private metadata. Requires staff permissions to access.
+  The reference types (product or page type) that are used to narrow down the choices of reference objects.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Added in Saleor 3.22.
   """
-  privateMetafield(key: String!): String
+  referenceTypes(
+    """
+    Maximum number of objects to return. Value must be greater than 0. Default is 100.
+    """
+    limit: PositiveInt = 100
+  ): [ReferenceType!]
 
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """The date and time when the checkout was created."""
-  created: DateTime!
-
-  """Time of last modification of the given checkout."""
-  updatedAt: DateTime!
-  lastChange: DateTime! @deprecated(reason: "Use `updatedAt` instead.")
-
-  """
-  The user assigned to the checkout. Requires one of the following permissions: MANAGE_USERS, HANDLE_PAYMENTS, OWNER.
-  """
-  user: User
-
-  """The channel for which checkout was created."""
-  channel: Channel!
-
-  """The billing address of the checkout."""
-  billingAddress: Address
-
-  """The shipping address of the checkout."""
-  shippingAddress: Address
-
-  """
-  The customer note for the checkout. 
-  
-  Added in Saleor 3.21.
-  """
-  customerNote: String!
-
-  """The note for the checkout."""
-  note: String! @deprecated(reason: "Use `customerNote` instead.")
-
-  """
-  The total discount applied to the checkout. Note: Only discount created via voucher are included in this field.
-  """
-  discount: Money
-
-  """The name of voucher assigned to the checkout."""
-  discountName: String
-
-  """
-  Translation of the discountName field in the language set in Checkout.languageCode field.Note: this field is set automatically when Checkout.languageCode is defined; otherwise it's null
-  """
-  translatedDiscountName: String
-
-  """
-  The voucher assigned to the checkout.
-  
-  Added in Saleor 3.18.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  voucher: Voucher
-
-  """The code of voucher assigned to the checkout."""
-  voucherCode: String
-
-  """
-  Shipping methods that can be used with this checkout.
-  
-  Triggers the following webhook events:
-  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
-  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
-  """
-  availableShippingMethods: [ShippingMethod!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `shippingMethods` instead.")
-
-  """
-  Shipping methods that can be used with this checkout.
-  
-  Triggers the following webhook events:
-  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
-  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
-  """
-  shippingMethods: [ShippingMethod!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
-
-  """Collection points that can be used for this order."""
-  availableCollectionPoints: [Warehouse!]!
-
-  """
-  List of available payment gateways.
-  
-  Triggers the following webhook events:
-  - PAYMENT_LIST_GATEWAYS (sync): Fetch payment gateways available for checkout.
-  """
-  availablePaymentGateways: [PaymentGateway!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_LIST_GATEWAYS]) @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
-
-  """Email of a customer."""
-  email: String
-
-  """List of gift cards associated with this checkout."""
-  giftCards: [GiftCard!]!
-
-  """Returns True, if checkout requires shipping."""
-  isShippingRequired: Boolean!
-
-  """The number of items purchased."""
-  quantity: Int!
-
-  """
-  Date when oldest stock reservation for this checkout expires or null if no stock is reserved.
-  """
-  stockReservationExpires: DateTime
-
-  """
-  A list of checkout lines, each containing information about an item in the checkout.
-  """
-  lines: [CheckoutLine!]!
-
-  """
-  The price of the shipping, with all the taxes included. Set to 0 when no delivery method is selected.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
-  """
-  shippingPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
-
-  """
-  The delivery method selected for this checkout.
-  
-  Added in Saleor 3.23.
-  """
-  delivery: Delivery
-
-  """
-  The shipping method related with checkout.
-  
-  Triggers the following webhook events:
-  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
-  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
-  """
-  shippingMethod: ShippingMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
-
-  """
-  The delivery method selected for this checkout.
-  
-  Triggers the following webhook events:
-  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
-  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
-  """
-  deliveryMethod: DeliveryMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
-
-  """
-  The price of the checkout before shipping, with taxes included.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
-  """
-  subtotalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
-
-  """Returns True if checkout has to be exempt from taxes."""
-  taxExemption: Boolean!
-
-  """The checkout's token."""
-  token: UUID!
-
-  """
-  The sum of the checkout line prices, with all the taxes,shipping costs, and discounts included.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
-  """
-  totalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
-
-  """
-  The difference between the paid and the checkout total amount.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
-  """
-  totalBalance: Money! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
-
-  """Checkout language code."""
-  languageCode: LanguageCodeEnum!
-
-  """
-  List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
-  """
-  transactions: [TransactionItem!]
-
-  """Determines whether displayed prices should include taxes."""
-  displayGrossPrices: Boolean!
-
-  """
-  The authorize status of the checkout.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
-  """
-  authorizeStatus: CheckoutAuthorizeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
-
-  """
-  The charge status of the checkout.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
-  """
-  chargeStatus: CheckoutChargeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
-
-  """
-  List of user's stored payment methods that can be used in this checkout session. It uses the channel that the checkout was created in. When `amount` is not provided, `checkout.total` will be used as a default value.
-  """
-  storedPaymentMethods(
-    """Amount that will be used to fetch stored payment methods."""
-    amount: PositiveDecimal
-  ): [StoredPaymentMethod!]
-
-  """List of problems with the checkout."""
-  problems: [CheckoutProblem!]
-}
-
-"""Represents channel."""
-type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
-  """The ID of the channel."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Slug of the channel."""
-  slug: String!
-
-  """
-  Name of the channel.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
+  """Name of an attribute displayed in the interface."""
   name: String!
 
-  """
-  Whether the channel is active.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  isActive: Boolean!
-
-  """
-  A currency that is assigned to the channel.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  currencyCode: String!
-
-  """
-  Whether a channel has associated orders.
-  
-  Requires one of the following permissions: MANAGE_CHANNELS.
-  """
-  hasOrders: Boolean!
-
-  """
-  Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  defaultCountry: CountryDisplay!
-
-  """
-  List of warehouses assigned to this channel.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  warehouses: [Warehouse!]!
-
-  """List of shippable countries for the channel."""
-  countries: [CountryDisplay!]
-
-  """Shipping methods that are available for the channel."""
-  availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
-
-  """
-  Define the stock setting for this channel.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  stockSettings: StockSettings!
-
-  """
-  Channel-specific order settings.
-  
-  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
-  """
-  orderSettings: OrderSettings!
-
-  """
-  Channel-specific checkout settings.
-  
-  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
-  """
-  checkoutSettings: CheckoutSettings!
-
-  """
-  Channel-specific payment settings.
-  
-  Requires one of the following permissions: MANAGE_CHANNELS, HANDLE_PAYMENTS.
-  """
-  paymentSettings: PaymentSettings!
-
-  """
-  Channel specific tax configuration.
-  
-  Added in Saleor 3.20.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  taxConfiguration: TaxConfiguration!
-}
-
-"""Represents warehouse."""
-type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
-  """The ID of the warehouse."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Warehouse name."""
-  name: String!
-
-  """Warehouse slug."""
+  """Internal representation of an attribute name."""
   slug: String!
 
-  """Warehouse email."""
-  email: String!
+  """The attribute type."""
+  type: AttributeTypeEnum!
 
-  """Determine if the warehouse is private."""
-  isPrivate: Boolean!
+  """The unit of attribute values."""
+  unit: MeasurementUnitsEnum
 
-  """Address of the warehouse."""
-  address: Address!
+  """
+  A list of predefined attribute choices available for selection. Available only for attributes with predefined choices.
+  """
+  choices(
+    """Sort attribute choices."""
+    sortBy: AttributeChoicesSortingInput
 
-  """Warehouse company name."""
-  companyName: String! @deprecated(reason: "Use `Address.companyName` instead.")
+    """Filtering options for attribute choices."""
+    filter: AttributeValueFilterInput @deprecated(reason: "Use `where` filter instead.")
 
-  """Click and collect options: local, all or disabled."""
-  clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+    """
+    Where filtering options for attribute choices.
+    
+    Added in Saleor 3.22.
+    """
+    where: AttributeValueWhereInput
 
-  """Shipping zones supported by the warehouse."""
-  shippingZones(
+    """
+    Search attribute choices.
+    
+    Added in Saleor 3.22.
+    """
+    search: String
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -4111,16 +3726,51 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): ShippingZoneCountableConnection!
+  ): AttributeValueCountableConnection
 
   """
-  Stocks that belong to this warehouse.
-  
-  Added in Saleor 3.20.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  Whether the attribute requires values to be passed or not. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  stocks(
+  valueRequired: Boolean!
+
+  """
+  Whether the attribute should be visible or not in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
+  visibleInStorefront: Boolean!
+
+  """
+  Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
+  filterableInStorefront: Boolean! @deprecated
+
+  """
+  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
+  filterableInDashboard: Boolean!
+
+  """
+  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
+  availableInGrid: Boolean! @deprecated
+
+  """
+  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  """
+  storefrontSearchPosition: Int! @deprecated
+
+  """Returns translated attribute fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeTranslation
+
+  """Flag indicating that attribute has predefined choices."""
+  withChoices: Boolean!
+
+  """
+  A list of product types that use this attribute as a product attribute.
+  """
+  productTypes(
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -4136,22 +3786,231 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): StockCountableConnection
+  ): ProductTypeCountableConnection!
 
-  """External ID of this warehouse."""
+  """
+  A list of product types that use this attribute as a product variant attribute.
+  """
+  productVariantTypes(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductTypeCountableConnection!
+
+  """External ID of this attribute."""
   externalReference: String
 }
 
-enum WarehouseClickAndCollectOptionEnum @doc(category: "Products") {
-  DISABLED
-  LOCAL
-  ALL
+enum AttributeInputTypeEnum @doc(category: "Attributes") {
+  DROPDOWN
+  MULTISELECT
+  FILE
+  REFERENCE
+  SINGLE_REFERENCE
+  NUMERIC
+  RICH_TEXT
+  PLAIN_TEXT
+  SWATCH
+  BOOLEAN
+  DATE
+  DATE_TIME
 }
 
-type ShippingZoneCountableConnection @doc(category: "Shipping") {
+enum AttributeEntityTypeEnum @doc(category: "Attributes") {
+  PAGE
+  PRODUCT
+  PRODUCT_VARIANT
+  CATEGORY
+  COLLECTION
+}
+
+"""
+The reference types (product or page type) that are used to narrow down the choices of reference objects.
+ProductType applicable for reference attribute with `PRODUCT` or `PRODUCT_VARIANT` entity type.
+PageType applicable for reference attribute with `PAGE` entity type.
+"""
+union ReferenceType = ProductType | PageType
+
+"""
+Represents a type of product. It defines what attributes are available to products of this type.
+"""
+type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product type."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the product type."""
+  name: String!
+
+  """Slug of the product type."""
+  slug: String!
+
+  """Whether the product type has variants."""
+  hasVariants: Boolean! @deprecated(reason: "This is a leftover from the past Simple/Configurable product distinction. Products can have multiple variants regardless of this setting. ")
+
+  """Whether shipping is required for this product type."""
+  isShippingRequired: Boolean!
+
+  """
+  Whether the product type is digital - doesn't have any effect, it's present for backward-compatibility.
+  """
+  isDigital: Boolean! @deprecated(reason: "Will be removed in v3.24.0, use metadata or attributes instead.")
+
+  """Weight of the product type."""
+  weight: Weight
+
+  """The product type kind."""
+  kind: ProductTypeKindEnum!
+
+  """List of products of this type."""
+  products(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
+
+  """A type of tax. Assigned by enabled tax gateway"""
+  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClass: TaxClass
+
+  """Variant attributes of that product type."""
+  variantAttributes(
+    """Define scope of returned attributes."""
+    variantSelection: VariantAttributeScope
+  ): [Attribute!] @deprecated(reason: "Use `assignedVariantAttributes` instead.")
+
+  """
+  Variant attributes of that product type with attached variant selection.
+  """
+  assignedVariantAttributes(
+    """Define scope of returned attributes."""
+    variantSelection: VariantAttributeScope
+  ): [AssignedVariantAttribute!]
+
+  """Product attributes of that product type."""
+  productAttributes: [Attribute!]
+
+  """
+  List of attributes which can be assigned to this product type.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  availableAttributes(
+    """Filtering options for attributes of this product type."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for attributes of this product type."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
+}
+
+"""Represents weight value in a specific weight unit."""
+type Weight {
+  """Weight unit."""
+  unit: WeightUnitsEnum!
+
+  """Weight value. Returns a value with maximal three decimal places"""
+  value: Float!
+}
+
+enum WeightUnitsEnum {
+  G
+  LB
+  OZ
+  KG
+  TONNE
+}
+
+enum ProductTypeKindEnum @doc(category: "Products") {
+  NORMAL
+  GIFT_CARD
+}
+
+type ProductCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
-  edges: [ShippingZoneCountableEdge!]!
+  edges: [ProductCountableEdge!]!
 
   """A total count of items in the collection."""
   totalCount: Int
@@ -4174,19 +4033,17 @@ type PageInfo {
   endCursor: String
 }
 
-type ShippingZoneCountableEdge @doc(category: "Shipping") {
+type ProductCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
-  node: ShippingZone!
+  node: Product!
 
   """A cursor for use in pagination."""
   cursor: String!
 }
 
-"""
-Represents a shipping zone in the shop. Zones are the concept used only for grouping shipping methods in the dashboard, and are never exposed to the customers directly.
-"""
-type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping") {
-  """The ID of shipping zone."""
+"""Represents an individual item for sale in the storefront."""
+type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Products") {
+  """The ID of the product."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -4219,139 +4076,348 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   """
   metafields(keys: [String!]): Metadata
 
-  """Shipping zone name."""
-  name: String!
-
-  """Indicates if the shipping zone is default one."""
-  default: Boolean!
-
-  """Lowest and highest prices for the shipping."""
-  priceRange: MoneyRange
-
-  """List of countries available for the method."""
-  countries: [CountryDisplay!]!
-
   """
-  List of shipping methods available for orders shipped to countries within this shipping zone.
-  """
-  shippingMethods: [ShippingMethodType!]
-
-  """List of warehouses for shipping zone."""
-  warehouses: [Warehouse!]!
-
-  """List of channels for shipping zone."""
-  channels: [Channel!]!
-
-  """Description of a shipping zone."""
-  description: String
-}
-
-"""Represents a range of amounts of money."""
-type MoneyRange {
-  """Lower bound of a price range."""
-  start: Money
-
-  """Upper bound of a price range."""
-  stop: Money
-}
-
-"""Represents amount of money in specific currency."""
-type Money {
-  """Currency code."""
-  currency: String!
-
-  """Amount of money."""
-  amount: Float!
-
-  """
-  Amount of money represented as an integer in the smallest currency unit.
-  """
-  fractionalAmount: Int!
-
-  """Number of digits after the decimal point in the currency."""
-  fractionDigits: Int!
-}
-
-"""
-Shipping method are the methods you'll use to get customer's orders to them. They are directly exposed to the customers.
-"""
-type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shipping") {
-  """Shipping method ID."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
+  Get a single attribute attached to product by attribute slug.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Added in Saleor 3.22.
   """
-  privateMetafield(key: String!): String
+  assignedAttribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): AssignedAttribute
 
   """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
+  List of attributes assigned to this product.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Added in Saleor 3.22.
   """
-  metafield(key: String!): String
+  assignedAttributes(
+    """Maximum number of attributes to return. Default is 100."""
+    limit: PositiveInt = 100
+  ): [AssignedAttribute!]!
 
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
+  """SEO title of the product."""
+  seoTitle: String
 
-  """Shipping method name."""
+  """SEO description of the product."""
+  seoDescription: String
+
+  """SEO description of the product."""
   name: String!
 
   """
-  Shipping method description.
+  Description of the product.
   
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
 
-  """Type of the shipping method."""
-  type: ShippingMethodTypeEnum
+  """Type of the product."""
+  productType: ProductType!
 
-  """Returns translated shipping method fields for the given language code."""
+  """Slug of the product."""
+  slug: String!
+  category: Category
+
+  """The date and time when the product was created."""
+  created: DateTime!
+
+  """The date and time when the product was last updated."""
+  updatedAt: DateTime!
+  chargeTaxes: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
+
+  """Weight of the product."""
+  weight: Weight
+
+  """Default variant of the product."""
+  defaultVariant: ProductVariant
+
+  """Rating of the product."""
+  rating: Float
+
+  """
+  Channel given to retrieve this product. Also used by federation gateway to resolve this object in a federated query.
+  """
+  channel: String
+
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """Thumbnail of the product."""
+  thumbnail(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): Image
+
+  """
+  Lists the storefront product's pricing, the current price and discounts, only meant for displaying.
+  """
+  pricing(
+    """
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
+    """
+    address: AddressInput
+  ): ProductPricingInfo
+
+  """
+  Whether the product is in stock, set as available for purchase in the given channel, and published.
+  """
+  isAvailable(
+    """
+    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
+    """
+    address: AddressInput @deprecated
+  ): Boolean
+
+  """A type of tax. Assigned by enabled tax gateway"""
+  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
+
+  """Get a single attribute attached to product by attribute slug."""
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute @deprecated(reason: "Use the `assignedAttribute` field instead.")
+
+  """List of attributes assigned to this product."""
+  attributes: [SelectedAttribute!]! @deprecated(reason: "Use the `assignedAttributes` field instead.")
+
+  """
+  List of availability in channels for the product.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  channelListings: [ProductChannelListing!]
+
+  """Get a single product media by ID."""
+  mediaById(
+    """ID of a product media."""
+    id: ID!
+  ): ProductMedia
+
+  """Get a single product image by ID."""
+  imageById(
+    """ID of a product image."""
+    id: ID!
+  ): ProductImage @deprecated(reason: "Use the `mediaById` field instead.")
+
+  """Get a single variant by SKU or ID."""
+  variant(
+    """ID of the variant."""
+    id: ID
+
+    """SKU of the variant."""
+    sku: String
+  ): ProductVariant @deprecated(reason: "Use top-level `variant` query.")
+
+  """
+  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
+  variants: [ProductVariant!] @deprecated(reason: "Use `productVariants` field instead.")
+
+  """
+  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  
+  Added in Saleor 3.21.
+  """
+  productVariants(
+    """Filtering options for product variant."""
+    filter: ProductVariantFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for product variants."""
+    where: ProductVariantWhereInput
+
+    """Sort products variants."""
+    sortBy: ProductVariantSortingInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductVariantCountableConnection
+
+  """List of media for the product."""
+  media(
+    """Sort media."""
+    sortBy: MediaSortingInput
+  ): [ProductMedia!]
+
+  """List of images for the product."""
+  images: [ProductImage!] @deprecated(reason: "Use the `media` field instead.")
+
+  """
+  List of collections for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
+  collections: [Collection!]
+
+  """Returns translated product fields for the given language code."""
   translation(
-    """A language code to return the translation for shipping method."""
+    """A language code to return the translation for product."""
     languageCode: LanguageCodeEnum!
-  ): ShippingMethodTranslation
+  ): ProductTranslation
+
+  """Date when product is available for purchase."""
+  availableForPurchase: Date @deprecated(reason: "Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
+
+  """Date when product is available for purchase."""
+  availableForPurchaseAt: DateTime
 
   """
-  List of channels available for the method.
+  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
+  """
+  isAvailableForPurchase: Boolean
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
   
-  Requires one of the following permissions: MANAGE_SHIPPING.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
-  channelListings: [ShippingMethodChannelListing!]
+  taxClass: TaxClass
 
-  """The price of the cheapest variant (including discounts)."""
-  maximumOrderPrice: Money
+  """External ID of this product."""
+  externalReference: String
+}
 
-  """The price of the cheapest variant (including discounts)."""
-  minimumOrderPrice: Money
+"""
+Positive Integer scalar implementation.
+
+Should be used in places where value must be positive (greater than 0).
+"""
+scalar PositiveInt
+
+scalar JSONString
+
+"""
+Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
+"""
+type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the category."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
 
   """
-  Postal code ranges rule of exclusion or inclusion of the shipping method.
-  """
-  postalCodeRules: [ShippingMethodPostalCodeRule!]
-
-  """
-  List of excluded products for the shipping method.
+  A single key from private metadata. Requires staff permissions to access.
   
-  Requires one of the following permissions: MANAGE_SHIPPING.
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  excludedProducts(
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """SEO title of category."""
+  seoTitle: String
+
+  """SEO description of category."""
+  seoDescription: String
+
+  """Name of category"""
+  name: String!
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Slug of the category."""
+  slug: String!
+
+  """Parent category."""
+  parent: Category
+
+  """Level of the category."""
+  level: Int!
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """The date and time when the category was last updated."""
+  updatedAt: DateTime!
+
+  """List of ancestors of the category."""
+  ancestors(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CategoryCountableConnection
+
+  """
+  List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
+  products(
+    """Filtering options for products."""
+    filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
+
+    """Where filtering options for products."""
+    where: ProductWhereInput
+
+    """Sort products."""
+    sortBy: ProductOrder
+
+    """Search products."""
+    search: String
+
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -4369,53 +4435,537 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
     last: Int
   ): ProductCountableConnection
 
-  """Minimum order weight to use this shipping method."""
-  minimumOrderWeight: Weight
+  """List of children of the category."""
+  children(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
 
-  """Maximum order weight to use this shipping method."""
-  maximumOrderWeight: Weight
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
 
-  """Maximum number of days for delivery."""
-  maximumDeliveryDays: Int
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
 
-  """Minimal number of days for delivery."""
-  minimumDeliveryDays: Int
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CategoryCountableConnection
+
+  """Background image of the category."""
+  backgroundImage(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): Image
+
+  """Returns translated category fields for the given language code."""
+  translation(
+    """A language code to return the translation for category."""
+    languageCode: LanguageCodeEnum!
+  ): CategoryTranslation
+}
+
+type CategoryCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [CategoryCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type CategoryCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: Category!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input ProductFilterInput @doc(category: "Products") {
+  isPublished: Boolean
+  collections: [ID!]
+  categories: [ID!]
+  hasCategory: Boolean
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+  stocks: ProductStockFilterInput
+  search: String
+  metadata: [MetadataFilter!]
+
+  """Filter by the publication date."""
+  publishedFrom: DateTime
+
+  """Filter by availability for purchase."""
+  isAvailable: Boolean
+
+  """Filter by the date of availability for purchase."""
+  availableFrom: DateTime
+
+  """Filter by visibility in product listings."""
+  isVisibleInListing: Boolean
+  price: PriceRangeInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: PriceRangeInput
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+  productTypes: [ID!]
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+  ids: [ID!]
+  hasPreorderedVariants: Boolean
+  slugs: [String!]
+
+  """Specifies the channel by which the data should be filtered."""
+  channel: String @deprecated(reason: "Use root-level channel argument instead.")
+}
+
+input AttributeInput @doc(category: "Attributes") {
+  """Internal representation of an attribute name."""
+  slug: String
 
   """
-  Tax class assigned to this shipping method.
+  Filter by value of the attribute. Only one value input field is allowed. If provided more than one, the error will be raised. Cannot be combined with deprecated fields of `AttributeInput`.
+  """
+  value: AssignedAttributeValueInput
+
+  """
+  Slugs identifying the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values. Requires `slug` to be provided.
+  """
+  values: [String!] @deprecated(reason: "Use `value` instead.")
+
+  """
+  The range that the returned values should be in. Requires `slug` to be provided.
+  """
+  valuesRange: IntRangeInput @deprecated(reason: "Use `value` instead.")
+
+  """
+  The date/time range that the returned values should be in. Requires `slug` to be provided.
+  """
+  dateTime: DateTimeRangeInput @deprecated(reason: "Use `value` instead.")
+
+  """
+  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used. Requires `slug` to be provided.
+  """
+  date: DateRangeInput @deprecated(reason: "Use `value` instead.")
+
+  """The boolean value of the attribute. Requires `slug` to be provided."""
+  boolean: Boolean @deprecated(reason: "Use `value` instead.")
+}
+
+input AssignedAttributeValueInput {
+  """Filter by slug assigned to AttributeValue."""
+  slug: StringFilterInput
+
+  """Filter by name assigned to AttributeValue."""
+  name: StringFilterInput
+
+  """Filter by numeric value for attributes of numeric type."""
+  numeric: DecimalFilterInput
+
+  """Filter by date value for attributes of date type."""
+  date: DateRangeInput
+
+  """Filter by date time value for attributes of date time type."""
+  dateTime: DateTimeRangeInput
+
+  """Filter by boolean value for attributes of boolean type."""
+  boolean: Boolean
+
+  """Filter by reference attribute value."""
+  reference: AssignedAttributeReferenceInput
+}
+
+"""Define the filtering options for string fields."""
+input StringFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+}
+
+"""Define the filtering options for decimal fields."""
+input DecimalFilterInput {
+  """The value equal to."""
+  eq: Decimal
+
+  """The value included in."""
+  oneOf: [Decimal!]
+
+  """The value in range."""
+  range: DecimalRangeInput
+}
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
+
+input DecimalRangeInput {
+  """Decimal value greater than or equal to."""
+  gte: Decimal
+
+  """Decimal value less than or equal to."""
+  lte: Decimal
+}
+
+input DateRangeInput {
+  """Start date."""
+  gte: Date
+
+  """End date."""
+  lte: Date
+}
+
+"""
+The `Date` scalar type represents a Date
+value as specified by
+[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
+"""
+scalar Date
+
+input DateTimeRangeInput {
+  """Start date."""
+  gte: DateTime
+
+  """End date."""
+  lte: DateTime
+}
+
+input AssignedAttributeReferenceInput {
+  """
+  Returns objects with a reference pointing to an object identified by the given ID.
+  """
+  referencedIds: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a page identified by the given slug.
+  """
+  pageSlugs: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a product identified by the given slug.
+  """
+  productSlugs: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a product variant identified by the given sku.
+  """
+  productVariantSkus: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a category identified by the given slug.
+  """
+  categorySlugs: ContainsFilterInput
+
+  """
+  Returns objects with a reference pointing to a collection identified by the given slug.
+  """
+  collectionSlugs: ContainsFilterInput
+}
+
+"""
+Define the filtering options for fields that can contain multiple values.
+"""
+input ContainsFilterInput {
+  """The field contains at least one of the specified values."""
+  containsAny: [String!]
+
+  """The field contains all of the specified values."""
+  containsAll: [String!]
+}
+
+input IntRangeInput {
+  """Value greater than or equal to."""
+  gte: Int
+
+  """Value less than or equal to."""
+  lte: Int
+}
+
+enum StockAvailability @doc(category: "Products") {
+  IN_STOCK
+  OUT_OF_STOCK
+}
+
+input ProductStockFilterInput @doc(category: "Products") {
+  warehouseIds: [ID!]
+  quantity: IntRangeInput
+}
+
+input MetadataFilter {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String
+}
+
+input PriceRangeInput {
+  """Price greater than or equal to."""
+  gte: Float
+
+  """Price less than or equal to."""
+  lte: Float
+}
+
+input ProductWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """Filter by product name."""
+  name: StringFilterInput
+
+  """Filter by product slug."""
+  slug: StringFilterInput
+
+  """Filter by product type."""
+  productType: GlobalIDFilterInput
+
+  """Filter by product category."""
+  category: GlobalIDFilterInput
+
+  """Filter by collection."""
+  collection: GlobalIDFilterInput
+
+  """Filter by availability for purchase."""
+  isAvailable: Boolean
+
+  """Filter by public visibility."""
+  isPublished: Boolean
+
+  """Filter by visibility on the channel."""
+  isVisibleInListing: Boolean
+
+  """Filter by the publication date."""
+  publishedFrom: DateTime
+
+  """Filter by the date of availability for purchase."""
+  availableFrom: DateTime
+
+  """Filter by product with category assigned."""
+  hasCategory: Boolean
+
+  """Filter by product variant price."""
+  price: DecimalFilterInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: DecimalFilterInput
+
+  """Filter by attributes associated with the product."""
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+
+  """Filter by stock of the product variant."""
+  stocks: ProductStockFilterInput
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+
+  """Filter by product with preordered variants."""
+  hasPreorderedVariants: Boolean
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeFilterInput
+
+  """List of conditions that must be met."""
+  AND: [ProductWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductWhereInput!]
+}
+
+"""Define the filtering options for foreign key fields."""
+input GlobalIDFilterInput {
+  """The value equal to."""
+  eq: ID
+
+  """The value included in."""
+  oneOf: [ID!]
+}
+
+"""Define the filtering options for date time fields."""
+input DateTimeFilterInput {
+  """The value equal to."""
+  eq: DateTime
+
+  """The value included in."""
+  oneOf: [DateTime!]
+
+  """The value in range."""
+  range: DateTimeRangeInput
+}
+
+input ProductOrder @doc(category: "Products") {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """Specifies the channel in which to sort the data."""
+  channel: String @deprecated(reason: "Use root-level channel argument instead.")
+
+  """
+  Sort product by the selected attribute's values.
+  Note: this doesn't take translations into account yet.
+  """
+  attributeId: ID
+
+  """Sort products by the selected field."""
+  field: ProductOrderField
+}
+
+enum OrderDirection {
+  """Specifies an ascending sort order."""
+  ASC
+
+  """Specifies a descending sort order."""
+  DESC
+}
+
+enum ProductOrderField @doc(category: "Products") {
+  """Sort products by name."""
+  NAME
+
+  """
+  Sort products by rank. Note: This option is available only with the `search` filter.
+  """
+  RANK
+
+  """
+  Sort products by price.
   
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  This option requires a channel filter to work as the values can vary between channels.
   """
-  taxClass: TaxClass
-}
-
-scalar JSONString
-
-enum ShippingMethodTypeEnum @doc(category: "Shipping") {
   PRICE
-  WEIGHT
+
+  """
+  Sort products by a minimal price of a product's variant.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  MINIMAL_PRICE
+
+  """Sort products by update date."""
+  LAST_MODIFIED @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
+
+  """Sort products by update date."""
+  DATE @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
+
+  """Sort products by type."""
+  TYPE
+
+  """
+  Sort products by publication status.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLISHED
+
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLICATION_DATE @deprecated(reason: "Use `PUBLISHED_AT` instead.")
+
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLISHED_AT
+
+  """Sort products by update date."""
+  LAST_MODIFIED_AT
+
+  """
+  Sort products by collection. Note: This option is available only for the `Collection.products` query.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  COLLECTION
+
+  """Sort products by rating."""
+  RATING
+
+  """Sort products by creation date."""
+  CREATED_AT
 }
 
-"""Represents shipping method translations."""
-type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
-  """The ID of the shipping method translation."""
+"""Represents an image."""
+type Image {
+  """The URL of the image."""
+  url: String!
+
+  """Alt text for an image."""
+  alt: String
+}
+
+enum ThumbnailFormatEnum {
+  ORIGINAL
+  AVIF
+  WEBP
+}
+
+"""Represents category translations."""
+type CategoryTranslation implements Node @doc(category: "Products") {
+  """The ID of the category translation."""
   id: ID!
 
   """Translation language."""
   language: LanguageDisplay!
 
-  """Translated shipping method name."""
+  """Translated SEO title."""
+  seoTitle: String
+
+  """Translated SEO description."""
+  seoDescription: String
+
+  """
+  Translated category slug.
+  
+  Added in Saleor 3.21.
+  """
+  slug: String
+
+  """Translated category name."""
   name: String
 
   """
-  Translated description of the shipping method.
+  Translated description of the category.
   
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
 
-  """Represents the shipping method fields to translate."""
-  translatableContent: ShippingMethodTranslatableContent
+  """
+  Translated description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """Represents the category fields to translate."""
+  translatableContent: CategoryTranslatableContent
 }
 
 type LanguageDisplay {
@@ -6767,1983 +7317,6 @@ enum LanguageCodeEnum {
 }
 
 """
-Represents shipping method's original translatable fields and related translations.
-"""
-type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
-  """The ID of the shipping method translatable content."""
-  id: ID!
-
-  """The ID of the shipping method to translate."""
-  shippingMethodId: ID!
-
-  """Shipping method name to translate."""
-  name: String!
-
-  """
-  Shipping method description to translate.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Returns translated shipping method fields for the given language code."""
-  translation(
-    """A language code to return the translation for shipping method."""
-    languageCode: LanguageCodeEnum!
-  ): ShippingMethodTranslation
-
-  """
-  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers.
-  
-  Requires one of the following permissions: MANAGE_SHIPPING.
-  """
-  shippingMethod: ShippingMethodType @deprecated(reason: "Get model fields from the root level queries.")
-}
-
-"""Represents shipping method channel listing."""
-type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
-  """The ID of shipping method channel listing."""
-  id: ID!
-
-  """The channel associated with the shipping method channel listing."""
-  channel: Channel!
-
-  """Maximum order price."""
-  maximumOrderPrice: Money
-
-  """Minimum order price."""
-  minimumOrderPrice: Money
-
-  """Price of the shipping method in the associated channel."""
-  price: Money
-}
-
-"""Represents shipping method postal code rule."""
-type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
-  """The ID of the object."""
-  id: ID!
-
-  """Start address range."""
-  start: String
-
-  """End address range."""
-  end: String
-
-  """Inclusion type of the postal code rule."""
-  inclusionType: PostalCodeRuleInclusionTypeEnum
-}
-
-enum PostalCodeRuleInclusionTypeEnum @doc(category: "Shipping") {
-  INCLUDE
-  EXCLUDE
-}
-
-type ProductCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [ProductCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type ProductCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: Product!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""Represents an individual item for sale in the storefront."""
-type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(category: "Products") {
-  """The ID of the product."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """
-  Get a single attribute attached to product by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute
-
-  """
-  List of attributes assigned to this product.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes(
-    """Maximum number of attributes to return. Default is 100."""
-    limit: PositiveInt = 100
-  ): [AssignedAttribute!]!
-
-  """SEO title of the product."""
-  seoTitle: String
-
-  """SEO description of the product."""
-  seoDescription: String
-
-  """SEO description of the product."""
-  name: String!
-
-  """
-  Description of the product.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Type of the product."""
-  productType: ProductType!
-
-  """Slug of the product."""
-  slug: String!
-  category: Category
-
-  """The date and time when the product was created."""
-  created: DateTime!
-
-  """The date and time when the product was last updated."""
-  updatedAt: DateTime!
-  chargeTaxes: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
-
-  """Weight of the product."""
-  weight: Weight
-
-  """Default variant of the product."""
-  defaultVariant: ProductVariant
-
-  """Rating of the product."""
-  rating: Float
-
-  """
-  Channel given to retrieve this product. Also used by federation gateway to resolve this object in a federated query.
-  """
-  channel: String
-
-  """
-  Description of the product.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """Thumbnail of the product."""
-  thumbnail(
-    """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
-    """
-    size: Int
-
-    """
-    The format of the image. When not provided, format of the original image will be used.
-    """
-    format: ThumbnailFormatEnum = ORIGINAL
-  ): Image
-
-  """
-  Lists the storefront product's pricing, the current price and discounts, only meant for displaying.
-  """
-  pricing(
-    """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
-    """
-    address: AddressInput
-  ): ProductPricingInfo
-
-  """
-  Whether the product is in stock, set as available for purchase in the given channel, and published.
-  """
-  isAvailable(
-    """
-    Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored — stock availability is determined by the direct warehouse-channel link instead of shipping zones.
-    """
-    address: AddressInput @deprecated
-  ): Boolean
-
-  """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
-
-  """Get a single attribute attached to product by attribute slug."""
-  attribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): SelectedAttribute @deprecated(reason: "Use the `assignedAttribute` field instead.")
-
-  """List of attributes assigned to this product."""
-  attributes: [SelectedAttribute!]! @deprecated(reason: "Use the `assignedAttributes` field instead.")
-
-  """
-  List of availability in channels for the product.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  channelListings: [ProductChannelListing!]
-
-  """Get a single product media by ID."""
-  mediaById(
-    """ID of a product media."""
-    id: ID!
-  ): ProductMedia
-
-  """Get a single product image by ID."""
-  imageById(
-    """ID of a product image."""
-    id: ID!
-  ): ProductImage @deprecated(reason: "Use the `mediaById` field instead.")
-
-  """Get a single variant by SKU or ID."""
-  variant(
-    """ID of the variant."""
-    id: ID
-
-    """SKU of the variant."""
-    sku: String
-  ): ProductVariant @deprecated(reason: "Use top-level `variant` query.")
-
-  """
-  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
-  """
-  variants: [ProductVariant!] @deprecated(reason: "Use `productVariants` field instead.")
-
-  """
-  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
-  
-  Added in Saleor 3.21.
-  """
-  productVariants(
-    """Filtering options for product variant."""
-    filter: ProductVariantFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for product variants."""
-    where: ProductVariantWhereInput
-
-    """Sort products variants."""
-    sortBy: ProductVariantSortingInput
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductVariantCountableConnection
-
-  """List of media for the product."""
-  media(
-    """Sort media."""
-    sortBy: MediaSortingInput
-  ): [ProductMedia!]
-
-  """List of images for the product."""
-  images: [ProductImage!] @deprecated(reason: "Use the `media` field instead.")
-
-  """
-  List of collections for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
-  """
-  collections: [Collection!]
-
-  """Returns translated product fields for the given language code."""
-  translation(
-    """A language code to return the translation for product."""
-    languageCode: LanguageCodeEnum!
-  ): ProductTranslation
-
-  """Date when product is available for purchase."""
-  availableForPurchase: Date @deprecated(reason: "Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
-
-  """Date when product is available for purchase."""
-  availableForPurchaseAt: DateTime
-
-  """
-  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
-  """
-  isAvailableForPurchase: Boolean
-
-  """
-  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  taxClass: TaxClass
-
-  """External ID of this product."""
-  externalReference: String
-}
-
-"""
-An object with attributes.
-
-Added in Saleor 3.22.
-"""
-interface ObjectWithAttributes @doc(category: "Attributes") {
-  """
-  Get a single attribute attached to the object by attribute slug.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttribute(
-    """Slug of the attribute"""
-    slug: String!
-  ): AssignedAttribute @doc(category: "Attributes")
-
-  """
-  List of attributes assigned to the object.
-  
-  Added in Saleor 3.22.
-  """
-  assignedAttributes(
-    """Maximum number of attributes to return. Default is 100."""
-    limit: PositiveInt = 100
-  ): [AssignedAttribute!]!
-}
-
-"""
-Represents an attribute assigned to an object.
-
-Added in Saleor 3.22.
-"""
-interface AssignedAttribute @doc(category: "Attributes") {
-  """Attribute assigned to an object."""
-  attribute: Attribute!
-}
-
-"""
-Custom attribute of a product. Attributes can be assigned to products and variants at the product type level.
-"""
-type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes") {
-  """The ID of the attribute."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """The input type to use for entering attribute values in the dashboard."""
-  inputType: AttributeInputTypeEnum
-
-  """The entity type which can be used as a reference."""
-  entityType: AttributeEntityTypeEnum
-
-  """
-  The reference types (product or page type) that are used to narrow down the choices of reference objects.
-  
-  Added in Saleor 3.22.
-  """
-  referenceTypes(
-    """
-    Maximum number of objects to return. Value must be greater than 0. Default is 100.
-    """
-    limit: PositiveInt = 100
-  ): [ReferenceType!]
-
-  """Name of an attribute displayed in the interface."""
-  name: String!
-
-  """Internal representation of an attribute name."""
-  slug: String!
-
-  """The attribute type."""
-  type: AttributeTypeEnum!
-
-  """The unit of attribute values."""
-  unit: MeasurementUnitsEnum
-
-  """
-  A list of predefined attribute choices available for selection. Available only for attributes with predefined choices.
-  """
-  choices(
-    """Sort attribute choices."""
-    sortBy: AttributeChoicesSortingInput
-
-    """Filtering options for attribute choices."""
-    filter: AttributeValueFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """
-    Where filtering options for attribute choices.
-    
-    Added in Saleor 3.22.
-    """
-    where: AttributeValueWhereInput
-
-    """
-    Search attribute choices.
-    
-    Added in Saleor 3.22.
-    """
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeValueCountableConnection
-
-  """
-  Whether the attribute requires values to be passed or not. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  valueRequired: Boolean!
-
-  """
-  Whether the attribute should be visible or not in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  visibleInStorefront: Boolean!
-
-  """
-  Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInStorefront: Boolean! @deprecated
-
-  """
-  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInDashboard: Boolean!
-
-  """
-  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  availableInGrid: Boolean! @deprecated
-
-  """
-  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  storefrontSearchPosition: Int! @deprecated
-
-  """Returns translated attribute fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeTranslation
-
-  """Flag indicating that attribute has predefined choices."""
-  withChoices: Boolean!
-
-  """
-  A list of product types that use this attribute as a product attribute.
-  """
-  productTypes(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductTypeCountableConnection!
-
-  """
-  A list of product types that use this attribute as a product variant attribute.
-  """
-  productVariantTypes(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductTypeCountableConnection!
-
-  """External ID of this attribute."""
-  externalReference: String
-}
-
-enum AttributeInputTypeEnum @doc(category: "Attributes") {
-  DROPDOWN
-  MULTISELECT
-  FILE
-  REFERENCE
-  SINGLE_REFERENCE
-  NUMERIC
-  RICH_TEXT
-  PLAIN_TEXT
-  SWATCH
-  BOOLEAN
-  DATE
-  DATE_TIME
-}
-
-enum AttributeEntityTypeEnum @doc(category: "Attributes") {
-  PAGE
-  PRODUCT
-  PRODUCT_VARIANT
-  CATEGORY
-  COLLECTION
-}
-
-"""
-The reference types (product or page type) that are used to narrow down the choices of reference objects.
-ProductType applicable for reference attribute with `PRODUCT` or `PRODUCT_VARIANT` entity type.
-PageType applicable for reference attribute with `PAGE` entity type.
-"""
-union ReferenceType = ProductType | PageType
-
-"""
-Represents a type of product. It defines what attributes are available to products of this type.
-"""
-type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
-  """The ID of the product type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the product type."""
-  name: String!
-
-  """Slug of the product type."""
-  slug: String!
-
-  """Whether the product type has variants."""
-  hasVariants: Boolean! @deprecated(reason: "This is a leftover from the past Simple/Configurable product distinction. Products can have multiple variants regardless of this setting. ")
-
-  """Whether shipping is required for this product type."""
-  isShippingRequired: Boolean!
-
-  """
-  Whether the product type is digital - doesn't have any effect, it's present for backward-compatibility.
-  """
-  isDigital: Boolean! @deprecated(reason: "Will be removed in v3.24.0, use metadata or attributes instead.")
-
-  """Weight of the product type."""
-  weight: Weight
-
-  """The product type kind."""
-  kind: ProductTypeKindEnum!
-
-  """List of products of this type."""
-  products(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection @deprecated(reason: "Use the top-level `products` query with the `productTypes` filter.")
-
-  """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType @deprecated(reason: "Use `taxClass` field instead.")
-
-  """
-  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  taxClass: TaxClass
-
-  """Variant attributes of that product type."""
-  variantAttributes(
-    """Define scope of returned attributes."""
-    variantSelection: VariantAttributeScope
-  ): [Attribute!] @deprecated(reason: "Use `assignedVariantAttributes` instead.")
-
-  """
-  Variant attributes of that product type with attached variant selection.
-  """
-  assignedVariantAttributes(
-    """Define scope of returned attributes."""
-    variantSelection: VariantAttributeScope
-  ): [AssignedVariantAttribute!]
-
-  """Product attributes of that product type."""
-  productAttributes: [Attribute!]
-
-  """
-  List of attributes which can be assigned to this product type.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  availableAttributes(
-    """Filtering options for attributes of this product type."""
-    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for attributes of this product type."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-}
-
-"""Represents weight value in a specific weight unit."""
-type Weight {
-  """Weight unit."""
-  unit: WeightUnitsEnum!
-
-  """Weight value. Returns a value with maximal three decimal places"""
-  value: Float!
-}
-
-enum WeightUnitsEnum {
-  G
-  LB
-  OZ
-  KG
-  TONNE
-}
-
-enum ProductTypeKindEnum @doc(category: "Products") {
-  NORMAL
-  GIFT_CARD
-}
-
-"""Representation of tax types fetched from tax gateway."""
-type TaxType @doc(category: "Taxes") {
-  """Description of the tax type."""
-  description: String
-
-  """External tax code used to identify given tax group."""
-  taxCode: String
-}
-
-"""
-Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
-"""
-type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
-  """The ID of the object."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the tax class."""
-  name: String!
-
-  """Country-specific tax rates for this tax class."""
-  countries: [TaxClassCountryRate!]!
-}
-
-"""
-Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
-"""
-type TaxClassCountryRate @doc(category: "Taxes") {
-  """Country in which this tax rate applies."""
-  country: CountryDisplay!
-
-  """Tax rate value."""
-  rate: Float!
-
-  """Related tax class."""
-  taxClass: TaxClass
-}
-
-enum VariantAttributeScope @doc(category: "Products") {
-  ALL
-  VARIANT_SELECTION
-  NOT_VARIANT_SELECTION
-}
-
-"""
-Represents assigned attribute to variant with variant selection attached.
-"""
-type AssignedVariantAttribute @doc(category: "Attributes") {
-  """Attribute assigned to variant."""
-  attribute: Attribute!
-
-  """
-  Determines, whether assigned attribute is allowed for variant selection. Supported variant types for variant selection are: ['dropdown', 'boolean', 'swatch', 'numeric']
-  """
-  variantSelection: Boolean!
-}
-
-type AttributeCountableConnection @doc(category: "Attributes") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [AttributeCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type AttributeCountableEdge @doc(category: "Attributes") {
-  """The item at the end of the edge."""
-  node: Attribute!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-input AttributeFilterInput @doc(category: "Attributes") {
-  valueRequired: Boolean
-  isVariantOnly: Boolean
-  visibleInStorefront: Boolean
-  filterableInStorefront: Boolean
-  filterableInDashboard: Boolean
-  availableInGrid: Boolean
-  metadata: [MetadataFilter!]
-  search: String
-  ids: [ID!]
-  type: AttributeTypeEnum
-  inCollection: ID
-  inCategory: ID
-  slugs: [String!]
-
-  """Specifies the channel by which the data should be filtered."""
-  channel: String @deprecated(reason: "Use root-level channel argument instead.")
-}
-
-input MetadataFilter {
-  """Key of a metadata item."""
-  key: String!
-
-  """Value of a metadata item."""
-  value: String
-}
-
-enum AttributeTypeEnum @doc(category: "Attributes") {
-  PRODUCT_TYPE
-  PAGE_TYPE
-  CUSTOMER_TYPE
-}
-
-"""Where filtering options."""
-input AttributeWhereInput @doc(category: "Attributes") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
-  name: StringFilterInput
-  slug: StringFilterInput
-  withChoices: Boolean
-  inputType: AttributeInputTypeEnumFilterInput
-  entityType: AttributeEntityTypeEnumFilterInput
-  type: AttributeTypeEnumFilterInput
-  unit: MeasurementUnitsEnumFilterInput
-  inCollection: ID
-  inCategory: ID
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
-
-  """List of conditions that must be met."""
-  AND: [AttributeWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [AttributeWhereInput!]
-}
-
-"""Define the filtering options for string fields."""
-input StringFilterInput {
-  """The value equal to."""
-  eq: String
-
-  """The value included in."""
-  oneOf: [String!]
-}
-
-input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeInputTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeInputTypeEnum!]
-}
-
-input AttributeEntityTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeEntityTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeEntityTypeEnum!]
-}
-
-input AttributeTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeTypeEnum!]
-}
-
-input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: MeasurementUnitsEnum
-
-  """The value included in."""
-  oneOf: [MeasurementUnitsEnum!]
-}
-
-enum MeasurementUnitsEnum {
-  MM
-  CM
-  DM
-  M
-  KM
-  FT
-  YD
-  INCH
-  SQ_MM
-  SQ_CM
-  SQ_DM
-  SQ_M
-  SQ_KM
-  SQ_FT
-  SQ_YD
-  SQ_INCH
-  CUBIC_MILLIMETER
-  CUBIC_CENTIMETER
-  CUBIC_DECIMETER
-  CUBIC_METER
-  LITER
-  CUBIC_FOOT
-  CUBIC_INCH
-  CUBIC_YARD
-  QT
-  PINT
-  FL_OZ
-  ACRE_IN
-  ACRE_FT
-  G
-  LB
-  OZ
-  KG
-  TONNE
-}
-
-"""
-Represents a type of page. It defines what attributes are available to pages of this type.
-"""
-type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
-  """ID of the page type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the page type."""
-  name: String!
-
-  """Slug of the page type."""
-  slug: String!
-
-  """Page attributes of that page type."""
-  attributes: [Attribute!]
-
-  """
-  Attributes that can be assigned to the page type.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  availableAttributes(
-    """Filtering options for attributes."""
-    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for attributes."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-
-  """
-  Whether page type has pages assigned.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  hasPages: Boolean
-}
-
-"""
-Positive Integer scalar implementation.
-
-Should be used in places where value must be positive (greater than 0).
-"""
-scalar PositiveInt
-
-type AttributeValueCountableConnection @doc(category: "Attributes") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [AttributeValueCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type AttributeValueCountableEdge @doc(category: "Attributes") {
-  """The item at the end of the edge."""
-  node: AttributeValue!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""Represents a value of an attribute."""
-type AttributeValue implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value."""
-  id: ID!
-
-  """Name of a value displayed in the interface."""
-  name: String
-
-  """Internal representation of a value (unique per attribute)."""
-  slug: String
-
-  """
-  Represent value of the attribute value (e.g. color values for swatch attributes).
-  """
-  value: String
-
-  """Returns translated attribute value fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute value."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeValueTranslation
-
-  """The input type to use for entering attribute values in the dashboard."""
-  inputType: AttributeInputTypeEnum
-
-  """The ID of the referenced object."""
-  reference: ID
-
-  """Represents file URL and content type (if attribute value is a file)."""
-  file: File
-
-  """
-  Represents the text of the attribute value, includes formatting.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """
-  Represents the text of the attribute value, plain text without formatting.
-  """
-  plainText: String
-
-  """Represents the boolean value of the attribute value."""
-  boolean: Boolean
-
-  """Represents the date value of the attribute value."""
-  date: Date
-
-  """Represents the date/time value of the attribute value."""
-  dateTime: DateTime
-
-  """External ID of this attribute value."""
-  externalReference: String
-}
-
-"""Represents attribute value translations."""
-type AttributeValueTranslation implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated attribute value name."""
-  name: String!
-
-  """
-  Translated rich-text attribute value.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """Translated plain text attribute value ."""
-  plainText: String
-
-  """Represents the attribute value fields to translate."""
-  translatableContent: AttributeValueTranslatableContent
-}
-
-"""
-Represents attribute value's original translatable fields and related translations.
-"""
-type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute value translatable content."""
-  id: ID!
-
-  """The ID of the attribute value to translate."""
-  attributeValueId: ID!
-
-  """Name of the attribute value to translate."""
-  name: String!
-
-  """
-  Attribute value.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """Attribute plain text value."""
-  plainText: String
-
-  """Returns translated attribute value fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute value."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeValueTranslation
-
-  """Represents a value of an attribute."""
-  attributeValue: AttributeValue @deprecated(reason: "Get model fields from the root level queries.")
-
-  """Associated attribute that can be translated."""
-  attribute: AttributeTranslatableContent
-}
-
-"""
-Represents attribute's original translatable fields and related translations.
-"""
-type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
-  """The ID of the attribute translatable content."""
-  id: ID!
-
-  """The ID of the attribute to translate."""
-  attributeId: ID!
-
-  """Name of the attribute to translate."""
-  name: String!
-
-  """Returns translated attribute fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeTranslation
-
-  """Custom attribute of a product."""
-  attribute: Attribute @deprecated(reason: "Get model fields from the root level queries.")
-}
-
-"""Represents attribute translations."""
-type AttributeTranslation implements Node @doc(category: "Attributes") {
-  """The ID of the attribute translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated attribute name."""
-  name: String!
-
-  """Represents the attribute fields to translate."""
-  translatableContent: AttributeTranslatableContent
-}
-
-type File {
-  """The URL of the file."""
-  url: String!
-
-  """Content type of the file."""
-  contentType: String
-}
-
-"""
-The `Date` scalar type represents a Date
-value as specified by
-[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
-"""
-scalar Date
-
-input AttributeChoicesSortingInput @doc(category: "Attributes") {
-  """Specifies the direction in which to sort attribute choices."""
-  direction: OrderDirection!
-
-  """Sort attribute choices by the selected field."""
-  field: AttributeChoicesSortField!
-}
-
-enum OrderDirection {
-  """Specifies an ascending sort order."""
-  ASC
-
-  """Specifies a descending sort order."""
-  DESC
-}
-
-enum AttributeChoicesSortField @doc(category: "Attributes") {
-  """Sort attribute choice by name."""
-  NAME
-
-  """Sort attribute choice by slug."""
-  SLUG
-}
-
-input AttributeValueFilterInput @doc(category: "Attributes") {
-  search: String
-  ids: [ID!]
-  slugs: [String!]
-}
-
-"""Where filtering options for attribute values."""
-input AttributeValueWhereInput @doc(category: "Attributes") {
-  ids: [ID!]
-  name: StringFilterInput
-  slug: StringFilterInput
-
-  """List of conditions that must be met."""
-  AND: [AttributeValueWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [AttributeValueWhereInput!]
-}
-
-type ProductTypeCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [ProductTypeCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type ProductTypeCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: ProductType!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""
-Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
-"""
-type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
-  """The ID of the category."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """SEO title of category."""
-  seoTitle: String
-
-  """SEO description of category."""
-  seoDescription: String
-
-  """Name of category"""
-  name: String!
-
-  """
-  Description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Slug of the category."""
-  slug: String!
-
-  """Parent category."""
-  parent: Category
-
-  """Level of the category."""
-  level: Int!
-
-  """
-  Description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """The date and time when the category was last updated."""
-  updatedAt: DateTime!
-
-  """List of ancestors of the category."""
-  ancestors(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CategoryCountableConnection
-
-  """
-  List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
-  """
-  products(
-    """Filtering options for products."""
-    filter: ProductFilterInput @deprecated(reason: "Use `where` filter instead.")
-
-    """Where filtering options for products."""
-    where: ProductWhereInput
-
-    """Sort products."""
-    sortBy: ProductOrder
-
-    """Search products."""
-    search: String
-
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection
-
-  """List of children of the category."""
-  children(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CategoryCountableConnection
-
-  """Background image of the category."""
-  backgroundImage(
-    """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
-    """
-    size: Int
-
-    """
-    The format of the image. When not provided, format of the original image will be used.
-    """
-    format: ThumbnailFormatEnum = ORIGINAL
-  ): Image
-
-  """Returns translated category fields for the given language code."""
-  translation(
-    """A language code to return the translation for category."""
-    languageCode: LanguageCodeEnum!
-  ): CategoryTranslation
-}
-
-type CategoryCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [CategoryCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type CategoryCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: Category!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-input ProductFilterInput @doc(category: "Products") {
-  isPublished: Boolean
-  collections: [ID!]
-  categories: [ID!]
-  hasCategory: Boolean
-  attributes: [AttributeInput!]
-
-  """Filter by variants having specific stock status."""
-  stockAvailability: StockAvailability
-  stocks: ProductStockFilterInput
-  search: String
-  metadata: [MetadataFilter!]
-
-  """Filter by the publication date."""
-  publishedFrom: DateTime
-
-  """Filter by availability for purchase."""
-  isAvailable: Boolean
-
-  """Filter by the date of availability for purchase."""
-  availableFrom: DateTime
-
-  """Filter by visibility in product listings."""
-  isVisibleInListing: Boolean
-  price: PriceRangeInput
-
-  """Filter by the lowest variant price after discounts."""
-  minimalPrice: PriceRangeInput
-
-  """Filter by when was the most recent update."""
-  updatedAt: DateTimeRangeInput
-  productTypes: [ID!]
-
-  """Filter on whether product is a gift card or not."""
-  giftCard: Boolean
-  ids: [ID!]
-  hasPreorderedVariants: Boolean
-  slugs: [String!]
-
-  """Specifies the channel by which the data should be filtered."""
-  channel: String @deprecated(reason: "Use root-level channel argument instead.")
-}
-
-input AttributeInput @doc(category: "Attributes") {
-  """Internal representation of an attribute name."""
-  slug: String
-
-  """
-  Filter by value of the attribute. Only one value input field is allowed. If provided more than one, the error will be raised. Cannot be combined with deprecated fields of `AttributeInput`.
-  """
-  value: AssignedAttributeValueInput
-
-  """
-  Slugs identifying the attributeValues associated with the Attribute. When specified, it filters the results to include only records with one of the matching values. Requires `slug` to be provided.
-  """
-  values: [String!] @deprecated(reason: "Use `value` instead.")
-
-  """
-  The range that the returned values should be in. Requires `slug` to be provided.
-  """
-  valuesRange: IntRangeInput @deprecated(reason: "Use `value` instead.")
-
-  """
-  The date/time range that the returned values should be in. Requires `slug` to be provided.
-  """
-  dateTime: DateTimeRangeInput @deprecated(reason: "Use `value` instead.")
-
-  """
-  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used. Requires `slug` to be provided.
-  """
-  date: DateRangeInput @deprecated(reason: "Use `value` instead.")
-
-  """The boolean value of the attribute. Requires `slug` to be provided."""
-  boolean: Boolean @deprecated(reason: "Use `value` instead.")
-}
-
-input AssignedAttributeValueInput {
-  """Filter by slug assigned to AttributeValue."""
-  slug: StringFilterInput
-
-  """Filter by name assigned to AttributeValue."""
-  name: StringFilterInput
-
-  """Filter by numeric value for attributes of numeric type."""
-  numeric: DecimalFilterInput
-
-  """Filter by date value for attributes of date type."""
-  date: DateRangeInput
-
-  """Filter by date time value for attributes of date time type."""
-  dateTime: DateTimeRangeInput
-
-  """Filter by boolean value for attributes of boolean type."""
-  boolean: Boolean
-
-  """Filter by reference attribute value."""
-  reference: AssignedAttributeReferenceInput
-}
-
-"""Define the filtering options for decimal fields."""
-input DecimalFilterInput {
-  """The value equal to."""
-  eq: Decimal
-
-  """The value included in."""
-  oneOf: [Decimal!]
-
-  """The value in range."""
-  range: DecimalRangeInput
-}
-
-"""
-Custom Decimal implementation.
-
-Returns Decimal as a float in the API,
-parses float to the Decimal on the way back.
-"""
-scalar Decimal
-
-input DecimalRangeInput {
-  """Decimal value greater than or equal to."""
-  gte: Decimal
-
-  """Decimal value less than or equal to."""
-  lte: Decimal
-}
-
-input DateRangeInput {
-  """Start date."""
-  gte: Date
-
-  """End date."""
-  lte: Date
-}
-
-input DateTimeRangeInput {
-  """Start date."""
-  gte: DateTime
-
-  """End date."""
-  lte: DateTime
-}
-
-input AssignedAttributeReferenceInput {
-  """
-  Returns objects with a reference pointing to an object identified by the given ID.
-  """
-  referencedIds: ContainsFilterInput
-
-  """
-  Returns objects with a reference pointing to a page identified by the given slug.
-  """
-  pageSlugs: ContainsFilterInput
-
-  """
-  Returns objects with a reference pointing to a product identified by the given slug.
-  """
-  productSlugs: ContainsFilterInput
-
-  """
-  Returns objects with a reference pointing to a product variant identified by the given sku.
-  """
-  productVariantSkus: ContainsFilterInput
-
-  """
-  Returns objects with a reference pointing to a category identified by the given slug.
-  """
-  categorySlugs: ContainsFilterInput
-
-  """
-  Returns objects with a reference pointing to a collection identified by the given slug.
-  """
-  collectionSlugs: ContainsFilterInput
-}
-
-"""
-Define the filtering options for fields that can contain multiple values.
-"""
-input ContainsFilterInput {
-  """The field contains at least one of the specified values."""
-  containsAny: [String!]
-
-  """The field contains all of the specified values."""
-  containsAll: [String!]
-}
-
-input IntRangeInput {
-  """Value greater than or equal to."""
-  gte: Int
-
-  """Value less than or equal to."""
-  lte: Int
-}
-
-enum StockAvailability @doc(category: "Products") {
-  IN_STOCK
-  OUT_OF_STOCK
-}
-
-input ProductStockFilterInput @doc(category: "Products") {
-  warehouseIds: [ID!]
-  quantity: IntRangeInput
-}
-
-input PriceRangeInput {
-  """Price greater than or equal to."""
-  gte: Float
-
-  """Price less than or equal to."""
-  lte: Float
-}
-
-input ProductWhereInput @doc(category: "Products") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
-
-  """Filter by product name."""
-  name: StringFilterInput
-
-  """Filter by product slug."""
-  slug: StringFilterInput
-
-  """Filter by product type."""
-  productType: GlobalIDFilterInput
-
-  """Filter by product category."""
-  category: GlobalIDFilterInput
-
-  """Filter by collection."""
-  collection: GlobalIDFilterInput
-
-  """Filter by availability for purchase."""
-  isAvailable: Boolean
-
-  """Filter by public visibility."""
-  isPublished: Boolean
-
-  """Filter by visibility on the channel."""
-  isVisibleInListing: Boolean
-
-  """Filter by the publication date."""
-  publishedFrom: DateTime
-
-  """Filter by the date of availability for purchase."""
-  availableFrom: DateTime
-
-  """Filter by product with category assigned."""
-  hasCategory: Boolean
-
-  """Filter by product variant price."""
-  price: DecimalFilterInput
-
-  """Filter by the lowest variant price after discounts."""
-  minimalPrice: DecimalFilterInput
-
-  """Filter by attributes associated with the product."""
-  attributes: [AttributeInput!]
-
-  """Filter by variants having specific stock status."""
-  stockAvailability: StockAvailability
-
-  """Filter by stock of the product variant."""
-  stocks: ProductStockFilterInput
-
-  """Filter on whether product is a gift card or not."""
-  giftCard: Boolean
-
-  """Filter by product with preordered variants."""
-  hasPreorderedVariants: Boolean
-
-  """Filter by when was the most recent update."""
-  updatedAt: DateTimeFilterInput
-
-  """List of conditions that must be met."""
-  AND: [ProductWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [ProductWhereInput!]
-}
-
-"""Define the filtering options for foreign key fields."""
-input GlobalIDFilterInput {
-  """The value equal to."""
-  eq: ID
-
-  """The value included in."""
-  oneOf: [ID!]
-}
-
-"""Define the filtering options for date time fields."""
-input DateTimeFilterInput {
-  """The value equal to."""
-  eq: DateTime
-
-  """The value included in."""
-  oneOf: [DateTime!]
-
-  """The value in range."""
-  range: DateTimeRangeInput
-}
-
-input ProductOrder @doc(category: "Products") {
-  """Specifies the direction in which to sort products."""
-  direction: OrderDirection!
-
-  """Specifies the channel in which to sort the data."""
-  channel: String @deprecated(reason: "Use root-level channel argument instead.")
-
-  """
-  Sort product by the selected attribute's values.
-  Note: this doesn't take translations into account yet.
-  """
-  attributeId: ID
-
-  """Sort products by the selected field."""
-  field: ProductOrderField
-}
-
-enum ProductOrderField @doc(category: "Products") {
-  """Sort products by name."""
-  NAME
-
-  """
-  Sort products by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
-
-  """
-  Sort products by price.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PRICE
-
-  """
-  Sort products by a minimal price of a product's variant.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  MINIMAL_PRICE
-
-  """Sort products by update date."""
-  LAST_MODIFIED @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
-
-  """Sort products by update date."""
-  DATE @deprecated(reason: "Use `LAST_MODIFIED_AT` instead.")
-
-  """Sort products by type."""
-  TYPE
-
-  """
-  Sort products by publication status.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLISHED
-
-  """
-  Sort products by publication date.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLICATION_DATE @deprecated(reason: "Use `PUBLISHED_AT` instead.")
-
-  """
-  Sort products by publication date.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLISHED_AT
-
-  """Sort products by update date."""
-  LAST_MODIFIED_AT
-
-  """
-  Sort products by collection. Note: This option is available only for the `Collection.products` query.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  COLLECTION
-
-  """Sort products by rating."""
-  RATING
-
-  """Sort products by creation date."""
-  CREATED_AT
-}
-
-"""Represents an image."""
-type Image {
-  """The URL of the image."""
-  url: String!
-
-  """Alt text for an image."""
-  alt: String
-}
-
-enum ThumbnailFormatEnum {
-  ORIGINAL
-  AVIF
-  WEBP
-}
-
-"""Represents category translations."""
-type CategoryTranslation implements Node @doc(category: "Products") {
-  """The ID of the category translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated SEO title."""
-  seoTitle: String
-
-  """Translated SEO description."""
-  seoDescription: String
-
-  """
-  Translated category slug.
-  
-  Added in Saleor 3.21.
-  """
-  slug: String
-
-  """Translated category name."""
-  name: String
-
-  """
-  Translated description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Translated description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """Represents the category fields to translate."""
-  translatableContent: CategoryTranslatableContent
-}
-
-"""
 Represents category original translatable fields and related translations.
 """
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
@@ -9002,120 +7575,785 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   preorderThreshold: PreorderThreshold
 }
 
-"""Represents preorder variant data for channel."""
-type PreorderThreshold @doc(category: "Products") {
-  """Preorder threshold for product variant in this channel."""
-  quantity: Int
+"""Represents channel."""
+type Channel implements Node & ObjectWithMetadata @doc(category: "Channels") {
+  """The ID of the channel."""
+  id: ID!
 
-  """Number of sold product variant in this channel."""
-  soldUnits: Int!
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Slug of the channel."""
+  slug: String!
+
+  """
+  Name of the channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  name: String!
+
+  """
+  Whether the channel is active.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  isActive: Boolean!
+
+  """
+  A currency that is assigned to the channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  currencyCode: String!
+
+  """
+  Whether a channel has associated orders.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS.
+  """
+  hasOrders: Boolean!
+
+  """
+  Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  defaultCountry: CountryDisplay!
+
+  """
+  List of warehouses assigned to this channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  warehouses: [Warehouse!]!
+
+  """List of shippable countries for the channel."""
+  countries: [CountryDisplay!]
+
+  """Shipping methods that are available for the channel."""
+  availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
+
+  """
+  Define the stock setting for this channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  stockSettings: StockSettings!
+
+  """
+  Channel-specific order settings.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
+  """
+  orderSettings: OrderSettings!
+
+  """
+  Channel-specific checkout settings.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+  """
+  checkoutSettings: CheckoutSettings!
+
+  """
+  Channel-specific payment settings.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, HANDLE_PAYMENTS.
+  """
+  paymentSettings: PaymentSettings!
+
+  """
+  Channel specific tax configuration.
+  
+  Added in Saleor 3.20.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxConfiguration: TaxConfiguration!
 }
 
-"""Represents availability of a variant in the storefront."""
-type VariantPricingInfo @doc(category: "Products") {
-  """Whether it is in sale or not."""
-  onSale: Boolean
+type CountryDisplay {
+  """Country code."""
+  code: String!
 
-  """The discount amount if in sale (null otherwise)."""
-  discount: TaxedMoney
+  """Country name."""
+  country: String!
+
+  """Country tax."""
+  vat: VAT @deprecated(reason: "Always returns `null`. Use `TaxClassCountryRate` type to manage tax rates per country.")
+}
+
+"""Represents a VAT rate for a country."""
+type VAT @doc(category: "Taxes") {
+  """Country code."""
+  countryCode: String!
+
+  """Standard VAT rate in percent."""
+  standardRate: Float
+
+  """Country's VAT rate exceptions for specific types of goods."""
+  reducedRates: [ReducedRate!]!
+}
+
+"""Represents a reduced VAT rate for a particular type of goods."""
+type ReducedRate @doc(category: "Taxes") {
+  """Reduced VAT rate in percent."""
+  rate: Float!
+
+  """A type of goods."""
+  rateType: String!
+}
+
+"""Represents warehouse."""
+type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the warehouse."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
 
   """
-  The discount amount compared to prior price. Null if product is not on sale or prior price was not provided in VariantChannelListing
+  A single key from private metadata. Requires staff permissions to access.
   
-  Added in Saleor 3.21.
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  discountPrior: TaxedMoney
-
-  """The discount amount in the local currency."""
-  discountLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
-
-  """The price, with any discount subtracted."""
-  price: TaxedMoney
-
-  """The price without any discount."""
-  priceUndiscounted: TaxedMoney
+  privateMetafield(key: String!): String
 
   """
-  The price prior to discount.
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
   
-  Added in Saleor 3.21.
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  pricePrior: TaxedMoney
+  metafield(key: String!): String
 
-  """The discounted price in the local currency."""
-  priceLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Warehouse name."""
+  name: String!
+
+  """Warehouse slug."""
+  slug: String!
+
+  """Warehouse email."""
+  email: String!
+
+  """Determine if the warehouse is private."""
+  isPrivate: Boolean!
+
+  """Address of the warehouse."""
+  address: Address!
+
+  """Warehouse company name."""
+  companyName: String! @deprecated(reason: "Use `Address.companyName` instead.")
+
+  """Click and collect options: local, all or disabled."""
+  clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+
+  """Shipping zones supported by the warehouse."""
+  shippingZones(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ShippingZoneCountableConnection!
+
+  """
+  Stocks that belong to this warehouse.
+  
+  Added in Saleor 3.20.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  stocks(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): StockCountableConnection
+
+  """External ID of this warehouse."""
+  externalReference: String
+}
+
+"""Represents user address data."""
+type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
+  """The ID of the address."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """The given name of the address."""
+  firstName: String!
+
+  """The family name of the address."""
+  lastName: String!
+
+  """Company or organization name."""
+  companyName: String!
+
+  """The first line of the address."""
+  streetAddress1: String!
+
+  """The second line of the address."""
+  streetAddress2: String!
+
+  """The city of the address."""
+  city: String!
+
+  """The district of the address."""
+  cityArea: String!
+
+  """The postal code of the address."""
+  postalCode: String!
+
+  """The country of the address."""
+  country: CountryDisplay!
+
+  """The country area of the address."""
+  countryArea: String!
+
+  """The phone number assigned the address."""
+  phone: String
+
+  """Address is user's default shipping address."""
+  isDefaultShippingAddress: Boolean
+
+  """Address is user's default billing address."""
+  isDefaultBillingAddress: Boolean
+}
+
+enum WarehouseClickAndCollectOptionEnum @doc(category: "Products") {
+  DISABLED
+  LOCAL
+  ALL
+}
+
+type ShippingZoneCountableConnection @doc(category: "Shipping") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [ShippingZoneCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type ShippingZoneCountableEdge @doc(category: "Shipping") {
+  """The item at the end of the edge."""
+  node: ShippingZone!
+
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
 """
-Represents a monetary value with taxes. In cases where taxes were not applied, net and gross values will be equal.
+Represents a shipping zone in the shop. Zones are the concept used only for grouping shipping methods in the dashboard, and are never exposed to the customers directly.
 """
-type TaxedMoney {
+type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping") {
+  """The ID of shipping zone."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Shipping zone name."""
+  name: String!
+
+  """Indicates if the shipping zone is default one."""
+  default: Boolean!
+
+  """Lowest and highest prices for the shipping."""
+  priceRange: MoneyRange
+
+  """List of countries available for the method."""
+  countries: [CountryDisplay!]!
+
+  """
+  List of shipping methods available for orders shipped to countries within this shipping zone.
+  """
+  shippingMethods: [ShippingMethodType!]
+
+  """List of warehouses for shipping zone."""
+  warehouses: [Warehouse!]!
+
+  """List of channels for shipping zone."""
+  channels: [Channel!]!
+
+  """Description of a shipping zone."""
+  description: String
+}
+
+"""Represents a range of amounts of money."""
+type MoneyRange {
+  """Lower bound of a price range."""
+  start: Money
+
+  """Upper bound of a price range."""
+  stop: Money
+}
+
+"""Represents amount of money in specific currency."""
+type Money {
   """Currency code."""
   currency: String!
 
-  """Amount of money including taxes."""
-  gross: Money!
+  """Amount of money."""
+  amount: Float!
 
-  """Amount of money without taxes."""
-  net: Money!
+  """
+  Amount of money represented as an integer in the smallest currency unit.
+  """
+  fractionalAmount: Int!
 
-  """Amount of taxes."""
-  tax: Money!
+  """Number of digits after the decimal point in the currency."""
+  fractionDigits: Int!
 }
 
-input AddressInput {
-  """Given name."""
-  firstName: String
+"""
+Shipping method are the methods you'll use to get customer's orders to them. They are directly exposed to the customers.
+"""
+type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shipping") {
+  """Shipping method ID."""
+  id: ID!
 
-  """Family name."""
-  lastName: String
-
-  """Company or organization."""
-  companyName: String
-
-  """Address."""
-  streetAddress1: String
-
-  """Address."""
-  streetAddress2: String
-
-  """City."""
-  city: String
-
-  """District."""
-  cityArea: String
-
-  """Postal code."""
-  postalCode: String
-
-  """Country."""
-  country: CountryCode
-
-  """State or province."""
-  countryArea: String
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
 
   """
-  Phone number.
+  A single key from private metadata. Requires staff permissions to access.
   
-  Phone numbers are validated with Google's [libphonenumber](https://github.com/google/libphonenumber) library.
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  phone: String
+  privateMetafield(key: String!): String
 
   """
-  Address public metadata. Can be read by any API client authorized to read the object it's attached to.
-  
-  Warning: never store sensitive information, including financial data such as credit card details.
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   """
-  metadata: [MetadataInput!]
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
 
   """
-  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library. Some mutations may require additional permissions to use the the field. More info about permissions can be found in relevant mutation.
+  A single key from public metadata.
   
-  Added in Saleor 3.19.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  skipValidation: Boolean = false
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Shipping method name."""
+  name: String!
+
+  """
+  Shipping method description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Type of the shipping method."""
+  type: ShippingMethodTypeEnum
+
+  """Returns translated shipping method fields for the given language code."""
+  translation(
+    """A language code to return the translation for shipping method."""
+    languageCode: LanguageCodeEnum!
+  ): ShippingMethodTranslation
+
+  """
+  List of channels available for the method.
+  
+  Requires one of the following permissions: MANAGE_SHIPPING.
+  """
+  channelListings: [ShippingMethodChannelListing!]
+
+  """The price of the cheapest variant (including discounts)."""
+  maximumOrderPrice: Money
+
+  """The price of the cheapest variant (including discounts)."""
+  minimumOrderPrice: Money
+
+  """
+  Postal code ranges rule of exclusion or inclusion of the shipping method.
+  """
+  postalCodeRules: [ShippingMethodPostalCodeRule!]
+
+  """
+  List of excluded products for the shipping method.
+  
+  Requires one of the following permissions: MANAGE_SHIPPING.
+  """
+  excludedProducts(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection
+
+  """Minimum order weight to use this shipping method."""
+  minimumOrderWeight: Weight
+
+  """Maximum order weight to use this shipping method."""
+  maximumOrderWeight: Weight
+
+  """Maximum number of days for delivery."""
+  maximumDeliveryDays: Int
+
+  """Minimal number of days for delivery."""
+  minimumDeliveryDays: Int
+
+  """
+  Tax class assigned to this shipping method.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClass: TaxClass
+}
+
+enum ShippingMethodTypeEnum @doc(category: "Shipping") {
+  PRICE
+  WEIGHT
+}
+
+"""Represents shipping method translations."""
+type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated shipping method name."""
+  name: String
+
+  """
+  Translated description of the shipping method.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Represents the shipping method fields to translate."""
+  translatableContent: ShippingMethodTranslatableContent
+}
+
+"""
+Represents shipping method's original translatable fields and related translations.
+"""
+type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
+  """The ID of the shipping method translatable content."""
+  id: ID!
+
+  """The ID of the shipping method to translate."""
+  shippingMethodId: ID!
+
+  """Shipping method name to translate."""
+  name: String!
+
+  """
+  Shipping method description to translate.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated shipping method fields for the given language code."""
+  translation(
+    """A language code to return the translation for shipping method."""
+    languageCode: LanguageCodeEnum!
+  ): ShippingMethodTranslation
+
+  """
+  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers.
+  
+  Requires one of the following permissions: MANAGE_SHIPPING.
+  """
+  shippingMethod: ShippingMethodType @deprecated(reason: "Get model fields from the root level queries.")
+}
+
+"""Represents shipping method channel listing."""
+type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
+  """The ID of shipping method channel listing."""
+  id: ID!
+
+  """The channel associated with the shipping method channel listing."""
+  channel: Channel!
+
+  """Maximum order price."""
+  maximumOrderPrice: Money
+
+  """Minimum order price."""
+  minimumOrderPrice: Money
+
+  """Price of the shipping method in the associated channel."""
+  price: Money
+}
+
+"""Represents shipping method postal code rule."""
+type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
+  """The ID of the object."""
+  id: ID!
+
+  """Start address range."""
+  start: String
+
+  """End address range."""
+  end: String
+
+  """Inclusion type of the postal code rule."""
+  inclusionType: PostalCodeRuleInclusionTypeEnum
+}
+
+enum PostalCodeRuleInclusionTypeEnum @doc(category: "Shipping") {
+  INCLUDE
+  EXCLUDE
+}
+
+"""
+Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
+"""
+type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the tax class."""
+  name: String!
+
+  """Country-specific tax rates for this tax class."""
+  countries: [TaxClassCountryRate!]!
+}
+
+"""
+Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
+"""
+type TaxClassCountryRate @doc(category: "Taxes") {
+  """Country in which this tax rate applies."""
+  country: CountryDisplay!
+
+  """Tax rate value."""
+  rate: Float!
+
+  """Related tax class."""
+  taxClass: TaxClass
+}
+
+type StockCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [StockCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type StockCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: Stock!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""Represents stock."""
+type Stock implements Node @doc(category: "Products") {
+  """The ID of stock."""
+  id: ID!
+
+  """The warehouse associated with the stock."""
+  warehouse: Warehouse!
+
+  """Information about the product variant."""
+  productVariant: ProductVariant!
+
+  """
+  Quantity of a product in the warehouse's possession, including the allocated stock that is waiting for shipment.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  quantity: Int!
+
+  """
+  Quantity allocated for orders.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  quantityAllocated: Int!
+
+  """
+  Quantity reserved for checkouts.
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
+  """
+  quantityReserved: Int!
+}
+
+"""List of shipping methods available for the country."""
+type ShippingMethodsPerCountry @doc(category: "Shipping") {
+  """The country code."""
+  countryCode: CountryCode!
+
+  """List of available shipping methods."""
+  shippingMethods: [ShippingMethod!]
 }
 
 """
@@ -9878,6 +9116,497 @@ enum CountryCode {
   ZW
 }
 
+"""
+Shipping methods that can be used as means of shipping for orders and checkouts.
+"""
+type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shipping") {
+  """Unique ID of ShippingMethod available for Order."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Type of the shipping method."""
+  type: ShippingMethodTypeEnum @deprecated
+
+  """Shipping method name."""
+  name: String!
+
+  """
+  Shipping method description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Maximum delivery days for this shipping method."""
+  maximumDeliveryDays: Int
+
+  """Minimum delivery days for this shipping method."""
+  minimumDeliveryDays: Int
+
+  """Maximum order weight for this shipping method."""
+  maximumOrderWeight: Weight @deprecated
+
+  """Minimum order weight for this shipping method."""
+  minimumOrderWeight: Weight @deprecated
+
+  """Returns translated shipping method fields for the given language code."""
+  translation(
+    """A language code to return the translation for shipping method."""
+    languageCode: LanguageCodeEnum!
+  ): ShippingMethodTranslation
+
+  """The price of selected shipping method."""
+  price: Money!
+
+  """Maximum order price for this shipping method."""
+  maximumOrderPrice: Money @deprecated
+
+  """Minimal order price for this shipping method."""
+  minimumOrderPrice: Money @deprecated
+
+  """Describes if this shipping method is active and can be selected."""
+  active: Boolean!
+
+  """Message connected to this shipping method."""
+  message: String
+}
+
+"""Represents the channel stock settings."""
+type StockSettings @doc(category: "Products") {
+  """
+  Allocation strategy defines the preference of warehouses for allocations and reservations.
+  """
+  allocationStrategy: AllocationStrategyEnum!
+}
+
+"""
+Determine the allocation strategy for the channel.
+
+    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
+    within the channel
+
+    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
+"""
+enum AllocationStrategyEnum @doc(category: "Products") {
+  PRIORITIZE_SORTING_ORDER
+  PRIORITIZE_HIGH_STOCK
+}
+
+"""Represents the channel-specific order settings."""
+type OrderSettings {
+  """
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  """
+  automaticallyConfirmAllNewOrders: Boolean!
+
+  """
+  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  """
+  automaticallyFulfillNonShippableGiftCard: Boolean!
+
+  """
+  Expiration time in minutes. Default null - means do not expire any orders.
+  """
+  expireOrdersAfter: Minute
+
+  """
+  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
+  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
+  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  """
+  markAsPaidStrategy: MarkAsPaidStrategyEnum!
+
+  """The time in days after expired orders will be deleted."""
+  deleteExpiredOrdersAfter: Day!
+
+  """
+  Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
+  """
+  allowUnpaidOrders: Boolean!
+
+  """
+  Determine if voucher applied on draft order should be count toward voucher usage.
+  
+  Added in Saleor 3.18.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  includeDraftOrderInVoucherUsage: Boolean!
+
+  """
+  Time in hours after which the draft order line price will be refreshed.
+  
+  Added in Saleor 3.21.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  draftOrderLinePriceFreezePeriod: Hour
+
+  """
+  This flag only affects orders created from checkout and applies specifically to vouchers of the types: `SPECIFIC_PRODUCT` and `ENTIRE_ORDER` with `applyOncePerOrder` enabled.
+  - When legacy propagation is enabled, discounts from these vouchers are represented as `OrderDiscount` objects, attached to the order and returned in the `Order.discounts` field. Additionally, percentage-based vouchers are converted to fixed-value discounts.
+  - When legacy propagation is disabled, discounts are represented as `OrderLineDiscount` objects, attached to individual lines and returned in the `OrderLine.discounts` field. In this case, percentage-based vouchers retain their original type.
+  In future releases, `OrderLineDiscount` will become the default behavior, and this flag will be deprecated and removed.
+  
+  Added in Saleor 3.21.
+  """
+  useLegacyLineDiscountPropagation: Boolean!
+}
+
+"""
+The `Minute` scalar type represents number of minutes by integer value.
+"""
+scalar Minute
+
+"""
+Determine the mark as paid strategy for the channel.
+
+    TRANSACTION_FLOW - new orders marked as paid will receive a
+    `TransactionItem` object, that will cover the `order.total`.
+
+    PAYMENT_FLOW - new orders marked as paid will receive a
+    `Payment` object, that will cover the `order.total`.
+"""
+enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
+  TRANSACTION_FLOW
+  PAYMENT_FLOW @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
+}
+
+"""The `Day` scalar type represents number of days by integer value."""
+scalar Day
+
+"""The `Hour` scalar type represents number of hours by integer value."""
+scalar Hour
+
+"""Represents the channel-specific checkout settings."""
+type CheckoutSettings {
+  """
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one.
+  """
+  useLegacyErrorFlow: Boolean!
+
+  """
+  Default `false`. Determines if the paid checkouts should be automatically completed. This setting applies only to checkouts where payment was processed through transactions.When enabled, the checkout will be automatically completed once the checkout `charge_status` reaches `FULL`. This occurs when the total sum of charged and authorized transaction amounts equals or exceeds the checkout's total amount.
+  
+  Added in Saleor 3.20.
+  """
+  automaticallyCompleteFullyPaidCheckouts: Boolean!
+
+  """
+  The time in minutes to wait after a checkout is fully paid before automatically completing it.
+  
+  Added in Saleor 3.22.
+  """
+  automaticCompletionDelay: Minute
+
+  """
+  The date time defines the earliest checkout creation date on which fully paid checkouts can begin to be automatically completed. 
+  
+  Added in Saleor 3.22.
+  """
+  automaticCompletionCutOffDate: DateTime
+
+  """
+  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
+  
+  Added in Saleor 3.23.
+  """
+  allowLegacyGiftCardUse: Boolean!
+}
+
+"""Represents the channel-specific payment settings."""
+type PaymentSettings {
+  """
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+
+  """
+  Determine if the funds for expired checkouts should be released automatically.
+  
+  Added in Saleor 3.20.
+  """
+  releaseFundsForExpiredCheckouts: Boolean
+
+  """
+  The time in hours after which funds for expired checkouts will be released.
+  
+  Added in Saleor 3.20.
+  """
+  checkoutTtlBeforeReleasingFunds: Hour
+
+  """
+  Specifies the earliest date on which funds for expired checkouts can begin to be released. Expired checkouts dated before this cut-off will not have their funds released. Additionally, no funds will be released for checkouts that are more than one year old, regardless of the cut-off date.
+  
+  Added in Saleor 3.20.
+  """
+  checkoutReleaseFundsCutOffDate: DateTime
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum @doc(category: "Payments") {
+  AUTHORIZATION
+  CHARGE
+}
+
+"""Channel-specific tax configuration."""
+type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """A channel to which the tax configuration applies to."""
+  channel: Channel!
+
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean!
+
+  """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """Determines whether displayed prices should include taxes."""
+  displayGrossPrices: Boolean!
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean!
+
+  """List of country-specific exceptions in tax configuration."""
+  countries: [TaxConfigurationPerCountry!]!
+
+  """
+  The tax app `App.identifier` that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps. If multiple tax apps exist with provided tax app id use the `App` with newest `created` date. Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`.
+  
+  Added in Saleor 3.19.
+  """
+  taxAppId: String
+
+  """
+  Determines whether to use weighted tax for shipping. When set to true, the tax rate for shipping will be calculated based on the weighted average of tax rates from the order or checkout lines.
+  
+  Added in Saleor 3.21.
+  """
+  useWeightedTaxForShipping: Boolean
+}
+
+enum TaxCalculationStrategy @doc(category: "Taxes") {
+  FLAT_RATES
+  TAX_APP
+}
+
+"""Country-specific exceptions of a channel's tax configuration."""
+type TaxConfigurationPerCountry @doc(category: "Taxes") {
+  """Country in which this configuration applies."""
+  country: CountryDisplay!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether displayed prices should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
+
+  """
+  The tax app `App.identifier` that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
+  
+  Added in Saleor 3.19.
+  """
+  taxAppId: String
+
+  """
+  Determines whether to use weighted tax for shipping. When set to true, the tax rate for shipping will be calculated based on the weighted average of tax rates from the order or checkout lines.
+  
+  Added in Saleor 3.21.
+  """
+  useWeightedTaxForShipping: Boolean
+}
+
+"""Represents preorder variant data for channel."""
+type PreorderThreshold @doc(category: "Products") {
+  """Preorder threshold for product variant in this channel."""
+  quantity: Int
+
+  """Number of sold product variant in this channel."""
+  soldUnits: Int!
+}
+
+"""Represents availability of a variant in the storefront."""
+type VariantPricingInfo @doc(category: "Products") {
+  """Whether it is in sale or not."""
+  onSale: Boolean
+
+  """The discount amount if in sale (null otherwise)."""
+  discount: TaxedMoney
+
+  """
+  The discount amount compared to prior price. Null if product is not on sale or prior price was not provided in VariantChannelListing
+  
+  Added in Saleor 3.21.
+  """
+  discountPrior: TaxedMoney
+
+  """The discount amount in the local currency."""
+  discountLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
+
+  """The price, with any discount subtracted."""
+  price: TaxedMoney
+
+  """The price without any discount."""
+  priceUndiscounted: TaxedMoney
+
+  """
+  The price prior to discount.
+  
+  Added in Saleor 3.21.
+  """
+  pricePrior: TaxedMoney
+
+  """The discounted price in the local currency."""
+  priceLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
+}
+
+"""
+Represents a monetary value with taxes. In cases where taxes were not applied, net and gross values will be equal.
+"""
+type TaxedMoney {
+  """Currency code."""
+  currency: String!
+
+  """Amount of money including taxes."""
+  gross: Money!
+
+  """Amount of money without taxes."""
+  net: Money!
+
+  """Amount of taxes."""
+  tax: Money!
+}
+
+input AddressInput {
+  """Given name."""
+  firstName: String
+
+  """Family name."""
+  lastName: String
+
+  """Company or organization."""
+  companyName: String
+
+  """Address."""
+  streetAddress1: String
+
+  """Address."""
+  streetAddress2: String
+
+  """City."""
+  city: String
+
+  """District."""
+  cityArea: String
+
+  """Postal code."""
+  postalCode: String
+
+  """Country."""
+  country: CountryCode
+
+  """State or province."""
+  countryArea: String
+
+  """
+  Phone number.
+  
+  Phone numbers are validated with Google's [libphonenumber](https://github.com/google/libphonenumber) library.
+  """
+  phone: String
+
+  """
+  Address public metadata. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library. Some mutations may require additional permissions to use the the field. More info about permissions can be found in relevant mutation.
+  
+  Added in Saleor 3.19.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  skipValidation: Boolean = false
+}
+
 input MetadataInput {
   """Key of a metadata item."""
   key: String!
@@ -9893,6 +9622,175 @@ type SelectedAttribute @doc(category: "Attributes") {
 
   """Values of an attribute."""
   values: [AttributeValue!]!
+}
+
+"""Represents a value of an attribute."""
+type AttributeValue implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value."""
+  id: ID!
+
+  """Name of a value displayed in the interface."""
+  name: String
+
+  """Internal representation of a value (unique per attribute)."""
+  slug: String
+
+  """
+  Represent value of the attribute value (e.g. color values for swatch attributes).
+  """
+  value: String
+
+  """Returns translated attribute value fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute value."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeValueTranslation
+
+  """The input type to use for entering attribute values in the dashboard."""
+  inputType: AttributeInputTypeEnum
+
+  """The ID of the referenced object."""
+  reference: ID
+
+  """Represents file URL and content type (if attribute value is a file)."""
+  file: File
+
+  """
+  Represents the text of the attribute value, includes formatting.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """
+  Represents the text of the attribute value, plain text without formatting.
+  """
+  plainText: String
+
+  """Represents the boolean value of the attribute value."""
+  boolean: Boolean
+
+  """Represents the date value of the attribute value."""
+  date: Date
+
+  """Represents the date/time value of the attribute value."""
+  dateTime: DateTime
+
+  """External ID of this attribute value."""
+  externalReference: String
+}
+
+"""Represents attribute value translations."""
+type AttributeValueTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated attribute value name."""
+  name: String!
+
+  """
+  Translated rich-text attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """Translated plain text attribute value ."""
+  plainText: String
+
+  """Represents the attribute value fields to translate."""
+  translatableContent: AttributeValueTranslatableContent
+}
+
+"""
+Represents attribute value's original translatable fields and related translations.
+"""
+type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value translatable content."""
+  id: ID!
+
+  """The ID of the attribute value to translate."""
+  attributeValueId: ID!
+
+  """Name of the attribute value to translate."""
+  name: String!
+
+  """
+  Attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """Attribute plain text value."""
+  plainText: String
+
+  """Returns translated attribute value fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute value."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeValueTranslation
+
+  """Represents a value of an attribute."""
+  attributeValue: AttributeValue @deprecated(reason: "Get model fields from the root level queries.")
+
+  """Associated attribute that can be translated."""
+  attribute: AttributeTranslatableContent
+}
+
+"""
+Represents attribute's original translatable fields and related translations.
+"""
+type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translatable content."""
+  id: ID!
+
+  """The ID of the attribute to translate."""
+  attributeId: ID!
+
+  """Name of the attribute to translate."""
+  name: String!
+
+  """Returns translated attribute fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeTranslation
+
+  """Custom attribute of a product."""
+  attribute: Attribute @deprecated(reason: "Get model fields from the root level queries.")
+}
+
+"""Represents attribute translations."""
+type AttributeTranslation implements Node @doc(category: "Attributes") {
+  """The ID of the attribute translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated attribute name."""
+  name: String!
+
+  """Represents the attribute fields to translate."""
+  translatableContent: AttributeTranslatableContent
+}
+
+type File {
+  """The URL of the file."""
+  url: String!
+
+  """Content type of the file."""
+  contentType: String
+}
+
+enum VariantAttributeScope @doc(category: "Products") {
+  ALL
+  VARIANT_SELECTION
+  NOT_VARIANT_SELECTION
 }
 
 enum ReportingPeriod {
@@ -10037,39 +9935,6 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-"""Represents stock."""
-type Stock implements Node @doc(category: "Products") {
-  """The ID of stock."""
-  id: ID!
-
-  """The warehouse associated with the stock."""
-  warehouse: Warehouse!
-
-  """Information about the product variant."""
-  productVariant: ProductVariant!
-
-  """
-  Quantity of a product in the warehouse's possession, including the allocated stock that is waiting for shipment.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
-  """
-  quantity: Int!
-
-  """
-  Quantity allocated for orders.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
-  """
-  quantityAllocated: Int!
-
-  """
-  Quantity reserved for checkouts.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS.
-  """
-  quantityReserved: Int!
-}
-
 """Represents preorder settings for product variant."""
 type PreorderData @doc(category: "Products") {
   """
@@ -10137,6 +10002,15 @@ type TaxedMoneyRange {
 
   """Upper bound of a price range."""
   stop: TaxedMoney
+}
+
+"""Representation of tax types fetched from tax gateway."""
+type TaxType @doc(category: "Taxes") {
+  """Description of the tax type."""
+  description: String
+
+  """External tax code used to identify given tax group."""
+  taxCode: String
 }
 
 """Represents product channel listing."""
@@ -10615,37 +10489,159 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-type StockCountableConnection @doc(category: "Products") {
+"""
+Represents assigned attribute to variant with variant selection attached.
+"""
+type AssignedVariantAttribute @doc(category: "Attributes") {
+  """Attribute assigned to variant."""
+  attribute: Attribute!
+
+  """
+  Determines, whether assigned attribute is allowed for variant selection. Supported variant types for variant selection are: ['dropdown', 'boolean', 'swatch', 'numeric']
+  """
+  variantSelection: Boolean!
+}
+
+type AttributeCountableConnection @doc(category: "Attributes") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
-  edges: [StockCountableEdge!]!
+  edges: [AttributeCountableEdge!]!
 
   """A total count of items in the collection."""
   totalCount: Int
 }
 
-type StockCountableEdge @doc(category: "Products") {
+type AttributeCountableEdge @doc(category: "Attributes") {
   """The item at the end of the edge."""
-  node: Stock!
+  node: Attribute!
 
   """A cursor for use in pagination."""
   cursor: String!
 }
 
-"""List of shipping methods available for the country."""
-type ShippingMethodsPerCountry @doc(category: "Shipping") {
-  """The country code."""
-  countryCode: CountryCode!
+input AttributeFilterInput @doc(category: "Attributes") {
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  availableInGrid: Boolean
+  metadata: [MetadataFilter!]
+  search: String
+  ids: [ID!]
+  type: AttributeTypeEnum
+  inCollection: ID
+  inCategory: ID
+  slugs: [String!]
 
-  """List of available shipping methods."""
-  shippingMethods: [ShippingMethod!]
+  """Specifies the channel by which the data should be filtered."""
+  channel: String @deprecated(reason: "Use root-level channel argument instead.")
+}
+
+enum AttributeTypeEnum @doc(category: "Attributes") {
+  PRODUCT_TYPE
+  PAGE_TYPE
+  CUSTOMER_TYPE
+}
+
+"""Where filtering options."""
+input AttributeWhereInput @doc(category: "Attributes") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+  withChoices: Boolean
+  inputType: AttributeInputTypeEnumFilterInput
+  entityType: AttributeEntityTypeEnumFilterInput
+  type: AttributeTypeEnumFilterInput
+  unit: MeasurementUnitsEnumFilterInput
+  inCollection: ID
+  inCategory: ID
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInDashboard: Boolean
+
+  """List of conditions that must be met."""
+  AND: [AttributeWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeWhereInput!]
+}
+
+input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeInputTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeInputTypeEnum!]
+}
+
+input AttributeEntityTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeEntityTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeEntityTypeEnum!]
+}
+
+input AttributeTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeTypeEnum!]
+}
+
+input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: MeasurementUnitsEnum
+
+  """The value included in."""
+  oneOf: [MeasurementUnitsEnum!]
+}
+
+enum MeasurementUnitsEnum {
+  MM
+  CM
+  DM
+  M
+  KM
+  FT
+  YD
+  INCH
+  SQ_MM
+  SQ_CM
+  SQ_DM
+  SQ_M
+  SQ_KM
+  SQ_FT
+  SQ_YD
+  SQ_INCH
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  LITER
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  QT
+  PINT
+  FL_OZ
+  ACRE_IN
+  ACRE_FT
+  G
+  LB
+  OZ
+  KG
+  TONNE
 }
 
 """
-Shipping methods that can be used as means of shipping for orders and checkouts.
+Represents a type of page. It defines what attributes are available to pages of this type.
 """
-type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shipping") {
-  """Unique ID of ShippingMethod available for Order."""
+type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  """ID of the page type."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -10678,342 +10674,366 @@ type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shippin
   """
   metafields(keys: [String!]): Metadata
 
-  """Type of the shipping method."""
-  type: ShippingMethodTypeEnum @deprecated
-
-  """Shipping method name."""
+  """Name of the page type."""
   name: String!
 
+  """Slug of the page type."""
+  slug: String!
+
+  """Page attributes of that page type."""
+  attributes: [Attribute!]
+
   """
-  Shipping method description.
+  Attributes that can be assigned to the page type.
   
-  Rich text format. For reference see https://editorjs.io/
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
-  description: JSONString
+  availableAttributes(
+    """Filtering options for attributes."""
+    filter: AttributeFilterInput @deprecated(reason: "Use `where` filter instead.")
 
-  """Maximum delivery days for this shipping method."""
-  maximumDeliveryDays: Int
+    """Where filtering options for attributes."""
+    where: AttributeWhereInput
 
-  """Minimum delivery days for this shipping method."""
-  minimumDeliveryDays: Int
+    """Search attributes."""
+    search: String
 
-  """Maximum order weight for this shipping method."""
-  maximumOrderWeight: Weight @deprecated
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
 
-  """Minimum order weight for this shipping method."""
-  minimumOrderWeight: Weight @deprecated
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
 
-  """Returns translated shipping method fields for the given language code."""
-  translation(
-    """A language code to return the translation for shipping method."""
-    languageCode: LanguageCodeEnum!
-  ): ShippingMethodTranslation
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
 
-  """The price of selected shipping method."""
-  price: Money!
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
 
-  """Maximum order price for this shipping method."""
-  maximumOrderPrice: Money @deprecated
-
-  """Minimal order price for this shipping method."""
-  minimumOrderPrice: Money @deprecated
-
-  """Describes if this shipping method is active and can be selected."""
-  active: Boolean!
-
-  """Message connected to this shipping method."""
-  message: String
+  """
+  Whether page type has pages assigned.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  hasPages: Boolean
 }
 
-"""Represents the channel stock settings."""
-type StockSettings @doc(category: "Products") {
-  """
-  Allocation strategy defines the preference of warehouses for allocations and reservations.
-  """
-  allocationStrategy: AllocationStrategyEnum!
+type AttributeValueCountableConnection @doc(category: "Attributes") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [AttributeValueCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
 }
 
-"""
-Determine the allocation strategy for the channel.
+type AttributeValueCountableEdge @doc(category: "Attributes") {
+  """The item at the end of the edge."""
+  node: AttributeValue!
 
-    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
-    within the channel
-
-    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
-"""
-enum AllocationStrategyEnum @doc(category: "Products") {
-  PRIORITIZE_SORTING_ORDER
-  PRIORITIZE_HIGH_STOCK
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
-"""Represents the channel-specific order settings."""
-type OrderSettings {
-  """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
-  """
-  automaticallyConfirmAllNewOrders: Boolean!
+input AttributeChoicesSortingInput @doc(category: "Attributes") {
+  """Specifies the direction in which to sort attribute choices."""
+  direction: OrderDirection!
+
+  """Sort attribute choices by the selected field."""
+  field: AttributeChoicesSortField!
+}
+
+enum AttributeChoicesSortField @doc(category: "Attributes") {
+  """Sort attribute choice by name."""
+  NAME
+
+  """Sort attribute choice by slug."""
+  SLUG
+}
+
+input AttributeValueFilterInput @doc(category: "Attributes") {
+  search: String
+  ids: [ID!]
+  slugs: [String!]
+}
+
+"""Where filtering options for attribute values."""
+input AttributeValueWhereInput @doc(category: "Attributes") {
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+
+  """List of conditions that must be met."""
+  AND: [AttributeValueWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeValueWhereInput!]
+}
+
+type ProductTypeCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [ProductTypeCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type ProductTypeCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: ProductType!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""Checkout object."""
+type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
+  """The ID of the checkout."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  automaticallyFulfillNonShippableGiftCard: Boolean!
+  privateMetafield(key: String!): String
 
   """
-  Expiration time in minutes. Default null - means do not expire any orders.
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   """
-  expireOrdersAfter: Minute
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
 
   """
-  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
-  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
-  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
   """
-  markAsPaidStrategy: MarkAsPaidStrategyEnum!
-
-  """The time in days after expired orders will be deleted."""
-  deleteExpiredOrdersAfter: Day!
+  metafield(key: String!): String
 
   """
-  Determine if it is possible to place unpaid order by calling `checkoutComplete` mutation.
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   """
-  allowUnpaidOrders: Boolean!
+  metafields(keys: [String!]): Metadata
+
+  """The date and time when the checkout was created."""
+  created: DateTime!
+
+  """Time of last modification of the given checkout."""
+  updatedAt: DateTime!
+  lastChange: DateTime! @deprecated(reason: "Use `updatedAt` instead.")
 
   """
-  Determine if voucher applied on draft order should be count toward voucher usage.
+  The user assigned to the checkout. Requires one of the following permissions: MANAGE_USERS, HANDLE_PAYMENTS, OWNER.
+  """
+  user: User
+
+  """The channel for which checkout was created."""
+  channel: Channel!
+
+  """The billing address of the checkout."""
+  billingAddress: Address
+
+  """The shipping address of the checkout."""
+  shippingAddress: Address
+
+  """
+  The customer note for the checkout. 
+  
+  Added in Saleor 3.21.
+  """
+  customerNote: String!
+
+  """The note for the checkout."""
+  note: String! @deprecated(reason: "Use `customerNote` instead.")
+
+  """
+  The total discount applied to the checkout. Note: Only discount created via voucher are included in this field.
+  """
+  discount: Money
+
+  """The name of voucher assigned to the checkout."""
+  discountName: String
+
+  """
+  Translation of the discountName field in the language set in Checkout.languageCode field.Note: this field is set automatically when Checkout.languageCode is defined; otherwise it's null
+  """
+  translatedDiscountName: String
+
+  """
+  The voucher assigned to the checkout.
   
   Added in Saleor 3.18.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
-  includeDraftOrderInVoucherUsage: Boolean!
+  voucher: Voucher
+
+  """The code of voucher assigned to the checkout."""
+  voucherCode: String
 
   """
-  Time in hours after which the draft order line price will be refreshed.
+  Shipping methods that can be used with this checkout.
   
-  Added in Saleor 3.21.
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+  """
+  availableShippingMethods: [ShippingMethod!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `shippingMethods` instead.")
+
+  """
+  Shipping methods that can be used with this checkout.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  draftOrderLinePriceFreezePeriod: Hour
+  shippingMethods: [ShippingMethod!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
+
+  """Collection points that can be used for this order."""
+  availableCollectionPoints: [Warehouse!]!
 
   """
-  This flag only affects orders created from checkout and applies specifically to vouchers of the types: `SPECIFIC_PRODUCT` and `ENTIRE_ORDER` with `applyOncePerOrder` enabled.
-  - When legacy propagation is enabled, discounts from these vouchers are represented as `OrderDiscount` objects, attached to the order and returned in the `Order.discounts` field. Additionally, percentage-based vouchers are converted to fixed-value discounts.
-  - When legacy propagation is disabled, discounts are represented as `OrderLineDiscount` objects, attached to individual lines and returned in the `OrderLine.discounts` field. In this case, percentage-based vouchers retain their original type.
-  In future releases, `OrderLineDiscount` will become the default behavior, and this flag will be deprecated and removed.
+  List of available payment gateways.
   
-  Added in Saleor 3.21.
+  Triggers the following webhook events:
+  - PAYMENT_LIST_GATEWAYS (sync): Fetch payment gateways available for checkout.
   """
-  useLegacyLineDiscountPropagation: Boolean!
-}
+  availablePaymentGateways: [PaymentGateway!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_LIST_GATEWAYS]) @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
 
-"""
-The `Minute` scalar type represents number of minutes by integer value.
-"""
-scalar Minute
+  """Email of a customer."""
+  email: String
 
-"""
-Determine the mark as paid strategy for the channel.
+  """List of gift cards associated with this checkout."""
+  giftCards: [GiftCard!]!
 
-    TRANSACTION_FLOW - new orders marked as paid will receive a
-    `TransactionItem` object, that will cover the `order.total`.
+  """Returns True, if checkout requires shipping."""
+  isShippingRequired: Boolean!
 
-    PAYMENT_FLOW - new orders marked as paid will receive a
-    `Payment` object, that will cover the `order.total`.
-"""
-enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
-  TRANSACTION_FLOW
-  PAYMENT_FLOW @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
-}
-
-"""The `Day` scalar type represents number of days by integer value."""
-scalar Day
-
-"""The `Hour` scalar type represents number of hours by integer value."""
-scalar Hour
-
-"""Represents the channel-specific checkout settings."""
-type CheckoutSettings {
-  """
-  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one.
-  """
-  useLegacyErrorFlow: Boolean!
+  """The number of items purchased."""
+  quantity: Int!
 
   """
-  Default `false`. Determines if the paid checkouts should be automatically completed. This setting applies only to checkouts where payment was processed through transactions.When enabled, the checkout will be automatically completed once the checkout `charge_status` reaches `FULL`. This occurs when the total sum of charged and authorized transaction amounts equals or exceeds the checkout's total amount.
+  Date when oldest stock reservation for this checkout expires or null if no stock is reserved.
+  """
+  stockReservationExpires: DateTime
+
+  """
+  A list of checkout lines, each containing information about an item in the checkout.
+  """
+  lines: [CheckoutLine!]!
+
+  """
+  The price of the shipping, with all the taxes included. Set to 0 when no delivery method is selected.
   
-  Added in Saleor 3.20.
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  automaticallyCompleteFullyPaidCheckouts: Boolean!
+  shippingPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
-  The time in minutes to wait after a checkout is fully paid before automatically completing it.
-  
-  Added in Saleor 3.22.
-  """
-  automaticCompletionDelay: Minute
-
-  """
-  The date time defines the earliest checkout creation date on which fully paid checkouts can begin to be automatically completed. 
-  
-  Added in Saleor 3.22.
-  """
-  automaticCompletionCutOffDate: DateTime
-
-  """
-  Default to `true`. Determines whether gift cards can be attached to a Checkout via `addPromoCode` mutation. Usage of this mutation with gift cards is deprecated.
+  The delivery method selected for this checkout.
   
   Added in Saleor 3.23.
   """
-  allowLegacyGiftCardUse: Boolean!
-}
-
-"""Represents the channel-specific payment settings."""
-type PaymentSettings {
-  """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+  delivery: Delivery
 
   """
-  Determine if the funds for expired checkouts should be released automatically.
+  The shipping method related with checkout.
   
-  Added in Saleor 3.20.
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  releaseFundsForExpiredCheckouts: Boolean
+  shippingMethod: ShippingMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
 
   """
-  The time in hours after which funds for expired checkouts will be released.
+  The delivery method selected for this checkout.
   
-  Added in Saleor 3.20.
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  checkoutTtlBeforeReleasingFunds: Hour
+  deliveryMethod: DeliveryMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "Use `delivery` instead.")
 
   """
-  Specifies the earliest date on which funds for expired checkouts can begin to be released. Expired checkouts dated before this cut-off will not have their funds released. Additionally, no funds will be released for checkouts that are more than one year old, regardless of the cut-off date.
+  The price of the checkout before shipping, with taxes included.
   
-  Added in Saleor 3.20.
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  checkoutReleaseFundsCutOffDate: DateTime
-}
+  subtotalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
-"""
-Determine the transaction flow strategy.
+  """Returns True if checkout has to be exempt from taxes."""
+  taxExemption: Boolean!
 
-    AUTHORIZATION - the processed transaction should be only authorized
-    CHARGE - the processed transaction should be charged.
-"""
-enum TransactionFlowStrategyEnum @doc(category: "Payments") {
-  AUTHORIZATION
-  CHARGE
-}
-
-"""Channel-specific tax configuration."""
-type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
-  """The ID of the object."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
+  """The checkout's token."""
+  token: UUID!
 
   """
-  A single key from private metadata. Requires staff permissions to access.
+  The sum of the checkout line prices, with all the taxes,shipping costs, and discounts included.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  privateMetafield(key: String!): String
+  totalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
+  The difference between the paid and the checkout total amount.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  metafield(key: String!): String
+  totalBalance: Money! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
+
+  """Checkout language code."""
+  languageCode: LanguageCodeEnum!
 
   """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   """
-  metafields(keys: [String!]): Metadata
-
-  """A channel to which the tax configuration applies to."""
-  channel: Channel!
-
-  """Determines whether taxes are charged in the given channel."""
-  chargeTaxes: Boolean!
-
-  """
-  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
-  """
-  taxCalculationStrategy: TaxCalculationStrategy
+  transactions: [TransactionItem!]
 
   """Determines whether displayed prices should include taxes."""
   displayGrossPrices: Boolean!
 
-  """Determines whether prices are entered with the tax included."""
-  pricesEnteredWithTax: Boolean!
-
-  """List of country-specific exceptions in tax configuration."""
-  countries: [TaxConfigurationPerCountry!]!
-
   """
-  The tax app `App.identifier` that will be used to calculate the taxes for the given channel. Empty value for `TAX_APP` set as `taxCalculationStrategy` means that Saleor will iterate over all installed tax apps. If multiple tax apps exist with provided tax app id use the `App` with newest `created` date. Will become mandatory in 4.0 for `TAX_APP` `taxCalculationStrategy`.
+  The authorize status of the checkout.
   
-  Added in Saleor 3.19.
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  taxAppId: String
+  authorizeStatus: CheckoutAuthorizeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
-  Determines whether to use weighted tax for shipping. When set to true, the tax rate for shipping will be calculated based on the weighted average of tax rates from the order or checkout lines.
+  The charge status of the checkout.
   
-  Added in Saleor 3.21.
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  useWeightedTaxForShipping: Boolean
-}
-
-enum TaxCalculationStrategy @doc(category: "Taxes") {
-  FLAT_RATES
-  TAX_APP
-}
-
-"""Country-specific exceptions of a channel's tax configuration."""
-type TaxConfigurationPerCountry @doc(category: "Taxes") {
-  """Country in which this configuration applies."""
-  country: CountryDisplay!
-
-  """Determines whether taxes are charged in this country."""
-  chargeTaxes: Boolean!
+  chargeStatus: CheckoutChargeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
-  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  List of user's stored payment methods that can be used in this checkout session. It uses the channel that the checkout was created in. When `amount` is not provided, `checkout.total` will be used as a default value.
   """
-  taxCalculationStrategy: TaxCalculationStrategy
+  storedPaymentMethods(
+    """Amount that will be used to fetch stored payment methods."""
+    amount: PositiveDecimal
+  ): [StoredPaymentMethod!]
 
-  """
-  Determines whether displayed prices should include taxes for this country.
-  """
-  displayGrossPrices: Boolean!
-
-  """
-  The tax app `App.identifier` that will be used to calculate the taxes for the given channel and country. If not provided, use the value from the channel's tax configuration.
-  
-  Added in Saleor 3.19.
-  """
-  taxAppId: String
-
-  """
-  Determines whether to use weighted tax for shipping. When set to true, the tax rate for shipping will be calculated based on the weighted average of tax rates from the order or checkout lines.
-  
-  Added in Saleor 3.21.
-  """
-  useWeightedTaxForShipping: Boolean
+  """List of problems with the checkout."""
+  problems: [CheckoutProblem!]
 }
 
 """
@@ -33453,6 +33473,13 @@ type AccountError @doc(category: "Users") {
 
   """A type of address that causes the error."""
   addressType: AddressTypeEnum
+
+  """
+  List of attributes IDs which causes the error.
+  
+  Added in Saleor 3.23.
+  """
+  attributes: [ID!]
 }
 
 enum AccountErrorCode @doc(category: "Users") {
@@ -34033,6 +34060,20 @@ input UserCreateInput @doc(category: "Users") {
   isConfirmed: Boolean @deprecated(reason: "The user will be always set as unconfirmed. The confirmation will take place when the user sets the password.")
 
   """
+  ID of the customer type to assign to the user. If not provided when creating a customer, the default customer type is assigned.
+  
+  Added in Saleor 3.23.
+  """
+  customerType: ID
+
+  """
+  List of attribute values to assign to the user. The attributes must belong to the customer type the user ends up with.
+  
+  Added in Saleor 3.23.
+  """
+  attributes: [AttributeValueInput!]
+
+  """
   URL of a view where users should be redirected to set the password. URL in RFC 1808 format.
   """
   redirectUrl: String
@@ -34102,6 +34143,20 @@ input CustomerInput @doc(category: "Users") {
 
   """User account is confirmed."""
   isConfirmed: Boolean
+
+  """
+  ID of the customer type to assign to the user. If not provided when creating a customer, the default customer type is assigned.
+  
+  Added in Saleor 3.23.
+  """
+  customerType: ID
+
+  """
+  List of attribute values to assign to the user. The attributes must belong to the customer type the user ends up with.
+  
+  Added in Saleor 3.23.
+  """
+  attributes: [AttributeValueInput!]
 }
 
 """
@@ -34465,6 +34520,13 @@ type StaffError @doc(category: "Users") {
 
   """A type of address that causes the error."""
   addressType: AddressTypeEnum
+
+  """
+  List of attributes IDs which causes the error.
+  
+  Added in Saleor 3.23.
+  """
+  attributes: [ID!]
 
   """List of permissions which causes the error."""
   permissions: [PermissionEnum!]
