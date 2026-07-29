@@ -64,8 +64,11 @@ from .mutations.authentication import (
     VerifyToken,
 )
 from .mutations.customer_type import (
+    CustomerTypeAssignAttributes,
     CustomerTypeCreate,
     CustomerTypeDelete,
+    CustomerTypeReorderAttributes,
+    CustomerTypeUnassignAttributes,
     CustomerTypeUpdate,
 )
 from .mutations.permission_group import (
@@ -398,6 +401,9 @@ class AccountMutations(graphene.ObjectType):
     customer_type_create = CustomerTypeCreate.Field()
     customer_type_update = CustomerTypeUpdate.Field()
     customer_type_delete = CustomerTypeDelete.Field()
+    customer_type_assign_attributes = CustomerTypeAssignAttributes.Field()
+    customer_type_unassign_attributes = CustomerTypeUnassignAttributes.Field()
+    customer_type_reorder_attributes = CustomerTypeReorderAttributes.Field()
 
     staff_create = StaffCreate.Field()
     staff_update = StaffUpdate.Field()

@@ -1345,3 +1345,78 @@ def test_update_product_attribute_without_product_type_permission(
 
     # then
     assert_no_permission(response)
+
+
+def test_update_customer_attribute_with_customer_type_permission(
+    staff_api_client,
+    loyalty_customer_attribute,
+    permission_manage_customer_types_and_attributes,
+):
+    # given
+    attribute = loyalty_customer_attribute
+    name = "Updated customer attribute name"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id, "input": {"name": name}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeUpdate"]
+    assert not data["errors"]
+    attribute.refresh_from_db()
+    assert data["attribute"]["name"] == name
+    assert attribute.name == name
+
+
+def test_update_customer_attribute_without_customer_type_permission(
+    staff_api_client,
+    loyalty_customer_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attribute = loyalty_customer_attribute
+    original_name = attribute.name
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id, "input": {"name": "Updated customer attribute name"}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    assert_no_permission(response)
+    attribute.refresh_from_db()
+    assert attribute.name == original_name
+
+
+def test_update_product_attribute_with_only_customer_type_permission(
+    staff_api_client,
+    color_attribute,
+    permission_manage_customer_types_and_attributes,
+):
+    # given
+    attribute = color_attribute
+    original_name = attribute.name
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"id": node_id, "input": {"name": "Updated product attribute name"}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    assert_no_permission(response)
+    attribute.refresh_from_db()
+    assert attribute.name == original_name

@@ -16,7 +16,11 @@ from ....attribute import (
 from ....attribute.error_codes import AttributeBulkCreateErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
+from ....permission.enums import (
+    CustomerTypePermissions,
+    PageTypePermissions,
+    ProductTypePermissions,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
@@ -384,9 +388,17 @@ class AttributeBulkCreate(BaseMutation):
         )
 
         # check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
+        permissions: (
+            tuple[ProductTypePermissions]
+            | tuple[PageTypePermissions]
+            | tuple[CustomerTypePermissions]
+        )
         if cleaned_input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        elif cleaned_input["type"] == AttributeTypeEnum.CUSTOMER_TYPE.value:
+            permissions = (
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+            )
         else:
             permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
 
