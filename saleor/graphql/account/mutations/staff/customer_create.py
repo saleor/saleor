@@ -15,6 +15,7 @@ from .....permission.enums import AccountPermissions
 from .....plugins.manager import PluginsManager
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
+from ....attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ....channel.utils import clean_channel, validate_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
@@ -113,6 +114,9 @@ class CustomerCreate(BaseCustomerCreate):
             instance.customer_type = get_default_customer_type()
 
         cls._save(instance)
+
+        if attributes := cleaned_input.get("attributes"):
+            AttributeAssignmentMixin.save(instance, attributes)
 
         if addresses_to_set_on_user:
             instance.addresses.set(addresses_to_set_on_user)

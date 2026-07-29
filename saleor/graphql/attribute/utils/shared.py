@@ -7,6 +7,7 @@ import orjson
 from django.db.models import Model
 from django.db.models.expressions import Exists, OuterRef
 
+from ....account import models as account_models
 from ....attribute import AttributeEntityType, AttributeInputType
 from ....attribute import models as attribute_models
 from ....page import models as page_models
@@ -16,7 +17,12 @@ from ..enums import AttributeValueBulkActionEnum
 if TYPE_CHECKING:
     from ....attribute.models import Attribute
 
-T_INSTANCE = product_models.Product | product_models.ProductVariant | page_models.Page
+T_INSTANCE = (
+    product_models.Product
+    | product_models.ProductVariant
+    | page_models.Page
+    | account_models.User
+)
 T_ERROR_DICT = dict[tuple[str, str], list]
 T_REFERENCE = (
     product_models.Product
@@ -34,6 +40,7 @@ class AssignedAttributeData:
     product_id: int | None = None
     page_id: int | None = None
     variant_id: int | None = None
+    user_id: int | None = None
 
 
 @dataclass
@@ -96,6 +103,8 @@ def get_assignment_model_and_fk(instance: T_INSTANCE):
         return attribute_models.AssignedPageAttributeValue, "page_id"
     if isinstance(instance, product_models.Product):
         return attribute_models.AssignedProductAttributeValue, "product_id"
+    if isinstance(instance, account_models.User):
+        return attribute_models.AssignedUserAttributeValue, "user_id"
     raise NotImplementedError(
         f"Assignment for {type(instance).__name__} not implemented."
     )

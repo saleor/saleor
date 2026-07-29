@@ -7,6 +7,7 @@ CUSTOMER_UPDATE_FIELDS = {
     "external_reference",
     "is_confirmed",
     "language_code",
+    "customer_type_id",
     "metadata",
     "private_metadata",
 }
