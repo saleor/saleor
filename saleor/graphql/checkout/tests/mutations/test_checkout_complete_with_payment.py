@@ -10,6 +10,8 @@ from django.db.models.aggregates import Sum
 from django.test import override_settings
 from django.utils import timezone
 
+from saleor.plugins.tests.gateways.dummy import TOKEN_VALIDATION_MAPPING
+
 from .....account.models import Address
 from .....checkout import calculations
 from .....checkout.delivery_context import (
@@ -33,7 +35,6 @@ from .....order.delivery_context import PRIVATE_META_APP_SHIPPING_ID
 from .....order.models import Fulfillment, Order
 from .....payment import ChargeStatus, PaymentError, TransactionKind
 from .....payment.error_codes import PaymentErrorCode
-from .....payment.gateways.dummy_credit_card import TOKEN_VALIDATION_MAPPING
 from .....payment.interface import GatewayResponse
 from .....payment.model_helpers import get_subtotal
 from .....plugins.manager import PluginsManager, get_plugins_manager
@@ -2980,18 +2981,13 @@ def test_checkout_complete_checkout_without_lines(
 
 @pytest.mark.integration
 @pytest.mark.parametrize(("token", "error"), list(TOKEN_VALIDATION_MAPPING.items()))
-@patch(
-    "saleor.payment.gateways.dummy_credit_card.plugin."
-    "DeprecatedDummyCreditCardGatewayPlugin.DEFAULT_ACTIVE",
-    True,
-)
-def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
+def test_checkout_complete_error_in_gateway_response_for_declined_card(
     token,
     error,
     user_api_client,
     checkout_with_gift_card,
     gift_card,
-    payment_dummy_credit_card,
+    payment_dummy,
     address,
     checkout_delivery,
 ):
@@ -3014,7 +3010,7 @@ def test_checkout_complete_error_in_gateway_response_for_dummy_credit_card(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines
     )
-    payment = payment_dummy_credit_card
+    payment = payment_dummy
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
@@ -4644,7 +4640,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
     user_api_client,
     checkout_with_item,
     gift_card,
-    payment_dummy_credit_card,
+    payment_dummy,
     address,
     checkout_delivery,
 ):
@@ -4671,7 +4667,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_required_
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines
     )
-    payment = payment_dummy_credit_card
+    payment = payment_dummy
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
@@ -4706,7 +4702,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     user_api_client,
     checkout_with_item,
     gift_card,
-    payment_dummy_credit_card,
+    payment_dummy,
     address,
     checkout_delivery,
 ):
@@ -4734,7 +4730,7 @@ def test_checkout_complete_error_when_shipping_address_doesnt_have_all_valid_fie
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines
     )
-    payment = payment_dummy_credit_card
+    payment = payment_dummy
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
@@ -4769,7 +4765,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
     user_api_client,
     checkout_with_item,
     gift_card,
-    payment_dummy_credit_card,
+    payment_dummy,
     address,
     checkout_delivery,
 ):
@@ -4796,7 +4792,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_required_f
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines
     )
-    payment = payment_dummy_credit_card
+    payment = payment_dummy
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
@@ -4830,7 +4826,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
     user_api_client,
     checkout_with_item,
     gift_card,
-    payment_dummy_credit_card,
+    payment_dummy,
     address,
     checkout_delivery,
 ):
@@ -4858,7 +4854,7 @@ def test_checkout_complete_error_when_billing_address_doesnt_have_all_valid_fiel
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines
     )
-    payment = payment_dummy_credit_card
+    payment = payment_dummy
     payment.is_active = True
     payment.order = None
     payment.total = total.gross.amount
@@ -5754,7 +5750,7 @@ def test_checkout_complete_empty_product_translation(
 @override_settings(
     PLUGINS=[
         "saleor.plugins.webhook.plugin.WebhookPlugin",
-        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
+        "saleor.plugins.tests.gateways.dummy.DummyGatewayPlugin",
     ]
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
@@ -5857,7 +5853,7 @@ def test_checkout_complete_with_external_shipping(
 @override_settings(
     PLUGINS=[
         "saleor.plugins.webhook.plugin.WebhookPlugin",
-        "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
+        "saleor.plugins.tests.gateways.dummy.DummyGatewayPlugin",
     ]
 )
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
