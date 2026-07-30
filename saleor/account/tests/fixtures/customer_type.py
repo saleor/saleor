@@ -6,7 +6,19 @@ __all__ = [
     "customer_type",
     "customer_type_with_attributes",
     "default_customer_type",
+    "get_or_create_default_customer_type",
 ]
+
+
+def get_or_create_default_customer_type() -> CustomerType:
+    # Transactional tests (django_db(transaction=True)) flush all tables on
+    # teardown, wiping the default customer type created by the data migration,
+    # so recreate it on demand instead of assuming the migration row exists.
+    customer_type, _ = CustomerType.objects.get_or_create(
+        is_default=True,
+        defaults={"name": "Default", "slug": "default"},
+    )
+    return customer_type
 
 
 @pytest.fixture
@@ -29,6 +41,6 @@ def customer_type_with_attributes(
     return customer_type
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def default_customer_type(db):
-    return CustomerType.objects.get(is_default=True)
+    return get_or_create_default_customer_type()

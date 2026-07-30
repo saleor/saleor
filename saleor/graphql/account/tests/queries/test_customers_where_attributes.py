@@ -502,7 +502,9 @@ def test_customer_not_filterable_by_attribute_after_customer_type_change(
     assert content["data"]["customers"]["edges"] == []
 
 
-def test_does_not_match_users_without_customer_type_for_non_default_type_attribute(
+@pytest.mark.parametrize("with_explicit_default_type", [True, False])
+def test_does_not_match_default_type_users_for_non_default_type_attribute(
+    with_explicit_default_type,
     staff_api_client,
     permission_group_manage_users,
     customer_users,
@@ -511,15 +513,18 @@ def test_does_not_match_users_without_customer_type_for_non_default_type_attribu
     loyalty_customer_attribute,
 ):
     # given: the attribute belongs to a non-default customer type only, and
-    # the customer with an assigned value has no customer type - such a
-    # customer belongs to the default type, which lacks the attribute
+    # the customer with an assigned value belongs to the default type -
+    # either explicitly or implicitly via no customer type assigned
     permission_group_manage_users.user_set.add(staff_api_client.user)
     customer_type.customer_attributes.add(loyalty_customer_attribute)
     assert not default_customer_type.customer_attributes.filter(
         pk=loyalty_customer_attribute.pk
     ).exists()
     customer = customer_users[0]
-    assert customer.customer_type_id is None
+    customer.customer_type = (
+        default_customer_type if with_explicit_default_type else None
+    )
+    customer.save(update_fields=["customer_type"])
     value = loyalty_customer_attribute.values.get(slug="gold")
     associate_attribute_values_to_instance(
         customer, {loyalty_customer_attribute.pk: [value]}
@@ -546,7 +551,8 @@ def test_filter_matches_users_without_customer_type_via_default_type(
     permission_group_manage_users.user_set.add(staff_api_client.user)
     default_customer_type.customer_attributes.add(loyalty_customer_attribute)
     customer = customer_users[0]
-    assert customer.customer_type_id is None
+    customer.customer_type = None
+    customer.save(update_fields=["customer_type"])
     value = loyalty_customer_attribute.values.get(slug="gold")
     associate_attribute_values_to_instance(
         customer, {loyalty_customer_attribute.pk: [value]}
