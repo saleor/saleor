@@ -35,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added `identifier` field to the `Webhook` type. It holds an app-provided, stable identifier that is unique per app. It can be set through the app manifest (`webhooks[].identifier`) and the `webhookCreate`/`webhookUpdate` mutations.
+- Added `Shop.allowStorefrontTraffic` field and `ShopSettingsInput.allowStorefrontTraffic` input. When disabled, only apps and staff users may call the GraphQL API directly; anonymous requests and non-staff customers are rejected with HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).
 - `Attribute` fields `name`, `slug` and `type` are now non-nullable in schema.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.

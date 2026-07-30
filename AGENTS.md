@@ -25,6 +25,25 @@ many processes at once. Write code with that in mind:
 - **Make tasks idempotent and safe to retry** — the broker may deliver a task more than once, and pods
   can be killed/rescheduled mid-run.
 
+## Multi-tenancy: never rely on `settings.SITE_ID`
+
+A deployment may serve **several sites from one process**, and `SITE_ID` may be unset or differ from
+what a dev environment has. Never read it directly to identify the current site, and never assume
+there is only one.
+
+- **Resolve the site with `Site.objects.get_current()`** (or the `get_site_promise` dataloader in the
+  GraphQL layer). Both pick the site by `SITE_ID` when it is configured and fall back to the request
+  host when it is not — `settings.SITE_ID` alone silently collapses every tenant into one.
+- **Key anything per-site by the resolved site**, not by a constant. A cache key, module-level dict or
+  query filter that bakes in a single site lets one tenant read another's data.
+- **Don't assume a single row.** `Site.objects.get()` breaks as soon as a second site exists; filter by
+  the resolved site instead.
+
+`Site.objects.get_current()` reads the patched process-global `THREADED_SITE_CACHE`
+(`saleor/site/patch_sites.py`), which is never invalidated by `Site`/`SiteSettings` saves. So a value
+read through it can be stale after a write in the same process — see *Writing tests* for what that
+means for assertions.
+
 ## Graphql
 
 ###  API versioning
@@ -85,6 +104,12 @@ database/cache or collide with another worktree's stack.
 - When testing graphQL cases with expected errors ALWAYS assert expected length of errors list
 - When setting up test data, extract values into variables and reuse them in assertions. Do not repeat literal values between setup and assertion — use the variable instead.
 - When comparing JSON payloads in tests, use `json.loads()` to compare dicts instead of comparing serialized strings with `json.dumps()`. String comparison breaks when key order changes.
+- **Never assume a cache is cold — or warm.** Caches are process-global and survive across tests, so
+  what warmed them depends on test ordering. To assert a write landed, read the row back
+  (`obj.refresh_from_db(fields=(...))`) rather than through a cached accessor like
+  `Site.objects.get_current()`; to count queries, warm the cache first so the count is the steady
+  state; otherwise bust it explicitly (`Site.objects.clear_cache()`). A test that passes only because
+  a cache happened to be empty will fail as soon as an unrelated caller warms it.
 
 ### Assert precisely (the #1 source of review comments)
 
