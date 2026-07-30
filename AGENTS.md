@@ -177,7 +177,7 @@ When writing authorization tests do the ALL of the following:
 - Never solely rely on the error message to determine whether access was denied
   as this could still have returned the restricted data or have performed the
   operations. Therefore:
-  
+
   - Always ensure the restricted data is **not** returned in the HTTP response
   - Always ensure the data was **not** modified if it is GraphQL mutation
   - Always ensure external calls (webhooks, API calls, emails, etc.) were
