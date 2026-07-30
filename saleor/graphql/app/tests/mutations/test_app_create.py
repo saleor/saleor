@@ -116,6 +116,7 @@ def test_app_create_no_identifier_mutation(
     [
         ("omitted", {}),
         ("explicit_null", {"permissions": None}),
+        ("empty_list", {"permissions": []}),
     ],
 )
 def test_app_create_without_permissions(

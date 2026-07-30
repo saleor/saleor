@@ -64,10 +64,10 @@ class AppCreate(DeprecatedModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data, **kwargs):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        # clean and prepare permissions
-        if "permissions" in cleaned_input:
+        # clean and prepare permissions; a null input creates an app with none
+        permissions = cleaned_input.pop("permissions", None)
+        if permissions is not None:
             requestor = get_user_or_app_from_context(info.context)
-            permissions = cleaned_input.pop("permissions") or []
             ensure_app_permissions_allowed(permissions)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
