@@ -41,6 +41,6 @@ def customer_type_with_attributes(
     return customer_type
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def default_customer_type(db):
     return get_or_create_default_customer_type()
