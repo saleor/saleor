@@ -7,7 +7,7 @@ on:
       - "**.py"
       - Dockerfile
       - "saleor/**"
-      - .github/workflows/tests.yml
+      - .github/workflows/tests.yaml
       - pyproject.toml
       - uv.lock
   push:
@@ -17,7 +17,7 @@ on:
       - "**.py"
       - Dockerfile
       - "saleor/**"
-      - .github/workflows/tests.yml
+      - .github/workflows/tests.yaml
       - pyproject.toml
       - uv.lock
 
