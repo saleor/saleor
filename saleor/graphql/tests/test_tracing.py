@@ -554,7 +554,7 @@ def test_graphql_query_span_set_status_error_invalid_query(
     mock_start_span.return_value.__enter__.return_value = mock_span
 
     request = rf.post(
-        path="/graphql",
+        path="/graphql/",
         data=data,
         content_type="application/json",
     )

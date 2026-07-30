@@ -6,7 +6,15 @@ import pytest
 from .....core.error_codes import ShopErrorCode
 from .....core.jwt import JWT_OWNER_FIELD
 from .....site.models import Site
-from ....tests.utils import get_graphql_content, get_graphql_content_from_response
+from ....storefront_traffic import (
+    get_allow_storefront_traffic,
+    set_allow_storefront_traffic_cache,
+)
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import AccountConfirmModeEnum, PasswordLoginModeEnum
 
 SHOP_SETTINGS_UPDATE_MUTATION = """
@@ -844,8 +852,10 @@ def test_shop_settings_update_name(
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
     assert data["shop"]["name"] == new_name
-    site = Site.objects.get_current()
-    assert site.name == new_name
+    # Read the row back rather than `Site.objects.get_current()`, which may serve a
+    # site cached earlier in the process and miss the update.
+    site_settings.site.refresh_from_db(fields=("name",))
+    assert site_settings.site.name == new_name
 
 
 def test_shop_settings_update_name_too_long(
@@ -869,5 +879,70 @@ def test_shop_settings_update_name_too_long(
     errors = content["data"]["shopSettingsUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "name"
-    site = Site.objects.get_current()
-    assert site.name == original_name
+    # Read the row back rather than `Site.objects.get_current()`, which may serve a
+    # site cached earlier in the process and hide a write that should not have
+    # happened.
+    site_settings.site.refresh_from_db(fields=("name",))
+    assert site_settings.site.name == original_name
+
+
+SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop { allowStorefrontTraffic }
+            errors { field message code }
+        }
+    }
+"""
+
+
+def test_shop_settings_update_sets_allow_storefront_traffic(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    site_settings.allow_storefront_traffic = True
+    site_settings.save(update_fields=["allow_storefront_traffic"])
+    set_allow_storefront_traffic_cache(True)
+    variables = {"input": {"allowStorefrontTraffic": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert data["errors"] == []
+    assert data["shop"]["allowStorefrontTraffic"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.allow_storefront_traffic is False
+    assert get_allow_storefront_traffic() is False
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture"),
+    [
+        ("staff_without_permission", "staff_api_client"),
+        ("anonymous", "api_client"),
+    ],
+)
+def test_shop_settings_update_allow_storefront_traffic_requires_permission(
+    _case, client_fixture, request, site_settings
+):
+    # given: no MANAGE_SETTINGS granted
+    assert site_settings.allow_storefront_traffic is True
+    variables = {"input": {"allowStorefrontTraffic": False}}
+    client = request.getfixturevalue(client_fixture)
+
+    # when
+    response = client.post_graphql(
+        SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION, variables
+    )
+
+    # then
+    assert_no_permission(response)
+    site_settings.refresh_from_db(fields=("allow_storefront_traffic",))
+    assert site_settings.allow_storefront_traffic is True
