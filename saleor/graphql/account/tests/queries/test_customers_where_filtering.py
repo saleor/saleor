@@ -700,7 +700,8 @@ def test_customers_filter_by_customer_type_one_of_with_default_includes_users_wi
         [customer_with_type, customer_with_other_type], ["customer_type"]
     )
     customer_without_type = customer_users[2]
-    assert customer_without_type.customer_type_id is None
+    customer_without_type.customer_type = None
+    customer_without_type.save(update_fields=["customer_type"])
     variables = {
         "where": {
             "customerType": {
@@ -743,7 +744,8 @@ def test_customers_filter_by_default_customer_type_includes_users_without_type(
         [customer_with_default_type, customer_with_other_type], ["customer_type"]
     )
     customer_without_type = customer_users[2]
-    assert customer_without_type.customer_type_id is None
+    customer_without_type.customer_type = None
+    customer_without_type.save(update_fields=["customer_type"])
     variables = {
         "where": {
             "customerType": {

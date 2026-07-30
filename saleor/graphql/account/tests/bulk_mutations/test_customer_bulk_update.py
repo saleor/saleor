@@ -1452,6 +1452,7 @@ def test_customers_bulk_update_with_invalid_customer_type_id(
     # given
     customer = customer_users[0]
     original_first_name = customer.first_name
+    original_customer_type_id = customer.customer_type_id
     new_first_name = "BulkUpdatedName"
     assert original_first_name != new_first_name
     invalid_customer_type_id = graphene.Node.to_global_id("PageType", 1)
@@ -1486,4 +1487,4 @@ def test_customers_bulk_update_with_invalid_customer_type_id(
     )
     customer.refresh_from_db()
     assert customer.first_name == original_first_name
-    assert customer.customer_type is None
+    assert customer.customer_type_id == original_customer_type_id

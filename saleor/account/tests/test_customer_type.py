@@ -78,8 +78,9 @@ def test_assign_default_customer_type_task_backfills_users_without_type(
     customer_user, customer_user2, default_customer_type
 ):
     # given
-    assert customer_user.customer_type is None
-    assert customer_user2.customer_type is None
+    User.objects.filter(pk__in=[customer_user.pk, customer_user2.pk]).update(
+        customer_type=None
+    )
 
     # when
     assign_default_customer_type_to_users_task()
@@ -97,6 +98,8 @@ def test_assign_default_customer_type_task_keeps_existing_assignments(
     # given
     customer_user.customer_type = customer_type
     customer_user.save(update_fields=["customer_type"])
+    customer_user2.customer_type = None
+    customer_user2.save(update_fields=["customer_type"])
 
     # when
     assign_default_customer_type_to_users_task()

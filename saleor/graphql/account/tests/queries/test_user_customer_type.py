@@ -85,7 +85,8 @@ def test_customer_type_falls_back_to_default_when_not_assigned(
     user_api_client, customer_user, default_customer_type
 ):
     # given a user created before the backfill finished
-    assert customer_user.customer_type_id is None
+    customer_user.customer_type = None
+    customer_user.save(update_fields=["customer_type"])
 
     # when
     response = user_api_client.post_graphql(ME_CUSTOMER_TYPE_QUERY)
