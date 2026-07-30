@@ -1,5 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
+from copy import copy
 from typing import TypeVar, cast
 
 from ...account.models import Address, CustomerEvent, Group, User
@@ -16,6 +17,69 @@ class AddressByIdLoader(DataLoader[int, Address]):
     def batch_load(self, keys):
         address_map = Address.objects.using(self.database_connection_name).in_bulk(keys)
         return [address_map.get(address_id) for address_id in keys]
+
+
+class AddressesByUserIdLoader(
+    DataLoader[tuple[int, int | None, int | None], list[Address]]
+):
+    context_key = "addresses_by_user_id"
+
+    def batch_load(self, keys: Iterable[tuple[int, int | None, int | None]]):
+        keys = list(keys)
+        user_ids = [user_id for user_id, _, _ in keys]
+        user_address_relations = (
+            User.addresses.through.objects.using(self.database_connection_name)
+            .filter(user_id__in=user_ids)
+            .values_list("user_id", "address_id")
+            .order_by("address_id")
+        )
+        relations = list(user_address_relations)
+        addresses = Address.objects.using(self.database_connection_name).in_bulk(
+            [address_id for _, address_id in relations]
+        )
+        default_ids_by_user = {
+            user_id: (default_shipping_address_id, default_billing_address_id)
+            for user_id, default_shipping_address_id, default_billing_address_id in keys
+        }
+        addresses_by_user = defaultdict(list)
+        for user_id, address_id in relations:
+            address = copy(addresses[address_id])
+            default_shipping_address_id, default_billing_address_id = (
+                default_ids_by_user[user_id]
+            )
+            setattr(
+                address,
+                "user_default_shipping_address_pk",
+                default_shipping_address_id,
+            )
+            setattr(
+                address,
+                "user_default_billing_address_pk",
+                default_billing_address_id,
+            )
+            addresses_by_user[user_id].append(address)
+        return [addresses_by_user[user_id] for user_id in user_ids]
+
+
+class PermissionGroupsByUserIdLoader(DataLoader[int, list[Group]]):
+    context_key = "permission_groups_by_user_id"
+
+    def batch_load(self, keys: Iterable[int]):
+        keys = list(keys)
+        user_group_relations = (
+            User.groups.through.objects.using(self.database_connection_name)
+            .filter(user_id__in=keys)
+            .values_list("user_id", "group_id")
+            .order_by("group_id")
+        )
+        relations = list(user_group_relations)
+        groups = Group.objects.using(self.database_connection_name).in_bulk(
+            [group_id for _, group_id in relations]
+        )
+        groups_by_user = defaultdict(list)
+        for user_id, group_id in relations:
+            groups_by_user[user_id].append(groups[group_id])
+        return [groups_by_user[user_id] for user_id in keys]
 
 
 class UserByUserIdLoader(DataLoader[str, User]):

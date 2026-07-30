@@ -7,7 +7,6 @@ from graphene import relay
 from promise import Promise
 
 from ...account import models
-from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
 from ...graphql.meta.inputs import MetadataInput, MetadataInputDescription
 from ...order import OrderStatus
@@ -69,7 +68,9 @@ from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
     AccessibleChannelsByUserIdLoader,
     AddressByIdLoader,
+    AddressesByUserIdLoader,
     CustomerEventsByUserLoader,
+    PermissionGroupsByUserIdLoader,
     RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
@@ -493,22 +494,28 @@ class User(ModelObjectType[models.User]):
         doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
-    def resolve_addresses(root: models.User, _info: ResolveInfo):
+    def resolve_addresses(root: models.User, info: ResolveInfo):
         if is_newly_created_user(root):
             return []
-        return root.addresses.annotate_default(root).all()
+        return AddressesByUserIdLoader(info.context).load(
+            (
+                root.id,
+                root.default_shipping_address_id,
+                root.default_billing_address_id,
+            )
+        )
 
     @staticmethod
     def resolve_checkout(root: models.User, info: ResolveInfo):
         if is_newly_created_user(root):
             return None
-        database_connection_name = get_database_connection_name(info.context)
-        checkout = get_user_checkout(
-            root, database_connection_name=database_connection_name
-        )
-        if not checkout:
-            return None
-        return SyncWebhookControlContext(node=checkout)
+
+        def _resolve_checkout(checkouts):
+            if not checkouts:
+                return None
+            return SyncWebhookControlContext(node=checkouts[0])
+
+        return CheckoutByUserLoader(info.context).load(root.id).then(_resolve_checkout)
 
     @staticmethod
     @traced_resolver
@@ -612,7 +619,7 @@ class User(ModelObjectType[models.User]):
     def resolve_permission_groups(root: models.User, info: ResolveInfo):
         if is_newly_created_user(root):
             return []
-        return root.groups.using(get_database_connection_name(info.context)).all()
+        return PermissionGroupsByUserIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_editable_groups(root: models.User, info: ResolveInfo):
