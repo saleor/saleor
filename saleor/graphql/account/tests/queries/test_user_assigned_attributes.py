@@ -233,6 +233,79 @@ def test_assigned_attribute_by_slug_hidden_attribute_by_staff(
     assert assigned_attribute["attribute"]["slug"] == hidden_customer_attribute.slug
 
 
+def test_assigned_attributes_kept_after_switch_to_type_sharing_the_attribute(
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type,
+    default_customer_type,
+    loyalty_customer_attribute,
+):
+    # given: the attribute belongs to two customer types and the value was
+    # assigned while the user belonged to the first one
+    customer_type.customer_attributes.add(loyalty_customer_attribute)
+    default_customer_type.customer_attributes.add(loyalty_customer_attribute)
+    customer_user.customer_type = customer_type
+    customer_user.save(update_fields=["customer_type"])
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=value)
+    user_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": user_id}
+
+    response = staff_api_client.post_graphql(
+        USER_ASSIGNED_ATTRIBUTES_QUERY,
+        variables,
+        permissions=[permission_manage_users],
+    )
+    content = get_graphql_content(response)
+    assigned_attributes = content["data"]["user"]["assignedAttributes"]
+    assert len(assigned_attributes) == 1
+    assert (
+        assigned_attributes[0]["attribute"]["slug"] == loyalty_customer_attribute.slug
+    )
+    assert assigned_attributes[0]["value"]["slug"] == value.slug
+
+    # when: the user switches to the other type sharing the attribute
+    mutation = """
+        mutation CustomerUpdate($id: ID!, $input: CustomerInput!) {
+            customerUpdate(id: $id, input: $input) {
+                user {
+                    customerType {
+                        id
+                    }
+                }
+                errors {
+                    field
+                    code
+                    message
+                }
+            }
+        }
+    """
+    default_customer_type_id = graphene.Node.to_global_id(
+        "CustomerType", default_customer_type.pk
+    )
+    mutation_variables = {
+        "id": user_id,
+        "input": {"customerType": default_customer_type_id},
+    }
+    response = staff_api_client.post_graphql(mutation, mutation_variables)
+    content = get_graphql_content(response)
+    data = content["data"]["customerUpdate"]
+    assert data["errors"] == []
+    assert data["user"]["customerType"]["id"] == default_customer_type_id
+
+    # then: the value stays visible because the new type also has the attribute
+    response = staff_api_client.post_graphql(USER_ASSIGNED_ATTRIBUTES_QUERY, variables)
+    content = get_graphql_content(response)
+    assigned_attributes = content["data"]["user"]["assignedAttributes"]
+    assert len(assigned_attributes) == 1
+    assert (
+        assigned_attributes[0]["attribute"]["slug"] == loyalty_customer_attribute.slug
+    )
+    assert assigned_attributes[0]["value"]["slug"] == value.slug
+
+
 def test_assigned_attribute_by_slug_hidden_attribute_by_owner(
     user_api_client,
     customer_type_with_attributes,
