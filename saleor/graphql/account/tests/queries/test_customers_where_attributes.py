@@ -1,9 +1,10 @@
 import graphene
 import pytest
 
-from .....attribute import AttributeInputType, AttributeType
+from .....attribute import AttributeEntityType, AttributeInputType, AttributeType
 from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....page.models import Page
 from ....tests.utils import get_graphql_content
 
 QUERY_CUSTOMERS_WITH_WHERE = """
@@ -66,6 +67,7 @@ def test_filter_by_attribute_slug(
     assert customers[0]["node"]["id"] == graphene.Node.to_global_id("User", customer.pk)
 
 
+@pytest.mark.parametrize("with_attr_slug", [True, False])
 @pytest.mark.parametrize(
     "value_filter",
     [
@@ -77,6 +79,7 @@ def test_filter_by_attribute_slug(
 )
 def test_filter_by_attribute_value_slug_or_name(
     value_filter,
+    with_attr_slug,
     staff_api_client,
     permission_group_manage_users,
     customer_users,
@@ -99,13 +102,10 @@ def test_filter_by_attribute_value_slug_or_name(
     associate_attribute_values_to_instance(
         customer_with_silver, {loyalty_customer_attribute.pk: [silver_value]}
     )
-    variables = {
-        "where": {
-            "attributes": [
-                {"slug": loyalty_customer_attribute.slug, "value": value_filter}
-            ]
-        }
-    }
+    attribute_filter = {"value": value_filter}
+    if with_attr_slug:
+        attribute_filter["slug"] = loyalty_customer_attribute.slug
+    variables = {"where": {"attributes": [attribute_filter]}}
 
     # when
     response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
@@ -233,6 +233,107 @@ def test_filter_by_numeric_attribute_value(
         assert customers == []
 
 
+@pytest.mark.parametrize("filter_type", ["containsAny", "containsAll"])
+def test_filter_by_page_reference_attribute_value(
+    filter_type,
+    staff_api_client,
+    permission_group_manage_users,
+    customer_users,
+    customer_type,
+    page_type,
+):
+    # given: one customer referencing both pages, another referencing only
+    # the second one
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    page_reference_attribute = Attribute.objects.create(
+        slug="customer-page-reference",
+        name="Page reference",
+        type=AttributeType.CUSTOMER_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PAGE,
+    )
+    customer_type.customer_attributes.add(page_reference_attribute)
+    referenced_page_1, referenced_page_2 = Page.objects.bulk_create(
+        [
+            Page(
+                title="Referenced Page 1",
+                slug="referenced-page-1",
+                page_type=page_type,
+                is_published=True,
+            ),
+            Page(
+                title="Referenced Page 2",
+                slug="referenced-page-2",
+                page_type=page_type,
+                is_published=True,
+            ),
+        ]
+    )
+    value_1, value_2 = AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(
+                attribute=page_reference_attribute,
+                name=f"Page {referenced_page_1.pk}",
+                slug=f"page-{referenced_page_1.pk}",
+                reference_page=referenced_page_1,
+            ),
+            AttributeValue(
+                attribute=page_reference_attribute,
+                name=f"Page {referenced_page_2.pk}",
+                slug=f"page-{referenced_page_2.pk}",
+                reference_page=referenced_page_2,
+            ),
+        ]
+    )
+    customer_with_both_references = customer_users[0]
+    customer_with_single_reference = customer_users[1]
+    for customer in [customer_with_both_references, customer_with_single_reference]:
+        customer.customer_type = customer_type
+        customer.save(update_fields=["customer_type"])
+    associate_attribute_values_to_instance(
+        customer_with_both_references,
+        {page_reference_attribute.pk: [value_1, value_2]},
+    )
+    associate_attribute_values_to_instance(
+        customer_with_single_reference,
+        {page_reference_attribute.pk: [value_2]},
+    )
+    variables = {
+        "where": {
+            "attributes": [
+                {
+                    "slug": page_reference_attribute.slug,
+                    "value": {
+                        "reference": {
+                            "pageSlugs": {
+                                filter_type: [
+                                    referenced_page_1.slug,
+                                    referenced_page_2.slug,
+                                ]
+                            }
+                        }
+                    },
+                }
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    customers = content["data"]["customers"]["edges"]
+    emails = {customer["node"]["email"] for customer in customers}
+    if filter_type == "containsAny":
+        assert emails == {
+            customer_with_both_references.email,
+            customer_with_single_reference.email,
+        }
+    else:
+        assert emails == {customer_with_both_references.email}
+
+
 def test_filter_by_nonexistent_attribute_slug(
     staff_api_client,
     permission_group_manage_users,
@@ -251,9 +352,39 @@ def test_filter_by_nonexistent_attribute_slug(
     assert content["data"]["customers"]["totalCount"] == 0
 
 
-@pytest.mark.parametrize("filter_by_value", [True, False])
+def test_filter_by_duplicated_attribute_slugs_returns_error(
+    staff_api_client,
+    permission_group_manage_users,
+    loyalty_customer_attribute,
+):
+    # given
+    permission_group_manage_users.user_set.add(staff_api_client.user)
+    variables = {
+        "where": {
+            "attributes": [
+                {"slug": loyalty_customer_attribute.slug},
+                {"slug": loyalty_customer_attribute.slug},
+            ]
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_CUSTOMERS_WITH_WHERE, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        "Duplicated attribute slugs in attribute 'where' input are not allowed."
+    )
+    assert content["data"]["customers"] is None
+
+
+@pytest.mark.parametrize(
+    "filter_variant", ["slug_only", "slug_and_value", "value_only"]
+)
 def test_customer_not_filterable_by_attribute_after_unassign(
-    filter_by_value,
+    filter_variant,
     staff_api_client,
     permission_group_manage_users,
     permission_manage_customer_types_and_attributes,
@@ -276,8 +407,10 @@ def test_customer_not_filterable_by_attribute_after_unassign(
         customer, {loyalty_customer_attribute.pk: [value]}
     )
 
-    attribute_filter = {"slug": loyalty_customer_attribute.slug}
-    if filter_by_value:
+    attribute_filter = {}
+    if filter_variant != "value_only":
+        attribute_filter["slug"] = loyalty_customer_attribute.slug
+    if filter_variant != "slug_only":
         attribute_filter["value"] = {"slug": {"eq": value.slug}}
     where_variables = {"where": {"attributes": [attribute_filter]}}
 
@@ -312,9 +445,11 @@ def test_customer_not_filterable_by_attribute_after_unassign(
     assert content["data"]["customers"]["edges"] == []
 
 
-@pytest.mark.parametrize("filter_by_value", [True, False])
+@pytest.mark.parametrize(
+    "filter_variant", ["slug_only", "slug_and_value", "value_only"]
+)
 def test_customer_not_filterable_by_attribute_after_customer_type_change(
-    filter_by_value,
+    filter_variant,
     staff_api_client,
     permission_group_manage_users,
     customer_users,
@@ -333,8 +468,10 @@ def test_customer_not_filterable_by_attribute_after_customer_type_change(
         customer, {loyalty_customer_attribute.pk: [value]}
     )
 
-    attribute_filter = {"slug": loyalty_customer_attribute.slug}
-    if filter_by_value:
+    attribute_filter = {}
+    if filter_variant != "value_only":
+        attribute_filter["slug"] = loyalty_customer_attribute.slug
+    if filter_variant != "slug_only":
         attribute_filter["value"] = {"slug": {"eq": value.slug}}
     where_variables = {"where": {"attributes": [attribute_filter]}}
 
