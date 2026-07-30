@@ -1,21 +1,45 @@
 from collections import defaultdict
+from collections.abc import Iterable
 
 from django.db.models import Exists, OuterRef, Q
 
 from ..account.models import User
 from ..page.models import Page
 from ..product.models import Product, ProductVariant
+from . import AttributeInputType
 from .models import (
     AssignedPageAttributeValue,
     AssignedProductAttributeValue,
     AssignedUserAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
+    Attribute,
     AttributeValue,
     AttributeVariant,
 )
 
 T_INSTANCE = Product | ProductVariant | Page | User
+
+
+def delete_user_unique_attribute_values(user_pks: Iterable[int]) -> None:
+    """Delete attribute values of unique-value input types assigned to the users.
+
+    Values of selectable input types (dropdown, multiselect, swatch) are the
+    attribute's shared choices, so on user deletion only their assignments go
+    away (handled by the FK cascade). Values of input types listed in
+    `TYPES_WITH_UNIQUE_VALUES` are created per user and may contain PII, so
+    they must be deleted together with the user. Must be called before the
+    user rows are deleted - the cascade removes the assignments needed to
+    find the values.
+    """
+    assigned_values = AssignedUserAttributeValue.objects.filter(user_id__in=user_pks)
+    unique_value_attributes = Attribute.objects.filter(
+        input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES
+    )
+    AttributeValue.objects.filter(
+        Exists(assigned_values.filter(value_id=OuterRef("id"))),
+        Exists(unique_value_attributes.filter(id=OuterRef("attribute_id"))),
+    ).delete()
 
 
 instance_to_function_variables_mapping = {
