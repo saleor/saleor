@@ -19,6 +19,18 @@ QUERY_APP_TOKENS_WITH_CREATED_BY = """
     }
 """
 
+QUERY_APP_TOKENS_CREATED_AT = """
+    query ($id: ID) {
+        app(id: $id) {
+            id
+            tokens {
+                id
+                createdAt
+            }
+        }
+    }
+"""
+
 
 def test_manage_staff_can_see_created_by(
     staff_api_client, permission_manage_apps, permission_manage_staff
@@ -62,6 +74,25 @@ def test_manage_apps_only_cannot_see_created_by(
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
     assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
+
+
+def test_manage_apps_only_can_see_created_at(staff_api_client, permission_manage_apps):
+    """Only `createdBy` is gated by MANAGE_STAFF; `createdAt` stays readable."""
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_apps)
+    app = App.objects.create(name="New_app")
+    token, _ = AppToken.objects.create(app=app, created_by=staff_user)
+    variables = {"id": graphene.Node.to_global_id("App", app.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_APP_TOKENS_CREATED_AT, variables)
+
+    # then
+    content = get_graphql_content(response)
+    tokens = content["data"]["app"]["tokens"]
+    assert len(tokens) == 1
+    assert tokens[0]["createdAt"] == token.created_at.isoformat()
 
 
 def test_app_with_manage_staff_can_see_created_by(
