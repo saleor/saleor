@@ -17691,8 +17691,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
   webhookDelete(
-    """ID of a webhook to delete."""
-    id: ID!
+    """ID of a webhook to delete. Cannot be used together with `identifier`."""
+    id: ID
+
+    """
+    App-provided identifier of a webhook to delete. Identifiers are unique per app only, so this argument is available exclusively to an app referencing its own webhook; staff users must use `id`. Cannot be used together with `id`.
+    
+    Added in Saleor 3.23.
+    """
+    identifier: String
   ): WebhookDelete @doc(category: "Webhooks")
 
   """
@@ -17701,8 +17708,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
   webhookUpdate(
-    """ID of a webhook to update."""
-    id: ID!
+    """ID of a webhook to update. Cannot be used together with `identifier`."""
+    id: ID
+
+    """
+    App-provided identifier of a webhook to update. Identifiers are unique per app only, so this argument is available exclusively to an app referencing its own webhook; staff users must use `id`. Cannot be used together with `id`.
+    
+    Added in Saleor 3.23.
+    """
+    identifier: String
 
     """Fields required to update a webhook."""
     input: WebhookUpdateInput!
