@@ -156,7 +156,8 @@ def test_assigned_attributes_fall_back_to_default_customer_type(
 ):
     # given: the user has no customer type assigned yet
     default_customer_type.customer_attributes.add(segment_customer_attribute)
-    assert customer_user.customer_type_id is None
+    customer_user.customer_type = None
+    customer_user.save(update_fields=["customer_type"])
     variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
 
     # when
