@@ -2,6 +2,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -108,6 +109,38 @@ def test_app_create_no_identifier_mutation(
     assert default_token[-4:] == app.tokens.get().token_last_4
     assert app.uuid is not None
     assert app.identifier == graphene.Node.to_global_id("App", app.pk)
+
+
+@pytest.mark.parametrize(
+    ("_case", "permissions_variable"),
+    [
+        ("omitted", {}),
+        ("explicit_null", {"permissions": None}),
+    ],
+)
+def test_app_create_without_permissions(
+    _case,
+    permissions_variable,
+    permission_manage_apps,
+    staff_api_client,
+):
+    # given
+    name = "New integration"
+    variables = {"name": name, **permissions_variable}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appCreate"]
+    assert data["errors"] == []
+    app = App.objects.get()
+    assert app.name == name
+    assert list(app.permissions.all()) == []
+    assert data["app"]["permissions"] == []
 
 
 @freeze_time("2022-05-12 12:00:00")

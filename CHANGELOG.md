@@ -45,4 +45,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 #### Search improvements
 
+### Fixes
+
+- Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. The input is now accepted and the app is created or updated with no permissions.
+
 ### Deprecations

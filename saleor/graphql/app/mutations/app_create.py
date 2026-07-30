@@ -67,7 +67,7 @@ class AppCreate(DeprecatedModelMutation):
         # clean and prepare permissions
         if "permissions" in cleaned_input:
             requestor = get_user_or_app_from_context(info.context)
-            permissions = cleaned_input.pop("permissions")
+            permissions = cleaned_input.pop("permissions") or []
             ensure_app_permissions_allowed(permissions)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
