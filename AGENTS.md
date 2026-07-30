@@ -133,6 +133,89 @@ database/cache or collide with another worktree's stack.
 - Parametrize near-identical test bodies; keep each test minimal (drop unrelated setup); name tests
   for the exact behavior asserted (no double negatives).
 
+## GraphQL Authorization Tests
+
+When should authorization tests be written?
+- When adding a new restricted field
+- When adding a new restricted type
+- When adding a new restricted mutation or query
+- When adding a new **public** mutation or query - this ensures we are explicit
+  when we expect a new query or mutation to not require any authorization
+
+When writing authorization tests do the ALL of the following:
+- Test against all client types:
+  - Unauthenticated
+  - Unprivileged user (non-staff user)
+  - Staff user with the missing permission(s)
+  - Staff user with the correct permission
+- Use parametrized tests, do not create separate tests
+- Never solely rely on the error message to determine whether access was denied
+  as this could still have returned the restricted data or have performed the
+  operations. Therefore:
+  
+  - Always ensure the restricted data is **not** returned in the HTTP response
+  - Always ensure the data was **not** modified if it is GraphQL mutation
+  - Always ensure external calls (webhooks, API calls, emails, etc.) were
+    not triggered if this is a GraphQL mutation.
+
+Example:
+
+```python
+@pytest.mark.parametrize(
+  ("_case", "client_fixture", "permission_fixture", "is_allowed"),
+  [
+    (
+      "Unauthenticated user should be rejected",
+      "api_client",
+      None,
+      False,
+    ),
+    (
+      "Authenticated unprivileged user (non-staff) should be rejected",
+      "user_api_client",
+      None,
+      False,
+    ),
+    (
+      "Authenticated user w/o the permission should be rejected",
+      "staff_api_client",
+      None,
+      False,
+    ),
+    (
+      "Authenticated user w/ the correct permission should be allowed",
+      "staff_api_client",
+      "permission_manage_settings",
+      True,
+    ),
+  ]
+)
+def test_authorization(
+    request, client_fixture: str, permission_fixture: str | None, is_allowed: bool,
+):
+    client = request.getfixturevalue(client_fixture)
+
+    if permission_fixture:
+        perm = request.getfixturevalue(permission_fixture)
+
+        if client.app:
+            client.app.permissions.add(perm)
+        elif client.user:
+            client.user.user_permissions.add(perm)
+        else:
+            raise AssertionError("Couldn't add the permission") # shouldn't occur
+
+    response = client.post_graphql(query, variables)
+
+    if is_allowed:
+        content = get_graphql_content(response)
+        assert content["data"] == ...
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == ...
+```
+
 # Code structure and layering
 
 - **Keep business logic in the domain layer; GraphQL mutations do input validation and orchestration
