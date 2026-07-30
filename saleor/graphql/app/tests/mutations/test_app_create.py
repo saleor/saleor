@@ -281,3 +281,19 @@ def test_app_create_mutation_no_permissions(
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+
+def test_app_create_by_app_is_forbidden(permission_manage_apps, app_api_client):
+    """Only staff users may create apps, so the default token always has a creator."""
+    # given
+    name = "New integration"
+    variables = {"name": name, "permissions": []}
+
+    # when
+    response = app_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    assert_no_permission(response)
+    assert App.objects.filter(name=name).exists() is False
