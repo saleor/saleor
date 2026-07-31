@@ -77,6 +77,7 @@ from ..core.context import ChannelContext
 from ..core.descriptions import (
     ADDED_IN_322,
     ADDED_IN_323,
+    ADDED_IN_324,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
@@ -179,6 +180,7 @@ from .enums import (
     OrderEventsEnum,
     OrderGrantedRefundStatusEnum,
     OrderOriginEnum,
+    OrderRefundStatusEnum,
     OrderStatusEnum,
 )
 from .utils import validate_draft_order
@@ -215,14 +217,18 @@ def get_order_discount_event(discount_obj: dict):
 
 
 def get_payment_status_for_order(
-    order, granted_refunds: list[models.OrderGrantedRefund]
+    order, granted_refunds: list[models.OrderGrantedRefund], net_charged=None
 ):
     zero_price = zero_money(order.currency)
     total_granted = sum(
         [granted_refund.amount for granted_refund in granted_refunds],
         zero_price,
     )
-    charged_money = order.total_charged
+    charged_money = (
+        order.total_charged
+        if net_charged is None
+        else prices.Money(net_charged, order.currency)
+    )
     current_order_total = quantize_price(
         order.total.gross - total_granted, order.currency
     )
@@ -236,6 +242,78 @@ def get_payment_status_for_order(
     else:
         status = ChargeStatus.NOT_CHARGED
     return status
+
+
+def get_charged_and_refunded_amounts(transactions):
+    """Return the (charged, refunded, refund pending, canceled) amounts of a transaction.
+
+    The charged amount of a transaction already has the successfully refunded money
+    subtracted, so the refunds that are only reported as a request are subtracted on
+    top of it to get the net charged amount. The amount is clamped at zero, as a refund
+    request makes the transaction report a negative charged amount until the app reports
+    the result.
+    """
+    charged = Decimal(0)
+    refunded = Decimal(0)
+    refund_pending = Decimal(0)
+    canceled = Decimal(0)
+    for transaction in transactions:
+        charged += max(transaction.charged_value, Decimal(0))
+        refunded += transaction.refunded_value
+        refund_pending += transaction.refund_pending_value
+        canceled += transaction.canceled_value + transaction.cancel_pending_value
+    return charged, refunded, refund_pending, canceled
+
+
+def get_net_charged_amount(transactions) -> Decimal:
+    """Return the amount the customer actually paid for the transactions."""
+    charged, _, refund_pending, canceled = get_charged_and_refunded_amounts(
+        transactions
+    )
+    return max(charged - refund_pending - canceled, Decimal(0))
+
+
+def get_payment_status_for_transaction_order(order, granted_refunds, transactions):
+    """Determine the payment status of an order paid with transactions.
+
+    Falls back to the charge based calculation when no refund was made, so an order
+    that is only partially paid keeps reporting the charged status.
+    """
+    charged_amount, refunded, refund_pending, canceled = (
+        get_charged_and_refunded_amounts(transactions)
+    )
+    if refunded <= Decimal(0) and refund_pending <= Decimal(0):
+        return get_payment_status_for_order(
+            order, granted_refunds, get_net_charged_amount(transactions)
+        )
+    # The charged amount is reported before the refunds and the cancellations, so they
+    # are added back to tell a full refund from a partial one.
+    return get_payment_status_for_transactions(
+        charged_amount=charged_amount + refunded + refund_pending + canceled,
+        refunded=refunded,
+        refund_pending=refund_pending,
+    )
+
+
+def get_payment_status_for_transactions(
+    charged_amount: Decimal,
+    refunded: Decimal,
+    refund_pending: Decimal,
+):
+    """Determine the payment status from the transaction amounts.
+
+    Money that is on its way back to the customer (a refund request that the app has
+    not processed yet) is already reported as refunded, so the status does not show
+    the order as fully charged while a refund is being processed. This also covers
+    refunds granted through the transaction refund flow, where the refunded amount is
+    only booked on the transaction once the app reports the result.
+    """
+    total_refund = refunded + refund_pending
+    if total_refund <= Decimal(0):
+        return ChargeStatus.FULLY_CHARGED
+    if total_refund >= charged_amount:
+        return ChargeStatus.FULLY_REFUNDED
+    return ChargeStatus.PARTIALLY_REFUNDED
 
 
 class OrderGrantedRefundLine(
@@ -1712,6 +1790,10 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         description="The charge status of the order.",
         required=True,
     )
+    refund_status = OrderRefundStatusEnum(
+        description="The refund status of the order." + ADDED_IN_324,
+        required=True,
+    )
     tax_exemption = graphene.Boolean(
         description="Returns True if order has to be exempt from taxes.",
         required=True,
@@ -2405,7 +2487,12 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             total_charged = prices.Money(Decimal(0), order.currency)
 
             for transaction in transactions:
-                total_charged += transaction.amount_charged
+                # ``chargedValue`` already has the refunds subtracted, so it is the
+                # amount the customer paid. It is clamped at zero, as a refund request
+                # makes the transaction report a negative charged amount until the app
+                # reports the refund result.
+                charged_amount = max(transaction.charged_value, Decimal(0))
+                total_charged += prices.Money(charged_amount, order.currency)
                 total_charged += transaction.amount_charge_pending
             order_granted_refunds_difference = order.total.gross - total_granted_refund
             return total_charged - order_granted_refunds_difference
@@ -2525,7 +2612,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 return ChargeStatus.FULLY_REFUNDED
 
             if transactions:
-                return get_payment_status_for_order(order, granted_refunds)
+                return get_payment_status_for_transaction_order(
+                    order, granted_refunds, transactions
+                )
             last_payment = get_last_payment(payments)
             if not last_payment:
                 if order.total.gross.amount == 0:
@@ -2552,7 +2641,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         def _resolve_payment_status(data):
             transactions, payments, granted_refunds = data
             if transactions:
-                status = get_payment_status_for_order(order, granted_refunds)
+                status = get_payment_status_for_transaction_order(
+                    order, granted_refunds, transactions
+                )
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:
