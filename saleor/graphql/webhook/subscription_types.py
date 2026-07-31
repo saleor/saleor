@@ -60,7 +60,6 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import (
     DOC_CATEGORY_CHECKOUT,
-    DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
     DOC_CATEGORY_MISC,
     DOC_CATEGORY_ORDERS,
@@ -748,25 +747,6 @@ class GiftCardMetadataUpdated(SubscriptionObjectType, GiftCardBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when gift card metadata is updated."
-
-
-class GiftCardExportCompleted(SubscriptionObjectType):
-    export = graphene.Field(
-        "saleor.graphql.csv.types.ExportFile",
-        description="The export file for gift cards.",
-    )
-
-    class Meta:
-        root_type = "ExportFile"
-        enable_dry_run = True
-        interfaces = (Event,)
-        description = "Event sent when gift card export is completed."
-        doc_category = DOC_CATEGORY_GIFT_CARDS
-
-    @staticmethod
-    def resolve_export(root, info: ResolveInfo):
-        _, export_file = root
-        return export_file
 
 
 class MenuBase(AbstractType):
@@ -2588,25 +2568,6 @@ class VoucherMetadataUpdated(SubscriptionObjectType, VoucherBase):
         description = "Event sent when voucher metadata is updated."
 
 
-class VoucherCodeExportCompleted(SubscriptionObjectType):
-    export = graphene.Field(
-        "saleor.graphql.csv.types.ExportFile",
-        description="The export file for voucher codes.",
-    )
-
-    class Meta:
-        root_type = "ExportFile"
-        enable_dry_run = True
-        interfaces = (Event,)
-        description = "Event sent when voucher code export is completed."
-        doc_category = DOC_CATEGORY_DISCOUNTS
-
-    @staticmethod
-    def resolve_export(root, _info: ResolveInfo):
-        _, export_file = root
-        return export_file
-
-
 class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
     shop = graphene.Field(Shop, description="Shop data.")
 
@@ -3212,7 +3173,6 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.GIFT_CARD_SENT: GiftCardSent,
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: GiftCardMetadataUpdated,
-    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED: GiftCardExportCompleted,
     WebhookEventAsyncType.MENU_CREATED: MenuCreated,
     WebhookEventAsyncType.MENU_UPDATED: MenuUpdated,
     WebhookEventAsyncType.MENU_DELETED: MenuDeleted,
@@ -3324,7 +3284,6 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.VOUCHER_CODES_CREATED: VoucherCodesCreated,
     WebhookEventAsyncType.VOUCHER_CODES_DELETED: VoucherCodesDeleted,
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: VoucherMetadataUpdated,
-    WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: VoucherCodeExportCompleted,
     WebhookEventAsyncType.WAREHOUSE_CREATED: WarehouseCreated,
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,

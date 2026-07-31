@@ -93,7 +93,6 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.GIFT_CARD_SENT: "A gift card has been sent.",
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: "A gift card status is changed.",
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: "A gift card metadata is updated.",
-    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED: "A gift card export is completed.",
     WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
     WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
     WebhookEventAsyncType.INVOICE_SENT: "Invoice has been sent.",
@@ -232,9 +231,6 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_UPDATED: "A voucher is updated.",
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: "A voucher metadata is updated.",
-    WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: (
-        "A voucher code export is completed."
-    ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created.",

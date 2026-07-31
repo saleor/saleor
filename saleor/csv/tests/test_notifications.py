@@ -11,13 +11,11 @@ from ..notifications import get_default_export_payload
 
 
 @freeze_time("2018-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.gift_card_export_completed")
 @mock.patch("saleor.plugins.manager.PluginsManager.product_export_completed")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_export_download_link_notification(
     mocked_notify,
     mocked_product_export_completed,
-    mocked_gift_card_export_completed,
     site_settings,
     user_export_file,
     tmpdir,
@@ -51,18 +49,15 @@ def test_send_export_download_link_notification(
     assert len(called_kwargs) == 1
     assert called_kwargs["payload_func"]() == expected_payload
 
-    mocked_gift_card_export_completed.assert_not_called()
-    mocked_product_export_completed.assert_called_with(user_export_file)
+    mocked_product_export_completed.assert_called_once_with(user_export_file)
 
 
 @freeze_time("2018-05-31 12:00:01")
-@mock.patch("saleor.plugins.manager.PluginsManager.gift_card_export_completed")
 @mock.patch("saleor.plugins.manager.PluginsManager.product_export_completed")
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_export_failed_info(
     mocked_notify,
     mocked_product_export_completed,
-    mocked_gift_card_export_completed,
     site_settings,
     user_export_file,
     tmpdir,
@@ -71,7 +66,7 @@ def test_send_export_failed_info(
     # given
     file_mock = mock.MagicMock(spec=File)
     file_mock.name = "temp_file.csv"
-    data_type = "gift cards"
+    data_type = "products"
 
     user_export_file.content_file = file_mock
     user_export_file.save()
@@ -95,5 +90,4 @@ def test_send_export_failed_info(
     assert len(called_kwargs) == 1
     assert called_kwargs["payload_func"]() == expected_payload
 
-    mocked_gift_card_export_completed.assert_called_once_with(user_export_file)
-    mocked_product_export_completed.assert_not_called()
+    mocked_product_export_completed.assert_called_once_with(user_export_file)
