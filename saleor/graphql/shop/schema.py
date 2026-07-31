@@ -1,7 +1,6 @@
 import graphene
 
 from ...permission.enums import GiftcardPermissions
-from ..core.descriptions import DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import (
     DOC_CATEGORY_GIFT_CARDS,
     DOC_CATEGORY_SHOP,
@@ -16,7 +15,6 @@ from .mutations import (
     ReturnReasonReferenceTypeClear,
     ReturnSettingsUpdate,
     ShopAddressUpdate,
-    ShopFetchTaxRates,
     ShopSettingsUpdate,
     StaffNotificationRecipientCreate,
     StaffNotificationRecipientDelete,
@@ -75,9 +73,6 @@ class ShopMutations(graphene.ObjectType):
     staff_notification_recipient_delete = StaffNotificationRecipientDelete.Field()
 
     shop_settings_update = ShopSettingsUpdate.Field()
-    shop_fetch_tax_rates = ShopFetchTaxRates.Field(
-        deprecation_reason=DEFAULT_DEPRECATION_REASON
-    )
     shop_settings_translate = ShopSettingsTranslate.Field()
     shop_address_update = ShopAddressUpdate.Field()
 

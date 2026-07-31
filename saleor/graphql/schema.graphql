@@ -17781,13 +17781,6 @@ type Mutation {
   ): ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: [])
 
   """
-  Fetch tax rates. 
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  shopFetchTaxRates: ShopFetchTaxRates @doc(category: "Shop") @deprecated
-
-  """
   Creates/updates translations for shop settings. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -23284,18 +23277,6 @@ input ShopSettingsInput {
   Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
   """
   accountConfirmMergeMode: AccountConfirmModeEnum
-}
-
-"""
-Fetch tax rates. 
-
-Requires one of the following permissions: MANAGE_SETTINGS.
-"""
-type ShopFetchTaxRates @doc(category: "Shop") {
-  """Updated shop."""
-  shop: Shop
-  shopErrors: [ShopError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ShopError!]!
 }
 
 """

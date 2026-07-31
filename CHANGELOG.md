@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `checkoutId` input argument from the `checkoutShippingAddressUpdate` and `checkoutBillingAddressUpdate` mutations. Use the `id` argument instead.
 - `confirmAccount()` mutation no longer allows to confirm an account that was already confirmed. - #19459 by @NyanKiyosi
 - Removed the deprecated `shopDomainUpdate` mutation. Use the `PUBLIC_URL` environment variable to configure the shop domain instead.
+- Removed the deprecated `shopFetchTaxRates` mutation, along with the `ShopFetchTaxRates` type. It was a no-op; configure taxes with the tax mutations (e.g. `taxConfigurationUpdate`) instead.
 - Removed the deprecated `orderSettingsUpdate` mutation. Use the `channelUpdate` mutation with the `orderSettings` input to update order settings per channel instead.
 - Removed the deprecated `orderSettings` query field. Use the `channel` query and read its `orderSettings` field instead.
 - Removed the deprecated `orderAddNote` mutation, along with the `OrderAddNote` type and `OrderAddNoteInput` input. Use the `orderNoteAdd` mutation instead.
