@@ -11847,6 +11847,10 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """The charge status of the order."""
   chargeStatus: OrderChargeStatusEnum!
 
+  """The refund status of the order.
+  Added in Saleor 3.24."""
+  refundStatus: OrderRefundStatusEnum!
+
   """Returns True if order has to be exempt from taxes."""
   taxExemption: Boolean!
 
@@ -12769,6 +12773,17 @@ enum OrderChargeStatusEnum @doc(category: "Orders") {
   PARTIAL
   FULL
   OVERCHARGED
+}
+
+"""
+Determine the current refund status for the order.
+
+The refund status is computed from TransactionItem refunded amounts compared to the order's total charged amount.
+"""
+enum OrderRefundStatusEnum @doc(category: "Orders") {
+  NONE
+  PARTIAL
+  FULL
 }
 
 """
