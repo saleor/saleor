@@ -19401,19 +19401,6 @@ type Mutation {
   ): DraftOrderUpdate @doc(category: "Orders")
 
   """
-  Adds note to the order. 
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
-  orderAddNote(
-    """ID of the order to add a note for."""
-    order: ID!
-
-    """Fields required to create a note for the order."""
-    input: OrderAddNoteInput!
-  ): OrderAddNote @doc(category: "Orders") @deprecated(reason: "Use `orderNoteAdd` instead.")
-
-  """
   Cancel an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
@@ -27317,26 +27304,6 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """Order language code."""
   languageCode: LanguageCodeEnum
-}
-
-"""
-Adds note to the order. 
-
-Requires one of the following permissions: MANAGE_ORDERS.
-"""
-type OrderAddNote @doc(category: "Orders") {
-  """Order with the note added."""
-  order: Order
-
-  """Order note created."""
-  event: OrderEvent
-  orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [OrderError!]!
-}
-
-input OrderAddNoteInput @doc(category: "Orders") {
-  """Note message."""
-  message: String!
 }
 
 """
