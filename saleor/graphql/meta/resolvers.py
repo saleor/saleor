@@ -15,6 +15,7 @@ from ...giftcard import models as giftcard_models
 from ...order import models as order_models
 from ...page import models as page_models
 from ...payment import models as payment_models
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import one_of_permissions_or_auth_filter_required
 from ...product import models as product_models
 from ...shipping import models as shipping_models
@@ -130,6 +131,10 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo)
 
     if not isinstance(required_permissions, list):
         raise PermissionDenied()
+
+    # Read chokepoint: private-metadata reads gated on MANAGE_X (resolved
+    # dynamically per target) also accept the READ_X twin.
+    required_permissions = expand_read_permissions(required_permissions)
 
     requester = get_user_or_app_from_context(info.context)
     if not requester or not one_of_permissions_or_auth_filter_required(
