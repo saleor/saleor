@@ -1150,7 +1150,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_gift_card_sent_webhook,
     subscription_gift_card_status_changed_webhook,
     subscription_gift_card_metadata_updated_webhook,
-    subscription_gift_card_export_completed_webhook,
     subscription_menu_created_webhook,
     subscription_menu_updated_webhook,
     subscription_menu_deleted_webhook,
@@ -1245,7 +1244,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_voucher_codes_deleted_webhook,
     subscription_voucher_webhook_with_meta,
     subscription_voucher_metadata_updated_webhook,
-    subscription_voucher_code_export_completed_webhook,
     address,
     app,
     numeric_attribute,
@@ -1361,10 +1359,6 @@ def async_subscription_webhooks_with_root_objects(
         events.GIFT_CARD_METADATA_UPDATED: [
             subscription_gift_card_metadata_updated_webhook,
             gift_card,
-        ],
-        events.GIFT_CARD_EXPORT_COMPLETED: [
-            subscription_gift_card_export_completed_webhook,
-            user_export_file,
         ],
         events.MENU_CREATED: [subscription_menu_created_webhook, menu],
         events.MENU_UPDATED: [subscription_menu_updated_webhook, menu],
@@ -1588,10 +1582,6 @@ def async_subscription_webhooks_with_root_objects(
         events.VOUCHER_METADATA_UPDATED: [
             subscription_voucher_metadata_updated_webhook,
             voucher,
-        ],
-        events.VOUCHER_CODE_EXPORT_COMPLETED: [
-            subscription_voucher_code_export_completed_webhook,
-            user_export_file,
         ],
         events.WAREHOUSE_CREATED: [subscription_warehouse_created_webhook, warehouse],
         events.WAREHOUSE_UPDATED: [subscription_warehouse_updated_webhook, warehouse],

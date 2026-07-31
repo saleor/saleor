@@ -22,6 +22,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `orderSettingsUpdate` mutation. Use the `channelUpdate` mutation with the `orderSettings` input to update order settings per channel instead.
 - Removed the deprecated `orderSettings` query field. Use the `channel` query and read its `orderSettings` field instead.
 - Removed the deprecated `orderAddNote` mutation, along with the `OrderAddNote` type and `OrderAddNoteInput` input. Use the `orderNoteAdd` mutation instead.
+- Removed the deprecated `exportGiftCards` and `exportVoucherCodes` mutations, along with the `ExportGiftCards`, `ExportGiftCardsInput`, `ExportVoucherCodes` and `ExportVoucherCodesInput` types. Fetch the data with the `giftCards` and `voucher` queries and format it in your app instead.
+- Removed the `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` webhook event types, along with the `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types. They were emitted only by the removed `exportGiftCards` and `exportVoucherCodes` mutations. Existing webhook subscriptions to these events are deleted by a migration; a webhook left with no other events will stop being triggered.
 - Removed the `DIGITAL_LINKS` value from the `OrderEventsEmailsEnum` enum and the `DIGITAL_LINK_DOWNLOADED` value from the `CustomerEventsEnum` enum. Events with these types were deleted in 3.23, along with the legacy digital content feature that emitted them.
 - Removed the always-empty `digital_lines` key from the fulfillment confirmation notification payload. Use `physical_lines`, which holds every line of the fulfillment.
 

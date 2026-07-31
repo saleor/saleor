@@ -801,15 +801,6 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     gift_card_status_changed: Callable[["GiftCard", None, None], None]
 
-    # Trigger when gift cards export is completed.
-    #
-    # Overwrite this method if you need to trigger specific logic after a gift cards
-    # export is completed.
-    #
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    gift_card_export_completed: Callable[["ExportFile", None], None]
-
     # Trigger when draft order is created.
     #
     # Overwrite this method if you need to trigger specific logic after an order is
@@ -1677,10 +1668,6 @@ class BasePlugin:
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
     voucher_metadata_updated: Callable[["Voucher", None], None]
-
-    # Note: This method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from the plugin to core modules.
-    voucher_code_export_completed: Callable[["ExportFile", None], None]
 
     # Trigger when shop metadata is updated.
     #
