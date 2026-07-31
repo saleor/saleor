@@ -1,3 +1,4 @@
+import datetime
 import json
 from unittest import mock
 
@@ -108,6 +109,29 @@ def test_app_create_no_identifier_mutation(
     assert default_token[-4:] == app.tokens.get().token_last_4
     assert app.uuid is not None
     assert app.identifier == graphene.Node.to_global_id("App", app.pk)
+
+
+@freeze_time("2022-05-12 12:00:00")
+def test_default_token_creator_tracking(
+    permission_manage_apps,
+    staff_api_client,
+):
+    """The default token is attributed to the staff user who created the app."""
+    # given
+    variables = {"name": "New integration", "permissions": []}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    get_graphql_content(response)
+    token = App.objects.get().tokens.get()
+    assert token.created_by == staff_api_client.user
+    assert token.created_at == datetime.datetime(
+        2022, 5, 12, 12, 0, tzinfo=datetime.UTC
+    )
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -257,3 +281,19 @@ def test_app_create_mutation_no_permissions(
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+
+def test_app_create_by_app_is_forbidden(permission_manage_apps, app_api_client):
+    """Only staff users may create apps, so the default token always has a creator."""
+    # given
+    name = "New integration"
+    variables = {"name": name, "permissions": []}
+
+    # when
+    response = app_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    assert_no_permission(response)
+    assert App.objects.filter(name=name).exists() is False

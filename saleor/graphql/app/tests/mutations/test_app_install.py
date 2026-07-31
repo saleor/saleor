@@ -6,7 +6,7 @@ from .....app.models import App, AppInstallation
 from .....app.tasks import install_app_task
 from .....core import JobStatus
 from ....core.enums import AppErrorCode, PermissionEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 INSTALL_APP_MUTATION = """
     mutation AppInstall(
@@ -67,6 +67,7 @@ def test_install_app_mutation(
     assert app_installation_data["manifestUrl"] == app_installation.manifest_url
     mocked_task.assert_called_with(app_installation.pk, True)
     assert app_installation.uuid is not None
+    assert app_installation.installed_by == staff_user
     assert App.objects.count() == 0
 
 
@@ -106,8 +107,9 @@ def test_install_app_mutation_with_another_app_installed_but_marked_to_be_remove
 
 
 def test_app_is_not_allowed_to_install_app(
-    permission_manage_apps, permission_manage_orders, app_api_client, monkeypatch
+    permission_manage_apps, permission_manage_orders, app_api_client
 ):
+    """Even with MANAGE_APPS force-granted, an app requestor is rejected."""
     # given
     app_api_client.app.permissions.set(
         [permission_manage_apps, permission_manage_orders]
@@ -119,10 +121,26 @@ def test_app_is_not_allowed_to_install_app(
     }
 
     # when
-    data = _mutate_app_install(app_api_client, variables)
+    response = app_api_client.post_graphql(INSTALL_APP_MUTATION, variables)
 
     # then
-    assert data is None
+    assert_no_permission(response)
+    assert AppInstallation.objects.exists() is False
+
+
+def test_app_install_mutation_no_permissions(staff_api_client):
+    # given
+    variables = {
+        "app_name": "New external integration",
+        "manifest_url": "http://localhost:3000/manifest",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(INSTALL_APP_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+    assert AppInstallation.objects.exists() is False
 
 
 def test_app_install_mutation_out_of_scope_permissions(
