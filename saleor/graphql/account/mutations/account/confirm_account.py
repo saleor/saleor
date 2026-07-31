@@ -1,8 +1,6 @@
 import logging
-from typing import Any
 
 import graphene
-from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from .....account import models
@@ -15,8 +13,6 @@ from .....core.tokens import (
 )
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
-from .....site import AccountConfirmMode
-from .....site.models import SiteSettings
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo, SaleorContext
 from ....core.doc_category import DOC_CATEGORY_USERS
@@ -45,12 +41,8 @@ class ConfirmAccount(BaseMutation):
             required=True,
         )
         password = graphene.String(
-            description=(
-                "Password of the user confirming their account. Required "
-                "when `REQUIRED_PASSWORD` mode is enabled in shop settings. "
-                "Learn more at "
-                "https://docs.saleor.io/upgrade-guides/core/migrate-account-merging"
-            )
+            required=True,
+            description="Password of the user confirming their account.",
         )
 
     class Meta:
@@ -68,12 +60,11 @@ class ConfirmAccount(BaseMutation):
         ]
 
     @staticmethod
-    def maybe_merge_account(
+    def merge_account(
         *,
         request: SaleorContext,
         user: models.User,
-        site_settings: SiteSettings,
-        data: dict[str, Any],
+        password: str,
     ) -> None:
         """Merge the account if the user confirms their knowledge of the password.
 
@@ -84,38 +75,11 @@ class ConfirmAccount(BaseMutation):
               password of that account and thus we're trying to ensure they
               aren't being tricked by someone.
         """
-        if (
-            site_settings.account_confirm_merge_mode
-            == AccountConfirmMode.MERGE_DISABLED
-        ):
-            return
-
-        if (
-            site_settings.account_confirm_merge_mode
-            != AccountConfirmMode.REQUIRE_PASSWORD
-        ):
-            raise ValueError(
-                "Received an unknown account merging mode",
-                site_settings.account_confirm_merge_mode,
-            )
-
-        password: str | None = data.get("password")
-
-        # development safeguard due to Graphene automatically casting non-string
-        # to strings
-        assert password is None or isinstance(password, str)
-
-        if not password:
-            raise ValidationError(
-                {
-                    "password": ValidationError(
-                        "Password is required", code=AccountErrorCode.REQUIRED.value
-                    )
-                }
-            )
 
         auth_user = authenticate_with_throttling(
-            request=request, email=user.email, password=password
+            request=request,
+            email=user.email,
+            password=password,
         )
 
         if not auth_user or auth_user != user:
@@ -170,13 +134,10 @@ class ConfirmAccount(BaseMutation):
                 }
             )
 
-        cls.maybe_merge_account(
+        cls.merge_account(
             request=info.context,
             user=user,
-            # Note: doesn't use Site.objects.get_current().settings as it will
-            # retrieve stale data (in-memory cache)
-            site_settings=SiteSettings.objects.get(site=Site.objects.get_current()),
-            data=data,
+            password=data["password"],
         )
 
         user.is_active = True

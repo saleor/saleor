@@ -12,11 +12,10 @@ from ......core.tokens import (
     legacy_account_confirm_token_generator,
     password_reset_token_generator,
 )
-from ......site import AccountConfirmMode
-from .....tests.utils import get_graphql_content
+from .....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 CONFIRM_ACCOUNT_MUTATION = """
-    mutation ConfirmAccount($email: String!, $token: String!, $password: String) {
+    mutation ConfirmAccount($email: String!, $token: String!, $password: String!) {
         confirmAccount(email: $email, token: $token, password: $password) {
             errors {
                 field
@@ -38,27 +37,10 @@ WRONG_PASSWORD_ERROR = {
 }
 
 
-@pytest.fixture
-def account_merging_enabled(site_settings):
-    # TODO: in Saleor 3.24.0, replace this with `assert
-    # site_settings.account_confirm_merge_mode == AccountConfirmMode.REQUIRE_PASSWORD`
-    site_settings.account_confirm_merge_mode = AccountConfirmMode.REQUIRE_PASSWORD
-    site_settings.save(update_fields=("account_confirm_merge_mode",))
-
-
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.account_confirmed")
-@pytest.mark.parametrize(
-    ("merge_mode", "should_merge"),
-    [
-        (AccountConfirmMode.REQUIRE_PASSWORD, True),
-        (AccountConfirmMode.MERGE_DISABLED, False),
-    ],
-)
 def test_account_confirmation(
     mocked_account_confirmed,
-    merge_mode: str,
-    should_merge: bool,
     api_client,
     customer_user,
     channel_USD,
@@ -67,9 +49,6 @@ def test_account_confirmation(
     gift_card,
     throttling_disabled,
 ):
-    site_settings.account_confirm_merge_mode = merge_mode
-    site_settings.save(update_fields=("account_confirm_merge_mode",))
-
     customer_user.is_confirmed = False
     customer_user.save()
 
@@ -101,12 +80,8 @@ def test_account_confirmation(
     assert gift_card.created_by_email == customer_user.email
     assert order.user_email == customer_user.email
 
-    if should_merge is True:
-        assert order.user == customer_user, "should have merged the order"
-        assert gift_card.created_by == customer_user, "should have merged the gift card"
-    else:
-        assert order.user is None, "shouldn't have merged the order"
-        assert gift_card.created_by is None, "shouldn't have merged the gift card"
+    assert order.user == customer_user, "should have merged the order"
+    assert gift_card.created_by == customer_user, "should have merged the gift card"
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -122,12 +97,12 @@ def test_account_confirmation_invalid_user(
     user_api_client,
     customer_user,
     channel_USD,
-    account_merging_enabled,
 ):
     variables = {
         "email": "non-existing@example.com",
         "token": account_confirm_token_generator.make_token(customer_user),
         "channel": channel_USD.slug,
+        "password": "password",
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
@@ -144,42 +119,87 @@ def test_account_confirmation_invalid_user(
     ("_case", "input_data", "expected_errors"),
     [
         (
+            "Missing 'password' field",
+            {},
+            (
+                'Argument "password" of required type String!" provided the variable '
+                '"$password" which was not provided'
+            ),
+        ),
+        (
+            "Null password",
+            {"password": None},
+            'Variable "$password" of required type "String!" was not provided.',
+        ),
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
+def test_account_confirmation_requires_password_input(
+    match_orders_with_new_user_mock,
+    assign_gift_cards_mock,
+    account_confirmed_mock,
+    _case,
+    input_data,
+    expected_errors,
+    api_client,
+    customer_user,
+    order,
+    gift_card,
+):
+    customer_user.is_confirmed = False
+    customer_user.save(update_fields=("is_confirmed",))
+
+    order.user = gift_card.created_by = None
+    order.user_email = gift_card.created_by_email = customer_user.email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+    order.save(update_fields=["user", "user_email"])
+
+    variables = {
+        "email": customer_user.email,
+        "token": account_confirm_token_generator.make_token(customer_user),
+        **input_data,
+    }
+
+    response = api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+
+    assert response.status_code == 400
+    content = get_graphql_content_from_response(response)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == expected_errors
+    assert "data" not in content
+
+    customer_user.refresh_from_db(fields=("is_confirmed",))
+    order.refresh_from_db(fields=("user", "user_email"))
+    gift_card.refresh_from_db(fields=("created_by", "created_by_email"))
+    assert customer_user.is_confirmed is False
+    assert order.user is None
+    assert order.user_email == customer_user.email
+    assert gift_card.created_by is None
+    assert gift_card.created_by_email == customer_user.email
+    match_orders_with_new_user_mock.assert_not_called()
+    assign_gift_cards_mock.assert_not_called()
+    account_confirmed_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "input_data", "expected_errors"),
+    [
+        (
             "Invalid password",
             {"password": "hunter2"},
             [WRONG_PASSWORD_ERROR],
         ),
         (
-            "Missing 'password' field",
-            {},
-            [
-                {
-                    "field": "password",
-                    "code": "REQUIRED",
-                    "message": "Password is required",
-                }
-            ],
-        ),
-        (
             "Empty password",
             {"password": ""},
-            [
-                {
-                    "field": "password",
-                    "code": "REQUIRED",
-                    "message": "Password is required",
-                }
-            ],
-        ),
-        (
-            "Null password",
-            {"password": None},
-            [
-                {
-                    "field": "password",
-                    "code": "REQUIRED",
-                    "message": "Password is required",
-                }
-            ],
+            [WRONG_PASSWORD_ERROR],
         ),
         (
             # Note: per GraphQL specs, Graphene is automatically casting non-string
@@ -191,7 +211,7 @@ def test_account_confirmation_invalid_user(
         ),
     ],
 )
-def test_account_confirmation_requires_valid_password_when_require_password_mode(
+def test_account_confirmation_requires_valid_password(
     _case: str,
     input_data: dict[str, Any],
     expected_errors: list[dict[str, Any]],
@@ -203,11 +223,6 @@ def test_account_confirmation_requires_valid_password_when_require_password_mode
     gift_card,
     throttling_disabled,
 ):
-    """A valid password is required when using the REQUIRE_PASSWORD mode."""
-
-    site_settings.account_confirm_merge_mode = AccountConfirmMode.REQUIRE_PASSWORD
-    site_settings.save(update_fields=("account_confirm_merge_mode",))
-
     customer_user.is_confirmed = False
     customer_user.save(update_fields=("is_confirmed",))
 
@@ -242,93 +257,11 @@ def test_account_confirmation_requires_valid_password_when_require_password_mode
     assert gift_card.created_by is None, "shouldn't have merged the gift card"
 
 
-@pytest.mark.parametrize(
-    ("_case", "input_data"),
-    [
-        (
-            # When MERGE_DISABLED is set and the user passes an invalid password,
-            # we expect the password to not be verified. This ensures a smooth
-            # transition from MERGE_DISABLED to REQUIRE_PASSWORD
-            "Invalid password -> shouldn't return an error",
-            {"password": "incorrect"},
-        ),
-        (
-            "Missing 'password' field -> no error",
-            {},
-        ),
-        (
-            "Empty password -> no error",
-            {"password": ""},
-        ),
-        (
-            "Null password -> no error",
-            {"password": None},
-        ),
-        (
-            "Password is not a string -> no error",
-            {"password": True},
-        ),
-    ],
-)
-def test_account_confirmation_no_password_required_when_merging_disabled(
-    _case: str,
-    input_data: dict[str, Any],
-    api_client,
-    customer_user,
-    channel_USD,
-    site_settings,
-    order,
-    gift_card,
-    throttling_disabled,
-):
-    """A password isn't required when using the MERGE_DISABLED mode."""
-
-    site_settings.account_confirm_merge_mode = AccountConfirmMode.MERGE_DISABLED
-    site_settings.save(update_fields=("account_confirm_merge_mode",))
-
-    customer_user.is_confirmed = False
-    customer_user.save(update_fields=("is_confirmed",))
-
-    # Create anonymous objects assigned to the targeted email
-    order.user = gift_card.created_by = None
-    order.user_email = gift_card.created_by_email = customer_user.email
-    gift_card.save(update_fields=["created_by", "created_by_email"])
-    order.save(update_fields=["user", "user_email"])
-
-    variables = {
-        "email": customer_user.email,
-        "token": account_confirm_token_generator.make_token(customer_user),
-        "channel": channel_USD.slug,
-        **input_data,
-    }
-
-    with mock.patch("saleor.account.throttling.cache", side_effect=1):
-        response = api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["errors"] == []
-    resp_user = content["data"]["confirmAccount"]["user"]
-    assert resp_user is not None
-    assert resp_user["email"] is not None
-    assert resp_user["email"] == customer_user.email
-    customer_user.refresh_from_db(fields=("is_confirmed",))
-
-    assert customer_user.is_confirmed is True, "should have confirmed the the user"
-
-    # Ensure it didn't merge anonymous objects
-    gift_card.refresh_from_db(fields=("created_by", "created_by_email"))
-    order.refresh_from_db(fields=("user", "user_email"))
-    assert gift_card.created_by_email == customer_user.email
-    assert order.user_email == customer_user.email
-    assert order.user is None, "shouldn't have merged the order"
-    assert gift_card.created_by is None, "shouldn't have merged the gift card"
-
-
 def test_account_confirmation_rate_limits_password(
     cache_clear,
     api_client,
     customer_user,
     channel_USD,
-    account_merging_enabled,
 ):
     """Account confirmation attempts with a valid token should be rate-limited."""
 
@@ -377,12 +310,12 @@ def test_account_confirmation_invalid_token(
     user_api_client,
     customer_user,
     channel_USD,
-    account_merging_enabled,
 ):
     variables = {
         "email": customer_user.email,
         "token": "invalid_token",
         "channel": channel_USD.slug,
+        "password": "password",
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
@@ -408,7 +341,6 @@ def test_account_confirmation_rejects_token_for_wrong_scope(
     assign_gift_cards_mock,
     user_api_client,
     customer_user,
-    account_merging_enabled,
     throttling_disabled,
 ):
     """When providing a token that's meant for another mutation, it should reject.
@@ -474,7 +406,6 @@ def test_account_confirmation_accepts_legacy_account_confirm_token(
     assign_gift_cards_mock,
     user_api_client,
     customer_user,
-    account_merging_enabled,
     throttling_disabled,
 ):
     """Ensure old tokens before adding scopes still work properly."""
@@ -519,7 +450,6 @@ def test_account_confirmation_rejects_disabled_accounts(
     assign_gift_cards_mock,
     api_client,
     customer_user,
-    account_merging_enabled,
     throttling_disabled,
 ):
     """Ensure a user with `is_active=False` cannot confirm their account.
@@ -586,7 +516,6 @@ def test_account_confirmation_rejects_already_confirmed(
     mocked_account_confirmed,
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
-    account_merging_enabled,
     api_client,
     customer_user,
     throttling_disabled,
