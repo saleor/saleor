@@ -17177,6 +17177,15 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
 
   """App's brand data."""
   brand: AppBrand
+
+  """
+  The staff user who requested this installation. Null for installations created before this was tracked, or if the user has been deleted.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_STAFF.
+  """
+  installedBy: User
 }
 
 type AppCountableConnection @doc(category: "Apps") {

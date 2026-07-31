@@ -327,7 +327,7 @@ def install_app(
     token = None
     if tokent_target_url := manifest_data.get("tokenTargetUrl"):
         _, token = app.tokens.create(  # type: ignore[call-arg] # calling create on a related manager
-            name="Default token", created_by=app_installation.created_by
+            name="Default token", created_by=app_installation.installed_by
         )
 
         try:

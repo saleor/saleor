@@ -54,7 +54,6 @@ def test_app_token_create(
 def test_app_token_create_by_app_is_forbidden(
     permission_manage_apps,
     app_api_client,
-    permission_manage_orders,
 ):
     """An app principal must never create app tokens (see ADR 0006).
 
@@ -62,9 +61,8 @@ def test_app_token_create_by_app_is_forbidden(
     mutation rejects a non-user requestor and creates no token.
     """
     # given
+    app_api_client.app.permissions.add(permission_manage_apps)
     app = App.objects.create(name="New_app")
-    app_api_client.app.permissions.add(permission_manage_orders)
-    app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.pk)
     variables = {"name": "Default token", "app": id}
 
@@ -72,7 +70,6 @@ def test_app_token_create_by_app_is_forbidden(
     response = app_api_client.post_graphql(
         APP_TOKEN_CREATE_MUTATION,
         variables={"input": variables},
-        permissions=(permission_manage_apps,),
     )
 
     # then

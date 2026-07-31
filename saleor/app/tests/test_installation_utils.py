@@ -125,8 +125,8 @@ def test_install_app_attributes_token_to_installer(
     app_manifest, app_installation, staff_user, monkeypatch
 ):
     # given
-    app_installation.created_by = staff_user
-    app_installation.save(update_fields=["created_by"])
+    app_installation.installed_by = staff_user
+    app_installation.save(update_fields=["installed_by"])
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
     monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))

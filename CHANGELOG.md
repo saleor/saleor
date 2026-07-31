@@ -26,6 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
+- Added `createdAt` and `createdBy` fields to the `AppToken` type, and an `installedBy` field to the `AppInstallation` type, recording the staff user who created the token or requested the installation. `createdBy` and `installedBy` require the `MANAGE_STAFF` permission and are null for records created before this was tracked or when the user has been deleted.
 - `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
 - Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
 - Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.

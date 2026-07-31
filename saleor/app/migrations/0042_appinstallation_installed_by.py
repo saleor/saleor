@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="appinstallation",
-            name="created_by",
+            name="installed_by",
             field=models.ForeignKey(
                 blank=True,
                 null=True,

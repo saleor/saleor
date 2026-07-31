@@ -1,7 +1,13 @@
 import graphene
 
 from .....app.models import App, AppToken
+from .....permission.enums import AccountPermissions
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
+
+MISSING_MANAGE_STAFF_MESSAGE = (
+    "To access this path, you need one of the following permissions: "
+    f"{AccountPermissions.MANAGE_STAFF.name}"
+)
 
 QUERY_APP_TOKENS_WITH_CREATED_BY = """
     query ($id: ID) {
@@ -73,11 +79,15 @@ def test_manage_apps_only_cannot_see_created_by(
     # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
+    error = content["errors"][0]
+    assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+    assert error["message"] == MISSING_MANAGE_STAFF_MESSAGE
 
 
-def test_manage_apps_only_can_see_created_at(staff_api_client, permission_manage_apps):
-    """Only `createdBy` is gated by MANAGE_STAFF; `createdAt` stays readable."""
+def test_created_at_is_not_gated_by_manage_staff(
+    staff_api_client, permission_manage_apps
+):
+    """`createdAt` is readable with MANAGE_APPS alone; only `createdBy` needs MANAGE_STAFF."""
     # given
     staff_user = staff_api_client.user
     staff_user.user_permissions.add(permission_manage_apps)
@@ -117,9 +127,11 @@ def test_app_with_manage_staff_can_see_created_by(
 
 
 def test_app_without_manage_staff_cannot_see_created_by(
-    app_api_client, app, staff_user
+    app_api_client, app, staff_user, permission_manage_apps
 ):
-    # given - no MANAGE_STAFF granted to the app
+    """MANAGE_STAFF is the only permission missing, so the denial is unambiguous."""
+    # given
+    app.permissions.add(permission_manage_apps)
     token = app.tokens.get()
     token.created_by = staff_user
     token.save(update_fields=["created_by"])
@@ -131,7 +143,9 @@ def test_app_without_manage_staff_cannot_see_created_by(
     # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
-    assert content["errors"][0]["extensions"]["exception"]["code"] == "PermissionDenied"
+    error = content["errors"][0]
+    assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+    assert error["message"] == MISSING_MANAGE_STAFF_MESSAGE
 
 
 def test_created_by_null_is_handled_properly(
