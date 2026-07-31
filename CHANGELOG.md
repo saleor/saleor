@@ -49,6 +49,7 @@ permissions.
 - Add `giftCardBalanceAdjust` mutation to change a gift card balance by a signed delta atomically.
 - Add customer restriction for gift cards: `assignedTo`/`assignedToEmail` fields, `giftCardAssignUser`/`giftCardUnassignUser` mutations, `assignedTo` on `GiftCardCreateInput`, and `assignedTo` gift card filter. Restricted cards can only be used by the assigned customer at checkout.
 - Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
+- Added `createdAt` and `createdBy` fields to the `AppToken` type, and an `installedBy` field to the `AppInstallation` type, recording the staff user who created the token or requested the installation. `createdBy` and `installedBy` require the `MANAGE_STAFF` permission and are null for records created before this was tracked or when the user has been deleted.
 
 ### Webhooks
 

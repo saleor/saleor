@@ -67,30 +67,8 @@ def test_install_app_mutation(
     assert app_installation_data["manifestUrl"] == app_installation.manifest_url
     mocked_task.assert_called_with(app_installation.pk, True)
     assert app_installation.uuid is not None
+    assert app_installation.installed_by == staff_user
     assert App.objects.count() == 0
-
-
-def test_install_app_mutation_stores_creator(
-    permission_manage_apps,
-    staff_api_client,
-    staff_user,
-    monkeypatch,
-):
-    # given
-    monkeypatch.setattr(
-        "saleor.graphql.app.mutations.app_install.install_app_task.delay", Mock()
-    )
-    staff_user.user_permissions.add(permission_manage_apps)
-    variables = {
-        "app_name": "New external integration",
-        "manifest_url": "http://localhost:3000/manifest",
-    }
-
-    # when
-    _mutate_app_install(staff_api_client, variables)
-
-    # then
-    assert AppInstallation.objects.get().created_by == staff_user
 
 
 def test_install_app_mutation_with_another_app_installed_but_marked_to_be_removed(

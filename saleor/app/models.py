@@ -248,7 +248,7 @@ class AppInstallation(Job):
     brand_logo_default = models.ImageField(
         upload_to="app-installation-brand-data", blank=True, null=True
     )
-    created_by = models.ForeignKey(
+    installed_by = models.ForeignKey(
         "account.User",
         null=True,
         blank=True,
