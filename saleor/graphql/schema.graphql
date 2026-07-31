@@ -20951,26 +20951,6 @@ type Mutation {
   ): CheckoutEmailUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
-  Deletes a CheckoutLine.
-  
-  Triggers the following webhook events:
-  - CHECKOUT_UPDATED (async): A checkout was updated.
-  """
-  checkoutLineDelete(
-    """The ID of the checkout."""
-    checkoutId: ID @deprecated(reason: "Use `id` instead.")
-
-    """The checkout's ID."""
-    id: ID
-
-    """ID of the checkout line to delete."""
-    lineId: ID
-
-    """Checkout token."""
-    token: UUID @deprecated(reason: "Use `id` instead.")
-  ): CheckoutLineDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) @deprecated(reason: "Use `checkoutLinesDelete` instead.")
-
-  """
   Deletes checkout lines.
   
   Triggers the following webhook events:
@@ -31029,19 +31009,6 @@ Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutEmailUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
-  """An updated checkout."""
-  checkout: Checkout
-  checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [CheckoutError!]!
-}
-
-"""
-Deletes a CheckoutLine.
-
-Triggers the following webhook events:
-- CHECKOUT_UPDATED (async): A checkout was updated.
-"""
-type CheckoutLineDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "Use `errors` field instead.")

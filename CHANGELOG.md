@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `checkoutId` input argument from the `checkoutShippingAddressUpdate` and `checkoutBillingAddressUpdate` mutations. Use the `id` argument instead.
 - `confirmAccount()` mutation no longer allows to confirm an account that was already confirmed. - #19459 by @NyanKiyosi
 - Removed the deprecated `shopDomainUpdate` mutation. Use the `PUBLIC_URL` environment variable to configure the shop domain instead.
+- Removed the deprecated `checkoutLineDelete` mutation. Use `checkoutLinesDelete` instead — it takes a `linesIds` list and only accepts the checkout `id` (the `token` and `checkoutId` arguments are gone).
 - Removed the deprecated `orderSettingsUpdate` mutation. Use the `channelUpdate` mutation with the `orderSettings` input to update order settings per channel instead.
 - Removed the deprecated `orderSettings` query field. Use the `channel` query and read its `orderSettings` field instead.
 - Removed the `DIGITAL_LINKS` value from the `OrderEventsEmailsEnum` enum and the `DIGITAL_LINK_DOWNLOADED` value from the `CustomerEventsEnum` enum. Events with these types were deleted in 3.23, along with the legacy digital content feature that emitted them.
