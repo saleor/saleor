@@ -754,17 +754,6 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
-    def gift_card_export_completed(
-        self, export: "ExportFile", previous_value: None
-    ) -> None:
-        if not self.active:
-            return previous_value
-        self._trigger_export_event(
-            WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
-            export,
-        )
-        return previous_value
-
     def _get_webhooks_for_channel_events(
         self,
         event_type: str,
@@ -2751,17 +2740,6 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_metadata_updated_event(
             WebhookEventAsyncType.VOUCHER_METADATA_UPDATED, voucher
-        )
-        return previous_value
-
-    def voucher_code_export_completed(
-        self, export: "ExportFile", previous_value: None
-    ) -> None:
-        if not self.active:
-            return previous_value
-        self._trigger_export_event(
-            WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
-            export,
         )
         return previous_value
 

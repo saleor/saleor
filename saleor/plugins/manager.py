@@ -1956,17 +1956,6 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def gift_card_export_completed(self, export: "ExportFile"):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "gift_card_export_completed",
-            default_value,
-            export,
-            channel_slug=None,
-        )
-
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
     def menu_created(self, menu: "Menu"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -2289,17 +2278,6 @@ class PluginsManager(PaymentInterface):
             "voucher_metadata_updated",
             default_value,
             voucher,
-            channel_slug=None,
-        )
-
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def voucher_code_export_completed(self, export: "ExportFile"):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "voucher_code_export_completed",
-            default_value,
-            export,
             channel_slug=None,
         )
 
