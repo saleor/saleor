@@ -920,6 +920,38 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
     draft_order_update_webhook_mock.assert_not_called()
 
 
+def test_order_lines_create_with_nonexistent_variant(
+    order_with_lines,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given a variant id that does not resolve to an existing variant
+    query = ORDER_LINES_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    nonexistent_variant_id = graphene.Node.to_global_id("ProductVariant", -1)
+    variables = {
+        "orderId": order_id,
+        "variantId": nonexistent_variant_id,
+        "quantity": 1,
+    }
+
+    # when the order line is created
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then a NOT_FOUND error is returned instead of an unhandled KeyError
+    content = get_graphql_content(response)
+    errors = content["data"]["orderLinesCreate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == OrderErrorCode.NOT_FOUND.name
+    assert error["field"] == "lines"
+    assert error["variants"] == [nonexistent_variant_id]
+
+
 @patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
 @pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
 def test_order_lines_create_without_sku(
