@@ -7,7 +7,11 @@ from django.utils import timezone
 from freezegun import freeze_time
 from pydantic import ValidationError
 
-from ....payment import TransactionAction, TransactionEventType
+from ....payment import (
+    PSP_REFERENCE_MAX_LENGTH,
+    TransactionAction,
+    TransactionEventType,
+)
 from ...response_schemas.transaction import (
     PaymentGatewayInitializeSessionSchema,
     TransactionBaseSchema,
@@ -22,6 +26,7 @@ from ...response_schemas.transaction import (
     TransactionRefundRequestedSyncSuccessSchema,
     TransactionSessionActionRequiredSchema,
     TransactionSessionBaseSchema,
+    TransactionSessionCancelSuccessSchema,
     TransactionSessionFailureSchema,
     TransactionSessionSuccessSchema,
 )
@@ -1274,3 +1279,71 @@ def test_payment_gateway_initialize_schema_invalid_data(data_value):
     # then
     assert len(exc_info.value.errors()) == 1
     assert exc_info.value.errors()[0]["loc"] == ("data",)
+
+
+@pytest.mark.parametrize(
+    ("schema", "data"),
+    [
+        (
+            TransactionBaseSchema,
+            {
+                "pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1),
+                "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+            },
+        ),
+        (
+            TransactionChargeRequestedAsyncSchema,
+            {"pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1)},
+        ),
+        (
+            TransactionChargeRequestedSyncFailureSchema,
+            {
+                "pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1),
+                "result": TransactionEventType.CHARGE_FAILURE.upper(),
+            },
+        ),
+        (
+            TransactionChargeRequestedSyncSuccessSchema,
+            {
+                "pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1),
+                "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+            },
+        ),
+        (
+            TransactionSessionFailureSchema,
+            {
+                "pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1),
+                "result": TransactionEventType.CHARGE_FAILURE.upper(),
+            },
+        ),
+        (
+            TransactionSessionCancelSuccessSchema,
+            {
+                "pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1),
+                "result": TransactionEventType.CANCEL_SUCCESS.upper(),
+            },
+        ),
+        (
+            TransactionSessionActionRequiredSchema,
+            {
+                "pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1),
+                "result": TransactionEventType.CHARGE_ACTION_REQUIRED.upper(),
+            },
+        ),
+        (
+            TransactionSessionSuccessSchema,
+            {
+                "pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1),
+                "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+            },
+        ),
+    ],
+)
+def test_transaction_schemas_reject_too_long_psp_reference(schema, data):
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        schema.model_validate(data)
+
+    # then
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("pspReference",)

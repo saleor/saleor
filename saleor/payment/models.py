@@ -18,6 +18,7 @@ from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money
 from ..permission.enums import PaymentPermissions
 from . import (
+    PSP_REFERENCE_MAX_LENGTH,
     ChargeStatus,
     CustomPaymentChoices,
     PaymentMethodType,
@@ -36,7 +37,9 @@ class TransactionItem(ModelWithMetadata):
     idempotency_key = models.CharField(max_length=512, blank=True, null=True)
     name = models.CharField(max_length=512, blank=True, null=True, default="")
     message = models.CharField(max_length=512, blank=True, null=True, default="")
-    psp_reference = models.CharField(max_length=512, blank=True, null=True)
+    psp_reference = models.CharField(
+        max_length=PSP_REFERENCE_MAX_LENGTH, blank=True, null=True
+    )
     available_actions = ArrayField(
         models.CharField(max_length=128, choices=TransactionAction.CHOICES),
         default=list,
@@ -206,7 +209,9 @@ class TransactionItem(ModelWithMetadata):
 class TransactionEvent(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     idempotency_key = models.CharField(max_length=512, blank=True, null=True)
-    psp_reference = models.CharField(max_length=512, blank=True, null=True)
+    psp_reference = models.CharField(
+        max_length=PSP_REFERENCE_MAX_LENGTH, blank=True, null=True
+    )
     message = models.CharField(max_length=512, blank=True, null=True, default="")
     transaction = models.ForeignKey(
         TransactionItem, related_name="events", on_delete=models.CASCADE

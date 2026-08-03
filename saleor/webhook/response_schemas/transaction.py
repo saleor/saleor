@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 from ...graphql.core.utils import str_to_enum
 from ...payment import (
     OPTIONAL_PSP_REFERENCE_EVENTS,
+    PSP_REFERENCE_MAX_LENGTH,
     PaymentMethodType,
     TransactionAction,
     TransactionEventType,
@@ -143,6 +144,7 @@ class TransactionBaseSchema(BaseModel):
         Field(
             validation_alias="pspReference",
             default=None,
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description=(
                 "PSP reference received from payment provider. Optional for the following results: "
                 + ", ".join([event.upper() for event in OPTIONAL_PSP_REFERENCE_EVENTS])
@@ -265,6 +267,7 @@ class TransactionAsyncSchema(BaseModel):
         str,
         Field(
             validation_alias="pspReference",
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description="PSP reference received from payment provider.",
         ),
     ]
@@ -291,6 +294,7 @@ class TransactionSyncFailureSchema(TransactionBaseSchema):
         Field(
             validation_alias="pspReference",
             default=None,
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description="PSP reference received from payment provider.",
         ),
     ]
@@ -301,6 +305,7 @@ class TransactionSyncSuccessSchema(TransactionBaseSchema):
         str,
         Field(
             validation_alias="pspReference",
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description="PSP reference received from payment provider.",
         ),
     ]
@@ -402,6 +407,7 @@ class TransactionSessionFailureSchema(TransactionSessionBaseSchema):
         Field(
             validation_alias="pspReference",
             default=None,
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description="PSP reference received from payment provider.",
         ),
     ]
@@ -417,6 +423,7 @@ class TransactionSessionCancelSuccessSchema(TransactionSessionBaseSchema):
         Field(
             validation_alias="pspReference",
             default=None,
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description="PSP reference received from payment provider.",
         ),
     ]
@@ -435,6 +442,7 @@ class TransactionSessionActionRequiredSchema(TransactionSessionBaseSchema):
         Field(
             validation_alias="pspReference",
             default=None,
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description="PSP reference received from payment provider.",
         ),
     ]
@@ -454,6 +462,7 @@ class TransactionSessionSuccessSchema(TransactionSessionBaseSchema):
         str,
         Field(
             validation_alias="pspReference",
+            max_length=PSP_REFERENCE_MAX_LENGTH,
             description="PSP reference received from payment provider.",
         ),
     ]

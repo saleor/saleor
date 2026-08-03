@@ -11,7 +11,7 @@ from .....checkout import models as checkout_models
 from .....core.prices import quantize_price
 from .....order import models as order_models
 from .....order.events import transaction_event as order_transaction_event
-from .....payment import TransactionEventType
+from .....payment import PSP_REFERENCE_MAX_LENGTH, TransactionEventType
 from .....payment import models as payment_models
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.interface import PaymentMethodDetails
@@ -50,7 +50,12 @@ class TransactionCreateInput(BaseInputObjectType):
     name = graphene.String(description="Payment name of the transaction.")
     message = graphene.String(description="The message of the transaction.")
 
-    psp_reference = graphene.String(description="PSP Reference of the transaction.")
+    psp_reference = graphene.String(
+        description=(
+            "PSP Reference of the transaction. The maximum length is "
+            f"{PSP_REFERENCE_MAX_LENGTH} characters."
+        )
+    )
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
         description="List of all possible actions for the transaction",
@@ -90,7 +95,12 @@ class TransactionCreateInput(BaseInputObjectType):
 
 
 class TransactionEventInput(BaseInputObjectType):
-    psp_reference = graphene.String(description="PSP Reference related to this action.")
+    psp_reference = graphene.String(
+        description=(
+            "PSP Reference related to this action. The maximum length is "
+            f"{PSP_REFERENCE_MAX_LENGTH} characters."
+        )
+    )
 
     message = graphene.String(description="The message related to the event.")
 
@@ -135,6 +145,20 @@ class TransactionCreate(BaseMutation):
                     )
                 }
             ) from e
+
+    @classmethod
+    def validate_psp_reference(
+        cls, psp_reference: str | None, field_name: str, error_code: str
+    ):
+        if psp_reference and len(psp_reference) > PSP_REFERENCE_MAX_LENGTH:
+            raise ValidationError(
+                {
+                    field_name: ValidationError(
+                        f"Maximum length for `pspReference` is {PSP_REFERENCE_MAX_LENGTH}.",
+                        code=error_code,
+                    )
+                }
+            )
 
     # TODO This should be unified with metadata_manager and MetadataItemCollection
     # EXT-2054
@@ -237,10 +261,24 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def validate_input(
-        cls, instance: checkout_models.Checkout | order_models.Order, transaction
+        cls,
+        instance: checkout_models.Checkout | order_models.Order,
+        transaction,
+        transaction_event,
     ) -> checkout_models.Checkout | order_models.Order:
         currency = instance.currency
 
+        cls.validate_psp_reference(
+            transaction.get("psp_reference"),
+            field_name="transaction",
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
+        if transaction_event:
+            cls.validate_psp_reference(
+                transaction_event.get("psp_reference"),
+                field_name="transactionEvent",
+                error_code=TransactionCreateErrorCode.INVALID.value,
+            )
         cls.validate_money_input(
             transaction,
             currency,
@@ -342,7 +380,9 @@ class TransactionCreate(BaseMutation):
             order_or_checkout_instance, id
         )
         order_or_checkout_instance = cls.validate_input(
-            order_or_checkout_instance, transaction=transaction
+            order_or_checkout_instance,
+            transaction=transaction,
+            transaction_event=transaction_event,
         )
         payment_details_data: PaymentMethodDetails | None = None
         if payment_method_details := transaction.pop("payment_method_details", None):

@@ -14,7 +14,11 @@ from .....order import models as order_models
 from .....order.utils import (
     calculate_order_granted_refund_status,
 )
-from .....payment import OPTIONAL_AMOUNT_EVENTS, TransactionEventType
+from .....payment import (
+    OPTIONAL_AMOUNT_EVENTS,
+    PSP_REFERENCE_MAX_LENGTH,
+    TransactionEventType,
+)
 from .....payment import models as payment_models
 from .....payment.interface import PaymentMethodDetails
 from .....payment.lock_objects import (
@@ -91,7 +95,11 @@ class TransactionEventReport(DeprecatedModelMutation):
             required=False,
         )
         psp_reference = graphene.String(
-            description="PSP Reference of the event to report.", required=True
+            description=(
+                "PSP Reference of the event to report. The maximum length is "
+                f"{PSP_REFERENCE_MAX_LENGTH} characters."
+            ),
+            required=True,
         )
         type = graphene.Argument(
             TransactionEventTypeEnum,

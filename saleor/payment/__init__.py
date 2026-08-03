@@ -1,5 +1,7 @@
 from enum import Enum
 
+PSP_REFERENCE_MAX_LENGTH = 512
+
 
 class PaymentError(Exception):
     def __init__(self, message, code=None):

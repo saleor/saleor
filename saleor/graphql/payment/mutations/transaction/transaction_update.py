@@ -106,9 +106,25 @@ class TransactionUpdate(TransactionCreate):
 
     @classmethod
     def validate_transaction_input(
-        cls, instance: payment_models.TransactionItem, transaction_data
+        cls,
+        instance: payment_models.TransactionItem,
+        transaction_data,
+        transaction_event_data,
     ):
+        transaction_data = transaction_data or {}
         currency = instance.currency
+        if transaction_data:
+            cls.validate_psp_reference(
+                transaction_data.get("psp_reference"),
+                field_name="transaction",
+                error_code=TransactionUpdateErrorCode.INVALID.value,
+            )
+        if transaction_event_data:
+            cls.validate_psp_reference(
+                transaction_event_data.get("psp_reference"),
+                field_name="transactionEvent",
+                error_code=TransactionUpdateErrorCode.INVALID.value,
+            )
         if transaction_data.get("available_actions") is not None:
             transaction_data["available_actions"] = list(
                 set(transaction_data.get("available_actions", []))
@@ -219,8 +235,9 @@ class TransactionUpdate(TransactionCreate):
         previous_charged_value = instance.charged_value
         previous_refunded_value = instance.refunded_value
 
+        cls.validate_transaction_input(instance, transaction, transaction_event)
+
         if transaction:
-            cls.validate_transaction_input(instance, transaction)
             cls.assign_app_to_transaction_data_if_missing(instance, transaction, app)
             cls.cleanup_and_update_metadata_data(
                 instance,

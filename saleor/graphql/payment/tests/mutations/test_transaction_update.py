@@ -11,7 +11,11 @@ from .....checkout.complete_checkout import create_order_from_checkout
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.models import Order
-from .....payment import PaymentMethodType, TransactionEventType
+from .....payment import (
+    PSP_REFERENCE_MAX_LENGTH,
+    PaymentMethodType,
+    TransactionEventType,
+)
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.lock_objects import (
     get_checkout_and_transaction_item_locked_for_update,
@@ -3820,3 +3824,52 @@ def test_transaction_update_checkout_completed_race_condition(
     assert order.charge_status == OrderChargeStatus.FULL
     assert order.authorize_status == OrderAuthorizeStatus.FULL
     assert order.total_charged.amount == checkout.total.gross.amount
+
+
+@pytest.mark.parametrize(
+    ("transaction_data", "transaction_event", "error_field"),
+    [
+        (
+            {"pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1)},
+            None,
+            "transaction",
+        ),
+        (
+            None,
+            {"pspReference": "p" * (PSP_REFERENCE_MAX_LENGTH + 1)},
+            "transactionEvent",
+        ),
+    ],
+)
+def test_transaction_update_rejects_too_long_psp_reference(
+    transaction_data,
+    transaction_event,
+    error_field,
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = transaction_item_created_by_app
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": transaction_data,
+        "transaction_event": transaction_event,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]
+    assert data["errors"] == [
+        {
+            "field": error_field,
+            "message": f"Maximum length for `pspReference` is {PSP_REFERENCE_MAX_LENGTH}.",
+            "code": TransactionUpdateErrorCode.INVALID.name,
+        }
+    ]
+    assert not transaction.events.exists()
