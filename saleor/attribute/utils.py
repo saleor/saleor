@@ -1,12 +1,14 @@
 from collections import defaultdict
 from collections.abc import Iterable
 
+from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ..account.models import User
 from ..page.models import Page
 from ..product.models import Product, ProductVariant
 from . import AttributeInputType
+from .lock_objects import attribute_value_qs_select_for_update
 from .models import (
     AssignedPageAttributeValue,
     AssignedProductAttributeValue,
@@ -36,10 +38,16 @@ def delete_user_unique_attribute_values(user_pks: Iterable[int]) -> None:
     unique_value_attributes = Attribute.objects.filter(
         input_type__in=AttributeInputType.TYPES_WITH_UNIQUE_VALUES
     )
-    AttributeValue.objects.filter(
-        Exists(assigned_values.filter(value_id=OuterRef("id"))),
-        Exists(unique_value_attributes.filter(id=OuterRef("attribute_id"))),
-    ).delete()
+    with transaction.atomic():
+        locked_ids = (
+            attribute_value_qs_select_for_update()
+            .filter(
+                Exists(assigned_values.filter(value_id=OuterRef("id"))),
+                Exists(unique_value_attributes.filter(id=OuterRef("attribute_id"))),
+            )
+            .values_list("id", flat=True)
+        )
+        AttributeValue.objects.filter(id__in=locked_ids).delete()
 
 
 instance_to_function_variables_mapping = {
