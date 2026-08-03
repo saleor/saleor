@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.core.exceptions import ValidationError
 
 from ....account import models
+from ....attribute.utils import delete_user_unique_attribute_values
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_assigned_gift_cards
 from ....permission.enums import AccountPermissions
@@ -71,6 +72,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
             # on_delete=PROTECT, so restricted cards must be detached and
             # deactivated first, atomically with the deletion.
             deactivate_assigned_gift_cards(queryset)
+            delete_user_unique_attribute_values([user.pk for user in instances])
             queryset.delete()
         manager = get_plugin_manager_promise(info.context).get()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.STAFF_DELETED)

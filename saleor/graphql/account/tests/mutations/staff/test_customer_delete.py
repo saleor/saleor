@@ -7,6 +7,8 @@ from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from ......account.models import User
+from ......attribute.models import AssignedUserAttributeValue, AttributeValue
 from ......webhook.event_types import WebhookEventAsyncType
 from .....tests.utils import get_graphql_content
 from ....mutations.staff import CustomerDelete
@@ -215,3 +217,36 @@ def test_delete_customer_by_external_reference_not_existing(
     # then
     errors = content["data"]["customerDelete"]["errors"]
     assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_deletes_unique_attribute_values_and_keeps_shared_choices(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    description_customer_attribute,
+    loyalty_customer_attribute,
+):
+    # given: the customer has a unique (plain text) value and a shared choice
+    plain_text = "Notes about the customer"
+    unique_value = AttributeValue.objects.create(
+        attribute=description_customer_attribute,
+        name=plain_text,
+        slug=f"{customer_user.pk}_{description_customer_attribute.pk}",
+        plain_text=plain_text,
+    )
+    choice_value = loyalty_customer_attribute.values.get(slug="gold")
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=unique_value)
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=choice_value)
+    variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_DELETE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then: the unique value is deleted with the user, the shared choice stays
+    content = get_graphql_content(response)
+    assert content["data"]["customerDelete"]["errors"] == []
+    assert User.objects.filter(pk=customer_user.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=unique_value.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=choice_value.pk).exists() is True
