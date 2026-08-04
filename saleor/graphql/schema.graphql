@@ -21572,9 +21572,9 @@ type Mutation {
   ): AttributeBulkTranslate @doc(category: "Attributes")
 
   """
-  Deletes attributes. 
+  Deletes attributes.
   
-  Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions, depending on the type of each attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_DELETED (async): An attribute was deleted.
@@ -21585,9 +21585,9 @@ type Mutation {
   ): AttributeBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: [])
 
   """
-  Deletes values of attributes. 
+  Deletes values of attributes.
   
-  Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions, depending on the type of each value's attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
@@ -21599,9 +21599,9 @@ type Mutation {
   ): AttributeValueBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_DELETED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
-  Creates a value for an attribute. 
+  Creates a value for an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCTS.
+  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
@@ -21616,9 +21616,9 @@ type Mutation {
   ): AttributeValueCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
-  Deletes a value of an attribute. 
+  Deletes a value of an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions, depending on the type of the value's attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
@@ -21633,9 +21633,9 @@ type Mutation {
   ): AttributeValueDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_DELETED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
-  Updates value of an attribute. 
+  Updates value of an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions, depending on the type of the value's attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
@@ -21682,9 +21682,9 @@ type Mutation {
   ): AttributeValueTranslate @doc(category: "Attributes")
 
   """
-  Reorder the values of an attribute. 
+  Reorder the values of an attribute.
   
-  Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
   
   Triggers the following webhook events:
   - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
@@ -32474,9 +32474,9 @@ input AttributeBulkTranslateInput @doc(category: "Attributes") {
 }
 
 """
-Deletes attributes. 
+Deletes attributes.
 
-Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+Requires one of the following permissions, depending on the type of each attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_DELETED (async): An attribute was deleted.
@@ -32489,9 +32489,9 @@ type AttributeBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEv
 }
 
 """
-Deletes values of attributes. 
+Deletes values of attributes.
 
-Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+Requires one of the following permissions, depending on the type of each value's attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
@@ -32505,9 +32505,9 @@ type AttributeValueBulkDelete @doc(category: "Attributes") @webhookEventsInfo(as
 }
 
 """
-Creates a value for an attribute. 
+Creates a value for an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCTS.
+Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
@@ -32522,9 +32522,9 @@ type AttributeValueCreate @doc(category: "Attributes") @webhookEventsInfo(asyncE
 }
 
 """
-Deletes a value of an attribute. 
+Deletes a value of an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+Requires one of the following permissions, depending on the type of the value's attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
@@ -32539,9 +32539,9 @@ type AttributeValueDelete @doc(category: "Attributes") @webhookEventsInfo(asyncE
 }
 
 """
-Updates value of an attribute. 
+Updates value of an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+Requires one of the following permissions, depending on the type of the value's attribute: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
@@ -32637,9 +32637,9 @@ type AttributeValueTranslate @doc(category: "Attributes") {
 }
 
 """
-Reorder the values of an attribute. 
+Reorder the values of an attribute.
 
-Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+Requires one of the following permissions, depending on the attribute type: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes.
 
 Triggers the following webhook events:
 - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.

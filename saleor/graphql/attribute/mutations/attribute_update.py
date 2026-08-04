@@ -1,12 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....attribute import AttributeType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.exceptions import PermissionDenied
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
@@ -24,6 +21,10 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 from .attribute_create import AttributeValueInput
 from .mixins import REFERENCE_TYPES_LIMIT, AttributeMixin
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 from .utils import (
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
@@ -165,23 +166,9 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None, input
     ):
         # Concrete permission is checked after instance is resolved.
-        type_permissions = (
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
-            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
-        )
-        if not cls.check_permissions(info.context, type_permissions):
-            raise PermissionDenied(permissions=type_permissions)
-
+        check_any_attribute_type_permission(cls, info.context)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-
-        # Check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if instance.type == AttributeType.PRODUCT_TYPE:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
-        if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied(permissions=permissions)
+        check_attribute_type_permissions(cls, info.context, [instance.type])
 
         cls.validate_reference_types_limit(input)
         # Do cleaning and uniqueness checks
