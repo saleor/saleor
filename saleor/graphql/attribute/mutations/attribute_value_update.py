@@ -9,7 +9,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError
-from ...core.utils import WebhookEventInfo, from_global_id_or_error
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_update import AttributeValueUpdateInput
@@ -97,7 +97,7 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
         # Concrete permission is checked once the value's attribute type is known.
         check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         object_id = cls.get_object_id(**data)
-        _, pk = from_global_id_or_error(object_id, AttributeValue, raise_error=True)
+        pk = cls.get_global_id_or_error(object_id, only_type=AttributeValue)
         attribute_types = models.AttributeValue.objects.filter(pk=pk).values_list(
             "attribute__type", flat=True
         )
