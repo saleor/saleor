@@ -42,7 +42,7 @@ from ..types import Attribute
 from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
 from .attribute_update import AttributeUpdateInput
 from .mixins import AttributeMixin
-from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
+from .permissions import get_attribute_type_permissions
 
 
 @dataclass
@@ -369,8 +369,8 @@ class AttributeBulkUpdate(BaseMutation):
         attribute_data["instance"] = attr
 
         # check permissions based on attribute type
-        permission = ATTRIBUTE_TYPE_PERMISSION_MAP.get(attr.type)
-        if permission is None:
+        permissions = get_attribute_type_permissions(attr.type)
+        if permissions is None:
             index_error_map[attribute_index].append(
                 AttributeBulkUpdateError(
                     message=(
@@ -381,7 +381,6 @@ class AttributeBulkUpdate(BaseMutation):
             )
             return None
 
-        permissions = (permission,)
         if not cls.check_permissions(info.context, permissions):
             index_error_map[attribute_index].append(
                 AttributeBulkUpdateError(

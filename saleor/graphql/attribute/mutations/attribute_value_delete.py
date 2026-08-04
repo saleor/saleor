@@ -4,6 +4,7 @@ import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
+from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -17,6 +18,10 @@ from .permissions import (
     check_any_attribute_type_permission,
     check_attribute_type_permissions,
 )
+
+# Permission required before the checks became attribute type aware. Still
+# accepted so integrations authorized under the previous rules keep working.
+LEGACY_PERMISSIONS = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
 
 
 class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
@@ -56,10 +61,12 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         # Concrete permission is checked after the instance is resolved.
-        check_any_attribute_type_permission(cls, info.context)
+        check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         instance = cast(models.AttributeValue, instance)
-        check_attribute_type_permissions(cls, info.context, [instance.attribute.type])
+        check_attribute_type_permissions(
+            cls, info.context, [instance.attribute.type], LEGACY_PERMISSIONS
+        )
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(
             _root, info, external_reference=external_reference, id=id

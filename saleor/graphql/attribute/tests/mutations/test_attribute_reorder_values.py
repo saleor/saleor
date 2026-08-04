@@ -298,11 +298,11 @@ def test_sort_values_trigger_webhook(
             True,
         ),
         (
-            "Page attribute w/ product permission should be rejected",
+            "Page attribute w/ legacy product permission should be allowed",
             "staff_api_client",
             "size_page_attribute",
             "permission_manage_product_types_and_attributes",
-            False,
+            True,
         ),
         (
             "Page attribute w/ page permission should be allowed",

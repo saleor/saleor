@@ -5,6 +5,7 @@ from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.utils import generate_unique_slug
+from ....permission.enums import ProductPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -20,6 +21,10 @@ from .permissions import (
     check_attribute_type_permissions,
 )
 from .validators import validate_value_is_unique
+
+# Permission required before the checks became attribute type aware. Still
+# accepted so integrations authorized under the previous rules keep working.
+LEGACY_PERMISSIONS = (ProductPermissions.MANAGE_PRODUCTS,)
 
 
 class AttributeValueCreate(AttributeMixin, DeprecatedModelMutation):
@@ -103,9 +108,11 @@ class AttributeValueCreate(AttributeMixin, DeprecatedModelMutation):
         cls, _root, info: ResolveInfo, /, *, attribute_id, input
     ):
         # Concrete permission is checked after the attribute is resolved.
-        check_any_attribute_type_permission(cls, info.context)
+        check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
-        check_attribute_type_permissions(cls, info.context, [attribute.type])
+        check_attribute_type_permissions(
+            cls, info.context, [attribute.type], LEGACY_PERMISSIONS
+        )
         instance = models.AttributeValue(attribute=attribute)
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)

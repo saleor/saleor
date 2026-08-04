@@ -4,6 +4,7 @@ from django.db.models import Exists, OuterRef, Q
 
 from ...attribute import models
 from ...attribute.lock_objects import attribute_value_qs_select_for_update
+from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
@@ -18,6 +19,10 @@ from .mutations.permissions import (
     check_attribute_type_permissions,
 )
 from .types import Attribute, AttributeValue
+
+# Permission required before the checks became attribute type aware. Still
+# accepted so integrations authorized under the previous rules keep working.
+LEGACY_PERMISSIONS = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
 
 
 class AttributeBulkDelete(ModelBulkDeleteMutation):
@@ -49,7 +54,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         cls, root, info: ResolveInfo, /, *, ids
     ):
         # Concrete permissions are checked after attribute types are resolved.
-        check_any_attribute_type_permission(cls, info.context)
+        check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
@@ -58,7 +63,9 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
             .values_list("type", flat=True)
             .distinct()
         )
-        check_attribute_type_permissions(cls, info.context, attribute_types)
+        check_attribute_type_permissions(
+            cls, info.context, attribute_types, LEGACY_PERMISSIONS
+        )
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
         product_models.Product.objects.filter(id__in=product_ids).update(
@@ -135,7 +142,7 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         cls, root, info: ResolveInfo, /, *, ids
     ):
         # Concrete permissions are checked after attribute types are resolved.
-        check_any_attribute_type_permission(cls, info.context)
+        check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         if not ids:
             return 0, {}
         _, value_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
@@ -144,7 +151,9 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
             .values_list("attribute__type", flat=True)
             .distinct()
         )
-        check_attribute_type_permissions(cls, info.context, attribute_types)
+        check_attribute_type_permissions(
+            cls, info.context, attribute_types, LEGACY_PERMISSIONS
+        )
         product_ids = cls.get_product_ids_to_update(value_pks)
         response = super().perform_mutation(root, info, ids=ids)
         product_models.Product.objects.filter(id__in=product_ids).update(

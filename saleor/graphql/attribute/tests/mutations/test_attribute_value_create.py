@@ -468,11 +468,18 @@ def test_create_attribute_value_with_non_unique_external_reference(
             False,
         ),
         (
-            "Product attribute w/ manage products permission should be rejected",
+            "Product attribute w/ legacy manage products permission should be allowed",
             "staff_api_client",
             "color_attribute",
             "permission_manage_products",
-            False,
+            True,
+        ),
+        (
+            "Page attribute w/ legacy manage products permission should be allowed",
+            "staff_api_client",
+            "size_page_attribute",
+            "permission_manage_products",
+            True,
         ),
         (
             "Product attribute w/ page permission should be rejected",

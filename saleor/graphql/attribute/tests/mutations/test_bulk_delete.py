@@ -312,11 +312,11 @@ def test_delete_attribute_values_search_document_updated(
             False,
         ),
         (
-            "Product attributes w/ page permission should be rejected",
+            "Product attributes w/ legacy page permission should be allowed",
             "staff_api_client",
             ["product_type_attribute_list"],
             ["permission_manage_page_types_and_attributes"],
-            False,
+            True,
         ),
         (
             "Product attributes w/ product permission should be allowed",
@@ -347,11 +347,11 @@ def test_delete_attribute_values_search_document_updated(
             False,
         ),
         (
-            "Mixed attributes w/ page permission only should be rejected",
+            "Mixed attributes w/ legacy page permission only should be allowed",
             "staff_api_client",
             ["product_type_attribute_list", "page_type_attribute_list"],
             ["permission_manage_page_types_and_attributes"],
-            False,
+            True,
         ),
         (
             "Mixed attributes w/ both permissions should be allowed",
@@ -438,11 +438,11 @@ def test_delete_attributes_authorization(
             False,
         ),
         (
-            "Product attribute values w/ page permission should be rejected",
+            "Product attribute values w/ legacy page permission should be allowed",
             "staff_api_client",
             ["color_attribute"],
             ["permission_manage_page_types_and_attributes"],
-            False,
+            True,
         ),
         (
             "Product attribute values w/ product permission should be allowed",
@@ -473,11 +473,11 @@ def test_delete_attributes_authorization(
             False,
         ),
         (
-            "Mixed attribute values w/ page permission only should be rejected",
+            "Mixed attribute values w/ legacy page permission only should be allowed",
             "staff_api_client",
             ["color_attribute", "size_page_attribute"],
             ["permission_manage_page_types_and_attributes"],
-            False,
+            True,
         ),
         (
             "Mixed attribute values w/ both permissions should be allowed",
