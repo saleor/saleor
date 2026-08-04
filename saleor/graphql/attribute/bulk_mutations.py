@@ -4,7 +4,6 @@ from django.db.models import Exists, OuterRef, Q
 
 from ...attribute import models
 from ...attribute.lock_objects import attribute_value_qs_select_for_update
-from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
@@ -14,6 +13,10 @@ from ..core.types import AttributeError, NonNullList
 from ..core.utils import WebhookEventInfo
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import resolve_global_ids_to_primary_keys
+from .mutations.permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 from .types import Attribute, AttributeValue
 
 
@@ -24,10 +27,14 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Deletes attributes."
+        description = (
+            "Deletes attributes.\n\nRequires one of the following permissions, "
+            "depending on the type of each attribute: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+        )
         model = models.Attribute
         object_type = Attribute
-        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -41,9 +48,17 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
     def perform_mutation(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, *, ids
     ):
+        # Concrete permissions are checked after attribute types are resolved.
+        check_any_attribute_type_permission(cls, info.context)
         if not ids:
             return 0, {}
         _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "Attribute")
+        attribute_types = (
+            models.Attribute.objects.filter(pk__in=attribute_pks)
+            .values_list("type", flat=True)
+            .distinct()
+        )
+        check_attribute_type_permissions(cls, info.context, attribute_types)
         product_ids = cls.get_product_ids_to_update(attribute_pks)
         response = super().perform_mutation(root, info, ids=ids)
         product_models.Product.objects.filter(id__in=product_ids).update(
@@ -94,10 +109,14 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Deletes values of attributes."
+        description = (
+            "Deletes values of attributes.\n\nRequires one of the following "
+            "permissions, depending on the type of each value's attribute: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+        )
         model = models.AttributeValue
         object_type = AttributeValue
-        permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -115,10 +134,18 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     def perform_mutation(  # type: ignore[override]
         cls, root, info: ResolveInfo, /, *, ids
     ):
+        # Concrete permissions are checked after attribute types are resolved.
+        check_any_attribute_type_permission(cls, info.context)
         if not ids:
             return 0, {}
-        _, attribute_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
-        product_ids = cls.get_product_ids_to_update(attribute_pks)
+        _, value_pks = resolve_global_ids_to_primary_keys(ids, "AttributeValue")
+        attribute_types = (
+            models.AttributeValue.objects.filter(pk__in=value_pks)
+            .values_list("attribute__type", flat=True)
+            .distinct()
+        )
+        check_attribute_type_permissions(cls, info.context, attribute_types)
+        product_ids = cls.get_product_ids_to_update(value_pks)
         response = super().perform_mutation(root, info, ids=ids)
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True

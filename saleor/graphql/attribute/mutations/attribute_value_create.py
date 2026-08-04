@@ -5,7 +5,6 @@ from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.utils import generate_unique_slug
-from ....permission.enums import ProductPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -16,6 +15,10 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_create import AttributeValueCreateInput
 from .mixins import AttributeMixin
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 from .validators import validate_value_is_unique
 
 
@@ -37,8 +40,12 @@ class AttributeValueCreate(AttributeMixin, DeprecatedModelMutation):
     class Meta:
         model = models.AttributeValue
         object_type = AttributeValue
-        description = "Creates a value for an attribute."
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        description = (
+            "Creates a value for an attribute.\n\nRequires one of the following "
+            "permissions, depending on the attribute type: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -95,7 +102,10 @@ class AttributeValueCreate(AttributeMixin, DeprecatedModelMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, attribute_id, input
     ):
+        # Concrete permission is checked after the attribute is resolved.
+        check_any_attribute_type_permission(cls, info.context)
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
+        check_attribute_type_permissions(cls, info.context, [attribute.type])
         instance = models.AttributeValue(attribute=attribute)
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)

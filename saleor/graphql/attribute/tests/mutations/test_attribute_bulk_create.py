@@ -809,3 +809,47 @@ def test_attribute_bulk_create_with_invalid_reference_types(
         assert len(result["errors"]) == 1
         assert result["errors"][0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
         assert result["errors"][0]["path"] == "referenceTypes"
+
+
+def test_attribute_type_without_mapped_permission_returns_error(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_page_types_and_attributes,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes,
+        permission_manage_page_types_and_attributes,
+    )
+    attribute_name = "Test Attribute"
+    variables = {
+        "attributes": [
+            {"name": attribute_name, "type": AttributeTypeEnum.PRODUCT_TYPE.name}
+        ]
+    }
+
+    # when
+    with patch.dict(
+        "saleor.graphql.attribute.mutations.attribute_bulk_create."
+        "ATTRIBUTE_TYPE_PERMISSION_MAP",
+        {},
+        clear=True,
+    ):
+        response = staff_api_client.post_graphql(
+            ATTRIBUTE_BULK_CREATE_MUTATION, variables
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+    assert data["count"] == 0
+    assert len(data["results"]) == 1
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["path"] == "type"
+    assert errors[0]["code"] == AttributeBulkCreateErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        "No permission is defined for attribute type "
+        f"{AttributeTypeEnum.PRODUCT_TYPE.value}."
+    )
+    assert Attribute.objects.filter(name=attribute_name).exists() is False
