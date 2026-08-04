@@ -17781,13 +17781,6 @@ type Mutation {
   ): ShopSettingsUpdate @doc(category: "Shop") @webhookEventsInfo(asyncEvents: [SHOP_METADATA_UPDATED], syncEvents: [])
 
   """
-  Fetch tax rates. 
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  shopFetchTaxRates: ShopFetchTaxRates @doc(category: "Shop") @deprecated
-
-  """
   Creates/updates translations for shop settings. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -19399,19 +19392,6 @@ type Mutation {
     """Fields required to update an order."""
     input: DraftOrderInput!
   ): DraftOrderUpdate @doc(category: "Orders")
-
-  """
-  Adds note to the order. 
-  
-  Requires one of the following permissions: MANAGE_ORDERS.
-  """
-  orderAddNote(
-    """ID of the order to add a note for."""
-    order: ID!
-
-    """Fields required to create a note for the order."""
-    input: OrderAddNoteInput!
-  ): OrderAddNote @doc(category: "Orders") @deprecated(reason: "Use `orderNoteAdd` instead.")
 
   """
   Cancel an order. 
@@ -23277,18 +23257,6 @@ input ShopSettingsInput {
   Controls the method used for merging existing orders and giftcards when password-based authentication is used. Learn more at https://docs.saleor.io/upgrade-guides/core/migrate-account-merging
   """
   accountConfirmMergeMode: AccountConfirmModeEnum
-}
-
-"""
-Fetch tax rates. 
-
-Requires one of the following permissions: MANAGE_SETTINGS.
-"""
-type ShopFetchTaxRates @doc(category: "Shop") {
-  """Updated shop."""
-  shop: Shop
-  shopErrors: [ShopError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ShopError!]!
 }
 
 """
@@ -27297,26 +27265,6 @@ input DraftOrderInput @doc(category: "Orders") {
 
   """Order language code."""
   languageCode: LanguageCodeEnum
-}
-
-"""
-Adds note to the order. 
-
-Requires one of the following permissions: MANAGE_ORDERS.
-"""
-type OrderAddNote @doc(category: "Orders") {
-  """Order with the note added."""
-  order: Order
-
-  """Order note created."""
-  event: OrderEvent
-  orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [OrderError!]!
-}
-
-input OrderAddNoteInput @doc(category: "Orders") {
-  """Note message."""
-  message: String!
 }
 
 """

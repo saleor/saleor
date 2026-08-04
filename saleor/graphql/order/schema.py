@@ -71,7 +71,7 @@ from .mutations.order_line_discount_update import OrderLineDiscountUpdate
 from .mutations.order_line_update import OrderLineUpdate
 from .mutations.order_lines_create import OrderLinesCreate
 from .mutations.order_mark_as_paid import OrderMarkAsPaid
-from .mutations.order_note_add import OrderAddNote, OrderNoteAdd
+from .mutations.order_note_add import OrderNoteAdd
 from .mutations.order_note_update import OrderNoteUpdate
 from .mutations.order_refund import OrderRefund
 from .mutations.order_update import OrderUpdate
@@ -291,9 +291,6 @@ class OrderMutations(graphene.ObjectType):
     )
     draft_order_update = DraftOrderUpdate.Field()
 
-    order_add_note = OrderAddNote.Field(
-        deprecation_reason="Use `orderNoteAdd` instead."
-    )
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
     order_confirm = OrderConfirm.Field()
