@@ -330,3 +330,32 @@ def test_delete_product_attribute_without_product_type_permission(
     # then
     assert_no_permission(response)
     assert attribute._meta.model.objects.filter(pk=attribute.pk).exists()
+
+
+def test_attribute_type_without_mapped_permission_is_denied(
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+    permission_manage_page_types_and_attributes,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes,
+        permission_manage_page_types_and_attributes,
+    )
+    variables = {"id": graphene.Node.to_global_id("Attribute", color_attribute.pk)}
+
+    # when
+    with mock.patch.dict(
+        "saleor.graphql.attribute.mutations.permissions.ATTRIBUTE_TYPE_PERMISSION_MAP",
+        {},
+        clear=True,
+    ):
+        response = staff_api_client.post_graphql(ATTRIBUTE_DELETE_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+    assert (
+        color_attribute._meta.model.objects.filter(pk=color_attribute.pk).exists()
+        is True
+    )

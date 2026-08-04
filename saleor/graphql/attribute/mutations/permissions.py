@@ -35,8 +35,19 @@ def check_any_attribute_type_permission(
 def check_attribute_type_permissions(
     mutation_cls: type[BaseMutation], context, attribute_types: Iterable[str]
 ) -> None:
-    """Require the permission matching each of the given attribute types."""
+    """Require the permission matching each of the given attribute types.
+
+    An attribute type missing from `ATTRIBUTE_TYPE_PERMISSION_MAP` is denied
+    rather than allowed, so adding a type without mapping it fails closed.
+    """
     attribute_types_set = set(attribute_types)
+    if unmapped_types := attribute_types_set - ATTRIBUTE_TYPE_PERMISSION_MAP.keys():
+        raise PermissionDenied(
+            message=(
+                "No permission is defined for attribute type "
+                f"{sorted(unmapped_types)[0]}."
+            )
+        )
     missing_permissions = [
         permission
         for attribute_type, permission in ATTRIBUTE_TYPE_PERMISSION_MAP.items()

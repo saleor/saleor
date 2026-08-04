@@ -383,7 +383,21 @@ class AttributeBulkCreate(BaseMutation):
         )
 
         # check permissions based on attribute type
-        permissions = (ATTRIBUTE_TYPE_PERMISSION_MAP[cleaned_input["type"]],)
+        attribute_type = cleaned_input["type"]
+        permission = ATTRIBUTE_TYPE_PERMISSION_MAP.get(attribute_type)
+        if permission is None:
+            index_error_map[attribute_index].append(
+                AttributeBulkCreateError(
+                    path="type",
+                    message=(
+                        f"No permission is defined for attribute type {attribute_type}."
+                    ),
+                    code=AttributeBulkCreateErrorCode.INVALID.value,
+                )
+            )
+            return None
+
+        permissions = (permission,)
         if not cls.check_permissions(info.context, permissions):
             index_error_map[attribute_index].append(
                 AttributeBulkCreateError(

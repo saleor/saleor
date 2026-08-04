@@ -377,7 +377,19 @@ class AttributeBulkUpdate(BaseMutation):
         attribute_data["instance"] = attr
 
         # check permissions based on attribute type
-        permissions = (ATTRIBUTE_TYPE_PERMISSION_MAP[attr.type],)
+        permission = ATTRIBUTE_TYPE_PERMISSION_MAP.get(attr.type)
+        if permission is None:
+            index_error_map[attribute_index].append(
+                AttributeBulkUpdateError(
+                    message=(
+                        f"No permission is defined for attribute type {attr.type}."
+                    ),
+                    code=AttributeBulkUpdateErrorCode.INVALID.value,
+                )
+            )
+            return None
+
+        permissions = (permission,)
         if not cls.check_permissions(info.context, permissions):
             index_error_map[attribute_index].append(
                 AttributeBulkUpdateError(
