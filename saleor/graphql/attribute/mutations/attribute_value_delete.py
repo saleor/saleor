@@ -4,6 +4,7 @@ import graphene
 
 from ....attribute import models as models
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
+from ....permission.enums import ProductTypePermissions
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
@@ -23,6 +24,10 @@ from .utils import (
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
 )
+
+# Permission required before the checks became attribute type aware. Still
+# accepted so integrations authorized under the previous rules keep working.
+LEGACY_PERMISSIONS = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
 
 
 class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
@@ -62,10 +67,12 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
         # Concrete permission is checked after the instance is resolved.
-        check_any_attribute_type_permission(cls, info.context)
+        check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         instance = cast(models.AttributeValue, instance)
-        check_attribute_type_permissions(cls, info.context, [instance.attribute.type])
+        check_attribute_type_permissions(
+            cls, info.context, [instance.attribute.type], LEGACY_PERMISSIONS
+        )
         product_ids = get_product_ids_to_search_index_update_for_attribute_values(
             [instance]
         )

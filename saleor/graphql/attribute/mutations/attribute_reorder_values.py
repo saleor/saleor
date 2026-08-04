@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -19,6 +20,10 @@ from .permissions import (
     check_any_attribute_type_permission,
     check_attribute_type_permissions,
 )
+
+# Permission required before the checks became attribute type aware. Still
+# accepted so integrations authorized under the previous rules keep working.
+LEGACY_PERMISSIONS = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
 
 
 class AttributeReorderValues(BaseMutation):
@@ -62,7 +67,7 @@ class AttributeReorderValues(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, attribute_id, moves
     ):
         # Concrete permission is checked after the attribute is resolved.
-        check_any_attribute_type_permission(cls, info.context)
+        check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         pk = cls.get_global_id_or_error(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
@@ -79,7 +84,9 @@ class AttributeReorderValues(BaseMutation):
                 }
             ) from e
 
-        check_attribute_type_permissions(cls, info.context, [attribute.type])
+        check_attribute_type_permissions(
+            cls, info.context, [attribute.type], LEGACY_PERMISSIONS
+        )
 
         values_m2m = attribute.values.all()
         operations = {}
