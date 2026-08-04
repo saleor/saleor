@@ -753,9 +753,7 @@ def test_invalid_id_returns_error(
     variables = {"id": invalid_id, "input": {"name": "Crimson name"}}
 
     # when
-    response = staff_api_client.post_graphql(
-        UPDATE_ATTRIBUTE_VALUE_MUTATION, variables
-    )
+    response = staff_api_client.post_graphql(UPDATE_ATTRIBUTE_VALUE_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
