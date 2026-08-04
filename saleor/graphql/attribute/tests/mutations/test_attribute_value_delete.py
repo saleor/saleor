@@ -364,11 +364,11 @@ def test_delete_attribute_value_by_external_reference_not_existing(
             True,
         ),
         (
-            "Page attribute value w/ product permission should be rejected",
+            "Page attribute value w/ legacy product permission should be allowed",
             "staff_api_client",
             "size_page_attribute",
             "permission_manage_product_types_and_attributes",
-            False,
+            True,
         ),
         (
             "Page attribute value w/ page permission should be allowed",

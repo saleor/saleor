@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
+from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -19,6 +20,10 @@ from .permissions import (
 )
 
 PRODUCTS_BATCH_SIZE = 10000
+
+# Permission required before the checks became attribute type aware. Still
+# accepted so integrations authorized under the previous rules keep working.
+LEGACY_PERMISSIONS = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
 
 
 def queryset_in_batches(queryset):
@@ -90,13 +95,15 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         # Concrete permission is checked once the value's attribute type is known.
-        check_any_attribute_type_permission(cls, info.context)
+        check_any_attribute_type_permission(cls, info.context, LEGACY_PERMISSIONS)
         object_id = cls.get_object_id(**data)
         _, pk = from_global_id_or_error(object_id, AttributeValue, raise_error=True)
         attribute_types = models.AttributeValue.objects.filter(pk=pk).values_list(
             "attribute__type", flat=True
         )
-        check_attribute_type_permissions(cls, info.context, attribute_types)
+        check_attribute_type_permissions(
+            cls, info.context, attribute_types, LEGACY_PERMISSIONS
+        )
         return super(AttributeValueCreate, cls).perform_mutation(root, info, **data)
 
     @classmethod

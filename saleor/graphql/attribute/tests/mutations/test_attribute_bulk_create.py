@@ -667,8 +667,7 @@ def test_attribute_type_without_mapped_permission_returns_error(
 
     # when
     with patch.dict(
-        "saleor.graphql.attribute.mutations.attribute_bulk_create."
-        "ATTRIBUTE_TYPE_PERMISSION_MAP",
+        "saleor.graphql.attribute.mutations.permissions.ATTRIBUTE_TYPE_PERMISSION_MAP",
         {},
         clear=True,
     ):
@@ -689,4 +688,34 @@ def test_attribute_type_without_mapped_permission_returns_error(
         "No permission is defined for attribute type "
         f"{AttributeTypeEnum.PRODUCT_TYPE.value}."
     )
+    assert Attribute.objects.filter(name=attribute_name).exists() is False
+
+
+def test_page_type_attribute_with_product_permission_is_rejected(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+):
+    """The product permission must not grant access to page type attributes."""
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    attribute_name = "Page Attribute"
+    variables = {
+        "attributes": [
+            {"name": attribute_name, "type": AttributeTypeEnum.PAGE_TYPE.name}
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ATTRIBUTE_BULK_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+    assert data["count"] == 0
+    assert len(data["results"]) == 1
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AttributeBulkCreateErrorCode.REQUIRED.name
     assert Attribute.objects.filter(name=attribute_name).exists() is False

@@ -21,7 +21,7 @@ from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.attribute_create import AttributeCreateInput, AttributeValueCreateInput
 from ..types import Attribute
-from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
+from .permissions import get_attribute_type_permissions
 
 ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 DEPRECATED_ATTR_FIELDS = [
@@ -355,8 +355,8 @@ class AttributeBulkCreate(BaseMutation):
 
         # check permissions based on attribute type
         attribute_type = cleaned_input["type"]
-        permission = ATTRIBUTE_TYPE_PERMISSION_MAP.get(attribute_type)
-        if permission is None:
+        permissions = get_attribute_type_permissions(attribute_type)
+        if permissions is None:
             index_error_map[attribute_index].append(
                 AttributeBulkCreateError(
                     path="type",
@@ -368,7 +368,6 @@ class AttributeBulkCreate(BaseMutation):
             )
             return None
 
-        permissions = (permission,)
         if not cls.check_permissions(info.context, permissions):
             index_error_map[attribute_index].append(
                 AttributeBulkCreateError(
