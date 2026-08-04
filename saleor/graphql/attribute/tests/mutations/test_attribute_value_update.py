@@ -738,3 +738,30 @@ def test_authorization(
     else:
         assert_no_permission(response)
         assert value.name == original_name
+
+
+def test_invalid_id_returns_error(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+):
+    """A malformed ID must be reported in `errors`, not as a top-level error."""
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    invalid_id = "not-a-global-id"
+    variables = {"id": invalid_id, "input": {"name": "Crimson name"}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_VALUE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueUpdate"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == AttributeErrorCode.GRAPHQL_ERROR.name
+    assert error["message"] == f"Invalid ID: {invalid_id}. Expected: AttributeValue."
