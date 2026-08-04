@@ -4,7 +4,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.tracing import traced_atomic_transaction
-from ....permission.enums import ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
@@ -15,6 +14,10 @@ from ...core.utils import WebhookEventInfo
 from ...core.utils.reordering import perform_reordering
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 
 
 class AttributeReorderValues(BaseMutation):
@@ -23,9 +26,13 @@ class AttributeReorderValues(BaseMutation):
     )
 
     class Meta:
-        description = "Reorder the values of an attribute."
+        description = (
+            "Reorder the values of an attribute.\n\nRequires one of the following "
+            "permissions, depending on the attribute type: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+        )
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -53,6 +60,8 @@ class AttributeReorderValues(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, attribute_id, moves
     ):
+        # Concrete permission is checked after the attribute is resolved.
+        check_any_attribute_type_permission(cls, info.context)
         pk = cls.get_global_id_or_error(
             attribute_id, only_type=Attribute, field="attribute_id"
         )
@@ -68,6 +77,8 @@ class AttributeReorderValues(BaseMutation):
                     )
                 }
             ) from e
+
+        check_attribute_type_permissions(cls, info.context, [attribute.type])
 
         values_m2m = attribute.values.all()
         operations = {}

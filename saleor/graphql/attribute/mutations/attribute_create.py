@@ -4,8 +4,6 @@ from django.core.exceptions import ValidationError
 from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.exceptions import PermissionDenied
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
@@ -20,6 +18,7 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute
 from .mixins import AttributeMixin
+from .permissions import check_attribute_type_permissions
 
 
 class AttributeValueInput(BaseInputObjectType):
@@ -150,13 +149,7 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
         cls, _root, info: ResolveInfo, /, *, input
     ):
         # check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
-        if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied(permissions=permissions)
+        check_attribute_type_permissions(cls, info.context, [input["type"]])
 
         instance = models.Attribute()
 

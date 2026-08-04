@@ -11,7 +11,6 @@ from text_unidecode import unidecode
 from ....attribute import models
 from ....attribute.error_codes import AttributeBulkUpdateErrorCode
 from ....core.tracing import traced_atomic_transaction
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
@@ -31,10 +30,10 @@ from ...core.utils import (
 )
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..enums import AttributeTypeEnum
 from ..types import Attribute
 from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
 from .attribute_update import AttributeUpdateInput
+from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
 
 
 class AttributeBulkUpdateResult(BaseObjectType):
@@ -312,12 +311,19 @@ class AttributeBulkUpdate(BaseMutation):
         attribute_data["instance"] = attr
 
         # check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if attr.type == AttributeTypeEnum.PRODUCT_TYPE.value:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        permission = ATTRIBUTE_TYPE_PERMISSION_MAP.get(attr.type)
+        if permission is None:
+            index_error_map[attribute_index].append(
+                AttributeBulkUpdateError(
+                    message=(
+                        f"No permission is defined for attribute type {attr.type}."
+                    ),
+                    code=AttributeBulkUpdateErrorCode.INVALID.value,
+                )
+            )
+            return None
 
+        permissions = (permission,)
         if not cls.check_permissions(info.context, permissions):
             index_error_map[attribute_index].append(
                 AttributeBulkUpdateError(

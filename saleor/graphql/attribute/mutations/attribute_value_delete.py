@@ -1,8 +1,9 @@
+from typing import cast
+
 import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ....attribute import models as models
-from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -11,6 +12,10 @@ from ...core.types import AttributeError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 
 
 class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
@@ -26,8 +31,12 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Meta:
         model = models.AttributeValue
         object_type = AttributeValue
-        description = "Deletes a value of an attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        description = (
+            "Deletes a value of an attribute.\n\nRequires one of the following "
+            "permissions, depending on the type of the value's attribute: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -45,7 +54,11 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
+        # Concrete permission is checked after the instance is resolved.
+        check_any_attribute_type_permission(cls, info.context)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
+        instance = cast(models.AttributeValue, instance)
+        check_attribute_type_permissions(cls, info.context, [instance.attribute.type])
         product_ids = cls.get_product_ids_to_update(instance)
         response = super().perform_mutation(
             _root, info, external_reference=external_reference, id=id

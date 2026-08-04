@@ -1,9 +1,6 @@
 import graphene
 
-from ....attribute import AttributeType
 from ....attribute import models as models
-from ....core.exceptions import PermissionDenied
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
@@ -11,6 +8,10 @@ from ...core.types import AttributeError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 
 
 class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
@@ -50,23 +51,9 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     ):
         """Perform a mutation that deletes a model instance."""
         # Concrete permission is checked after instance is resolved.
-        type_permissions = (
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
-            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
-        )
-        if not cls.check_permissions(info.context, type_permissions):
-            raise PermissionDenied(permissions=type_permissions)
-
+        check_any_attribute_type_permission(cls, info.context)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-
-        # Check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if instance.type == AttributeType.PRODUCT_TYPE:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
-        if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied(permissions=permissions)
+        check_attribute_type_permissions(cls, info.context, [instance.type])
 
         cls.clean_instance(info, instance)
         db_id = instance.id
