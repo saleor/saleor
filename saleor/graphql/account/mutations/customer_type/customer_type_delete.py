@@ -70,7 +70,7 @@ class CustomerTypeDelete(ModelDeleteMutation):
         )
         with traced_atomic_transaction():
             # Evaluate the queryset to acquire the locks.
-            list(customer_type_qs_select_for_update())
+            list(customer_type_qs_select_for_update().values_list("pk", flat=True))
             default_customer_type = get_default_customer_type()
             if str(default_customer_type.pk) != str(customer_type_pk):
                 # Deliberate lack of CUSTOMER_UPDATED events due to

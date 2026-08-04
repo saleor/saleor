@@ -65,7 +65,7 @@ class CustomerTypeDefaultTransferMixin:
         with traced_atomic_transaction():
             # Evaluate the queryset to acquire the locks.
             # Deliberately do not use the queryset for clearing the default flag.
-            list(customer_type_qs_select_for_update())
+            list(customer_type_qs_select_for_update().values_list("pk", flat=True))
             models.CustomerType.objects.filter(is_default=True).update(is_default=False)
             return super().perform_mutation(root, info, **data)  # type: ignore[misc]
 
