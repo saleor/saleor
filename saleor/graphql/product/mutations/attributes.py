@@ -234,7 +234,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
                 pk__in=attrs_pk
             ).values_list("pk", flat=True)
         }
-        missing_pks = [pk for pk in attrs_pk if str(pk) not in found_pks]
+        missing_pks = [pk for pk in attrs_pk if pk not in found_pks]
         if missing_pks:
             missing_attrs = [
                 graphene.Node.to_global_id("Attribute", pk) for pk in missing_pks

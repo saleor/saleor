@@ -42,7 +42,7 @@ class PageAttributeAssign(BaseMutation):
         cls,
         errors: dict["str", list[ValidationError]],
         page_type: "page_models.PageType",
-        attr_pks: list[int],
+        attr_pks: list[str],
     ):
         """Ensure the attributes exist, are page attributes and are not yet assigned."""
 
@@ -52,7 +52,7 @@ class PageAttributeAssign(BaseMutation):
 
         # check if all attributes exist
         found_pks = {str(pk) for pk in attr_type_by_pk}
-        missing_pks = [pk for pk in attr_pks if str(pk) not in found_pks]
+        missing_pks = [pk for pk in attr_pks if pk not in found_pks]
 
         if missing_pks:
             missing_attributes_ids = [
