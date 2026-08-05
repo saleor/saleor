@@ -804,14 +804,14 @@ wheels = [
 
 [[package]]
 name = "faker"
-version = "26.3.0"
+version = "40.28.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "python-dateutil", marker = "platform_python_implementation != 'PyPy'" },
+    { name = "tzdata", marker = "platform_python_implementation != 'PyPy' and sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b2/0c/3ef35c3827ab710711c54fd2564e496c7c26c701b72ae32263857896b289/Faker-26.3.0.tar.gz", hash = "sha256:7c10ebdf74aaa0cc4fe6ec6db5a71e8598ec33503524bd4b5f4494785a5670dd", size = 1765030, upload-time = "2024-08-08T15:55:00.843Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/2d/3ead106cef42eab305e15f9c089dcc68a40387d5ce04af18585af4ebbb44/faker-40.28.1.tar.gz", hash = "sha256:2a63fb51abab8790636d4030a094cf942404cbccc9c288d1cad70e2e3e9ecd58", size = 2022717, upload-time = "2026-07-01T22:23:43.763Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7d/1d/fb374889a8cbe2786a347a6fc80b40b4d7ac607ed40be8bd4babec0d02b0/Faker-26.3.0-py3-none-any.whl", hash = "sha256:97fe1e7e953dd640ca2cd4dfac4db7c4d2432dd1b7a244a3313517707f3b54e9", size = 1802551, upload-time = "2024-08-08T15:54:49.395Z" },
+    { url = "https://files.pythonhosted.org/packages/92/a6/6111b9f13c1564b0e2f5dbeeb611fd00dc731e6add2336f62b798598c73d/faker-40.28.1-py3-none-any.whl", hash = "sha256:e8d3f5c469100a553d246dce7937c291308068a5ec6c9c3a228d7878b50720be", size = 2061052, upload-time = "2026-07-01T22:23:41.946Z" },
 ]
 
 [[package]]
@@ -2596,7 +2596,7 @@ requires-dist = [
     { name = "django-phonenumber-field", specifier = ">=8.4.0,<9" },
     { name = "django-storages", extras = ["google"], specifier = "~=1.11" },
     { name = "django-stubs-ext", specifier = ">=5.1.3,<6" },
-    { name = "faker", specifier = ">=26.0.0,<27.0" },
+    { name = "faker", specifier = ">=40.28.1,<41.0" },
     { name = "google-cloud-pubsub", specifier = ">=1.7,<3.0" },
     { name = "google-cloud-storage", specifier = ">=2.0.0,<3" },
     { name = "google-i18n-address", specifier = ">=3.1.0,<4" },
