@@ -364,13 +364,19 @@ def test_assigned_attributes_limit_caps_attribute_count(
     staff_api_client,
     permission_manage_users,
     customer_user,
-    customer_type_with_attributes,
+    customer_type,
     loyalty_customer_attribute,
     description_customer_attribute,
     hidden_customer_attribute,
 ):
-    # given: the customer type holds three attributes, a limit of one
-    customer_user.customer_type = customer_type_with_attributes
+    # given: the customer type holds three attributes, a limit of one.
+    # Separate add() calls per attribute - a single call iterates an
+    # unordered set of ids, making the insertion (and thus fallback pk)
+    # ordering nondeterministic.
+    customer_type.customer_attributes.add(loyalty_customer_attribute)
+    customer_type.customer_attributes.add(description_customer_attribute)
+    customer_type.customer_attributes.add(hidden_customer_attribute)
+    customer_user.customer_type = customer_type
     customer_user.save(update_fields=["customer_type"])
     query = """
         query User($id: ID!) {
