@@ -223,11 +223,13 @@ def test_delete_customer_by_external_reference_not_existing(
 def test_deletes_unique_attribute_values_and_keeps_shared_choices(
     staff_api_client,
     customer_user,
+    customer_user2,
     permission_manage_users,
     description_customer_attribute,
     loyalty_customer_attribute,
 ):
-    # given: the customer has a unique (plain text) value and a shared choice
+    # given: the customer has a unique (plain text) value and a shared choice,
+    # and another customer holds their own unique value on the same attribute
     plain_text = "Notes about the customer"
     unique_value = AttributeValue.objects.create(
         attribute=description_customer_attribute,
@@ -235,9 +237,19 @@ def test_deletes_unique_attribute_values_and_keeps_shared_choices(
         slug=f"{customer_user.pk}_{description_customer_attribute.pk}",
         plain_text=plain_text,
     )
+    other_user_plain_text = "Notes about the other customer"
+    other_user_value = AttributeValue.objects.create(
+        attribute=description_customer_attribute,
+        name=other_user_plain_text,
+        slug=f"{customer_user2.pk}_{description_customer_attribute.pk}",
+        plain_text=other_user_plain_text,
+    )
     choice_value = loyalty_customer_attribute.values.get(slug="gold")
     AssignedUserAttributeValue.objects.create(user=customer_user, value=unique_value)
     AssignedUserAttributeValue.objects.create(user=customer_user, value=choice_value)
+    AssignedUserAttributeValue.objects.create(
+        user=customer_user2, value=other_user_value
+    )
     variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
 
     # when
@@ -245,12 +257,17 @@ def test_deletes_unique_attribute_values_and_keeps_shared_choices(
         CUSTOMER_DELETE_MUTATION, variables, permissions=[permission_manage_users]
     )
 
-    # then: the unique value is deleted with the user, the shared choice stays
+    # then: the unique value is deleted with the user, the shared choice and
+    # the other customer's value stay
     content = get_graphql_content(response)
     assert content["data"]["customerDelete"]["errors"] == []
     assert User.objects.filter(pk=customer_user.pk).exists() is False
     assert AttributeValue.objects.filter(pk=unique_value.pk).exists() is False
     assert AttributeValue.objects.filter(pk=choice_value.pk).exists() is True
+    assert AttributeValue.objects.filter(pk=other_user_value.pk).exists() is True
+    assert AssignedUserAttributeValue.objects.get(user=customer_user2).value == (
+        other_user_value
+    )
 
 
 def test_deletes_single_reference_attribute_values(
