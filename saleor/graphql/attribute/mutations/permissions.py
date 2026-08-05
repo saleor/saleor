@@ -20,6 +20,14 @@ ATTRIBUTE_TYPE_PERMISSION_MAP: dict[str, BasePermissionEnum] = {
     ),
 }
 
+# Attribute types that already existed when the permission checks became type
+# aware. A mutation's `legacy_permissions` cover only these types: they are
+# accepted as a backward-compatibility measure, and no client could have been
+# managing attribute types introduced after the type-aware checks.
+LEGACY_COVERED_ATTRIBUTE_TYPES = frozenset(
+    (AttributeType.PRODUCT_TYPE, AttributeType.PAGE_TYPE)
+)
+
 
 def get_attribute_type_permissions(
     attribute_type: str,
@@ -67,9 +75,10 @@ def check_attribute_type_permissions(
     rather than allowed, so adding a type without mapping it fails closed.
 
     `legacy_permissions` are the permissions the mutation accepted before the
-    checks became type-aware. Holding one of them satisfies the check for every
-    attribute type, so requestors authorized under the previous rules keep
-    working.
+    checks became type-aware. Holding one of them satisfies the check for the
+    attribute types that existed back then, so requestors authorized under the
+    previous rules keep working. Types added after the checks became type-aware
+    (`CUSTOMER_TYPE`) always require their own permission.
     """
     attribute_types_set = set(attribute_types)
     if unmapped_types := attribute_types_set - ATTRIBUTE_TYPE_PERMISSION_MAP.keys():
@@ -83,7 +92,8 @@ def check_attribute_type_permissions(
     if legacy_permissions and mutation_cls.check_permissions(
         context, legacy_permissions
     ):
-        return
+        attribute_types_set -= LEGACY_COVERED_ATTRIBUTE_TYPES
+        legacy_permissions = ()
     missing_permissions = [
         permission
         for attribute_type, permission in ATTRIBUTE_TYPE_PERMISSION_MAP.items()

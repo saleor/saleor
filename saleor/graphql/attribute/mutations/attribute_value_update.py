@@ -51,7 +51,8 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
             "Updates value of an attribute.\n\nRequires one of the following "
             "permissions, depending on the type of the value's attribute: "
             "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
-            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, "
+            "MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes."
         )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"

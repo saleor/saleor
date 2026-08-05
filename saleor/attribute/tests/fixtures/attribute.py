@@ -896,6 +896,25 @@ def page_type_attribute_list() -> list[Attribute]:
 
 
 @pytest.fixture
+def customer_type_attribute_list() -> list[Attribute]:
+    return list(
+        Attribute.objects.bulk_create(
+            [
+                Attribute(slug="tier", name="Tier", type=AttributeType.CUSTOMER_TYPE),
+                Attribute(
+                    slug="customer-segment",
+                    name="Segment",
+                    type=AttributeType.CUSTOMER_TYPE,
+                ),
+                Attribute(
+                    slug="region", name="Region", type=AttributeType.CUSTOMER_TYPE
+                ),
+            ]
+        )
+    )
+
+
+@pytest.fixture
 def loyalty_customer_attribute(db):
     attribute = Attribute.objects.create(
         slug="loyalty-level",
