@@ -306,6 +306,162 @@ def test_assigned_attributes_kept_after_switch_to_type_sharing_the_attribute(
     assert assigned_attributes[0]["value"]["slug"] == value.slug
 
 
+USER_ASSIGNED_MULTISELECT_VALUE_LIMIT_QUERY = """
+    query User($id: ID!) {
+        user(id: $id) {
+            assignedAttributes {
+                attribute {
+                    slug
+                }
+                ... on AssignedMultiChoiceAttribute {
+                    value(limit: 2) {
+                        slug
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_assigned_multiselect_value_limit_truncates(
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type,
+    interests_customer_attribute,
+):
+    # given: three values assigned, a limit of two
+    customer_type.customer_attributes.add(interests_customer_attribute)
+    customer_user.customer_type = customer_type
+    customer_user.save(update_fields=["customer_type"])
+    sports = interests_customer_attribute.values.get(slug="sports")
+    music = interests_customer_attribute.values.get(slug="music")
+    travel = interests_customer_attribute.values.get(slug="travel")
+    for value in [sports, music, travel]:
+        AssignedUserAttributeValue.objects.create(user=customer_user, value=value)
+    variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_ASSIGNED_MULTISELECT_VALUE_LIMIT_QUERY,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then: only the first two values in assignment order are returned
+    content = get_graphql_content(response)
+    assigned_attributes = content["data"]["user"]["assignedAttributes"]
+    assert assigned_attributes == [
+        {
+            "attribute": {"slug": interests_customer_attribute.slug},
+            "value": [{"slug": sports.slug}, {"slug": music.slug}],
+        }
+    ]
+
+
+def test_assigned_attributes_limit_caps_attribute_count(
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    description_customer_attribute,
+    hidden_customer_attribute,
+):
+    # given: the customer type holds three attributes, a limit of one
+    customer_user.customer_type = customer_type_with_attributes
+    customer_user.save(update_fields=["customer_type"])
+    query = """
+        query User($id: ID!) {
+            user(id: $id) {
+                assignedAttributes(limit: 1) {
+                    attribute {
+                        slug
+                    }
+                }
+            }
+        }
+    """
+    variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then: only the first attribute of the customer type is returned
+    content = get_graphql_content(response)
+    assigned_attributes = content["data"]["user"]["assignedAttributes"]
+    assert assigned_attributes == [
+        {"attribute": {"slug": loyalty_customer_attribute.slug}}
+    ]
+
+
+def test_assigned_multiselect_value_limit_partitions_per_user(
+    staff_api_client,
+    permission_manage_users,
+    customer_users,
+    customer_type,
+    interests_customer_attribute,
+):
+    # given: two users with the same values assigned in opposite orders
+    customer_type.customer_attributes.add(interests_customer_attribute)
+    first_user, second_user = customer_users[:2]
+    for user in [first_user, second_user]:
+        user.customer_type = customer_type
+        user.save(update_fields=["customer_type"])
+    sports = interests_customer_attribute.values.get(slug="sports")
+    music = interests_customer_attribute.values.get(slug="music")
+    travel = interests_customer_attribute.values.get(slug="travel")
+    for value in [sports, music, travel]:
+        AssignedUserAttributeValue.objects.create(user=first_user, value=value)
+    for value in [travel, music, sports]:
+        AssignedUserAttributeValue.objects.create(user=second_user, value=value)
+    query = """
+        query Users($firstId: ID!, $secondId: ID!) {
+            firstUser: user(id: $firstId) {
+                assignedAttributes {
+                    ... on AssignedMultiChoiceAttribute {
+                        value(limit: 2) {
+                            slug
+                        }
+                    }
+                }
+            }
+            secondUser: user(id: $secondId) {
+                assignedAttributes {
+                    ... on AssignedMultiChoiceAttribute {
+                        value(limit: 2) {
+                            slug
+                        }
+                    }
+                }
+            }
+        }
+    """
+    variables = {
+        "firstId": graphene.Node.to_global_id("User", first_user.pk),
+        "secondId": graphene.Node.to_global_id("User", second_user.pk),
+    }
+
+    # when: both users are resolved in a single request
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then: each user gets their own first two values in their own order
+    content = get_graphql_content(response)
+    first_values = content["data"]["firstUser"]["assignedAttributes"][0]["value"]
+    second_values = content["data"]["secondUser"]["assignedAttributes"][0]["value"]
+    assert first_values == [{"slug": sports.slug}, {"slug": music.slug}]
+    assert second_values == [{"slug": travel.slug}, {"slug": music.slug}]
+
+
 def test_assigned_attribute_by_slug_hidden_attribute_by_owner(
     user_api_client,
     customer_type_with_attributes,

@@ -953,3 +953,17 @@ def hidden_customer_attribute(db):
         type=AttributeType.CUSTOMER_TYPE,
         visible_in_storefront=False,
     )
+
+
+@pytest.fixture
+def interests_customer_attribute(db):
+    attribute = Attribute.objects.create(
+        slug="interests",
+        name="Interests",
+        type=AttributeType.CUSTOMER_TYPE,
+        input_type=AttributeInputType.MULTISELECT,
+    )
+    AttributeValue.objects.create(attribute=attribute, name="Sports", slug="sports")
+    AttributeValue.objects.create(attribute=attribute, name="Music", slug="music")
+    AttributeValue.objects.create(attribute=attribute, name="Travel", slug="travel")
+    return attribute
