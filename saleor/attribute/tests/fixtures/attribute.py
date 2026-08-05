@@ -956,6 +956,17 @@ def hidden_customer_attribute(db):
 
 
 @pytest.fixture
+def customer_type_page_single_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="customer-single-page-reference",
+        name="Single page reference",
+        type=AttributeType.CUSTOMER_TYPE,
+        input_type=AttributeInputType.SINGLE_REFERENCE,
+        entity_type=AttributeEntityType.PAGE,
+    )
+
+
+@pytest.fixture
 def interests_customer_attribute(db):
     attribute = Attribute.objects.create(
         slug="interests",

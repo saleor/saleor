@@ -42,6 +42,7 @@ class AttributeInputType:
     TYPES_WITH_UNIQUE_VALUES = [
         FILE,
         REFERENCE,
+        SINGLE_REFERENCE,
         RICH_TEXT,
         PLAIN_TEXT,
         NUMERIC,
