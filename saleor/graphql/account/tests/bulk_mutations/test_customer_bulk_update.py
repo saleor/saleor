@@ -1260,6 +1260,7 @@ CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION = """
                     path
                     message
                     code
+                    attributes
                 }
                 customer{
                     id
@@ -1389,6 +1390,53 @@ def test_customers_bulk_update_with_attribute_not_in_customer_type(
     assert len(errors) == 1
     assert errors[0]["path"] == "input.attributes"
     assert errors[0]["code"] == CustomerBulkUpdateErrorCode.NOT_FOUND.name
+    assert not AssignedUserAttributeValue.objects.filter(user=customer).exists()
+
+
+def test_customers_bulk_update_with_required_attribute_value_not_provided(
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    default_customer_type,
+):
+    # given: a required attribute passed without any value
+    loyalty_customer_attribute.value_required = True
+    loyalty_customer_attribute.save(update_fields=["value_required"])
+    customer = customer_users[0]
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", loyalty_customer_attribute.pk
+    )
+    customers_input = [
+        {
+            "id": graphene.Node.to_global_id("User", customer.pk),
+            "input": {
+                "customerType": graphene.Node.to_global_id(
+                    "CustomerType", customer_type_with_attributes.pk
+                ),
+                "attributes": [{"id": attribute_id}],
+            },
+        }
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+    assert data["count"] == 0
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["path"] == "input.attributes"
+    assert errors[0]["message"] == "Attribute expects a value but none were given."
+    assert errors[0]["code"] == CustomerBulkUpdateErrorCode.REQUIRED.name
+    assert errors[0]["attributes"] == [attribute_id]
     assert not AssignedUserAttributeValue.objects.filter(user=customer).exists()
 
 

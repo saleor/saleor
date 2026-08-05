@@ -128,6 +128,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         path=f"input.{path}",
                         message=e.messages[0],
                         code=e.code,
+                        attributes=e.params.get("attributes") if e.params else None,
                     )
                 )
 

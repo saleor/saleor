@@ -285,6 +285,11 @@ class CheckoutError(Error):
 
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error." + ADDED_IN_323,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS

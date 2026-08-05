@@ -34309,6 +34309,13 @@ type CustomerBulkUpdateError @doc(category: "Users") {
 
   """The error code."""
   code: CustomerBulkUpdateErrorCode!
+
+  """
+  List of attributes IDs which causes the error.
+  
+  Added in Saleor 3.23.
+  """
+  attributes: [ID!]
 }
 
 enum CustomerBulkUpdateErrorCode @doc(category: "Users") {
