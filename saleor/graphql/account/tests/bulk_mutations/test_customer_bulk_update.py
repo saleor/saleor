@@ -1440,6 +1440,55 @@ def test_customers_bulk_update_with_required_attribute_value_not_provided(
     assert not AssignedUserAttributeValue.objects.filter(user=customer).exists()
 
 
+def test_customers_bulk_update_attributes_validated_against_default_customer_type(
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+    loyalty_customer_attribute,
+    default_customer_type,
+):
+    # given: a typeless user and an attribute of the default customer type
+    default_customer_type.customer_attributes.add(loyalty_customer_attribute)
+    customer = customer_users[0]
+    customer.customer_type = None
+    customer.save(update_fields=["customer_type"])
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    customers_input = [
+        {
+            "id": graphene.Node.to_global_id("User", customer.pk),
+            "input": {
+                "attributes": [
+                    {
+                        "id": graphene.Node.to_global_id(
+                            "Attribute", loyalty_customer_attribute.pk
+                        ),
+                        "dropdown": {
+                            "id": graphene.Node.to_global_id("AttributeValue", value.pk)
+                        },
+                    }
+                ],
+            },
+        }
+    ]
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        CUSTOMER_BULK_UPDATE_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then: the values are accepted and the user is left without a type
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assigned_value = AssignedUserAttributeValue.objects.get(user=customer)
+    assert assigned_value.value == value
+    customer.refresh_from_db()
+    assert customer.customer_type_id is None
+
+
 @patch("saleor.plugins.manager.PluginsManager.customer_updated")
 def test_customers_bulk_update_with_only_attributes_triggers_customer_updated(
     mocked_customer_updated,

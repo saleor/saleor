@@ -1123,3 +1123,49 @@ def test_update_customer_type_change_keeps_attribute_values(
     assigned_values = AssignedUserAttributeValue.objects.filter(user=customer_user)
     assert assigned_values.count() == 1
     assert assigned_values.first().value == value
+
+
+def test_update_with_attributes_replaces_existing_value(
+    staff_api_client,
+    permission_manage_users,
+    customer_user,
+    customer_type_with_attributes,
+    loyalty_customer_attribute,
+    default_customer_type,
+):
+    # given: the user already has a value assigned for the attribute
+    customer_user.customer_type = customer_type_with_attributes
+    customer_user.save(update_fields=["customer_type"])
+    old_value = loyalty_customer_attribute.values.get(slug="gold")
+    new_value = loyalty_customer_attribute.values.get(slug="silver")
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=old_value)
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.id),
+        "attributes": [
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                ),
+                "dropdown": {
+                    "id": graphene.Node.to_global_id("AttributeValue", new_value.pk)
+                },
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_ATTRIBUTES_MUTATION,
+        variables,
+        permissions=[permission_manage_users],
+    )
+
+    # then: the assignment is replaced, not appended to
+    content = get_graphql_content(response)
+    assert not content["data"]["customerUpdate"]["errors"]
+    assigned_value = AssignedUserAttributeValue.objects.get(
+        user=customer_user, value__attribute=loyalty_customer_attribute
+    )
+    assert assigned_value.value == new_value
+    # the old value remains a choice of the attribute
+    assert loyalty_customer_attribute.values.filter(pk=old_value.pk).exists()
