@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 
 from ......account.error_codes import CustomerTypeUnassignAttributesErrorCode
@@ -60,6 +62,37 @@ def test_unassign_by_staff(
         segment_customer_attribute.slug
     ]
     assert customer_type.customer_attributes.get() == segment_customer_attribute
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_type_updated")
+def test_unassign_triggers_customer_type_updated(
+    mocked_customer_type_updated,
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+    loyalty_customer_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    customer_type.customer_attributes.add(loyalty_customer_attribute)
+    variables = {
+        "customerTypeId": graphene.Node.to_global_id("CustomerType", customer_type.pk),
+        "attributeIds": [
+            graphene.Node.to_global_id("Attribute", loyalty_customer_attribute.pk)
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_TYPE_UNASSIGN_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["customerTypeUnassignAttributes"]["errors"] == []
+    mocked_customer_type_updated.assert_called_once_with(customer_type)
 
 
 def test_unassign_by_app(

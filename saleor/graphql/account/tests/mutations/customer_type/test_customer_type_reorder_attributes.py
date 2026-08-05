@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 
 from ......account.error_codes import CustomerTypeReorderAttributesErrorCode
@@ -78,6 +80,44 @@ def test_reorder_by_staff(
         segment_customer_attribute.slug,
         loyalty_customer_attribute.slug,
     ]
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_type_updated")
+def test_reorder_triggers_customer_type_updated(
+    mocked_customer_type_updated,
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+    loyalty_customer_attribute,
+    segment_customer_attribute,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    customer_type.customer_attributes.add(loyalty_customer_attribute)
+    customer_type.customer_attributes.add(segment_customer_attribute)
+    variables = {
+        "customerTypeId": graphene.Node.to_global_id("CustomerType", customer_type.pk),
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                ),
+                "sortOrder": 1,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_TYPE_REORDER_ATTRIBUTES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["customerTypeReorderAttributes"]["errors"] == []
+    mocked_customer_type_updated.assert_called_once_with(customer_type)
 
 
 def test_reorder_by_staff_no_permission(

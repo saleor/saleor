@@ -22698,6 +22698,9 @@ type Mutation {
   Added in Saleor 3.23. 
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
   """
   customerTypeAssignAttributes(
     """The IDs of the attributes to assign. Maximum of 100 items."""
@@ -22705,7 +22708,7 @@ type Mutation {
 
     """ID of the customer type to assign the attributes to."""
     customerTypeId: ID!
-  ): CustomerTypeAssignAttributes @doc(category: "Users")
+  ): CustomerTypeAssignAttributes @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: [])
 
   """
   Unassign attributes from a given customer type. Values already assigned to users are kept in the database, but are hidden until the attribute is assigned to the user's customer type again.
@@ -22713,6 +22716,9 @@ type Mutation {
   Added in Saleor 3.23. 
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
   """
   customerTypeUnassignAttributes(
     """The IDs of the attributes to unassign. Maximum of 100 items."""
@@ -22722,7 +22728,7 @@ type Mutation {
     ID of the customer type from which the attributes should be unassigned.
     """
     customerTypeId: ID!
-  ): CustomerTypeUnassignAttributes @doc(category: "Users")
+  ): CustomerTypeUnassignAttributes @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: [])
 
   """
   Reorder the attributes of a customer type.
@@ -22730,6 +22736,9 @@ type Mutation {
   Added in Saleor 3.23. 
   
   Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
   """
   customerTypeReorderAttributes(
     """ID of a customer type."""
@@ -22737,7 +22746,7 @@ type Mutation {
 
     """The list of attribute reordering operations."""
     moves: [ReorderInput!]!
-  ): CustomerTypeReorderAttributes @doc(category: "Users")
+  ): CustomerTypeReorderAttributes @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: [])
 
   """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
@@ -34484,8 +34493,11 @@ Assign attributes to a given customer type.
 Added in Saleor 3.23. 
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
 """
-type CustomerTypeAssignAttributes @doc(category: "Users") {
+type CustomerTypeAssignAttributes @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: []) {
   """The updated customer type."""
   customerType: CustomerType
   errors: [CustomerTypeAssignAttributesError!]!
@@ -34520,8 +34532,11 @@ Unassign attributes from a given customer type. Values already assigned to users
 Added in Saleor 3.23. 
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
 """
-type CustomerTypeUnassignAttributes @doc(category: "Users") {
+type CustomerTypeUnassignAttributes @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: []) {
   """The updated customer type."""
   customerType: CustomerType
   errors: [CustomerTypeUnassignAttributesError!]!
@@ -34552,8 +34567,11 @@ Reorder the attributes of a customer type.
 Added in Saleor 3.23. 
 
 Requires one of the following permissions: MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- CUSTOMER_TYPE_UPDATED (async): A customer type was updated.
 """
-type CustomerTypeReorderAttributes @doc(category: "Users") {
+type CustomerTypeReorderAttributes @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_TYPE_UPDATED], syncEvents: []) {
   """Customer type from which attributes are reordered."""
   customerType: CustomerType
   errors: [CustomerTypeReorderAttributesError!]!

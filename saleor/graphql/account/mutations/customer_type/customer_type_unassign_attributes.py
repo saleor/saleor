@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....permission.enums import CustomerTypePermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....attribute.types import Attribute
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_323
@@ -9,6 +10,8 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import CustomerTypeUnassignAttributesErrorCode
 from ....core.mutations import BaseMutation
 from ....core.types import Error, NonNullList
+from ....core.utils import WebhookEventInfo
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import resolve_global_ids_to_primary_keys
 from ...types import CustomerType
 
@@ -56,6 +59,12 @@ class CustomerTypeUnassignAttributes(BaseMutation):
         doc_category = DOC_CATEGORY_USERS
         error_type_class = CustomerTypeUnassignAttributesError
         permissions = (CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED,
+                description="A customer type was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -79,5 +88,8 @@ class CustomerTypeUnassignAttributes(BaseMutation):
         _, attr_pks = resolve_global_ids_to_primary_keys(attribute_ids, Attribute)
 
         customer_type.customer_attributes.remove(*attr_pks)
+
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.customer_type_updated, customer_type)
 
         return cls(customer_type=customer_type)

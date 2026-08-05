@@ -7,6 +7,7 @@ from .....account import models as account_models
 from .....attribute import AttributeType
 from .....attribute import models as attribute_models
 from .....permission.enums import CustomerTypePermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....attribute.types import Attribute
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_323
@@ -14,6 +15,8 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import CustomerTypeAssignAttributesErrorCode
 from ....core.mutations import BaseMutation
 from ....core.types import Error, NonNullList
+from ....core.utils import WebhookEventInfo
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import CustomerType
 
 ATTRIBUTES_LIMIT = 100
@@ -57,6 +60,12 @@ class CustomerTypeAssignAttributes(BaseMutation):
         doc_category = DOC_CATEGORY_USERS
         error_type_class = CustomerTypeAssignAttributesError
         permissions = (CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED,
+                description="A customer type was updated.",
+            ),
+        ]
 
     @classmethod
     def clean_attributes(
@@ -148,5 +157,8 @@ class CustomerTypeAssignAttributes(BaseMutation):
             raise ValidationError(errors)
 
         customer_type.customer_attributes.add(*attr_pks)
+
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.customer_type_updated, customer_type)
 
         return cls(customer_type=customer_type)
