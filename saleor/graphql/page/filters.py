@@ -726,7 +726,7 @@ class PageWhere(MetadataWhereBase):
     @staticmethod
     def filter_attributes(qs, _, value):
         if not value:
-            return qs
+            return qs.none()
         return filter_pages_by_attributes(qs, value)
 
     def is_valid(self):

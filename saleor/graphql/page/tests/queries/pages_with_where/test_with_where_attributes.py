@@ -6,6 +6,44 @@ from .....tests.utils import get_graphql_content
 from .shared import QUERY_PAGES_WITH_WHERE
 
 
+@pytest.mark.parametrize(
+    ("_case", "attributes_value"),
+    [
+        ("empty_list", []),
+        ("null", None),
+    ],
+)
+def test_pages_query_with_empty_attributes(
+    _case,
+    attributes_value,
+    staff_api_client,
+    page_list,
+    page_type,
+    size_page_attribute,
+):
+    # given
+    page_type.page_attributes.add(size_page_attribute)
+    page_attr_value = size_page_attribute.values.first()
+
+    associate_attribute_values_to_instance(
+        page_list[0], {size_page_attribute.pk: [page_attr_value]}
+    )
+
+    variables = {"where": {"attributes": attributes_value}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PAGES_WITH_WHERE,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pages"]["edges"]
+    assert content["data"]["pages"]["totalCount"] == 0
+    assert pages_nodes == []
+
+
 def test_pages_query_with_attribute_slug(
     staff_api_client, page_list, page_type, size_page_attribute
 ):
