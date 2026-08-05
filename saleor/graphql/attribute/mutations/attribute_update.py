@@ -1,11 +1,8 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....attribute import AttributeType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.exceptions import PermissionDenied
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import DEPRECATED_IN_3X_INPUT
@@ -19,6 +16,10 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 from .attribute_create import AttributeValueInput
 from .mixins import AttributeMixin
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 
 
 class AttributeValueUpdateInput(AttributeValueInput):
@@ -141,23 +142,9 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None, input
     ):
         # Concrete permission is checked after instance is resolved.
-        type_permissions = (
-            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
-            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
-        )
-        if not cls.check_permissions(info.context, type_permissions):
-            raise PermissionDenied(permissions=type_permissions)
-
+        check_any_attribute_type_permission(cls, info.context)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
-
-        # Check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if instance.type == AttributeType.PRODUCT_TYPE:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
-        if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied(permissions=permissions)
+        check_attribute_type_permissions(cls, info.context, [instance.type])
 
         # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, input)

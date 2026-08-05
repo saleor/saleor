@@ -880,3 +880,82 @@ def test_attribute_bulk_update_add_value_missing_name(
     assert errors[0]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
     assert errors[1]["path"] == "addValues.1.name"
     assert errors[1]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
+
+
+def test_attribute_type_without_mapped_permission_returns_error(
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+    permission_manage_page_types_and_attributes,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes,
+        permission_manage_page_types_and_attributes,
+    )
+    original_name = color_attribute.name
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+            "fields": {"name": "NewName"},
+        }
+    ]
+
+    # when
+    with patch.dict(
+        "saleor.graphql.attribute.mutations.permissions.ATTRIBUTE_TYPE_PERMISSION_MAP",
+        {},
+        clear=True,
+    ):
+        response = staff_api_client.post_graphql(
+            ATTRIBUTE_BULK_UPDATE_MUTATION, {"attributes": attributes}
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+    assert data["count"] == 0
+    assert len(data["results"]) == 1
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        f"No permission is defined for attribute type {color_attribute.type}."
+    )
+    color_attribute.refresh_from_db(fields=("name",))
+    assert color_attribute.name == original_name
+
+
+def test_page_type_attribute_with_product_permission_is_rejected(
+    staff_api_client,
+    size_page_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    """The product permission must not grant access to page type attributes."""
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+    original_name = size_page_attribute.name
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", size_page_attribute.pk),
+            "fields": {"name": "New page attribute name"},
+        }
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION, {"attributes": attributes}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+    assert data["count"] == 0
+    assert len(data["results"]) == 1
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
+    size_page_attribute.refresh_from_db(fields=("name",))
+    assert size_page_attribute.name == original_name
