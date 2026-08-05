@@ -25,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `orderAddNote` mutation, along with the `OrderAddNote` type and `OrderAddNoteInput` input. Use the `orderNoteAdd` mutation instead.
 - Removed the `DIGITAL_LINKS` value from the `OrderEventsEmailsEnum` enum and the `DIGITAL_LINK_DOWNLOADED` value from the `CustomerEventsEnum` enum. Events with these types were deleted in 3.23, along with the legacy digital content feature that emitted them.
 - Removed the always-empty `digital_lines` key from the fulfillment confirmation notification payload. Use `physical_lines`, which holds every line of the fulfillment.
+- Providing an empty `attributes` list (`null` or `[]`) in `where` filters for pages, products, and product variants now matches no objects instead of being ignored.
 
 ### GraphQL API
 

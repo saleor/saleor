@@ -744,7 +744,16 @@ def test_products_filter_by_attributes_value_slug(
     assert returned_ids == {product1_id, product2_id}
 
 
-def test_products_filter_by_attributes_empty_list(
+@pytest.mark.parametrize(
+    ("_case", "attributes_value"),
+    [
+        ("empty_list", []),
+        ("null", None),
+    ],
+)
+def test_products_filter_by_attributes_empty(
+    _case,
+    attributes_value,
     api_client,
     product_list,
     channel_USD,
@@ -773,7 +782,7 @@ def test_products_filter_by_attributes_empty_list(
     variables = {
         "channel": channel_USD.slug,
         "where": {
-            "attributes": [],
+            "attributes": attributes_value,
         },
     }
 
