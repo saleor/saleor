@@ -28,6 +28,12 @@ class ChannelPermissions(BasePermissionEnum):
     MANAGE_CHANNELS = "channel.manage_channels"
 
 
+class CustomerTypePermissions(BasePermissionEnum):
+    MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES = (
+        "account.manage_customer_types_and_attributes"
+    )
+
+
 class DiscountPermissions(BasePermissionEnum):
     MANAGE_DISCOUNTS = "discount.manage_discounts"
 
@@ -90,6 +96,7 @@ PERMISSIONS_ENUMS = [
     AppPermission,
     CheckoutPermissions,
     ChannelPermissions,
+    CustomerTypePermissions,
     DiscountPermissions,
     GiftcardPermissions,
     MenuPermissions,

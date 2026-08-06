@@ -706,6 +706,34 @@ def test_update_attribute_value_with_non_unique_external_reference(
             "permission_manage_page_types_and_attributes",
             True,
         ),
+        (
+            "Customer attribute value w/ customer permission should be allowed",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_customer_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute value w/ legacy product permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_product_types_and_attributes",
+            False,
+        ),
+        (
+            "Customer attribute value w/ page permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_page_types_and_attributes",
+            False,
+        ),
+        (
+            "Product attribute value w/ customer permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_customer_types_and_attributes",
+            False,
+        ),
     ],
 )
 def test_authorization(

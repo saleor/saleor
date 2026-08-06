@@ -311,6 +311,34 @@ def test_sort_values_trigger_webhook(
             "permission_manage_page_types_and_attributes",
             True,
         ),
+        (
+            "Customer attribute w/ customer permission should be allowed",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_customer_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute w/ legacy product permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_product_types_and_attributes",
+            False,
+        ),
+        (
+            "Customer attribute w/ page permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_page_types_and_attributes",
+            False,
+        ),
+        (
+            "Product attribute w/ customer permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_customer_types_and_attributes",
+            False,
+        ),
     ],
 )
 def test_authorization(
