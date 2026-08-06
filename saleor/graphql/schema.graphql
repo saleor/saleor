@@ -1910,7 +1910,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   GIFT_CARD_METADATA_UPDATED
 
   """A gift card export is completed."""
-  GIFT_CARD_EXPORT_COMPLETED
+  GIFT_CARD_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """A new menu created."""
   MENU_CREATED
@@ -2097,7 +2097,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_METADATA_UPDATED
 
   """A product export is completed."""
-  PRODUCT_EXPORT_COMPLETED
+  PRODUCT_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """A new product media is created."""
   PRODUCT_MEDIA_CREATED
@@ -2288,7 +2288,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   
   Added in Saleor 3.18.
   """
-  VOUCHER_CODE_EXPORT_COMPLETED
+  VOUCHER_CODE_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """An observability event is created."""
   OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
@@ -2535,7 +2535,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   GIFT_CARD_METADATA_UPDATED
 
   """A gift card export is completed."""
-  GIFT_CARD_EXPORT_COMPLETED
+  GIFT_CARD_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """A new menu created."""
   MENU_CREATED
@@ -2722,7 +2722,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   PRODUCT_METADATA_UPDATED
 
   """A product export is completed."""
-  PRODUCT_EXPORT_COMPLETED
+  PRODUCT_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """A new product media is created."""
   PRODUCT_MEDIA_CREATED
@@ -2913,7 +2913,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   
   Added in Saleor 3.18.
   """
-  VOUCHER_CODE_EXPORT_COMPLETED
+  VOUCHER_CODE_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 
   """An observability event is created."""
   OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
@@ -14472,7 +14472,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   GIFT_CARD_SENT
   GIFT_CARD_STATUS_CHANGED
   GIFT_CARD_METADATA_UPDATED
-  GIFT_CARD_EXPORT_COMPLETED
+  GIFT_CARD_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
   MENU_CREATED
   MENU_UPDATED
   MENU_DELETED
@@ -14529,7 +14529,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_UPDATED
   PRODUCT_DELETED
   PRODUCT_METADATA_UPDATED
-  PRODUCT_EXPORT_COMPLETED
+  PRODUCT_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
   PRODUCT_MEDIA_CREATED
   PRODUCT_MEDIA_UPDATED
   PRODUCT_MEDIA_DELETED
@@ -14584,7 +14584,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   VOUCHER_CODES_CREATED
   VOUCHER_CODES_DELETED
   VOUCHER_METADATA_UPDATED
-  VOUCHER_CODE_EXPORT_COMPLETED
+  VOUCHER_CODE_EXPORT_COMPLETED @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
   OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
   THUMBNAIL_CREATED
   SHOP_METADATA_UPDATED
@@ -36561,7 +36561,11 @@ type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
   giftCard: GiftCard
 }
 
-"""Event sent when gift card export is completed."""
+"""
+Event sent when gift card export is completed.
+
+Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
+"""
 type GiftCardExportCompleted implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
@@ -36801,7 +36805,11 @@ type ProductMetadataUpdated implements Event @doc(category: "Products") {
   category: Category
 }
 
-"""Event sent when product export is completed."""
+"""
+Event sent when product export is completed.
+
+Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
+"""
 type ProductExportCompleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -38290,6 +38298,8 @@ type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
 Event sent when voucher code export is completed.
 
 Added in Saleor 3.18.
+
+Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
 """
 type VoucherCodeExportCompleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
