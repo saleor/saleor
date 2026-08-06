@@ -45,6 +45,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `note` field from the `Checkout` type. Use `customerNote` instead.
 - Removed the deprecated `isDigital` field from the `ProductType` type, the `isDigital` input from `ProductTypeInput`, the `DIGITAL` value from the `ProductTypeEnum` filter, and the `DIGITAL` value from `ProductTypeSortField`. These had no effect; use metadata or attributes instead (or `SHIPPING_REQUIRED` for sorting).
 - Fixed `productVariantBulkUpdate` returning a 500 error when `channelListings.create` targeted a channel the variant was already listed in. The mutation now returns a `DUPLICATED_INPUT_ITEM` error recommending the `update` field, and respects the selected `errorPolicy` - #19355 by @ayesha-waris
+- Added `refundStatus` and `refundStatusDisplay` fields to the `Order` type, reflecting refunds processed through the transaction system. Previously, refunds via `TransactionItem` did not update the `paymentStatus` field. - #XXXX by @vojtesa
 
 ### Webhooks
 

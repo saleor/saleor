@@ -21,7 +21,7 @@ from ...plugins.manager import get_plugins_manager
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
-from .. import FulfillmentStatus, OrderChargeStatus, OrderEvents, OrderStatus
+from .. import FulfillmentStatus, OrderChargeStatus, OrderEvents, OrderRefundStatus, OrderStatus
 from ..calculations import fetch_order_prices_if_expired
 from ..events import (
     OrderEventsEmails,
@@ -39,6 +39,7 @@ from ..utils import (
     restock_fulfillment_lines,
     update_order_authorize_data,
     update_order_charge_data,
+    update_order_refund_data,
     update_order_status,
 )
 from .fixtures import recalculate_order
@@ -1389,3 +1390,116 @@ def test_order_update_charge_status_with_transaction_item_and_granted_refund(
     order_with_lines.refresh_from_db()
 
     assert order_with_lines.charge_status == expected_charge_status
+
+
+# Refund status tests
+
+
+def _setup_order_transactions(order, charged_amount, refunded_amount=Decimal(0)):
+    """Helper to set up transactions and compute order amounts."""
+    order.payment_transactions.create(
+        charged_value=charged_amount,
+        authorized_value=charged_amount,
+        refunded_value=refunded_amount,
+        currency=order.currency,
+    )
+    update_order_charge_data(order)
+    order.refresh_from_db()
+
+
+def test_update_refund_status_no_refund(order_with_lines):
+    # given
+    _setup_order_transactions(
+        order_with_lines, charged_amount=Decimal("98.40")
+    )
+    assert order_with_lines.total_charged_amount == Decimal("98.40")
+
+    # when
+    update_order_refund_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.refund_status == OrderRefundStatus.NONE
+
+
+def test_update_refund_status_partial_refund(order_with_lines):
+    # given
+    charged_amount = Decimal("98.40")
+    refunded_amount = Decimal("40.00")
+    _setup_order_transactions(
+        order_with_lines,
+        charged_amount=charged_amount,
+        refunded_amount=refunded_amount,
+    )
+    assert order_with_lines.total_charged_amount == charged_amount
+
+    # when
+    update_order_refund_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.refund_status == OrderRefundStatus.PARTIAL
+
+
+def test_update_refund_status_full_refund(order_with_lines):
+    # given
+    charged_amount = Decimal("98.40")
+    _setup_order_transactions(
+        order_with_lines,
+        charged_amount=charged_amount,
+        refunded_amount=charged_amount,
+    )
+    assert order_with_lines.total_charged_amount == charged_amount
+
+    # when
+    update_order_refund_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.refund_status == OrderRefundStatus.FULL
+
+
+def test_update_refund_status_full_refund_multiple_transactions(
+    order_with_lines,
+):
+    # given
+    order_with_lines.payment_transactions.create(
+        charged_value=Decimal("50.00"),
+        authorized_value=Decimal("50.00"),
+        refunded_value=Decimal("30.00"),
+        currency=order_with_lines.currency,
+    )
+    order_with_lines.payment_transactions.create(
+        charged_value=Decimal("48.40"),
+        authorized_value=Decimal("48.40"),
+        refunded_value=Decimal("68.40"),
+        currency=order_with_lines.currency,
+    )
+    update_order_charge_data(order_with_lines)
+
+    # when
+    update_order_refund_data(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.refund_status == OrderRefundStatus.FULL
+
+
+def test_update_refund_status_persisted_in_updates_amounts(order_with_lines):
+    # given
+    charged_amount = Decimal("98.40")
+    order_with_lines.payment_transactions.create(
+        charged_value=charged_amount,
+        authorized_value=Decimal("98.40"),
+        refunded_value=charged_amount,
+        currency=order_with_lines.currency,
+    )
+
+    # when
+    from ..utils import updates_amounts_for_order
+
+    updates_amounts_for_order(order_with_lines)
+
+    # then
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.refund_status == OrderRefundStatus.FULL
