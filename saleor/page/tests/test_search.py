@@ -23,25 +23,12 @@ def test_update_pages_search_vector_multiple_pages(page_list):
         assert page.search_index_dirty is False
 
 
-def test_update_pages_search_vector_locks_rows_before_write(page_list, capture_queries):
-    # when
-    with capture_queries() as ctx:
+def test_update_pages_search_vector_locks_rows_before_write(
+    page_list, assert_locks_rows_before_write
+):
+    # when/then
+    with assert_locks_rows_before_write():
         update_pages_search_vector(page_list)
-
-    # then
-    # the lock SELECT should run before the bulk UPDATE.
-    lock_and_update_queries = [
-        query["sql"]
-        for query in ctx.captured_queries
-        if "FOR UPDATE" in query["sql"] or query["sql"].startswith("UPDATE")
-    ]
-    assert len(lock_and_update_queries) == 2
-    lock_query, update_query = lock_and_update_queries
-    assert "FOR UPDATE" in lock_query
-    # pk ordering makes concurrent lockers acquire rows in the same order,
-    # which is what prevents deadlocks between them.
-    assert "ORDER BY" in lock_query
-    assert update_query.startswith("UPDATE")
 
 
 def test_update_pages_search_vector_empty_list(db):

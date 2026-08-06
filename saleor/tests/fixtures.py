@@ -165,6 +165,39 @@ def assert_max_num_queries(capture_queries):
 
 
 @pytest.fixture
+def assert_locks_rows_before_write(capture_queries):
+    """Assert that the wrapped block locks rows before writing them.
+
+    Verifies the emitted SQL contains exactly one `SELECT ... FOR UPDATE` with a
+    deterministic `ORDER BY` (concurrent lockers acquiring rows in the same
+    order is what prevents deadlocks between them), followed by exactly one
+    `UPDATE`. Asserting on SQL is deliberate, as a missing lock is hard to
+    detect with a behavioral test.
+    """
+
+    @contextmanager
+    def _assert_locks_rows_before_write():
+        with capture_queries() as ctx:
+            yield
+
+        lock_and_update_queries = [
+            query["sql"]
+            for query in ctx.captured_queries
+            if "FOR UPDATE" in query["sql"] or query["sql"].startswith("UPDATE")
+        ]
+        assert len(lock_and_update_queries) == 2, (
+            "expected exactly one lock SELECT and one UPDATE query, got: "
+            f"{lock_and_update_queries}"
+        )
+        lock_query, update_query = lock_and_update_queries
+        assert "FOR UPDATE" in lock_query, "rows were not locked before the write"
+        assert "ORDER BY" in lock_query, "the lock query has no deterministic order"
+        assert update_query.startswith("UPDATE")
+
+    return _assert_locks_rows_before_write
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
