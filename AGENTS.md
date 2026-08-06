@@ -369,6 +369,27 @@ def my_model_qs_select_for_update() -> QuerySet[MyModel]:
     return MyModel.objects.order_by("pk").select_for_update(of=["self"])
 ```
 
+### select_for_update pitfalls
+
+1. Querysets are lazy - an unevaluated lock queryset runs no SQL, so no lock is
+   taken and it fails silently. Force evaluation inside the transaction with
+   `list(...)`, `.get()`/`.first()`, or use it as an `__in` subquery of the write.
+
+   ```python
+   with transaction.atomic():
+       # Bad: lazy - no lock
+       _locked = model_qs_select_for_update().filter(pk__in=pks)
+       # Good: rows locked, only pks fetched
+       _locked = list(
+           model_qs_select_for_update().filter(pk__in=pks).values_list("pk", flat=True)
+       )
+       Model.objects.bulk_update(objs, ["field"])
+   ```
+
+2. Test the lock with the `assert_locks_rows_before_write` fixture
+   (`saleor/tests/fixtures.py`) - it captures the block's queries and asserts an
+   ordered `FOR UPDATE` query is emitted before the `UPDATE`.
+
 ## Database Transactions
 
 Wrap related operations in transactions using `traced_atomic_transaction`:
