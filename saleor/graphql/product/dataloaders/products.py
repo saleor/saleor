@@ -23,6 +23,7 @@ from ...channel.dataloaders.by_self import ChannelBySlugLoader
 from ...core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
 
 ProductIdAndChannelSlug = tuple[int, str]
+ProductIdAndChannelId = tuple[int, int | None]
 VariantIdAndChannelSlug = tuple[int, str]
 VariantIdAndChannelId = tuple[int, int | None]
 
@@ -102,36 +103,70 @@ class ProductChannelListingByProductIdAndChannelSlugLoader(
     context_key = "productchannelisting_by_product_and_channel"
 
     def batch_load(self, keys: Iterable[ProductIdAndChannelSlug]):
-        # Split the list of keys by channel first. A typical query will only touch
-        # a handful of unique countries but may access thousands of product variants
-        # so it's cheaper to execute one query per channel.
-        product_channel_listing_by_channel: defaultdict[str, list[int]] = defaultdict(
-            list
-        )
-        for product_id, channel_slug in keys:
-            product_channel_listing_by_channel[channel_slug].append(product_id)
+        # Resolve channel slugs through ChannelBySlugLoader so we can query
+        # listings by channel_id (indexed) instead of joining on channel.slug
+        # once per unique channel.
+        channel_slugs = [channel_slug for _, channel_slug in keys if channel_slug]
 
-        # For each channel execute a single query for all products.
-        product_channel_listing_by_product_and_channel: defaultdict[
-            ProductIdAndChannelSlug, ProductChannelListing | None
-        ] = defaultdict()
-        for channel_slug, product_ids in product_channel_listing_by_channel.items():
+        def with_channels(channels):
+            channel_map = {
+                channel.slug: channel.id for channel in channels if channel
+            }
+            product_id_channel_id_keys = [
+                (product_id, channel_map.get(channel_slug))
+                for product_id, channel_slug in keys
+            ]
+            return ProductChannelListingByProductIdAndChannelIdLoader(
+                self.context
+            ).load_many(product_id_channel_id_keys)
+
+        return (
+            ChannelBySlugLoader(self.context)
+            .load_many(channel_slugs)
+            .then(with_channels)
+        )
+
+
+class ProductChannelListingByProductIdAndChannelIdLoader(
+    DataLoader[ProductIdAndChannelId, ProductChannelListing]
+):
+    context_key = "productchannelisting_by_product_and_channel_id"
+
+    def batch_load(self, keys: Iterable[ProductIdAndChannelId]):
+        # Split the list of keys by channel first. A typical query will only touch
+        # a handful of unique channels but may access thousands of products
+        # so it's cheaper to execute one query per channel.
+        product_channel_listing_by_channel: defaultdict[int | None, list[int]] = (
+            defaultdict(list)
+        )
+        for product_id, channel_id in keys:
+            product_channel_listing_by_channel[channel_id].append(product_id)
+
+        product_channel_listing_by_product_and_channel: dict[
+            ProductIdAndChannelId, ProductChannelListing | None
+        ] = {}
+        for channel_id, product_ids in product_channel_listing_by_channel.items():
             product_channel_listings = self.batch_load_channel(
-                channel_slug, product_ids
+                channel_id, product_ids
             )
             for product_id, product_channel_listing in product_channel_listings:
                 product_channel_listing_by_product_and_channel[
-                    (product_id, channel_slug)
+                    (product_id, channel_id)
                 ] = product_channel_listing
 
-        return [product_channel_listing_by_product_and_channel[key] for key in keys]
+        return [
+            product_channel_listing_by_product_and_channel.get(key) for key in keys
+        ]
 
     def batch_load_channel(
-        self, channel_slug: str, products_ids: Iterable[int]
+        self, channel_id: int | None, products_ids: Iterable[int]
     ) -> Iterable[tuple[int, ProductChannelListing | None]]:
+        if channel_id is None:
+            return [(products_id, None) for products_id in products_ids]
+
         product_channel_listings = ProductChannelListing.objects.using(
             self.database_connection_name
-        ).filter(channel__slug=channel_slug, product_id__in=products_ids)
+        ).filter(channel_id=channel_id, product_id__in=products_ids)
 
         product_channel_listings_map: dict[int, ProductChannelListing] = {}
         for product_channel_listing in product_channel_listings.iterator(
