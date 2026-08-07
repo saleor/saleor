@@ -22,6 +22,7 @@ from .....order.fetch import fetch_order_info
 from .....order.models import OrderEvent
 from .....order.notifications import get_default_order_payload
 from .....order.utils import updates_amounts_for_order
+from .....payment import PaymentError
 from .....product.models import ProductVariant
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
@@ -331,6 +332,44 @@ def test_order_confirm_wont_call_capture_for_non_active_payment(
         type=order_events.OrderEvents.CONFIRMED,
     ).exists()
     assert not capture_mock.called
+
+
+@patch("saleor.payment.gateway.capture")
+def test_order_confirm_payment_error(
+    capture_mock,
+    staff_api_client,
+    order_unconfirmed,
+    permission_group_manage_orders,
+    payment_txn_preauth,
+):
+    # given
+    message = "Capture failed"
+    capture_mock.side_effect = PaymentError(message)
+    payment_txn_preauth.order = order_unconfirmed
+    payment_txn_preauth.save(update_fields=["order"])
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    assert not OrderEvent.objects.exists()
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["orderConfirm"]
+    assert content["order"] is None
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["field"] == "payment"
+    assert content["errors"][0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        user=staff_api_client.user,
+        type=order_events.OrderEvents.PAYMENT_FAILED,
+    ).exists()
+    capture_mock.assert_called_once_with(
+        payment_txn_preauth, ANY, channel_slug=order_unconfirmed.channel.slug
+    )
 
 
 def test_order_confirm_update_display_gross_prices(

@@ -27,6 +27,7 @@ from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Order
+from .utils import try_payment_action
 
 
 class OrderConfirm(DeprecatedModelMutation):
@@ -81,14 +82,29 @@ class OrderConfirm(DeprecatedModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
         webhook_events = WEBHOOK_EVENTS_FOR_ORDER_CONFIRMED
-        webhook_event_map = None
+        authorized_payment = None
+        site = None
+
+        # Capture outside the atomic block so PaymentError handling (and the
+        # payment-failed order event) is not rolled back with the transaction.
+        if payment and payment.is_authorized and payment.can_capture():
+            authorized_payment = payment
+            try_payment_action(
+                order,
+                user,
+                app,
+                payment,
+                gateway.capture,
+                payment,
+                manager,
+                channel_slug=order.channel.slug,
+            )
+            site = get_site_promise(info.context).get()
+            webhook_events = webhook_events.union(WEBHOOK_EVENTS_FOR_ORDER_CHARGED)
+
         with traced_atomic_transaction():
-            if payment and payment.is_authorized and payment.can_capture():
-                authorized_payment = payment
-                gateway.capture(payment, manager, channel_slug=order.channel.slug)
-                site = get_site_promise(info.context).get()
-                webhook_events = webhook_events.union(WEBHOOK_EVENTS_FOR_ORDER_CHARGED)
-                webhook_event_map = get_webhooks_for_multiple_events(webhook_events)
+            webhook_event_map = get_webhooks_for_multiple_events(webhook_events)
+            if authorized_payment is not None:
                 transaction.on_commit(
                     lambda: order_charged(
                         order_info,
@@ -98,12 +114,10 @@ class OrderConfirm(DeprecatedModelMutation):
                         authorized_payment,
                         manager,
                         site.settings,
-                        payment.gateway,
+                        authorized_payment.gateway,
                         webhook_event_map=webhook_event_map,
                     )
                 )
-            if webhook_event_map is None:
-                webhook_event_map = get_webhooks_for_multiple_events(webhook_events)
 
             transaction.on_commit(
                 lambda: order_confirmed(
