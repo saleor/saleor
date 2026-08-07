@@ -344,3 +344,23 @@ def test_product_variants_query_with_attr_slug_and_attribute_value_referenced_pa
     content = get_graphql_content(response)
     product_variants_nodes = content["data"]["productVariants"]["edges"]
     assert len(product_variants_nodes) == expected_count
+
+
+def test_product_variants_query_with_empty_page_slugs_container_matches_no_variants(
+    staff_api_client,
+    product_variant_list,
+    channel_USD,
+):
+    # given: a no-op reference filter - the container declares no
+    # containsAny/containsAll key
+    variables = {
+        "where": {"attributes": [{"value": {"reference": {"pageSlugs": {}}}}]},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_VARIANTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["productVariants"]["edges"] == []

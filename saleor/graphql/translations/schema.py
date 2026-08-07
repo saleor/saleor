@@ -1,5 +1,6 @@
 import graphene
 
+from ...attribute import AttributeType
 from ...attribute.models import Attribute, AttributeValue
 from ...discount.models import Promotion, PromotionRule, Voucher
 from ...menu.models import MenuItem
@@ -152,7 +153,6 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds.COLLECTION.value: Collection,  # type: ignore[attr-defined] # noqa: E501
             TranslatableKinds.CATEGORY.value: Category,  # type: ignore[attr-defined]
             TranslatableKinds.ATTRIBUTE.value: Attribute,  # type: ignore[attr-defined]
-            TranslatableKinds.ATTRIBUTE_VALUE.value: AttributeValue,  # type: ignore[attr-defined] # noqa: E501
             TranslatableKinds.VARIANT.value: ProductVariant,  # type: ignore[attr-defined] # noqa: E501
             TranslatableKinds.PAGE.value: Page,  # type: ignore[attr-defined]
             TranslatableKinds.SHIPPING_METHOD.value: ShippingMethod,  # type: ignore[attr-defined] # noqa: E501
@@ -165,6 +165,16 @@ class TranslationQueries(graphene.ObjectType):
             return (
                 Promotion.objects.using(get_database_connection_name(info.context))
                 .filter(old_sale_id=kind_id)
+                .first()
+            )
+        if kind == TranslatableKinds.ATTRIBUTE_VALUE.value:  # type: ignore[attr-defined]
+            # Customer attribute values are excluded from the translations
+            # domain: they may be created per user and carry customer data
+            # (PII) that MANAGE_TRANSLATIONS holders must not be able to read.
+            return (
+                AttributeValue.objects.using(get_database_connection_name(info.context))
+                .exclude(attribute__type=AttributeType.CUSTOMER_TYPE)
+                .filter(pk=kind_id)
                 .first()
             )
         return (

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 
 from .....account import models
 from .....account.error_codes import AccountErrorCode
+from .....attribute.utils import delete_user_unique_attribute_values
 from .....core.tokens import (
     account_delete_token_generator,
     legacy_account_delete_token_generator,
@@ -89,6 +90,7 @@ class AccountDelete(ModelDeleteMutation):
             # on_delete=PROTECT, so restricted cards must be detached and
             # deactivated first, atomically with the deletion.
             deactivate_assigned_gift_cards([user])
+            delete_user_unique_attribute_values([user.pk])
             user.delete()
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.

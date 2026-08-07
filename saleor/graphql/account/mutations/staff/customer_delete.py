@@ -1,6 +1,7 @@
 import graphene
 
 from .....account import models
+from .....attribute.utils import delete_user_unique_attribute_values
 from .....core.tracing import traced_atomic_transaction
 from .....giftcard.utils import deactivate_assigned_gift_cards
 from .....permission.enums import AccountPermissions
@@ -51,6 +52,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         # Runs inside the deletion transaction, right before the user is
         # removed. Required because GiftCard.assigned_to is on_delete=PROTECT.
         deactivate_assigned_gift_cards([instance])
+        delete_user_unique_attribute_values([instance.pk])
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

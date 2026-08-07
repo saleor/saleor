@@ -361,6 +361,16 @@ fragment ProductTypeDetails on ProductType{
 """
 
 
+CUSTOMER_TYPE_DETAILS = """
+fragment CustomerTypeDetails on CustomerType{
+  id
+  name
+  slug
+  isDefault
+}
+"""
+
+
 PERMISSION_GROUP_DETAILS = """
 fragment PermissionGroupDetails on Group{
   name
