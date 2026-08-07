@@ -141,14 +141,21 @@ class Voucher(ModelWithMetadata):
     def promo_codes(self):
         return list(self.codes.values_list("code", flat=True))
 
-    def get_discount(self, channel: Channel):
+    def get_discount(self, channel: Channel, channel_listings=None):
         """Return proper discount amount for given channel.
 
-        It operates over all channel listings as assuming that we have prefetched them.
+        Prefer already-fetched ``channel_listings`` (e.g. from a dataloader) to avoid
+        extra queries. Falls back to the related manager, which should be prefetched
+        when listings are not passed explicitly.
         """
         voucher_channel_listing = None
+        listings = (
+            channel_listings
+            if channel_listings is not None
+            else self.channel_listings.all()
+        )
 
-        for channel_listing in self.channel_listings.all():
+        for channel_listing in listings:
             if channel.id == channel_listing.channel_id:
                 voucher_channel_listing = channel_listing
                 break
@@ -168,8 +175,10 @@ class Voucher(ModelWithMetadata):
             )
         raise NotImplementedError("Unknown discount type")
 
-    def get_discount_amount_for(self, price: Money, channel: Channel) -> Money:
-        discount = self.get_discount(channel)
+    def get_discount_amount_for(
+        self, price: Money, channel: Channel, channel_listings=None
+    ) -> Money:
+        discount = self.get_discount(channel, channel_listings=channel_listings)
         after_discount = discount(price)
         if after_discount.amount < 0:
             return price

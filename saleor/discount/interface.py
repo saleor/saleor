@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import TYPE_CHECKING, NamedTuple, Optional
 
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
         PromotionRule,
         PromotionRuleTranslation,
         PromotionTranslation,
+        VoucherChannelListing,
     )
 
 
@@ -48,6 +49,7 @@ class VoucherInfo:
     variant_pks: list[int]
     collection_pks: list[int]
     category_pks: list[int]
+    channel_listings: list["VoucherChannelListing"] = field(default_factory=list)
 
 
 def fetch_voucher_info(

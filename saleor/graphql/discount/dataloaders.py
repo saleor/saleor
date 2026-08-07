@@ -165,18 +165,19 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, VoucherInfo | None]):
     context_key = "voucher_info_by_voucher_code"
 
     def batch_load(self, keys):
-        # FIXME dataloader should not operate on prefetched data. The channel
-        #  listings are used in Voucher's model to calculate a discount amount.
-        #  This is a workaround that we should solve by fetching channel_listings
-        #  via data loader and passing it to calculate a discount amount.
         voucher_codes_map = (
             VoucherCode.objects.using(self.database_connection_name)
-            .prefetch_related("voucher__channel_listings")
+            .select_related("voucher")
             .filter(code__in=keys)
             .in_bulk(field_name="code")
         )
 
-        vouchers = {code.voucher for code in voucher_codes_map.values()}
+        vouchers_by_id = {
+            code.voucher_id: code.voucher for code in voucher_codes_map.values()
+        }
+        vouchers = list(vouchers_by_id.values())
+        voucher_ids = list(vouchers_by_id.keys())
+
         voucher_products = (
             Voucher.products.through.objects.using(self.database_connection_name)
             .filter(voucher__in=vouchers)
@@ -210,23 +211,47 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, VoucherInfo | None]):
         for voucher_id, collection_id in voucher_collections:
             collection_pks_map[voucher_id].append(collection_id)
 
-        voucher_infos: list[VoucherInfo | None] = []
-        for code in keys:
-            voucher_code = voucher_codes_map.get(code)
-            if not voucher_code:
-                voucher_infos.append(None)
-                continue
-            voucher_infos.append(
-                VoucherInfo(
-                    voucher=voucher_code.voucher,
-                    voucher_code=voucher_code.code,
-                    product_pks=product_pks_map.get(voucher_code.voucher_id, []),
-                    variant_pks=variant_pks_map.get(voucher_code.voucher_id, []),
-                    category_pks=category_pks_map.get(voucher_code.voucher_id, []),
-                    collection_pks=collection_pks_map.get(voucher_code.voucher_id, []),
-                )
+        def with_channel_listings(channel_listings_lists):
+            listings_by_voucher_id = dict(
+                zip(voucher_ids, channel_listings_lists, strict=False)
             )
-        return voucher_infos
+            # Ensure voucher.channel_listings.all() uses dataloader results
+            # for callers that still rely on the related manager.
+            for voucher_code in voucher_codes_map.values():
+                voucher_code.voucher._prefetched_objects_cache = {
+                    "channel_listings": listings_by_voucher_id.get(
+                        voucher_code.voucher_id, []
+                    )
+                }
+
+            voucher_infos: list[VoucherInfo | None] = []
+            for code in keys:
+                voucher_code = voucher_codes_map.get(code)
+                if not voucher_code:
+                    voucher_infos.append(None)
+                    continue
+                voucher_infos.append(
+                    VoucherInfo(
+                        voucher=voucher_code.voucher,
+                        voucher_code=voucher_code.code,
+                        product_pks=product_pks_map.get(voucher_code.voucher_id, []),
+                        variant_pks=variant_pks_map.get(voucher_code.voucher_id, []),
+                        category_pks=category_pks_map.get(voucher_code.voucher_id, []),
+                        collection_pks=collection_pks_map.get(
+                            voucher_code.voucher_id, []
+                        ),
+                        channel_listings=listings_by_voucher_id.get(
+                            voucher_code.voucher_id, []
+                        ),
+                    )
+                )
+            return voucher_infos
+
+        return (
+            VoucherChannelListingsByVoucherIdLoader(self.context)
+            .load_many(voucher_ids)
+            .then(with_channel_listings)
+        )
 
 
 class OrderDiscountsByOrderIDLoader(DataLoader[UUID, list[OrderDiscount]]):
