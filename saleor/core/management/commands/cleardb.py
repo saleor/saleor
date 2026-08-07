@@ -7,11 +7,12 @@ accounts, plugin configurations, site settings or navigation menus.
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.db.models import Q
 
 from ....account.models import User
 from ....attribute.models import Attribute
-from ....checkout.models import Checkout
+from ....checkout.models import Checkout, CheckoutDelivery
 from ....discount.models import Promotion, Voucher
 from ....giftcard.models import GiftCard
 from ....order.models import Order
@@ -43,7 +44,12 @@ class Command(BaseCommand):
         if not settings.DEBUG and not force:
             raise CommandError("Cannot clear the database in DEBUG=False mode.")
 
-        Checkout.objects.all().delete()
+        # Checkout and CheckoutDelivery reference each other. Deleting inside a
+        # transaction defers PostgreSQL FK checks until both tables are cleared,
+        # matching the approach used by the clearorders command.
+        with transaction.atomic():
+            CheckoutDelivery.objects.all().delete()
+            Checkout.objects.all().delete()
         self.stdout.write("Removed checkouts")
 
         TransactionItem.objects.all().delete()
