@@ -39,6 +39,9 @@ STAFF_UPDATE_MUTATIONS = """
                 }
                 isActive
                 email
+                firstName
+                lastName
+                languageCode
                 metadata {
                     key
                     value
@@ -652,3 +655,95 @@ def test_staff_update_trigger_gift_card_search_vector_update(
     for card in gift_card_list:
         card.refresh_from_db()
         assert card.search_index_dirty is True
+
+
+def test_staff_update_own_profile_without_manage_staff(staff_api_client):
+    # given
+    user = staff_api_client.user
+    assert not user.has_perm(AccountPermissions.MANAGE_STAFF)
+    user_id = graphene.Node.to_global_id("User", user.id)
+    first_name = "Jane"
+    last_name = "Doe"
+    email = "jane.doe@example.com"
+    language_code = "PL"
+    variables = {
+        "id": user_id,
+        "input": {
+            "firstName": first_name,
+            "lastName": last_name,
+            "email": email,
+            "languageCode": language_code,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(STAFF_UPDATE_MUTATIONS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["errors"] == []
+    assert data["user"]["firstName"] == first_name
+    assert data["user"]["lastName"] == last_name
+    assert data["user"]["email"] == email
+    assert data["user"]["languageCode"] == language_code
+    user.refresh_from_db()
+    assert user.first_name == first_name
+    assert user.last_name == last_name
+    assert user.email == email
+    assert user.language_code == language_code.lower()
+
+
+def test_staff_update_another_user_without_manage_staff_denied(staff_api_client):
+    # given
+    other_staff = User.objects.create(email="other-staff@example.com", is_staff=True)
+    variables = {
+        "id": graphene.Node.to_global_id("User", other_staff.id),
+        "input": {"firstName": "Hacker"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(STAFF_UPDATE_MUTATIONS, variables)
+
+    # then
+    assert_no_permission(response)
+    other_staff.refresh_from_db()
+    assert other_staff.first_name == ""
+
+
+def test_staff_update_own_privileged_fields_without_manage_staff_denied(
+    staff_api_client,
+):
+    # given
+    user = staff_api_client.user
+    variables = {
+        "id": graphene.Node.to_global_id("User", user.id),
+        "input": {"isActive": False},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(STAFF_UPDATE_MUTATIONS, variables)
+
+    # then
+    assert_no_permission(response)
+    user.refresh_from_db()
+    assert user.is_active is True
+
+
+def test_staff_update_own_groups_without_manage_staff_denied(
+    staff_api_client, permission_group_manage_users
+):
+    # given
+    user = staff_api_client.user
+    group_id = graphene.Node.to_global_id("Group", permission_group_manage_users.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("User", user.id),
+        "input": {"addGroups": [group_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(STAFF_UPDATE_MUTATIONS, variables)
+
+    # then
+    assert_no_permission(response)
+    assert not user.groups.filter(pk=permission_group_manage_users.pk).exists()

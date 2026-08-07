@@ -5,15 +5,18 @@ from django.core.exceptions import ValidationError
 
 from .....account import models
 from .....account.error_codes import AccountErrorCode
+from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
 from .....giftcard.search import mark_gift_cards_search_index_as_dirty
 from .....giftcard.utils import assign_user_gift_cards, get_user_gift_cards
 from .....order.utils import match_orders_with_new_user
+from .....permission.auth_filters import AuthorizationFilters
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
+from ....core.enums import LanguageCodeEnum
 from ....core.types import NonNullList, StaffError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -24,8 +27,17 @@ from ...utils import (
 )
 from .staff_create import StaffCreate, StaffInput
 
+# Personal fields a staff member may change on their own account without
+# MANAGE_STAFF (see saleor/saleor#11691).
+STAFF_SELF_UPDATE_FIELDS = frozenset(
+    {"first_name", "last_name", "email", "language_code"}
+)
+
 
 class StaffUpdateInput(StaffInput):
+    language_code = graphene.Field(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
     remove_groups = NonNullList(
         graphene.ID,
         description=(
@@ -47,15 +59,22 @@ class StaffUpdate(StaffCreate):
         )
 
     class Meta:
+        auto_permission_message = False
         description = (
             "Updates an existing staff user. "
-            "Apps are not allowed to perform this mutation."
+            "Apps are not allowed to perform this mutation.\n\n"
+            "Requires one of the following permissions: MANAGE_STAFF.\n"
+            "Staff members can update their own first name, last name, email, "
+            "and language code without the MANAGE_STAFF permission."
         )
         doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
-        permissions = (AccountPermissions.MANAGE_STAFF,)
+        permissions = (
+            AccountPermissions.MANAGE_STAFF,
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+        )
         error_type_class = StaffError
         error_type_field = "staff_errors"
         support_meta_field = True
@@ -71,8 +90,10 @@ class StaffUpdate(StaffCreate):
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         user = info.context.user
         user = cast(models.User, user)
+        if not user.has_perm(AccountPermissions.MANAGE_STAFF):
+            cls._validate_self_profile_update(user, instance, data)
         # check if user can manage this user
-        if not user.is_superuser and get_out_of_scope_users(user, [instance]):
+        elif not user.is_superuser and get_out_of_scope_users(user, [instance]):
             msg = "You can't manage this user."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
@@ -85,6 +106,18 @@ class StaffUpdate(StaffCreate):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         return cleaned_input
+
+    @classmethod
+    def _validate_self_profile_update(
+        cls, requestor: models.User, instance: models.User, data: dict
+    ):
+        """Allow staff without MANAGE_STAFF to edit only their own basic profile."""
+        if requestor.pk != instance.pk:
+            raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
+
+        provided_fields = {key for key, value in data.items() if value is not None}
+        if not provided_fields.issubset(STAFF_SELF_UPDATE_FIELDS):
+            raise PermissionDenied(permissions=[AccountPermissions.MANAGE_STAFF])
 
     @classmethod
     def clean_groups(cls, requestor: models.User, cleaned_input: dict, errors: dict):
