@@ -400,8 +400,8 @@ def test_delete_attribute_values_search_document_updated(
             False,
         ),
         (
-            "Mixed attributes w/ legacy page and customer permissions "
-            "should be allowed",
+            "Mixed attributes w/ page and customer permissions should be rejected "
+            "when product attributes are included",
             "staff_api_client",
             [
                 "product_type_attribute_list",
@@ -409,6 +409,21 @@ def test_delete_attribute_values_search_document_updated(
                 "customer_type_attribute_list",
             ],
             [
+                "permission_manage_page_types_and_attributes",
+                "permission_manage_customer_types_and_attributes",
+            ],
+            False,
+        ),
+        (
+            "Mixed attributes w/ every matching permission should be allowed",
+            "staff_api_client",
+            [
+                "product_type_attribute_list",
+                "page_type_attribute_list",
+                "customer_type_attribute_list",
+            ],
+            [
+                "permission_manage_product_types_and_attributes",
                 "permission_manage_page_types_and_attributes",
                 "permission_manage_customer_types_and_attributes",
             ],
@@ -577,11 +592,22 @@ def test_delete_attributes_authorization(
             False,
         ),
         (
-            "Mixed attribute values w/ legacy page and customer permissions "
-            "should be allowed",
+            "Mixed attribute values w/ page and customer permissions should be "
+            "rejected when product attribute values are included",
             "staff_api_client",
             ["color_attribute", "size_page_attribute", "loyalty_customer_attribute"],
             [
+                "permission_manage_page_types_and_attributes",
+                "permission_manage_customer_types_and_attributes",
+            ],
+            False,
+        ),
+        (
+            "Mixed attribute values w/ every matching permission should be allowed",
+            "staff_api_client",
+            ["color_attribute", "size_page_attribute", "loyalty_customer_attribute"],
+            [
+                "permission_manage_product_types_and_attributes",
                 "permission_manage_page_types_and_attributes",
                 "permission_manage_customer_types_and_attributes",
             ],
