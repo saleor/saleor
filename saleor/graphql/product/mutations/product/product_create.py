@@ -33,8 +33,9 @@ class ProductInput(BaseInputObjectType):
     charge_taxes = graphene.Boolean(
         description=(
             "Determine if taxes are being charged for the product. "
-            f"{DEPRECATED_IN_3X_INPUT} Use `Channel.taxConfiguration` to configure "
-            "whether tax collection is enabled."
+            f"{DEPRECATED_IN_3X_INPUT} Use `Channel.taxConfiguration.chargeTaxes` "
+            "or the `taxConfigurationUpdate` mutation to configure whether tax "
+            "collection is enabled."
         )
     )
     collections = NonNullList(

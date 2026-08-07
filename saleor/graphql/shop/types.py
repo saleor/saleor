@@ -470,7 +470,7 @@ class Shop(graphene.ObjectType):
     )
     display_gross_prices = graphene.Boolean(
         description="Display prices with tax in store.",
-        deprecation_reason="Use `Channel.taxConfiguration` to determine whether to display gross or net prices.",
+        deprecation_reason="Use `Channel.taxConfiguration.displayGrossPrices` to determine whether to display gross or net prices.",
         required=True,
     )
     charge_taxes_on_shipping = graphene.Boolean(

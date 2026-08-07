@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Corrected deprecation reasons for legacy tax fields to point at the specific `Channel.taxConfiguration` subfields (`displayGrossPrices`, `chargeTaxes`) instead of the parent type alone - #11325 by @richardmilles
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations

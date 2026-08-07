@@ -933,7 +933,7 @@ class Product(ChannelContextType[models.Product]):
     )
     charge_taxes = graphene.Boolean(
         required=True,
-        deprecation_reason="Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.",
+        deprecation_reason="Use `Channel.taxConfiguration.chargeTaxes` to determine whether tax collection is enabled.",
     )
     weight = graphene.Field(Weight, description="Weight of the product.")
     default_variant = graphene.Field(

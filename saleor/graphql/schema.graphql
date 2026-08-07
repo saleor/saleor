@@ -6811,7 +6811,7 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
 
   """The date and time when the product was last updated."""
   updatedAt: DateTime!
-  chargeTaxes: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
+  chargeTaxes: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration.chargeTaxes` to determine whether tax collection is enabled.")
 
   """Weight of the product."""
   weight: Weight
@@ -15109,7 +15109,7 @@ type Shop implements ObjectWithMetadata {
   includeTaxesInPrices: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
 
   """Display prices with tax in store."""
-  displayGrossPrices: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
+  displayGrossPrices: Boolean! @deprecated(reason: "Use `Channel.taxConfiguration.displayGrossPrices` to determine whether to display gross or net prices.")
 
   """Charge taxes on shipping."""
   chargeTaxesOnShipping: Boolean! @deprecated(reason: "Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
@@ -24365,7 +24365,7 @@ input ProductCreateInput @doc(category: "Products") {
   category: ID
 
   """Determine if taxes are being charged for the product."""
-  chargeTaxes: Boolean @deprecated(reason: "Use `Channel.taxConfiguration` to configure whether tax collection is enabled.")
+  chargeTaxes: Boolean @deprecated(reason: "Use `Channel.taxConfiguration.chargeTaxes` or the `taxConfigurationUpdate` mutation to configure whether tax collection is enabled.")
 
   """List of IDs of collections that the product belongs to."""
   collections: [ID!]
@@ -24582,7 +24582,7 @@ input ProductBulkCreateInput @doc(category: "Products") {
   category: ID
 
   """Determine if taxes are being charged for the product."""
-  chargeTaxes: Boolean @deprecated(reason: "Use `Channel.taxConfiguration` to configure whether tax collection is enabled.")
+  chargeTaxes: Boolean @deprecated(reason: "Use `Channel.taxConfiguration.chargeTaxes` or the `taxConfigurationUpdate` mutation to configure whether tax collection is enabled.")
 
   """List of IDs of collections that the product belongs to."""
   collections: [ID!]
@@ -24858,7 +24858,7 @@ input ProductInput @doc(category: "Products") {
   category: ID
 
   """Determine if taxes are being charged for the product."""
-  chargeTaxes: Boolean @deprecated(reason: "Use `Channel.taxConfiguration` to configure whether tax collection is enabled.")
+  chargeTaxes: Boolean @deprecated(reason: "Use `Channel.taxConfiguration.chargeTaxes` or the `taxConfigurationUpdate` mutation to configure whether tax collection is enabled.")
 
   """List of IDs of collections that the product belongs to."""
   collections: [ID!]
