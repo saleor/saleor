@@ -11,6 +11,21 @@ from ....core.db.connection import allow_writer
 from ....core.db.expressions import PostgresJsonConcatenate
 from ....core.error_codes import MetadataErrorCode
 from ....core.models import ModelWithMetadata
+from ...core.validators import validate_limit_of_list_input
+
+# Maximum number of metadata items accepted in a single metadata mutation input.
+METADATA_LIST_INPUT_LIMIT = 100
+
+
+def validate_metadata_list_input_limit(items, field_name: str) -> None:
+    """Reject oversized metadata list inputs early."""
+    if not items:
+        return
+    try:
+        validate_limit_of_list_input(items, METADATA_LIST_INPUT_LIMIT, field_name)
+    except ValidationError as error:
+        error.code = MetadataErrorCode.INVALID.value
+        raise ValidationError({field_name: error}) from error
 
 
 def get_valid_metadata_instance(instance) -> ModelWithMetadata:

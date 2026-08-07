@@ -7,7 +7,12 @@ from ...core import ResolveInfo
 from ...core.types import MetadataError, NonNullList
 from ..permissions import PUBLIC_META_PERMISSION_MAP
 from .base import BaseMetadataMutation
-from .utils import delete_metadata_keys, get_valid_metadata_instance
+from .utils import (
+    METADATA_LIST_INPUT_LIMIT,
+    delete_metadata_keys,
+    get_valid_metadata_instance,
+    validate_metadata_list_input_limit,
+)
 
 
 class DeleteMetadata(BaseMetadataMutation):
@@ -27,7 +32,9 @@ class DeleteMetadata(BaseMetadataMutation):
         )
         keys = NonNullList(
             graphene.String,
-            description="Metadata keys to delete.",
+            description=(
+                f"Metadata keys to delete. Max {METADATA_LIST_INPUT_LIMIT} items."
+            ),
             required=True,
         )
 
@@ -35,6 +42,7 @@ class DeleteMetadata(BaseMetadataMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str, keys: list[str]
     ):
+        validate_metadata_list_input_limit(keys, field_name="keys")
         instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
             meta_instance = get_valid_metadata_instance(instance)

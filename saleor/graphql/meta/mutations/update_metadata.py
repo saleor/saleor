@@ -8,7 +8,12 @@ from ...core.types import MetadataError, NonNullList
 from ..inputs import MetadataInput, MetadataInputDescription
 from ..permissions import PUBLIC_META_PERMISSION_MAP
 from .base import BaseMetadataMutation
-from .utils import get_valid_metadata_instance, update_metadata
+from .utils import (
+    METADATA_LIST_INPUT_LIMIT,
+    get_valid_metadata_instance,
+    update_metadata,
+    validate_metadata_list_input_limit,
+)
 
 
 class UpdateMetadata(BaseMetadataMutation):
@@ -28,7 +33,10 @@ class UpdateMetadata(BaseMetadataMutation):
         )
         input = NonNullList(
             MetadataInput,
-            description="Fields required to update the object's metadata.",
+            description=(
+                "Fields required to update the object's metadata. "
+                f"Max {METADATA_LIST_INPUT_LIMIT} items."
+            ),
             required=True,
         )
 
@@ -36,6 +44,7 @@ class UpdateMetadata(BaseMetadataMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str, input: list
     ):
+        validate_metadata_list_input_limit(input, field_name="input")
         instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
         if instance:
             meta_instance = get_valid_metadata_instance(instance)

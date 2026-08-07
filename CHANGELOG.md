@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Limited `updateMetadata` / `deleteMetadata` list inputs (`input` / `keys`) to a maximum of 100 items, returning an `INVALID` error when exceeded - #19210 by @richardmilles
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations

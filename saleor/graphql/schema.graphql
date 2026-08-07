@@ -19766,7 +19766,7 @@ type Mutation {
     """ID or token (for Order and Checkout) of an object to update."""
     id: ID!
 
-    """Metadata keys to delete."""
+    """Metadata keys to delete. Max 100 items."""
     keys: [String!]!
   ): DeleteMetadata
 
@@ -19790,7 +19790,7 @@ type Mutation {
     """ID or token (for Order and Checkout) of an object to update."""
     id: ID!
 
-    """Fields required to update the object's metadata."""
+    """Fields required to update the object's metadata. Max 100 items."""
     input: [MetadataInput!]!
   ): UpdateMetadata
 
