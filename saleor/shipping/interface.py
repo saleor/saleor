@@ -34,6 +34,12 @@ class ShippingMethodData:
     active: bool = True
     message: str = ""
 
+    def __repr__(self):
+        return (
+            f"ShippingMethodData(id={self.id!r}, name={self.name!r}, "
+            f"price={self.price}, active={self.active!r})"
+        )
+
     @property
     def is_external(self) -> bool:
         try:
