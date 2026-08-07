@@ -254,6 +254,32 @@ def test_sort_products_cannot_sort_both_by_field_and_by_attribute(
     )
 
 
+def test_sort_products_requires_field_or_attribute(api_client, channel_USD):
+    """Test that sortBy with only direction returns a validation error."""
+    query = """
+    query ($channel: String!) {
+      products(first: 10, sortBy: {direction: ASC}, channel: $channel) {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+    """
+    variables = {"channel": channel_USD.slug}
+
+    response = api_client.post_graphql(query, variables)
+    response = get_graphql_content(response, ignore_errors=True)
+
+    errors = response.get("errors", [])
+
+    assert len(errors) == 1, response
+    assert errors[0]["message"] == (
+        "You must provide either `field` or `attributeId` to sort the products."
+    )
+
+
 # Ordered by the given attribute value, then by the product name.
 #
 # If the product doesn't have a value, it will be placed at the bottom of the products

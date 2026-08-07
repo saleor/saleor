@@ -73,6 +73,10 @@ def sort_queryset(
         raise GraphQLError(
             "You must provide either `field` or `attributeId` to sort the products."
         )
+    if sorting_field is None and sorting_attribute is None:
+        raise GraphQLError(
+            "You must provide either `field` or `attributeId` to sort the products."
+        )
     if sorting_attribute is not None:  # empty string as sorting_attribute is valid
         return _sort_queryset_by_attribute(
             queryset, sorting_attribute, sorting_direction
