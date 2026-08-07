@@ -363,6 +363,57 @@ def test_delete_attribute_values_search_document_updated(
             ],
             True,
         ),
+        (
+            "Customer attributes w/ customer permission should be allowed",
+            "staff_api_client",
+            ["customer_type_attribute_list"],
+            ["permission_manage_customer_types_and_attributes"],
+            True,
+        ),
+        (
+            "Customer attributes w/ product permission should be rejected",
+            "staff_api_client",
+            ["customer_type_attribute_list"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Customer attributes w/ legacy page permission should be rejected",
+            "staff_api_client",
+            ["customer_type_attribute_list"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Product attributes w/ customer permission should be rejected",
+            "staff_api_client",
+            ["product_type_attribute_list"],
+            ["permission_manage_customer_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attributes w/ legacy page permission only should be rejected "
+            "when customer attributes are included",
+            "staff_api_client",
+            ["product_type_attribute_list", "customer_type_attribute_list"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attributes w/ legacy page and customer permissions "
+            "should be allowed",
+            "staff_api_client",
+            [
+                "product_type_attribute_list",
+                "page_type_attribute_list",
+                "customer_type_attribute_list",
+            ],
+            [
+                "permission_manage_page_types_and_attributes",
+                "permission_manage_customer_types_and_attributes",
+            ],
+            True,
+        ),
     ],
 )
 def test_delete_attributes_authorization(
@@ -486,6 +537,53 @@ def test_delete_attributes_authorization(
             [
                 "permission_manage_product_types_and_attributes",
                 "permission_manage_page_types_and_attributes",
+            ],
+            True,
+        ),
+        (
+            "Customer attribute values w/ customer permission should be allowed",
+            "staff_api_client",
+            ["loyalty_customer_attribute"],
+            ["permission_manage_customer_types_and_attributes"],
+            True,
+        ),
+        (
+            "Customer attribute values w/ product permission should be rejected",
+            "staff_api_client",
+            ["loyalty_customer_attribute"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Customer attribute values w/ legacy page permission should be rejected",
+            "staff_api_client",
+            ["loyalty_customer_attribute"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Product attribute values w/ customer permission should be rejected",
+            "staff_api_client",
+            ["color_attribute"],
+            ["permission_manage_customer_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attribute values w/ legacy page permission only should be "
+            "rejected when customer attribute values are included",
+            "staff_api_client",
+            ["color_attribute", "loyalty_customer_attribute"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attribute values w/ legacy page and customer permissions "
+            "should be allowed",
+            "staff_api_client",
+            ["color_attribute", "size_page_attribute", "loyalty_customer_attribute"],
+            [
+                "permission_manage_page_types_and_attributes",
+                "permission_manage_customer_types_and_attributes",
             ],
             True,
         ),

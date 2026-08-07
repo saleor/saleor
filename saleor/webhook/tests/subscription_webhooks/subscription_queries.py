@@ -2283,6 +2283,63 @@ PAGE_TYPE_DELETED = (
 """
 )
 
+CUSTOMER_TYPE_CREATED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeCreated{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+CUSTOMER_TYPE_UPDATED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeUpdated{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+CUSTOMER_TYPE_DELETED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeDeleted{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 PRODUCT_TYPE_CREATED = (
     fragments.PRODUCT_TYPE_DETAILS
     + fragments.RECIPIENT_APP_DETAILS

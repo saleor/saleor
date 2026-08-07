@@ -31,7 +31,8 @@ class AttributeReorderValues(BaseMutation):
             "Reorder the values of an attribute.\n\nRequires one of the following "
             "permissions, depending on the attribute type: "
             "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
-            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, "
+            "MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes."
         )
         doc_category = DOC_CATEGORY_ATTRIBUTES
         error_type_class = AttributeError

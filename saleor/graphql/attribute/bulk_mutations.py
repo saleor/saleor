@@ -40,7 +40,8 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
             "Deletes attributes.\n\nRequires one of the following permissions, "
             "depending on the type of each attribute: "
             "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
-            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, "
+            "MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes."
         )
         model = models.Attribute
         object_type = Attribute
@@ -126,7 +127,8 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
             "Deletes values of attributes.\n\nRequires one of the following "
             "permissions, depending on the type of each value's attribute: "
             "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
-            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes."
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, "
+            "MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes."
         )
         model = models.AttributeValue
         object_type = AttributeValue
