@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Fixed `INSUFFICIENT_STOCK` checkout errors missing `variants` and `lines` IDs in `checkoutLinesUpdate` / `checkoutLinesAdd`. The error now includes the affected variant GraphQL IDs and, when the variant is already on the checkout, the related line IDs - #14942 by @richardmilles
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations

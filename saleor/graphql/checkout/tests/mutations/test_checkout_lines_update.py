@@ -464,6 +464,36 @@ def test_checkout_lines_update_only_stock_in_cc_warehouse_delivery_method_set(
     assert data["errors"][0]["field"] == "quantity"
 
 
+def test_checkout_lines_update_insufficient_stock_includes_variant_and_line_ids(
+    user_api_client, checkout_with_item
+):
+    # given
+    checkout = checkout_with_item
+    line = checkout.lines.first()
+    variant = line.variant
+    stock = variant.stocks.first()
+    stock.quantity = 0
+    stock.save(update_fields=["quantity"])
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["checkoutLinesUpdate"]["errors"][0]
+    assert error["code"] == CheckoutErrorCode.INSUFFICIENT_STOCK.name
+    assert error["field"] == "quantity"
+    assert error["variants"] == [variant_id]
+    assert error["lines"] == [line_id]
+
+
 def test_checkout_lines_update_checkout_with_voucher(
     user_api_client, checkout_with_item, voucher_percentage
 ):

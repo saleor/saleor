@@ -35,6 +35,7 @@ from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_323
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
+from ..utils import get_insufficient_stock_checkout_error_params
 
 if TYPE_CHECKING:
     from ...core.mutations import BaseMutation
@@ -152,6 +153,9 @@ def check_lines_quantity(
                 f"Could not add items {item.variant}. "
                 f"Only {max(item.available_quantity, 0)} remaining in stock.",
                 code=e.code.value,
+                params=get_insufficient_stock_checkout_error_params(
+                    item, existing_lines=existing_lines
+                ),
             )
             for item in e.items
         ]
