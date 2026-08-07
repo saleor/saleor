@@ -22672,10 +22672,11 @@ enum TaxClassCreateErrorCode @doc(category: "Taxes") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
+  UNIQUE
 }
 
 input TaxClassCreateInput @doc(category: "Taxes") {
-  """Name of the tax class."""
+  """Name of the tax class. Must be unique."""
   name: String!
 
   """List of country-specific tax rates to create for this tax class."""
@@ -22752,10 +22753,11 @@ enum TaxClassUpdateErrorCode @doc(category: "Taxes") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
+  UNIQUE
 }
 
 input TaxClassUpdateInput @doc(category: "Taxes") {
-  """Name of the tax class."""
+  """Name of the tax class. Must be unique."""
   name: String
 
   """

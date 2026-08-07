@@ -247,3 +247,30 @@ def test_tax_class_update_zero_rate(staff_api_client, permission_manage_taxes):
     assert data["taxClass"]["name"] == new_name
     assert len(data["taxClass"]["countries"]) == 1
     assert data["taxClass"]["countries"][0]["rate"] == 0.0
+
+
+def test_tax_class_update_rejects_duplicate_name(
+    staff_api_client, permission_manage_taxes
+):
+    # given
+    existing = TaxClass.objects.create(name="Existing tax class")
+    tax_class = TaxClass.objects.create(name="Other tax class")
+    variables = {
+        "id": graphene.Node.to_global_id("TaxClass", tax_class.pk),
+        "input": {"name": existing.name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxClassUpdate"]
+    assert data["taxClass"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "name"
+    assert data["errors"][0]["code"] == TaxClassUpdateErrorCode.UNIQUE.name
+    tax_class.refresh_from_db()
+    assert tax_class.name == "Other tax class"

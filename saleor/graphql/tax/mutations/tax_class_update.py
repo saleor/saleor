@@ -48,7 +48,7 @@ class TaxClassUpdateError(Error):
 
 
 class TaxClassUpdateInput(BaseInputObjectType):
-    name = graphene.String(description="Name of the tax class.")
+    name = graphene.String(description="Name of the tax class. Must be unique.")
     update_country_rates = NonNullList(
         CountryRateUpdateInput,
         description=(

@@ -45,7 +45,9 @@ class CountryRateInput(BaseInputObjectType):
 
 
 class TaxClassCreateInput(BaseInputObjectType):
-    name = graphene.String(description="Name of the tax class.", required=True)
+    name = graphene.String(
+        description="Name of the tax class. Must be unique.", required=True
+    )
     create_country_rates = NonNullList(
         CountryRateInput,
         description="List of country-specific tax rates to create for this tax class.",

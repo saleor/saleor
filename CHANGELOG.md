@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Enforced unique names for tax classes. Creating or updating a tax class with a duplicate name now returns a `UNIQUE` error, and a migration renames existing duplicates before adding the database constraint - #15181 by @richardmilles
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations

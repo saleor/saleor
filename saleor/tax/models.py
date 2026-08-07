@@ -8,7 +8,7 @@ from . import TaxCalculationStrategy
 
 
 class TaxClass(ModelWithMetadata):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     class Meta:
         ordering = ("name", "pk")

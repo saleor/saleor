@@ -1,3 +1,5 @@
+from .....tax.error_codes import TaxClassCreateErrorCode
+from .....tax.models import TaxClass
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ..fragments import TAX_CLASS_FRAGMENT
 
@@ -75,3 +77,24 @@ def test_create_as_staff(staff_api_client, permission_manage_taxes):
 
 def test_create_as_app(app_api_client, permission_manage_taxes):
     _test_tax_class_create(app_api_client, permission_manage_taxes)
+
+
+def test_create_rejects_duplicate_name(staff_api_client, permission_manage_taxes):
+    # given
+    name = "Existing tax class"
+    TaxClass.objects.create(name=name)
+    variables = {"input": {"name": name}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxClassCreate"]
+    assert data["taxClass"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "name"
+    assert data["errors"][0]["code"] == TaxClassCreateErrorCode.UNIQUE.name
+    assert TaxClass.objects.filter(name=name).count() == 1

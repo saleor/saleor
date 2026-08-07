@@ -19,6 +19,7 @@ class TaxClassCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
+    UNIQUE = "unique"
 
 
 class TaxClassUpdateErrorCode(Enum):
@@ -26,6 +27,7 @@ class TaxClassUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
+    UNIQUE = "unique"
 
 
 class TaxClassDeleteErrorCode(Enum):
