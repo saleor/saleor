@@ -67,7 +67,8 @@ def test_install_app_task_request_timeout(monkeypatch, app_installation):
     assert app_installation.status == JobStatus.FAILED
     assert (
         app_installation.message
-        == "Failed to connect to app. Try later or contact with app support."
+        == "Failed to connect to app. Details: Timeout. "
+        "Try later or contact with app support."
     )
 
 

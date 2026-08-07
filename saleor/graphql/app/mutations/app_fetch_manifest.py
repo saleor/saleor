@@ -45,21 +45,43 @@ class AppFetchManifest(BaseMutation):
             raise ValidationError(
                 {"manifest_url": ValidationError(msg, code=code)}
             ) from e
+        except requests.SSLError as e:
+            msg = (
+                "Unable to fetch manifest data due to a TLS/SSL error. "
+                f"Details: {e}"
+            )
+            code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
+            raise ValidationError(
+                {"manifest_url": ValidationError(msg, code=code)}
+            ) from e
         except requests.HTTPError as e:
             msg = "Unable to fetch manifest data."
             code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
             raise ValidationError(
                 {"manifest_url": ValidationError(msg, code=code)}
             ) from e
+        except requests.ConnectionError as e:
+            msg = f"Unable to connect to the provided manifest URL. Details: {e}"
+            code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
+            raise ValidationError(
+                {"manifest_url": ValidationError(msg, code=code)}
+            ) from e
         except ValueError as e:
+            # Catch before RequestException: JSONDecodeError subclasses both.
             msg = "Incorrect structure of manifest."
             code = AppErrorCode.INVALID_MANIFEST_FORMAT.value
             raise ValidationError(
                 {"manifest_url": ValidationError(msg, code=code)}
             ) from e
+        except requests.RequestException as e:
+            msg = f"Unable to fetch manifest data. Details: {e}"
+            code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
+            raise ValidationError(
+                {"manifest_url": ValidationError(msg, code=code)}
+            ) from e
         except OSError as e:
-            msg = "Can't fetch manifest data. Please try later."
-            code = AppErrorCode.INVALID.value
+            msg = f"Can't fetch manifest data. Details: {e}"
+            code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
             raise ValidationError(
                 {"manifest_url": ValidationError(msg, code=code)}
             ) from e

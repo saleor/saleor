@@ -290,10 +290,72 @@ def test_app_fetch_manifest_handle_exception(
 
     assert len(errors) == 1
     assert errors[0] == {
-        "code": "INVALID",
+        "code": "MANIFEST_URL_CANT_CONNECT",
         "field": "manifestUrl",
-        "message": "Can't fetch manifest data. Please try later.",
+        "message": "Can't fetch manifest data. Details: oops",
     }
+
+
+def test_app_fetch_manifest_ssl_error(
+    staff_user, staff_api_client, permission_manage_apps, monkeypatch
+):
+    ssl_message = (
+        "HTTPSConnectionPool(host='localhost', port=443): "
+        "Max retries exceeded with url: /manifest "
+        "(Caused by SSLError(SSLCertVerificationError("
+        "certificate verify failed: self-signed certificate)))"
+    )
+    mocked_get = Mock()
+    mocked_get.side_effect = requests.exceptions.SSLError(ssl_message)
+
+    monkeypatch.setattr(HTTPSession, "request", mocked_get)
+    manifest_url = "https://localhost:3000/manifest"
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": manifest_url,
+    }
+    staff_user.user_permissions.set([permission_manage_apps])
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == "MANIFEST_URL_CANT_CONNECT"
+    assert errors[0]["field"] == "manifestUrl"
+    assert "TLS/SSL error" in errors[0]["message"]
+    assert "self-signed certificate" in errors[0]["message"]
+
+
+def test_app_fetch_manifest_connection_error(
+    staff_user, staff_api_client, permission_manage_apps, monkeypatch
+):
+    mocked_get = Mock()
+    mocked_get.side_effect = requests.exceptions.ConnectionError(
+        "Failed to establish a new connection: [Errno 111] Connection refused"
+    )
+
+    monkeypatch.setattr(HTTPSession, "request", mocked_get)
+    manifest_url = "http://localhost:3000/manifest"
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": manifest_url,
+    }
+    staff_user.user_permissions.set([permission_manage_apps])
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == "MANIFEST_URL_CANT_CONNECT"
+    assert errors[0]["field"] == "manifestUrl"
+    assert "Unable to connect to the provided manifest URL" in errors[0]["message"]
+    assert "Connection refused" in errors[0]["message"]
 
 
 @pytest.mark.parametrize(

@@ -53,7 +53,8 @@ def install_app_task(job_id, activate=False):
     except RequestException as e:
         logger.warning("Failed to install app. Error: %s", e)
         app_installation.message = (
-            "Failed to connect to app. Try later or contact with app support."
+            f"Failed to connect to app. Details: {e}. "
+            "Try later or contact with app support."
         )
     except Exception as e:
         logger.error("Failed to install app. Error: %s", e, exc_info=e)
