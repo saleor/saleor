@@ -820,8 +820,6 @@ def filter_objects_by_attributes(
     qs,
     value,
     get_assigned_attribute_expression: GetAssignedAttributeExpression,
-    *,
-    legacy_noop_filter_matches_all: bool = False,
 ):
     attribute_slugs = {
         attr_filter["slug"] for attr_filter in value if "slug" in attr_filter
@@ -904,14 +902,4 @@ def filter_objects_by_attributes(
             )
     if attr_filter_expression != Q():
         return qs.filter(attr_filter_expression)
-    # A no-op filter (e.g. an empty reference container like
-    # `reference: {pageSlugs: {}}`) builds an empty expression. Pages and
-    # products already matched no objects in that case, but product variants
-    # matched all of them - `legacy_noop_filter_matches_all` retains that
-    # behaviour so 3.23 does not change it.
-    # TODO (main / 3.24): remove the flag and its usage in
-    # product_variant.py, so a no-op filter matches no objects for every
-    # entity.
-    if legacy_noop_filter_matches_all:
-        return qs
     return qs.none()

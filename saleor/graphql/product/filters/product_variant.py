@@ -85,9 +85,6 @@ def filter_variants_by_attributes(
         qs,
         value,
         _get_assigned_variant_attribute_for_attribute_value_qs,
-        # TODO (main / 3.24): remove to make a no-op attribute filter match
-        # no variants - see filter_objects_by_attributes.
-        legacy_noop_filter_matches_all=True,
     )
 
 

@@ -35,7 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - `attributeBulkCreate` and `attributeBulkUpdate` already resolved the permission from the attribute type. They now reject an attribute type that has no permission mapped, instead of falling back to `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`.
 
   To upgrade, grant staff members and apps the permission matching the attribute types they operate on. A requestor holding only `MANAGE_PRODUCTS` can no longer create attribute values.
-- Providing an empty `attributes` list (`null` or `[]`) in `where` filters for pages, products, and product variants now matches no objects instead of being ignored.
+- Providing an empty `attributes` list (`null` or `[]`) in `where` filters for pages, products, and product variants now matches no objects instead of being ignored. The same now applies to a no-op attribute filter that builds no condition, such as an empty reference container (`reference: { pageSlugs: {} }`) - previously such a filter matched all product variants.
 
 ### GraphQL API
 
