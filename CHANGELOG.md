@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Improved transaction API error messages for duplicate events to include `pspReference`, event type, and amount details - #13951
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations

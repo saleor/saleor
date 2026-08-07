@@ -1151,6 +1151,35 @@ def get_already_existing_event(event: TransactionEvent) -> TransactionEvent | No
     return None
 
 
+def get_event_amount_mismatch_error_message(
+    event: TransactionEvent, existing_event: TransactionEvent
+) -> str:
+    """Build a detailed error for conflicting duplicate transaction events."""
+    return (
+        "The transaction with provided `pspReference` "
+        f"({event.psp_reference}) and `type` ({event.type}) "
+        "already exists with different amount. "
+        f"Existing amount: {existing_event.amount_value} {existing_event.currency}, "
+        f"received amount: {event.amount_value} {event.currency}."
+    )
+
+
+def get_authorization_success_already_exists_error_message(
+    *, psp_reference: str | None = None
+) -> str:
+    """Build a detailed error when AUTHORIZATION_SUCCESS was already reported."""
+    psp_reference_details = ""
+    if psp_reference:
+        psp_reference_details = f" Reported `pspReference`: {psp_reference}."
+    return (
+        "Event with `AUTHORIZATION_SUCCESS` already "
+        "reported for the transaction."
+        f"{psp_reference_details} Use "
+        "`AUTHORIZATION_ADJUSTMENT` to change the "
+        "authorization amount."
+    )
+
+
 def deduplicate_event(
     event: TransactionEvent, app: App | None
 ) -> tuple[TransactionEvent, ErrorMsg | None]:
@@ -1168,9 +1197,8 @@ def deduplicate_event(
     already_existing_event = get_already_existing_event(event)
     if already_existing_event:
         if already_existing_event.amount != event.amount:
-            error_message = (
-                "The transaction with provided `pspReference` and "
-                "`type` already exists with different amount."
+            error_message = get_event_amount_mismatch_error_message(
+                event, already_existing_event
             )
         event = already_existing_event
 
@@ -1179,11 +1207,8 @@ def deduplicate_event(
             event.transaction_id
         )
         if already_existing_authorization:
-            error_message = (
-                "Event with `AUTHORIZATION_SUCCESS` already "
-                "reported for the transaction. Use "
-                "`AUTHORIZATION_ADJUSTMENT` to change the "
-                "authorization amount."
+            error_message = get_authorization_success_already_exists_error_message(
+                psp_reference=event.psp_reference
             )
     if error_message:
         logger.warning(

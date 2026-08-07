@@ -2673,8 +2673,11 @@ def test_deduplicate_event_different_amount(
     # then
     assert result_event.id == events[0].id
     assert err_msg == (
-        "The transaction with provided `pspReference` and "
-        "`type` already exists with different amount."
+        "The transaction with provided `pspReference` "
+        f"({event.psp_reference}) and `type` ({event.type}) "
+        "already exists with different amount. "
+        f"Existing amount: {events[0].amount_value} {events[0].currency}, "
+        f"received amount: {event.amount_value} {event.currency}."
     )
     assert caplog.records[0].levelno == logging.WARNING
     assert caplog.records[0].message == err_msg
@@ -2705,7 +2708,8 @@ def test_deduplicate_event_authorization_already_exists(
     assert result_event
     assert err_msg == (
         "Event with `AUTHORIZATION_SUCCESS` already "
-        "reported for the transaction. Use "
+        "reported for the transaction. "
+        f"Reported `pspReference`: {event.psp_reference}. Use "
         "`AUTHORIZATION_ADJUSTMENT` to change the "
         "authorization amount."
     )

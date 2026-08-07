@@ -25,6 +25,8 @@ from .....payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
     get_already_existing_event,
+    get_authorization_success_already_exists_error_message,
+    get_event_amount_mismatch_error_message,
     get_source_object,
     get_transaction_event_amount,
     invalidate_cache_for_stored_payment_methods_if_needed,
@@ -408,9 +410,8 @@ class TransactionEventReport(DeprecatedModelMutation):
             existing_event = get_already_existing_event(transaction_event)
             if existing_event and existing_event.amount != transaction_event.amount:
                 error_code = TransactionEventReportErrorCode.INCORRECT_DETAILS.value
-                error_msg = (
-                    "The transaction with provided `pspReference` and "
-                    "`type` already exists with different amount."
+                error_msg = get_event_amount_mismatch_error_message(
+                    transaction_event, existing_event
                 )
                 error_field = "pspReference"
             elif existing_event:
@@ -421,11 +422,8 @@ class TransactionEventReport(DeprecatedModelMutation):
                 and authorization_success_already_exists(transaction.pk)
             ):
                 error_code = TransactionEventReportErrorCode.ALREADY_EXISTS.value
-                error_msg = (
-                    "Event with `AUTHORIZATION_SUCCESS` already "
-                    "reported for the transaction. Use "
-                    "`AUTHORIZATION_ADJUSTMENT` to change the "
-                    "authorization amount."
+                error_msg = get_authorization_success_already_exists_error_message(
+                    psp_reference=transaction_event.psp_reference
                 )
                 error_field = "type"
             else:

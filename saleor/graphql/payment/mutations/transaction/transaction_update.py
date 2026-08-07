@@ -156,7 +156,8 @@ class TransactionUpdate(TransactionCreate):
                 raise ValidationError(
                     {
                         "transaction": ValidationError(
-                            "Transaction with provided `pspReference` already exists.",
+                            "Transaction with provided `pspReference` "
+                            f"({psp_reference}) already exists.",
                             code=TransactionUpdateErrorCode.UNIQUE.value,
                         )
                     }
