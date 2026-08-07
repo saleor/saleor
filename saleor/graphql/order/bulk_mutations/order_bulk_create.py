@@ -820,7 +820,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for variant in variants:
             object_storage[f"ProductVariant.id.{variant.id}"] = variant
             if variant.sku:
-                object_storage[f"ProductVariant.id.{variant.sku}"] = variant
+                object_storage[f"ProductVariant.sku.{variant.sku}"] = variant
             if variant.external_reference:
                 object_storage[
                     f"ProductVariant.external_reference.{variant.external_reference}"
