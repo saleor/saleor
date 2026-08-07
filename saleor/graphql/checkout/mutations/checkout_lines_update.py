@@ -22,6 +22,7 @@ from ...utils import ERROR_COULD_NO_RESOLVE_GLOBAL_ID
 from ..types import Checkout
 from .checkout_lines_add import CheckoutLinesAdd
 from .utils import (
+    CHECKOUT_LINES_INPUT_LIMIT,
     PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     CheckoutLineData,
     check_lines_quantity,
@@ -97,7 +98,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             required=True,
             description=(
                 "A list of checkout lines, each containing information about "
-                "an item in the checkout."
+                f"an item in the checkout. Max {CHECKOUT_LINES_INPUT_LIMIT} items."
             ),
         )
 

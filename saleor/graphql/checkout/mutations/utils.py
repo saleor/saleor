@@ -33,7 +33,10 @@ from ....product.models import ProductChannelListing, ProductVariant
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_323
-from ...core.validators import validate_one_of_args_is_in_mutation
+from ...core.validators import (
+    validate_limit_of_list_input,
+    validate_one_of_args_is_in_mutation,
+)
 from ..types import Checkout
 
 if TYPE_CHECKING:
@@ -45,6 +48,20 @@ ERROR_CC_ADDRESS_CHANGE_FORBIDDEN = (
     "Can't change shipping address manually. "
     "For click and collect delivery, address is set to a warehouse address."
 )
+
+# Maximum number of line items accepted in a single checkout mutation input.
+CHECKOUT_LINES_INPUT_LIMIT = 100
+
+
+def validate_checkout_lines_input_limit(lines, field_name: str = "lines") -> None:
+    """Reject oversized checkout line list inputs early."""
+    if not lines:
+        return
+    try:
+        validate_limit_of_list_input(lines, CHECKOUT_LINES_INPUT_LIMIT, field_name)
+    except ValidationError as error:
+        error.code = CheckoutErrorCode.INVALID.value
+        raise ValidationError({field_name: error}) from error
 
 
 @dataclass

@@ -17,7 +17,12 @@ from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Checkout
-from .utils import get_checkout, mark_checkout_deliveries_as_stale_if_needed
+from .utils import (
+    CHECKOUT_LINES_INPUT_LIMIT,
+    get_checkout,
+    mark_checkout_deliveries_as_stale_if_needed,
+    validate_checkout_lines_input_limit,
+)
 
 
 class CheckoutLinesDelete(BaseMutation):
@@ -35,7 +40,10 @@ class CheckoutLinesDelete(BaseMutation):
         lines_ids = NonNullList(
             graphene.ID,
             required=True,
-            description="A list of checkout lines.",
+            description=(
+                "A list of checkout lines. "
+                f"Max {CHECKOUT_LINES_INPUT_LIMIT} items."
+            ),
         )
 
     class Meta:
@@ -90,6 +98,7 @@ class CheckoutLinesDelete(BaseMutation):
     ):
         checkout = get_checkout(cls, info, checkout_id=None, token=token, id=id)
 
+        validate_checkout_lines_input_limit(lines_ids, field_name="lines_ids")
         _, lines_to_delete = resolve_global_ids_to_primary_keys(
             lines_ids, graphene_type="CheckoutLine", raise_error=True
         )

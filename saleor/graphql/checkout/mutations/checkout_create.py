@@ -34,12 +34,14 @@ from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .utils import (
+    CHECKOUT_LINES_INPUT_LIMIT,
     PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     apply_gift_reward_if_applicable_on_checkout_creation,
     check_lines_quantity,
     check_permissions_for_custom_prices,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
+    validate_checkout_lines_input_limit,
     validate_price_override_reason,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -143,7 +145,7 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             "A list of checkout lines, each containing information about "
             "an item in the checkout. When omitted, a checkout with no lines "
-            "is created."
+            f"is created. Max {CHECKOUT_LINES_INPUT_LIMIT} items."
         ),
         required=False,
     )
@@ -445,6 +447,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         )
         lines = data.pop("lines", None)
         if lines:
+            validate_checkout_lines_input_limit(lines)
             (
                 cleaned_input["variants"],
                 cleaned_input["lines_data"],

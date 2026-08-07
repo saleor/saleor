@@ -29,12 +29,14 @@ from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .utils import (
+    CHECKOUT_LINES_INPUT_LIMIT,
     check_lines_quantity,
     check_permissions_for_custom_prices,
     get_checkout,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
     mark_checkout_deliveries_as_stale_if_needed,
+    validate_checkout_lines_input_limit,
     validate_price_override_reason,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
@@ -64,7 +66,7 @@ class CheckoutLinesAdd(BaseMutation):
             required=True,
             description=(
                 "A list of checkout lines, each containing information about "
-                "an item in the checkout."
+                f"an item in the checkout. Max {CHECKOUT_LINES_INPUT_LIMIT} items."
             ),
         )
 
@@ -223,6 +225,7 @@ class CheckoutLinesAdd(BaseMutation):
         id=None,
     ):
         app = get_app_promise(info.context).get()
+        validate_checkout_lines_input_limit(lines)
         check_permissions_for_custom_prices(app, lines)
 
         # Validate lines early, before clean input. This class pass to clean_input already modified payload

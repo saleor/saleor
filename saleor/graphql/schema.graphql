@@ -20940,7 +20940,7 @@ type Mutation {
     """The checkout's ID."""
     id: ID
 
-    """A list of checkout lines."""
+    """A list of checkout lines. Max 100 items."""
     linesIds: [ID!]!
 
     """Checkout token."""
@@ -20961,7 +20961,7 @@ type Mutation {
     id: ID
 
     """
-    A list of checkout lines, each containing information about an item in the checkout.
+    A list of checkout lines, each containing information about an item in the checkout. Max 100 items.
     """
     lines: [CheckoutLineInput!]!
 
@@ -20983,7 +20983,7 @@ type Mutation {
     id: ID
 
     """
-    A list of checkout lines, each containing information about an item in the checkout.
+    A list of checkout lines, each containing information about an item in the checkout. Max 100 items.
     """
     lines: [CheckoutLineUpdateInput!]!
 
@@ -30735,7 +30735,7 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   channel: String
 
   """
-  A list of checkout lines, each containing information about an item in the checkout. When omitted, a checkout with no lines is created.
+  A list of checkout lines, each containing information about an item in the checkout. When omitted, a checkout with no lines is created. Max 100 items.
   """
   lines: [CheckoutLineInput!]
 
