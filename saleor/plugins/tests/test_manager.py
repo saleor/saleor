@@ -1624,3 +1624,37 @@ def test_run_plugin_method_until_first_success_for_active_plugins_only(
     # then
     assert result is None
     assert mock_run_method.call_count == calls
+
+def test_manager_payment_gateway_initialize_session_returns_empty_list_without_plugins(
+    checkout,
+):
+    # given
+    manager = PluginsManager(plugins=[])
+
+    # when
+    response = manager.payment_gateway_initialize_session(
+        amount=Decimal("10.00"),
+        payment_gateways=None,
+        source_object=checkout,
+    )
+
+    # then
+    assert response == []
+
+
+def test_manager_payment_gateway_initialize_session_with_only_inactive_plugins(
+    checkout,
+):
+    # given
+    plugins = ["saleor.plugins.tests.sample_plugins.PluginInactive"]
+    manager = PluginsManager(plugins=plugins)
+
+    # when
+    response = manager.payment_gateway_initialize_session(
+        amount=Decimal("10.00"),
+        payment_gateways=None,
+        source_object=checkout,
+    )
+
+    # then
+    assert response == []

@@ -1233,3 +1233,43 @@ def test_with_mutiple_payment_gateways_have_different_recipments(
     second_message = mock_send_webhook_using_http.mock_calls[1].args[1]
 
     assert json.loads(first_message) != json.loads(second_message)
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@override_settings(PLUGINS=["saleor.plugins.webhook.plugin.WebhookPlugin"])
+def test_for_checkout_when_webhook_does_not_respond(
+    mocked_send_webhook_request_sync,
+    user_api_client,
+    checkout_with_prices,
+    permission_manage_payments,
+    payment_gateway_initialize_session_app,
+):
+    # given
+    mocked_send_webhook_request_sync.return_value = None
+    checkout = checkout_with_prices
+    app_identifier = payment_gateway_initialize_session_app.identifier
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "paymentGateways": [{"id": app_identifier}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(PAYMENT_GATEWAY_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["paymentGatewayInitialize"]["errors"]
+    gateway_configs = content["data"]["paymentGatewayInitialize"]["gatewayConfigs"]
+    assert len(gateway_configs) == 1
+    assert gateway_configs[0]["id"] == app_identifier
+    assert gateway_configs[0]["data"] is None
+    assert len(gateway_configs[0]["errors"]) == 1
+    assert gateway_configs[0]["errors"][0]["code"] == (
+        PaymentGatewayConfigErrorCode.INVALID.name
+    )
+    assert (
+        gateway_configs[0]["errors"][0]["message"]
+        == "Unable to process a payment gateway response."
+    )
+    mocked_send_webhook_request_sync.assert_called_once()

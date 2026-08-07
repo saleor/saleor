@@ -3200,7 +3200,7 @@ class WebhookPlugin(BasePlugin):
         previous_value,
     ) -> list[PaymentGatewayData]:
         if not self.active:
-            return previous_value
+            return previous_value if previous_value is not None else []
 
         event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
         response_gateway: dict[str, PaymentGatewayData] = {}

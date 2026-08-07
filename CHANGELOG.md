@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Fixed `paymentGatewayInitialize` crashing with a TypeError when the payment gateway webhook did not respond or no plugin returned a list - #17891
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations
