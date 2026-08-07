@@ -526,15 +526,17 @@ def test_graphql_view_clears_context(rf, staff_user, product, channel_USD):
 
 
 @pytest.mark.parametrize(
-    ("public_url", "expected_url_base"),
+    ("public_url", "enable_ssl", "expected_url_base"),
     [
-        (None, "http://testserver"),
-        ("http://some_custom_domain.com", "http://some_custom_domain.com"),
+        (None, False, "http://testserver"),
+        (None, True, "https://testserver"),
+        ("http://some_custom_domain.com", False, "http://some_custom_domain.com"),
+        ("https://some_custom_domain.com", True, "https://some_custom_domain.com"),
     ],
 )
 @patch("saleor.graphql.views.render", wraps=render)
 def test_playground_is_rendered_with_proper_api_url_if_public_url_is_set(
-    mocked_render, rf, settings, public_url, expected_url_base
+    mocked_render, rf, settings, public_url, enable_ssl, expected_url_base
 ):
     # given
     request = rf.get(
@@ -543,6 +545,7 @@ def test_playground_is_rendered_with_proper_api_url_if_public_url_is_set(
     request.app = None
     request.user = None
     settings.PUBLIC_URL = public_url
+    settings.ENABLE_SSL = enable_ssl
 
     # when
     view = GraphQLView.as_view(backend=backend, schema=schema)

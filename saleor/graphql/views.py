@@ -4,7 +4,6 @@ import importlib
 import time
 from inspect import isclass
 from typing import Any, cast
-from urllib.parse import urljoin
 
 import orjson
 from django.conf import settings
@@ -33,6 +32,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 from .. import __version__ as saleor_version
 from ..core.exceptions import PermissionDenied
 from ..core.telemetry import Scope, SpanKind, saleor_attributes, tracer
+from ..core.utils import build_absolute_uri
 from ..webhook import observability
 from . import GraphQLOperationResult
 from .api import API_PATH, schema
@@ -172,12 +172,11 @@ class GraphQLView(View):
         return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
     def render_playground(self, request):
-        if settings.PUBLIC_URL:
-            api_url = urljoin(settings.PUBLIC_URL, str(API_PATH))
-            plugins_url = urljoin(settings.PUBLIC_URL, "/plugins/")
-        else:
-            api_url = request.build_absolute_uri(str(API_PATH))
-            plugins_url = request.build_absolute_uri("/plugins/")
+        # Use Saleor's URL builder so ENABLE_SSL / PUBLIC_URL win over the
+        # plain HTTP scheme Django sees behind TLS-terminating proxies.
+        domain = request.get_host()
+        api_url = build_absolute_uri(str(API_PATH), domain=domain)
+        plugins_url = build_absolute_uri("/plugins/", domain=domain)
 
         return render(
             request,
