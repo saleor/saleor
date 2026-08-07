@@ -133,6 +133,10 @@ class TransactionUpdate(TransactionCreate):
             transaction_data.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        cls.validate_transaction_input_lengths(
+            transaction_data,
+            error_code=TransactionUpdateErrorCode.INVALID.value,
+        )
         if payment_method_details := transaction_data.get("payment_method_details"):
             validate_payment_method_details_input(
                 payment_method_details, TransactionUpdateErrorCode
@@ -219,6 +223,10 @@ class TransactionUpdate(TransactionCreate):
         previous_charged_value = instance.charged_value
         previous_refunded_value = instance.refunded_value
 
+        cls.validate_transaction_event_input(
+            transaction_event,
+            error_code=TransactionUpdateErrorCode.INVALID.value,
+        )
         if transaction:
             cls.validate_transaction_input(instance, transaction)
             cls.assign_app_to_transaction_data_if_missing(instance, transaction, app)

@@ -2891,3 +2891,107 @@ def test_transaction_create_checkout_completed_race_condition(
     assert order.status == OrderStatus.UNFULFILLED
     assert order.charge_status == OrderChargeStatus.NONE
     assert order.authorize_status == OrderAuthorizeStatus.FULL
+
+
+@pytest.mark.parametrize(
+    ("field", "input_key"),
+    [
+        ("pspReference", "pspReference"),
+        ("message", "message"),
+        ("name", "name"),
+    ],
+)
+def test_transaction_create_rejects_too_long_string_fields(
+    field, input_key, order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    too_long_value = "x" * 513
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            input_key: too_long_value,
+            "amountAuthorized": {
+                "amount": Decimal(10),
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert not content["data"]["transactionCreate"]["transaction"]
+    errors = content["data"]["transactionCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "transaction"
+    assert errors[0]["code"] == TransactionCreateErrorCode.INVALID.name
+    assert "512" in errors[0]["message"]
+    assert field in errors[0]["message"]
+    assert not TransactionItem.objects.filter(order_id=order_with_lines.pk).exists()
+
+
+def test_transaction_create_rejects_too_long_event_psp_reference(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    too_long_psp_reference = "x" * 513
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": Decimal(10),
+                "currency": "USD",
+            },
+        },
+        "transaction_event": {
+            "pspReference": too_long_psp_reference,
+            "message": "Event message",
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert not content["data"]["transactionCreate"]["transaction"]
+    errors = content["data"]["transactionCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "transactionEvent"
+    assert errors[0]["code"] == TransactionCreateErrorCode.INVALID.name
+    assert "512" in errors[0]["message"]
+    assert not TransactionItem.objects.filter(order_id=order_with_lines.pk).exists()
+
+
+def test_transaction_create_accepts_max_length_psp_reference(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    max_length_psp_reference = "x" * 512
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "pspReference": max_length_psp_reference,
+            "amountAuthorized": {
+                "amount": Decimal(10),
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]
+    assert not data["errors"]
+    assert data["transaction"]["pspReference"] == max_length_psp_reference
