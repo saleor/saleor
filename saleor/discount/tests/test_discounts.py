@@ -30,7 +30,9 @@ from ..utils.voucher import (
     decrease_voucher_code_usage_value,
     get_the_cheapest_line,
     increase_voucher_code_usage_value,
+    increase_voucher_usage,
     is_order_level_voucher,
+    release_voucher_code_usage,
     remove_voucher_usage_by_customer,
     validate_voucher,
 )
@@ -211,6 +213,77 @@ def test_increase_voucher_usage(channel_USD):
         discount=Money(10, channel_USD.currency_code),
     )
     increase_voucher_code_usage_value(code_instance)
+    code_instance.refresh_from_db(fields=["used"])
+    assert code_instance.used == 1
+
+
+def test_increase_voucher_usage_without_usage_limit(channel_USD):
+    # given
+    voucher = Voucher.objects.create(
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.FIXED,
+        usage_limit=None,
+    )
+    code_instance = VoucherCode.objects.create(code="unlimited", voucher=voucher)
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+    )
+    assert voucher.usage_limit is None
+    assert code_instance.used == 0
+
+    # when
+    increase_voucher_usage(voucher, code_instance, customer_email=None)
+
+    # then
+    code_instance.refresh_from_db(fields=["used"])
+    assert code_instance.used == 1
+
+
+def test_increase_voucher_usage_with_usage_limit(channel_USD):
+    # given
+    voucher = Voucher.objects.create(
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.FIXED,
+        usage_limit=100,
+    )
+    code_instance = VoucherCode.objects.create(code="limited", voucher=voucher)
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+    )
+
+    # when
+    increase_voucher_usage(voucher, code_instance, customer_email=None)
+
+    # then
+    code_instance.refresh_from_db(fields=["used"])
+    assert code_instance.used == 1
+
+
+def test_release_voucher_code_usage_without_usage_limit(channel_USD):
+    # given
+    voucher = Voucher.objects.create(
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=DiscountValueType.FIXED,
+        usage_limit=None,
+    )
+    code_instance = VoucherCode.objects.create(
+        code="unlimited", voucher=voucher, used=2
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(10, channel_USD.currency_code),
+    )
+    assert voucher.usage_limit is None
+
+    # when
+    release_voucher_code_usage(code_instance, voucher, user_email=None)
+
+    # then
     code_instance.refresh_from_db(fields=["used"])
     assert code_instance.used == 1
 

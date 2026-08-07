@@ -426,6 +426,27 @@ def test_release_voucher_code_usage_of_draft_orders_multiple_use(
     assert multiple_use_code.used == max(used - len(voucher_codes_with_emails), 0)
 
 
+def test_release_voucher_code_usage_of_draft_orders_without_usage_limit(voucher):
+    # given
+    code = voucher.codes.first()
+    voucher.usage_limit = None
+    voucher.save(update_fields=["usage_limit"])
+    code.used = 3
+    code.save(update_fields=["used"])
+
+    voucher_codes_with_emails = [
+        (code.code, "test@example.com"),
+        (code.code, "test2@example.com"),
+    ]
+
+    # when
+    release_voucher_code_usage_of_draft_orders(voucher_codes_with_emails)
+
+    # then
+    code.refresh_from_db()
+    assert code.used == 1
+
+
 def test_release_voucher_code_usage_of_draft_orders_clears_voucher_customers(
     voucher_single_use,
 ):

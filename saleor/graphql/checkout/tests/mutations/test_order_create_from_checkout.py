@@ -882,6 +882,46 @@ def test_order_from_checkout_with_voucher(
 
 
 @pytest.mark.integration
+def test_order_from_checkout_with_voucher_without_usage_limit(
+    app_api_client,
+    permission_handle_checkouts,
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    address,
+    checkout_delivery,
+):
+    # given
+    code = voucher_percentage.codes.first()
+    voucher_used_count = code.used
+    voucher_percentage.usage_limit = None
+    voucher_percentage.save(update_fields=["usage_limit"])
+
+    checkout = checkout_with_voucher_percentage
+    checkout.shipping_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.billing_address = address
+    checkout.save()
+
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+    assert data["order"] is not None
+
+    code.refresh_from_db()
+    assert code.used == voucher_used_count + 1
+
+
+@pytest.mark.integration
 def test_order_from_checkout_with_voucher_and_gift_card(
     app_api_client,
     permission_handle_checkouts,

@@ -230,17 +230,15 @@ def release_voucher_code_usage_of_draft_orders(
     single_use_vouchers = Voucher.objects.filter(single_use=True)
     codes.filter(voucher__in=single_use_vouchers).update(is_active=True)
 
-    # decrease usage for vouchers with usage limit
-    voucher_with_usage_limit = Voucher.objects.filter(usage_limit__isnull=False)
-    codes_to_release = codes.filter(voucher__in=voucher_with_usage_limit)
+    # decrease usage for voucher codes
     code_counter = Counter(voucher_codes)
-    for voucher_code in codes_to_release:
+    for voucher_code in codes:
         usage_decrease = code_counter[voucher_code.code]
         if voucher_code.used < usage_decrease:
             voucher_code.used = 0
         else:
             voucher_code.used = F("used") - usage_decrease
-    VoucherCode.objects.bulk_update(codes_to_release, ["used"])
+    VoucherCode.objects.bulk_update(codes, ["used"])
 
     # drop customer usage
     lookup = Q()
@@ -277,7 +275,7 @@ def decrease_voucher_codes_usage_task(voucher_code_ids, codes):
         .only("voucher", "used", "is_active")
     ):
         for voucher_code in voucher_codes:
-            if voucher_code.voucher.usage_limit and voucher_code.used > 0:
+            if voucher_code.used > 0:
                 used_in_draft_orders = len(
                     list(filter(lambda x: voucher_code.code == x, codes))
                 )
