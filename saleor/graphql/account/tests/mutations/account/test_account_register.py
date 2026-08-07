@@ -1,6 +1,7 @@
 from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
+import graphene
 import pytest
 from django.test import override_settings
 from django.utils import timezone
@@ -468,6 +469,79 @@ def test_account_register_returns_empty_id(
 
     # when
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountRegister"]
+    assert not data["errors"]
+    assert data["user"]["id"] == ""
+    assert data["user"]["email"] == customer_user.email
+
+
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
+def test_account_register_returns_user_id_for_app_with_manage_users(
+    app_api_client, permission_manage_users, site_settings
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+    email = "app-customer@example.com"
+    variables = {"input": {"email": email, "password": "Password"}}
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_REGISTER_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountRegister"]
+    new_user = User.objects.get(email=email)
+    assert not data["errors"]
+    assert data["user"]["id"] == graphene.Node.to_global_id("User", new_user.pk)
+    assert data["user"]["email"] == email
+
+
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
+def test_account_register_returns_empty_id_for_app_without_manage_users(
+    app_api_client, site_settings
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+    email = "app-customer-no-perm@example.com"
+    variables = {"input": {"email": email, "password": "Password"}}
+
+    # when
+    response = app_api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["accountRegister"]
+    assert User.objects.filter(email=email).exists()
+    assert not data["errors"]
+    assert data["user"]["id"] == ""
+    assert data["user"]["email"] == email
+
+
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
+def test_account_register_returns_empty_id_for_app_when_user_already_exists(
+    app_api_client, permission_manage_users, site_settings, customer_user
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+    variables = {
+        "input": {
+            "email": customer_user.email,
+            "password": "Password",
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        ACCOUNT_REGISTER_MUTATION, variables, permissions=[permission_manage_users]
+    )
     content = get_graphql_content(response)
 
     # then

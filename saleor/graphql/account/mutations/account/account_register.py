@@ -9,6 +9,7 @@ from .....account.error_codes import AccountErrorCode
 from .....account.tasks import finish_creating_user
 from .....account.utils import RequestorAwareContext
 from .....core.utils.url import validate_storefront_url
+from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
@@ -19,6 +20,7 @@ from ....core.types import AccountError, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....site.dataloaders import get_site_promise
+from ....utils import get_user_or_app_from_context
 from ...types import User
 from .base import AccountBaseInput
 
@@ -62,8 +64,9 @@ class AccountRegister(DeprecatedModelMutation):
         User,
         deprecation_reason=(
             "The field always returns a `User` object constructed from the input data. "
-            "The `user.id` is always empty. To determine whether the user exists "
-            "in Saleor, query via an external app with the required permissions."
+            "The `user.id` is empty for unauthenticated callers to prevent user "
+            "enumeration. Apps or staff with the `MANAGE_USERS` permission receive "
+            "the real id when a new user is created."
         ),
     )
 
@@ -109,9 +112,18 @@ class AccountRegister(DeprecatedModelMutation):
         response.requires_confirmation = (
             site.settings.enable_account_confirmation_by_email
         )
-        # we don't want to return id's as it will allow to deduce if user exists
+        # Hide ids from unauthenticated callers to prevent user enumeration.
+        # Trusted apps/staff with MANAGE_USERS may receive the real id when a
+        # user was actually created (instance has a primary key).
         if response.user:
-            response.user.NEWLY_CREATED_USER = True
+            requestor = get_user_or_app_from_context(info.context)
+            can_see_user_id = (
+                requestor
+                and requestor.has_perm(AccountPermissions.MANAGE_USERS)
+                and response.user.pk
+            )
+            if not can_see_user_id:
+                response.user.NEWLY_CREATED_USER = True
         return response
 
     @staticmethod
