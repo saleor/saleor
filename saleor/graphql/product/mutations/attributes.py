@@ -225,18 +225,21 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
         variant_attrs_pks = [pk for pk, _, __ in variant_attrs_data]
 
         attrs_pk = product_attrs_pks + variant_attrs_pks
-        attributes = attribute_models.Attribute.objects.filter(
-            id__in=attrs_pk
-        ).values_list("pk", flat=True)
-        if len(attrs_pk) != len(attributes):
-            invalid_attrs = set(attrs_pk) - set(attributes)
-            invalid_attrs = [
-                graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
+        found_pks = {
+            str(pk)
+            for pk in attribute_models.Attribute.objects.filter(
+                pk__in=attrs_pk
+            ).values_list("pk", flat=True)
+        }
+        missing_pks = [pk for pk in attrs_pk if pk not in found_pks]
+        if missing_pks:
+            missing_attrs = [
+                graphene.Node.to_global_id("Attribute", pk) for pk in missing_pks
             ]
             error = ValidationError(
                 "Attribute doesn't exist.",
                 code=ProductErrorCode.NOT_FOUND.value,
-                params={"attributes": list(invalid_attrs)},
+                params={"attributes": missing_attrs},
             )
             errors["operations"].append(error)
 
