@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Send notification to Discord
-        uses: appleboy/discord-action@7bf3a70d337b798eaccf919f8842b33df151f7ce # v1.2.0
+        uses: appleboy/discord-action@afc227330777ad298156a1f5233dfa1e885616db # v1.2.0
         with:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           message: |
