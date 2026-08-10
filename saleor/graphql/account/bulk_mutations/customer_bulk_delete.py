@@ -2,6 +2,7 @@ import graphene
 from django.conf import settings
 
 from ....account import models
+from ....attribute.utils import delete_user_unique_attribute_values
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import deactivate_assigned_gift_cards
 from ....permission.enums import AccountPermissions
@@ -63,6 +64,7 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
             # on_delete=PROTECT, so restricted cards must be detached and
             # deactivated first, atomically with the deletion.
             deactivate_assigned_gift_cards(queryset)
+            delete_user_unique_attribute_values(queryset.values_list("pk", flat=True))
             queryset.delete()
         webhooks = get_webhooks_for_event(WebhookEventAsyncType.CUSTOMER_DELETED)
         manager = get_plugin_manager_promise(info.context).get()

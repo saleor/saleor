@@ -5,6 +5,7 @@ from django.conf import settings
 
 from .....account.error_codes import AccountErrorCode
 from .....account.models import Group, User
+from .....attribute.models import AssignedUserAttributeValue, AttributeValue
 from .....permission.enums import AccountPermissions, OrderPermissions
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -387,3 +388,51 @@ def test_delete_staff_members_superuser_can_delete__out_of_scope_users(
     assert not User.objects.filter(
         id__in=[user.id for user in [staff_user1, staff_user2]]
     ).exists()
+
+
+def test_deletes_unique_attribute_values_and_keeps_shared_choices(
+    staff_api_client,
+    permission_manage_staff,
+    description_customer_attribute,
+    loyalty_customer_attribute,
+):
+    # given: each staff user has a unique (plain text) value and a shared choice
+    staff_users = [
+        User.objects.create(email="staff1@example.com", is_staff=True),
+        User.objects.create(email="staff2@example.com", is_staff=True),
+    ]
+    unique_values = []
+    choice_value = loyalty_customer_attribute.values.get(slug="gold")
+    for staff_user in staff_users:
+        plain_text = f"Notes about staff member {staff_user.pk}"
+        unique_value = AttributeValue.objects.create(
+            attribute=description_customer_attribute,
+            name=plain_text,
+            slug=f"{staff_user.pk}_{description_customer_attribute.pk}",
+            plain_text=plain_text,
+        )
+        unique_values.append(unique_value)
+        AssignedUserAttributeValue.objects.create(user=staff_user, value=unique_value)
+        AssignedUserAttributeValue.objects.create(user=staff_user, value=choice_value)
+    variables = {
+        "ids": [graphene.Node.to_global_id("User", user.pk) for user in staff_users]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_BULK_DELETE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+
+    # then: the unique values are deleted with the users, the shared choice stays
+    content = get_graphql_content(response)
+    assert content["data"]["staffBulkDelete"]["count"] == len(staff_users)
+    assert (
+        User.objects.filter(pk__in=[user.pk for user in staff_users]).exists() is False
+    )
+    assert (
+        AttributeValue.objects.filter(
+            pk__in=[value.pk for value in unique_values]
+        ).exists()
+        is False
+    )
+    assert AttributeValue.objects.filter(pk=choice_value.pk).exists() is True

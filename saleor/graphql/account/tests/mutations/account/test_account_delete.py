@@ -6,6 +6,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ......account.models import User
+from ......attribute.models import AssignedUserAttributeValue, AttributeValue
 from ......core.tokens import (
     account_delete_token_generator,
     legacy_account_delete_token_generator,
@@ -225,3 +226,34 @@ def test_account_delete_webhook_event_triggered(
     assert not User.objects.filter(pk=user.id).exists()
 
     mocked_trigger_webhooks_async.assert_called()
+
+
+def test_deletes_unique_attribute_values_and_keeps_shared_choices(
+    user_api_client,
+    description_customer_attribute,
+    loyalty_customer_attribute,
+):
+    # given: the user has a unique (plain text) value and a shared choice
+    user = user_api_client.user
+    plain_text = "Notes about the customer"
+    unique_value = AttributeValue.objects.create(
+        attribute=description_customer_attribute,
+        name=plain_text,
+        slug=f"{user.pk}_{description_customer_attribute.pk}",
+        plain_text=plain_text,
+    )
+    choice_value = loyalty_customer_attribute.values.get(slug="gold")
+    AssignedUserAttributeValue.objects.create(user=user, value=unique_value)
+    AssignedUserAttributeValue.objects.create(user=user, value=choice_value)
+    token = account_delete_token_generator.make_token(user)
+    variables = {"token": token}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+
+    # then: the unique value is deleted with the user, the shared choice stays
+    content = get_graphql_content(response)
+    assert content["data"]["accountDelete"]["errors"] == []
+    assert User.objects.filter(pk=user.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=unique_value.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=choice_value.pk).exists() is True
