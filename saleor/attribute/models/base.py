@@ -364,10 +364,10 @@ class AttributeValueManager(models.Manager):
             from ..lock_objects import attribute_value_qs_select_for_update
 
             with transaction.atomic():
-                _locked_qs = (
+                _locked_ids = list(
                     attribute_value_qs_select_for_update()
                     .filter(pk__in=[obj.pk for obj in objects_to_be_updated])
-                    .select_for_update(of=(["self"]))
+                    .values_list("pk", flat=True)
                 )
                 self.bulk_update(
                     objects_to_be_updated,
