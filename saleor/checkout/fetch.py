@@ -62,6 +62,14 @@ class CheckoutLineInfo(LineInfo):
 
     tax_class: Optional["TaxClass"] = field(default=None, repr=False)
 
+    def __repr__(self):
+        return (
+            f"CheckoutLineInfo(line_id={getattr(self.line, 'pk', None)!r}, "
+            f"variant_id={getattr(self.variant, 'pk', None)!r}, "
+            f"quantity={getattr(self.line, 'quantity', None)!r}, "
+            f"discounts={len(self.discounts)!r})"
+        )
+
     @cached_property
     def variant_discounted_price(self) -> Money:
         """Return the discounted variant price.
@@ -129,6 +137,14 @@ class CheckoutInfo:
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
 
     allow_sync_webhooks: bool = True
+
+    def __repr__(self):
+        return (
+            f"CheckoutInfo(checkout_id={getattr(self.checkout, 'pk', None)!r}, "
+            f"user_id={getattr(self.user, 'pk', None)!r}, "
+            f"channel_id={getattr(self.channel, 'pk', None)!r}, "
+            f"lines={len(self.lines)!r}, discounts={len(self.discounts)!r})"
+        )
 
     @cached_property
     def valid_pick_up_points(self) -> Iterable["Warehouse"]:

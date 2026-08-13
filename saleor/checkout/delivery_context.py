@@ -81,6 +81,14 @@ class ShippingMethodInfo(DeliveryMethodBase):
     shipping_address: Optional["Address"]
     store_as_customer_address: bool = True
 
+    def __repr__(self):
+        shipping_address_id = getattr(self.shipping_address, "pk", None)
+        return (
+            f"ShippingMethodInfo(delivery_method={self.delivery_method!r}, "
+            f"shipping_address_id={shipping_address_id!r}, "
+            f"store_as_customer_address={self.store_as_customer_address!r})"
+        )
+
     @property
     def delivery_method_name(self) -> dict[str, str | None]:
         return {"shipping_method_name": str(self.delivery_method.name)}
