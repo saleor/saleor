@@ -430,3 +430,41 @@ def test_gateway_initialize_session_for_order_with_request_data(
     _assert_with_subscription(
         order, data, amount, webhook, expected_data, response, mock_request
     )
+
+
+@freeze_time()
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+def test_gateway_initialize_session_when_webhook_does_not_respond(
+    mock_request, webhook_plugin, webhook_app, checkout, permission_manage_payments
+):
+    # given
+    mock_request.return_value = None
+    plugin = webhook_plugin()
+
+    webhook_app.identifier = "saleor.app.payment.stripe"
+    webhook_app.save()
+    webhook_app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="Webhook",
+        app=webhook_app,
+    )
+    event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
+    webhook.events.create(event_type=event_type)
+    amount = Decimal("10.00")
+
+    # when
+    response = plugin.payment_gateway_initialize_session(
+        amount=amount,
+        payment_gateways=[
+            PaymentGatewayData(app_identifier=webhook_app.identifier, data=None)
+        ],
+        source_object=checkout,
+        previous_value=None,
+    )
+
+    # then
+    assert isinstance(response, list)
+    assert len(response) == 1
+    assert response[0].app_identifier == webhook_app.identifier
+    assert response[0].data is None
+    assert response[0].error == "Unable to process a payment gateway response."

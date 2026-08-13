@@ -1533,7 +1533,7 @@ class PluginsManager(PaymentInterface):
         payment_gateways: list["PaymentGatewayData"] | None,
         source_object: Union["Order", "Checkout"],
     ) -> list["PaymentGatewayData"]:
-        default_value = None
+        default_value: list[PaymentGatewayData] = []
         return self.__run_method_on_plugins(
             "payment_gateway_initialize_session",
             default_value,
