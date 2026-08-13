@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Fixed `transactionCreate` and `transactionUpdate` returning a 500 error when `pspReference`, `message` or `name` exceeded 512 characters. The mutations now return an `INVALID` validation error instead - #12696
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations

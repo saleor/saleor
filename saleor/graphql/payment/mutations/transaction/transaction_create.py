@@ -46,11 +46,32 @@ if TYPE_CHECKING:
     pass
 
 
-class TransactionCreateInput(BaseInputObjectType):
-    name = graphene.String(description="Payment name of the transaction.")
-    message = graphene.String(description="The message of the transaction.")
+# Match DB CharField(max_length=512) on TransactionItem / TransactionEvent.
+TRANSACTION_FIELD_MAX_LENGTH = payment_models.TransactionItem._meta.get_field(  # type: ignore[assignment]
+    "psp_reference"
+).max_length
 
-    psp_reference = graphene.String(description="PSP Reference of the transaction.")
+
+class TransactionCreateInput(BaseInputObjectType):
+    name = graphene.String(
+        description=(
+            "Payment name of the transaction. "
+            f"Maximum length is {TRANSACTION_FIELD_MAX_LENGTH} characters."
+        )
+    )
+    message = graphene.String(
+        description=(
+            "The message of the transaction. "
+            f"Maximum length is {TRANSACTION_FIELD_MAX_LENGTH} characters."
+        )
+    )
+
+    psp_reference = graphene.String(
+        description=(
+            "PSP Reference of the transaction. "
+            f"Maximum length is {TRANSACTION_FIELD_MAX_LENGTH} characters."
+        )
+    )
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
         description="List of all possible actions for the transaction",
@@ -90,9 +111,19 @@ class TransactionCreateInput(BaseInputObjectType):
 
 
 class TransactionEventInput(BaseInputObjectType):
-    psp_reference = graphene.String(description="PSP Reference related to this action.")
+    psp_reference = graphene.String(
+        description=(
+            "PSP Reference related to this action. "
+            f"Maximum length is {TRANSACTION_FIELD_MAX_LENGTH} characters."
+        )
+    )
 
-    message = graphene.String(description="The message related to the event.")
+    message = graphene.String(
+        description=(
+            "The message related to the event. Longer messages are truncated "
+            f"to {TRANSACTION_FIELD_MAX_LENGTH} characters."
+        )
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
@@ -135,6 +166,66 @@ class TransactionCreate(BaseMutation):
                     )
                 }
             ) from e
+
+    @classmethod
+    def validate_input_string_length(
+        cls,
+        value: str | None,
+        *,
+        field_name: str,
+        error_code: str,
+        error_field: str = "transaction",
+    ):
+        """Reject values that exceed the DB CharField max length.
+
+        Prevents an Integrity/DataError 500 when the value is written to the DB.
+        """
+        if value is not None and len(value) > TRANSACTION_FIELD_MAX_LENGTH:
+            raise ValidationError(
+                {
+                    error_field: ValidationError(
+                        f"`{field_name}` cannot exceed "
+                        f"{TRANSACTION_FIELD_MAX_LENGTH} characters.",
+                        code=error_code,
+                    )
+                }
+            )
+
+    @classmethod
+    def validate_transaction_input_lengths(
+        cls, transaction_data: dict | None, error_code: str
+    ):
+        if not transaction_data:
+            return
+        cls.validate_input_string_length(
+            transaction_data.get("psp_reference"),
+            field_name="pspReference",
+            error_code=error_code,
+        )
+        cls.validate_input_string_length(
+            transaction_data.get("message"),
+            field_name="message",
+            error_code=error_code,
+        )
+        cls.validate_input_string_length(
+            transaction_data.get("name"),
+            field_name="name",
+            error_code=error_code,
+        )
+
+    @classmethod
+    def validate_transaction_event_input(
+        cls, transaction_event: dict | None, error_code: str
+    ):
+        if not transaction_event:
+            return
+        # Event messages are truncated on write; pspReference is not.
+        cls.validate_input_string_length(
+            transaction_event.get("psp_reference"),
+            field_name="pspReference",
+            error_code=error_code,
+            error_field="transaction_event",
+        )
 
     # TODO This should be unified with metadata_manager and MetadataItemCollection
     # EXT-2054
@@ -260,6 +351,10 @@ class TransactionCreate(BaseMutation):
             transaction.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        cls.validate_transaction_input_lengths(
+            transaction,
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
         if payment_method_details := transaction.get("payment_method_details"):
             validate_payment_method_details_input(
                 payment_method_details, TransactionCreateErrorCode
@@ -343,6 +438,10 @@ class TransactionCreate(BaseMutation):
         )
         order_or_checkout_instance = cls.validate_input(
             order_or_checkout_instance, transaction=transaction
+        )
+        cls.validate_transaction_event_input(
+            transaction_event,
+            error_code=TransactionCreateErrorCode.INVALID.value,
         )
         payment_details_data: PaymentMethodDetails | None = None
         if payment_method_details := transaction.pop("payment_method_details", None):

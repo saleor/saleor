@@ -3820,3 +3820,85 @@ def test_transaction_update_checkout_completed_race_condition(
     assert order.charge_status == OrderChargeStatus.FULL
     assert order.authorize_status == OrderAuthorizeStatus.FULL
     assert order.total_charged.amount == checkout.total.gross.amount
+
+
+@pytest.mark.parametrize(
+    ("field", "input_key"),
+    [
+        ("pspReference", "pspReference"),
+        ("message", "message"),
+        ("name", "name"),
+    ],
+)
+def test_transaction_update_rejects_too_long_string_fields(
+    field,
+    input_key,
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = transaction_item_created_by_app
+    original_psp_reference = transaction.psp_reference
+    original_message = transaction.message
+    original_name = transaction.name
+    too_long_value = "x" * 513
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            input_key: too_long_value,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["transactionUpdate"]
+    assert not data["transaction"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "transaction"
+    assert errors[0]["code"] == TransactionUpdateErrorCode.INVALID.name
+    assert "512" in errors[0]["message"]
+    assert field in errors[0]["message"]
+    transaction.refresh_from_db()
+    assert transaction.psp_reference == original_psp_reference
+    assert transaction.message == original_message
+    assert transaction.name == original_name
+
+
+def test_transaction_update_rejects_too_long_event_psp_reference(
+    transaction_item_created_by_app, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_created_by_app
+    too_long_psp_reference = "x" * 513
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction_event": {
+            "pspReference": too_long_psp_reference,
+            "message": "Event message",
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["transactionUpdate"]
+    assert not data["transaction"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "transactionEvent"
+    assert errors[0]["code"] == TransactionUpdateErrorCode.INVALID.name
+    assert "512" in errors[0]["message"]
+    assert not TransactionEvent.objects.filter(
+        transaction=transaction, psp_reference=too_long_psp_reference
+    ).exists()
