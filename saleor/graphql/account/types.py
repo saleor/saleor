@@ -7,6 +7,7 @@ from graphene import relay
 from promise import Promise
 
 from ...account import models
+from ...account.utils import exclude_hidden_permission_groups
 from ...attribute import models as attribute_models
 from ...checkout.utils import get_user_checkout
 from ...core.exceptions import PermissionDenied
@@ -337,8 +338,8 @@ class UserPermission(Permission):
     @traced_resolver
     def resolve_source_permission_groups(root: Permission, info: ResolveInfo, user_id):
         _type, user_id = from_global_id_or_error(user_id, only_type="User")
-        groups = models.Group.objects.using(
-            get_database_connection_name(info.context)
+        groups = exclude_hidden_permission_groups(
+            models.Group.objects.using(get_database_connection_name(info.context))
         ).filter(user__pk=user_id, permissions__name=root.name)
         return groups
 
@@ -771,7 +772,9 @@ class User(ModelObjectType[models.User]):
     def resolve_permission_groups(root: models.User, info: ResolveInfo):
         if is_newly_created_user(root):
             return []
-        return root.groups.using(get_database_connection_name(info.context)).all()
+        return exclude_hidden_permission_groups(
+            root.groups.using(get_database_connection_name(info.context)).all()
+        )
 
     @staticmethod
     def resolve_editable_groups(root: models.User, info: ResolveInfo):

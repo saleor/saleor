@@ -15,6 +15,8 @@ from .lock_objects import user_qs_select_for_update
 from .models import CustomerType, Group, User
 
 if TYPE_CHECKING:
+    from django.db.models import QuerySet
+
     from ..plugins.manager import PluginsManager
     from .models import Address
 
@@ -71,6 +73,21 @@ def get_default_customer_type(
     if customer_type is None:
         raise NoDefaultCustomerType()
     return customer_type
+
+
+def exclude_hidden_permission_groups(
+    queryset: "QuerySet[Group]",
+) -> "QuerySet[Group]":
+    """Exclude the permission groups that are hidden from the API.
+
+    Hidden groups are configured with the `HIDDEN_PERMISSION_GROUP_NAMES` setting.
+    They still grant their permissions and channel access to the assigned users,
+    but must not be exposed or modified through the API.
+    """
+    hidden_names = settings.HIDDEN_PERMISSION_GROUP_NAMES
+    if not hidden_names:
+        return queryset
+    return queryset.exclude(name__in=hidden_names)
 
 
 def store_user_address(

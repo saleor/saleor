@@ -474,6 +474,12 @@ LOGGING = {
 
 AUTH_USER_MODEL = "account.User"
 
+# Hidden groups are not meant to be managed with the API. Such groups are used
+# for implementing internal integrations.
+HIDDEN_PERMISSION_GROUP_NAMES: list[str] = get_list(
+    os.environ.get("HIDDEN_PERMISSION_GROUP_NAMES", "")
+)
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",

@@ -7,6 +7,7 @@ from django.db.models.functions import Concat
 from graphene.utils.str_converters import to_camel_case
 
 from ...account.models import Group, User
+from ...account.utils import exclude_hidden_permission_groups
 from ...core.exceptions import PermissionDenied
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions
@@ -124,11 +125,9 @@ def get_groups_which_user_can_manage(
     user_permissions = get_user_permissions(user).using(database_connection_name)
     user_permission_pks = set(user_permissions.values_list("pk", flat=True))
 
-    groups = (
-        Group.objects.using(database_connection_name)
-        .all()
-        .annotate(group_perms=ArrayAgg("permissions"))
-    )
+    groups = exclude_hidden_permission_groups(
+        Group.objects.using(database_connection_name).all()
+    ).annotate(group_perms=ArrayAgg("permissions"))
 
     editable_groups: list[Group] = []
     for group in groups.iterator(chunk_size=1000):

@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from .....account import models
 from .....account.error_codes import PermissionGroupErrorCode
 from .....account.models import User
+from .....account.utils import exclude_hidden_permission_groups
 from .....channel.models import Channel
 from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import AccountPermissions, get_permissions
@@ -94,6 +95,11 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.permission_group_updated, instance)
+
+    @classmethod
+    def get_instance(cls, info: ResolveInfo, **data):
+        data["qs"] = exclude_hidden_permission_groups(models.Group.objects.all())
+        return super().get_instance(info, **data)
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

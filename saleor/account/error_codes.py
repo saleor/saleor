@@ -103,6 +103,7 @@ class PermissionGroupErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     CANNOT_REMOVE_FROM_LAST_GROUP = "cannot_remove_from_last_group"
     LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
+    NOT_FOUND = "not_found"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
     OUT_OF_SCOPE_USER = "out_of_scope_user"
     OUT_OF_SCOPE_CHANNEL = "out_of_scope_channel"

@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from .....account import models
 from .....account.error_codes import PermissionGroupErrorCode
+from .....account.utils import exclude_hidden_permission_groups
 from .....core.exceptions import PermissionDenied
 from .....permission.enums import AccountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
@@ -41,6 +42,11 @@ class PermissionGroupDelete(ModelDeleteMutation):
                 type=WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
             )
         ]
+
+    @classmethod
+    def get_instance(cls, info: ResolveInfo, **data):
+        data["qs"] = exclude_hidden_permission_groups(models.Group.objects.all())
+        return super().get_instance(info, **data)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

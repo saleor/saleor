@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import cast
 
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .....account import models
@@ -107,6 +108,7 @@ class PermissionGroupCreate(DeprecatedModelMutation):
         user = info.context.user
         user = cast(User, user)
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
+        cls.clean_name(errors, cleaned_input)
         user_accessible_channels = get_user_accessible_channels(info, info.context.user)
         cls.clean_channels(
             info, instance, user_accessible_channels, errors, cleaned_input
@@ -118,6 +120,21 @@ class PermissionGroupCreate(DeprecatedModelMutation):
             raise ValidationError(errors)
 
         return cleaned_input
+
+    @classmethod
+    def clean_name(
+        cls,
+        errors: dict[str, list[ValidationError]],
+        cleaned_input: dict,
+    ):
+        name = cleaned_input.get("name")
+        if name and name in settings.HIDDEN_PERMISSION_GROUP_NAMES:
+            errors["name"].append(
+                ValidationError(
+                    "Group with this name already exists.",
+                    code=PermissionGroupErrorCode.UNIQUE.value,
+                )
+            )
 
     @classmethod
     def clean_permissions(

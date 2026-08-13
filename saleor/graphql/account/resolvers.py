@@ -5,6 +5,7 @@ from graphql import GraphQLError
 from i18naddress import get_validation_rules
 
 from ...account import models
+from ...account.utils import exclude_hidden_permission_groups
 from ...core.exceptions import PermissionDenied
 from ...graphql.core.context import get_database_connection_name
 from ...payment import gateway
@@ -58,14 +59,18 @@ def resolve_customer_types(info):
 
 def resolve_permission_group(info, id):
     return (
-        models.Group.objects.using(get_database_connection_name(info.context))
+        exclude_hidden_permission_groups(
+            models.Group.objects.using(get_database_connection_name(info.context))
+        )
         .filter(id=id)
         .first()
     )
 
 
 def resolve_permission_groups(info):
-    return models.Group.objects.using(get_database_connection_name(info.context)).all()
+    return exclude_hidden_permission_groups(
+        models.Group.objects.using(get_database_connection_name(info.context)).all()
+    )
 
 
 def resolve_staff_users(info):
