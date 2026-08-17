@@ -438,18 +438,6 @@ fragment GiftCardDetails on GiftCard{
 }
 """
 
-GIFT_CARD_EXPORT_DETAILS = """
-fragment GiftCardExportDetails on ExportFile{
-  id
-  createdAt
-  updatedAt
-  status
-  url
-  message
-}
-"""
-
-
 VOUCHER_DETAILS = """
 fragment VoucherDetails on Voucher{
   id
@@ -466,18 +454,6 @@ fragment VoucherCodeDetails on VoucherCode{
   code
   used
   isActive
-}
-"""
-
-
-VOUCHER_CODE_EXPORT_DETAILS = """
-fragment VoucherCodeExportDetails on ExportFile {
-  id
-  createdAt
-  updatedAt
-  status
-  url
-  message
 }
 """
 

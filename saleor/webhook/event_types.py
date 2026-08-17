@@ -65,7 +65,6 @@ class WebhookEventAsyncType:
     GIFT_CARD_SENT = "gift_card_sent"
     GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
     GIFT_CARD_METADATA_UPDATED = "gift_card_metadata_updated"
-    GIFT_CARD_EXPORT_COMPLETED = "gift_card_export_completed"
 
     MENU_CREATED = "menu_created"
     MENU_UPDATED = "menu_updated"
@@ -216,7 +215,6 @@ class WebhookEventAsyncType:
     VOUCHER_CODES_CREATED = "voucher_codes_created"
     VOUCHER_CODES_DELETED = "voucher_codes_deleted"
     VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
-    VOUCHER_CODE_EXPORT_COMPLETED = "voucher_code_export_completed"
 
     OBSERVABILITY = "observability"
 
@@ -359,10 +357,6 @@ class WebhookEventAsyncType:
         },
         GIFT_CARD_METADATA_UPDATED: {
             "name": "Gift card metadata updated",
-            "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
-        },
-        GIFT_CARD_EXPORT_COMPLETED: {
-            "name": "Gift card export completed",
             "permission": GiftcardPermissions.MANAGE_GIFT_CARD,
         },
         MENU_CREATED: {
@@ -848,10 +842,6 @@ class WebhookEventAsyncType:
         },
         VOUCHER_METADATA_UPDATED: {
             "name": "Voucher metadata updated",
-            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
-        },
-        VOUCHER_CODE_EXPORT_COMPLETED: {
-            "name": "Voucher code export completed",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
         OBSERVABILITY: {
