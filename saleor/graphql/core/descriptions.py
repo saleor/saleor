@@ -19,6 +19,8 @@ DEPRECATED_EXPORT_MUTATIONS = (
     "All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools."
 )
 
+DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION = "\n\n" + DEPRECATED_EXPORT_MUTATIONS
+
 DEPRECATED_LEGACY_PAYMENTS = (
     "The legacy Payments API is deprecated and will be removed. "
     "Use the Transactions API instead."

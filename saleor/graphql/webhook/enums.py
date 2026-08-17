@@ -4,6 +4,7 @@ from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
     ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_EXPORT_MUTATIONS,
     DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -286,6 +287,14 @@ def description(enum):
     return "Enum determining type of webhook."
 
 
+# Events emitted only by the deprecated export mutations, removed together with them.
+EXPORT_COMPLETED_EVENTS = {
+    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
+    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+    WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
+}
+
+
 def deprecation_reason(enum):
     if enum.value == WebhookEventAsyncType.NOTIFY_USER:
         return (
@@ -297,6 +306,8 @@ def deprecation_reason(enum):
             "The observability feature is no longer supported. "
             "This event will be removed in Saleor 3.24."
         )
+    if enum.value in EXPORT_COMPLETED_EVENTS:
+        return DEPRECATED_EXPORT_MUTATIONS
     if enum.value == WebhookEventAsyncType.ANY:
         return DEFAULT_DEPRECATION_REASON
     if enum.value in WebhookEventSyncType.PAYMENT_EVENTS:
