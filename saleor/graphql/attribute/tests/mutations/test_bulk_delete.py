@@ -5,7 +5,7 @@ import pytest
 
 from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ATTRIBUTE_BULK_DELETE_MUTATION = """
     mutation attributeBulkDelete($ids: [ID!]!) {
@@ -33,7 +33,7 @@ def attribute_value_list(color_attribute):
 def test_delete_attributes(
     staff_api_client,
     product_type_attribute_list,
-    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
 ):
     query = ATTRIBUTE_BULK_DELETE_MUTATION
 
@@ -44,7 +44,7 @@ def test_delete_attributes(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_page_types_and_attributes]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
 
@@ -62,7 +62,7 @@ def test_delete_attributes_trigger_webhooks(
     any_webhook,
     staff_api_client,
     product_type_attribute_list,
-    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
     settings,
 ):
     # given
@@ -79,7 +79,7 @@ def test_delete_attributes_trigger_webhooks(
     response = staff_api_client.post_graphql(
         ATTRIBUTE_BULK_DELETE_MUTATION,
         variables,
-        permissions=[permission_manage_page_types_and_attributes],
+        permissions=[permission_manage_product_types_and_attributes],
     )
     content = get_graphql_content(response)
 
@@ -91,7 +91,7 @@ def test_delete_attributes_trigger_webhooks(
 def test_delete_attributes_products_search_document_updated(
     staff_api_client,
     product_type_attribute_list,
-    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
     product_list,
     color_attribute,
 ):
@@ -137,7 +137,7 @@ def test_delete_attributes_products_search_document_updated(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_page_types_and_attributes]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
 
@@ -157,7 +157,9 @@ ATTRIBUTE_VALUE_BULK_DELETE_MUTATION = """
 
 
 def test_delete_attribute_values(
-    staff_api_client, attribute_value_list, permission_manage_page_types_and_attributes
+    staff_api_client,
+    attribute_value_list,
+    permission_manage_product_types_and_attributes,
 ):
     query = ATTRIBUTE_VALUE_BULK_DELETE_MUTATION
 
@@ -168,7 +170,7 @@ def test_delete_attribute_values(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_page_types_and_attributes]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
 
@@ -186,7 +188,7 @@ def test_delete_attribute_values_trigger_webhook(
     any_webhook,
     staff_api_client,
     attribute_value_list,
-    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
     settings,
 ):
     # given
@@ -205,7 +207,7 @@ def test_delete_attribute_values_trigger_webhook(
     response = staff_api_client.post_graphql(
         ATTRIBUTE_VALUE_BULK_DELETE_MUTATION,
         variables,
-        permissions=[permission_manage_page_types_and_attributes],
+        permissions=[permission_manage_product_types_and_attributes],
     )
     content = get_graphql_content(response)
     expected_call_count = len(attributes) + len(attribute_value_list)
@@ -219,7 +221,7 @@ def test_delete_attribute_values_search_document_updated(
     staff_api_client,
     product_list,
     attribute_value_list,
-    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
 ):
     query = ATTRIBUTE_VALUE_BULK_DELETE_MUTATION
     value_1, value_2, value_3 = attribute_value_list
@@ -257,7 +259,7 @@ def test_delete_attribute_values_search_document_updated(
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_page_types_and_attributes]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
 
@@ -270,3 +272,352 @@ def test_delete_attribute_values_search_document_updated(
     product_2.refresh_from_db()
     assert product_1.search_vector
     assert product_2.search_vector
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "client_fixture",
+        "attribute_list_fixtures",
+        "permission_fixtures",
+        "is_allowed",
+    ),
+    [
+        (
+            "Unauthenticated user should be rejected",
+            "api_client",
+            ["product_type_attribute_list"],
+            [],
+            False,
+        ),
+        (
+            "Unauthenticated user should be rejected even with empty ids",
+            "api_client",
+            [],
+            [],
+            False,
+        ),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            ["product_type_attribute_list"],
+            [],
+            False,
+        ),
+        (
+            "Staff user w/o any permission should be rejected",
+            "staff_api_client",
+            ["product_type_attribute_list"],
+            [],
+            False,
+        ),
+        (
+            "Product attributes w/ legacy page permission should be allowed",
+            "staff_api_client",
+            ["product_type_attribute_list"],
+            ["permission_manage_page_types_and_attributes"],
+            True,
+        ),
+        (
+            "Product attributes w/ product permission should be allowed",
+            "staff_api_client",
+            ["product_type_attribute_list"],
+            ["permission_manage_product_types_and_attributes"],
+            True,
+        ),
+        (
+            "Page attributes w/ product permission should be rejected",
+            "staff_api_client",
+            ["page_type_attribute_list"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Page attributes w/ page permission should be allowed",
+            "staff_api_client",
+            ["page_type_attribute_list"],
+            ["permission_manage_page_types_and_attributes"],
+            True,
+        ),
+        (
+            "Mixed attributes w/ product permission only should be rejected",
+            "staff_api_client",
+            ["product_type_attribute_list", "page_type_attribute_list"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attributes w/ legacy page permission only should be allowed",
+            "staff_api_client",
+            ["product_type_attribute_list", "page_type_attribute_list"],
+            ["permission_manage_page_types_and_attributes"],
+            True,
+        ),
+        (
+            "Mixed attributes w/ both permissions should be allowed",
+            "staff_api_client",
+            ["product_type_attribute_list", "page_type_attribute_list"],
+            [
+                "permission_manage_product_types_and_attributes",
+                "permission_manage_page_types_and_attributes",
+            ],
+            True,
+        ),
+        (
+            "Customer attributes w/ customer permission should be allowed",
+            "staff_api_client",
+            ["customer_type_attribute_list"],
+            ["permission_manage_customer_types_and_attributes"],
+            True,
+        ),
+        (
+            "Customer attributes w/ product permission should be rejected",
+            "staff_api_client",
+            ["customer_type_attribute_list"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Customer attributes w/ legacy page permission should be rejected",
+            "staff_api_client",
+            ["customer_type_attribute_list"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Product attributes w/ customer permission should be rejected",
+            "staff_api_client",
+            ["product_type_attribute_list"],
+            ["permission_manage_customer_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attributes w/ legacy page permission only should be rejected "
+            "when customer attributes are included",
+            "staff_api_client",
+            ["product_type_attribute_list", "customer_type_attribute_list"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attributes w/ legacy page and customer permissions "
+            "should be allowed",
+            "staff_api_client",
+            [
+                "product_type_attribute_list",
+                "page_type_attribute_list",
+                "customer_type_attribute_list",
+            ],
+            [
+                "permission_manage_page_types_and_attributes",
+                "permission_manage_customer_types_and_attributes",
+            ],
+            True,
+        ),
+    ],
+)
+def test_delete_attributes_authorization(
+    request,
+    _case,
+    client_fixture,
+    attribute_list_fixtures,
+    permission_fixtures,
+    is_allowed,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    attributes = [
+        attribute
+        for fixture in attribute_list_fixtures
+        for attribute in request.getfixturevalue(fixture)
+    ]
+    for permission_fixture in permission_fixtures:
+        client.user.user_permissions.add(request.getfixturevalue(permission_fixture))
+    attribute_pks = [attribute.pk for attribute in attributes]
+    variables = {
+        "ids": [graphene.Node.to_global_id("Attribute", pk) for pk in attribute_pks]
+    }
+
+    # when
+    response = client.post_graphql(ATTRIBUTE_BULK_DELETE_MUTATION, variables)
+
+    # then
+    if is_allowed:
+        content = get_graphql_content(response)
+        assert content["data"]["attributeBulkDelete"]["count"] == len(attributes)
+        assert Attribute.objects.filter(pk__in=attribute_pks).exists() is False
+    else:
+        assert_no_permission(response)
+        assert Attribute.objects.filter(pk__in=attribute_pks).count() == len(attributes)
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "client_fixture",
+        "attribute_fixtures",
+        "permission_fixtures",
+        "is_allowed",
+    ),
+    [
+        (
+            "Unauthenticated user should be rejected",
+            "api_client",
+            ["color_attribute"],
+            [],
+            False,
+        ),
+        (
+            "Unauthenticated user should be rejected even with empty ids",
+            "api_client",
+            [],
+            [],
+            False,
+        ),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            ["color_attribute"],
+            [],
+            False,
+        ),
+        (
+            "Staff user w/o any permission should be rejected",
+            "staff_api_client",
+            ["color_attribute"],
+            [],
+            False,
+        ),
+        (
+            "Product attribute values w/ legacy page permission should be allowed",
+            "staff_api_client",
+            ["color_attribute"],
+            ["permission_manage_page_types_and_attributes"],
+            True,
+        ),
+        (
+            "Product attribute values w/ product permission should be allowed",
+            "staff_api_client",
+            ["color_attribute"],
+            ["permission_manage_product_types_and_attributes"],
+            True,
+        ),
+        (
+            "Page attribute values w/ product permission should be rejected",
+            "staff_api_client",
+            ["size_page_attribute"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Page attribute values w/ page permission should be allowed",
+            "staff_api_client",
+            ["size_page_attribute"],
+            ["permission_manage_page_types_and_attributes"],
+            True,
+        ),
+        (
+            "Mixed attribute values w/ product permission only should be rejected",
+            "staff_api_client",
+            ["color_attribute", "size_page_attribute"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attribute values w/ legacy page permission only should be allowed",
+            "staff_api_client",
+            ["color_attribute", "size_page_attribute"],
+            ["permission_manage_page_types_and_attributes"],
+            True,
+        ),
+        (
+            "Mixed attribute values w/ both permissions should be allowed",
+            "staff_api_client",
+            ["color_attribute", "size_page_attribute"],
+            [
+                "permission_manage_product_types_and_attributes",
+                "permission_manage_page_types_and_attributes",
+            ],
+            True,
+        ),
+        (
+            "Customer attribute values w/ customer permission should be allowed",
+            "staff_api_client",
+            ["loyalty_customer_attribute"],
+            ["permission_manage_customer_types_and_attributes"],
+            True,
+        ),
+        (
+            "Customer attribute values w/ product permission should be rejected",
+            "staff_api_client",
+            ["loyalty_customer_attribute"],
+            ["permission_manage_product_types_and_attributes"],
+            False,
+        ),
+        (
+            "Customer attribute values w/ legacy page permission should be rejected",
+            "staff_api_client",
+            ["loyalty_customer_attribute"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Product attribute values w/ customer permission should be rejected",
+            "staff_api_client",
+            ["color_attribute"],
+            ["permission_manage_customer_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attribute values w/ legacy page permission only should be "
+            "rejected when customer attribute values are included",
+            "staff_api_client",
+            ["color_attribute", "loyalty_customer_attribute"],
+            ["permission_manage_page_types_and_attributes"],
+            False,
+        ),
+        (
+            "Mixed attribute values w/ legacy page and customer permissions "
+            "should be allowed",
+            "staff_api_client",
+            ["color_attribute", "size_page_attribute", "loyalty_customer_attribute"],
+            [
+                "permission_manage_page_types_and_attributes",
+                "permission_manage_customer_types_and_attributes",
+            ],
+            True,
+        ),
+    ],
+)
+def test_delete_attribute_values_authorization(
+    request,
+    _case,
+    client_fixture,
+    attribute_fixtures,
+    permission_fixtures,
+    is_allowed,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    value_pks = [
+        pk
+        for fixture in attribute_fixtures
+        for pk in request.getfixturevalue(fixture).values.values_list("pk", flat=True)
+    ]
+    for permission_fixture in permission_fixtures:
+        client.user.user_permissions.add(request.getfixturevalue(permission_fixture))
+    variables = {
+        "ids": [graphene.Node.to_global_id("AttributeValue", pk) for pk in value_pks]
+    }
+
+    # when
+    response = client.post_graphql(ATTRIBUTE_VALUE_BULK_DELETE_MUTATION, variables)
+
+    # then
+    if is_allowed:
+        content = get_graphql_content(response)
+        assert content["data"]["attributeValueBulkDelete"]["count"] == len(value_pks)
+        assert AttributeValue.objects.filter(pk__in=value_pks).exists() is False
+    else:
+        assert_no_permission(response)
+        assert AttributeValue.objects.filter(pk__in=value_pks).count() == len(value_pks)
