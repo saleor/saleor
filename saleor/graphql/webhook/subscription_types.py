@@ -56,6 +56,8 @@ from ..core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
+    DEPRECATED_EXPORT_MUTATIONS,
+    DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION,
     DEPRECATED_IN_3X_EVENT,
     DEPRECATED_LEGACY_PAYMENTS,
     DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION,
@@ -757,13 +759,17 @@ class GiftCardExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for gift cards.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when gift card export is completed."
+        description = (
+            "Event sent when gift card export is completed."
+            + DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_GIFT_CARDS
 
     @staticmethod
@@ -1235,13 +1241,17 @@ class ProductExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for products.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when product export is completed."
+        description = (
+            "Event sent when product export is completed."
+            + DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_PRODUCTS
 
     @staticmethod
@@ -2595,13 +2605,18 @@ class VoucherCodeExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for voucher codes.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when voucher code export is completed." + ADDED_IN_318
+        description = (
+            "Event sent when voucher code export is completed."
+            + ADDED_IN_318
+            + DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod

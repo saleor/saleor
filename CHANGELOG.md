@@ -127,4 +127,5 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 
 - Deprecate the `hasVariants` field on `ProductType`.
 - Deprecate export mutations (`exportProducts`, `exportGiftCards`, `exportVoucherCodes`). All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
+- Deprecate the export webhook event types emitted by those mutations: `PRODUCT_EXPORT_COMPLETED`, `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` (`WebhookEventTypeEnum`, `WebhookEventTypeAsyncEnum`, `WebhookSampleEventTypeEnum`), along with the `ProductExportCompleted`, `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types.
 - Deprecate `voucher` input field on `DraftOrderInput` and `DraftOrderCreateInput`. Use `voucherCode` instead.
