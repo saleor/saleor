@@ -25,6 +25,25 @@ many processes at once. Write code with that in mind:
 - **Make tasks idempotent and safe to retry** — the broker may deliver a task more than once, and pods
   can be killed/rescheduled mid-run.
 
+## Multi-tenancy: never rely on `settings.SITE_ID`
+
+A deployment may serve **several sites from one process**, and `SITE_ID` may be unset or differ from
+what a dev environment has. Never read it directly to identify the current site, and never assume
+there is only one.
+
+- **Resolve the site with `Site.objects.get_current()`** (or the `get_site_promise` dataloader in the
+  GraphQL layer). Both pick the site by `SITE_ID` when it is configured and fall back to the request
+  host when it is not — `settings.SITE_ID` alone silently collapses every tenant into one.
+- **Key anything per-site by the resolved site**, not by a constant. A cache key, module-level dict or
+  query filter that bakes in a single site lets one tenant read another's data.
+- **Don't assume a single row.** `Site.objects.get()` breaks as soon as a second site exists; filter by
+  the resolved site instead.
+
+`Site.objects.get_current()` reads the patched process-global `THREADED_SITE_CACHE`
+(`saleor/site/patch_sites.py`), which is never invalidated by `Site`/`SiteSettings` saves. So a value
+read through it can be stale after a write in the same process — see *Writing tests* for what that
+means for assertions.
+
 ## Graphql
 
 ###  API versioning
@@ -99,6 +118,12 @@ database/cache or collide with another worktree's stack.
   def test_something(_case, value): ...
   ```
 - When a mutation input is optional/nullable, test the explicit `null` value in addition to omitting the field — they are distinct inputs and can be handled differently.
+- **Never assume a cache is cold — or warm.** Caches are process-global and survive across tests, so
+  what warmed them depends on test ordering. To assert a write landed, read the row back
+  (`obj.refresh_from_db(fields=(...))`) rather than through a cached accessor like
+  `Site.objects.get_current()`; to count queries, warm the cache first so the count is the steady
+  state; otherwise bust it explicitly (`Site.objects.clear_cache()`). A test that passes only because
+  a cache happened to be empty will fail as soon as an unrelated caller warms it.
 
 ### Assert precisely (the #1 source of review comments)
 
@@ -132,6 +157,89 @@ database/cache or collide with another worktree's stack.
 - For IPs, use network addresses so they cannot reach an actual server, e.g., `8.8.8.0` or `1.1.1.0`
 - Parametrize near-identical test bodies; keep each test minimal (drop unrelated setup); name tests
   for the exact behavior asserted (no double negatives).
+
+## GraphQL Authorization Tests
+
+When should authorization tests be written?
+- When adding a new restricted field
+- When adding a new restricted type
+- When adding a new restricted mutation or query
+- When adding a new **public** mutation or query - this ensures we are explicit
+  when we expect a new query or mutation to not require any authorization
+
+When writing authorization tests do the ALL of the following:
+- Test against all client types:
+  - Unauthenticated
+  - Unprivileged user (non-staff user)
+  - Staff user with the missing permission(s)
+  - Staff user with the correct permission
+- Use parametrized tests, do not create separate tests
+- Never solely rely on the error message to determine whether access was denied
+  as this could still have returned the restricted data or have performed the
+  operations. Therefore:
+
+  - Always ensure the restricted data is **not** returned in the HTTP response
+  - Always ensure the data was **not** modified if it is GraphQL mutation
+  - Always ensure external calls (webhooks, API calls, emails, etc.) were
+    not triggered if this is a GraphQL mutation.
+
+Example:
+
+```python
+@pytest.mark.parametrize(
+  ("_case", "client_fixture", "permission_fixture", "is_allowed"),
+  [
+    (
+      "Unauthenticated user should be rejected",
+      "api_client",
+      None,
+      False,
+    ),
+    (
+      "Authenticated unprivileged user (non-staff) should be rejected",
+      "user_api_client",
+      None,
+      False,
+    ),
+    (
+      "Authenticated user w/o the permission should be rejected",
+      "staff_api_client",
+      None,
+      False,
+    ),
+    (
+      "Authenticated user w/ the correct permission should be allowed",
+      "staff_api_client",
+      "permission_manage_settings",
+      True,
+    ),
+  ]
+)
+def test_authorization(
+    request, client_fixture: str, permission_fixture: str | None, is_allowed: bool,
+):
+    client = request.getfixturevalue(client_fixture)
+
+    if permission_fixture:
+        perm = request.getfixturevalue(permission_fixture)
+
+        if client.app:
+            client.app.permissions.add(perm)
+        elif client.user:
+            client.user.user_permissions.add(perm)
+        else:
+            raise AssertionError("Couldn't add the permission") # shouldn't occur
+
+    response = client.post_graphql(query, variables)
+
+    if is_allowed:
+        content = get_graphql_content(response)
+        assert content["data"] == ...
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == ...
+```
 
 # Code structure and layering
 
@@ -260,6 +368,27 @@ with traced_atomic_transaction():
 def my_model_qs_select_for_update() -> QuerySet[MyModel]:
     return MyModel.objects.order_by("pk").select_for_update(of=["self"])
 ```
+
+### select_for_update pitfalls
+
+1. Querysets are lazy - an unevaluated lock queryset runs no SQL, so no lock is
+   taken and it fails silently. Force evaluation inside the transaction with
+   `list(...)`, `.get()`/`.first()`, or use it as an `__in` subquery of the write.
+
+   ```python
+   with transaction.atomic():
+       # Bad: lazy - no lock
+       _locked = model_qs_select_for_update().filter(pk__in=pks)
+       # Good: rows locked, only pks fetched
+       _locked = list(
+           model_qs_select_for_update().filter(pk__in=pks).values_list("pk", flat=True)
+       )
+       Model.objects.bulk_update(objs, ["field"])
+   ```
+
+2. Test the lock with the `assert_locks_rows_before_write` fixture
+   (`saleor/tests/fixtures.py`) - it captures the block's queries and asserts an
+   ordered `FOR UPDATE` query is emitted before the `UPDATE`.
 
 ## Database Transactions
 

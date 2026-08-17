@@ -10,6 +10,7 @@ from graphql import GraphQLError
 from ....attribute import AttributeInputType
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
+from ....page.error_codes import PageErrorCode
 from ....product.error_codes import ProductErrorCode
 from ..enums import AttributeValueBulkActionEnum
 from ..shared_filters import validate_attribute_value_input
@@ -55,7 +56,6 @@ def test_clean_input_for_product(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -87,7 +87,6 @@ def test_clean_attribute_input_for_product_no_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -132,7 +131,6 @@ def test_clean_attribute_input_for_product_too_many_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -176,7 +174,6 @@ def test_clean_attribute_input_for_product_empty_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -214,7 +211,6 @@ def test_clean_attribute_input_for_product_lack_of_required_attribute(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=True,
         )
 
@@ -258,7 +254,6 @@ def test_clean_attribute_input_for_product_creation_multiple_errors(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -307,7 +302,7 @@ def test_clean_attribute_input_for_page(
     AttributeAssignmentMixin.clean_input(
         input_data,
         page_type.page_attributes.all(),
-        is_page_attributes=True,
+        error_class=PageErrorCode,
         creation=creation,
     )
 
@@ -339,7 +334,7 @@ def test_clean_attribute_input_for_page_no_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             page_type.page_attributes.all(),
-            is_page_attributes=True,
+            error_class=PageErrorCode,
             creation=creation,
         )
 
@@ -384,7 +379,7 @@ def test_clean_attribute_input_for_page_too_many_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             page_type.page_attributes.all(),
-            is_page_attributes=True,
+            error_class=PageErrorCode,
             creation=creation,
         )
 
@@ -428,7 +423,7 @@ def test_clean_attribute_input_for_page_empty_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             page_type.page_attributes.all(),
-            is_page_attributes=True,
+            error_class=PageErrorCode,
             creation=creation,
         )
 
@@ -466,7 +461,7 @@ def test_clean_attribute_input_for_page_lack_of_required_attribute(
     # when
     with pytest.raises(ValidationError) as exc_info:
         AttributeAssignmentMixin.clean_input(
-            input_data, page_attributes, is_page_attributes=True, creation=True
+            input_data, page_attributes, error_class=PageErrorCode, creation=True
         )
 
     # then
@@ -507,7 +502,7 @@ def test_clean_attribute_input_for_page_multiple_errors(
         AttributeAssignmentMixin.clean_input(
             input_data,
             page_type.page_attributes.all(),
-            is_page_attributes=True,
+            error_class=PageErrorCode,
             creation=True,
         )
 
@@ -556,7 +551,6 @@ def test_clean_variant_attribute_input(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.variant_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -588,7 +582,6 @@ def test_clean_variant_attribute_input_no_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.variant_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -633,7 +626,6 @@ def test_clean_variant_attribute_duplicated_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.variant_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -676,7 +668,6 @@ def test_clean_variant_attribute_input_empty_values_given(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.variant_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -710,7 +701,6 @@ def test_clean_variant_attribute_too_many_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.variant_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -752,7 +742,6 @@ def test_clean_variant_attribute_empty_values_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.variant_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -796,7 +785,6 @@ def test_clean_variant_attribute_input_multiple_errors(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.variant_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -846,7 +834,6 @@ def test_clean_attributes_with_file_input_type_for_product(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -879,7 +866,6 @@ def test_clean_attributes_with_file_input_type_for_product_no_file_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -920,7 +906,6 @@ def test_clean_not_required_attrs_with_file_input_type_for_product_no_file_given
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -954,7 +939,6 @@ def test_clean_attributes_with_file_input_type_for_product_empty_file_value(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -989,7 +973,6 @@ def test_clean_numeric_attributes_input_for_product(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1017,7 +1000,6 @@ def test_clean_numeric_attributes_input_for_product_not_numeric_value_given(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1052,7 +1034,6 @@ def test_validate_numeric_attributes_input_for_product_blank_value(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1086,7 +1067,6 @@ def test_validate_numeric_attributes_input_none_as_values(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1121,7 +1101,6 @@ def test_validate_numeric_attributes_input_for_product_more_than_one_value_given
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1168,7 +1147,6 @@ def test_validate_selectable_attributes_by_value(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1207,7 +1185,6 @@ def test_validate_selectable_attributes_by_id(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1241,7 +1218,6 @@ def test_clean_selectable_attributes_pass_null_value(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1272,7 +1248,6 @@ def test_clean_selectable_attribute_by_id_and_value(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1311,7 +1286,6 @@ def test_clean_selectable_attribute_by_external_reference(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1342,7 +1316,6 @@ def test_clean_selectable_attribute_by_id_and_external_reference(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1381,7 +1354,6 @@ def test_clean_selectable_attribute_by_value_and_external_reference(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1412,7 +1384,6 @@ def test_clean_multiselect_attribute_by_id_and_value(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1452,7 +1423,6 @@ def test_clean_multiselect_attribute_duplicated_values(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1492,7 +1462,6 @@ def test_clean_multiselect_attribute_duplicated_ids(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1532,7 +1501,6 @@ def test_clean_multiselect_attribute_duplicated_external_refs(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1569,7 +1537,6 @@ def test_clean_selectable_attribute_max_length_exceeded(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1606,7 +1573,6 @@ def test_clean_selectable_attribute_value_required(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1640,7 +1606,6 @@ def test_validate_numeric_attributes(creation, value, numeric_attribute, product
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1668,7 +1633,6 @@ def test_validate_numeric_attributes_invalid_number(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1699,7 +1663,6 @@ def test_clean_numeric_attributes_pass_null_value(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1725,7 +1688,6 @@ def test_clean_numeric_attributes_value_required(
         AttributeAssignmentMixin.clean_input(
             input_data,
             product_type.product_attributes.all(),
-            is_page_attributes=False,
             creation=creation,
         )
 
@@ -1776,7 +1738,6 @@ def test_validate_rich_text_attributes_input_for_product_only_embed_block(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 
@@ -1818,7 +1779,6 @@ def test_clean_rich_text_attributes_input_for_product_only_image_block(
     AttributeAssignmentMixin.clean_input(
         input_data,
         product_type.product_attributes.all(),
-        is_page_attributes=False,
         creation=creation,
     )
 

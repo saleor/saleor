@@ -84,6 +84,11 @@ def permission_manage_users():
 
 
 @pytest.fixture
+def permission_manage_customer_types_and_attributes():
+    return Permission.objects.get(codename="manage_customer_types_and_attributes")
+
+
+@pytest.fixture
 def permission_impersonate_user():
     return Permission.objects.get(codename="impersonate_user")
 

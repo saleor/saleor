@@ -228,6 +228,12 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
     ):
         if listings_data := cleaned_input["channel_listings"].get("create"):
+            variant = cleaned_input["id"]
+            existing_channel_ids = {
+                graphene.Node.to_global_id("Channel", listing.channel_id)
+                for listing in listings_global_id_to_instance_map.values()
+                if listing.variant_id == variant.id
+            }
             cleaned_input["channel_listings"]["create"] = (
                 ProductVariantBulkCreate.clean_channel_listings(
                     listings_data,
@@ -236,6 +242,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                     variant_index,
                     index_error_map,
                     "channelListings.create",
+                    existing_channel_ids=existing_channel_ids,
                 )
             )
         if listings_data := cleaned_input["channel_listings"].get("update"):

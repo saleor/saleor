@@ -188,7 +188,9 @@ def test_payment_refund_error(
     payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment.total)}
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+    monkeypatch.setattr(
+        "saleor.plugins.tests.gateways.dummy.dummy_success", lambda: False
+    )
 
     # when
     response = staff_api_client.post_graphql(REFUND_QUERY, variables)

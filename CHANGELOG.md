@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated Authorize.Net payment gateway plugin (`mirumee.payments.authorize_net`).
 - Removed the deprecated Razorpay payment gateway plugin (`mirumee.payments.razorpay`).
 - Removed the deprecated Braintree payment gateway plugin (`mirumee.payments.braintree`).
+- Removed the deprecated Dummy (`mirumee.payments.dummy`) and Dummy Credit Card (`mirumee.payments.dummy_credit_card`) payment gateway plugins.
 - Apps will be no longer to be granted with `MANAGE_APPS` permission. In certain cases, this permission was able to be assigned by the authorized user.
   App with such permission was not able to *act* like an admin app, but permission technically was granted.
 
@@ -18,10 +19,23 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `checkoutId` input argument from the `checkoutShippingAddressUpdate` and `checkoutBillingAddressUpdate` mutations. Use the `id` argument instead.
 - `confirmAccount()` mutation no longer allows to confirm an account that was already confirmed. - #19459 by @NyanKiyosi
 - Removed the deprecated `shopDomainUpdate` mutation. Use the `PUBLIC_URL` environment variable to configure the shop domain instead.
+- Removed the deprecated `checkoutLineDelete` mutation. Use `checkoutLinesDelete` instead — it takes a `linesIds` list and only accepts the checkout `id` (the `token` and `checkoutId` arguments are gone).
+- Removed the deprecated `shopFetchTaxRates` mutation, along with the `ShopFetchTaxRates` type. It was a no-op; configure taxes with the tax mutations (e.g. `taxConfigurationUpdate`) instead.
 - Removed the deprecated `orderSettingsUpdate` mutation. Use the `channelUpdate` mutation with the `orderSettings` input to update order settings per channel instead.
 - Removed the deprecated `orderSettings` query field. Use the `channel` query and read its `orderSettings` field instead.
+- Removed the deprecated `orderAddNote` mutation, along with the `OrderAddNote` type and `OrderAddNoteInput` input. Use the `orderNoteAdd` mutation instead.
 - Removed the `DIGITAL_LINKS` value from the `OrderEventsEmailsEnum` enum and the `DIGITAL_LINK_DOWNLOADED` value from the `CustomerEventsEnum` enum. Events with these types were deleted in 3.23, along with the legacy digital content feature that emitted them.
 - Removed the always-empty `digital_lines` key from the fulfillment confirmation notification payload. Use `physical_lines`, which holds every line of the fulfillment.
+- Attribute value and bulk attribute mutations now require the permission matching the attribute's type: `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` for `PRODUCT_TYPE` attributes, `MANAGE_PAGE_TYPES_AND_ATTRIBUTES` for `PAGE_TYPE` attributes, and `MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES` for `CUSTOMER_TYPE` attributes. Previously each mutation required a single fixed permission regardless of the attribute's type, which let a requestor modify attributes of a type they were not authorized for.
+
+  The affected mutations and their previously required permission:
+  - `attributeValueCreate` — previously `MANAGE_PRODUCTS`; `PRODUCT_TYPE` attributes now require `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` and `PAGE_TYPE` attributes now require `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`
+  - `attributeValueUpdate`, `attributeValueDelete`, `attributeReorderValues` — previously `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`; unchanged for `PRODUCT_TYPE` attributes, but `PAGE_TYPE` attributes now require `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`.
+  - `attributeBulkDelete`, `attributeValueBulkDelete` — previously `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`; unchanged for `PAGE_TYPE` attributes, but `PRODUCT_TYPE` attributes now require `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`. When the call targets several types, every matching permission is required.
+  - `attributeBulkCreate` and `attributeBulkUpdate` already resolved the permission from the attribute type. They now reject an attribute type that has no permission mapped, instead of falling back to `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`.
+
+  To upgrade, grant staff members and apps the permission matching the attribute types they operate on. A requestor holding only `MANAGE_PRODUCTS` can no longer create attribute values.
+- Providing an empty `attributes` list (`null` or `[]`) in `where` filters for pages, products, and product variants now matches no objects instead of being ignored. The same now applies to a no-op attribute filter that builds no condition, such as an empty reference container (`reference: { pageSlugs: {} }`) - previously such a filter matched all product variants.
 
 ### GraphQL API
 
@@ -32,6 +46,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.
 - Removed the deprecated `note` field from the `Checkout` type. Use `customerNote` instead.
 - Removed the deprecated `isDigital` field from the `ProductType` type, the `isDigital` input from `ProductTypeInput`, the `DIGITAL` value from the `ProductTypeEnum` filter, and the `DIGITAL` value from `ProductTypeSortField`. These had no effect; use metadata or attributes instead (or `SHIPPING_REQUIRED` for sorting).
+- Fixed `productVariantBulkUpdate` returning a 500 error when `channelListings.create` targeted a channel the variant was already listed in. The mutation now returns a `DUPLICATED_INPUT_ITEM` error recommending the `update` field, and respects the selected `errorPolicy` - #19355 by @ayesha-waris
 
 ### Webhooks
 
@@ -44,5 +59,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the `is_digital` field from the `populatedb` sample data.
 
 #### Search improvements
+
+### Fixes
+
+- Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations

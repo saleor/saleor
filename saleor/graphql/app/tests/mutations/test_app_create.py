@@ -3,6 +3,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -111,6 +112,39 @@ def test_app_create_no_identifier_mutation(
     assert app.identifier == graphene.Node.to_global_id("App", app.pk)
 
 
+@pytest.mark.parametrize(
+    ("_case", "permissions_variable"),
+    [
+        ("omitted", {}),
+        ("explicit_null", {"permissions": None}),
+        ("empty_list", {"permissions": []}),
+    ],
+)
+def test_app_create_without_permissions(
+    _case,
+    permissions_variable,
+    permission_manage_apps,
+    staff_api_client,
+):
+    # given
+    name = "New integration"
+    variables = {"name": name, **permissions_variable}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appCreate"]
+    assert data["errors"] == []
+    app = App.objects.get()
+    assert app.name == name
+    assert list(app.permissions.all()) == []
+    assert data["app"]["permissions"] == []
+
+
 @freeze_time("2022-05-12 12:00:00")
 def test_default_token_creator_tracking(
     permission_manage_apps,
@@ -200,8 +234,9 @@ def test_app_is_not_allowed_to_call_create_mutation_for_app(
     requestor = app_api_client.app
     requestor.permissions.add(permission_manage_apps, permission_manage_products)
 
+    name = "New integration"
     variables = {
-        "name": "New integration",
+        "name": name,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
 
@@ -210,6 +245,7 @@ def test_app_is_not_allowed_to_call_create_mutation_for_app(
 
     # then
     assert_no_permission(response)
+    assert App.objects.filter(name=name).exists() is False
 
 
 def test_app_create_mutation_out_of_scope_permissions(
@@ -281,22 +317,6 @@ def test_app_create_mutation_no_permissions(
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
-
-
-def test_app_create_by_app_is_forbidden(permission_manage_apps, app_api_client):
-    """Only staff users may create apps, so the default token always has a creator."""
-    # given
-    name = "New integration"
-    variables = {"name": name, "permissions": []}
-
-    # when
-    response = app_api_client.post_graphql(
-        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
-    )
-
-    # then
-    assert_no_permission(response)
-    assert App.objects.filter(name=name).exists() is False
 
 
 def test_app_create_rejects_manage_apps_permission(superuser_api_client):
