@@ -10,7 +10,7 @@ def drop_observability_event(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("webhook", "0014_webhook_identifier_unique_constraint"),
+        ("webhook", "0015_drop_export_completed_events"),
     ]
 
     operations = [
