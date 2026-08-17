@@ -35904,7 +35904,7 @@ type GiftCardExportCompleted implements Event @doc(category: "Gift cards") {
   recipient: App
 
   """The export file for gift cards."""
-  export: ExportFile
+  export: ExportFile @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 }
 
 """Event sent when new menu is created."""
@@ -36148,7 +36148,7 @@ type ProductExportCompleted implements Event @doc(category: "Products") {
   recipient: App
 
   """The export file for products."""
-  export: ExportFile
+  export: ExportFile @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 }
 
 """Event sent when new product media is created."""
@@ -37573,7 +37573,7 @@ type VoucherCodeExportCompleted implements Event @doc(category: "Discounts") {
   recipient: App
 
   """The export file for voucher codes."""
-  export: ExportFile
+  export: ExportFile @deprecated(reason: "Export functionality is deprecated and will be removed. All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.")
 }
 
 """Event sent when new warehouse is created."""

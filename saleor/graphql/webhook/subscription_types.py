@@ -56,6 +56,7 @@ from ..core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
+    DEPRECATED_EXPORT_MUTATIONS,
     DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION,
     DEPRECATED_IN_3X_EVENT,
     DEPRECATED_LEGACY_PAYMENTS,
@@ -758,6 +759,7 @@ class GiftCardExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for gift cards.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
@@ -1239,6 +1241,7 @@ class ProductExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for products.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
@@ -2566,6 +2569,7 @@ class VoucherCodeExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for voucher codes.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
