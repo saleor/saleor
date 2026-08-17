@@ -16,6 +16,7 @@ from .. import enums
 from ..mixins import NotifyUserEventValidationMixin
 from ..types import Webhook
 from . import WebhookCreate
+from .utils import get_webhook_object_id
 
 
 class WebhookUpdateInput(BaseInputObjectType):
@@ -80,7 +81,21 @@ class WebhookUpdateInput(BaseInputObjectType):
 
 class WebhookUpdate(WebhookCreate, NotifyUserEventValidationMixin):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a webhook to update.")
+        id = graphene.ID(
+            required=False,
+            description=(
+                "ID of a webhook to update. Cannot be used together with `identifier`."
+            ),
+        )
+        identifier = graphene.String(
+            required=False,
+            description=(
+                "App-provided identifier of a webhook to update. Identifiers are "
+                "unique per app only, so this argument is available exclusively to an "
+                "app referencing its own webhook; staff users must use `id`. Cannot "
+                "be used together with `id`." + ADDED_IN_323
+            ),
+        )
         input = WebhookUpdateInput(
             description="Fields required to update a webhook.", required=True
         )
@@ -113,8 +128,14 @@ class WebhookUpdate(WebhookCreate, NotifyUserEventValidationMixin):
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
         apps = App.objects.filter(removed_at__isnull=True)
-        if app := get_app_promise(info.context).get():
+        app = get_app_promise(info.context).get()
+        if app:
             apps = apps.filter(id=app.id)
+        data["id"] = get_webhook_object_id(
+            app=app,
+            object_id=data.get("id"),
+            identifier=data.pop("identifier", None),
+        )
         data["qs"] = models.Webhook.objects.filter(
             Exists(apps.filter(id=OuterRef("app_id")))
         )
