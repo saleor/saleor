@@ -1,6 +1,7 @@
 import graphene
 
 from .....account import models
+from .....attribute.utils import delete_user_unique_attribute_values
 from .....core.tracing import traced_atomic_transaction
 from .....giftcard.utils import deactivate_assigned_gift_cards
 from .....permission.enums import AccountPermissions
@@ -49,6 +50,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
             # on_delete=PROTECT, so restricted cards must be detached and
             # deactivated first, atomically with the deletion.
             deactivate_assigned_gift_cards([instance])
+            delete_user_unique_attribute_values([instance.pk])
             instance.delete()
         # After the instance is deleted, set its ID to the original database's
         # ID so that the success response contains ID of the deleted object.

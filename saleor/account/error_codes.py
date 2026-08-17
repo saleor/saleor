@@ -53,6 +53,49 @@ class CustomerBulkUpdateErrorCode(Enum):
     MAX_LENGTH = "max_length"
 
 
+class CustomerTypeCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+
+
+class CustomerTypeUpdateErrorCode(Enum):
+    CANNOT_UNSET_DEFAULT = "cannot_unset_default"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+
+
+class CustomerTypeDeleteErrorCode(Enum):
+    CANNOT_DELETE_DEFAULT = "cannot_delete_default"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+
+
+class CustomerTypeAssignAttributesErrorCode(Enum):
+    ATTRIBUTE_ALREADY_ASSIGNED = "attribute_already_assigned"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+
+
+class CustomerTypeUnassignAttributesErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+
+
+class CustomerTypeReorderAttributesErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+
+
 class PermissionGroupErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"

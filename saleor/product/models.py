@@ -129,11 +129,8 @@ class ProductType(ModelWithMetadata):
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     kind = models.CharField(max_length=32, choices=ProductTypeKind.CHOICES)
     is_shipping_required = models.BooleanField(default=True)
-
-    # Note: has no effect, it's only kept for backward-compatibility as some users
-    #       use that field. Will be removed in Saleor v3.24.0
-    is_digital = models.BooleanField(default=False)
-
+    # Note: the table still has an `is_digital` column, detached from this model in
+    # migration 0207. It is dropped from the DB in 3.25.
     weight = MeasurementField(
         measurement=Weight,
         unit_choices=WeightUnits.CHOICES,

@@ -11,6 +11,7 @@ class AppErrorCode(Enum):
     INVALID_MANIFEST_FORMAT = "invalid_manifest_format"
     INVALID_CUSTOM_HEADERS = "invalid_custom_headers"
     DUPLICATED_EXTENSION_IDENTIFIER = "duplicated_extension_identifier"
+    DUPLICATED_WEBHOOK_IDENTIFIER = "duplicated_webhook_identifier"
     MANIFEST_URL_CANT_CONNECT = "manifest_url_cant_connect"
     NOT_FOUND = "not_found"
     REQUIRED = "required"

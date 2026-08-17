@@ -1,0 +1,55 @@
+name: Linters
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linters:
+    runs-on: ubuntu-latest
+    container: python:3.12
+    name: Run linters
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install system dependencies
+        run: |
+          apt-get install -y libpq-dev
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+        with:
+          enable-cache: true
+
+      - uses: SocketDev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
+        with:
+          use-cache: false # reduce risks with poisoned cache
+          mode: firewall-free
+
+      - name: Install dependencies
+        run: |
+          sfw uv sync --locked
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('**/.pre-commit-config.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pre-commit-
+
+      # Run linters and Django related checks
+      # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
+      - name: Run Linters and Checks
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          sfw uv run pre-commit run --all --show-diff-on-failure

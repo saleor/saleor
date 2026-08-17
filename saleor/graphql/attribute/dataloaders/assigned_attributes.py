@@ -7,6 +7,7 @@ from django.db.models.query import QuerySet
 from promise import Promise
 
 from ....attribute.models import Attribute, AttributeValue
+from ....attribute.models.customer import AssignedUserAttributeValue
 from ....attribute.models.page import AssignedPageAttributeValue, AttributePage
 from ....attribute.models.product import AssignedProductAttributeValue, AttributeProduct
 from ....attribute.models.product_variant import (
@@ -30,6 +31,7 @@ type PRODUCT_ID = int
 type PRODUCT_TYPE_ID = int
 type PAGE_ID = int
 type VARIANT_ID = int
+type USER_ID = int
 type ATTRIBUTE_ID = int
 type ATTRIBUTE_SLUG = str
 type LIMIT = int | None
@@ -645,6 +647,73 @@ class AttributeValuesByPageIdAndAttributeIdAndLimitLoader(
                     if not attr_val:
                         continue
                     response_data[(page_id, attribute_id, limit)].append(attr_val)
+            return [response_data.get(key, []) for key in keys]
+
+        return (
+            AttributeValueByIdLoader(self.context)
+            .load_many(attribute_value_ids_to_fetch)
+            .then(with_attribute_values)
+        )
+
+
+class AttributeValuesByUserIdAndAttributeIdAndLimitLoader(
+    DataLoader[tuple[USER_ID, ATTRIBUTE_ID, LIMIT], list[AttributeValue]]
+):
+    context_key = "attribute_values_by_user_and_attribute"
+
+    def batch_load(self, keys: Iterable[tuple[USER_ID, ATTRIBUTE_ID, LIMIT]]):
+        limit_map = defaultdict(list)
+        for user_id, attribute_id, limit in keys:
+            limit_map[limit].append((user_id, attribute_id))
+
+        attribute_value_id_to_fetch_map: dict[
+            tuple[USER_ID, ATTRIBUTE_ID, LIMIT], list[int]
+        ] = defaultdict(list)
+
+        for limit, values in limit_map.items():
+            user_ids = [val[0] for val in values]
+            attribute_ids = [val[1] for val in values]
+
+            assigned_attribute_values = AssignedUserAttributeValue.objects.using(
+                self.database_connection_name
+            ).annotate(attribute_id=F("value__attribute_id"))
+            if limit is not None:
+                assigned_attribute_values = assigned_attribute_values.annotate(
+                    row_num=Window(
+                        expression=RowNumber(),
+                        partition_by=[F("attribute_id"), F("user_id")],
+                        order_by=["sort_order", "pk"],
+                    )
+                ).filter(row_num__lte=limit)
+            assigned_attribute_values = assigned_attribute_values.filter(
+                attribute_id__in=attribute_ids,
+                user_id__in=user_ids,
+            ).values_list("user_id", "value_id", "attribute_id")
+
+            for user_id, value_id, attribute_id in assigned_attribute_values:
+                attribute_value_id_to_fetch_map[(user_id, attribute_id, limit)].append(
+                    value_id
+                )
+
+        attribute_value_ids_to_fetch = set()
+        for id_list in attribute_value_id_to_fetch_map.values():
+            attribute_value_ids_to_fetch.update(id_list)
+
+        def with_attribute_values(attribute_values: list[AttributeValue]):
+            attribute_value_map = {av.id: av for av in attribute_values}
+            response_data: defaultdict[
+                tuple[USER_ID, ATTRIBUTE_ID, LIMIT], list[AttributeValue]
+            ] = defaultdict(list)
+            for (
+                user_id,
+                attribute_id,
+                limit,
+            ), value_ids in attribute_value_id_to_fetch_map.items():
+                for value_id in value_ids:
+                    attr_val = attribute_value_map.get(value_id)
+                    if not attr_val:
+                        continue
+                    response_data[(user_id, attribute_id, limit)].append(attr_val)
             return [response_data.get(key, []) for key in keys]
 
         return (

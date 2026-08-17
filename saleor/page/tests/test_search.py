@@ -23,6 +23,14 @@ def test_update_pages_search_vector_multiple_pages(page_list):
         assert page.search_index_dirty is False
 
 
+def test_update_pages_search_vector_locks_rows_before_write(
+    page_list, assert_locks_rows_before_write
+):
+    # when/then
+    with assert_locks_rows_before_write():
+        update_pages_search_vector(page_list)
+
+
 def test_update_pages_search_vector_empty_list(db):
     """Test updating search vector with empty page IDs list."""
     # given
@@ -94,19 +102,20 @@ def test_update_pages_search_vector_constant_queries(
     page_list = page_list_with_attributes
 
     # when & then
-    # Expected query breakdown (10 total):
+    # Expected query breakdown (11 total):
     # 1. Load page types (1 query)
-    # 2. Load page data for select_for_update (1 query)
+    # 2. Load page data (1 query)
     # 3. Load page-attribute relationships (1 query)
     # 4. Load attributes (1 query)
     # 5. Load attribute value assignments - batched (1 query)
     # 6. Load attribute values - batched (1 query)
     # 7. Load reference page titles (1 query)
     # 8. Transaction savepoint (1 query)
-    # 9. Bulk update (1 query)
-    # 10. Release savepoint (1 query)
+    # 9. Lock pages with select_for_update (1 query)
+    # 10. Bulk update (1 query)
+    # 11. Release savepoint (1 query)
 
-    expected_queries = 10
+    expected_queries = 11
     with django_assert_num_queries(expected_queries):  # Expected number of queries
         update_pages_search_vector(page_list[: len(page_list) - 1])
     with django_assert_num_queries(

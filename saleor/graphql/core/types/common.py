@@ -26,6 +26,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_WEBHOOKS,
 )
 from ...core.scalars import DateTime, Decimal
+from ..descriptions import ADDED_IN_323
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -186,6 +187,11 @@ class AccountError(Error):
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error." + ADDED_IN_323,
+        required=False,
+    )
 
     class Meta:
         description = "Represents errors in account mutations."
@@ -278,6 +284,11 @@ class CheckoutError(Error):
 
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error." + ADDED_IN_323,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS

@@ -1,3 +1,4 @@
+import functools
 from unittest.mock import ANY, patch
 
 import pytest
@@ -5,8 +6,16 @@ import pytest
 from .....core.error_codes import ShopErrorCode
 from .....core.jwt import JWT_OWNER_FIELD
 from .....site.models import Site
-from ....tests.utils import get_graphql_content
-from ...enums import PasswordLoginModeEnum
+from ....storefront_traffic import (
+    get_allow_storefront_traffic,
+    set_allow_storefront_traffic_cache,
+)
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
+from ...enums import AccountConfirmModeEnum, PasswordLoginModeEnum
 
 SHOP_SETTINGS_UPDATE_MUTATION = """
     mutation updateSettings($input: ShopSettingsInput!) {
@@ -636,6 +645,177 @@ def test_shop_settings_update_password_login_mode_preserves_when_not_provided(
     assert site_settings.password_login_mode == login_mode
 
 
+MUTATION_UPDATE_ACCOUNT_MERGE_MODE = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop {
+                accountConfirmMergeMode
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_shop_settings_update_account_merge_requires_permission(
+    staff_api_client,
+    site_settings,
+    permission_manage_settings,
+):
+    """Account merge mode should only be changeable with MANAGE_SETTINGS permission."""
+
+    initial_setting = AccountConfirmModeEnum.MERGE_DISABLED
+    new_setting = AccountConfirmModeEnum.REQUIRE_PASSWORD
+    site_settings.account_confirm_merge_mode = initial_setting.value
+    site_settings.save(update_fields=("account_confirm_merge_mode",))
+
+    send_gql = functools.partial(
+        staff_api_client.post_graphql,
+        MUTATION_UPDATE_ACCOUNT_MERGE_MODE,
+        variables={"input": {"accountConfirmMergeMode": new_setting.name}},
+    )
+
+    content = get_graphql_content_from_response(send_gql())
+
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "To access this path, you need one of the following permissions: MANAGE_SETTINGS"
+    )
+    # Should not have altered the settings
+    site_settings.refresh_from_db(fields=("account_confirm_merge_mode",))
+    assert site_settings.account_confirm_merge_mode == initial_setting.value, (
+        "shouldn't have changed"
+    )
+
+    # Sanity check: when adding the permisison, it should then work
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+    content = get_graphql_content_from_response(send_gql())
+    assert "errors" not in content
+    assert content["data"] == {
+        "shopSettingsUpdate": {
+            "shop": {"accountConfirmMergeMode": "REQUIRE_PASSWORD"},
+            "errors": [],
+        }
+    }, "should have succeeded the request"
+
+    # Should have change the settings
+    site_settings.refresh_from_db(fields=("account_confirm_merge_mode",))
+    assert site_settings.account_confirm_merge_mode == new_setting.value, (
+        "should have changed"
+    )
+
+
+@pytest.mark.parametrize(
+    ("initial_setting", "new_setting"),
+    [
+        (
+            AccountConfirmModeEnum.MERGE_DISABLED,
+            AccountConfirmModeEnum.REQUIRE_PASSWORD,
+        ),
+        (
+            AccountConfirmModeEnum.REQUIRE_PASSWORD,
+            AccountConfirmModeEnum.MERGE_DISABLED,
+        ),
+    ],
+)
+def test_shop_settings_update_account_merge_mode(
+    staff_api_client,
+    site_settings,
+    permission_manage_settings,
+    initial_setting,
+    new_setting,
+):
+    """Setting should be changed when the user sets a new preference."""
+
+    # Set the initial state
+    site_settings.account_confirm_merge_mode = initial_setting.value
+    site_settings.save(update_fields=("account_confirm_merge_mode",))
+    expected_site_setting = new_setting.value
+    assert site_settings.account_confirm_merge_mode != expected_site_setting
+
+    variables = {"input": {"accountConfirmMergeMode": new_setting.name}}
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            MUTATION_UPDATE_ACCOUNT_MERGE_MODE,
+            variables,
+            permissions=[permission_manage_settings],
+        )
+    )
+    data = content["data"]["shopSettingsUpdate"]
+    assert data["errors"] == [], "shouldn't have errored"
+
+    # Should have updated the settings
+    assert data["shop"]["accountConfirmMergeMode"] == new_setting.name
+    site_settings.refresh_from_db(fields=("account_confirm_merge_mode",))
+    assert site_settings.account_confirm_merge_mode == expected_site_setting
+
+
+@pytest.mark.parametrize(
+    "initial_setting",
+    [AccountConfirmModeEnum.MERGE_DISABLED, AccountConfirmModeEnum.REQUIRE_PASSWORD],
+)
+def test_shop_settings_update_account_merge_mode_omitted(
+    staff_api_client,
+    site_settings,
+    permission_manage_settings,
+    initial_setting,
+):
+    """When omitting the account merge mode, it shoudn't change it."""
+
+    site_settings.account_confirm_merge_mode = initial_setting.value
+    site_settings.save(update_fields=("account_confirm_merge_mode",))
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            MUTATION_UPDATE_ACCOUNT_MERGE_MODE,
+            variables={"input": {}},
+            permissions=[permission_manage_settings],
+        )
+    )
+    data = content["data"]["shopSettingsUpdate"]
+    assert data["errors"] == [], "shouldn't have errored"
+
+    # Should not have altered the settings
+    assert data["shop"]["accountConfirmMergeMode"] == initial_setting.name
+    site_settings.refresh_from_db(fields=("account_confirm_merge_mode",))
+    assert site_settings.account_confirm_merge_mode == initial_setting.value
+
+
+def test_shop_settings_update_account_merge_only_valid_values(
+    staff_api_client,
+    site_settings,
+    permission_manage_settings,
+):
+    """Account merge mode should only allow valid enum values."""
+
+    initial_setting = site_settings.account_confirm_merge_mode
+    staff_api_client.user.user_permissions.add(permission_manage_settings)
+
+    content = get_graphql_content_from_response(
+        staff_api_client.post_graphql(
+            MUTATION_UPDATE_ACCOUNT_MERGE_MODE,
+            variables={"input": {"accountConfirmMergeMode": "INVALID"}},
+        )
+    )
+
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert (
+        'Expected type "AccountConfirmModeEnum", found "INVALID"'
+        in errors[0]["message"]
+    )
+
+    # Should not have altered the settings
+    site_settings.refresh_from_db(fields=("account_confirm_merge_mode",))
+    assert site_settings.account_confirm_merge_mode == initial_setting
+
+
 MUTATION_UPDATE_SHOP_NAME = """
     mutation updateSettings($input: ShopSettingsInput!) {
         shopSettingsUpdate(input: $input) {
@@ -672,8 +852,10 @@ def test_shop_settings_update_name(
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
     assert data["shop"]["name"] == new_name
-    site = Site.objects.get_current()
-    assert site.name == new_name
+    # Read the row back rather than `Site.objects.get_current()`, which may serve a
+    # site cached earlier in the process and miss the update.
+    site_settings.site.refresh_from_db(fields=("name",))
+    assert site_settings.site.name == new_name
 
 
 def test_shop_settings_update_name_too_long(
@@ -697,5 +879,70 @@ def test_shop_settings_update_name_too_long(
     errors = content["data"]["shopSettingsUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "name"
-    site = Site.objects.get_current()
-    assert site.name == original_name
+    # Read the row back rather than `Site.objects.get_current()`, which may serve a
+    # site cached earlier in the process and hide a write that should not have
+    # happened.
+    site_settings.site.refresh_from_db(fields=("name",))
+    assert site_settings.site.name == original_name
+
+
+SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION = """
+    mutation updateSettings($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop { allowStorefrontTraffic }
+            errors { field message code }
+        }
+    }
+"""
+
+
+def test_shop_settings_update_sets_allow_storefront_traffic(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    # given
+    site_settings.allow_storefront_traffic = True
+    site_settings.save(update_fields=["allow_storefront_traffic"])
+    set_allow_storefront_traffic_cache(True)
+    variables = {"input": {"allowStorefrontTraffic": False}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["shopSettingsUpdate"]
+    assert data["errors"] == []
+    assert data["shop"]["allowStorefrontTraffic"] is False
+    site_settings.refresh_from_db()
+    assert site_settings.allow_storefront_traffic is False
+    assert get_allow_storefront_traffic() is False
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture"),
+    [
+        ("staff_without_permission", "staff_api_client"),
+        ("anonymous", "api_client"),
+    ],
+)
+def test_shop_settings_update_allow_storefront_traffic_requires_permission(
+    _case, client_fixture, request, site_settings
+):
+    # given: no MANAGE_SETTINGS granted
+    assert site_settings.allow_storefront_traffic is True
+    variables = {"input": {"allowStorefrontTraffic": False}}
+    client = request.getfixturevalue(client_fixture)
+
+    # when
+    response = client.post_graphql(
+        SHOP_SETTINGS_UPDATE_STOREFRONT_TRAFFIC_MUTATION, variables
+    )
+
+    # then
+    assert_no_permission(response)
+    site_settings.refresh_from_db(fields=("allow_storefront_traffic",))
+    assert site_settings.allow_storefront_traffic is True

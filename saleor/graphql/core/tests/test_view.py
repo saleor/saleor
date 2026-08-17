@@ -16,6 +16,11 @@ from ....core.telemetry import Scope, Unit
 from ....tests.utils import get_metric_data, get_span_by_name
 from ...api import backend, schema
 from ...metrics import METRIC_GRAPHQL_BATCH_SIZE
+from ...storefront_traffic import (
+    STOREFRONT_TRAFFIC_ERROR_CODE,
+    STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+    clear_allow_storefront_traffic_cache,
+)
 from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import INTERNAL_ERROR_MESSAGE
@@ -453,47 +458,43 @@ query IntrospectionQuery {
 INTROSPECTION_RESULT = {"__schema": {"queryType": {"name": "Query"}}}
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+# Patch the `cache` name in the views module rather than `cache.get`/`cache.set` on the
+# cache object itself: the object is shared, so patching its methods would also capture
+# the storefront traffic guard's own lookups and break the call assertions below.
+@mock.patch("saleor.graphql.views.cache")
 @override_settings(DEBUG=False)
-def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, api_client):
-    cache_get_mock.return_value = None
+def test_introspection_query_is_cached(cache_mock, api_client):
+    cache_mock.get.return_value = None
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
     response = api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
-    cache_get_mock.assert_called_once_with(cache_key)
-    cache_set_mock.assert_called_once_with(
+    cache_mock.get.assert_called_once_with(cache_key)
+    cache_mock.set.assert_called_once_with(
         cache_key, ExecutionResult(data=INTROSPECTION_RESULT)
     )
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+@mock.patch("saleor.graphql.views.cache")
 @override_settings(DEBUG=False)
-def test_introspection_query_is_cached_only_once(
-    cache_get_mock, cache_set_mock, api_client
-):
-    cache_get_mock.return_value = ExecutionResult(data=INTROSPECTION_RESULT)
+def test_introspection_query_is_cached_only_once(cache_mock, api_client):
+    cache_mock.get.return_value = ExecutionResult(data=INTROSPECTION_RESULT)
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
     response = api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
-    cache_get_mock.assert_called_once_with(cache_key)
-    cache_set_mock.assert_not_called()
+    cache_mock.get.assert_called_once_with(cache_key)
+    cache_mock.set.assert_not_called()
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+@mock.patch("saleor.graphql.views.cache")
 @override_settings(DEBUG=True)
-def test_introspection_query_is_not_cached_in_debug_mode(
-    cache_get_mock, cache_set_mock, api_client
-):
+def test_introspection_query_is_not_cached_in_debug_mode(cache_mock, api_client):
     response = api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
     assert content["data"] == INTROSPECTION_RESULT
-    cache_get_mock.assert_not_called()
-    cache_set_mock.assert_not_called()
+    cache_mock.get.assert_not_called()
+    cache_mock.set.assert_not_called()
 
 
 def test_generate_cache_key_use_saleor_version():
@@ -592,3 +593,167 @@ def test_marks_slow_queries(rf, get_test_spans):
     assert (
         span.status.description == "Slow request. Exceeded time limit of 30.0 seconds."
     )
+
+
+EXPECTED_STOREFRONT_TRAFFIC_ERROR = {
+    "errors": [
+        {
+            "message": STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+            "extensions": {"code": STOREFRONT_TRAFFIC_ERROR_CODE},
+        }
+    ]
+}
+
+
+@pytest.fixture
+def set_allow_storefront_traffic(site_settings):
+    """Set the storefront traffic flag and keep the guard cache honest."""
+
+    def set_flag(allowed):
+        site_settings.allow_storefront_traffic = allowed
+        site_settings.save(update_fields=["allow_storefront_traffic"])
+        clear_allow_storefront_traffic_cache()
+        return site_settings
+
+    yield set_flag
+    clear_allow_storefront_traffic_cache()
+
+
+@pytest.fixture
+def storefront_traffic_disabled(set_allow_storefront_traffic):
+    return set_allow_storefront_traffic(False)
+
+
+def test_storefront_traffic_allowed_by_default(site_settings):
+    assert site_settings.allow_storefront_traffic is True
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "allow_storefront_traffic", "expected_status"),
+    [
+        ("anonymous_disabled", "api_client", False, 401),
+        ("anonymous_enabled", "api_client", True, 200),
+        ("app_disabled", "app_api_client", False, 200),
+        ("app_enabled", "app_api_client", True, 200),
+        ("customer_disabled", "user_api_client", False, 401),
+        ("customer_enabled", "user_api_client", True, 200),
+        ("staff_disabled", "staff_api_client", False, 200),
+        ("staff_enabled", "staff_api_client", True, 200),
+    ],
+)
+def test_request_per_principal(
+    _case,
+    client_fixture,
+    allow_storefront_traffic,
+    expected_status,
+    request,
+    set_allow_storefront_traffic,
+):
+    # given: anonymous and customer traffic follows the flag, apps and staff never do
+    set_allow_storefront_traffic(allow_storefront_traffic)
+    client = request.getfixturevalue(client_fixture)
+
+    # when
+    response = client.post_graphql("{ __typename }")
+
+    # then
+    assert response.status_code == expected_status
+    if expected_status == 401:
+        assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
+    else:
+        assert response.json()["data"] == {"__typename": "Query"}
+
+
+@pytest.mark.parametrize(
+    ("_case", "authorization_header"),
+    [
+        ("invalid_token", "Bearer not-a-real-token"),
+        ("scheme_without_token", "Bearer"),
+        ("scheme_with_trailing_space", "Bearer "),
+        ("unknown_scheme", "Invalid"),
+        ("unknown_scheme_with_token", "Invalid not-a-real-token"),
+    ],
+)
+def test_unusable_authorization_header_blocked_when_disabled(
+    _case, authorization_header, api_client, storefront_traffic_disabled
+):
+    # given: an Authorization header that resolves to neither app nor user, flag off
+    # when
+    response = api_client.post_graphql(
+        "{ __typename }", HTTP_AUTHORIZATION=authorization_header
+    )
+
+    # then
+    assert response.status_code == 401
+    assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
+
+
+def test_anonymous_batch_rejected_when_disabled(
+    api_client, storefront_traffic_disabled, settings
+):
+    # given: a batch of anonymous queries, flag off
+    settings.GRAPHQL_BATCH_MAX_COUNT = 5
+    queries = [{"query": "{ __typename }"}, {"query": "{ __typename }"}]
+
+    # when
+    response = api_client.post(data=queries)
+
+    # then: every entry is rejected with 401 (the guard runs per operation)
+    assert response.status_code == 401
+    assert response.json() == [EXPECTED_STOREFRONT_TRAFFIC_ERROR] * len(queries)
+
+
+def test_anonymous_introspection_blocked_when_disabled(
+    api_client, storefront_traffic_disabled
+):
+    # given: an anonymous introspection query, flag off
+    # when
+    response = api_client.post_graphql("{ __schema { queryType { name } } }")
+
+    # then
+    assert response.status_code == 401
+    assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
+
+
+def test_real_public_query_blocked_when_disabled(
+    api_client, storefront_traffic_disabled, channel_USD
+):
+    # Representative real storefront read (a proxy-less storefront would call this
+    # anonymously). Proves a genuine operation - not just `{ __typename }` - is
+    # rejected before it executes when anonymous traffic is disabled.
+    query = """
+        query ($channel: String!) {
+            products(first: 1, channel: $channel) { edges { node { id } } }
+        }
+    """
+
+    # when
+    response = api_client.post_graphql(query, {"channel": channel_USD.slug})
+
+    # then
+    assert response.status_code == 401
+    assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
+
+
+def test_real_public_mutation_blocked_when_disabled(
+    api_client, storefront_traffic_disabled, customer_user
+):
+    # Representative real public mutation: `tokenCreate` (login). Proves that even
+    # logging in is blocked when locked down, forcing auth through the app/proxy.
+    query = """
+        mutation ($email: String!, $password: String!) {
+            tokenCreate(email: $email, password: $password) {
+                token
+                errors { field message }
+            }
+        }
+    """
+
+    # when
+    response = api_client.post_graphql(
+        query, {"email": customer_user.email, "password": "password"}
+    )
+
+    # then
+    assert response.status_code == 401
+    assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR

@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 import graphene
 import pytest
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -161,6 +162,39 @@ def assert_num_queries(capture_queries):
 @pytest.fixture
 def assert_max_num_queries(capture_queries):
     return partial(capture_queries, exact=False)
+
+
+@pytest.fixture
+def assert_locks_rows_before_write(capture_queries):
+    """Assert that the wrapped block locks rows before writing them.
+
+    Verifies the emitted SQL contains exactly one `SELECT ... FOR UPDATE` with a
+    deterministic `ORDER BY` (concurrent lockers acquiring rows in the same
+    order is what prevents deadlocks between them), followed by exactly one
+    `UPDATE`. Asserting on SQL is deliberate, as a missing lock is hard to
+    detect with a behavioral test.
+    """
+
+    @contextmanager
+    def _assert_locks_rows_before_write():
+        with capture_queries() as ctx:
+            yield
+
+        lock_and_update_queries = [
+            query["sql"]
+            for query in ctx.captured_queries
+            if "FOR UPDATE" in query["sql"] or query["sql"].startswith("UPDATE")
+        ]
+        assert len(lock_and_update_queries) == 2, (
+            "expected exactly one lock SELECT and one UPDATE query, got: "
+            f"{lock_and_update_queries}"
+        )
+        lock_query, update_query = lock_and_update_queries
+        assert "FOR UPDATE" in lock_query, "rows were not locked before the write"
+        assert "ORDER BY" in lock_query, "the lock query has no deterministic order"
+        assert update_query.startswith("UPDATE")
+
+    return _assert_locks_rows_before_write
 
 
 @pytest.fixture
@@ -1223,6 +1257,9 @@ def async_subscription_webhooks_with_root_objects(
     subscription_page_type_created_webhook,
     subscription_page_type_updated_webhook,
     subscription_page_type_deleted_webhook,
+    subscription_customer_type_created_webhook,
+    subscription_customer_type_updated_webhook,
+    subscription_customer_type_deleted_webhook,
     subscription_permission_group_created_webhook,
     subscription_permission_group_updated_webhook,
     subscription_permission_group_deleted_webhook,
@@ -1258,6 +1295,7 @@ def async_subscription_webhooks_with_root_objects(
     fulfillment,
     stock,
     customer_user,
+    customer_type,
     collection,
     checkout,
     page,
@@ -1518,6 +1556,18 @@ def async_subscription_webhooks_with_root_objects(
         events.PAGE_TYPE_CREATED: [subscription_page_type_created_webhook, page_type],
         events.PAGE_TYPE_UPDATED: [subscription_page_type_updated_webhook, page_type],
         events.PAGE_TYPE_DELETED: [subscription_page_type_deleted_webhook, page_type],
+        events.CUSTOMER_TYPE_CREATED: [
+            subscription_customer_type_created_webhook,
+            customer_type,
+        ],
+        events.CUSTOMER_TYPE_UPDATED: [
+            subscription_customer_type_updated_webhook,
+            customer_type,
+        ],
+        events.CUSTOMER_TYPE_DELETED: [
+            subscription_customer_type_deleted_webhook,
+            customer_type,
+        ],
         events.PERMISSION_GROUP_CREATED: [
             subscription_permission_group_created_webhook,
             permission_group_manage_users,
@@ -1697,3 +1747,11 @@ def tax_configuration_avatax_plugin(channel_USD):
     tc.tax_app_id = "plugin:avatax"
     tc.save()
     return tc
+
+
+@pytest.fixture
+def cache_clear():
+    """Clear the cache before & after a test case."""
+    cache.clear()
+    yield
+    cache.clear()

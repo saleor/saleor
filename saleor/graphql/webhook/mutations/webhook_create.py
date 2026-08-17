@@ -14,7 +14,7 @@ from ....webhook.validators import (
 from ...app.dataloaders import get_app_promise
 from ...app.utils import validate_app_is_not_removed
 from ...core import ResolveInfo
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.mutations import DeprecatedModelMutation
@@ -28,6 +28,13 @@ from ..types import Webhook
 
 class WebhookCreateInput(BaseInputObjectType):
     name = graphene.String(description="The name of the webhook.", required=False)
+    identifier = graphene.String(
+        description=(
+            "The unique identifier of the webhook, set by the app. Unique per "
+            "app. Maximum length is 256 characters." + ADDED_IN_323
+        ),
+        required=False,
+    )
     target_url = graphene.String(description="The url to receive the payload.")
     events = NonNullList(
         enums.WebhookEventTypeEnum,
@@ -93,6 +100,16 @@ class WebhookCreate(DeprecatedModelMutation, NotifyUserEventValidationMixin):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cleaned_data = super().clean_input(info, instance, data, **kwargs)
+
+        if "identifier" in cleaned_data:
+            # Treat blank/whitespace-only as "unset" (NULL). This matches the
+            # manifest normalization and keeps the identifier out of the
+            # not-blank CheckConstraint. Uniqueness and max length are enforced
+            # by the model's full_clean during clean_instance.
+            cleaned_data["identifier"] = (
+                cleaned_data["identifier"] or ""
+            ).strip() or None
+
         app = cleaned_data.get("app")
 
         # We are not able to check it in `check_permission`.

@@ -328,7 +328,6 @@ class ProductVariantSortingInput(SortInputObjectType):
 
 class ProductTypeSortField(BaseEnum):
     NAME = ["name", "slug"]
-    DIGITAL = ["is_digital", "name", "slug"]
     SHIPPING_REQUIRED = ["is_shipping_required", "name", "slug"]
 
     class Meta:
@@ -339,23 +338,11 @@ class ProductTypeSortField(BaseEnum):
         # pylint: disable=no-member
         descriptions = {
             ProductTypeSortField.NAME.name: "name",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            ProductTypeSortField.DIGITAL.name: "type",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             ProductTypeSortField.SHIPPING_REQUIRED.name: "shipping",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}."
         raise ValueError(f"Unsupported enum value: {self.value}")
-
-    @property
-    def deprecation_reason(self):
-        deprecations = {
-            ProductTypeSortField.DIGITAL.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "DIGITAL will removed in Saleor 3.24.0. Use SHIPPING_REQUIRED instead."
-            ),
-        }
-        if self.name in deprecations:
-            return deprecations[self.name]
-        return None
 
 
 class ProductTypeSortingInput(SortInputObjectType):

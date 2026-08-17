@@ -12,7 +12,6 @@ from ....attribute import models as attribute_models
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page import models as page_models
-from ....page.error_codes import PageErrorCode
 from ....product import models as product_models
 from ....product.error_codes import ProductErrorCode
 from ...core.utils import from_global_id_or_error
@@ -22,6 +21,7 @@ from .shared import (
     T_ERROR_DICT,
     T_INSTANCE,
     AttrValuesInput,
+    get_assigned_attribute_values_map,
     get_assignment_model_and_fk,
 )
 from .type_handlers import (
@@ -124,11 +124,9 @@ class AttributeAssignmentMixin:
         raw_input: list[dict],
         attributes_qs: "QuerySet",
         creation: bool = True,
-        is_page_attributes: bool = False,
+        error_class=ProductErrorCode,
     ) -> T_INPUT_MAP:
         """Resolve, validate, and prepare attribute input."""
-        error_class = PageErrorCode if is_page_attributes else ProductErrorCode
-
         id_to_values_input_map, ext_ref_to_values_input_map = (
             cls._prepare_attribute_input_maps(raw_input, error_class)
         )
@@ -232,7 +230,9 @@ class AttributeAssignmentMixin:
         )
 
         if creation:
-            cls._validate_required_attributes(attributes_qs, cleaned_input, errors)
+            cls._validate_required_attributes(
+                attributes_qs, cleaned_input, errors, error_class
+            )
 
         if errors:
             raise ValidationError(errors)
@@ -277,6 +277,7 @@ class AttributeAssignmentMixin:
         attributes_qs: "QuerySet[attribute_models.Attribute]",
         cleaned_input: T_INPUT_MAP,
         errors: list[ValidationError],
+        error_class,
     ):
         """Validate that all required attributes are provided."""
         supplied_pks = {attr.pk for attr, _ in cleaned_input}
@@ -290,7 +291,7 @@ class AttributeAssignmentMixin:
             ]
             error = ValidationError(
                 "All attributes flagged as having a value required must be supplied.",
-                code=ProductErrorCode.REQUIRED.value,
+                code=error_class.REQUIRED.value,
                 params={"attributes": missing_ids},
             )
             errors.append(error)
@@ -311,7 +312,7 @@ class AttributeAssignmentMixin:
                 <Attribute>: [
                     {
                         "attribute": <Attribute>,
-                        "slug": "instance_id_attribute_id",
+                        "slug": "<assigned value slug or model_name-instance_id_attribute_id>",
                         "defaults": {"name": "...", "plain_text": "..."}
                     }
                 ],
@@ -362,7 +363,37 @@ class AttributeAssignmentMixin:
                 for action, value_data in prepared_values:
                     pre_save_bulk[action][attribute].append(value_data)
 
+        cls._use_assigned_value_slugs(instance, pre_save_bulk)
         return pre_save_bulk
+
+    @classmethod
+    def _use_assigned_value_slugs(
+        cls, instance: T_INSTANCE, pre_save_bulk: T_PRE_SAVE_BULK
+    ):
+        """Update values assigned to the instance in place under their existing slug.
+
+        Update-or-create actions match values by slug, and the handlers
+        generate the entity-aware `{model name}-{instance pk}_{attribute pk}`
+        format. Values assigned before that format was introduced (or with
+        hand-crafted slugs) would not be matched and would be replaced with
+        new rows, losing their translations and external references — so for
+        attributes with a value already assigned to the instance, match that
+        value by its existing slug instead.
+        """
+        update_or_create = pre_save_bulk.get(
+            AttributeValueBulkActionEnum.UPDATE_OR_CREATE
+        )
+        if not update_or_create:
+            return
+        assigned_values = get_assigned_attribute_values_map(
+            instance, [attribute.pk for attribute in update_or_create]
+        )
+        for attribute, values in update_or_create.items():
+            assigned_value = assigned_values.get(attribute.pk)
+            if not assigned_value:
+                continue
+            for value_data in values:
+                value_data["slug"] = assigned_value.slug
 
     @classmethod
     def save(

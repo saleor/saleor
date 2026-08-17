@@ -891,11 +891,7 @@ SHOP_ANNOUNCEMENT_RESOLVER_IMPORT = None
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin",
     "saleor.plugins.webhook.plugin.WebhookPlugin",
-    "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin",
-    "saleor.payment.gateways.dummy_credit_card.plugin.DeprecatedDummyCreditCardGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
-    "saleor.payment.gateways.braintree.plugin.DeprecatedBraintreeGatewayPlugin",
-    "saleor.payment.gateways.razorpay.plugin.DeprecatedRazorpayGatewayPlugin",
     "saleor.plugins.user_email.plugin.UserEmailPlugin",
     "saleor.plugins.admin_email.plugin.AdminEmailPlugin",
     "saleor.plugins.sendgrid.plugin.DeprecatedSendgridEmailPlugin",
@@ -1011,6 +1007,14 @@ CHECKOUT_MAX_INDEXED_PAYMENTS = 20
 CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS = int(
     os.environ.get("CHECKOUT_SEARCH_UPDATE_PARALLEL_TASKS", 5)
 )
+
+# Sets the default behavior for new Saleor installations.
+# When set to 'False', it disables account merging by default in DB
+# migrations, and when to 'True', it enables account merging but requires
+# password confirmation.
+# This setting has no effect against existing Saleor installations and
+# shouldn't be changed.
+ACCOUNT_CONFIRM_ASSOCIATE_ANONYMOUS_OBJECTS = False
 
 # Patch SubscriberExecutionContext class from `graphql-core-legacy` package
 # to fix bug causing not returning errors for subscription queries.

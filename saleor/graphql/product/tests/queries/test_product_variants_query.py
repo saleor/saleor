@@ -141,6 +141,91 @@ def test_fetch_all_variants_without_sku_as_anonymous_user_with_channel(
     assert data["edges"][0]["node"]["id"] == variant_id
 
 
+QUERY_PAGINATE_PRODUCT_VARIANTS = """
+    query paginateVariants($first: Int!, $after: String) {
+        productVariants(first: $first, after: $after) {
+            pageInfo {
+                hasNextPage
+                endCursor
+            }
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def _fetch_variants_page(client, first, after=None):
+    response = client.post_graphql(
+        QUERY_PAGINATE_PRODUCT_VARIANTS, {"first": first, "after": after}
+    )
+    data = get_graphql_content(response)["data"]["productVariants"]
+    return [edge["node"]["id"] for edge in data["edges"]], data["pageInfo"]
+
+
+@pytest.mark.parametrize(
+    ("_case", "sort_order", "sku"),
+    [
+        ("no_sort_order_no_sku", None, None),
+        ("shared_sort_order_no_sku", 0, None),
+    ],
+)
+def test_pagination_with_non_unique_default_ordering(
+    _case,
+    sort_order,
+    sku,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    """Walk three pages of variants sharing the model's default ordering values.
+
+    The default ordering (`sort_order`, `sku`) is neither unique nor non-nullable,
+    so without a tie-breaker the cursor cannot advance past such a group.
+
+    Reproduces ENG-1728
+    """
+    # given
+    page_size = 2
+    product.variants.all().delete()
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(
+                product=product, name=f"Variant {i}", sort_order=sort_order, sku=sku
+            )
+            for i in range(5)
+        ]
+    )
+    # the variants tie on every ordering field, so they fall back to ascending pk
+    expected_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk) for variant in variants
+    ]
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    first_page_ids, first_page_info = _fetch_variants_page(staff_api_client, page_size)
+    second_page_ids, second_page_info = _fetch_variants_page(
+        staff_api_client, page_size, after=first_page_info["endCursor"]
+    )
+    third_page_ids, third_page_info = _fetch_variants_page(
+        staff_api_client, page_size, after=second_page_info["endCursor"]
+    )
+
+    # then
+    assert first_page_ids == expected_ids[:2]
+    assert first_page_info["hasNextPage"] is True
+
+    assert second_page_ids == expected_ids[2:4]
+    assert second_page_info["hasNextPage"] is True
+    assert second_page_info["endCursor"] != first_page_info["endCursor"]
+
+    assert third_page_ids == expected_ids[4:]
+    assert third_page_info["hasNextPage"] is False
+
+
 QUERY_PRODUCT_VARIANTS_BY_IDS = """
     query getProductVariants($ids: [ID!], $channel: String) {
         productVariants(ids: $ids, first: 1, channel: $channel) {

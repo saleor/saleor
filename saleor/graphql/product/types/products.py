@@ -1736,16 +1736,6 @@ class ProductType(ModelObjectType[models.ProductType]):
     is_shipping_required = graphene.Boolean(
         required=True, description="Whether shipping is required for this product type."
     )
-    is_digital = graphene.Boolean(
-        required=True,
-        description=(
-            "Whether the product type is digital - doesn't have any effect, "
-            "it's present for backward-compatibility."
-        ),
-        deprecation_reason=(
-            "Will be removed in v3.24.0, use metadata or attributes instead."
-        ),
-    )
     weight = graphene.Field(Weight, description="Weight of the product type.")
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
     products = ConnectionField(

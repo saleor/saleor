@@ -2,7 +2,9 @@ import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
+    ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_EXPORT_MUTATIONS,
     DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -87,6 +89,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CUSTOMER_UPDATED: "A customer account is updated.",
     WebhookEventAsyncType.CUSTOMER_DELETED: "A customer account is deleted.",
     WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: "A customer account metadata is updated.",
+    WebhookEventAsyncType.CUSTOMER_TYPE_CREATED: "A new customer type is created."
+    + ADDED_IN_323,
+    WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED: "A customer type is updated."
+    + ADDED_IN_323,
+    WebhookEventAsyncType.CUSTOMER_TYPE_DELETED: "A customer type is deleted."
+    + ADDED_IN_323,
     WebhookEventAsyncType.GIFT_CARD_CREATED: "A new gift card created.",
     WebhookEventAsyncType.GIFT_CARD_UPDATED: "A gift card is updated.",
     WebhookEventAsyncType.GIFT_CARD_DELETED: "A gift card is deleted.",
@@ -278,12 +286,22 @@ def description(enum):
     return "Enum determining type of webhook."
 
 
+# Events emitted only by the deprecated export mutations, removed together with them.
+EXPORT_COMPLETED_EVENTS = {
+    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
+    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED,
+    WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED,
+}
+
+
 def deprecation_reason(enum):
     if enum.value == WebhookEventAsyncType.NOTIFY_USER:
         return (
             "See the docs for more details about migrating from NOTIFY_USER to other events: "
             "https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user"
         )
+    if enum.value in EXPORT_COMPLETED_EVENTS:
+        return DEPRECATED_EXPORT_MUTATIONS
     if enum.value == WebhookEventAsyncType.ANY:
         return DEFAULT_DEPRECATION_REASON
     if enum.value in WebhookEventSyncType.PAYMENT_EVENTS:

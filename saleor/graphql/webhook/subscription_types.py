@@ -53,6 +53,8 @@ from ..core.descriptions import (
     ADDED_IN_322,
     ADDED_IN_323,
     ADDED_IN_324,
+    DEPRECATED_EXPORT_MUTATIONS,
+    DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION,
     DEPRECATED_IN_3X_EVENT,
     DEPRECATED_LEGACY_PAYMENTS,
     DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION,
@@ -754,13 +756,17 @@ class GiftCardExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for gift cards.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when gift card export is completed."
+        description = (
+            "Event sent when gift card export is completed."
+            + DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_GIFT_CARDS
 
     @staticmethod
@@ -1268,13 +1274,17 @@ class ProductExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for products.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when product export is completed."
+        description = (
+            "Event sent when product export is completed."
+            + DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_PRODUCTS
 
     @staticmethod
@@ -1647,6 +1657,42 @@ class CustomerDeleted(SubscriptionObjectType, UserBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when customer user is deleted." + ADDED_IN_323
+
+
+class CustomerTypeBase(AbstractType):
+    customer_type = graphene.Field(
+        "saleor.graphql.account.types.CustomerType",
+        description="The customer type the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_customer_type(root, _info: ResolveInfo):
+        _, customer_type = root
+        return customer_type
+
+
+class CustomerTypeCreated(SubscriptionObjectType, CustomerTypeBase):
+    class Meta:
+        root_type = "CustomerType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new customer type is created." + ADDED_IN_323
+
+
+class CustomerTypeUpdated(SubscriptionObjectType, CustomerTypeBase):
+    class Meta:
+        root_type = "CustomerType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when customer type is updated." + ADDED_IN_323
+
+
+class CustomerTypeDeleted(SubscriptionObjectType, CustomerTypeBase):
+    class Meta:
+        root_type = "CustomerType"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when customer type is deleted." + ADDED_IN_323
 
 
 class CollectionBase(AbstractType):
@@ -2592,13 +2638,17 @@ class VoucherCodeExportCompleted(SubscriptionObjectType):
     export = graphene.Field(
         "saleor.graphql.csv.types.ExportFile",
         description="The export file for voucher codes.",
+        deprecation_reason=DEPRECATED_EXPORT_MUTATIONS,
     )
 
     class Meta:
         root_type = "ExportFile"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when voucher code export is completed."
+        description = (
+            "Event sent when voucher code export is completed."
+            + DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION
+        )
         doc_category = DOC_CATEGORY_DISCOUNTS
 
     @staticmethod
@@ -3283,6 +3333,9 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.CUSTOMER_UPDATED: CustomerUpdated,
     WebhookEventAsyncType.CUSTOMER_DELETED: CustomerDeleted,
     WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: CustomerMetadataUpdated,
+    WebhookEventAsyncType.CUSTOMER_TYPE_CREATED: CustomerTypeCreated,
+    WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED: CustomerTypeUpdated,
+    WebhookEventAsyncType.CUSTOMER_TYPE_DELETED: CustomerTypeDeleted,
     WebhookEventAsyncType.COLLECTION_CREATED: CollectionCreated,
     WebhookEventAsyncType.COLLECTION_UPDATED: CollectionUpdated,
     WebhookEventAsyncType.COLLECTION_DELETED: CollectionDeleted,

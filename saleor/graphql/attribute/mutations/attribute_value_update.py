@@ -4,7 +4,6 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....page import models as page_models
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
-from ....permission.enums import ProductTypePermissions
 from ....product import models as product_models
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
@@ -19,6 +18,10 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 from .attribute_update import AttributeValueUpdateInput
 from .attribute_value_create import AttributeValueCreate
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 
 
 class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
@@ -39,8 +42,13 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
     class Meta:
         model = models.AttributeValue
         object_type = AttributeValue
-        description = "Updates value of an attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        description = (
+            "Updates value of an attribute.\n\nRequires one of the following "
+            "permissions, depending on the type of the value's attribute: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, "
+            "MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes."
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -66,6 +74,14 @@ class AttributeValueUpdate(AttributeValueCreate, ModelWithExtRefMutation):
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
+        # Concrete permission is checked once the value's attribute type is known.
+        check_any_attribute_type_permission(cls, info.context)
+        object_id = cls.get_object_id(**data)
+        pk = cls.get_global_id_or_error(object_id, only_type=AttributeValue)
+        attribute_types = models.AttributeValue.objects.filter(pk=pk).values_list(
+            "attribute__type", flat=True
+        )
+        check_attribute_type_permissions(cls, info.context, attribute_types)
         return super(AttributeValueCreate, cls).perform_mutation(root, info, **data)
 
     @classmethod

@@ -147,48 +147,6 @@ def test_checkout_lines_delete_invalidate_prices(
     )
 
 
-DELETE_CHECKOUT_LINE = """
-mutation deleteCheckoutLine($token: UUID!, $lineId: ID!){
-  checkoutLineDelete(token: $token, lineId: $lineId) {
-    errors {
-      field
-      message
-    }
-  }
-}
-"""
-
-
-@patch("saleor.graphql.checkout.mutations.checkout_line_delete.invalidate_checkout")
-def test_checkout_line_delete_invalidate_prices(
-    mocked_invalidate_checkout,
-    api_client,
-    checkout_with_items,
-):
-    # given
-    manager = get_plugins_manager(allow_replica=False)
-    mocked_invalidate_checkout.return_value = []
-    query = DELETE_CHECKOUT_LINE
-    variables = {
-        "token": checkout_with_items.token,
-        "lineId": graphene.Node.to_global_id(
-            "CheckoutLine", checkout_with_items.lines.first().pk
-        ),
-    }
-
-    # when
-    response = get_graphql_content(api_client.post_graphql(query, variables))
-
-    # then
-    assert not response["data"]["checkoutLineDelete"]["errors"]
-    checkout_with_items.refresh_from_db()
-    lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
-    mocked_invalidate_checkout.assert_called_once_with(
-        checkout_info, lines, mock.ANY, save=False
-    )
-
-
 UPDATE_CHECKOUT_SHIPPING_ADDRESS = """
 mutation UpdateCheckoutShippingAddress($token: UUID!, $address: AddressInput!) {
   checkoutShippingAddressUpdate(token: $token, shippingAddress: $address) {

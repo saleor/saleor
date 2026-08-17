@@ -14,7 +14,6 @@ mutation createProductType($input: ProductTypeInput!) {
       slug
       kind
       isShippingRequired
-      isDigital
       hasVariants
       productAttributes {
         id
@@ -36,7 +35,6 @@ def create_product_type(
     product_type_name="Test type",
     slug="test-type",
     is_shipping_required=True,
-    is_digital=False,
     has_variants=False,
     product_attributes=None,
     variant_attributes=None,
@@ -53,7 +51,6 @@ def create_product_type(
             "name": product_type_name,
             "slug": slug,
             "isShippingRequired": is_shipping_required,
-            "isDigital": is_digital,
             "hasVariants": has_variants,
             "productAttributes": product_attributes,
             "variantAttributes": variant_attributes,
@@ -71,6 +68,5 @@ def create_product_type(
     assert data["name"] == product_type_name
     assert data["slug"] == slug
     assert data["isShippingRequired"] is is_shipping_required
-    assert data["isDigital"] is is_digital
 
     return data
