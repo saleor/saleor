@@ -12,6 +12,7 @@ from ..account.models import User
 from ..app.models import App
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
+from ..core.tracing import traced_atomic_transaction
 from ..graphql.payment.mutations.transaction.utils import (
     create_transaction_event_requested,
 )
@@ -400,17 +401,18 @@ def cancel_gift_card_transaction(
         if fully_cancelled:
             response["actions"] = []
 
-    create_transaction_event_from_request_and_webhook_response(
-        request_event,
-        None,
-        transaction_webhook_response=response,
-    )
+    with traced_atomic_transaction():
+        create_transaction_event_from_request_and_webhook_response(
+            request_event,
+            None,
+            transaction_webhook_response=response,
+        )
 
-    if fully_cancelled and transaction_item.gift_card_id:
-        # No funds stay authorized, so the card is no longer in use by this
-        # checkout — release it so it can be assigned to a customer again.
-        transaction_item.gift_card = None
-        transaction_item.save(update_fields=["gift_card"])
+        if fully_cancelled and transaction_item.gift_card_id:
+            # No funds stay authorized, so the card is no longer in use by this
+            # checkout — release it so it can be assigned to a customer again.
+            transaction_item.gift_card = None
+            transaction_item.save(update_fields=["gift_card"])
 
 
 def refund_gift_card_transaction(

@@ -7,6 +7,7 @@ import graphene
 import pytest
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
+from django.db import OperationalError
 from django.db.models import QuerySet
 from django.utils import timezone
 from freezegun import freeze_time
@@ -19,7 +20,7 @@ from ...core.utils.promo_code import InvalidPromoCode
 from ...order import OrderEvents
 from ...order.models import OrderLine
 from ...payment import TransactionAction, TransactionEventType
-from ...payment.models import TransactionEvent
+from ...payment.models import TransactionEvent, TransactionItem
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
 from ...webhook.event_types import WebhookEventAsyncType
@@ -1009,6 +1010,57 @@ def test_assign_allowed_after_transaction_fully_cancelled(
     gift_card.refresh_from_db()
     assert gift_card.assigned_to == customer_user
     assert gift_card.assigned_to_email == customer_user.email
+
+
+def test_full_cancellation_rolls_back_when_gift_card_release_fails(
+    gift_card, checkout, transaction_item_generator
+):
+    # given
+    authorized_value = Decimal(10)
+    available_actions = [TransactionAction.CANCEL]
+    release_error_message = "Gift card release failed"
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk,
+        gift_card=gift_card,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=authorized_value,
+        available_actions=available_actions,
+    )
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction_item,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=authorized_value,
+        currency=transaction_item.currency,
+    )
+    available_actions_before_cancellation = list(transaction_item.available_actions)
+    event_types_before_cancellation = list(
+        transaction_item.events.values_list("type", flat=True)
+    )
+    original_save = TransactionItem.save
+
+    def fail_on_gift_card_release(instance, *args, **kwargs):
+        if kwargs.get("update_fields") == ["gift_card"]:
+            raise OperationalError(release_error_message)
+        return original_save(instance, *args, **kwargs)
+
+    # when
+    with (
+        patch.object(TransactionItem, "save", new=fail_on_gift_card_release),
+        pytest.raises(OperationalError, match=release_error_message),
+    ):
+        cancel_gift_card_transaction(transaction_item, request_event)
+
+    # then
+    transaction_item.refresh_from_db()
+    request_event.refresh_from_db()
+    assert transaction_item.authorized_value == authorized_value
+    assert transaction_item.available_actions == available_actions_before_cancellation
+    assert transaction_item.gift_card == gift_card
+    assert request_event.psp_reference is None
+    assert request_event.include_in_calculations is False
+    assert list(transaction_item.events.values_list("type", flat=True)) == (
+        event_types_before_cancellation
+    )
 
 
 def test_assign_allowed_when_transaction_has_neither_checkout_nor_order(
