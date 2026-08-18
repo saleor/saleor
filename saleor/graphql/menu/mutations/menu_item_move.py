@@ -2,10 +2,12 @@ from dataclasses import dataclass
 
 import graphene
 from django.core.exceptions import ValidationError
+from mptt.exceptions import InvalidMove
 
 from ....core.tracing import traced_atomic_transaction
 from ....menu import models
 from ....menu.error_codes import MenuErrorCode
+from ....menu.lock_objects import acquire_menu_item_tree_lock
 from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -167,10 +169,26 @@ class MenuItemMove(BaseMutation):
         # more than once
         menu_item._mptt_meta.update_mptt_cached_fields(menu_item)
 
+        new_parent = operation.new_parent
+        if new_parent is not None:
+            # mptt computes the move from the target's in-memory lft/rght,
+            # which may predate a concurrent writer's changes. Refresh them
+            # now that the tree lock is held.
+            new_parent.refresh_from_db(fields=("lft", "rght", "level", "tree_id"))
+
         # Move the parent
-        menu_item.parent = operation.new_parent
+        menu_item.parent = new_parent
         menu_item.sort_order = None
-        menu_item.save()
+        try:
+            menu_item.save()
+        except InvalidMove as error:
+            raise ValidationError(
+                {
+                    "parent_id": ValidationError(
+                        str(error), code=MenuErrorCode.CANNOT_ASSIGN_NODE.value
+                    )
+                }
+            ) from error
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
@@ -182,6 +200,7 @@ class MenuItemMove(BaseMutation):
         operations = cls.clean_moves(info, menu, moves)
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
+            acquire_menu_item_tree_lock()
             for operation in operations:
                 cls.perform_change_parent_operation(operation)
 

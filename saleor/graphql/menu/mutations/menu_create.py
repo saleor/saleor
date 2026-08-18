@@ -1,8 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....core.tracing import traced_atomic_transaction
 from ....menu import models
 from ....menu.error_codes import MenuErrorCode
+from ....menu.lock_objects import acquire_menu_item_tree_lock
 from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -104,8 +106,12 @@ class MenuCreate(DeprecatedModelMutation):
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         items = cleaned_data.get("items", [])
-        for item in items:
-            instance.items.create(**item)
+        if not items:
+            return
+        with traced_atomic_transaction():
+            acquire_menu_item_tree_lock()
+            for item in items:
+                instance.items.create(**item)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
