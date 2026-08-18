@@ -448,6 +448,42 @@ def test_product_type_get_unassigned_product_type_attributes(
     assert received_ids == expected_ids
 
 
+def test_product_type_no_available_attributes_when_all_are_assigned(
+    staff_api_client, permission_manage_products
+):
+    # given a product type that has every product type attribute assigned
+    product_type = ProductType.objects.create(
+        name="Fully assigned", slug="fully-assigned", kind=ProductTypeKind.NORMAL
+    )
+    product_attribute, variant_attribute = Attribute.objects.bulk_create(
+        [
+            Attribute(slug="color", name="Color", type=AttributeType.PRODUCT_TYPE),
+            Attribute(slug="size", name="Size", type=AttributeType.PRODUCT_TYPE),
+        ]
+    )
+    product_type.product_attributes.add(product_attribute)
+    product_type.variant_attributes.add(variant_attribute)
+    assert not Attribute.objects.get_unassigned_product_type_attributes(
+        product_type.pk
+    ).exists()
+
+    # when
+    available_attributes = get_graphql_content(
+        staff_api_client.post_graphql(
+            QUERY_AVAILABLE_ATTRIBUTES,
+            {
+                "productTypeId": graphene.Node.to_global_id(
+                    "ProductType", product_type.pk
+                )
+            },
+            permissions=[permission_manage_products],
+        )
+    )["data"]["productType"]["availableAttributes"]["edges"]
+
+    # then
+    assert available_attributes == []
+
+
 def test_product_type_filter_unassigned_attributes(
     staff_api_client, permission_manage_products, product_type_attribute_list
 ):
