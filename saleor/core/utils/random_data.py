@@ -7,14 +7,15 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from decimal import Decimal
-from functools import lru_cache
 from typing import Any, cast
 from unittest.mock import patch
 
 import graphene
+import magic
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.files import File
+from django.core.files.storage import default_storage
 from django.db import connection
 from django.db.models import F
 from django.utils import timezone
@@ -32,13 +33,16 @@ from ...account.tests.fixtures.user import dangerously_create_test_user
 from ...account.utils import get_default_customer_type, store_user_address
 from ...app.models import App
 from ...attribute.models import (
+    AssignedPageAttributeValue,
     AssignedProductAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     Attribute,
     AttributePage,
     AttributeProduct,
+    AttributeTranslation,
     AttributeValue,
+    AttributeValueTranslation,
     AttributeVariant,
 )
 from ...channel.models import Channel
@@ -60,11 +64,11 @@ from ...discount.models import (
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
 from ...menu.models import Menu, MenuItem
-from ...order import OrderStatus
+from ...order import OrderOrigin, OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.search import prepare_order_search_vector_value
 from ...order.utils import update_order_status
-from ...page.models import Page, PageType
+from ...page.models import Page, PageTranslation, PageType
 from ...payment import TransactionAction, TransactionEventType
 from ...payment.models import TransactionEvent, TransactionItem
 from ...payment.utils import (
@@ -88,6 +92,7 @@ from ...product.models import (
     Product,
     ProductChannelListing,
     ProductMedia,
+    ProductTranslation,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
@@ -105,7 +110,7 @@ from ...shipping.models import (
     ShippingZone,
 )
 from ...site.models import SiteSettings
-from ...tax.models import TaxClass, TaxConfiguration
+from ...tax.models import TaxClass, TaxClassCountryRate, TaxConfiguration
 from ...tax.utils import get_tax_class_kwargs_for_order_line
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
@@ -116,30 +121,81 @@ fake = cast(Any, Factory.create())
 fake.seed(0)
 
 PRODUCTS_LIST_DIR = "products-list/"
+ATTRIBUTE_FILES_DIR = "file-upload/"
 
 DUMMY_STAFF_PASSWORD = "password"
 
 DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 
+RETIRED_PRODUCT_PKS = (127, 132, 133)
+
+GROCERIES_TAX_CLASS_PK = 1
+BOOKS_TAX_CLASS_PK = 2
+NO_TAXES_TAX_CLASS_PK = 3
+
+TAX_CLASS_NAMES_BY_PK = {
+    GROCERIES_TAX_CLASS_PK: "Groceries",
+    BOOKS_TAX_CLASS_PK: "Books",
+    NO_TAXES_TAX_CLASS_PK: "No taxes",
+}
+
+DEFAULT_COUNTRY_TAX_RATES = {
+    "AT": Decimal(20),
+    "BE": Decimal(21),
+    "CZ": Decimal(21),
+    "DE": Decimal(19),
+    "DK": Decimal(25),
+    "ES": Decimal(21),
+    "FR": Decimal(20),
+    "GB": Decimal(20),
+    "PL": Decimal(23),
+}
+
+TAX_CLASS_COUNTRY_RATES = {
+    GROCERIES_TAX_CLASS_PK: {
+        "AT": Decimal(10),
+        "BE": Decimal(6),
+        "CZ": Decimal(10),
+        "DE": Decimal(19),
+        "ES": Decimal(4),
+        "FR": Decimal(10),
+        "GB": Decimal(5),
+        "PL": Decimal(5),
+    },
+    BOOKS_TAX_CLASS_PK: {
+        "AT": Decimal(10),
+        "BE": Decimal(6),
+        "CZ": Decimal(10),
+        "DE": Decimal(7),
+        "ES": Decimal(4),
+        "FR": Decimal("5.5"),
+        "GB": Decimal(0),
+        "PL": Decimal(8),
+    },
+    NO_TAXES_TAX_CLASS_PK: {
+        country: Decimal(0) for country in DEFAULT_COUNTRY_TAX_RATES
+    },
+}
+
 IMAGES_MAPPING = {
     126: ["saleor-headless-omnichannel-book.png"],
-    127: [
-        "saleor-white-plimsolls-1.png",
-        "saleor-white-plimsolls-2.png",
-        "saleor-white-plimsolls-3.png",
-        "saleor-white-plimsolls-4.png",
-    ],
     128: [
         "saleor-blue-plimsolls-1.png",
         "saleor-blue-plimsolls-2.png",
         "saleor-blue-plimsolls-3.png",
         "saleor-blue-plimsolls-4.png",
+        "saleor-white-plimsolls-1.png",
+        "saleor-white-plimsolls-2.png",
+        "saleor-white-plimsolls-3.png",
+        "saleor-white-plimsolls-4.png",
     ],
     129: ["saleor-dash-force-1.png", "saleor-dash-force-2.png"],
     130: ["saleor-pauls-blanace-420-1.png", "saleor-pauls-blanace-420-2.png"],
-    131: ["saleor-grey-hoodie.png"],
-    132: ["saleor-blue-hoodie.png"],
-    133: ["saleor-white-hoodie.png"],
+    131: [
+        "saleor-grey-hoodie.png",
+        "saleor-blue-hoodie.png",
+        "saleor-white-hoodie.png",
+    ],
     134: ["saleor-ascii-shirt-front.png", "saleor-ascii-shirt-back.png"],
     135: ["saleor-team-tee-front.png", "saleor-team-tee-front.png"],
     136: ["saleor-polo-shirt-front.png", "saleor-polo-shirt-back.png"],
@@ -169,6 +225,99 @@ IMAGES_MAPPING = {
     164: ["saleor-gift-50.png"],
 }
 
+VARIANT_IMAGES_MAPPING = {
+    324: ("saleor-headless-omnichannel-book.png",),
+    332: tuple(IMAGES_MAPPING[128][:4]),
+    333: tuple(IMAGES_MAPPING[128][:4]),
+    334: tuple(IMAGES_MAPPING[128][:4]),
+    335: ("saleor-dash-force-1.png",),
+    336: ("saleor-dash-force-1.png",),
+    337: ("saleor-dash-force-1.png",),
+    338: ("saleor-dash-force-1.png",),
+    339: ("saleor-dash-force-1.png",),
+    340: ("saleor-pauls-blanace-420-1.png",),
+    341: ("saleor-pauls-blanace-420-1.png",),
+    342: ("saleor-pauls-blanace-420-1.png",),
+    343: ("saleor-pauls-blanace-420-1.png",),
+    344: ("saleor-pauls-blanace-420-1.png",),
+    345: ("saleor-grey-hoodie.png",),
+    348: ("saleor-ascii-shirt-front.png",),
+    349: ("saleor-ascii-shirt-front.png",),
+    350: ("saleor-ascii-shirt-front.png",),
+    351: ("saleor-ascii-shirt-front.png",),
+    352: ("saleor-ascii-shirt-front.png",),
+    353: ("saleor-team-tee-front.png",),
+    354: ("saleor-team-tee-front.png",),
+    355: ("saleor-team-tee-front.png",),
+    356: ("saleor-team-tee-front.png",),
+    357: ("saleor-team-tee-front.png",),
+    358: ("saleor-polo-shirt-front.png",),
+    359: ("saleor-polo-shirt-front.png",),
+    360: ("saleor-polo-shirt-front.png",),
+    361: ("saleor-blue-polygon-tee-front.png",),
+    362: ("saleor-blue-polygon-tee-front.png",),
+    363: ("saleor-blue-polygon-tee-front.png",),
+    364: ("saleor-dark-polygon-tee-front.png",),
+    365: ("saleor-dark-polygon-tee-front.png",),
+    366: ("saleor-dark-polygon-tee-front.png",),
+    368: ("saleor-beanie-1.png",),
+    370: ("saleor-neck-warmer.png",),
+    371: ("saleor-sunnies.png",),
+    372: ("saleor-battle-tested-book.png",),
+    373: ("saleor-battle-tested-book.png",),
+    374: ("saleor-battle-tested-book.png",),
+    375: ("saleor-enterprise-cloud-book.png",),
+    376: ("saleor-enterprise-cloud-book.png",),
+    377: ("saleor-enterprise-cloud-book.png",),
+    378: ("saleor-enterprise-cloud-book.png",),
+    379: ("saleor-own-your-stack-and-data-book.png",),
+    380: ("saleor-own-your-stack-and-data-book.png",),
+    382: ("saleor-mighty-mug.png",),
+    383: ("saleor-cushion-blue.png",),
+    384: ("saleor-apple-drink.png",),
+    385: ("saleor-bean-drink.png",),
+    386: ("saleor-banana-drink.png",),
+    387: ("saleor-carrot-drink.png",),
+    388: ("saleor-sunnies-dark.png",),
+    389: ("saleor-monospace-white-tee-front.png",),
+    390: ("saleor-monospace-white-tee-front.png",),
+    393: ("saleor-gift-100.png",),
+    394: ("saleor-white-cubes-tee-front.png",),
+    395: ("saleor-white-cubes-tee-front.png",),
+    396: ("saleor-white-cubes-tee-front.png",),
+    397: ("saleor-white-cubes-tee-front.png",),
+    398: ("saleor-white-cubes-tee-front.png",),
+    399: ("saleor-white-parrot-cushion.png",),
+    400: ("saleor-gift-500.png",),
+    401: ("saleor-gift-50.png",),
+    404: tuple(IMAGES_MAPPING[128][4:]),
+    405: tuple(IMAGES_MAPPING[128][4:]),
+    406: tuple(IMAGES_MAPPING[128][4:]),
+    407: tuple(IMAGES_MAPPING[128][4:]),
+    408: tuple(IMAGES_MAPPING[128][4:]),
+    409: tuple(IMAGES_MAPPING[128][4:]),
+    410: tuple(IMAGES_MAPPING[128][4:]),
+    411: ("saleor-grey-hoodie.png",),
+    412: ("saleor-grey-hoodie.png",),
+    413: ("saleor-grey-hoodie.png",),
+    414: ("saleor-white-hoodie.png",),
+    415: ("saleor-white-hoodie.png",),
+    416: ("saleor-white-hoodie.png",),
+    417: ("saleor-blue-hoodie.png",),
+    418: ("saleor-blue-hoodie.png",),
+    419: ("saleor-blue-hoodie.png",),
+    420: ("saleor-blue-hoodie.png",),
+}
+
+ATTRIBUTE_FILE_MAPPING = {
+    343: ("audio-quality-standard-black.png", "image/png"),
+    344: ("audio-quality-hi-res-black.png", "image/png"),
+    366: ("audiobook-enterprise-sample.mp3", "audio/mpeg"),
+    367: ("audiobook-headless-sample.mp3", "audio/mpeg"),
+    369: ("audiobook-battle-tested-sample.mp3", "audio/mpeg"),
+    380: ("audiobook-stack-and-data-sample.mp3", "audio/mpeg"),
+}
+
 CATEGORY_IMAGES = {
     7: "accessories.jpg",
     8: "groceries.jpg",
@@ -178,7 +327,6 @@ CATEGORY_IMAGES = {
 COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
 
-@lru_cache
 def get_sample_data():
     path = os.path.join(
         settings.PROJECT_ROOT, "saleor", "static", "populatedb_data.json"
@@ -210,9 +358,12 @@ def create_product_types(product_type_data):
 
 def create_categories(categories_data, placeholder_dir):
     placeholder_dir = get_product_list_images_dir(placeholder_dir)
+    categories_data = sorted(
+        categories_data, key=lambda category: category["fields"]["level"]
+    )
     for category in categories_data:
         pk = category["pk"]
-        defaults = category["fields"]
+        defaults = dict(category["fields"])
         parent = defaults["parent"]
         image_name = CATEGORY_IMAGES.get(pk)
         if image_name:
@@ -268,7 +419,96 @@ def create_attributes_values(values_data):
         pk = value["pk"]
         defaults = dict(value["fields"])
         defaults["attribute_id"] = defaults.pop("attribute")
+        for relation_field in (
+            "reference_category",
+            "reference_collection",
+            "reference_page",
+            "reference_product",
+            "reference_variant",
+        ):
+            if relation_field in defaults:
+                defaults[f"{relation_field}_id"] = defaults.pop(relation_field)
         AttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_product_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        product_id = defaults.pop("product")
+        language_code = defaults.pop("language_code")
+        ProductTranslation.objects.update_or_create(
+            product_id=product_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_page_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        page_id = defaults.pop("page")
+        language_code = defaults.pop("language_code")
+        PageTranslation.objects.update_or_create(
+            page_id=page_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_attribute_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        attribute_id = defaults.pop("attribute")
+        language_code = defaults.pop("language_code")
+        AttributeTranslation.objects.update_or_create(
+            attribute_id=attribute_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_attribute_value_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        attribute_value_id = defaults.pop("attribute_value")
+        language_code = defaults.pop("language_code")
+        AttributeValueTranslation.objects.update_or_create(
+            attribute_value_id=attribute_value_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_attribute_file_values(placeholder_dir):
+    source_dir = os.path.join(placeholder_dir, ATTRIBUTE_FILES_DIR)
+    for value_id, (file_name, content_type) in ATTRIBUTE_FILE_MAPPING.items():
+        source_path = os.path.join(source_dir, file_name)
+        with open(source_path, "rb") as source_file:
+            detected_content_type = magic.from_buffer(source_file.read(2048), mime=True)
+            source_file.seek(0)
+            extension = os.path.splitext(file_name)[1].lower()
+            if (
+                detected_content_type != content_type
+                or extension not in settings.ALLOWED_MIME_TYPES.get(content_type, ())
+            ):
+                raise ValueError(
+                    f"Attribute file {file_name} does not match its allowed content "
+                    f"type {content_type}. Detected {detected_content_type}."
+                )
+
+            storage_path = f"file_upload/{file_name}"
+            if not default_storage.exists(storage_path):
+                storage_path = default_storage.save(
+                    storage_path, File(source_file, name=file_name)
+                )
+
+        updated_count = AttributeValue.objects.filter(pk=value_id).update(
+            file_url=storage_path, content_type=content_type
+        )
+        if updated_count != 1:
+            raise ValueError(
+                f"Attribute value {value_id} for {file_name} was not found."
+            )
 
 
 def assign_reference_page_types_to_attributes(relations: list):
@@ -278,7 +518,51 @@ def assign_reference_page_types_to_attributes(relations: list):
         attribute.reference_page_types.add(fields["page_type"])
 
 
+def assign_reference_product_types_to_attributes(relations: list):
+    for relation in relations:
+        fields = relation["fields"]
+        attribute = Attribute.objects.get(pk=fields["attribute"])
+        attribute.reference_product_types.add(fields["product_type"])
+
+
+def get_matching_placeholder_image_name(stored_image_name, image_names):
+    stored_stem, stored_extension = os.path.splitext(
+        os.path.basename(stored_image_name)
+    )
+    matching_image_names = {
+        image_name
+        for image_name in image_names
+        if (image_parts := os.path.splitext(image_name))[1] == stored_extension
+        and (
+            stored_stem == image_parts[0]
+            or stored_stem.startswith(f"{image_parts[0]}_")
+        )
+    }
+    if len(matching_image_names) > 1:
+        raise ValueError(
+            f"Stored image {stored_image_name} matches multiple placeholder images."
+        )
+    return matching_image_names.pop() if matching_image_names else None
+
+
+def create_missing_product_images(product, placeholder_dir, image_names):
+    existing_image_names = {
+        image_name
+        for stored_image_name in product.media.values_list("image", flat=True)
+        if (
+            image_name := get_matching_placeholder_image_name(
+                stored_image_name, image_names
+            )
+        )
+    }
+    for image_name in image_names:
+        if image_name not in existing_image_names:
+            create_product_image(product, placeholder_dir, image_name)
+
+
 def create_products(products_data, placeholder_dir, create_images):
+    Product.objects.filter(pk__in=RETIRED_PRODUCT_PKS).delete()
+
     for product in products_data:
         pk = product["pk"]
         # We are skipping products without images
@@ -295,9 +579,9 @@ def create_products(products_data, placeholder_dir, create_images):
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
         if create_images:
-            images = IMAGES_MAPPING.get(pk, [])
-            for image_name in images:
-                create_product_image(product, placeholder_dir, image_name)
+            create_missing_product_images(
+                product, placeholder_dir, IMAGES_MAPPING.get(pk, [])
+            )
 
 
 def create_product_channel_listings(product_channel_listings_data):
@@ -322,7 +606,7 @@ def create_stocks(variant, warehouse_qs=None, **defaults):
         )
 
 
-def create_product_variants(variants_data, create_images):
+def create_product_variants(variants_data):
     for variant in variants_data:
         pk = variant["pk"]
         defaults = dict(variant["fields"])
@@ -340,11 +624,77 @@ def create_product_variants(variants_data, create_images):
             product = variant.product
             product.default_variant = variant
             product.save(update_fields=["default_variant", "updated_at"])
-        if create_images:
-            image = variant.product.get_first_image()
-            VariantMedia.objects.get_or_create(variant=variant, media=image)
         quantity = random.randint(100, 500)
         create_stocks(variant, quantity=quantity)
+
+
+def assign_media_to_product_variants():
+    variants = ProductVariant.objects.filter(pk__in=VARIANT_IMAGES_MAPPING).values_list(
+        "pk", "product_id"
+    )
+    product_id_by_variant_id = dict(variants)
+    product_ids = set(product_id_by_variant_id.values())
+
+    media_by_product_id = defaultdict(list)
+    for media in ProductMedia.objects.filter(product_id__in=product_ids):
+        media_by_product_id[media.product_id].append(media)
+
+    media_by_product_and_image_name: dict[tuple[int, str], ProductMedia] = {}
+    for product_id, media_items in media_by_product_id.items():
+        if product_id is None:
+            continue
+        image_names = IMAGES_MAPPING[product_id]
+        for media in media_items:
+            image_name = get_matching_placeholder_image_name(
+                media.image.name, image_names
+            )
+            if image_name:
+                media_by_product_and_image_name.setdefault(
+                    (product_id, image_name), media
+                )
+
+    missing_media = {
+        (product_id_by_variant_id[variant_id], image_name)
+        for variant_id, image_names in VARIANT_IMAGES_MAPPING.items()
+        if variant_id in product_id_by_variant_id
+        for image_name in image_names
+        if (product_id_by_variant_id[variant_id], image_name)
+        not in media_by_product_and_image_name
+    }
+    if missing_media:
+        raise ValueError(f"Missing product media for placeholders: {missing_media}.")
+
+    desired_relations = {
+        (
+            variant_id,
+            media_by_product_and_image_name[
+                (product_id_by_variant_id[variant_id], image_name)
+            ].pk,
+        )
+        for variant_id, image_names in VARIANT_IMAGES_MAPPING.items()
+        for image_name in image_names
+    }
+    existing_relations = {
+        (variant_id, media_id): relation_id
+        for relation_id, variant_id, media_id in VariantMedia.objects.filter(
+            variant_id__in=VARIANT_IMAGES_MAPPING
+        ).values_list("pk", "variant_id", "media_id")
+    }
+    stale_relation_ids = [
+        relation_id
+        for relation, relation_id in existing_relations.items()
+        if relation not in desired_relations
+    ]
+    if stale_relation_ids:
+        VariantMedia.objects.filter(pk__in=stale_relation_ids).delete()
+
+    VariantMedia.objects.bulk_create(
+        [
+            VariantMedia(variant_id=variant_id, media_id=media_id)
+            for variant_id, media_id in desired_relations - existing_relations.keys()
+        ],
+        ignore_conflicts=True,
+    )
 
 
 def create_product_variant_channel_listings(product_variant_channel_listings_data):
@@ -393,6 +743,15 @@ def assign_attribute_values_to_products(values):
         AssignedProductAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
+def assign_attribute_values_to_pages(values):
+    for value in values:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["value_id"] = defaults.pop("value")
+        defaults["page_id"] = defaults.pop("page")
+        AssignedPageAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
+
+
 def assign_attributes_to_variants(variant_attributes):
     for value in variant_attributes:
         pk = value["pk"]
@@ -408,6 +767,8 @@ def assign_attribute_values_to_variants(variant_attribute_values):
         defaults = dict(value["fields"])
         defaults["value_id"] = defaults.pop("value")
         defaults["assignment_id"] = defaults.pop("assignment")
+        if variant_id := defaults.pop("variant", None):
+            defaults["variant_id"] = variant_id
         AssignedVariantAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
 
 
@@ -425,19 +786,24 @@ def create_products_by_schema(placeholder_dir, create_images):
         categories_data=types["product.category"], placeholder_dir=placeholder_dir
     )
     create_attributes(attributes_data=types["attribute.attribute"])
-    create_attributes_values(values_data=types["attribute.attributevalue"])
 
     create_products(
         products_data=types["product.product"],
         placeholder_dir=placeholder_dir,
         create_images=create_images,
     )
+    create_attributes_values(values_data=types["attribute.attributevalue"])
+    create_product_translations(types["product.producttranslation"])
+    create_attribute_translations(types["attribute.attributetranslation"])
+    create_attribute_value_translations(types["attribute.attributevaluetranslation"])
+    if create_images:
+        create_attribute_file_values(placeholder_dir)
     create_product_channel_listings(
         product_channel_listings_data=types["product.productchannellisting"],
     )
-    create_product_variants(
-        variants_data=types["product.productvariant"], create_images=create_images
-    )
+    create_product_variants(variants_data=types["product.productvariant"])
+    if create_images:
+        assign_media_to_product_variants()
     create_product_variant_channel_listings(
         product_variant_channel_listings_data=types[
             "product.productvariantchannellisting"
@@ -455,6 +821,7 @@ def create_products_by_schema(placeholder_dir, create_images):
     assign_attribute_values_to_products(
         types["attribute.assignedproductattributevalue"]
     )
+    assign_attribute_values_to_pages(types["attribute.assignedpageattributevalue"])
     assign_attributes_to_variants(
         variant_attributes=types["attribute.assignedvariantattribute"]
     )
@@ -463,6 +830,9 @@ def create_products_by_schema(placeholder_dir, create_images):
     )
     assign_reference_page_types_to_attributes(
         types["attribute.attribute_reference_page_types"]
+    )
+    assign_reference_product_types_to_attributes(
+        types["attribute.attribute_reference_product_types"]
     )
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
@@ -497,9 +867,6 @@ def get_email(first_name, last_name):
 
 def create_product_image(product, placeholder_dir, image_name):
     image = get_image(placeholder_dir, image_name)
-    # We don't want to create duplicated product images
-    if product.media.count() >= len(IMAGES_MAPPING.get(product.pk, [])):
-        return None
     product_image = ProductMedia(product=product, image=image)
     product_image.save()
     return product_image
@@ -964,6 +1331,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
         billing_address = address
     order_data: dict[str, Any] = {
         "billing_address": billing_address or address,
+        "origin": OrderOrigin.CHECKOUT,
         "shipping_address": address,
         "user_email": get_email(address.first_name, address.last_name),
     }
@@ -1031,86 +1399,121 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     return order
 
 
-def create_fake_catalogue_promotion():
-    promotion = Promotion.objects.create(
-        name=f"Happy {fake.word()} day!",
+def get_populatedb_uuid(object_type, *identifiers):
+    identifier = "/".join(str(value) for value in identifiers)
+    return uuid.uuid5(
+        uuid.NAMESPACE_URL, f"https://saleor.io/populatedb/{object_type}/{identifier}"
     )
-    rules = PromotionRule.objects.bulk_create(
+
+
+def update_sample_promotion_rules(
+    promotion, promotion_index, rule_defaults, promotion_type
+):
+    rules = []
+    for rule_index, defaults in enumerate(rule_defaults):
+        rule_id = get_populatedb_uuid(
+            "promotion-rule", promotion_type, promotion_index, rule_index
+        )
+        rule, _ = PromotionRule.objects.update_or_create(
+            pk=rule_id,
+            defaults={"promotion": promotion, **defaults},
+        )
+        rules.append(rule)
+
+    channels = Channel.objects.all()
+    for rule in rules:
+        rule.channels.set(channels)
+
+
+def create_fake_catalogue_promotion(promotion_index=0):
+    promotion_id = get_populatedb_uuid(
+        "promotion", PromotionType.CATALOGUE, promotion_index
+    )
+    promotion, _ = Promotion.objects.update_or_create(
+        pk=promotion_id,
+        defaults={
+            "name": f"Happy {fake.word()} day!",
+            "type": PromotionType.CATALOGUE,
+        },
+    )
+    update_sample_promotion_rules(
+        promotion,
+        promotion_index,
         [
-            PromotionRule(
-                promotion=promotion,
-                reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=random.choice([10, 20, 30, 40, 50]),
-                variants_dirty=True,
-                catalogue_predicate={
+            {
+                "reward_value_type": RewardValueType.PERCENTAGE,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "variants_dirty": True,
+                "catalogue_predicate": {
                     "productPredicate": {
                         "ids": [
-                            graphene.Node.to_global_id("Product", product.id)
+                            graphene.Node.to_global_id("Product", product.pk)
                             for product in Product.objects.all().order_by("?")[:2]
                         ]
-                    }
+                    },
                 },
-            ),
-            PromotionRule(
-                promotion=promotion,
-                reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=random.choice([10, 20, 30, 40, 50]),
-                variants_dirty=True,
-                catalogue_predicate={
+            },
+            {
+                "reward_value_type": RewardValueType.PERCENTAGE,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "variants_dirty": True,
+                "catalogue_predicate": {
                     "variantPredicate": {
                         "ids": [
-                            graphene.Node.to_global_id("ProductVariant", variant.id)
+                            graphene.Node.to_global_id("ProductVariant", variant.pk)
                             for variant in ProductVariant.objects.all().order_by("?")[
                                 :2
                             ]
                         ]
-                    }
+                    },
                 },
-            ),
-        ]
+            },
+        ],
+        PromotionType.CATALOGUE,
     )
-    channels = Channel.objects.all()
-    for rule in rules:
-        rule.channels.add(*channels)
 
     return promotion
 
 
-def create_fake_order_promotion():
-    promotion = Promotion.objects.create(
-        name=f"Happy {fake.word()} day!",
-        type=PromotionType.ORDER,
-        start_date=timezone.now() + datetime.timedelta(days=1),
+def create_fake_order_promotion(promotion_index=0):
+    promotion_id = get_populatedb_uuid(
+        "promotion", PromotionType.ORDER, promotion_index
     )
-    rules = PromotionRule.objects.bulk_create(
+    promotion, _ = Promotion.objects.update_or_create(
+        pk=promotion_id,
+        defaults={
+            "name": f"Happy {fake.word()} day!",
+            "type": PromotionType.ORDER,
+            "start_date": timezone.now() + datetime.timedelta(days=1),
+        },
+    )
+    update_sample_promotion_rules(
+        promotion,
+        promotion_index,
         [
-            PromotionRule(
-                promotion=promotion,
-                reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=random.choice([10, 20, 30, 40, 50]),
-                reward_type=RewardType.SUBTOTAL_DISCOUNT,
-                order_predicate={
+            {
+                "reward_value_type": RewardValueType.PERCENTAGE,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "reward_type": RewardType.SUBTOTAL_DISCOUNT,
+                "order_predicate": {
                     "discountedObjectPredicate": {
                         "baseSubtotalPrice": {"range": {"gte": "200"}}
-                    }
+                    },
                 },
-            ),
-            PromotionRule(
-                promotion=promotion,
-                reward_value_type=RewardValueType.FIXED,
-                reward_value=random.choice([10, 20, 30, 40, 50]),
-                reward_type=RewardType.SUBTOTAL_DISCOUNT,
-                order_predicate={
+            },
+            {
+                "reward_value_type": RewardValueType.FIXED,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "reward_type": RewardType.SUBTOTAL_DISCOUNT,
+                "order_predicate": {
                     "discountedObjectPredicate": {
                         "baseSubtotalPrice": {"range": {"gte": "100"}}
-                    }
+                    },
                 },
-            ),
-        ]
+            },
+        ],
+        PromotionType.ORDER,
     )
-    channels = Channel.objects.all()
-    for rule in rules:
-        rule.channels.add(*channels)
 
     return promotion
 
@@ -1218,8 +1621,8 @@ def create_orders(how_many=10):
 
 
 def create_catalogue_promotions(how_many=5):
-    for _ in range(how_many):
-        promotion = create_fake_catalogue_promotion()
+    for promotion_index in range(how_many):
+        promotion = create_fake_catalogue_promotion(promotion_index)
         yield f"Promotion: {promotion}"
     # recalculation is handled by celery beat, so we trigger it manually, to receive the
     # correct amounts in random data created by saleor.
@@ -1228,8 +1631,8 @@ def create_catalogue_promotions(how_many=5):
 
 
 def create_order_promotions(how_many=5):
-    for _ in range(how_many):
-        promotion = create_fake_order_promotion()
+    for promotion_index in range(how_many):
+        promotion = create_fake_order_promotion(promotion_index)
         yield f"Promotion: {promotion}"
 
 
@@ -1705,6 +2108,44 @@ def create_vouchers():
     else:
         yield "Value voucher already exists"
 
+    voucher, created = Voucher.objects.update_or_create(
+        name="Single Use Vouchers",
+        defaults={
+            "type": VoucherType.ENTIRE_ORDER,
+            "usage_limit": 50,
+            "min_checkout_items_quantity": 0,
+            "apply_once_per_customer": True,
+            "single_use": True,
+            "discount_value_type": DiscountValueType.PERCENTAGE,
+        },
+    )
+    code_count = 50
+    voucher_codes = [f"SINGLE-USE-{index:03}" for index in range(1, code_count + 1)]
+    existing_codes = set(
+        voucher.codes.filter(code__in=voucher_codes).values_list("code", flat=True)
+    )
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(voucher=voucher, code=code)
+            for code in voucher_codes
+            if code not in existing_codes
+        ],
+        ignore_conflicts=True,
+    )
+
+    for channel in channels:
+        if channel.currency_code not in {"PLN", "USD"}:
+            continue
+        VoucherChannelListing.objects.update_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={"discount_value": 10, "currency": channel.currency_code},
+        )
+    if created:
+        yield f"Voucher #{voucher.pk}"
+    else:
+        yield "Single use voucher already exists"
+
     voucher, created = Voucher.objects.get_or_create(
         name="Percentage order discount",
         defaults={
@@ -1800,6 +2241,8 @@ def create_pages():
         defaults["page_type_id"] = defaults.pop("page_type")
         page, _ = Page.objects.update_or_create(pk=pk, defaults=defaults)
         yield f"Page {page.slug} created"
+
+    create_page_translations(types["page.pagetranslation"])
 
 
 def create_site_settings():
@@ -1906,9 +2349,48 @@ def create_checkout_with_same_variant_in_multiple_lines():
 
 
 def create_tax_classes():
-    names = ["Groceries", "Books"]
-    tax_classes = []
-    for name in names:
-        tax_classes.append(TaxClass(name=name))
-    TaxClass.objects.bulk_create(tax_classes)
-    yield f"Created tax classes: {names}"
+    TaxClass.objects.bulk_create(
+        [TaxClass(pk=pk, name=name) for pk, name in TAX_CLASS_NAMES_BY_PK.items()],
+        update_conflicts=True,
+        update_fields=["name"],
+        unique_fields=["pk"],
+    )
+    tax_classes = TaxClass.objects.in_bulk(TAX_CLASS_NAMES_BY_PK)
+
+    TaxClassCountryRate.objects.bulk_create(
+        [
+            TaxClassCountryRate(country=country, rate=rate)
+            for country, rate in DEFAULT_COUNTRY_TAX_RATES.items()
+        ],
+        ignore_conflicts=True,
+    )
+    default_country_rates = list(
+        TaxClassCountryRate.objects.filter(
+            country__in=DEFAULT_COUNTRY_TAX_RATES,
+            tax_class=None,
+        )
+    )
+    for country_rate in default_country_rates:
+        country_rate.rate = DEFAULT_COUNTRY_TAX_RATES[country_rate.country.code]
+    TaxClassCountryRate.objects.bulk_update(default_country_rates, ["rate"])
+
+    TaxClassCountryRate.objects.bulk_create(
+        [
+            TaxClassCountryRate(
+                country=country,
+                rate=rate,
+                tax_class=tax_classes[tax_class_pk],
+            )
+            for tax_class_pk, country_rates in TAX_CLASS_COUNTRY_RATES.items()
+            for country, rate in country_rates.items()
+        ],
+        update_conflicts=True,
+        update_fields=["rate"],
+        unique_fields=["country", "tax_class"],
+    )
+
+    ProductType.objects.filter(slug="juice").update(
+        tax_class=tax_classes[GROCERIES_TAX_CLASS_PK]
+    )
+
+    yield f"Created tax classes: {list(TAX_CLASS_NAMES_BY_PK.values())}"
