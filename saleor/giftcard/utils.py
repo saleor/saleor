@@ -8,6 +8,7 @@ from uuid import UUID
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 from django.utils import timezone
 
@@ -57,24 +58,11 @@ def add_gift_card_code_to_checkout(
     except GiftCard.DoesNotExist as e:
         raise InvalidPromoCode() from e
 
-    if gift_card.assigned_to_email and not gift_card.assigned_to_id:
-        # The card is restricted but its assignee no longer exists (the user was
-        # deleted and assigned_to was nulled). It cannot be validated against an
-        # owner, so it must not be usable by anyone — including a guest whose
-        # email happens to match assigned_to_email.
+    if rejection_reason := gift_card.usage_restriction_reason(checkout.user_id):
         logger.info(
-            "Rejected use of gift card %s restricted to a deleted customer "
-            "in checkout %s.",
+            "Rejected use of gift card %s %s in checkout %s.",
             gift_card.pk,
-            checkout.pk,
-        )
-        raise InvalidPromoCode()
-    if gift_card.assigned_to_id and gift_card.assigned_to_id != checkout.user_id:
-        # Restricted gift cards can only be used by the assigned customer.
-        logger.info(
-            "Rejected use of gift card %s restricted to another customer "
-            "in checkout %s.",
-            gift_card.pk,
+            rejection_reason,
             checkout.pk,
         )
         # Generic error — do not reveal the assignee.
@@ -126,6 +114,22 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
         if has_payments:
             raise GiftCardCannotAssign(
                 "Cannot assign a gift card attached to a checkout with payments."
+            )
+
+        # A card used through the gift card payment gateway is linked by
+        # TransactionItem.gift_card and never joins the checkouts m2m, so the check
+        # above cannot see it. Authorized funds count as used: the charge happens at
+        # order confirmation, which on a manually-confirmed channel can be long after
+        # the order was placed. Rows with neither a checkout nor an order are dead
+        # (TransactionItem.checkout is SET_NULL) and must not lock the card forever.
+        has_transactions = (
+            TransactionItem.objects.filter(gift_card=locked)
+            .filter(Q(checkout_id__isnull=False) | Q(order_id__isnull=False))
+            .exists()
+        )
+        if has_transactions:
+            raise GiftCardCannotAssign(
+                "Cannot assign a gift card used by a payment transaction."
             )
 
         # Detach clean checkouts in bulk (same invalidation that

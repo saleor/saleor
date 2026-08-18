@@ -1317,17 +1317,19 @@ def test_transaction_request_cancel_sets_user_to_request_event(
         "expected_cancel_amount",
         "expected_authorize_status",
         "expected_available_actions",
+        "expected_gift_card_released",
     ),
     [
-        (None, Decimal(10), CheckoutAuthorizeStatus.NONE, []),
+        (None, Decimal(10), CheckoutAuthorizeStatus.NONE, [], True),
         (
             Decimal(1),
             Decimal(1),
             CheckoutAuthorizeStatus.PARTIAL,
             [TransactionAction.CANCEL],
+            False,
         ),
-        (Decimal(10), Decimal(10), CheckoutAuthorizeStatus.NONE, []),
-        (Decimal(11), Decimal(10), CheckoutAuthorizeStatus.NONE, []),
+        (Decimal(10), Decimal(10), CheckoutAuthorizeStatus.NONE, [], True),
+        (Decimal(11), Decimal(10), CheckoutAuthorizeStatus.NONE, [], True),
     ],
 )
 def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
@@ -1335,6 +1337,7 @@ def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
     expected_cancel_amount,
     expected_authorize_status,
     expected_available_actions,
+    expected_gift_card_released,
     checkout_with_prices,
     gift_card_created_by_staff,
     transaction_item_generator,
@@ -1384,7 +1387,11 @@ def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
 
     assert transaction.authorized_value == Decimal(10) - expected_cancel_amount
     assert transaction.charged_value == Decimal(0)
-    assert transaction.gift_card is not None
+    if expected_gift_card_released:
+        # A full cancellation releases the card so it can be assigned again.
+        assert transaction.gift_card is None
+    else:
+        assert transaction.gift_card == gift_card_created_by_staff
     assert transaction.available_actions == expected_available_actions
     assert checkout.authorize_status == expected_authorize_status
 

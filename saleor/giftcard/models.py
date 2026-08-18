@@ -151,6 +151,22 @@ class GiftCard(ModelWithMetadata):
     def display_code(self):
         return self.code[-4:]
 
+    def usage_restriction_reason(self, user_id: int | None) -> str | None:
+        """Return why a customer-restricted card cannot be used by this user, or None.
+
+        A card whose assignee no longer exists (the user was deleted and
+        ``assigned_to`` was nulled while ``assigned_to_email`` was kept) cannot
+        be validated against an owner, so it is unusable by anyone — including a
+        guest whose email happens to match ``assigned_to_email``. Otherwise a
+        restricted card is usable only by the assigned, authenticated customer;
+        a guest has no user id, so it never matches.
+        """
+        if self.assigned_to_email and not self.assigned_to_id:
+            return "restricted to a deleted customer"
+        if self.assigned_to_id and self.assigned_to_id != user_id:
+            return "restricted to another customer"
+        return None
+
 
 class GiftCardEvent(models.Model):
     date = models.DateTimeField(default=timezone.now, editable=False)
