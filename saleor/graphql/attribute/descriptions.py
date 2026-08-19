@@ -1,5 +1,10 @@
 from ..core.descriptions import RICH_CONTENT
 
+STOREFRONT_FLAG_DEPRECATION_REASON = (
+    "This flag is not used by Saleor. Keep the logic in the storefront or use "
+    "`Attribute` metadata instead."
+)
+
 
 class AttributeDescriptions:
     INPUT_TYPE = "The input type to use for entering attribute values in the dashboard."

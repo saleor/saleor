@@ -27,7 +27,6 @@ from ..core.context import (
 )
 from ..core.descriptions import (
     ADDED_IN_322,
-    DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
     NESTED_QUERY_LIMIT_DESCRIPTION,
 )
@@ -73,7 +72,11 @@ from .dataloaders.reference_types import (
     AttributeReferencePageTypesByAttributeIdAndLimitLoader,
     AttributeReferenceProductTypesByAttributeIdAndLimitLoader,
 )
-from .descriptions import AttributeDescriptions, AttributeValueDescriptions
+from .descriptions import (
+    STOREFRONT_FLAG_DEPRECATION_REASON,
+    AttributeDescriptions,
+    AttributeValueDescriptions,
+)
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import (
     AttributeValueFilterInput,
@@ -346,7 +349,7 @@ class Attribute(ChannelContextType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
-        deprecation_reason=DEFAULT_DEPRECATION_REASON,
+        deprecation_reason=STOREFRONT_FLAG_DEPRECATION_REASON,
     )
     filterable_in_dashboard = graphene.Boolean(
         description=(
@@ -367,7 +370,7 @@ class Attribute(ChannelContextType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
-        deprecation_reason=DEFAULT_DEPRECATION_REASON,
+        deprecation_reason=STOREFRONT_FLAG_DEPRECATION_REASON,
     )
     storefront_search_position = graphene.Int(
         description=(
@@ -378,7 +381,7 @@ class Attribute(ChannelContextType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
-        deprecation_reason=DEFAULT_DEPRECATION_REASON,
+        deprecation_reason=STOREFRONT_FLAG_DEPRECATION_REASON,
     )
     translation = TranslationField(
         AttributeTranslation,
