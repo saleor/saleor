@@ -4481,9 +4481,6 @@ input ProductFilterInput @doc(category: "Products") {
   """Filter on whether product is a gift card or not."""
   giftCard: Boolean
   ids: [ID!]
-
-  """Filter by product with preordered variants."""
-  hasPreorderedVariants: Boolean @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
   slugs: [String!]
 
   """Specifies the channel by which the data should be filtered."""
@@ -4737,9 +4734,6 @@ input ProductWhereInput @doc(category: "Products") {
 
   """Filter on whether product is a gift card or not."""
   giftCard: Boolean
-
-  """Filter by product with preordered variants."""
-  hasPreorderedVariants: Boolean @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
 
   """Filter by when was the most recent update."""
   updatedAt: DateTimeFilterInput
@@ -7476,9 +7470,6 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
     countryCode: CountryCode @deprecated(reason: "Use `address` argument instead.")
   ): Int
 
-  """Preorder data for product variant."""
-  preorder: PreorderData @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
   """The date and time when the product variant was created."""
   created: DateTime!
 
@@ -7516,9 +7507,6 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   margin: Int
-
-  """Preorder variant data."""
-  preorderThreshold: PreorderThreshold @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
 }
 
 """Represents channel."""
@@ -9411,19 +9399,6 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   useWeightedTaxForShipping: Boolean
 }
 
-"""
-Represents preorder variant data for channel.
-
-DEPRECATED: Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.
-"""
-type PreorderThreshold @doc(category: "Products") {
-  """Preorder threshold for product variant in this channel."""
-  quantity: Int @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
-  """Number of sold product variant in this channel."""
-  soldUnits: Int! @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-}
-
 """Represents availability of a variant in the storefront."""
 type VariantPricingInfo @doc(category: "Products") {
   """Whether it is in sale or not."""
@@ -9851,30 +9826,6 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-"""
-Represents preorder settings for product variant.
-
-DEPRECATED: Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.
-"""
-type PreorderData @doc(category: "Products") {
-  """
-  The global preorder threshold for product variant.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  globalThreshold: Int @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
-  """
-  Total number of sold product variant during preorder.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  globalSoldUnits: Int! @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
-  """Preorder end date."""
-  endDate: DateTime @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-}
-
 """Represents availability of a product in the storefront."""
 type ProductPricingInfo @doc(category: "Products") {
   """Whether it is in sale or not."""
@@ -10012,9 +9963,6 @@ input ProductVariantFilterInput @doc(category: "Products") {
   search: String
   sku: [String!]
   metadata: [MetadataFilter!]
-
-  """Filter by variants that are currently in preorder."""
-  isPreorder: Boolean @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
   updatedAt: DateTimeRangeInput
 }
 
@@ -16027,9 +15975,6 @@ input OrderFilterInput @doc(category: "Orders") {
   chargeStatus: [OrderChargeStatusEnum!]
   updatedAt: DateTimeRangeInput
   isClickAndCollect: Boolean
-
-  """Filter by orders containing a variant that is currently in preorder."""
-  isPreorder: Boolean @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
   ids: [ID!]
   checkoutTokens: [UUID!]
   giftCardUsed: Boolean
@@ -19030,18 +18975,6 @@ type Mutation {
     """ID of a product variant."""
     variantId: ID!
   ): ProductVariantReorderAttributeValues @doc(category: "Products")
-
-  """
-  Deactivates product variant preorder. It changes all preorder allocation into regular allocation.
-  
-  DEPRECATED: Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit. 
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  productVariantPreorderDeactivate(
-    """ID of a variant which preorder should be deactivated."""
-    id: ID!
-  ): ProductVariantPreorderDeactivate @doc(category: "Products") @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
 
   """
   Assign an media to a product variant. 
@@ -24257,7 +24190,6 @@ enum ProductErrorCode @doc(category: "Products") {
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
-  PREORDER_VARIANT_CANNOT_BE_DEACTIVATED @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
   INVALID_FILE_TYPE
   UNSUPPORTED_MIME_TYPE
   FILE_SIZE_LIMIT_EXCEEDED
@@ -25068,9 +25000,6 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -25158,19 +25087,6 @@ input BulkAttributeValueInput @doc(category: "Products") {
   dateTime: DateTime
 }
 
-"""
-Preorder settings for a product variant.
-
-DEPRECATED: Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.
-"""
-input PreorderSettingsInput @doc(category: "Products") {
-  """The global threshold for preorder variant."""
-  globalThreshold: Int @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
-  """The end date for preorder."""
-  endDate: DateTime @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-}
-
 input StockInput @doc(category: "Products") {
   """Warehouse in which stock is located."""
   warehouse: ID!
@@ -25193,9 +25109,6 @@ input ProductVariantChannelListingAddInput @doc(category: "Products") {
   Previous price of the variant in channel. Useful for providing promotion information required by customer protection laws such as EU Omnibus directive.
   """
   priorPrice: PositiveDecimal
-
-  """The threshold for preorder variant in channel."""
-  preorderThreshold: Int @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
 }
 
 """
@@ -25674,9 +25587,6 @@ input ProductVariantCreateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -25856,9 +25766,6 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -25933,9 +25840,6 @@ input ChannelListingUpdateInput @doc(category: "Products") {
 
   """Price of the variant before discount."""
   priorPrice: PositiveDecimal
-
-  """The threshold for preorder variant in channel."""
-  preorderThreshold: Int @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
 }
 
 """
@@ -26094,9 +25998,6 @@ input ProductVariantInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -26227,19 +26128,6 @@ type ProductVariantReorderAttributeValues @doc(category: "Products") {
   """Product variant from which attribute values are reordered."""
   productVariant: ProductVariant
   productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ProductError!]!
-}
-
-"""
-Deactivates product variant preorder. It changes all preorder allocation into regular allocation.
-
-DEPRECATED: Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit. 
-
-Requires one of the following permissions: MANAGE_PRODUCTS.
-"""
-type ProductVariantPreorderDeactivate @doc(category: "Products") {
-  """Product variant with ended preorder."""
-  productVariant: ProductVariant
   errors: [ProductError!]!
 }
 

@@ -158,10 +158,6 @@ mutation createVariant($input: ProductVariantCreateInput!) {
           slug
         }
       }
-      preorder {
-        globalThreshold
-        endDate
-      }
       metadata {
         key
         value
@@ -377,58 +373,6 @@ def test_create_variant_empty_product_id(
     error = content["errors"][0]
     assert error["field"] == "product"
     assert error["code"] == ProductErrorCode.INVALID.name
-
-
-@patch("saleor.plugins.manager.PluginsManager.product_variant_created")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-def test_create_variant_preorder(
-    updated_webhook_mock,
-    created_webhook_mock,
-    staff_api_client,
-    product,
-    product_type,
-    permission_manage_products,
-):
-    query = CREATE_VARIANT_MUTATION
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    attribute_id = graphene.Node.to_global_id(
-        "Attribute", product_type.variant_attributes.first().pk
-    )
-    variant_value = "test-value"
-    global_threshold = 10
-    end_date = (
-        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
-        .astimezone()
-        .replace(microsecond=0)
-        .isoformat()
-    )
-
-    variables = {
-        "input": {
-            "product": product_id,
-            "sku": "1",
-            "weight": 10.22,
-            "attributes": [{"id": attribute_id, "values": [variant_value]}],
-            "preorder": {
-                "globalThreshold": global_threshold,
-                "endDate": end_date,
-            },
-        }
-    }
-
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)["data"]["productVariantCreate"]
-
-    assert not content["errors"]
-    data = content["productVariant"]
-    assert data["name"] == variant_value
-
-    assert data["preorder"]["globalThreshold"] == global_threshold
-    assert data["preorder"]["endDate"] == end_date
-    created_webhook_mock.assert_called_once_with(product.variants.last())
-    updated_webhook_mock.assert_not_called()
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")

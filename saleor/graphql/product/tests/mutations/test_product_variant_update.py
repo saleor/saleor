@@ -3543,95 +3543,6 @@ def test_update_product_variant_name(
     assert data["productVariant"]["name"] == new_name
 
 
-QUERY_UPDATE_VARIANT_PREORDER = """
-    mutation updateVariant (
-        $id: ID!,
-        $sku: String!,
-        $preorder: PreorderSettingsInput) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    sku: $sku,
-                    preorder: $preorder,
-                }) {
-                productVariant {
-                    sku
-                    preorder {
-                        globalThreshold
-                        endDate
-                    }
-                }
-            }
-        }
-"""
-
-
-def test_update_product_variant_change_preorder_data(
-    staff_api_client,
-    permission_manage_products,
-    preorder_variant_global_threshold,
-):
-    variant = preorder_variant_global_threshold
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    sku = "test sku"
-
-    new_global_threshold = variant.preorder_global_threshold + 5
-    assert variant.preorder_end_date is None
-    new_preorder_end_date = (
-        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
-        .astimezone()
-        .replace(microsecond=0)
-        .isoformat()
-    )
-    variables = {
-        "id": variant_id,
-        "sku": sku,
-        "preorder": {
-            "globalThreshold": new_global_threshold,
-            "endDate": new_preorder_end_date,
-        },
-    }
-
-    response = staff_api_client.post_graphql(
-        QUERY_UPDATE_VARIANT_PREORDER,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]["productVariant"]
-
-    assert data["sku"] == sku
-    assert data["preorder"]["globalThreshold"] == new_global_threshold
-    assert data["preorder"]["endDate"] == new_preorder_end_date
-
-
-def test_update_product_variant_can_not_turn_off_preorder(
-    staff_api_client,
-    permission_manage_products,
-    preorder_variant_global_threshold,
-):
-    """Test that preorder cannot be disabled through updating the `preorder` field directly."""
-    variant = preorder_variant_global_threshold
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    sku = "test sku"
-
-    variables = {"id": variant_id, "sku": sku, "preorder": None}
-
-    response = staff_api_client.post_graphql(
-        QUERY_UPDATE_VARIANT_PREORDER,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]["productVariant"]
-
-    assert data["sku"] == sku
-    assert data["preorder"]["globalThreshold"] == variant.preorder_global_threshold
-    assert data["preorder"]["endDate"] is None
-
-
 # Query used to check how Product Variant metadata updates behaves
 # and which events are emitted
 UPDATE_METADATA_QUERY = """
@@ -4006,9 +3917,6 @@ def test_update_product_variant_nothing_changed(
     value = "some_value"
     variant.metadata = {key: value}
     variant.private_metadata = {key: value}
-    variant.is_preorder = True
-    variant.preorder_global_threshold = 10
-    variant.preorder_end_date = "2024-12-02T00:00Z"
     variant.track_inventory = True
     variant.weight = Weight(kg=10)
     variant.quantity_limit_per_customer = 10
@@ -4034,10 +3942,6 @@ def test_update_product_variant_nothing_changed(
         "name": variant.name,
         "trackInventory": variant.track_inventory,
         "weight": 10,
-        "preorder": {
-            "globalThreshold": variant.preorder_global_threshold,
-            "endDate": variant.preorder_end_date,
-        },
         "quantityLimitPerCustomer": variant.quantity_limit_per_customer,
         "metadata": [{"key": key, "value": value}],
         "privateMetadata": [{"key": key, "value": value}],
@@ -4088,9 +3992,6 @@ def test_update_product_variant_emit_event(
     value = "some_value"
     variant.metadata = {key: value}
     variant.private_metadata = {key: value}
-    variant.is_preorder = True
-    variant.preorder_global_threshold = 10
-    variant.preorder_end_date = "2024-12-02T00:00Z"
     variant.track_inventory = True
     variant.weight = Weight(kg=10)
     variant.quantity_limit_per_customer = 10
@@ -4113,10 +4014,6 @@ def test_update_product_variant_emit_event(
         "name": variant.name + "_new",
         "trackInventory": not variant.track_inventory,
         "weight": 11,
-        "preorder": {
-            "globalThreshold": variant.preorder_global_threshold + 1,
-            "endDate": "2024-12-03T00:00Z",
-        },
         "quantityLimitPerCustomer": variant.quantity_limit_per_customer + 1,
         "metadata": [{"key": key + "_new", "value": value + "_new"}],
         "privateMetadata": [{"key": key + "_new", "value": value + "_new"}],
