@@ -73,6 +73,7 @@ from .dataloaders.reference_types import (
     AttributeReferenceProductTypesByAttributeIdAndLimitLoader,
 )
 from .descriptions import (
+    DASHBOARD_FLAG_DEPRECATION_REASON,
     STOREFRONT_FLAG_DEPRECATION_REASON,
     AttributeDescriptions,
     AttributeValueDescriptions,
@@ -360,6 +361,7 @@ class Attribute(ChannelContextType[models.Attribute]):
             f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
         ),
         required=True,
+        deprecation_reason=DASHBOARD_FLAG_DEPRECATION_REASON,
     )
     available_in_grid = graphene.Boolean(
         description=(

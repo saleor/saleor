@@ -39,7 +39,11 @@ from ..core.types.common import NonNullList
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_ids, filter_slug_list, filter_where_by_value_field
-from .descriptions import STOREFRONT_FLAG_DEPRECATION_REASON, AttributeDescriptions
+from .descriptions import (
+    DASHBOARD_FLAG_DEPRECATION_REASON,
+    STOREFRONT_FLAG_DEPRECATION_REASON,
+    AttributeDescriptions,
+)
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 
@@ -150,6 +154,12 @@ class AttributeFilter(MetadataFilterBase):
             f"{DEPRECATED_IN_3X_INPUT} {STOREFRONT_FLAG_DEPRECATION_REASON}"
         )
     )
+    filterable_in_dashboard = django_filters.BooleanFilter(
+        help_text=(
+            f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD}"
+            f"{DEPRECATED_IN_3X_INPUT} {DASHBOARD_FLAG_DEPRECATION_REASON}"
+        )
+    )
 
     class Meta:
         model = Attribute
@@ -157,7 +167,6 @@ class AttributeFilter(MetadataFilterBase):
             "value_required",
             "is_variant_only",
             "visible_in_storefront",
-            "filterable_in_dashboard",
         ]
 
     def filter_in_collection(self, qs, name, value):
@@ -300,7 +309,12 @@ class AttributeWhere(MetadataWhereFilterBase):
     in_category = GlobalIDWhereFilter(method="filter_in_category")
     value_required = BooleanWhereFilter()
     visible_in_storefront = BooleanWhereFilter()
-    filterable_in_dashboard = BooleanWhereFilter()
+    filterable_in_dashboard = BooleanWhereFilter(
+        help_text=(
+            f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD}"
+            f"{DEPRECATED_IN_3X_INPUT} {DASHBOARD_FLAG_DEPRECATION_REASON}"
+        )
+    )
 
     class Meta:
         model = Attribute
