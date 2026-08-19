@@ -48,7 +48,7 @@ All notable, unreleased changes to this project will be documented in this file.
 permissions.
 - `staffDelete` mutation now always deletes the staff user. Previously, staff members with existing orders were only deactivated (`is_staff` set to `False`); now they are fully removed regardless of order history.
 - Add `giftCardBalanceAdjust` mutation to change a gift card balance by a signed delta atomically.
-- Add customer restriction for gift cards: `assignedTo`/`assignedToEmail` fields, `giftCardAssignUser`/`giftCardUnassignUser` mutations, `assignedTo` on `GiftCardCreateInput`, and `assignedTo` gift card filter. Restricted cards can only be used by the assigned customer at checkout, in both the `checkoutAddPromoCode` and the `transactionInitialize` (`saleor.io.gift-card-payment-gateway`) flows. A card held by an active payment transaction cannot be assigned or reassigned.
+- Add customer restriction for gift cards: `assignedTo`/`assignedToEmail` fields, `giftCardAssignUser`/`giftCardUnassignUser` mutations, `assignedTo` on `GiftCardCreateInput`, and `assignedTo` gift card filter. Restricted cards can only be used by the assigned customer at checkout, in both the `checkoutAddPromoCode` and the `transactionInitialize` (`saleor.io.gift-card-payment-gateway`) flows. A card used by a payment transaction cannot be assigned or reassigned.
 - Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
 
 ### Webhooks

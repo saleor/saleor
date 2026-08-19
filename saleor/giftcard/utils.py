@@ -118,10 +118,11 @@ def assign_gift_card_to_user(gift_card: "GiftCard", user: "User") -> None:
 
         # A card used through the gift card payment gateway is linked by
         # TransactionItem.gift_card and never joins the checkouts m2m, so the check
-        # above cannot see it. Authorized funds count as used: the charge happens at
-        # order confirmation, which on a manually-confirmed channel can be long after
-        # the order was placed. Rows with neither a checkout nor an order are dead
-        # (TransactionItem.checkout is SET_NULL) and must not lock the card forever.
+        # above cannot see it. Any such transaction blocks assignment, cancelled ones
+        # included — the link is the record that the card was used, and the charge can
+        # happen long after the order was placed on a manually-confirmed channel.
+        # Rows with neither a checkout nor an order are dead (TransactionItem.checkout
+        # is SET_NULL) and must not lock the card forever.
         has_transactions = (
             TransactionItem.objects.filter(gift_card=locked)
             .filter(Q(checkout_id__isnull=False) | Q(order_id__isnull=False))
