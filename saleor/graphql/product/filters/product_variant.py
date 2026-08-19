@@ -16,7 +16,11 @@ from ...attribute.shared_filters import (
     validate_attribute_value_input,
 )
 from ...channel.filters import get_channel_slug_from_filter_data
-from ...core.descriptions import ADDED_IN_322, ADDED_IN_324
+from ...core.descriptions import (
+    ADDED_IN_322,
+    ADDED_IN_324,
+    DEPRECATED_PREORDER_INPUT,
+)
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     EnumWhereFilter,
@@ -91,7 +95,13 @@ def filter_variants_by_attributes(
 class ProductVariantFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="product_variant_filter_search")
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
-    is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
+    is_preorder = django_filters.BooleanFilter(
+        method=filter_is_preorder,
+        help_text=(
+            "Filter by variants that are currently in preorder."
+            f"{DEPRECATED_PREORDER_INPUT}"
+        ),
+    )
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_updated_at_range
     )

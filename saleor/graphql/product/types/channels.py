@@ -21,6 +21,10 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
+from ...core.descriptions import (
+    DEPRECATED_PREORDER,
+    DEPRECATED_PREORDER_TYPE_DESCRIPTION,
+)
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
@@ -293,15 +297,20 @@ class PreorderThreshold(BaseObjectType):
     quantity = graphene.Int(
         required=False,
         description="Preorder threshold for product variant in this channel.",
+        deprecation_reason=DEPRECATED_PREORDER,
     )
     sold_units = graphene.Int(
         required=True,
         description="Number of sold product variant in this channel.",
+        deprecation_reason=DEPRECATED_PREORDER,
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
-        description = "Represents preorder variant data for channel."
+        description = (
+            "Represents preorder variant data for channel."
+            + DEPRECATED_PREORDER_TYPE_DESCRIPTION
+        )
 
 
 class ProductVariantChannelListing(
@@ -332,6 +341,7 @@ class ProductVariantChannelListing(
         PreorderThreshold,
         required=False,
         description="Preorder variant data.",
+        deprecation_reason=DEPRECATED_PREORDER,
     )
 
     class Meta:
