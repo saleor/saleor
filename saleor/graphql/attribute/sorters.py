@@ -1,5 +1,6 @@
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.types import BaseEnum, SortInputObjectType
+from .descriptions import STOREFRONT_FLAG_DEPRECATION_REASON
 
 
 class AttributeSortField(BaseEnum):
@@ -48,6 +49,18 @@ class AttributeSortField(BaseEnum):
         if self.name in descriptions:
             return descriptions[self.name]
         raise ValueError(f"Unsupported enum value: {self.value}")
+
+    @property
+    def deprecation_reason(self):
+        # pylint: disable=no-member
+        deprecated = {
+            AttributeSortField.FILTERABLE_IN_STOREFRONT.name,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            AttributeSortField.STOREFRONT_SEARCH_POSITION.name,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            AttributeSortField.AVAILABLE_IN_GRID.name,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        }
+        if self.name in deprecated:
+            return STOREFRONT_FLAG_DEPRECATION_REASON
+        return None
 
 
 class AttributeSortingInput(SortInputObjectType):
