@@ -11,6 +11,7 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ...channel.filters import get_channel_slug_from_filter_data
+from ...core.descriptions import DEPRECATED_PREORDER_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     BooleanWhereFilter,
@@ -135,7 +136,10 @@ class ProductFilter(MetadataFilterBase):
     )
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     has_preordered_variants = django_filters.BooleanFilter(
-        method=filter_has_preordered_variants
+        method=filter_has_preordered_variants,
+        help_text=(
+            f"Filter by product with preordered variants.{DEPRECATED_PREORDER_INPUT}"
+        ),
     )
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
@@ -304,7 +308,9 @@ class ProductWhere(MetadataWhereFilterBase):
     )
     has_preordered_variants = BooleanWhereFilter(
         method=where_filter_has_preordered_variants,
-        help_text="Filter by product with preordered variants.",
+        help_text=(
+            f"Filter by product with preordered variants.{DEPRECATED_PREORDER_INPUT}"
+        ),
     )
     updated_at = ObjectTypeWhereFilter(
         input_class=DateTimeFilterInput,
