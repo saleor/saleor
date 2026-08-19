@@ -2190,15 +2190,15 @@ wheels = [
 
 [[package]]
 name = "pytest-memray"
-version = "1.8.0"
+version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "memray" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3d/28/f67963efed56d847d028d0bb939f26cdeb32c4de474b3befc9da43bf18f9/pytest_memray-1.8.0.tar.gz", hash = "sha256:c0c706ef81941a7aa7064f2b3b8b5cdc0cea72b5277c6a6a09b113ca9ab30bdb", size = 240608, upload-time = "2025-08-18T17:32:47.329Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/c2/6d2f0311f388afade90d78fa686d82ca95cd653a1b29ce512ebc39f0f3b4/pytest_memray-1.9.0.tar.gz", hash = "sha256:022562a3c738f7849ae8677c3607029be2c1c79043964a96680d987993da6257", size = 245117, upload-time = "2026-07-01T21:37:07.138Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cc/52/b8b8e126c176c5f405b307354e1722025063ea104dbd7d286e8b18a76e9f/pytest_memray-1.8.0-py3-none-any.whl", hash = "sha256:44da9fe0d98541abf4cc76acea6e4a9c525b3c8e604655e5537705f336c9b875", size = 17688, upload-time = "2025-08-18T17:32:45.476Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/64/c0f61cf15e517eab1a1fa9e0d62c5add36bddd818bb6922e7c37f29b88c1/pytest_memray-1.9.0-py3-none-any.whl", hash = "sha256:bc8b413b4872d09fa2f462b551b7fb7cabf358b55307dafa40d7340b2f3d9d9a", size = 19687, upload-time = "2026-07-01T21:37:05.565Z" },
 ]
 
 [[package]]
@@ -2685,7 +2685,7 @@ dev = [
     { name = "pytest-cov", specifier = ">=6.0.0,<7" },
     { name = "pytest-django", specifier = "==4.12.0" },
     { name = "pytest-django-queries", specifier = ">=1.2,<1.3" },
-    { name = "pytest-memray", specifier = ">=1.5.0,<2" },
+    { name = "pytest-memray", specifier = ">=1.9.0,<2" },
     { name = "pytest-mock", specifier = ">=3.6.1,<4" },
     { name = "pytest-recording", specifier = ">=0.13.0,<0.14" },
     { name = "pytest-socket", specifier = ">=0.8.0,<1" },
