@@ -31,6 +31,21 @@ DEPRECATED_LEGACY_PAYMENTS = (
 
 DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION = "\n\n" + DEPRECATED_LEGACY_PAYMENTS
 
+DEPRECATED_PREORDER = (
+    "Preorder is deprecated and will be removed. "
+    "Model pre-sales with regular stock instead: create the planned quantity in a "
+    "warehouse, or set `trackInventory` to false to sell without a stock limit."
+)
+
+# Used on type descriptions, where GraphQL has no `@deprecated` directive. Must not
+# embed DEPRECATED_IN_3X_INPUT: `schema_printer.print_description` truncates a
+# description at that marker, which would drop the reason entirely.
+DEPRECATED_PREORDER_TYPE_DESCRIPTION = "\n\nDEPRECATED: " + DEPRECATED_PREORDER
+
+# `schema_printer.print_input_value` turns this into a real `@deprecated` directive,
+# but only when the description carries the DEPRECATED_IN_3X_INPUT marker verbatim.
+DEPRECATED_PREORDER_INPUT = f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_PREORDER}"
+
 
 PREVIEW_FEATURE = (
     "\n\nNote: this API is currently in Feature Preview and can be subject to "

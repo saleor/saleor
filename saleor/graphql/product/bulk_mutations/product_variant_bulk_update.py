@@ -17,6 +17,7 @@ from ....warehouse.management import delete_stocks, stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
+from ...core.descriptions import DEPRECATED_PREORDER_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
@@ -67,7 +68,9 @@ class ChannelListingUpdateInput(BaseInputObjectType):
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     prior_price = PositiveDecimal(description="Price of the variant before discount.")
     preorder_threshold = graphene.Int(
-        description="The threshold for preorder variant in channel."
+        description=(
+            f"The threshold for preorder variant in channel.{DEPRECATED_PREORDER_INPUT}"
+        )
     )
 
     class Meta:
