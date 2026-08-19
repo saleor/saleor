@@ -3716,7 +3716,7 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """
   Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  filterableInDashboard: Boolean!
+  filterableInDashboard: Boolean! @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
 
   """
   Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
@@ -10425,7 +10425,6 @@ input AttributeFilterInput @doc(category: "Attributes") {
   valueRequired: Boolean
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
   metadata: [MetadataFilter!]
   search: String
   ids: [ID!]
@@ -10439,6 +10438,9 @@ input AttributeFilterInput @doc(category: "Attributes") {
 
   """Whether the attribute can be displayed in the admin product list."""
   availableInGrid: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
+
+  """Whether the attribute can be filtered in dashboard."""
+  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
 
   """Specifies the channel by which the data should be filtered."""
   channel: String @deprecated(reason: "Use root-level channel argument instead.")
@@ -10465,7 +10467,9 @@ input AttributeWhereInput @doc(category: "Attributes") {
   inCategory: ID
   valueRequired: Boolean
   visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
+
+  """Whether the attribute can be filtered in dashboard."""
+  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
 
   """List of conditions that must be met."""
   AND: [AttributeWhereInput!]
@@ -17327,7 +17331,7 @@ enum AttributeSortField @doc(category: "Attributes") {
   FILTERABLE_IN_STOREFRONT @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
 
   """Sort attributes by the filterable in dashboard flag"""
-  FILTERABLE_IN_DASHBOARD
+  FILTERABLE_IN_DASHBOARD @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
 
   """Sort attributes by their position in storefront"""
   STOREFRONT_SEARCH_POSITION @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
@@ -31949,7 +31953,7 @@ input AttributeCreateInput @doc(category: "Attributes") {
   filterableInStorefront: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
 
   """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
+  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
 
   """
   The position of the attribute in the storefront navigation (0 by default).
@@ -32066,7 +32070,7 @@ input AttributeUpdateInput @doc(category: "Attributes") {
   filterableInStorefront: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
 
   """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
+  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
 
   """
   The position of the attribute in the storefront navigation (0 by default).

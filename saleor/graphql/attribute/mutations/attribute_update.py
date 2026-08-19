@@ -18,6 +18,7 @@ from ...core.types import AttributeError, BaseInputObjectType, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import (
+    DASHBOARD_FLAG_DEPRECATION_REASON,
     STOREFRONT_FLAG_DEPRECATION_REASON,
     AttributeDescriptions,
     AttributeValueDescriptions,
@@ -71,6 +72,9 @@ class AttributeUpdateInput(BaseInputObjectType):
     )
     filterable_in_dashboard = graphene.Boolean(
         description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
+        + DEPRECATED_IN_3X_INPUT
+        + " "
+        + DASHBOARD_FLAG_DEPRECATION_REASON
     )
     storefront_search_position = graphene.Int(
         required=False,
