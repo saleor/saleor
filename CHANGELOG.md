@@ -129,3 +129,10 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Deprecate export mutations (`exportProducts`, `exportGiftCards`, `exportVoucherCodes`). All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
 - Deprecate the export webhook event types emitted by those mutations: `PRODUCT_EXPORT_COMPLETED`, `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` (`WebhookEventTypeEnum`, `WebhookEventTypeAsyncEnum`, `WebhookSampleEventTypeEnum`), along with the `ProductExportCompleted`, `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types.
 - Deprecate `voucher` input field on `DraftOrderInput` and `DraftOrderCreateInput`. Use `voucherCode` instead.
+- Deprecate the preorder API. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to `false` to sell without a stock limit. The following are deprecated:
+  - Mutation `productVariantPreorderDeactivate`.
+  - Types `PreorderData` (and `ProductVariant.preorder`) and `PreorderThreshold` (and `ProductVariantChannelListing.preorderThreshold`).
+  - Input `PreorderSettingsInput` and the `preorder` field on `ProductVariantInput`, `ProductVariantCreateInput`, `ProductVariantBulkCreateInput` and `ProductVariantBulkUpdateInput`.
+  - Input field `preorderThreshold` on `ProductVariantChannelListingAddInput` and `ChannelListingUpdateInput`.
+  - Filters `hasPreorderedVariants` (`ProductFilterInput`, `ProductWhereInput`) and `isPreorder` (`ProductVariantFilterInput`, `OrderFilterInput`).
+  - Error code `PREORDER_VARIANT_CANNOT_BE_DEACTIVATED` on `ProductErrorCode`.
