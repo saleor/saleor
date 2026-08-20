@@ -9,6 +9,7 @@ from freezegun import freeze_time
 
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
+from .....core.db.locks import AdvisoryLock
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.models import Category, ProductChannelListing
@@ -337,3 +338,28 @@ def test_category_delete_removes_reference_to_page(
         category.refresh_from_db()
 
     assert not data["errors"]
+
+
+def test_takes_category_tree_lock_before_delete(
+    staff_api_client,
+    category,
+    permission_manage_products,
+    assert_advisory_lock_before_tree_write,
+):
+    # given
+    variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
+
+    # when
+    with assert_advisory_lock_before_tree_write(
+        AdvisoryLock.CATEGORY_TREE, Category._meta.db_table
+    ):
+        response = staff_api_client.post_graphql(
+            MUTATION_CATEGORY_DELETE,
+            variables,
+            permissions=[permission_manage_products],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["categoryDelete"]["errors"] == []
+    assert Category.objects.filter(pk=category.pk).exists() is False
