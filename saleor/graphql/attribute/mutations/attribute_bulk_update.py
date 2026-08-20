@@ -43,7 +43,7 @@ from ...core.utils import (
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute
-from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
+from .attribute_bulk_create import clean_values
 from .attribute_update import AttributeUpdateInput
 from .mixins import AttributeMixin
 from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
@@ -187,23 +187,6 @@ class AttributeBulkUpdate(BaseMutation):
                 index_error_map[attribute_index].append(
                     AttributeBulkUpdateError(
                         message=exc.message,
-                        code=AttributeBulkUpdateErrorCode.INVALID.value,
-                    )
-                )
-                cleaned_inputs_map[attribute_index] = None
-                continue
-
-            if any(
-                key in DEPRECATED_ATTR_FIELDS for key in attribute_data.fields.keys()
-            ):
-                message = (
-                    "Deprecated fields 'storefront_search_position', "
-                    "'filterable_in_storefront', 'available_in_grid' and are not "
-                    "allowed in bulk mutation."
-                )
-                index_error_map[attribute_index].append(
-                    AttributeBulkUpdateError(
-                        message=message,
                         code=AttributeBulkUpdateErrorCode.INVALID.value,
                     )
                 )
@@ -727,7 +710,6 @@ class AttributeBulkUpdate(BaseMutation):
                     "value_required",
                     "visible_in_storefront",
                     "is_variant_only",
-                    "filterable_in_dashboard",
                     "external_reference",
                 ],
             )
