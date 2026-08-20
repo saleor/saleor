@@ -174,7 +174,7 @@ class MenuItemMove(BaseMutation):
             # mptt computes the move from the target's in-memory lft/rght,
             # which may predate a concurrent writer's changes. Refresh them
             # now that the tree lock is held.
-            new_parent.refresh_from_db(fields=("lft", "rght", "level", "tree_id"))
+            new_parent._mptt_refresh()
 
         # Move the parent
         menu_item.parent = new_parent
