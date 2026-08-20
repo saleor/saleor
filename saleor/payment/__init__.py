@@ -266,6 +266,8 @@ OPTIONAL_AMOUNT_EVENTS = [
     TransactionEventType.REFUND_REVERSE,
     TransactionEventType.CHARGE_BACK,
     TransactionEventType.INFO,
+    TransactionEventType.CANCEL_REQUEST,
+    TransactionEventType.CANCEL_SUCCESS,
 ]
 
 
