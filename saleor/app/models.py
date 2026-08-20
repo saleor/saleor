@@ -144,6 +144,14 @@ class AppToken(models.Model):
     name = models.CharField(blank=True, default="", max_length=128)
     auth_token = models.CharField(unique=True, max_length=128)
     token_last_4 = models.CharField(max_length=4)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    created_by = models.ForeignKey(
+        "account.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
 
     objects = AppTokenManager()
 
@@ -239,6 +247,13 @@ class AppInstallation(Job):
     )
     brand_logo_default = models.ImageField(
         upload_to="app-installation-brand-data", blank=True, null=True
+    )
+    installed_by = models.ForeignKey(
+        "account.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
     )
 
     def set_message(self, message: str, truncate=True):
