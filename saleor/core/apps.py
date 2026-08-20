@@ -17,6 +17,7 @@ class CoreAppConfig(AppConfig):
         if settings.SENTRY_DSN:
             settings.SENTRY_INIT(settings.SENTRY_DSN, settings.SENTRY_OPTS)
         self.validate_jwt_manager()
+        self.validate_advisory_lock_namespace_import()
 
     def validate_jwt_manager(self) -> None:
         jwt_manager_path = getattr(settings, "JWT_MANAGER_PATH", None)
@@ -35,3 +36,14 @@ class CoreAppConfig(AppConfig):
         if validate_method is None:
             return
         validate_method()
+
+    def validate_advisory_lock_namespace_import(self) -> None:
+        namespace_import = settings.ADVISORY_LOCK_NAMESPACE_IMPORT
+        if namespace_import is None:
+            return
+        try:
+            import_string(namespace_import)
+        except ImportError as e:
+            raise ImportError(
+                f"Failed to import advisory lock namespace function: {e}."
+            ) from e
