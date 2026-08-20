@@ -15,8 +15,8 @@ class AdvisoryLock(IntEnum):
 
 
 def get_advisory_lock_namespace() -> int:
-    if settings.ADVISORY_LOCK_NAMESPACE_RESOLVER_IMPORT is not None:
-        return import_string(settings.ADVISORY_LOCK_NAMESPACE_RESOLVER_IMPORT)()
+    if settings.ADVISORY_LOCK_NAMESPACE_IMPORT is not None:
+        return import_string(settings.ADVISORY_LOCK_NAMESPACE_IMPORT)()
     return ADVISORY_LOCK_NAMESPACE
 
 

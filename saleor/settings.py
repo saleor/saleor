@@ -927,12 +927,12 @@ SHOP_ANNOUNCEMENT_RESOLVER_IMPORT = None
 # locks. When unset, the built-in default namespace is used.
 #
 # Value must be an import path, e.g.:
-#   ADVISORY_LOCK_NAMESPACE_RESOLVER_IMPORT="saleor.custom.locks.get_namespace"
+#   ADVISORY_LOCK_NAMESPACE_IMPORT="saleor.custom.locks.get_namespace"
 #
 # Where ``get_namespace`` should have the following signature:
 #
 # >>> def get_namespace() -> int: ...
-ADVISORY_LOCK_NAMESPACE_RESOLVER_IMPORT = None
+ADVISORY_LOCK_NAMESPACE_IMPORT = None
 
 BUILTIN_PLUGINS = [
     "saleor.plugins.avatax.plugin.DeprecatedAvataxPlugin",

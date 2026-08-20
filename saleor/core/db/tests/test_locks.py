@@ -33,15 +33,15 @@ def test_raises_outside_atomic_block():
 CUSTOM_NAMESPACE = 999
 
 
-def custom_namespace_resolver() -> int:
+def get_custom_namespace() -> int:
     return CUSTOM_NAMESPACE
 
 
-def test_namespace_resolver_setting_overrides_default(db, settings):
+def test_namespace_import_setting_overrides_default(db, settings):
     # given
     assert CUSTOM_NAMESPACE != ADVISORY_LOCK_NAMESPACE
-    settings.ADVISORY_LOCK_NAMESPACE_RESOLVER_IMPORT = (
-        "saleor.core.db.tests.test_locks.custom_namespace_resolver"
+    settings.ADVISORY_LOCK_NAMESPACE_IMPORT = (
+        "saleor.core.db.tests.test_locks.get_custom_namespace"
     )
     lock = AdvisoryLock.CATEGORY_TREE
 
