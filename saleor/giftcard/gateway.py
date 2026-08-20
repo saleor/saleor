@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 from typing import Annotated
 from uuid import uuid4
@@ -32,6 +33,12 @@ from .const import (
 from .events import gift_card_refunded_in_order_event, gift_cards_used_in_order_event
 from .models import GiftCard
 from .search import mark_gift_cards_search_index_as_dirty
+
+logger = logging.getLogger(__name__)
+
+# Returned for every reason a code cannot be used, so the response never reveals
+# whether the card exists or belongs to another customer.
+INVALID_GIFT_CARD_CODE_MESSAGE = "Gift card code is not valid."
 
 
 class GiftCardPaymentGatewayDataSchema(pydantic.BaseModel):
@@ -68,7 +75,9 @@ def transaction_initialize_session_with_gift_card_payment_method(
 
     try:
         validate_transaction_session_data(transaction_session_data, source_object)
-        gift_card = validate_and_get_gift_card(transaction_session_data)
+        gift_card = validate_and_get_gift_card(
+            transaction_session_data, source_object.user_id
+        )
     except GiftCardPaymentGatewayException as exc:
         return TransactionSessionResult(
             app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
@@ -125,8 +134,13 @@ def validate_transaction_session_data(
 
 def validate_and_get_gift_card(
     transaction_session_data: "TransactionSessionData",
+    checkout_user_id: int | None,
 ):
-    """Check for the existence of given gift card and lock it for use in a database transaction. Check whether gift card has enough funds to cover transaction amount."""
+    """Check for the existence of given gift card and lock it for use in a database transaction.
+
+    Check that a card restricted to a customer is used by that customer, and that the
+    gift card has enough funds to cover transaction amount.
+    """
     try:
         gift_card = (
             GiftCard.objects.active(date=timezone.now().date())
@@ -139,8 +153,18 @@ def validate_and_get_gift_card(
         )
     except GiftCard.DoesNotExist as exc:
         raise GiftCardPaymentGatewayException(
-            msg="Gift card code is not valid."
+            msg=INVALID_GIFT_CARD_CODE_MESSAGE
         ) from exc
+
+    # Restriction is checked before the balance so a caller who is not the assignee
+    # never learns the card's remaining balance from the rejection message.
+    if rejection_reason := gift_card.usage_restriction_reason(checkout_user_id):
+        logger.info(
+            "Rejected use of gift card %s %s in a payment transaction.",
+            gift_card.pk,
+            rejection_reason,
+        )
+        raise GiftCardPaymentGatewayException(msg=INVALID_GIFT_CARD_CODE_MESSAGE)
 
     if transaction_session_data.action.amount > gift_card.current_balance_amount:
         raise GiftCardPaymentGatewayException(
