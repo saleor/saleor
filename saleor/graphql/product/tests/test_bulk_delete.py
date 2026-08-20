@@ -10,6 +10,7 @@ from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quantity
+from ....core.db.locks import AdvisoryLock
 from ....discount.utils.promotion import get_active_catalogue_promotion_rules
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
@@ -1848,3 +1849,38 @@ def test_delete_variants_delete_product_channel_listing_without_available_channe
     assert product_1.channel_listings.count() == 0
     assert product_2.channel_listings.count() == product_2_channel_listings_count
     mocked_recalculate_orders_task.assert_not_called()
+
+
+def test_category_bulk_delete_takes_tree_lock_before_delete(
+    staff_api_client,
+    category_list,
+    permission_manage_products,
+    assert_advisory_lock_before_tree_write,
+):
+    # given
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Category", category.pk)
+            for category in category_list
+        ]
+    }
+
+    # when
+    with assert_advisory_lock_before_tree_write(
+        AdvisoryLock.CATEGORY_TREE, Category._meta.db_table
+    ):
+        response = staff_api_client.post_graphql(
+            MUTATION_CATEGORY_BULK_DELETE,
+            variables,
+            permissions=[permission_manage_products],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["categoryBulkDelete"]["count"] == len(category_list)
+    assert (
+        Category.objects.filter(
+            pk__in=[category.pk for category in category_list]
+        ).exists()
+        is False
+    )
