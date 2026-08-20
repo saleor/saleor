@@ -164,10 +164,6 @@ QUERY_ATTRIBUTES_PAGINATION = """
             {"field": "VALUE_REQUIRED", "direction": "ASC"},
             ["Attr2", "Attr3", "Attr1"],
         ),
-        (
-            {"field": "STOREFRONT_SEARCH_POSITION", "direction": "ASC"},
-            ["Attr3", "AttrAttr2", "AttrAttr1"],
-        ),
     ],
 )
 def test_attributes_pagination_with_sorting(

@@ -32,10 +32,6 @@ def test_query_attribute(
                 }
                 valueRequired
                 visibleInStorefront
-                filterableInStorefront
-                filterableInDashboard
-                availableInGrid
-                storefrontSearchPosition
             }
         }
         """
@@ -78,10 +74,6 @@ def test_query_attributes(
                         }
                         valueRequired
                         visibleInStorefront
-                        filterableInStorefront
-                        filterableInDashboard
-                        availableInGrid
-                        storefrontSearchPosition
                     }
                 }
             }

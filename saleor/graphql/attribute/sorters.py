@@ -1,9 +1,5 @@
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.types import BaseEnum, SortInputObjectType
-from .descriptions import (
-    DASHBOARD_FLAG_DEPRECATION_REASON,
-    STOREFRONT_FLAG_DEPRECATION_REASON,
-)
 
 
 class AttributeSortField(BaseEnum):
@@ -12,10 +8,6 @@ class AttributeSortField(BaseEnum):
     VALUE_REQUIRED = ["value_required", "name", "slug"]
     IS_VARIANT_ONLY = ["is_variant_only", "name", "slug"]
     VISIBLE_IN_STOREFRONT = ["visible_in_storefront", "name", "slug"]
-    FILTERABLE_IN_STOREFRONT = ["filterable_in_storefront", "name", "slug"]
-    FILTERABLE_IN_DASHBOARD = ["filterable_in_dashboard", "name", "slug"]
-    STOREFRONT_SEARCH_POSITION = ["storefront_search_position", "name", "pk"]
-    AVAILABLE_IN_GRID = ["available_in_grid", "name", "pk"]
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
@@ -35,34 +27,10 @@ class AttributeSortField(BaseEnum):
             AttributeSortField.VISIBLE_IN_STOREFRONT.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "Sort attributes by visibility in the storefront"
             ),
-            AttributeSortField.FILTERABLE_IN_STOREFRONT.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "Sort attributes by the filterable in storefront flag"
-            ),
-            AttributeSortField.FILTERABLE_IN_DASHBOARD.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "Sort attributes by the filterable in dashboard flag"
-            ),
-            AttributeSortField.STOREFRONT_SEARCH_POSITION.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "Sort attributes by their position in storefront"
-            ),
-            AttributeSortField.AVAILABLE_IN_GRID.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "Sort attributes based on whether they can be displayed "
-                "or not in a product grid."
-            ),
         }
         if self.name in descriptions:
             return descriptions[self.name]
         raise ValueError(f"Unsupported enum value: {self.value}")
-
-    @property
-    def deprecation_reason(self):
-        # pylint: disable=no-member
-        deprecations = {
-            AttributeSortField.FILTERABLE_IN_STOREFRONT.name: STOREFRONT_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            AttributeSortField.STOREFRONT_SEARCH_POSITION.name: STOREFRONT_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            AttributeSortField.AVAILABLE_IN_GRID.name: STOREFRONT_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            AttributeSortField.FILTERABLE_IN_DASHBOARD.name: DASHBOARD_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-        }
-        return deprecations.get(self.name)
 
 
 class AttributeSortingInput(SortInputObjectType):

@@ -1,15 +1,5 @@
 from ..core.descriptions import RICH_CONTENT
 
-STOREFRONT_FLAG_DEPRECATION_REASON = (
-    "This flag is not used by Saleor. Keep the logic in the storefront or use "
-    "`Attribute` metadata instead."
-)
-
-DASHBOARD_FLAG_DEPRECATION_REASON = (
-    "This flag is not used by Saleor. Keep the logic in the dashboard or use "
-    "`Attribute` metadata instead."
-)
-
 
 class AttributeDescriptions:
     INPUT_TYPE = "The input type to use for entering attribute values in the dashboard."
@@ -24,14 +14,6 @@ class AttributeDescriptions:
     IS_VARIANT_ONLY = "Whether the attribute is for variants only."
     VISIBLE_IN_STOREFRONT = (
         "Whether the attribute should be visible or not in storefront."
-    )
-    FILTERABLE_IN_STOREFRONT = "Whether the attribute can be filtered in storefront."
-    FILTERABLE_IN_DASHBOARD = "Whether the attribute can be filtered in dashboard."
-    STOREFRONT_SEARCH_POSITION = (
-        "The position of the attribute in the storefront navigation (0 by default)."
-    )
-    AVAILABLE_IN_GRID = (
-        "Whether the attribute can be displayed in the admin product list."
     )
     WITH_CHOICES = "Flag indicating that attribute has predefined choices."
 

@@ -202,16 +202,22 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
     is_variant_only = models.BooleanField(default=False, blank=True)
     visible_in_storefront = models.BooleanField(default=True, blank=True)
 
+    # Presentation flags that Saleor never reads. Their GraphQL API surface was
+    # removed in 3.24; the fields and their columns are to be dropped too. Dropping
+    # `storefront_search_position` also changes the default ordering below.
     filterable_in_storefront = models.BooleanField(default=False, blank=True)
     filterable_in_dashboard = models.BooleanField(default=False, blank=True)
 
     storefront_search_position = models.IntegerField(default=0, blank=True)
     available_in_grid = models.BooleanField(default=False, blank=True)
+
     max_sort_order = models.IntegerField(default=None, null=True, blank=True)
 
     objects = AttributeManager()
 
     class Meta(ModelWithMetadata.Meta):
+        # `storefront_search_position` is a leftover of the removed presentation
+        # flags; ordering falls back to `slug` when the column is dropped.
         ordering = ("storefront_search_position", "slug")
         indexes = [
             *ModelWithMetadata.Meta.indexes,
