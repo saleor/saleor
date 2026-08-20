@@ -28,3 +28,33 @@ def test_raises_outside_atomic_block():
     # when / then
     with pytest.raises(RuntimeError, match="must be called inside an atomic block"):
         acquire_advisory_xact_lock(AdvisoryLock.CATEGORY_TREE)
+
+
+CUSTOM_NAMESPACE = 999
+
+
+def custom_namespace_resolver() -> int:
+    return CUSTOM_NAMESPACE
+
+
+def test_namespace_resolver_setting_overrides_default(db, settings):
+    # given
+    assert CUSTOM_NAMESPACE != ADVISORY_LOCK_NAMESPACE
+    settings.ADVISORY_LOCK_NAMESPACE_RESOLVER_IMPORT = (
+        "saleor.core.db.tests.test_locks.custom_namespace_resolver"
+    )
+    lock = AdvisoryLock.CATEGORY_TREE
+
+    with CaptureQueriesContext(connection) as ctx:
+        # when
+        with transaction.atomic():
+            acquire_advisory_xact_lock(lock)
+
+    # then
+    lock_queries = [
+        query["sql"]
+        for query in ctx.captured_queries
+        if "pg_advisory_xact_lock" in query["sql"]
+    ]
+    assert len(lock_queries) == 1
+    assert f"{CUSTOM_NAMESPACE}, {lock.value}" in lock_queries[0]

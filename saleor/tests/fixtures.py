@@ -16,7 +16,7 @@ from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
 from ..core import JobStatus
-from ..core.db.locks import ADVISORY_LOCK_NAMESPACE, AdvisoryLock
+from ..core.db.locks import AdvisoryLock, get_advisory_lock_namespace
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.telemetry import initialize_telemetry, meter, tracer
@@ -212,7 +212,7 @@ def assert_advisory_lock_before_tree_write(capture_queries):
             index
             for index, sql in enumerate(queries)
             if "pg_advisory_xact_lock" in sql
-            and f"{ADVISORY_LOCK_NAMESPACE}, {lock.value}" in sql
+            and f"{get_advisory_lock_namespace()}, {lock.value}" in sql
         ]
         assert len(lock_indexes) == 1, (
             f"expected exactly one advisory lock query for {lock.name}, got: "
