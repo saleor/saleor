@@ -1384,7 +1384,7 @@ def test_transaction_request_cancelation_for_checkout_gift_card_authorization(
 
     assert transaction.authorized_value == Decimal(10) - expected_cancel_amount
     assert transaction.charged_value == Decimal(0)
-    assert transaction.gift_card is not None
+    assert transaction.gift_card == gift_card_created_by_staff
     assert transaction.available_actions == expected_available_actions
     assert checkout.authorize_status == expected_authorize_status
 
