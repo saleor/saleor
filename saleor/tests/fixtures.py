@@ -16,6 +16,7 @@ from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
 from ..core import JobStatus
+from ..core.db.locks import AdvisoryLock, get_advisory_lock_namespace
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.telemetry import initialize_telemetry, meter, tracer
@@ -195,6 +196,42 @@ def assert_locks_rows_before_write(capture_queries):
         assert update_query.startswith("UPDATE")
 
     return _assert_locks_rows_before_write
+
+
+@pytest.fixture
+def assert_advisory_lock_before_tree_write(capture_queries):
+    """Assert the given advisory lock is taken before the first write to a table."""
+
+    @contextmanager
+    def _assert_advisory_lock_before_tree_write(lock: AdvisoryLock, table: str):
+        with capture_queries() as ctx:
+            yield
+
+        queries = [query["sql"] for query in ctx.captured_queries]
+        lock_indexes = [
+            index
+            for index, sql in enumerate(queries)
+            if "pg_advisory_xact_lock" in sql
+            and f"{get_advisory_lock_namespace()}, {lock.value}" in sql
+        ]
+        assert len(lock_indexes) == 1, (
+            f"expected exactly one advisory lock query for {lock.name}, got: "
+            f"{[queries[index] for index in lock_indexes]}"
+        )
+        write_prefixes = (
+            f'INSERT INTO "{table}"',
+            f'UPDATE "{table}"',
+            f'DELETE FROM "{table}"',
+        )
+        write_indexes = [
+            index for index, sql in enumerate(queries) if sql.startswith(write_prefixes)
+        ]
+        assert write_indexes, f"no write query on {table} was captured"
+        assert lock_indexes[0] < write_indexes[0], (
+            f"the advisory lock was taken after the first write to {table}"
+        )
+
+    return _assert_advisory_lock_before_tree_write
 
 
 @pytest.fixture
