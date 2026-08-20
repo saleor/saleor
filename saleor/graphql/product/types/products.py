@@ -68,6 +68,7 @@ from ...core.context import (
 from ...core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_PREORDER,
     DEPRECATED_PREORDER_TYPE_DESCRIPTION,
@@ -2089,6 +2090,14 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         graphene.String, required=True, description="The URL of the media."
     )
     product_id = graphene.ID(description="Product id the media refers to.")
+    tags = NonNullList(
+        graphene.String,
+        required=True,
+        description=(
+            "List of tags assigned to the media. Tags are lowercased and "
+            "deduplicated when saved. Empty when the media has no tags." + ADDED_IN_323
+        ),
+    )
 
     class Meta:
         description = "Represents a product media."

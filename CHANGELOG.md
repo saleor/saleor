@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Added `tags` field to the `ProductMedia` type and to the `productMediaCreate`, `productMediaUpdate` and `productBulkCreate` inputs. Tags are free-form labels (stripped, lowercased and deduplicated on save, max 20 tags of 50 characters each) that let clients mark the origin or purpose of a media item, e.g. images uploaded from a rich-text editor. On `productMediaUpdate` the field replaces all existing tags; pass an empty list to clear them or omit it to leave them unchanged.
 - Added `identifier` field to the `Webhook` type. It holds an app-provided, stable identifier that is unique per app. It can be set through the app manifest (`webhooks[].identifier`) and the `webhookCreate`/`webhookUpdate` mutations.
 - Added `Shop.allowStorefrontTraffic` field and `ShopSettingsInput.allowStorefrontTraffic` input. When disabled, only apps and staff users may call the GraphQL API directly; anonymous requests and non-staff customers are rejected with HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).

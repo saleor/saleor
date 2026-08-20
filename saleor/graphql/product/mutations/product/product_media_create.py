@@ -2,18 +2,24 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....permission.enums import ProductPermissions
-from .....product import ProductMediaTypes, models
+from .....product import (
+    MEDIA_TAG_CHAR_LIMIT,
+    MEDIA_TAGS_LIMIT,
+    ProductMediaTypes,
+    models,
+)
 from .....product.error_codes import ProductErrorCode
 from .....product.tasks import fetch_product_media_image_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
-from ....core.types import BaseInputObjectType, ProductError, Upload
+from ....core.types import BaseInputObjectType, NonNullList, ProductError, Upload
 from ....core.validators.file import clean_image_file
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import probe_media_url, validate_media_input
+from ...utils import clean_media_tags, probe_media_url, validate_media_input
 
 
 class ProductMediaCreateInput(BaseInputObjectType):
@@ -26,6 +32,15 @@ class ProductMediaCreateInput(BaseInputObjectType):
     )
     media_url = graphene.String(
         required=False, description="Represents an URL to an external media."
+    )
+    tags = NonNullList(
+        graphene.String,
+        required=False,
+        description=(
+            f"List of tags to assign to the media. Tags are stripped, lowercased "
+            f"and deduplicated. Maximum of {MEDIA_TAGS_LIMIT} tags, "
+            f"{MEDIA_TAG_CHAR_LIMIT} characters each." + ADDED_IN_323
+        ),
     )
 
     class Meta:
@@ -86,6 +101,8 @@ class ProductMediaCreate(BaseMutation):
                 }
             )
 
+        tags = clean_media_tags(input.get("tags") or [], ProductErrorCode)
+
         product = cls.get_node_or_error(
             info,
             input["product"],
@@ -99,7 +116,7 @@ class ProductMediaCreate(BaseMutation):
             input["image"] = info.context.FILES.get(image)
             image_data = clean_image_file(input, "image", ProductErrorCode)
             media = product.media.create(
-                image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
+                image=image_data, alt=alt, type=ProductMediaTypes.IMAGE, tags=tags
             )
         elif media_url:
             # Remote URLs can point to the images or oembed data.
@@ -111,6 +128,7 @@ class ProductMediaCreate(BaseMutation):
                     external_url=media_url,
                     alt=alt,
                     type=ProductMediaTypes.IMAGE,
+                    tags=tags,
                 )
                 fetch_product_media_image_task.delay(media.pk)
             else:
@@ -120,6 +138,7 @@ class ProductMediaCreate(BaseMutation):
                     alt=oembed_data.get("title", alt),
                     type=probe_result.media_type,
                     oembed_data=oembed_data,
+                    tags=tags,
                 )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)

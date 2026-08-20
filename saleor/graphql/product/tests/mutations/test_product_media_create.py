@@ -10,7 +10,12 @@ from requests.exceptions import InvalidSchema
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
-from .....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
+from .....product import (
+    MEDIA_TAG_CHAR_LIMIT,
+    MEDIA_TAGS_LIMIT,
+    MEDIA_URL_CHAR_LIMIT,
+    ProductMediaTypes,
+)
 from .....product.error_codes import ProductErrorCode
 from .....product.tests.utils import create_image, create_zip_file_with_image_ext
 
@@ -624,3 +629,128 @@ def test_product_media_create_mutation_with_empty_product_id(
     assert len(errors) == 1
     assert errors[0]["field"] == "product"
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
+PRODUCT_MEDIA_CREATE_WITH_TAGS_QUERY = """
+    mutation createProductMedia(
+        $product: ID!,
+        $image: Upload,
+        $tags: [String!]
+    ) {
+        productMediaCreate(input: {
+            product: $product,
+            image: $image,
+            tags: $tags
+        }) {
+            media {
+                id
+                tags
+            }
+            errors {
+                code
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_create_with_tags(
+    staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "image": image_name,
+        "tags": [" Content ", "content", "GALLERY"],
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_WITH_TAGS_QUERY, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["productMediaCreate"]["errors"]
+    media = product.media.get()
+    assert media.tags == ["content", "gallery"]
+    assert content["data"]["productMediaCreate"]["media"]["tags"] == [
+        "content",
+        "gallery",
+    ]
+
+
+def test_create_without_tags(
+    staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "image": image_name,
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_WITH_TAGS_QUERY, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["productMediaCreate"]["media"]["tags"] == []
+    assert product.media.get().tags == []
+
+
+@pytest.mark.parametrize(
+    ("tags", "expected_message"),
+    [
+        (
+            [f"tag-{index}" for index in range(MEDIA_TAGS_LIMIT + 1)],
+            f"Number of tags exceeds the limit of {MEDIA_TAGS_LIMIT}.",
+        ),
+        (
+            ["a" * (MEDIA_TAG_CHAR_LIMIT + 1)],
+            f"Tag exceeds the character limit of {MEDIA_TAG_CHAR_LIMIT}: "
+            f"{'a' * (MEDIA_TAG_CHAR_LIMIT + 1)}.",
+        ),
+        (["   "], "Tag cannot be empty."),
+    ],
+)
+def test_create_with_invalid_tags(
+    tags,
+    expected_message,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "image": image_name,
+        "tags": tags,
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_WITH_TAGS_QUERY, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "tags"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["message"] == expected_message
+    assert not product.media.exists()

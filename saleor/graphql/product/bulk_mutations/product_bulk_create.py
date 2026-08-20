@@ -45,7 +45,7 @@ from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
-from ..utils import probe_media_url, validate_media_input
+from ..utils import clean_media_tags, probe_media_url, validate_media_input
 from .product_variant_bulk_create import (
     ProductVariantBulkCreate,
     ProductVariantBulkCreateInput,
@@ -449,6 +449,16 @@ class ProductBulkCreate(BaseMutation):
                 continue
 
             media_input["alt"] = alt
+
+            try:
+                media_input["tags"] = clean_media_tags(
+                    media_input.get("tags") or [], ProductBulkCreateErrorCode
+                )
+            except ValidationError as exc:
+                cls.add_indexes_to_errors(
+                    product_index, exc, index_error_map, f"media.{index}"
+                )
+                continue
 
             if image:
                 media_input["image"] = info.context.FILES.get(image)
@@ -885,6 +895,7 @@ class ProductBulkCreate(BaseMutation):
     def prepare_media(cls, info, product, media_inputs, media_to_create):
         for media_input in media_inputs:
             alt = media_input.get("alt", "")
+            tags = media_input.get("tags") or []
 
             if img_data := media_input.get("image"):
                 media_to_create.append(
@@ -893,6 +904,7 @@ class ProductBulkCreate(BaseMutation):
                         alt=alt,
                         product=product,
                         type=ProductMediaTypes.IMAGE,
+                        tags=tags,
                     )
                 )
             elif not media_input.get("image") and media_input.get("external_url"):
@@ -903,6 +915,7 @@ class ProductBulkCreate(BaseMutation):
                         alt=alt,
                         product=product,
                         type=ProductMediaTypes.IMAGE,
+                        tags=tags,
                     )
                 )
 
@@ -914,6 +927,7 @@ class ProductBulkCreate(BaseMutation):
                         product=product,
                         type=oembed_data["supported_media_type"],
                         oembed_data=oembed_data,
+                        tags=tags,
                     )
                 )
 

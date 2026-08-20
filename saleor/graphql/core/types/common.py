@@ -5,6 +5,7 @@ import graphene
 from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
+from ....product import MEDIA_TAG_CHAR_LIMIT, MEDIA_TAGS_LIMIT
 from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
@@ -1052,4 +1053,13 @@ class MediaInput(graphene.InputObjectType):
     )
     media_url = graphene.String(
         required=False, description="Represents an URL to an external media."
+    )
+    tags = NonNullList(
+        graphene.String,
+        required=False,
+        description=(
+            f"List of tags to assign to the media. Tags are stripped, lowercased "
+            f"and deduplicated. Maximum of {MEDIA_TAGS_LIMIT} tags, "
+            f"{MEDIA_TAG_CHAR_LIMIT} characters each." + ADDED_IN_323
+        ),
     )
