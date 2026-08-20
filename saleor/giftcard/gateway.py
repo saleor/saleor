@@ -134,7 +134,7 @@ def validate_transaction_session_data(
 
 def validate_and_get_gift_card(
     transaction_session_data: "TransactionSessionData",
-    checkout_user_id: int | None,
+    source_object_user_id: int | None,
 ):
     """Check for the existence of given gift card and lock it for use in a database transaction.
 
@@ -158,7 +158,7 @@ def validate_and_get_gift_card(
 
     # Restriction is checked before the balance so a caller who is not the assignee
     # never learns the card's remaining balance from the rejection message.
-    if rejection_reason := gift_card.usage_restriction_reason(checkout_user_id):
+    if rejection_reason := gift_card.usage_restriction_reason(source_object_user_id):
         logger.info(
             "Rejected use of gift card %s %s in a payment transaction.",
             gift_card.pk,
