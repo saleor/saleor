@@ -21,6 +21,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django.core.validators import URLValidator
 from graphql.execution import executor
+from PIL import Image
 from pytimeparse import parse
 from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -500,6 +501,24 @@ MAX_USER_ADDRESSES = int(os.environ.get("MAX_USER_ADDRESSES", 100))
 MAX_IMAGE_FILE_SIZE = int(
     os.environ.get("MAX_IMAGE_FILE_SIZE", 10 * 1024 * 1024)
 )  # 10MB
+
+# Maximum number of pixels (width * height) of an image we are willing to decode.
+# This bounds decode memory, which `MAX_IMAGE_FILE_SIZE` does not: an 8000x8000 WebP
+# is 0.11MB on disk but needs ~1GB of RAM to decode, because the encoded size says
+# nothing about the decoded size. The default admits 5000x5000 with some headroom.
+MAX_IMAGE_PIXELS = int(os.environ.get("MAX_IMAGE_PIXELS", 30_000_000))
+
+# Pillow warns above `Image.MAX_IMAGE_PIXELS` but only raises above *twice* that value,
+# so halve our limit to make `MAX_IMAGE_PIXELS` the value actually enforced. Note this
+# is assigned once at import time, so tests cannot override it via the `settings`
+# fixture - patch `PIL.Image.MAX_IMAGE_PIXELS` directly instead.
+Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS // 2
+
+# The halving above puts Pillow's warning threshold at half of the enforced limit, so
+# every legitimately large image would warn. The warning carries no reference to the
+# object being processed, so it is useless for tracking; we log with context at the
+# point we catch `DecompressionBombError` instead.
+warnings.filterwarnings("ignore", category=Image.DecompressionBombWarning)
 
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
