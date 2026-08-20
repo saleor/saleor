@@ -34,6 +34,24 @@ def corrupted_menu_item_tree(menu):
     return root, first, second
 
 
+@pytest.fixture
+def category_tree_with_duplicated_root_tree_id(db):
+    """Give two root categories the same tree_id (bypassing mptt)."""
+    first = Category.objects.create(name="Root A", slug="root-a")
+    second = Category.objects.create(name="Root B", slug="root-b")
+    Category.objects.filter(pk=second.pk).update(tree_id=first.tree_id, lft=3, rght=4)
+    return first, second
+
+
+@pytest.fixture
+def menu_item_tree_with_duplicated_root_tree_id(menu):
+    """Give two root menu items the same tree_id (bypassing mptt)."""
+    first = MenuItem.objects.create(menu=menu, name="Root A")
+    second = MenuItem.objects.create(menu=menu, name="Root B")
+    MenuItem.objects.filter(pk=second.pk).update(tree_id=first.tree_id, lft=3, rght=4)
+    return first, second
+
+
 TREE_CASES = [
     (
         "category",
@@ -104,3 +122,33 @@ def test_fix_takes_tree_lock_and_repairs(
     # A rebuilt two-child tree spans 1..6 with disjoint sibling intervals.
     assert (root.lft, root.rght) == (1, 6)
     assert {(first.lft, first.rght), (second.lft, second.rght)} == {(2, 3), (4, 5)}
+
+
+@pytest.mark.parametrize(
+    ("_case", "tree_fixture", "model"),
+    [
+        ("category", "category_tree_with_duplicated_root_tree_id", Category),
+        ("menu_item", "menu_item_tree_with_duplicated_root_tree_id", MenuItem),
+    ],
+)
+def test_fix_runs_full_rebuild_when_tree_id_integrity_broken(
+    request, _case, tree_fixture, model
+):
+    # given
+    first_root, second_root = request.getfixturevalue(tree_fixture)
+
+    # when
+    stdout = StringIO()
+    call_command("check_mptt_trees", "--fix", stdout=stdout)
+
+    # then
+    output = stdout.getvalue()
+    assert f"running a full {model.__name__} tree rebuild" in output
+    assert f"All {model.__name__} problems fixed" in output
+    first_root.refresh_from_db(fields=("lft", "rght", "tree_id"))
+    second_root.refresh_from_db(fields=("lft", "rght", "tree_id"))
+    # The rebuild reassigns each root its own tree, both childless roots
+    # spanning 1..2 again.
+    assert first_root.tree_id != second_root.tree_id
+    assert (first_root.lft, first_root.rght) == (1, 2)
+    assert (second_root.lft, second_root.rght) == (1, 2)
