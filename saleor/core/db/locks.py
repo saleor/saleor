@@ -13,13 +13,13 @@ class AdvisoryLock(IntEnum):
     MENU_ITEM_TREE = 2
 
 
-def acquire_advisory_xact_lock(lock: AdvisoryLock, using: str | None = None) -> None:
+def acquire_advisory_xact_lock(lock: AdvisoryLock) -> None:
     """Block until the transaction-scoped advisory lock is acquired.
 
     Auto-released on commit/rollback (pgbouncer-safe). Must be called inside
     an atomic block, before any `select_for_update` row locks.
     """
-    connection = transaction.get_connection(using)
+    connection = transaction.get_connection()
     if not connection.in_atomic_block:
         raise RuntimeError(
             "acquire_advisory_xact_lock must be called inside an atomic block."
