@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils.module_loading import import_string
 
+# Arbitrary 32-bit integer identifying Saleor's advisory locks globally within a database.
 ADVISORY_LOCK_NAMESPACE = 21_218
 
 
