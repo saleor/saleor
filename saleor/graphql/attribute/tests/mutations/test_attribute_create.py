@@ -475,6 +475,430 @@ def test_create_swatch_attribute_and_attribute_values_file_and_value_provided(
 
 
 @pytest.mark.parametrize(
+    ("field", "value"),
+    [("fileUrl", "test.jpg"), ("value", "blue"), ("contentType", "jpg")],
+)
+def test_create_not_swatch_attribute_provide_not_valid_data(
+    field,
+    value,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example numeric attribute name"
+    name = "Test"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [{"name": name, field: value}],
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.DROPDOWN.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    errors = data["errors"]
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "values"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_create_attribute_with_file_input_type(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.FILE.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["choices"]["edges"]) == 0
+    assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
+    assert data["attribute"]["inputType"] == AttributeInputTypeEnum.FILE.name
+
+
+@pytest.mark.parametrize(
+    "entity_type",
+    [
+        AttributeEntityTypeEnum.PAGE.name,
+        AttributeEntityTypeEnum.PRODUCT.name,
+        AttributeEntityTypeEnum.COLLECTION.name,
+        AttributeEntityTypeEnum.CATEGORY.name,
+    ],
+)
+def test_create_attribute_with_reference_input_type(
+    entity_type,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.REFERENCE.name,
+            "entityType": entity_type,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["choices"]["edges"]) == 0
+    assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
+    assert data["attribute"]["inputType"] == AttributeInputTypeEnum.REFERENCE.name
+    assert data["attribute"]["entityType"] == entity_type
+
+
+def test_create_attribute_with_reference_input_type_entity_type_not_given(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.REFERENCE.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    errors = data["errors"]
+
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "entityType"
+    assert errors[0]["code"] == AttributeErrorCode.REQUIRED.name
+
+
+@pytest.mark.parametrize(
+    "entity_type",
+    [
+        AttributeEntityTypeEnum.PAGE.name,
+        AttributeEntityTypeEnum.PRODUCT.name,
+        AttributeEntityTypeEnum.COLLECTION.name,
+        AttributeEntityTypeEnum.CATEGORY.name,
+    ],
+)
+def test_create_attribute_with_single_reference_input_type(
+    entity_type,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+            "entityType": entity_type,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["choices"]["edges"]) == 0
+    assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
+    assert (
+        data["attribute"]["inputType"] == AttributeInputTypeEnum.SINGLE_REFERENCE.name
+    )
+    assert data["attribute"]["entityType"] == entity_type
+
+
+def test_create_attribute_with_single_reference_input_type_entity_type_not_given(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.SINGLE_REFERENCE.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    errors = data["errors"]
+
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "entityType"
+    assert errors[0]["code"] == AttributeErrorCode.REQUIRED.name
+
+
+def test_create_attribute_with_plain_text_input_type(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "inputType": AttributeInputTypeEnum.PLAIN_TEXT.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["choices"]["edges"]) == 0
+    assert data["attribute"]["type"] == AttributeTypeEnum.PRODUCT_TYPE.name
+    assert data["attribute"]["inputType"] == AttributeInputTypeEnum.PLAIN_TEXT.name
+
+
+def test_create_page_attribute_and_attribute_values(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    permission_manage_pages,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    name = "Value name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "values": [{"name": name}],
+            "type": AttributeTypeEnum.PAGE_TYPE.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_page_types_and_attributes,
+            permission_manage_pages,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["attributeCreate"]["errors"]
+    data = content["data"]["attributeCreate"]
+
+    # Check if the attribute was correctly created
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name), (
+        "The default slug should be the slugified name"
+    )
+    assert data["attribute"]["productTypes"]["edges"] == [], (
+        "The attribute should not have been assigned to a product type"
+    )
+
+    # Check if the attribute values were correctly created
+    assert len(data["attribute"]["choices"]["edges"]) == 1
+    assert data["attribute"]["type"] == AttributeTypeEnum.PAGE_TYPE.name
+    assert data["attribute"]["choices"]["edges"][0]["node"]["name"] == name
+    assert data["attribute"]["choices"]["edges"][0]["node"]["slug"] == slugify(name)
+
+
+def test_create_attribute_with_file_input_type_and_values(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Example name"
+    name = "Value name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "values": [{"name": name}],
+            "inputType": AttributeInputTypeEnum.FILE.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    errors = data["errors"]
+
+    assert not data["attribute"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "values"
+    assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+@pytest.mark.parametrize(
     "entity_type",
     [AttributeEntityTypeEnum.PAGE.name, AttributeEntityTypeEnum.PRODUCT.name],
 )
