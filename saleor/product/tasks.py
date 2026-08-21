@@ -21,6 +21,7 @@ from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
 from ..product import ProductMediaTypes
+from ..thumbnail.exceptions import ImageTooLargeError
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
@@ -450,5 +451,19 @@ def fetch_product_media_image_task(product_media_id: int):
         image = create_image(product_media, mime_type, response)
 
     validate_image_mime_type(image)
-    validate_image_exif(image)
+    try:
+        validate_image_exif(image)
+    except ImageTooLargeError as error:
+        logger.warning(
+            "Image fetched for product media %s exceeds the pixel limit: %s",
+            product_media.pk,
+            product_media.external_url,
+            extra={
+                "image_source": product_media.external_url,
+                "object_type": "ProductMedia",
+                "object_pk": product_media.pk,
+                "pillow_error": str(error),
+            },
+        )
+        raise
     update_product_media(product_media, image)

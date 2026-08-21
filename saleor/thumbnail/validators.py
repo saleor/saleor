@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Collection
 
 from django.core.exceptions import ValidationError
@@ -9,6 +10,8 @@ from . import (
     MIN_ICON_SIZE,
     PIL_IDENTIFIER_TO_MIME_TYPE,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def validate_image_format(
@@ -57,11 +60,21 @@ def validate_icon_image(image_file, error_code: str):
         with Image.open(image_file) as image:
             validate_image_format(image, error_code, ICON_MIME_TYPES)
             validate_image_size(image, error_code, MIN_ICON_SIZE, square_required=True)
+    except Image.DecompressionBombError as e:
+        image_source = getattr(image_file, "name", "") or ""
+        logger.warning(
+            "Icon image %s exceeds the pixel limit.",
+            image_source,
+            extra={"image_source": image_source, "pillow_error": str(e)},
+        )
+        raise ValidationError(
+            "Invalid file. The image exceeds the maximum allowed number of pixels.",
+            code=error_code,
+        ) from e
     except (
         SyntaxError,
         TypeError,
         UnidentifiedImageError,
-        Image.DecompressionBombError,
     ) as e:
         raise ValidationError(
             "Invalid file. The following error was raised during the attempt "

@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 import os
 import secrets
@@ -21,9 +22,12 @@ from . import (
     IconThumbnailFormat,
     ThumbnailFormat,
 )
+from .exceptions import ImageTooLargeError
 
 if TYPE_CHECKING:
     from .models import Thumbnail
+
+logger = logging.getLogger(__name__)
 
 
 def get_image_or_proxy_url(
@@ -142,7 +146,24 @@ class ProcessedImage:
         if isinstance(self.image_source, str):
             image = self.storage.open(self.image_source, "rb")
         image_format = self.get_image_metadata_from_file(image)
-        return (Image.open(image), image_format)
+        try:
+            return (Image.open(image), image_format)
+        except Image.DecompressionBombError as e:
+            source = self.get_image_source_name()
+            logger.warning(
+                "Image exceeds the pixel limit, refusing to decode it: %s",
+                source,
+                extra={"image_source": source, "pillow_error": str(e)},
+            )
+            raise ImageTooLargeError(
+                f"Image {source} exceeds the maximum allowed number of pixels."
+            ) from e
+
+    def get_image_source_name(self) -> str:
+        """Return the storage path of the source image, for logging."""
+        if isinstance(self.image_source, str):
+            return self.image_source
+        return getattr(self.image_source, "name", "") or ""
 
     @classmethod
     def get_image_metadata_from_file(cls, file_like):
