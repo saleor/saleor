@@ -54,6 +54,7 @@ mutation ProductBulkCreate($products: [ProductBulkCreateInput!]!, $errorPolicy: 
           alt
           type
           oembedData
+          tags
         }
         category {
           name
@@ -3578,3 +3579,86 @@ def test_product_bulk_create_with_media_url_request_exception(
     assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
     assert error["path"] == "media.0.mediaUrl"
     assert error["message"] == "Failed to fetch media from URL."
+
+
+def test_product_bulk_create_with_media_tags(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    image_file, image_name = create_image(image_name="prod1")
+    products = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name",
+            "slug": "product-test-slug",
+            "media": [{"image": image_name, "tags": [" Content ", "content", "HERO"]}],
+        }
+    ]
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+        [image_file],
+        {0: ["variables.products.0.media.0.image"]},
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productBulkCreate"]
+    assert data["count"] == 1
+    assert data["results"][0]["product"]["media"][0]["tags"] == ["content", "hero"]
+    assert Product.objects.get().media.get().tags == ["content", "hero"]
+
+
+def test_product_bulk_create_with_invalid_media_tags(
+    staff_api_client,
+    product_type,
+    category,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    image_file_1, image_name_1 = create_image(image_name="prod1")
+    image_file_2, image_name_2 = create_image(image_name="prod2")
+    products = [
+        {
+            "productType": graphene.Node.to_global_id("ProductType", product_type.pk),
+            "category": graphene.Node.to_global_id("Category", category.pk),
+            "name": "test name",
+            "slug": "product-test-slug",
+            "media": [
+                {"image": image_name_1, "tags": ["content"]},
+                {"image": image_name_2, "tags": [""]},
+            ],
+        }
+    ]
+    body = get_multipart_request_body_with_multiple_files(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+        [image_file_1, image_file_2],
+        {
+            0: ["variables.products.0.media.0.image"],
+            1: ["variables.products.0.media.1.image"],
+        },
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productBulkCreate"]
+    errors = data["results"][0]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["path"] == "media.1.tags"
+    assert errors[0]["code"] == ProductBulkCreateErrorCode.INVALID.name
+    assert errors[0]["message"] == "Tag cannot be empty."
