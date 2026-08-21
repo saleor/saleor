@@ -730,14 +730,6 @@ class ProductVariantBulkCreate(BaseMutation):
         if sku is not None:
             cleaned_input["sku"] = clean_variant_sku(sku)
 
-        preorder_settings = cleaned_input.get("preorder")
-        if preorder_settings:
-            cleaned_input["is_preorder"] = True
-            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-                "global_threshold"
-            )
-            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
-
         base_fields_errors_count = cls.validate_base_fields(
             cleaned_input, duplicated_sku, errors, index_error_map, index
         )
@@ -845,7 +837,6 @@ class ProductVariantBulkCreate(BaseMutation):
                 cost_price_amount=listing_data.get("cost_price"),
                 prior_price_amount=listing_data.get("prior_price"),
                 currency=listing_data["channel"].currency_code,
-                preorder_quantity_threshold=listing_data.get("preorder_threshold"),
             )
             for listing_data in listings_input
         ]

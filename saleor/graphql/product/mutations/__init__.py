@@ -20,7 +20,6 @@ from .product_type import ProductTypeCreate, ProductTypeDelete, ProductTypeUpdat
 from .product_variant import (
     ProductVariantCreate,
     ProductVariantDelete,
-    ProductVariantPreorderDeactivate,
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
@@ -50,7 +49,6 @@ __all__ = [
     "ProductUpdate",
     "ProductVariantCreate",
     "ProductVariantDelete",
-    "ProductVariantPreorderDeactivate",
     "ProductVariantReorder",
     "ProductVariantSetDefault",
     "ProductVariantUpdate",

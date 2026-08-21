@@ -6,7 +6,6 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db.models import Exists, OuterRef, Q, QuerySet, Value
-from django.utils import timezone
 from graphql.error import GraphQLError
 
 from ...core.postgres import FlatConcat
@@ -17,11 +16,10 @@ from ...invoice.models import Invoice
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ...payment import ChargeStatus, PaymentMethodType
 from ...payment.models import TransactionItem
-from ...product.models import ProductVariant
 from ...warehouse.models import Stock, Warehouse
 from ..account.filters import AddressFilterInput, filter_address
 from ..channel.filters import get_currency_from_filter_data
-from ..core.descriptions import ADDED_IN_322, DEPRECATED_PREORDER_INPUT
+from ..core.descriptions import ADDED_IN_322
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
@@ -208,27 +206,6 @@ def filter_is_click_and_collect(qs, _, values):
     return qs
 
 
-def filter_is_preorder(qs, _, values):
-    if values is not None:
-        variants = (
-            ProductVariant.objects.using(qs.db)
-            .filter(
-                Q(is_preorder=True)
-                & (
-                    Q(preorder_end_date__isnull=True)
-                    | Q(preorder_end_date__gte=timezone.now())
-                )
-            )
-            .values("id")
-        )
-        lines = OrderLine.objects.using(qs.db).filter(
-            Exists(variants.filter(id=OuterRef("variant_id")))
-        )
-        lookup = Exists(lines.filter(order_id=OuterRef("id")))
-        qs = qs.filter(lookup) if values is True else qs.exclude(lookup)
-    return qs
-
-
 def filter_gift_card_used(qs, _, value):
     return filter_by_gift_card(qs, value, GiftCardEvents.USED_IN_ORDER)
 
@@ -401,13 +378,6 @@ class OrderFilter(DraftOrderFilter):
     channels = GlobalIDMultipleChoiceFilter(method=filter_channels)
     is_click_and_collect = django_filters.BooleanFilter(
         method=filter_is_click_and_collect
-    )
-    is_preorder = django_filters.BooleanFilter(
-        method=filter_is_preorder,
-        help_text=(
-            "Filter by orders containing a variant that is currently in preorder."
-            f"{DEPRECATED_PREORDER_INPUT}"
-        ),
     )
     ids = GlobalIDMultipleChoiceFilter(method=filter_order_by_id)
     checkout_tokens = ListObjectTypeFilter(

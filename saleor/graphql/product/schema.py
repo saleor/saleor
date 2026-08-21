@@ -16,7 +16,6 @@ from ..core.descriptions import (
     ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
-    DEPRECATED_PREORDER,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import LanguageCodeEnum, ReportingPeriod
@@ -81,7 +80,6 @@ from .mutations import (
     ProductUpdate,
     ProductVariantCreate,
     ProductVariantDelete,
-    ProductVariantPreorderDeactivate,
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
@@ -696,9 +694,5 @@ class ProductMutations(graphene.ObjectType):
     product_variant_reorder_attribute_values = (
         ProductVariantReorderAttributeValues.Field()
     )
-    product_variant_preorder_deactivate = ProductVariantPreorderDeactivate.Field(
-        deprecation_reason=DEPRECATED_PREORDER
-    )
-
     variant_media_assign = VariantMediaAssign.Field()
     variant_media_unassign = VariantMediaUnassign.Field()
