@@ -2,7 +2,11 @@ import pytest
 from django.db import connection, transaction
 from django.test.utils import CaptureQueriesContext
 
-from ..locks import ADVISORY_LOCK_NAMESPACE, AdvisoryLock, acquire_advisory_xact_lock
+from ..locks import (
+    AdvisoryLock,
+    acquire_advisory_xact_lock,
+    get_advisory_lock_namespace,
+)
 
 
 @pytest.mark.parametrize("lock", list(AdvisoryLock))
@@ -20,7 +24,7 @@ def test_emits_lock_query_with_namespace_and_key(lock, db):
         if "pg_advisory_xact_lock" in query["sql"]
     ]
     assert len(lock_queries) == 1
-    assert f"{ADVISORY_LOCK_NAMESPACE}, {lock.value}" in lock_queries[0]
+    assert f"{get_advisory_lock_namespace()}, {lock.value}" in lock_queries[0]
 
 
 @pytest.mark.django_db(transaction=True)
@@ -39,7 +43,7 @@ def get_custom_namespace() -> int:
 
 def test_namespace_import_setting_overrides_default(db, settings):
     # given
-    assert CUSTOM_NAMESPACE != ADVISORY_LOCK_NAMESPACE
+    assert get_custom_namespace() != get_advisory_lock_namespace()
     settings.ADVISORY_LOCK_NAMESPACE_IMPORT = (
         "saleor.core.db.tests.test_locks.get_custom_namespace"
     )
