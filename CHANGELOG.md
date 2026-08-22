@@ -64,5 +64,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Fixes
 
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
+- Fixed `Site.objects.get_current(request)` failing with an `IndexError` instead of falling back to the host without its port, when `SITE_ID` is not set and the request's `Host` header carries one. The lookups in `saleor/site/patch_sites.py` now raise `Site.DoesNotExist` on a missing row, as `django.contrib.sites` does, so the existing fallback is reached; `Site.objects.get_by_natural_key()` raises it too. - #19692 by @sujeito-operator
 
 ### Deprecations
