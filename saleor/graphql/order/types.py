@@ -77,6 +77,7 @@ from ..core.context import ChannelContext
 from ..core.descriptions import (
     ADDED_IN_322,
     ADDED_IN_323,
+    ADDED_IN_324,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
@@ -178,6 +179,7 @@ from .enums import (
     OrderEventsEnum,
     OrderGrantedRefundStatusEnum,
     OrderOriginEnum,
+    OrderRefundStatusEnum,
     OrderStatusEnum,
 )
 from .utils import validate_draft_order
@@ -235,6 +237,22 @@ def get_payment_status_for_order(
     else:
         status = ChargeStatus.NOT_CHARGED
     return status
+
+
+def get_payment_status_for_transactions(order, total_refunded):
+    """Determine payment status from transaction refund amount.
+
+    Unlike get_payment_status_for_order, this function accounts for
+    transaction refunds to return PARTIALLY_REFUNDED or FULLY_REFUNDED
+    when transaction-based refunds have been processed.
+    """
+    total_charged = order.total_charged_amount or Decimal(0)
+
+    if total_refunded <= Decimal(0):
+        return ChargeStatus.FULLY_CHARGED
+    if total_refunded >= total_charged:
+        return ChargeStatus.FULLY_REFUNDED
+    return ChargeStatus.PARTIALLY_REFUNDED
 
 
 class OrderGrantedRefundLine(
@@ -1711,6 +1729,11 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         description="The charge status of the order.",
         required=True,
     )
+    refund_status = OrderRefundStatusEnum(
+        description="The refund status of the order."
+        + ADDED_IN_324,
+        required=True,
+    )
     tax_exemption = graphene.Boolean(
         description="Returns True if order has to be exempt from taxes.",
         required=True,
@@ -2391,12 +2414,17 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 zero_money(order.currency),
             )
             total_charged = prices.Money(Decimal(0), order.currency)
+            total_refunded = prices.Money(Decimal(0), order.currency)
 
             for transaction in transactions:
                 total_charged += transaction.amount_charged
                 total_charged += transaction.amount_charge_pending
+                total_refunded += transaction.amount_refunded
+                total_refunded += transaction.amount_refund_pending
             order_granted_refunds_difference = order.total.gross - total_granted_refund
-            return total_charged - order_granted_refunds_difference
+            return (
+                total_charged - total_refunded - order_granted_refunds_difference
+            )
 
         granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(
             order.id
@@ -2513,6 +2541,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
                 return ChargeStatus.FULLY_REFUNDED
 
             if transactions:
+                # Check for transaction-based refunds
+                total_refunded = sum(
+                    [tr.refunded_value for tr in transactions], Decimal(0)
+                )
+                if total_refunded > 0:
+                    return get_payment_status_for_transactions(
+                        order, total_refunded
+                    )
                 return get_payment_status_for_order(order, granted_refunds)
             last_payment = get_last_payment(payments)
             if not last_payment:
@@ -2540,7 +2576,15 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         def _resolve_payment_status(data):
             transactions, payments, granted_refunds = data
             if transactions:
-                status = get_payment_status_for_order(order, granted_refunds)
+                total_refunded = sum(
+                    [tr.refunded_value for tr in transactions], Decimal(0)
+                )
+                if total_refunded > 0:
+                    status = get_payment_status_for_transactions(
+                        order, total_refunded
+                    )
+                else:
+                    status = get_payment_status_for_order(order, granted_refunds)
                 return dict(ChargeStatus.CHOICES).get(status)
             last_payment = get_last_payment(payments)
             if not last_payment:

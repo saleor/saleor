@@ -38,6 +38,7 @@ from . import (
     OrderEvents,
     OrderGrantedRefundStatus,
     OrderOrigin,
+    OrderRefundStatus,
     OrderStatus,
 )
 
@@ -127,6 +128,12 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         max_length=32,
         default=OrderChargeStatus.NONE,
         choices=OrderChargeStatus.CHOICES,
+        db_index=True,
+    )
+    refund_status = models.CharField(
+        max_length=32,
+        default=OrderRefundStatus.NONE,
+        choices=OrderRefundStatus.CHOICES,
         db_index=True,
     )
     user = models.ForeignKey(

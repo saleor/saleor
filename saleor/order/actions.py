@@ -67,6 +67,7 @@ from .utils import (
     restock_fulfillment_lines,
     update_order_authorize_data,
     update_order_charge_data,
+    update_order_refund_data,
     update_order_status,
     updates_amounts_for_order,
 )
@@ -1035,6 +1036,9 @@ def mark_order_as_paid_with_payment(
             order,
         )
         update_order_authorize_data(
+            order,
+        )
+        update_order_refund_data(
             order,
         )
         webhook_event_map = get_webhooks_for_multiple_events(
