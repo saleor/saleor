@@ -16,6 +16,24 @@ with lock:
     THREADED_SITE_CACHE: dict[str | int, Site] = {}
 
 
+def _first_or_raise(queryset, lookup):
+    """Return the first row, raising ``Site.DoesNotExist`` when there is none.
+
+    ``django.contrib.sites`` reaches for a single row with ``self.get(...)``,
+    so every caller — including the port-stripping fallback below and Django's
+    own ``loaddata`` deserializer — handles ``Site.DoesNotExist``. Indexing an
+    empty queryset instead raises ``IndexError``, which none of them catch, so
+    the lookups here have to normalize it back. ``.first()`` is used rather
+    than ``.get()`` because ``.get()`` discards the ``prefetch_related`` these
+    callers rely on; ``Site`` is ordered by ``domain``, so it selects the same
+    row ``[0]`` did.
+    """
+    site = queryset.first()
+    if site is None:
+        raise Site.DoesNotExist(f"Site matching query does not exist: {lookup}.")
+    return site
+
+
 def new_get_current(self, request=None):
     from django.conf import settings
 
@@ -25,10 +43,11 @@ def new_get_current(self, request=None):
         site_id = settings.SITE_ID
         if site_id not in THREADED_SITE_CACHE:
             with lock:
-                site = (
+                site = _first_or_raise(
                     self.prefetch_related("settings")
                     .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-                    .filter(pk=site_id)[0]
+                    .filter(pk=site_id),
+                    f"SITE_ID={site_id!r}",
                 )
                 THREADED_SITE_CACHE[site_id] = site
         return THREADED_SITE_CACHE[site_id]
@@ -39,10 +58,11 @@ def new_get_current(self, request=None):
             if host not in THREADED_SITE_CACHE:
                 with lock:
                     database_connection_name = get_database_connection_name(request)
-                    site = (
+                    site = _first_or_raise(
                         self.prefetch_related("settings")
                         .using(database_connection_name)
-                        .filter(domain__iexact=host)[0]
+                        .filter(domain__iexact=host),
+                        f"host={host!r}",
                     )
                     THREADED_SITE_CACHE[host] = site
             return THREADED_SITE_CACHE[host]
@@ -51,10 +71,11 @@ def new_get_current(self, request=None):
             domain, dummy_port = split_domain_port(host)
             if domain not in THREADED_SITE_CACHE:
                 with lock:
-                    site = (
+                    site = _first_or_raise(
                         self.prefetch_related("settings")
                         .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-                        .filter(domain__iexact=domain)[0]
+                        .filter(domain__iexact=domain),
+                        f"domain={domain!r}",
                     )
                     THREADED_SITE_CACHE[domain] = site
         return THREADED_SITE_CACHE[domain]
@@ -74,7 +95,10 @@ def new_clear_cache(self):
 
 
 def new_get_by_natural_key(self, domain):
-    return self.prefetch_related("settings").filter(domain__iexact=domain)[0]
+    return _first_or_raise(
+        self.prefetch_related("settings").filter(domain__iexact=domain),
+        f"domain={domain!r}",
+    )
 
 
 def patch_contrib_sites():
