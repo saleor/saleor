@@ -832,11 +832,8 @@ def test_applies_limit_to_multi_product_references(
     # given
     page_type = page.page_type
 
-    # make sure that our attribute is on first position
-    page_type.page_attributes.update(storefront_search_position=10)
     page_type.page_attributes.set([page_type_product_reference_attribute])
     page_type_product_reference_attribute.input_type = AttributeInputType.REFERENCE
-    page_type_product_reference_attribute.storefront_search_position = 1
     page_type_product_reference_attribute.save()
 
     first_reference = AttributeValue.objects.create(
@@ -950,10 +947,7 @@ def test_applies_limit_to_multi_variant_references(
     # given
     page_type = page.page_type
 
-    # make sure that our attribute is on first position
-    page_type.page_attributes.update(storefront_search_position=10)
     page_type.page_attributes.set([page_type_variant_reference_attribute])
-    page_type_variant_reference_attribute.storefront_search_position = 1
     page_type_variant_reference_attribute.input_type = AttributeInputType.REFERENCE
     page_type_variant_reference_attribute.save()
 
@@ -1068,11 +1062,8 @@ def test_applies_limit_to_multi_category_references(
     # given
     page_type = page.page_type
 
-    # make sure that our attribute is on first position
-    page_type.page_attributes.update(storefront_search_position=10)
     page_type.page_attributes.set([page_type_category_reference_attribute])
     page_type_category_reference_attribute.input_type = AttributeInputType.REFERENCE
-    page_type_category_reference_attribute.storefront_search_position = 1
     page_type_category_reference_attribute.save()
 
     first_reference = AttributeValue.objects.create(
@@ -1190,11 +1181,8 @@ def test_applies_limit_to_multi_collection_references(
 ):
     # given
     page_type = page.page_type
-    # make sure that our attribute is on first position
-    page_type.page_attributes.update(storefront_search_position=10)
     page_type.page_attributes.set([page_type_collection_reference_attribute])
     page_type_collection_reference_attribute.input_type = AttributeInputType.REFERENCE
-    page_type_collection_reference_attribute.storefront_search_position = 1
     page_type_collection_reference_attribute.save()
 
     first_reference = AttributeValue.objects.create(
