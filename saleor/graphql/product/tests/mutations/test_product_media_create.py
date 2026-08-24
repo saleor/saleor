@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.conf import settings
+from PIL import Image
 from requests import RequestException
 from requests.exceptions import InvalidSchema
 from requests_hardened.ip_filter import InvalidIPAddress
@@ -113,6 +114,40 @@ def test_product_media_create_mutation_file_size_exceeds_limit(
     assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
     assert product.media.count() == 0
+
+
+def test_product_media_create_mutation_pixel_count_exceeds_limit(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    # `settings.MAX_IMAGE_PIXELS` is applied to `PIL.Image.MAX_IMAGE_PIXELS` once at
+    # settings-import time, so patch Pillow directly; 0 rejects any image.
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 0)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "",
+        "image": image_name,
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "image"
+    assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
+    assert errors[0]["message"] == (
+        "Image exceeds the maximum allowed number of pixels of "
+        f"{settings.MAX_IMAGE_PIXELS}."
+    )
+    assert product.media.exists() is False
 
 
 def test_product_media_create_mutation_without_file(
