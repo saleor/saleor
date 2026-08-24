@@ -15,7 +15,7 @@ import graphene
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.files import File
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import F
 from django.utils import timezone
 from django.utils.text import slugify
@@ -59,6 +59,7 @@ from ...discount.models import (
 )
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
+from ...menu.lock_objects import acquire_menu_item_tree_lock
 from ...menu.models import Menu, MenuItem
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
@@ -80,6 +81,7 @@ from ...permission.enums import (
 )
 from ...permission.models import Permission
 from ...plugins.manager import get_plugins_manager
+from ...product.lock_objects import acquire_category_tree_lock
 from ...product.models import (
     Category,
     Collection,
@@ -220,7 +222,9 @@ def create_categories(categories_data, placeholder_dir):
             defaults["background_image"] = background_image
         if parent:
             defaults["parent"] = Category.objects.get(pk=parent)
-        Category.objects.update_or_create(pk=pk, defaults=defaults)
+        with transaction.atomic():
+            acquire_category_tree_lock()
+            Category.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def create_collection_channel_listings(collection_channel_listings_data):
@@ -1832,7 +1836,9 @@ def create_menus():
         defaults["menu_id"] = defaults.pop("menu")
         defaults["page_id"] = defaults.pop("page")
         defaults.pop("parent")
-        menu_item, _ = MenuItem.objects.update_or_create(pk=pk, defaults=defaults)
+        with transaction.atomic():
+            acquire_menu_item_tree_lock()
+            menu_item, _ = MenuItem.objects.update_or_create(pk=pk, defaults=defaults)
         yield f"MenuItem {menu_item.name} created"
     for menu_item in menu_item_data:
         pk = menu_item["pk"]

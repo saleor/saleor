@@ -1,5 +1,6 @@
 import datetime
 import json
+from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
@@ -17,11 +18,15 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order import OrderEvents
 from ...order.models import OrderLine
+from ...payment import TransactionAction, TransactionEventType
+from ...payment.models import TransactionEvent
 from ...plugins.manager import get_plugins_manager
 from ...site import GiftCardSettingsExpiryType
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
 from .. import GiftCardEvents, GiftCardLineData, events
+from ..const import GIFT_CARD_PAYMENT_GATEWAY_ID
+from ..gateway import cancel_gift_card_transaction
 from ..models import GiftCard, GiftCardEvent
 from ..utils import (
     GiftCardCannotAssign,
@@ -939,6 +944,87 @@ def test_assign_blocked_when_checkout_has_transaction(
     with pytest.raises(GiftCardCannotAssign):
         assign_gift_card_to_user(gift_card, customer_user)
     assert checkout.gift_cards.filter(pk=gift_card.pk).exists()
+
+
+def test_assign_blocked_when_gift_card_authorized_on_checkout(
+    gift_card, customer_user, checkout, transaction_item_generator
+):
+    # given a gateway authorization holding the card on a live checkout. The card
+    # is not in the checkout's gift_cards m2m — the gateway never adds it there.
+    transaction_item_generator(checkout_id=checkout.pk, gift_card=gift_card)
+    assert checkout.gift_cards.filter(pk=gift_card.pk).exists() is False
+
+    # when / then
+    with pytest.raises(GiftCardCannotAssign):
+        assign_gift_card_to_user(gift_card, customer_user)
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to is None
+    assert gift_card.assigned_to_email is None
+
+
+def test_assign_blocked_when_gift_card_authorized_on_order(
+    gift_card, customer_user, order, transaction_item_generator
+):
+    # given an order-bound authorization that has not been charged yet. The charge
+    # happens at order confirmation, which on a manually-confirmed channel can be
+    # days later, so the card must stay locked to its current assignee.
+    transaction_item_generator(order_id=order.pk, gift_card=gift_card)
+    assert gift_card.last_used_on is None
+
+    # when / then
+    with pytest.raises(GiftCardCannotAssign):
+        assign_gift_card_to_user(gift_card, customer_user)
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to is None
+    assert gift_card.assigned_to_email is None
+
+
+def test_assign_blocked_after_transaction_fully_cancelled(
+    gift_card, customer_user, checkout, transaction_item_generator
+):
+    # given a gateway authorization holding the card, then fully cancelled through
+    # the real cancel path — the card stays linked to the transaction
+    authorized_value = Decimal(10)
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk,
+        gift_card=gift_card,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=authorized_value,
+        available_actions=[TransactionAction.CANCEL],
+    )
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction_item,
+        type=TransactionEventType.CANCEL_REQUEST,
+        amount_value=authorized_value,
+        currency=transaction_item.currency,
+    )
+    cancel_gift_card_transaction(transaction_item, request_event)
+    transaction_item.refresh_from_db()
+    assert transaction_item.authorized_value == Decimal(0)
+    assert transaction_item.gift_card == gift_card
+
+    # when / then
+    with pytest.raises(GiftCardCannotAssign):
+        assign_gift_card_to_user(gift_card, customer_user)
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to is None
+    assert gift_card.assigned_to_email is None
+
+
+def test_assign_allowed_when_transaction_has_neither_checkout_nor_order(
+    gift_card, customer_user, transaction_item_generator
+):
+    # given an orphaned transaction: its checkout was deleted (TransactionItem.checkout
+    # is SET_NULL) and it never reached an order, yet it still references the card
+    transaction_item_generator(gift_card=gift_card)
+
+    # when
+    assign_gift_card_to_user(gift_card, customer_user)
+
+    # then a dead row must not make the card permanently unassignable
+    gift_card.refresh_from_db()
+    assert gift_card.assigned_to == customer_user
+    assert gift_card.assigned_to_email == customer_user.email
 
 
 def test_deactivate_assigned_gift_cards_detaches_and_deactivates(

@@ -534,17 +534,11 @@ PRODUCT_ASSIGN_ATTR_QUERY = """
           productAttributes {
             id
             visibleInStorefront
-            filterableInDashboard
-            filterableInStorefront
           }
           variantAttributes {
             id
             visibleInStorefront
-            filterableInDashboard
-            filterableInStorefront
-            availableInGrid
             valueRequired
-            storefrontSearchPosition
           }
         }
       }

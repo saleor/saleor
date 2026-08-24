@@ -19,11 +19,7 @@ PAGE_ASSIGN_ATTR_QUERY = """
           attributes {
             id
             visibleInStorefront
-            filterableInDashboard
-            filterableInStorefront
-            availableInGrid
             valueRequired
-            storefrontSearchPosition
           }
         }
       }

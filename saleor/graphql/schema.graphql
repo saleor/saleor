@@ -3708,26 +3708,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """
   visibleInStorefront: Boolean!
 
-  """
-  Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInStorefront: Boolean! @deprecated
-
-  """
-  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInDashboard: Boolean!
-
-  """
-  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  availableInGrid: Boolean! @deprecated
-
-  """
-  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  storefrontSearchPosition: Int! @deprecated
-
   """Returns translated attribute fields for the given language code."""
   translation(
     """A language code to return the translation for attribute."""
@@ -10385,9 +10365,6 @@ input AttributeFilterInput @doc(category: "Attributes") {
   valueRequired: Boolean
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
-  filterableInStorefront: Boolean
-  filterableInDashboard: Boolean
-  availableInGrid: Boolean
   metadata: [MetadataFilter!]
   search: String
   ids: [ID!]
@@ -10421,7 +10398,6 @@ input AttributeWhereInput @doc(category: "Attributes") {
   inCategory: ID
   valueRequired: Boolean
   visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
 
   """List of conditions that must be met."""
   AND: [AttributeWhereInput!]
@@ -17277,20 +17253,6 @@ enum AttributeSortField @doc(category: "Attributes") {
 
   """Sort attributes by visibility in the storefront"""
   VISIBLE_IN_STOREFRONT
-
-  """Sort attributes by the filterable in storefront flag"""
-  FILTERABLE_IN_STOREFRONT
-
-  """Sort attributes by the filterable in dashboard flag"""
-  FILTERABLE_IN_DASHBOARD
-
-  """Sort attributes by their position in storefront"""
-  STOREFRONT_SEARCH_POSITION
-
-  """
-  Sort attributes based on whether they can be displayed or not in a product grid.
-  """
-  AVAILABLE_IN_GRID
 }
 
 """Represents ongoing installation of app."""
@@ -31816,11 +31778,7 @@ enum AttributeErrorCode @doc(category: "Attributes") {
   UNIQUE
 }
 
-"""
-Represents an input for create of attribute.
-
-NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
-"""
+"""Represents an input for create of attribute."""
 input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
@@ -31851,20 +31809,6 @@ input AttributeCreateInput @doc(category: "Attributes") {
 
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in storefront."""
-  filterableInStorefront: Boolean @deprecated
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
-
-  """
-  The position of the attribute in the storefront navigation (0 by default).
-  """
-  storefrontSearchPosition: Int @deprecated
-
-  """Whether the attribute can be displayed in the admin product list."""
-  availableInGrid: Boolean @deprecated
 
   """External ID of this attribute."""
   externalReference: String
@@ -31939,11 +31883,7 @@ type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
   errors: [AttributeError!]!
 }
 
-"""
-Represents an input for update of attribute.
-
-NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
-"""
+"""Represents an input for update of attribute."""
 input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   name: String
@@ -31968,20 +31908,6 @@ input AttributeUpdateInput @doc(category: "Attributes") {
 
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in storefront."""
-  filterableInStorefront: Boolean @deprecated
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
-
-  """
-  The position of the attribute in the storefront navigation (0 by default).
-  """
-  storefrontSearchPosition: Int @deprecated
-
-  """Whether the attribute can be displayed in the admin product list."""
-  availableInGrid: Boolean @deprecated
 
   """External ID of this product."""
   externalReference: String

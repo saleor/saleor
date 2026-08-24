@@ -57,44 +57,6 @@ class AttributeInputType:
     ]
 
 
-ATTRIBUTE_PROPERTIES_CONFIGURATION = {
-    "filterable_in_storefront": [
-        AttributeInputType.DROPDOWN,
-        AttributeInputType.MULTISELECT,
-        AttributeInputType.NUMERIC,
-        AttributeInputType.SWATCH,
-        AttributeInputType.BOOLEAN,
-        AttributeInputType.DATE,
-        AttributeInputType.DATE_TIME,
-    ],
-    "filterable_in_dashboard": [
-        AttributeInputType.DROPDOWN,
-        AttributeInputType.MULTISELECT,
-        AttributeInputType.NUMERIC,
-        AttributeInputType.SWATCH,
-        AttributeInputType.BOOLEAN,
-        AttributeInputType.DATE,
-        AttributeInputType.DATE_TIME,
-    ],
-    "available_in_grid": [
-        AttributeInputType.DROPDOWN,
-        AttributeInputType.MULTISELECT,
-        AttributeInputType.NUMERIC,
-        AttributeInputType.SWATCH,
-        AttributeInputType.BOOLEAN,
-        AttributeInputType.DATE,
-        AttributeInputType.DATE_TIME,
-    ],
-    "storefront_search_position": [
-        AttributeInputType.DROPDOWN,
-        AttributeInputType.MULTISELECT,
-        AttributeInputType.BOOLEAN,
-        AttributeInputType.DATE,
-        AttributeInputType.DATE_TIME,
-    ],
-}
-
-
 class AttributeType:
     PRODUCT_TYPE = "product-type"
     PAGE_TYPE = "page-type"
