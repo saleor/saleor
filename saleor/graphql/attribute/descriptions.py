@@ -15,14 +15,6 @@ class AttributeDescriptions:
     VISIBLE_IN_STOREFRONT = (
         "Whether the attribute should be visible or not in storefront."
     )
-    FILTERABLE_IN_STOREFRONT = "Whether the attribute can be filtered in storefront."
-    FILTERABLE_IN_DASHBOARD = "Whether the attribute can be filtered in dashboard."
-    STOREFRONT_SEARCH_POSITION = (
-        "The position of the attribute in the storefront navigation (0 by default)."
-    )
-    AVAILABLE_IN_GRID = (
-        "Whether the attribute can be displayed in the admin product list."
-    )
     WITH_CHOICES = "Flag indicating that attribute has predefined choices."
 
 

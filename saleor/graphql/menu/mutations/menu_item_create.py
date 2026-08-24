@@ -2,8 +2,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Model
 
+from ....core.tracing import traced_atomic_transaction
 from ....menu import models
 from ....menu.error_codes import MenuErrorCode
+from ....menu.lock_objects import acquire_menu_item_tree_lock
 from ....page import models as page_models
 from ....permission.enums import MenuPermissions
 from ....product import models as product_models
@@ -63,6 +65,16 @@ class MenuItemCreate(DeprecatedModelMutation):
                 description="A menu item was created.",
             ),
         ]
+
+    @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input, /, instance_tracker=None):
+        """Insert under the tree lock. Updates can't re-parent, so they skip it."""
+        if instance.pk is not None:
+            super().save(info, instance, cleaned_input, instance_tracker)
+            return
+        with traced_atomic_transaction():
+            acquire_menu_item_tree_lock()
+            instance.save()
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

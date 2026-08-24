@@ -359,7 +359,6 @@ def test_attributes_filter_by_unit(
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.NUMERIC,
         unit=MeasurementUnits.M,
-        filterable_in_dashboard=True,
     )
     attributes = [
         color_attribute,
@@ -436,34 +435,6 @@ def test_attributes_filter_by_visible_in_storefront(
 
     # when
     response = staff_api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
-
-    # then
-    data = get_graphql_content(response)
-    nodes = data["data"]["attributes"]["edges"]
-    assert len(nodes) == len(indexes)
-    returned_attrs = {node["node"]["slug"] for node in nodes}
-    assert returned_attrs == {attributes[index].slug for index in indexes}
-
-
-@pytest.mark.parametrize(
-    ("value", "indexes"), [(True, [0]), (False, [1, 2]), (None, [])]
-)
-def test_attributes_filter_by_filterable_in_dashboard(
-    value, indexes, api_client, color_attribute, date_attribute, rich_text_attribute
-):
-    # given
-    attributes = [color_attribute, date_attribute, rich_text_attribute]
-
-    color_attribute.filterable_in_dashboard = True
-    date_attribute.filterable_in_dashboard = False
-    rich_text_attribute.filterable_in_dashboard = False
-
-    Attribute.objects.bulk_update(attributes, ["filterable_in_dashboard"])
-
-    variables = {"where": {"filterableInDashboard": value}}
-
-    # when
-    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
 
     # then
     data = get_graphql_content(response)
@@ -1650,7 +1621,7 @@ def test_attributes_filter_and_where_both_used(api_client, product_type_attribut
     ]
     variables = {
         "where": {"AND": [{"ids": ids}]},
-        "filter": {"filterableInDashboard": True},
+        "filter": {"visibleInStorefront": True},
     }
 
     # when

@@ -74,22 +74,6 @@ class AttributeCreateInput(BaseInputObjectType):
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
-    filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
-        + DEPRECATED_IN_3X_INPUT
-    )
-    filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
-    )
-    storefront_search_position = graphene.Int(
-        required=False,
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
-        + DEPRECATED_IN_3X_INPUT,
-    )
-    available_in_grid = graphene.Boolean(
-        required=False,
-        description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
-    )
     external_reference = graphene.String(
         description="External ID of this attribute.", required=False
     )
@@ -111,12 +95,7 @@ class AttributeCreateInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = (
-            "Represents an input for create of attribute.\n\n"
-            "NOTE: Deprecated fields `filterableInStorefront`, "
-            "`storefrontSearchPosition` and `availableInGrid` are not supported in "
-            "bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`."
-        )
+        description = "Represents an input for create of attribute."
 
 
 class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
