@@ -4,11 +4,7 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from text_unidecode import unidecode
 
-from ....attribute import (
-    ATTRIBUTE_PROPERTIES_CONFIGURATION,
-    AttributeEntityType,
-    AttributeInputType,
-)
+from ....attribute import AttributeEntityType, AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.utils import prepare_unique_slug
@@ -193,33 +189,12 @@ class AttributeMixin:
         except ValidationError as e:
             e.code = AttributeErrorCode.REQUIRED.value
             raise ValidationError({"slug": e}) from e
-        cls._clean_attribute_settings(instance, cleaned_input)
         entity_type = cleaned_input.get("entity_type") or instance.entity_type
         input_type = cleaned_input.get("input_type") or instance.input_type
         entity_type = cast(str, entity_type)
         cls.clean_reference_types(cleaned_input, entity_type, input_type)
 
         return cleaned_input
-
-    @classmethod
-    def _clean_attribute_settings(cls, instance, cleaned_input):
-        """Validate attributes settings.
-
-        Ensure that any invalid operations will be not performed.
-        """
-        attribute_input_type = cleaned_input.get("input_type") or instance.input_type
-        errors = {}
-        for field in ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
-            allowed_input_type = ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
-            if attribute_input_type not in allowed_input_type and cleaned_input.get(
-                field
-            ):
-                errors[field] = ValidationError(
-                    f"Cannot set {field} on a {attribute_input_type} attribute.",
-                    code=AttributeErrorCode.INVALID.value,
-                )
-        if errors:
-            raise ValidationError(errors)
 
     @classmethod
     def clean_reference_types(

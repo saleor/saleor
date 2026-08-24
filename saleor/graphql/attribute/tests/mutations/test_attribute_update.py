@@ -362,51 +362,6 @@ def test_update_attribute_with_file_input_type_and_values(
     assert errors[0]["code"] == AttributeErrorCode.INVALID.name
 
 
-def test_update_attribute_with_file_input_type_invalid_settings(
-    staff_api_client,
-    file_attribute_with_file_input_type_without_values,
-    permission_manage_product_types_and_attributes,
-):
-    # given
-    query = UPDATE_ATTRIBUTE_MUTATION
-    attribute = file_attribute_with_file_input_type_without_values
-    name = "Wings name"
-    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
-
-    variables = {
-        "id": node_id,
-        "input": {
-            "name": name,
-            "addValues": [],
-            "removeValues": [],
-            "filterableInStorefront": True,
-            "filterableInDashboard": True,
-            "availableInGrid": True,
-            "storefrontSearchPosition": 3,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
-    )
-
-    # then
-    content = get_graphql_content(response)
-    attribute.refresh_from_db()
-    data = content["data"]["attributeUpdate"]
-    errors = data["errors"]
-    assert not data["attribute"]
-    assert len(errors) == 4
-    assert {error["field"] for error in errors} == {
-        "filterableInStorefront",
-        "filterableInDashboard",
-        "availableInGrid",
-        "storefrontSearchPosition",
-    }
-    assert {error["code"] for error in errors} == {AttributeErrorCode.INVALID.name}
-
-
 def test_update_attribute_provide_existing_value_name(
     staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):

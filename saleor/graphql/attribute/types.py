@@ -72,12 +72,7 @@ from .dataloaders.reference_types import (
     AttributeReferencePageTypesByAttributeIdAndLimitLoader,
     AttributeReferenceProductTypesByAttributeIdAndLimitLoader,
 )
-from .descriptions import (
-    DASHBOARD_FLAG_DEPRECATION_REASON,
-    STOREFRONT_FLAG_DEPRECATION_REASON,
-    AttributeDescriptions,
-    AttributeValueDescriptions,
-)
+from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import (
     AttributeValueFilterInput,
@@ -341,50 +336,6 @@ class Attribute(ChannelContextType[models.Attribute]):
         ),
         required=True,
     )
-    filterable_in_storefront = graphene.Boolean(
-        description=(
-            f"{AttributeDescriptions.FILTERABLE_IN_STOREFRONT} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
-        ),
-        required=True,
-        deprecation_reason=STOREFRONT_FLAG_DEPRECATION_REASON,
-    )
-    filterable_in_dashboard = graphene.Boolean(
-        description=(
-            f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
-        ),
-        required=True,
-        deprecation_reason=DASHBOARD_FLAG_DEPRECATION_REASON,
-    )
-    available_in_grid = graphene.Boolean(
-        description=(
-            f"{AttributeDescriptions.AVAILABLE_IN_GRID} Requires one of the following "
-            f"permissions: {PagePermissions.MANAGE_PAGES.name}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
-        ),
-        required=True,
-        deprecation_reason=STOREFRONT_FLAG_DEPRECATION_REASON,
-    )
-    storefront_search_position = graphene.Int(
-        description=(
-            f"{AttributeDescriptions.STOREFRONT_SEARCH_POSITION} Requires one of the "
-            f"following permissions: {PagePermissions.MANAGE_PAGES.name}, "
-            f"{PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.name}, "
-            f"{ProductPermissions.MANAGE_PRODUCTS.name}, "
-            f"{ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.name}."
-        ),
-        required=True,
-        deprecation_reason=STOREFRONT_FLAG_DEPRECATION_REASON,
-    )
     translation = TranslationField(
         AttributeTranslation,
         type_name="attribute",
@@ -474,34 +425,6 @@ class Attribute(ChannelContextType[models.Attribute]):
         root: ChannelContext[models.Attribute], _info: ResolveInfo
     ):
         return root.node.visible_in_storefront
-
-    @staticmethod
-    @check_attribute_required_permissions()
-    def resolve_filterable_in_storefront(
-        root: ChannelContext[models.Attribute], _info: ResolveInfo
-    ):
-        return root.node.filterable_in_storefront
-
-    @staticmethod
-    @check_attribute_required_permissions()
-    def resolve_filterable_in_dashboard(
-        root: ChannelContext[models.Attribute], _info: ResolveInfo
-    ):
-        return root.node.filterable_in_dashboard
-
-    @staticmethod
-    @check_attribute_required_permissions()
-    def resolve_storefront_search_position(
-        root: ChannelContext[models.Attribute], _info: ResolveInfo
-    ):
-        return root.node.storefront_search_position
-
-    @staticmethod
-    @check_attribute_required_permissions()
-    def resolve_available_in_grid(
-        root: ChannelContext[models.Attribute], _info: ResolveInfo
-    ):
-        return root.node.available_in_grid
 
     @staticmethod
     def resolve_with_choices(

@@ -15,12 +15,7 @@ from ...core.mutations import DeprecatedModelMutation
 from ...core.types import AttributeError, BaseInputObjectType, NonNullList
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..descriptions import (
-    DASHBOARD_FLAG_DEPRECATION_REASON,
-    STOREFRONT_FLAG_DEPRECATION_REASON,
-    AttributeDescriptions,
-    AttributeValueDescriptions,
-)
+from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute
 from .mixins import REFERENCE_TYPES_LIMIT, AttributeMixin
@@ -79,32 +74,6 @@ class AttributeCreateInput(BaseInputObjectType):
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
-    filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
-        + DEPRECATED_IN_3X_INPUT
-        + " "
-        + STOREFRONT_FLAG_DEPRECATION_REASON
-    )
-    filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
-        + DEPRECATED_IN_3X_INPUT
-        + " "
-        + DASHBOARD_FLAG_DEPRECATION_REASON
-    )
-    storefront_search_position = graphene.Int(
-        required=False,
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
-        + DEPRECATED_IN_3X_INPUT
-        + " "
-        + STOREFRONT_FLAG_DEPRECATION_REASON,
-    )
-    available_in_grid = graphene.Boolean(
-        required=False,
-        description=AttributeDescriptions.AVAILABLE_IN_GRID
-        + DEPRECATED_IN_3X_INPUT
-        + " "
-        + STOREFRONT_FLAG_DEPRECATION_REASON,
-    )
     external_reference = graphene.String(
         description="External ID of this attribute.", required=False
     )
@@ -126,12 +95,7 @@ class AttributeCreateInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = (
-            "Represents an input for create of attribute.\n\n"
-            "NOTE: Deprecated fields `filterableInStorefront`, "
-            "`storefrontSearchPosition` and `availableInGrid` are not supported in "
-            "bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`."
-        )
+        description = "Represents an input for create of attribute."
 
 
 class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
