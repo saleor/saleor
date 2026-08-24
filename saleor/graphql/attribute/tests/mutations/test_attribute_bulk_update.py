@@ -169,40 +169,6 @@ def test_attribute_bulk_update_without_permission(
     assert errors
 
 
-def test_attribute_bulk_update_with_deprecated_fields(
-    staff_api_client,
-    color_attribute,
-):
-    # given
-    attributes = [
-        {
-            "id": graphene.Node.to_global_id("Attribute", color_attribute.id),
-            "fields": {"filterableInStorefront": True},
-        }
-    ]
-
-    # when
-    response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_UPDATE_MUTATION,
-        {"attributes": attributes},
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["attributeBulkUpdate"]
-
-    # then
-    errors = data["results"][0]["errors"]
-    message = (
-        "Deprecated fields 'storefront_search_position', "
-        "'filterable_in_storefront', 'available_in_grid' and are not "
-        "allowed in bulk mutation."
-    )
-
-    assert data["count"] == 0
-    assert errors
-    assert errors[0]["code"] == AttributeBulkUpdateErrorCode.INVALID.name
-    assert errors[0]["message"] == message
-
-
 def test_attribute_bulk_update_with_duplicated_external_ref(
     staff_api_client,
     color_attribute,

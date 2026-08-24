@@ -3708,26 +3708,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """
   visibleInStorefront: Boolean!
 
-  """
-  Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInStorefront: Boolean! @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """
-  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInDashboard: Boolean! @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
-
-  """
-  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  availableInGrid: Boolean! @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """
-  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  storefrontSearchPosition: Int! @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
   """Returns translated attribute fields for the given language code."""
   translation(
     """A language code to return the translation for attribute."""
@@ -10445,15 +10425,6 @@ input AttributeFilterInput @doc(category: "Attributes") {
   inCategory: ID
   slugs: [String!]
 
-  """Whether the attribute can be filtered in storefront."""
-  filterableInStorefront: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """Whether the attribute can be displayed in the admin product list."""
-  availableInGrid: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
-
   """Specifies the channel by which the data should be filtered."""
   channel: String @deprecated(reason: "Use root-level channel argument instead.")
 }
@@ -10479,9 +10450,6 @@ input AttributeWhereInput @doc(category: "Attributes") {
   inCategory: ID
   valueRequired: Boolean
   visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
 
   """List of conditions that must be met."""
   AND: [AttributeWhereInput!]
@@ -17340,20 +17308,6 @@ enum AttributeSortField @doc(category: "Attributes") {
 
   """Sort attributes by visibility in the storefront"""
   VISIBLE_IN_STOREFRONT
-
-  """Sort attributes by the filterable in storefront flag"""
-  FILTERABLE_IN_STOREFRONT @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """Sort attributes by the filterable in dashboard flag"""
-  FILTERABLE_IN_DASHBOARD @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
-
-  """Sort attributes by their position in storefront"""
-  STOREFRONT_SEARCH_POSITION @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """
-  Sort attributes based on whether they can be displayed or not in a product grid.
-  """
-  AVAILABLE_IN_GRID @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
 }
 
 """Represents ongoing installation of app."""
@@ -31936,11 +31890,7 @@ enum AttributeErrorCode @doc(category: "Attributes") {
   UNIQUE
 }
 
-"""
-Represents an input for create of attribute.
-
-NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
-"""
+"""Represents an input for create of attribute."""
 input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
@@ -31971,20 +31921,6 @@ input AttributeCreateInput @doc(category: "Attributes") {
 
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in storefront."""
-  filterableInStorefront: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
-
-  """
-  The position of the attribute in the storefront navigation (0 by default).
-  """
-  storefrontSearchPosition: Int @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """Whether the attribute can be displayed in the admin product list."""
-  availableInGrid: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
 
   """External ID of this attribute."""
   externalReference: String
@@ -32059,11 +31995,7 @@ type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
   errors: [AttributeError!]!
 }
 
-"""
-Represents an input for update of attribute.
-
-NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
-"""
+"""Represents an input for update of attribute."""
 input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   name: String
@@ -32088,20 +32020,6 @@ input AttributeUpdateInput @doc(category: "Attributes") {
 
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in storefront."""
-  filterableInStorefront: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the dashboard or use `Attribute` metadata instead.")
-
-  """
-  The position of the attribute in the storefront navigation (0 by default).
-  """
-  storefrontSearchPosition: Int @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
-
-  """Whether the attribute can be displayed in the admin product list."""
-  availableInGrid: Boolean @deprecated(reason: "This flag is not used by Saleor. Keep the logic in the storefront or use `Attribute` metadata instead.")
 
   """External ID of this product."""
   externalReference: String
