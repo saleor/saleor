@@ -7,6 +7,7 @@ import unicodedata
 import uuid
 from collections import defaultdict
 from decimal import Decimal
+from functools import lru_cache
 from typing import Any, cast
 from unittest.mock import patch
 
@@ -329,6 +330,7 @@ CATEGORY_IMAGES = {
 COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
 
 
+@lru_cache
 def get_sample_data():
     path = os.path.join(
         settings.PROJECT_ROOT, "saleor", "static", "populatedb_data.json"
@@ -353,7 +355,7 @@ def get_weight(weight):
 def create_product_types(product_type_data):
     for product_type in product_type_data:
         pk = product_type["pk"]
-        defaults = product_type["fields"]
+        defaults = dict(product_type["fields"])
         defaults["weight"] = get_weight(defaults["weight"])
         ProductType.objects.update_or_create(pk=pk, defaults=defaults)
 
@@ -394,7 +396,7 @@ def create_collections(data, placeholder_dir):
     placeholder_dir = get_product_list_images_dir(placeholder_dir)
     for collection in data:
         pk = collection["pk"]
-        defaults = collection["fields"]
+        defaults = dict(collection["fields"])
         image_name = COLLECTION_IMAGES.get(pk)
         if image_name:
             background_image = get_image(placeholder_dir, image_name)
@@ -516,16 +518,20 @@ def create_attribute_file_values(placeholder_dir):
 
 
 def assign_reference_page_types_to_attributes(relations: list):
+    attribute_ids = {relation["fields"]["attribute"] for relation in relations}
+    attributes_by_id = Attribute.objects.in_bulk(attribute_ids)
     for relation in relations:
         fields = relation["fields"]
-        attribute = Attribute.objects.get(pk=fields["attribute"])
+        attribute = attributes_by_id[fields["attribute"]]
         attribute.reference_page_types.add(fields["page_type"])
 
 
 def assign_reference_product_types_to_attributes(relations: list):
+    attribute_ids = {relation["fields"]["attribute"] for relation in relations}
+    attributes_by_id = Attribute.objects.in_bulk(attribute_ids)
     for relation in relations:
         fields = relation["fields"]
-        attribute = Attribute.objects.get(pk=fields["attribute"])
+        attribute = attributes_by_id[fields["attribute"]]
         attribute.reference_product_types.add(fields["product_type"])
 
 
@@ -647,7 +653,9 @@ def assign_media_to_product_variants():
     for product_id, media_items in media_by_product_id.items():
         if product_id is None:
             continue
-        image_names = IMAGES_MAPPING[product_id]
+        image_names = IMAGES_MAPPING.get(product_id)
+        if image_names is None:
+            continue
         for media in media_items:
             image_name = get_matching_placeholder_image_name(
                 media.image.name, image_names
@@ -676,6 +684,7 @@ def assign_media_to_product_variants():
             ].pk,
         )
         for variant_id, image_names in VARIANT_IMAGES_MAPPING.items()
+        if variant_id in product_id_by_variant_id
         for image_name in image_names
     }
     existing_relations = {
@@ -2228,7 +2237,7 @@ def create_page_type():
     data = types["page.pagetype"]
 
     for page_type_data in data:
-        pk = page_type_data.pop("pk")
+        pk = page_type_data["pk"]
         defaults = dict(page_type_data["fields"])
         page_type, _ = PageType.objects.update_or_create(pk=pk, defaults=defaults)
         yield f"Page type {page_type.slug} created"
