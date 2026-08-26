@@ -43,6 +43,7 @@ from .doc_category import (
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MEDIA,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAGES,
     DOC_CATEGORY_PAYMENTS,
@@ -325,6 +326,26 @@ InvoiceErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     invoice_error_codes.InvoiceErrorCode
 )
 InvoiceErrorCode.doc_category = DOC_CATEGORY_ORDERS
+
+MediaCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    product_error_codes.MediaCreateErrorCode
+)
+MediaCreateErrorCode.doc_category = DOC_CATEGORY_MEDIA
+
+MediaUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    product_error_codes.MediaUpdateErrorCode
+)
+MediaUpdateErrorCode.doc_category = DOC_CATEGORY_MEDIA
+
+MediaDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    product_error_codes.MediaDeleteErrorCode
+)
+MediaDeleteErrorCode.doc_category = DOC_CATEGORY_MEDIA
+
+MediaReorderErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    product_error_codes.MediaReorderErrorCode
+)
+MediaReorderErrorCode.doc_category = DOC_CATEGORY_MEDIA
 
 PageErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     page_error_codes.PageErrorCode

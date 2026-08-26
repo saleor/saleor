@@ -9,9 +9,9 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, ProductError
+from ....media.utils import update_ordered_media
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import update_ordered_media
 
 
 class ProductMediaReorder(BaseMutation):
@@ -75,7 +75,7 @@ class ProductMediaReorder(BaseMutation):
                 )
             ordered_media.append(media)
 
-        update_ordered_media(ordered_media)
+        update_ordered_media(ordered_media, ProductErrorCode)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)

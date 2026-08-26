@@ -16,7 +16,7 @@ from ....core.weight import convert_weight_to_default_weight_unit
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
 from ....permission.utils import has_one_of_permissions
-from ....product import ProductMediaTypes, models
+from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....product.utils import calculate_revenue_for_variant
 from ....product.utils.availability import (
@@ -31,7 +31,6 @@ from ....tax.utils import (
 )
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
-    get_original_image_proxy_url,
     get_thumbnail_format,
     get_thumbnail_size,
 )
@@ -96,6 +95,8 @@ from ...core.types import (
 )
 from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
+from ...media.types import ProductMedia
+from ...media.utils import sort_media
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -153,7 +154,7 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
-from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
+from ..enums import ProductTypeKindEnum, VariantAttributeScope
 from ..filters.product_variant import (
     ProductVariantFilterInput,
     ProductVariantWhereInput,
@@ -1448,34 +1449,11 @@ class Product(ChannelContextType[models.Product]):
 
     @staticmethod
     def resolve_media(root: ChannelContext[models.Product], info, sort_by=None):
-        if sort_by is None:
-            sort_by = {
-                "field": ["sort_order"],
-                "direction": "",
-            }
-
-        def sort_media(media) -> list[ProductMedia]:
-            reversed = sort_by["direction"] == "-"
-
-            # Nullable first,
-            # achieved by adding the number of nonnull fields as firt element of tuple
-            def key(x):
-                values_tuple = tuple(
-                    getattr(x, field)
-                    for field in sort_by["field"]
-                    if getattr(x, field) is not None
-                )
-                values_tuple = (len(values_tuple),) + values_tuple
-                return values_tuple
-
-            media_sorted = sorted(
-                media,
-                key=key,
-                reverse=reversed,
-            )
-            return media_sorted
-
-        return MediaByProductIdLoader(info.context).load(root.node.id).then(sort_media)
+        return (
+            MediaByProductIdLoader(info.context)
+            .load(root.node.id)
+            .then(lambda media: sort_media(media, sort_by))
+        )
 
     @staticmethod
     def resolve_images(root: ChannelContext[models.Product], info):
@@ -2016,78 +1994,6 @@ class ProductTypeCountableConnection(CountableConnection):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductType
-
-
-@federated_entity("id")
-class ProductMedia(ModelObjectType[models.ProductMedia]):
-    id = graphene.GlobalID(
-        required=True, description="The unique ID of the product media."
-    )
-    sort_order = graphene.Int(description="The sort order of the media.")
-    alt = graphene.String(required=True, description="The alt text of the media.")
-    type = ProductMediaType(required=True, description="The type of the media.")
-    oembed_data = JSONString(required=True, description="The oEmbed data of the media.")
-    url = ThumbnailField(
-        graphene.String, required=True, description="The URL of the media."
-    )
-    product_id = graphene.ID(description="Product id the media refers to.")
-
-    class Meta:
-        description = "Represents a product media."
-        interfaces = [relay.Node, ObjectWithMetadata]
-        model = models.ProductMedia
-
-    @staticmethod
-    def resolve_url(
-        root: models.ProductMedia,
-        info,
-        *,
-        size: int | None = None,
-        format: str | None = None,
-    ) -> str | None | Promise[str]:
-        if root.external_url and root.type != ProductMediaTypes.IMAGE:
-            return root.external_url
-
-        # Bypass proxy URL when image is already in-place and original size is
-        # requested.
-        if root.image and size == 0:
-            return build_absolute_uri(root.image.url)
-
-        # If image is not there yet and original size is requested return proxy URL for
-        # original.
-        if size == 0:
-            return build_absolute_uri(
-                get_original_image_proxy_url(str(root.id), "ProductMedia")
-            )
-
-        # Else, return proxy URL for thumbnail.
-        format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
-
-        def _resolve_url(thumbnail) -> str:
-            url = get_image_or_proxy_url(
-                thumbnail, str(root.id), "ProductMedia", selected_size, format
-            )
-            return build_absolute_uri(url)
-
-        return (
-            ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
-            .load((root.id, selected_size, format))
-            .then(_resolve_url)
-        )
-
-    @staticmethod
-    def __resolve_references(roots: list["ProductMedia"], info):
-        database_connection_name = get_database_connection_name(info.context)
-        return resolve_federation_references(
-            ProductMedia,
-            roots,
-            models.ProductMedia.objects.using(database_connection_name),
-        )
-
-    @staticmethod
-    def resolve_product_id(root: models.ProductMedia, info) -> str:
-        return graphene.Node.to_global_id("Product", root.product_id)
 
 
 class ProductImage(BaseObjectType):

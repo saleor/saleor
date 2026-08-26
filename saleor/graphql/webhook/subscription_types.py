@@ -29,6 +29,7 @@ from ...payment.interface import (
     TransactionActionData,
     TransactionSessionData,
 )
+from ...product import models as product_models
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -63,6 +64,7 @@ from ..core.descriptions import (
 from ..core.doc_category import (
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MEDIA,
     DOC_CATEGORY_MISC,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAYMENTS,
@@ -75,6 +77,7 @@ from ..core.fields import BaseField
 from ..core.scalars import JSON, DateTime, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
+from ..media.enums import MediaOwnerType
 from ..order.dataloaders import OrderByIdLoader
 from ..order.types import Order, OrderGrantedRefund
 from ..payment.enums import TokenizedPaymentFlowEnum, TransactionActionEnum
@@ -938,7 +941,11 @@ class ProductMediaCreated(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when new product media is created."
+        description = (
+            "Event sent when new product media is created."
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `MediaCreated` event instead."
+        )
 
 
 class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
@@ -946,7 +953,11 @@ class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when product media is updated."
+        description = (
+            "Event sent when product media is updated."
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `MediaUpdated` event instead."
+        )
 
 
 class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
@@ -954,7 +965,73 @@ class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when product media is deleted."
+        description = (
+            "Event sent when product media is deleted."
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `MediaDeleted` event instead."
+        )
+
+
+class MediaBase(AbstractType):
+    media = graphene.Field(
+        "saleor.graphql.media.types.Media",
+        description="The media the event relates to.",
+    )
+    owner = graphene.Field(
+        "saleor.graphql.media.unions.MediaOwner",
+        description=(
+            "The entity the media belongs to. Channel-dependent fields on "
+            "`Product` and `Collection` resolve to `null`, as the event carries no "
+            "channel."
+        ),
+    )
+
+    @staticmethod
+    def resolve_media(root, _info: ResolveInfo):
+        _, media = root
+        return media
+
+    @staticmethod
+    def resolve_owner(root, _info: ResolveInfo):
+        _, media = root
+        owner = media.owner
+        if owner is None or isinstance(owner, product_models.Category):
+            return owner
+        return ChannelContext(node=owner, channel_slug=None)
+
+
+class MediaCreated(SubscriptionObjectType, MediaBase):
+    class Meta:
+        enable_dry_run = False
+        doc_category = DOC_CATEGORY_MEDIA
+        interfaces = (Event,)
+        description = (
+            "Event sent when new media is created for any supported entity. "
+            "Not sent when media is removed as a side effect of deleting its "
+            "owner." + ADDED_IN_324
+        )
+
+
+class MediaUpdated(SubscriptionObjectType, MediaBase):
+    class Meta:
+        enable_dry_run = False
+        doc_category = DOC_CATEGORY_MEDIA
+        interfaces = (Event,)
+        description = (
+            "Event sent when media is updated for any supported entity." + ADDED_IN_324
+        )
+
+
+class MediaDeleted(SubscriptionObjectType, MediaBase):
+    class Meta:
+        enable_dry_run = False
+        doc_category = DOC_CATEGORY_MEDIA
+        interfaces = (Event,)
+        description = (
+            "Event sent when media is deleted for any supported entity. "
+            "Not sent when media is removed as a side effect of deleting its "
+            "owner." + ADDED_IN_324
+        )
 
 
 class ProductVariantBase(AbstractType):
@@ -2849,6 +2926,20 @@ def default_channel_filterable_resolver(root, info, channels=None):
     return Observable.from_([root])
 
 
+def default_media_filterable_resolver(root, info, owner_types=None):
+    return Observable.from_([root])
+
+
+owner_types_argument = graphene.Argument(
+    NonNullList(MediaOwnerType),
+    description=(
+        "List of media owner types. The event will be sent only if the media "
+        "belongs to an entity of one of the provided types. If the list is empty "
+        "or not provided, media of every owner type is sent."
+    ),
+)
+
+
 channels_argument = graphene.Argument(
     NonNullList(graphene.String),
     description=(
@@ -2864,6 +2955,27 @@ class Subscription(SubscriptionObjectType):
     event = graphene.Field(
         Event,
         description="Look up subscription event.",
+    )
+    media_created = BaseField(
+        MediaCreated,
+        description="Event sent when new media is created." + ADDED_IN_324,
+        resolver=default_media_filterable_resolver,
+        owner_types=owner_types_argument,
+        doc_category=DOC_CATEGORY_MEDIA,
+    )
+    media_updated = BaseField(
+        MediaUpdated,
+        description="Event sent when media is updated." + ADDED_IN_324,
+        resolver=default_media_filterable_resolver,
+        owner_types=owner_types_argument,
+        doc_category=DOC_CATEGORY_MEDIA,
+    )
+    media_deleted = BaseField(
+        MediaDeleted,
+        description="Event sent when media is deleted." + ADDED_IN_324,
+        resolver=default_media_filterable_resolver,
+        owner_types=owner_types_argument,
+        doc_category=DOC_CATEGORY_MEDIA,
     )
     draft_order_created = BaseField(
         DraftOrderCreated,
@@ -3247,6 +3359,9 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: ProductMediaCreated,
     WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: ProductMediaUpdated,
     WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: ProductMediaDeleted,
+    WebhookEventAsyncType.MEDIA_CREATED: MediaCreated,
+    WebhookEventAsyncType.MEDIA_UPDATED: MediaUpdated,
+    WebhookEventAsyncType.MEDIA_DELETED: MediaDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: ProductVariantCreated,
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,

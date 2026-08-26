@@ -11,9 +11,9 @@ from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.validators.file import clean_image_file
+from ....media.utils import probe_media_url, validate_media_input
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import probe_media_url, validate_media_input
 
 
 class ProductMediaCreateInput(BaseInputObjectType):

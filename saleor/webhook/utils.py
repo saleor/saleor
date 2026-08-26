@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 
 from ..app.models import App
+from ..product.media import MEDIA_OWNER_PERMISSION_MAP
 from .event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .models import Webhook, WebhookEvent
 
@@ -219,4 +220,32 @@ def filter_webhooks_for_channel(
             continue
         if channel_slug in filterable_channel_slugs:
             filtered.append(webhook)
+    return filtered
+
+
+def filter_webhooks_by_media_owner(
+    webhooks: Iterable[Webhook],
+    owner_type: str,
+) -> list[Webhook]:
+    """Return media webhooks whose app may see the owner and asked for its type.
+
+    `MEDIA_*` events carry no single required permission, because a page's media
+    and a product's media are governed by different ones. Authorization is
+    therefore applied here, per delivery, using the owner's permission. On top of
+    that, a subscription may narrow itself to a set of owner types; an empty set
+    means "all owner types".
+    """
+    app_label, codename = MEDIA_OWNER_PERMISSION_MAP[owner_type].value.split(".")
+    filtered: list[Webhook] = []
+    for webhook in webhooks:
+        app_permissions = {
+            (permission.content_type.app_label, permission.codename)
+            for permission in webhook.app.permissions.all()
+        }
+        if (app_label, codename) not in app_permissions:
+            continue
+        requested_owner_types = list(webhook.filterable_media_owner_types)
+        if requested_owner_types and owner_type not in requested_owner_types:
+            continue
+        filtered.append(webhook)
     return filtered

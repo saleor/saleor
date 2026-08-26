@@ -30,6 +30,10 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..payment.models import Payment, TransactionItem
 from ..product import ProductMediaTypes
+from ..product.media import (
+    OWNER_TYPE_TO_GRAPHQL_TYPE,
+    OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
+)
 from ..product.models import Collection, Product, ProductMedia, ProductVariant
 from ..shipping.models import ShippingMethod
 from ..tax.models import TaxClassCountryRate
@@ -1299,3 +1303,28 @@ def generate_thumbnail_payload(thumbnail: Thumbnail):
 def generate_product_media_payload(media: ProductMedia):
     product_media_id = graphene.Node.to_global_id("ProductMedia", media.id)
     return json.dumps({"id": product_media_id})
+
+
+def generate_media_payload(media: ProductMedia):
+    """Build the legacy payload for the entity-agnostic `MEDIA_*` events.
+
+    The global ID is owner-typed, so it round-trips through the same
+    `node`/thumbnail lookups as the GraphQL response.
+    """
+    owner_type = media.owner_type
+    media_type_name = (
+        OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type] if owner_type else "ProductMedia"
+    )
+    payload = {
+        "id": graphene.Node.to_global_id(media_type_name, media.id),
+        "owner_type": owner_type,
+        "owner_id": (
+            graphene.Node.to_global_id(
+                OWNER_TYPE_TO_GRAPHQL_TYPE[owner_type],
+                getattr(media, f"{owner_type}_id"),
+            )
+            if owner_type
+            else None
+        ),
+    }
+    return json.dumps(payload)

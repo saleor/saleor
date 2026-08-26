@@ -1,9 +1,9 @@
+from ...media.types import ProductMedia
 from .categories import Category, CategoryCountableConnection
 from .collections import Collection, CollectionCountableConnection
 from .products import (
     Product,
     ProductCountableConnection,
-    ProductMedia,
     ProductType,
     ProductTypeCountableConnection,
     ProductVariant,

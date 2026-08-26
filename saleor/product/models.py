@@ -40,6 +40,7 @@ from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 from ..tax.models import TaxClass
 from . import (
     MEDIA_URL_CHAR_LIMIT,
+    MediaOwnerTypes,
     ProductMediaTypes,
     ProductTypeKind,
     managers,
@@ -571,7 +572,30 @@ class VariantChannelListingPromotionRule(models.Model):
         unique_together = [["variant_channel_listing", "promotion_rule"]]
 
 
+def at_most_one_media_owner_condition() -> models.Q:
+    """Match `ProductMedia` rows where at most one owner foreign key is set.
+
+    `<=` rather than `=`: `product` has always been nullable, so existing
+    deployments may hold owner-less rows that an `exactly one` constraint would
+    refuse to validate. "Exactly one" is enforced by the mutation layer.
+    """
+    null_fields = [f"{owner}__isnull" for owner in MediaOwnerTypes.ALL]
+    condition = models.Q(**dict.fromkeys(null_fields, True))
+    for owner in MediaOwnerTypes.ALL:
+        condition |= models.Q(
+            **{field: field != f"{owner}__isnull" for field in null_fields}
+        )
+    return condition
+
+
 class ProductMedia(SortableModel, ModelWithMetadata):
+    """A single media item (image or oEmbed video) owned by exactly one entity.
+
+    The table is named after products for historical reasons; a row may belong to
+    a product, a category, a collection or a page. Exactly one owner FK is set,
+    which is what makes the row resolvable to a single GraphQL type.
+    """
+
     product = models.ForeignKey(
         Product,
         related_name="media",
@@ -579,6 +603,30 @@ class ProductMedia(SortableModel, ModelWithMetadata):
         # DEPRECATED
         null=True,
         blank=True,
+    )
+    category = models.ForeignKey(
+        "Category",
+        related_name="media",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
+    collection = models.ForeignKey(
+        "Collection",
+        related_name="media",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_index=False,
+    )
+    page = models.ForeignKey(
+        "page.Page",
+        related_name="media",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_index=False,
     )
     image = models.ImageField(upload_to="products", blank=True, null=True)
     alt = models.CharField(max_length=250, blank=True)
@@ -597,11 +645,38 @@ class ProductMedia(SortableModel, ModelWithMetadata):
     class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "pk")
         app_label = "product"
+        indexes = [
+            *ModelWithMetadata.Meta.indexes,
+            models.Index(fields=["category"], name="productmedia_category_idx"),
+            models.Index(fields=["collection"], name="productmedia_collection_idx"),
+            models.Index(fields=["page"], name="productmedia_page_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=at_most_one_media_owner_condition(),
+                name="productmedia_at_most_one_owner",
+            ),
+        ]
+
+    @property
+    def owner_type(self) -> str | None:
+        """Return the `MediaOwnerTypes` value of the owner this media belongs to."""
+        for owner_type in MediaOwnerTypes.ALL:
+            if getattr(self, f"{owner_type}_id"):
+                return owner_type
+        return None
+
+    @property
+    def owner(self):
+        """Return the entity this media belongs to, or None for orphaned rows."""
+        owner_type = self.owner_type
+        return getattr(self, owner_type) if owner_type else None
 
     def get_ordering_queryset(self):
-        if not self.product:
+        owner = self.owner
+        if not owner:
             return ProductMedia.objects.none()
-        return self.product.media.all()
+        return owner.media.all()
 
     @transaction.atomic
     def delete(self, *args, **kwargs):

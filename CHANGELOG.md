@@ -42,6 +42,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Added a generic media gallery, available on `Product`, `Category`, `Collection` and `Page`:
+  - New `Media` interface, implemented by the concrete `ProductMedia`, `CategoryMedia`, `CollectionMedia` and `PageMedia` types. A media row belongs to exactly one entity, fixed at creation, and its global ID is typed after that owner.
+  - New `Category.media`, `Collection.media` and `Page.media` fields. `Product.media` is unchanged and still returns `[ProductMedia!]`.
+  - New `mediaCreate`, `mediaUpdate`, `mediaDelete` and `mediaReorder` mutations. They identify the target from the global ID alone and require `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+  - New `mediaType: MediaType!`, `ownerType: MediaOwnerType!` and `ownerId: ID!` fields on every media type. `ProductMedia.type` still works and is deprecated in favour of `mediaType`.
+  - Deleting an entity deletes its media rows.
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
 - `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
 - Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
@@ -52,6 +58,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Webhooks
 
+- Added `MEDIA_CREATED`, `MEDIA_UPDATED` and `MEDIA_DELETED` webhook events, dispatched for media of every supported owner type. The `MediaCreated`, `MediaUpdated` and `MediaDeleted` subscription types expose both the `media` and its `owner`. The `mediaCreated`, `mediaUpdated` and `mediaDeleted` subscription fields accept an `ownerTypes` argument to narrow deliveries to specific owner types; omitting it receives every owner type. Each delivery is authorized against the owner's permission, so an app holding only `MANAGE_PAGES` receives page media and nothing else. These events are not dispatched when media is removed as a side effect of deleting its owner.
 - Added `PRODUCT_TYPE_CREATED`, `PRODUCT_TYPE_UPDATED`, and `PRODUCT_TYPE_DELETED` webhook events, dispatched when a product type is created, updated, or deleted - #17574 by @ayesha-waris
 
 ### Other changes
@@ -67,3 +74,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
 
 ### Deprecations
+
+- `productMediaCreate`, `productMediaUpdate`, `productMediaDelete` and `productMediaReorder` are deprecated in favour of `mediaCreate`, `mediaUpdate`, `mediaDelete` and `mediaReorder`. `productMediaBulkDelete` is unaffected — it has no generic replacement yet.
+- `PRODUCT_MEDIA_CREATED`, `PRODUCT_MEDIA_UPDATED` and `PRODUCT_MEDIA_DELETED` webhook events are deprecated in favour of `MEDIA_CREATED`, `MEDIA_UPDATED` and `MEDIA_DELETED`.
+- `ProductMedia.type` is deprecated in favour of `ProductMedia.mediaType`. Both resolve to the same value; only the enum name differs (`ProductMediaType` vs `MediaType`). `ProductMedia.type` is not scheduled for removal in a minor release.

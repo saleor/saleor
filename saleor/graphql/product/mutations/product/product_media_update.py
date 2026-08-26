@@ -9,9 +9,9 @@ from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError
+from ....media.utils import ALT_CHAR_LIMIT
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import ALT_CHAR_LIMIT
 
 
 class ProductMediaUpdateInput(BaseInputObjectType):

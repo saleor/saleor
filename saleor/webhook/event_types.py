@@ -143,6 +143,10 @@ class WebhookEventAsyncType:
     PRODUCT_MEDIA_UPDATED = "product_media_updated"
     PRODUCT_MEDIA_DELETED = "product_media_deleted"
 
+    MEDIA_CREATED = "media_created"
+    MEDIA_UPDATED = "media_updated"
+    MEDIA_DELETED = "media_deleted"
+
     PRODUCT_VARIANT_CREATED = "product_variant_created"
     PRODUCT_VARIANT_UPDATED = "product_variant_updated"
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
@@ -632,6 +636,22 @@ class WebhookEventAsyncType:
         PRODUCT_MEDIA_DELETED: {
             "name": "Product media deleted",
             "permission": ProductPermissions.MANAGE_PRODUCTS,
+        },
+        # Media events span owners with different permissions, so they carry no
+        # single required permission here. Each delivery is instead filtered by
+        # the owner's permission at dispatch time - see
+        # `filter_webhooks_by_media_owner`.
+        MEDIA_CREATED: {
+            "name": "Media created",
+            "permission": None,
+        },
+        MEDIA_UPDATED: {
+            "name": "Media updated",
+            "permission": None,
+        },
+        MEDIA_DELETED: {
+            "name": "Media deleted",
+            "permission": None,
         },
         PRODUCT_VARIANT_CREATED: {
             "name": "Product variant created",
