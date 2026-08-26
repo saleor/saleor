@@ -64,7 +64,7 @@ dependencies = [
     "stripe>=3.0.0,<4",
     "text-unidecode~=1.2",
     "urllib3>=2.7.0,<3",
-    "uvicorn[standard]>=0.32.0,<0.33",
+    "uvicorn[standard]==0.52.1",
     "psycopg[binary]>=3.3.4,<4",
     "pydantic>=2.13.4,<3",
     "pydantic-core>=2.33.0,<3",
