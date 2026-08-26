@@ -2769,6 +2769,46 @@ def test_order_bulk_create_error_non_existing_instance(
     assert Order.objects.count() == orders_count
 
 
+def test_order_bulk_create_resolve_variant_by_sku(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+    variant,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["variantId"] = None
+    order["lines"][0]["variantSku"] = variant.sku
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    result = content["data"]["orderBulkCreate"]["results"][0]
+    assert len(result["errors"]) == 0
+
+    line = result["order"]["lines"][0]
+    assert line["variant"]["id"] == graphene.Node.to_global_id(
+        "ProductVariant", variant.id
+    )
+
+    assert Order.objects.count() == orders_count + 1
+
+
 def test_order_bulk_create_error_instance_not_found(
     staff_api_client,
     permission_manage_orders,
