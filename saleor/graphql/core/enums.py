@@ -35,7 +35,6 @@ from ...translations import error_codes as translatable_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
-from .descriptions import DEPRECATED_PREORDER
 from .doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
@@ -450,18 +449,8 @@ PermissionGroupErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 PermissionGroupErrorCode.doc_category = DOC_CATEGORY_USERS
 
 
-def product_error_code_deprecation_reason(enum):
-    preorder_code = (
-        product_error_codes.ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
-    )
-    if enum == preorder_code:
-        return DEPRECATED_PREORDER
-    return None
-
-
 ProductErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    product_error_codes.ProductErrorCode,
-    deprecation_reason=product_error_code_deprecation_reason,
+    product_error_codes.ProductErrorCode
 )
 ProductErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 

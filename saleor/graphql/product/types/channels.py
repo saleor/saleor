@@ -21,10 +21,6 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import (
-    DEPRECATED_PREORDER,
-    DEPRECATED_PREORDER_TYPE_DESCRIPTION,
-)
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
@@ -293,26 +289,6 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         return Promise.all([channel, tax_class_id_loader]).then(load_tax_configuration)
 
 
-class PreorderThreshold(BaseObjectType):
-    quantity = graphene.Int(
-        required=False,
-        description="Preorder threshold for product variant in this channel.",
-        deprecation_reason=DEPRECATED_PREORDER,
-    )
-    sold_units = graphene.Int(
-        required=True,
-        description="Number of sold product variant in this channel.",
-        deprecation_reason=DEPRECATED_PREORDER,
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-        description = (
-            "Represents preorder variant data for channel."
-            + DEPRECATED_PREORDER_TYPE_DESCRIPTION
-        )
-
-
 class ProductVariantChannelListing(
     ModelObjectType[models.ProductVariantChannelListing]
 ):
@@ -337,12 +313,6 @@ class ProductVariantChannelListing(
         description="Gross margin percentage value.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
-    preorder_threshold = graphene.Field(
-        PreorderThreshold,
-        required=False,
-        description="Preorder variant data.",
-        deprecation_reason=DEPRECATED_PREORDER,
-    )
 
     class Meta:
         description = "Represents product variant channel listing."
@@ -356,15 +326,6 @@ class ProductVariantChannelListing(
     @staticmethod
     def resolve_margin(root: models.ProductVariantChannelListing, _info):
         return get_margin_for_variant_channel_listing(root)
-
-    @staticmethod
-    def resolve_preorder_threshold(root: models.ProductVariantChannelListing, _info):
-        # The preorder_quantity_allocated field is added through annotation
-        # when using the `resolve_channel_listings` resolver.
-        return PreorderThreshold(
-            quantity=root.preorder_quantity_threshold,
-            sold_units=getattr(root, "preorder_quantity_allocated", 0),
-        )
 
 
 class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing]):

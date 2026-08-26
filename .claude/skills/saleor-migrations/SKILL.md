@@ -28,17 +28,66 @@ long table lock stalls every pod. Follow these rules.
 - Enforce value invariants (e.g. non-negative balance) with a DB `CheckConstraint`, not just
   application logic.
 
-## Removing a field: stage it
+## Backwards compatibility: the new schema must work with the *old* code
+
+During a rolling deploy, pods running the **previous** minor version talk to the **already-migrated**
+database. Django `SELECT`s and `UPDATE`s every column it knows about, so the schema must stay valid
+for that old ORM. Making the DB backwards-compatible is the default; changing old code requires
+crafting two releases at once — reserve it for cases where nothing else works.
+
+### Adding a field
+
+Old pods insert rows without knowing the column, so it must be writable without them:
+`null=True` **or** a `db_default`. Plain Django `default=` is not enough — it lives in Python and never
+reaches the database.
+
+### Removing a field: stage it across three releases
 
 Removing a NOT NULL / defaulted column in one step can fail mid-deploy while old and new pods coexist.
-Stage it across releases:
 
-1. Add a `db_default` so the DB can write the column without the ORM.
-2. Remove the field from the ORM model (column still present).
-3. **Drop the column in a later version**, tracked by an explicit follow-up issue.
+1. **N** — add a `db_default` (or `null=True`) so the DB can write the column without the ORM.
+2. **N+1** — de-register the field from the ORM, leaving the column in place, via
+   `SeparateDatabaseAndState`: `state_operations=[RemoveField(...)]` and `database_operations` that
+   make the column nullable. Old pods still find the column; new pods no longer touch it.
+3. **N+2** — drop the column, now that no process uses it. Track it as an explicit follow-up.
+
+```python
+migrations.SeparateDatabaseAndState(
+    database_operations=[
+        migrations.AlterField(
+            model_name="sitesettings",
+            name="automatically_confirm_all_new_orders",
+            field=models.BooleanField(null=True, blank=True),
+        ),
+    ],
+    state_operations=[
+        migrations.RemoveField(
+            model_name="sitesettings",
+            name="automatically_confirm_all_new_orders",
+        ),
+    ],
+)
+```
 
 Keep any legacy enum values / code retained only for migration safety tracked as a removal task with a
 "remove in X.Y" note.
+
+### Renaming or moving a field
+
+Avoid unless necessary — a rename is an add plus a remove, so it costs the same three releases.
+
+1. **N** — add the new field (`null=True`), and write **both** old and new fields everywhere the old
+   one is written, so old pods keep seeing valid data. Add a data migration that backfills the new
+   field. Note in the upgrade guide that N+1 requires upgrading to this patch release first.
+2. **N+1** — read from the new field. Re-run the backfill data migration (old pods may have inserted
+   rows in the old format between step 1's migration and the cutover), then drop `null=True` from the
+   new field. De-register the old field per "Removing a field" step 2.
+3. **N+2** — drop the old column.
+
+Handle "new field is null but old one isn't" while both exist.
+
+**Any data migration that reshapes data written by old pods runs twice** — once before the new code
+deploys, once in the next version when the old code is provably gone.
 
 ## Data migrations
 
@@ -63,7 +112,11 @@ Keep any legacy enum values / code retained only for migration safety tracked as
 - Confirm each migration touches a single model and a single field, and that any index or constraint
   is created concurrently rather than with a blocking operation.
 - Confirm every destructive column change is staged across releases (add `db_default`, then remove the
-  field from the ORM, then drop the column in a later version).
+  field from the ORM via `SeparateDatabaseAndState`, then drop the column in a later version).
+- Confirm every new column is nullable or has a `db_default` — a Python-only `default=` leaves old pods
+  unable to insert.
+- Confirm any data migration over data old pods still write is scheduled to run again in the next
+  version.
 - Confirm each `post_migrate` handler passes its own app config as the sender, and that every data
   migration is all-or-nothing rather than aborting partway.
 - Run the migration locally with `manage.py migrate` and confirm it applies cleanly.
