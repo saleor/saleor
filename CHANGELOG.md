@@ -35,7 +35,11 @@ All notable, unreleased changes to this project will be documented in this file.
   - the `hasPreorderedVariants` filter on `ProductFilterInput` and `ProductWhereInput`, and the `isPreorder` filter on `ProductVariantFilterInput` and `OrderFilterInput`,
   - the `PREORDER_VARIANT_CANNOT_BE_DEACTIVATED` value from the `ProductErrorCode` enum.
 
-  Variants already in preorder keep being handled by the checkout and order flow; a preorder with an end date is still deactivated automatically once that date passes. The preorder database columns will be dropped in a later release.
+  The preorder handling is gone from the checkout and order flow as well: a variant left in preorder is now treated as a regular variant, so it is allocated, reserved and fulfilled against its stock. The `deactivate-preorder-for-variants` Celery beat task was removed, so a preorder with an end date is no longer deactivated automatically.
+
+  The preorder columns (`ProductVariant.is_preorder`, `preorder_end_date`, `preorder_global_threshold`, `ProductVariantChannelListing.preorder_quantity_threshold`) and the `warehouse_preorderallocation` / `warehouse_preorderreservation` tables are detached from the ORM in this release and dropped from the database in 3.25. Read the data before upgrading to 3.25 if you still need it.
+- Removed the `is_preorder`, `preorder_global_threshold` and `preorder_end_date` keys from the product variant notification payload.
+- Removed the `<channel> (channel variant preorder quantity threshold)` column from the product CSV export.
 - Removed the `DIGITAL_LINKS` value from the `OrderEventsEmailsEnum` enum and the `DIGITAL_LINK_DOWNLOADED` value from the `CustomerEventsEnum` enum. Events with these types were deleted in 3.23, along with the legacy digital content feature that emitted them.
 - Removed the always-empty `digital_lines` key from the fulfillment confirmation notification payload. Use `physical_lines`, which holds every line of the fulfillment.
 - Attribute value and bulk attribute mutations now require the permission matching the attribute's type: `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` for `PRODUCT_TYPE` attributes, `MANAGE_PAGE_TYPES_AND_ATTRIBUTES` for `PAGE_TYPE` attributes, and `MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES` for `CUSTOMER_TYPE` attributes. Previously each mutation required a single fixed permission regardless of the attribute's type, which let a requestor modify attributes of a type they were not authorized for.

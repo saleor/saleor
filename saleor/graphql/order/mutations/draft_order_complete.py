@@ -25,7 +25,7 @@ from ....order.utils import (
     update_order_display_gross_prices,
 )
 from ....permission.enums import OrderPermissions
-from ....warehouse.management import allocate_preorders, allocate_stocks
+from ....warehouse.management import allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
@@ -204,7 +204,7 @@ class DraftOrderComplete(BaseMutation):
                 if not line.variant:
                     # we only care about stock for variants that still exist
                     continue
-                if line.variant.track_inventory or line.variant.is_preorder_active():
+                if line.variant.track_inventory:
                     line_data = OrderLineInfo(
                         line=line, quantity=line.quantity, variant=line.variant
                     )
@@ -221,13 +221,6 @@ class DraftOrderComplete(BaseMutation):
                                     site_settings
                                 ),
                                 calculate_stocks_with_shipping_zones=site_settings.use_legacy_shipping_zone_stock_availability,
-                            )
-                            allocate_preorders(
-                                [line_data],
-                                channel.slug,
-                                check_reservations=is_reservation_enabled(
-                                    site_settings
-                                ),
                             )
                     except InsufficientStock as e:
                         errors = prepare_insufficient_stock_order_validation_errors(e)

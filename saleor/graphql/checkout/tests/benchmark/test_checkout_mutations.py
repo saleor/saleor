@@ -1712,21 +1712,6 @@ def test_customer_complete_checkout_for_cc(
     assert not response["data"]["checkoutComplete"]["errors"]
 
 
-@pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
-def test_complete_checkout_preorder(
-    api_client, checkout_preorder_with_charged_payment, count_queries
-):
-    query = COMPLETE_CHECKOUT_MUTATION
-
-    variables = {
-        "id": to_global_id_or_none(checkout_preorder_with_charged_payment),
-    }
-
-    response = get_graphql_content(api_client.post_graphql(query, variables))
-    assert not response["data"]["checkoutComplete"]["errors"]
-
-
 MUTATION_CHECKOUT_CREATE_FROM_ORDER = (
     FRAGMENT_CHECKOUT
     + """

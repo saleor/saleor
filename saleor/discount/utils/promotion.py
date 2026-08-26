@@ -385,7 +385,7 @@ def _get_best_gift_reward(
     listing = max(
         list(available_variant_listings),
         # sort over a top price
-        key=lambda x: x.discounted_price_amount,
+        key=lambda x: x.discounted_price_amount or Decimal(0),
     )
     rule_gift = rule_gifts.filter(productvariant_id=listing.variant_id).first()
     rule = rule_gift.promotionrule if rule_gift else None
