@@ -357,6 +357,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         "product.ProductMedia", through="product.VariantMedia"
     )
     track_inventory = models.BooleanField(default=True)
+    # TODO remove after 3.24: preorder API was removed in 3.24
     is_preorder = models.BooleanField(default=False)
     preorder_end_date = models.DateTimeField(null=True, blank=True)
     preorder_global_threshold = models.IntegerField(blank=True, null=True)
@@ -534,6 +535,7 @@ class ProductVariantChannelListing(models.Model):
         blank=True,
     )
 
+    # TODO remove after 3.24: preorder API was removed in 3.24
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 
     objects = managers.ProductVariantChannelListingManager()

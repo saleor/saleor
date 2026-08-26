@@ -11,7 +11,6 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ...channel.filters import get_channel_slug_from_filter_data
-from ...core.descriptions import DEPRECATED_PREORDER_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     BooleanWhereFilter,
@@ -55,7 +54,6 @@ from .product_helpers import (
     filter_collections,
     filter_gift_card,
     filter_has_category,
-    filter_has_preordered_variants,
     filter_minimal_price,
     filter_product_types,
     filter_products_channel_field_from_date,
@@ -69,7 +67,6 @@ from .product_helpers import (
     where_filter_by_categories,
     where_filter_gift_card,
     where_filter_has_category,
-    where_filter_has_preordered_variants,
     where_filter_products_channel_field_from_date,
     where_filter_products_is_available,
     where_filter_stock_availability,
@@ -135,12 +132,6 @@ class ProductFilter(MetadataFilterBase):
         help_text="Filter on whether product is a gift card or not.",
     )
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
-    has_preordered_variants = django_filters.BooleanFilter(
-        method=filter_has_preordered_variants,
-        help_text=(
-            f"Filter by product with preordered variants.{DEPRECATED_PREORDER_INPUT}"
-        ),
-    )
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
@@ -305,12 +296,6 @@ class ProductWhere(MetadataWhereFilterBase):
     gift_card = BooleanWhereFilter(
         method=where_filter_gift_card,
         help_text="Filter on whether product is a gift card or not.",
-    )
-    has_preordered_variants = BooleanWhereFilter(
-        method=where_filter_has_preordered_variants,
-        help_text=(
-            f"Filter by product with preordered variants.{DEPRECATED_PREORDER_INPUT}"
-        ),
     )
     updated_at = ObjectTypeWhereFilter(
         input_class=DateTimeFilterInput,
