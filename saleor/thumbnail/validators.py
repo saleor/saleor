@@ -63,12 +63,14 @@ def validate_icon_image(image_file, error_code: str):
     except Image.DecompressionBombError as e:
         image_source = getattr(image_file, "name", "") or ""
         logger.warning(
-            "Icon image %s exceeds the pixel limit.",
+            "Icon image %s exceeds the pixel limit: %s",
             image_source,
+            e,
             extra={"image_source": image_source, "pillow_error": str(e)},
         )
         raise ValidationError(
-            "Invalid file. The image exceeds the maximum allowed number of pixels.",
+            "Invalid file. The image exceeds the maximum allowed number of pixels: "
+            f"{e}",
             code=error_code,
         ) from e
     except (

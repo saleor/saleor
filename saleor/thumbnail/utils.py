@@ -151,12 +151,13 @@ class ProcessedImage:
         except Image.DecompressionBombError as e:
             source = self.get_image_source_name()
             logger.warning(
-                "Image exceeds the pixel limit, refusing to decode it: %s",
+                "Refusing to decode image %s, it exceeds the pixel limit: %s",
                 source,
+                e,
                 extra={"image_source": source, "pillow_error": str(e)},
             )
             raise ImageTooLargeError(
-                f"Image {source} exceeds the maximum allowed number of pixels."
+                f"Image {source} exceeds the maximum allowed number of pixels: {e}"
             ) from e
 
     def get_image_source_name(self) -> str:

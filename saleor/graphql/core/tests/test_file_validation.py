@@ -109,19 +109,20 @@ def test_clean_image_file_pixel_count_exceeds_limit(monkeypatch, caplog):
         clean_image_file({field: img}, field, ProductErrorCode)
 
     # then
+    pillow_error = (
+        f"Image size ({width * height} pixels) exceeds limit of "
+        f"{2 * pillow_limit} pixels, could be decompression bomb DOS attack."
+    )
     assert exc.value.args[0][field].code == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED
     assert exc.value.args[0][field].message == (
         "Image exceeds the maximum allowed number of pixels of "
-        f"{settings.MAX_IMAGE_PIXELS}."
+        f"{settings.MAX_IMAGE_PIXELS}: {pillow_error}"
     )
     # the rejection must be traceable back to the file that caused it
     assert len(caplog.records) == 1
     assert caplog.records[0].levelno == logging.WARNING
     assert caplog.records[0].image_source == file_name
-    assert caplog.records[0].pillow_error == (
-        f"Image size ({width * height} pixels) exceeds limit of "
-        f"{2 * pillow_limit} pixels, could be decompression bomb DOS attack."
-    )
+    assert caplog.records[0].pillow_error == pillow_error
 
 
 def test_clean_image_file_invalid_content_type():

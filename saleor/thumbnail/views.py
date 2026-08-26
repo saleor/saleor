@@ -128,12 +128,12 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
     except FileNotFoundError as error:
         logger.info(str(error))
         return HttpResponseNotFound("Cannot found image file.")
-    except ImageTooLargeError:
+    except ImageTooLargeError as error:
         # Logged at warning level rather than error: this view is unauthenticated, so
         # repeated requests for a known-oversized image are attacker-controlled volume.
         logger.warning(
             "Cannot create a thumbnail, image exceeds the pixel limit: %s",
-            image.name,
+            error,
             extra={
                 "image_source": image.name,
                 "object_type": object_type,

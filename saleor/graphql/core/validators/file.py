@@ -134,15 +134,16 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
             img_file.seek(0)
     except Image.DecompressionBombError as e:
         logger.warning(
-            "Upload for file %s was blocked, it exceeds the pixel limit.",
+            "Upload for file %s was blocked, it exceeds the pixel limit: %s",
             img_file.name,
+            e,
             extra={"image_source": img_file.name, "pillow_error": str(e)},
         )
         raise ValidationError(
             {
                 img_field_name: ValidationError(
                     "Image exceeds the maximum allowed number of pixels of "
-                    f"{settings.MAX_IMAGE_PIXELS}.",
+                    f"{settings.MAX_IMAGE_PIXELS}: {e}",
                     code=error_class.FILE_SIZE_LIMIT_EXCEEDED,
                 )
             }

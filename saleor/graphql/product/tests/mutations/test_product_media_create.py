@@ -145,7 +145,8 @@ def test_product_media_create_mutation_pixel_count_exceeds_limit(
     assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert errors[0]["message"] == (
         "Image exceeds the maximum allowed number of pixels of "
-        f"{settings.MAX_IMAGE_PIXELS}."
+        f"{settings.MAX_IMAGE_PIXELS}: Image size (1 pixels) exceeds limit of "
+        "0 pixels, could be decompression bomb DOS attack."
     )
     assert product.media.exists() is False
 
