@@ -1,6 +1,7 @@
 from ....context import SaleorContext
 from ...dataloaders.products import (
     CollectionsByVariantIdLoader,
+    ProductByVariantIdLoader,
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
 )
@@ -49,3 +50,16 @@ def test_collections_by_variant_id_loader_with_missing_variant(
 
     # then
     assert collections == [[published_collection], []]
+
+
+def test_product_by_variant_id_loader_with_missing_variant(variant):
+    # given
+    context = SaleorContext()
+
+    # when
+    products = (
+        ProductByVariantIdLoader(context).batch_load([variant.pk, MISSING_PK]).get()
+    )
+
+    # then
+    assert products == [variant.product, None]
