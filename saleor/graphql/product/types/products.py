@@ -64,6 +64,7 @@ from ...core.context import (
     ChannelContext,
     ChannelQsContext,
     get_database_connection_name,
+    to_channel_context,
 )
 from ...core.descriptions import (
     ADDED_IN_321,
@@ -804,7 +805,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     def resolve_product(root: ChannelContext[models.ProductVariant], info):
         product = ProductByIdLoader(info.context).load(root.node.product_id)
         return product.then(
-            lambda product: ChannelContext(node=product, channel_slug=root.channel_slug)
+            lambda product: to_channel_context(product, root.channel_slug)
         )
 
     @staticmethod

@@ -599,8 +599,23 @@ class CollectionsByVariantIdLoader(DataLoader):
 
     def batch_load(self, keys):
         def with_variants(variants):
-            product_ids = [variant.product_id for variant in variants]
-            return CollectionsByProductIdLoader(self.context).load_many(product_ids)
+            """Resolve collections, tolerating variants missing from the database."""
+            product_ids = [variant.product_id for variant in variants if variant]
+
+            def map_collections(collections):
+                collections_by_product_id = dict(
+                    zip(product_ids, collections, strict=True)
+                )
+                return [
+                    collections_by_product_id[variant.product_id] if variant else []
+                    for variant in variants
+                ]
+
+            return (
+                CollectionsByProductIdLoader(self.context)
+                .load_many(product_ids)
+                .then(map_collections)
+            )
 
         return (
             ProductVariantByIdLoader(self.context).load_many(keys).then(with_variants)
@@ -613,13 +628,17 @@ class ProductTypeByProductIdLoader(DataLoader):
     def batch_load(self, keys):
         @allow_writer_in_context(self.context)
         def with_products(products):
-            product_ids = {p.id for p in products}
+            """Resolve product types, tolerating products missing from the database."""
+            product_ids = {product.pk for product in products if product}
             product_types_map = (
                 ProductType.objects.using(self.database_connection_name)
                 .filter(products__in=product_ids)
                 .in_bulk()
             )
-            return [product_types_map[product.product_type_id] for product in products]
+            return [
+                product_types_map[product.product_type_id] if product else None
+                for product in products
+            ]
 
         return ProductByIdLoader(self.context).load_many(keys).then(with_products)
 
@@ -629,8 +648,23 @@ class ProductTypeByVariantIdLoader(DataLoader):
 
     def batch_load(self, keys):
         def with_variants(variants):
-            product_ids = [v.product_id for v in variants]
-            return ProductTypeByProductIdLoader(self.context).load_many(product_ids)
+            """Resolve product types, tolerating variants missing from the database."""
+            product_ids = [variant.product_id for variant in variants if variant]
+
+            def map_product_types(product_types):
+                product_types_by_product_id = dict(
+                    zip(product_ids, product_types, strict=True)
+                )
+                return [
+                    product_types_by_product_id[variant.product_id] if variant else None
+                    for variant in variants
+                ]
+
+            return (
+                ProductTypeByProductIdLoader(self.context)
+                .load_many(product_ids)
+                .then(map_product_types)
+            )
 
         return (
             ProductVariantByIdLoader(self.context).load_many(keys).then(with_variants)

@@ -6,6 +6,11 @@ from django.utils import timezone
 from .....permission.enums import ProductPermissions
 from .....warehouse.models import Reservation
 from .....warehouse.tests.utils import get_quantity_allocated_for_stock
+from ....core.context import (
+    TEMPORARILY_UNAVAILABLE_ERROR_MESSAGE,
+    TemporarilyUnavailableError,
+)
+from ....product.dataloaders.products import ProductVariantByIdLoader
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -174,3 +179,33 @@ def test_staff_query_stock_with_invalid_object_type(
     # then
     content = get_graphql_content(response)
     assert content["data"]["stock"] is None
+
+
+def test_query_stock_variant_missing_from_database(
+    staff_api_client, stock, permission_manage_products, monkeypatch
+):
+    """A variant the loader cannot find must not crash the whole request.
+
+    Reproduces SALEOR-CORE-8CR: a replica that lags behind makes the loader
+    return `None`, which used to be wrapped in a truthy `ChannelContext` and
+    blew up in `ChannelContextType.is_type_of`.
+    """
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    stock_id = graphene.Node.to_global_id("Stock", stock.pk)
+    monkeypatch.setattr(
+        ProductVariantByIdLoader, "batch_load", lambda self, keys: [None] * len(keys)
+    )
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert content["data"]["stock"] is None
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == TEMPORARILY_UNAVAILABLE_ERROR_MESSAGE
+    assert (
+        content["errors"][0]["extensions"]["exception"]["code"]
+        == TemporarilyUnavailableError.__name__
+    )

@@ -90,6 +90,7 @@ permissions.
 
 ### Other changes
 
+- Fix `AttributeError` crashes when a dataloader cannot find a referenced row (for example when a read replica lags behind a write). Resolvers now raise a clean, retryable `"Requested object is temporarily unavailable"` error (`extensions.exception.code`: `TemporarilyUnavailableError`) for the affected field instead of failing the whole request, and `ProductTypeByProductIdLoader`, `ProductTypeByVariantIdLoader` and `CollectionsByVariantIdLoader` now tolerate missing rows instead of raising.
 - Fix Google OAuth OIDC login failing with `invalid_scope` error when `enable_refresh_token` is enabled. Google does not support the `offline_access` scope; use `access_type=offline` authorization parameter instead. - #18919 by @dnplkndll
 - Add `saleor.graphql.field.usage` OTel metric to track GraphQL field resolver call counts. The metric is emitted for deprecated fields (detected automatically) and for fields explicitly opted in with `monitor_usage=True` on a `BaseField` declaration.
 - Fix send order confirmation email to staff - #18342 by @Shaokun-X

@@ -23,7 +23,10 @@ from ..app.dataloaders import AppByIdLoader
 from ..app.types import App
 from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.connection import CountableConnection
-from ..core.context import ChannelContext, get_database_connection_name
+from ..core.context import (
+    get_database_connection_name,
+    to_channel_context,
+)
 from ..core.descriptions import ADDED_IN_323, DEFAULT_DEPRECATION_REASON
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
@@ -628,9 +631,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         if root.product_id is None:
             return None
         product = ProductByIdLoader(info.context).load(root.product_id)
-        return product.then(
-            lambda product: ChannelContext(node=product, channel_slug=None)
-        )
+        return product.then(lambda product: to_channel_context(product, None))
 
     @staticmethod
     def resolve_events(root: models.GiftCard, info, **kwargs):

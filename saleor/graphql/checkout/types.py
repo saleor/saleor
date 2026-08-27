@@ -43,7 +43,7 @@ from ..checkout.dataloaders import (
 )
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
-from ..core.context import ChannelContext
+from ..core.context import ChannelContext, to_channel_context
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
@@ -365,7 +365,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
         channel = ChannelByCheckoutIDLoader(info.context).load(root.node.checkout_id)
 
         return Promise.all([variant, channel]).then(
-            lambda data: ChannelContext(node=data[0], channel_slug=data[1].slug)
+            lambda data: to_channel_context(data[0], data[1].slug)
         )
 
     @staticmethod

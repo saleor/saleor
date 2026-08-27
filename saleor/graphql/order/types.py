@@ -73,7 +73,7 @@ from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..channel.types import Channel
 from ..checkout.utils import prevent_sync_event_circular_query
 from ..core.connection import CountableConnection
-from ..core.context import ChannelContext
+from ..core.context import ChannelContext, TemporarilyUnavailableError
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_319,
@@ -1515,6 +1515,8 @@ class OrderLine(
 
         def requestor_has_access_to_variant(data):
             variant, channel = data
+            if not variant:
+                raise TemporarilyUnavailableError()
 
             requester = get_user_or_app_from_context(context)
             has_required_permission = has_one_of_permissions(

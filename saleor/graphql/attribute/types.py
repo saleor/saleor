@@ -24,6 +24,7 @@ from ..core.context import (
     ChannelContext,
     ChannelQsContext,
     get_database_connection_name,
+    to_channel_context,
 )
 from ..core.descriptions import (
     ADDED_IN_322,
@@ -985,7 +986,7 @@ class AssignedSinglePageReferenceAttribute(BaseObjectType):
             return (
                 PageByIdLoader(info.context)
                 .load(referenced_value.reference_page_id)
-                .then(lambda page: ChannelContext(node=page, channel_slug=channel_slug))
+                .then(lambda page: to_channel_context(page, channel_slug))
             )
 
         return get_attribute_values(root, info, limit=1).then(get_page)
@@ -1019,11 +1020,7 @@ class AssignedSingleProductReferenceAttribute(BaseObjectType):
             return (
                 ProductByIdLoader(info.context)
                 .load(referenced_value.reference_product_id)
-                .then(
-                    lambda product: ChannelContext(
-                        node=product, channel_slug=channel_slug
-                    )
-                )
+                .then(lambda product: to_channel_context(product, channel_slug))
             )
 
         return get_attribute_values(root, info, limit=1).then(get_product)
@@ -1061,8 +1058,8 @@ class AssignedSingleProductVariantReferenceAttribute(BaseObjectType):
                 ProductVariantByIdLoader(info.context)
                 .load(attr_value.reference_variant_id)
                 .then(
-                    lambda product_variant: ChannelContext(
-                        node=product_variant, channel_slug=channel_slug
+                    lambda product_variant: to_channel_context(
+                        product_variant, channel_slug
                     )
                 )
             )
@@ -1129,11 +1126,7 @@ class AssignedSingleCollectionReferenceAttribute(BaseObjectType):
             return (
                 CollectionByIdLoader(info.context)
                 .load(attr_value.reference_collection_id)
-                .then(
-                    lambda collection: ChannelContext(
-                        node=collection, channel_slug=channel_slug
-                    )
-                )
+                .then(lambda collection: to_channel_context(collection, channel_slug))
             )
 
         return get_attribute_values(root, info, limit=1).then(get_collection)
@@ -1169,10 +1162,7 @@ class AssignedMultiPageReferenceAttribute(BaseObjectType):
         ) -> list[ChannelContext[page_models.Page]]:
             if not pages:
                 return []
-            return [
-                ChannelContext(node=page, channel_slug=root.channel_slug)
-                for page in pages
-            ]
+            return [to_channel_context(page, root.channel_slug) for page in pages]
 
         def get_pages(
             attribute_values: list[models.AttributeValue],
@@ -1224,8 +1214,7 @@ class AssignedMultiProductReferenceAttribute(BaseObjectType):
             if not products:
                 return []
             return [
-                ChannelContext(node=product, channel_slug=root.channel_slug)
-                for product in products
+                to_channel_context(product, root.channel_slug) for product in products
             ]
 
         def get_products(
@@ -1280,8 +1269,7 @@ class AssignedMultiProductVariantReferenceAttribute(BaseObjectType):
             if not variants:
                 return []
             return [
-                ChannelContext(node=variant, channel_slug=root.channel_slug)
-                for variant in variants
+                to_channel_context(variant, root.channel_slug) for variant in variants
             ]
 
         def get_variants(
@@ -1376,7 +1364,7 @@ class AssignedMultiCollectionReferenceAttribute(BaseObjectType):
             if not collections:
                 return []
             return [
-                ChannelContext(node=collection, channel_slug=root.channel_slug)
+                to_channel_context(collection, root.channel_slug)
                 for collection in collections
             ]
 

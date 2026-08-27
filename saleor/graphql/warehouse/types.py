@@ -9,7 +9,11 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.context import ChannelContext, get_database_connection_name
+from ..core.context import (
+    ChannelContext,
+    get_database_connection_name,
+    to_channel_context,
+)
 from ..core.descriptions import (
     ADDED_IN_320,
     DEPRECATED_IN_3X_INPUT,
@@ -261,7 +265,7 @@ class Stock(ModelObjectType[models.Stock]):
         return (
             ProductVariantByIdLoader(info.context)
             .load(root.product_variant_id)
-            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
+            .then(lambda variant: to_channel_context(variant, None))
         )
 
 

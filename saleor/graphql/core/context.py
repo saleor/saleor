@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db.models import Model, QuerySet
 from django.http import HttpRequest
 from django.utils.functional import empty
+from graphql import GraphQLError
 
 if TYPE_CHECKING:
     from ...account.models import User
@@ -94,6 +95,37 @@ class SyncWebhookControlContext(BaseContext[N]):
 @dataclass
 class ChannelContext(BaseContext[N]):
     channel_slug: str | None
+
+
+TEMPORARILY_UNAVAILABLE_ERROR_MESSAGE = (
+    "Requested object is temporarily unavailable, please try again later."
+)
+
+
+class TemporarilyUnavailableError(GraphQLError):
+    """A referenced object exists but cannot be served right now.
+
+    The class name is exposed to clients as ``extensions.exception.code`` by
+    ``format_error``, giving them a stable code to detect and retry on.
+    """
+
+    def __init__(self, message: str = TEMPORARILY_UNAVAILABLE_ERROR_MESSAGE):
+        super().__init__(message)
+
+
+def to_channel_context[T](
+    node: T | None, channel_slug: str | None
+) -> ChannelContext[T]:
+    """Wrap a node in ``ChannelContext``, failing clearly when the node is missing.
+
+    A dataloader can miss a row that certainly existed a moment ago, e.g. when a
+    read replica lags behind the writer. Raise a clean, retryable error instead
+    of crashing on ``None`` in ``is_type_of`` or silently returning ``null`` as
+    if the relation was empty.
+    """
+    if node is None:
+        raise TemporarilyUnavailableError()
+    return ChannelContext(node=node, channel_slug=channel_slug)
 
 
 M = TypeVar("M", bound=Model)

@@ -8,7 +8,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
-from ..core.context import ChannelContext
+from ..core.context import ChannelContext, to_channel_context
 from ..core.doc_category import DOC_CATEGORY_MENU
 from ..core.types import NonNullList
 from ..core.types.context import ChannelContextType
@@ -201,18 +201,14 @@ class MenuItem(ChannelContextType[models.MenuItem]):
     def resolve_menu(root: ChannelContext[models.MenuItem], info: ResolveInfo):
         if root.node.menu_id:
             menu = MenuByIdLoader(info.context).load(root.node.menu_id)
-            return menu.then(
-                lambda menu: ChannelContext(node=menu, channel_slug=root.channel_slug)
-            )
+            return menu.then(lambda menu: to_channel_context(menu, root.channel_slug))
         return None
 
     @staticmethod
     def resolve_parent(root: ChannelContext[models.MenuItem], info: ResolveInfo):
         if root.node.parent_id:
             menu = MenuItemByIdLoader(info.context).load(root.node.parent_id)
-            return menu.then(
-                lambda menu: ChannelContext(node=menu, channel_slug=root.channel_slug)
-            )
+            return menu.then(lambda menu: to_channel_context(menu, root.channel_slug))
         return None
 
     @staticmethod

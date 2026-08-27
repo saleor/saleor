@@ -48,6 +48,7 @@ from ..core.context import (
     ChannelContext,
     SyncWebhookControlContext,
     get_database_connection_name,
+    to_channel_context,
 )
 from ..core.descriptions import (
     ADDED_IN_318,
@@ -1059,7 +1060,7 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
         return (
             ProductVariantByIdLoader(info.context)
             .load(stock.product_variant.id)
-            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
+            .then(lambda variant: to_channel_context(variant, None))
         )
 
     @staticmethod
@@ -1110,9 +1111,7 @@ class ProductVariantDiscountedPriceUpdated(SubscriptionObjectType):
         return (
             ProductVariantByIdLoader(info.context)
             .load(price_info.variant_id)
-            .then(
-                lambda variant: ChannelContext(node=variant, channel_slug=channel_slug)
-            )
+            .then(lambda variant: to_channel_context(variant, channel_slug))
         )
 
     @staticmethod
@@ -1167,9 +1166,7 @@ class ProductVariantChannelStockBase(SubscriptionObjectType):
         return (
             ProductVariantByIdLoader(info.context)
             .load(stock_info.variant_id)
-            .then(
-                lambda variant: ChannelContext(node=variant, channel_slug=channel_slug)
-            )
+            .then(lambda variant: to_channel_context(variant, channel_slug))
         )
 
     @staticmethod
