@@ -1,7 +1,10 @@
 from ....context import SaleorContext
 from ...dataloaders.products import (
     CollectionsByVariantIdLoader,
+    ImagesByProductVariantIdLoader,
+    MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
+    ProductMediaByIdLoader,
     ProductTypeByProductIdLoader,
     ProductTypeByVariantIdLoader,
 )
@@ -63,3 +66,43 @@ def test_product_by_variant_id_loader_with_missing_variant(variant):
 
     # then
     assert products == [variant.product, None]
+
+
+def test_media_by_product_variant_id_loader_with_missing_media(
+    variant_with_image, monkeypatch
+):
+    """Media the loader cannot find (e.g. replica lag) is skipped, not a crash."""
+    # given
+    context = SaleorContext()
+    monkeypatch.setattr(
+        ProductMediaByIdLoader, "batch_load", lambda self, keys: [None] * len(keys)
+    )
+
+    # when
+    media = (
+        MediaByProductVariantIdLoader(context).batch_load([variant_with_image.pk]).get()
+    )
+
+    # then
+    assert media == [[]]
+
+
+def test_images_by_product_variant_id_loader_with_missing_media(
+    variant_with_image, monkeypatch
+):
+    """Media the loader cannot find (e.g. replica lag) is skipped, not a crash."""
+    # given
+    context = SaleorContext()
+    monkeypatch.setattr(
+        ProductMediaByIdLoader, "batch_load", lambda self, keys: [None] * len(keys)
+    )
+
+    # when
+    media = (
+        ImagesByProductVariantIdLoader(context)
+        .batch_load([variant_with_image.pk])
+        .get()
+    )
+
+    # then
+    assert media == [[]]

@@ -523,9 +523,14 @@ class MediaByProductVariantIdLoader(DataLoader):
             media_ids.add(media_id)
 
         def map_variant_media(variant_media):
-            media_map = {media.id: media for media in variant_media}
+            """Map media to variants, tolerating media missing from the database."""
+            media_map = {media.pk: media for media in variant_media if media}
             return [
-                [media_map[media_id] for media_id in variant_media_pairs[variant_id]]
+                [
+                    media_map[media_id]
+                    for media_id in variant_media_pairs[variant_id]
+                    if media_id in media_map
+                ]
                 for variant_id in keys
             ]
 
@@ -554,9 +559,14 @@ class ImagesByProductVariantIdLoader(DataLoader):
             variant_media_pairs[variant_id].append(media_id)
 
         def map_variant_media(variant_media):
-            media_map = {media.id: media for media in variant_media}
+            """Map media to variants, tolerating media missing from the database."""
+            media_map = {media.pk: media for media in variant_media if media}
             return [
-                [media_map[media_id] for media_id in variant_media_pairs[variant_id]]
+                [
+                    media_map[media_id]
+                    for media_id in variant_media_pairs[variant_id]
+                    if media_id in media_map
+                ]
                 for variant_id in keys
             ]
 
