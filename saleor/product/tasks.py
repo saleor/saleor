@@ -16,6 +16,7 @@ from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
 from ..core.http_client import HTTPClient
 from ..core.utils.events import call_event
+from ..core.utils.url import sanitize_url_for_logging
 from ..core.utils.validators import get_mime_type
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
@@ -457,9 +458,9 @@ def fetch_product_media_image_task(product_media_id: int):
         logger.warning(
             "Image fetched for product media %s exceeds the pixel limit: %s",
             product_media.pk,
-            product_media.external_url,
+            sanitize_url_for_logging(product_media.external_url),
             extra={
-                "image_source": product_media.external_url,
+                "image_source": sanitize_url_for_logging(product_media.external_url),
                 "object_type": "ProductMedia",
                 "object_pk": product_media.pk,
                 "pillow_error": str(error),
