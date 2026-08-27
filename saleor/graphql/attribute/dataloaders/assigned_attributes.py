@@ -566,7 +566,8 @@ class AttributeValuesByProductIdAndAttributeIdAndLimitLoader(
             attribute_value_ids_to_fetch.update(id_list)
 
         def with_attribute_values(attribute_values: list[AttributeValue]):
-            attribute_value_map = {av.id: av for av in attribute_values}
+            # Tolerate values missing from the database, e.g. replica lag.
+            attribute_value_map = {av.pk: av for av in attribute_values if av}
             response_data: defaultdict[
                 tuple[PRODUCT_ID, ATTRIBUTE_ID, LIMIT], list[AttributeValue]
             ] = defaultdict(list)
@@ -633,7 +634,8 @@ class AttributeValuesByPageIdAndAttributeIdAndLimitLoader(
             attribute_value_ids_to_fetch.update(id_list)
 
         def with_attribute_values(attribute_values: list[AttributeValue]):
-            attribute_value_map = {av.id: av for av in attribute_values}
+            # Tolerate values missing from the database, e.g. replica lag.
+            attribute_value_map = {av.pk: av for av in attribute_values if av}
             response_data: defaultdict[
                 tuple[PAGE_ID, ATTRIBUTE_ID, LIMIT], list[AttributeValue]
             ] = defaultdict(list)
@@ -700,7 +702,8 @@ class AttributeValuesByUserIdAndAttributeIdAndLimitLoader(
             attribute_value_ids_to_fetch.update(id_list)
 
         def with_attribute_values(attribute_values: list[AttributeValue]):
-            attribute_value_map = {av.id: av for av in attribute_values}
+            # Tolerate values missing from the database, e.g. replica lag.
+            attribute_value_map = {av.pk: av for av in attribute_values if av}
             response_data: defaultdict[
                 tuple[USER_ID, ATTRIBUTE_ID, LIMIT], list[AttributeValue]
             ] = defaultdict(list)
@@ -786,7 +789,8 @@ class AttributeValuesByVariantIdAndAttributeIdAndLimitLoader(
             attribute_value_ids_to_fetch.update(id_list)
 
         def with_attribute_values(attribute_values: list[AttributeValue]):
-            attribute_value_map = {av.id: av for av in attribute_values}
+            # Tolerate values missing from the database, e.g. replica lag.
+            attribute_value_map = {av.pk: av for av in attribute_values if av}
             response_data: defaultdict[
                 tuple[VARIANT_ID, ATTRIBUTE_ID, LIMIT], list[AttributeValue]
             ] = defaultdict(list)
