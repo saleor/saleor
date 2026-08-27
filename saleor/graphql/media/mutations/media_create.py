@@ -6,6 +6,9 @@ from ....product.error_codes import MediaCreateErrorCode
 from ....product.media import (
     GRAPHQL_TYPE_TO_OWNER_TYPE,
     OWNER_TYPE_TO_UPDATED_EVENT,
+    create_media_from_url,
+    probe_media_url,
+    validate_media_input,
 )
 from ....product.tasks import fetch_product_media_image_task
 from ....webhook.event_types import WebhookEventAsyncType
@@ -17,7 +20,6 @@ from ...core.utils import WebhookEventInfo
 from ...core.validators.file import clean_image_file
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Media
-from ..utils import probe_media_url, validate_media_input
 from .base import BaseMediaMutation
 
 
@@ -36,6 +38,7 @@ class MediaCreateInput(BaseInputObjectType):
     )
 
     class Meta:
+        description = "Fields required to create a media object." + ADDED_IN_324
         doc_category = DOC_CATEGORY_MEDIA
 
 
@@ -89,7 +92,7 @@ class MediaCreate(BaseMediaMutation):
                 {"input": ValidationError(error_message, code=error_code)}
             )
 
-        owner_type, owner = cls.get_owner(info, id, MediaCreateErrorCode)
+        owner_type, owner = cls.get_owner(id, MediaCreateErrorCode)
 
         if image:
             input["image"] = info.context.FILES.get(image)
@@ -101,19 +104,9 @@ class MediaCreate(BaseMediaMutation):
             # Remote URLs can point to images or to oEmbed data. Images are fetched
             # asynchronously by a task; for anything else only the URL is kept.
             probe_result = probe_media_url(media_url, MediaCreateErrorCode)
+            media = create_media_from_url(owner, media_url, alt, probe_result)
             if probe_result.is_image:
-                media = owner.media.create(
-                    external_url=media_url, alt=alt, type=ProductMediaTypes.IMAGE
-                )
                 fetch_product_media_image_task.delay(media.pk)
-            else:
-                oembed_data = probe_result.oembed_data
-                media = owner.media.create(
-                    external_url=oembed_data["url"],
-                    alt=oembed_data.get("title", alt),
-                    type=probe_result.media_type,
-                    oembed_data=oembed_data,
-                )
 
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(getattr(manager, OWNER_TYPE_TO_UPDATED_EVENT[owner_type]), owner)

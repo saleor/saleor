@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....product.error_codes import MediaUpdateErrorCode
 from ....product.media import (
+    ALT_CHAR_LIMIT,
     MEDIA_GRAPHQL_TYPE_TO_OWNER_TYPE,
     OWNER_TYPE_TO_UPDATED_EVENT,
 )
@@ -14,7 +15,6 @@ from ...core.types import BaseInputObjectType, MediaUpdateError
 from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Media
-from ..utils import ALT_CHAR_LIMIT
 from .base import BaseMediaMutation
 
 
@@ -24,6 +24,7 @@ class MediaUpdateInput(BaseInputObjectType):
     )
 
     class Meta:
+        description = "Fields required to update a media object." + ADDED_IN_324
         doc_category = DOC_CATEGORY_MEDIA
 
 

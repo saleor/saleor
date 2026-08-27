@@ -139,7 +139,7 @@ def test_product_media_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 @pytest.mark.vcr
 def test_product_media_create_mutation_with_media_url(
     mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
@@ -234,7 +234,7 @@ def test_product_media_create_mutation_with_both_url_and_image(
     assert errors[0]["field"] == "input"
 
 
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_media_create_mutation_with_unknown_url(
     mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
 ):
@@ -304,7 +304,7 @@ def test_invalid_product_media_create_mutation(
     assert product.media.count() == 0
 
 
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
     mock_HTTPClient, staff_api_client, product, permission_manage_products
 ):
@@ -400,7 +400,7 @@ def test_product_media_create_mutation_valid_image_file_is_fetched_once(
 @patch(
     "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
 )
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_media_create_mutation_with_no_extension_media_url(
     mock_HTTPClient,
     mock_fetch_product_media_image_task,
@@ -524,7 +524,7 @@ def test_product_media_create_when_alt_is_null(
 @patch(
     "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
 )
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_media_create_with_media_url_when_alt_is_null(
     mock_HTTPClient,
     mock_fetch_product_media_image_task,
@@ -570,7 +570,7 @@ def test_product_media_create_with_media_url_when_alt_is_null(
         InvalidSchema("No adapters found for url"),
     ],
 )
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_media_create_mutation_request_exception(
     mock_HTTPClient,
     exception,

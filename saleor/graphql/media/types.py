@@ -3,7 +3,7 @@ from graphene import relay
 from promise import Promise
 
 from ...core.utils import build_absolute_uri
-from ...product import ProductMediaTypes, models
+from ...product import MediaOwnerTypes, ProductMediaTypes, models
 from ...product.media import (
     OWNER_TYPE_TO_GRAPHQL_TYPE,
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
@@ -30,16 +30,20 @@ class Media(BaseInterface):
     id = graphene.ID(required=True, description="The unique ID of the media.")
     sort_order = graphene.Int(description="The sort order of the media.")
     alt = graphene.String(required=True, description="The alt text of the media.")
-    media_type = MediaType(required=True, description="The type of the media.")
+    media_type = MediaType(
+        required=True, description="The type of the media." + ADDED_IN_324
+    )
     oembed_data = JSONString(required=True, description="The oEmbed data of the media.")
     url = ThumbnailField(
         graphene.String, required=True, description="The URL of the media."
     )
     owner_type = MediaOwnerType(
-        required=True, description="The type of the entity the media belongs to."
+        required=True,
+        description="The type of the entity the media belongs to." + ADDED_IN_324,
     )
     owner_id = graphene.ID(
-        required=True, description="ID of the entity the media belongs to."
+        required=True,
+        description="ID of the entity the media belongs to." + ADDED_IN_324,
     )
 
     class Meta:
@@ -64,6 +68,23 @@ class MediaResolvers:
     resolves `url` under its own name.
     """
 
+    # Owner type this concrete media type is keyed to; set by every subclass.
+    owner_type: str
+
+    @classmethod
+    def get_node(cls, _, id) -> models.ProductMedia | None:
+        """Resolve only rows actually owned by this type's kind of owner.
+
+        Media of every owner shares one table and one PK sequence, so without this
+        filter a product media PK encoded as `PageMedia` would resolve - under the
+        wrong type, and behind the wrong permission.
+        """
+        return (
+            models.ProductMedia.objects.filter(pk=id)
+            .filter(**{f"{cls.owner_type}__isnull": False})
+            .first()
+        )
+
     @classmethod
     def resolve_url(
         cls,
@@ -85,7 +106,7 @@ class MediaResolvers:
         # original.
         if size == 0:
             return build_absolute_uri(
-                get_original_image_proxy_url(str(root.id), cls.__name__)
+                get_original_image_proxy_url(str(root.pk), cls.__name__)
             )
 
         # Else, return proxy URL for thumbnail.
@@ -94,13 +115,13 @@ class MediaResolvers:
 
         def _resolve_url(thumbnail) -> str:
             url = get_image_or_proxy_url(
-                thumbnail, str(root.id), cls.__name__, selected_size, format
+                thumbnail, str(root.pk), cls.__name__, selected_size, format
             )
             return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
-            .load((root.id, selected_size, format))
+            .load((root.pk, selected_size, format))
             .then(_resolve_url)
         )
 
@@ -139,13 +160,17 @@ class ProductMedia(MediaResolvers, ModelObjectType[models.ProductMedia]):
         interfaces = [Media, relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
 
+    owner_type = MediaOwnerTypes.PRODUCT
+
     @staticmethod
     def __resolve_references(roots: list["ProductMedia"], info):
         database_connection_name = get_database_connection_name(info.context)
         return resolve_federation_references(
             ProductMedia,
             roots,
-            models.ProductMedia.objects.using(database_connection_name),
+            models.ProductMedia.objects.using(database_connection_name).filter(
+                product__isnull=False
+            ),
         )
 
     @staticmethod
@@ -164,6 +189,8 @@ class CategoryMedia(MediaResolvers, ModelObjectType[models.ProductMedia]):
         interfaces = [Media, relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
 
+    owner_type = MediaOwnerTypes.CATEGORY
+
 
 class CollectionMedia(MediaResolvers, ModelObjectType[models.ProductMedia]):
     id = graphene.GlobalID(
@@ -176,6 +203,8 @@ class CollectionMedia(MediaResolvers, ModelObjectType[models.ProductMedia]):
         interfaces = [Media, relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
 
+    owner_type = MediaOwnerTypes.COLLECTION
+
 
 class PageMedia(MediaResolvers, ModelObjectType[models.ProductMedia]):
     id = graphene.GlobalID(
@@ -187,6 +216,8 @@ class PageMedia(MediaResolvers, ModelObjectType[models.ProductMedia]):
         doc_category = DOC_CATEGORY_MEDIA
         interfaces = [Media, relay.Node, ObjectWithMetadata]
         model = models.ProductMedia
+
+    owner_type = MediaOwnerTypes.PAGE
 
 
 MEDIA_TYPE_BY_OWNER_TYPE = {

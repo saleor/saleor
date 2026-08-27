@@ -51,7 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
-- Added a generic media gallery, available on `Product`, `Category`, `Collection` and `Page`:
+- Added a generic media gallery, available on `Product`, `Category`, `Collection` and `Page` - #19706 by @lkostrowski:
   - New `Media` interface, implemented by the concrete `ProductMedia`, `CategoryMedia`, `CollectionMedia` and `PageMedia` types. A media row belongs to exactly one entity, fixed at creation, and its global ID is typed after that owner.
   - New `Category.media`, `Collection.media` and `Page.media` fields. `Product.media` is unchanged and still returns `[ProductMedia!]`.
   - New `mediaCreate`, `mediaUpdate`, `mediaDelete` and `mediaReorder` mutations. They identify the target from the global ID alone and require `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
@@ -67,7 +67,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Webhooks
 
-- Added `MEDIA_CREATED`, `MEDIA_UPDATED` and `MEDIA_DELETED` webhook events, dispatched for media of every supported owner type. The `MediaCreated`, `MediaUpdated` and `MediaDeleted` subscription types expose both the `media` and its `owner`. The `mediaCreated`, `mediaUpdated` and `mediaDeleted` subscription fields accept an `ownerTypes` argument to narrow deliveries to specific owner types; omitting it receives every owner type. Each delivery is authorized against the owner's permission, so an app holding only `MANAGE_PAGES` receives page media and nothing else. These events are not dispatched when media is removed as a side effect of deleting its owner.
+- Added `MEDIA_CREATED`, `MEDIA_UPDATED` and `MEDIA_DELETED` webhook events, dispatched for media of every supported owner type. The `MediaCreated`, `MediaUpdated` and `MediaDeleted` subscription types expose both the `media` and its `owner`. The `mediaCreated`, `mediaUpdated` and `mediaDeleted` subscription fields accept an `ownerTypes` argument to narrow deliveries to specific owner types; omitting it receives every owner type. Each delivery is authorized against the owner's permission, so an app holding only `MANAGE_PAGES` receives page media and nothing else. These events are not dispatched when media is removed as a side effect of deleting its owner - #19706 by @lkostrowski
 - Added `PRODUCT_TYPE_CREATED`, `PRODUCT_TYPE_UPDATED`, and `PRODUCT_TYPE_DELETED` webhook events, dispatched when a product type is created, updated, or deleted - #17574 by @ayesha-waris
 
 ### Other changes

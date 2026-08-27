@@ -4,12 +4,12 @@ from django.core.exceptions import ValidationError
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
+from .....product.media import ALT_CHAR_LIMIT
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError
-from ....media.utils import ALT_CHAR_LIMIT
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 

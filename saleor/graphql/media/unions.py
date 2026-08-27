@@ -4,6 +4,7 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ..core import ResolveInfo
 from ..core.context import ChannelContext
+from ..core.descriptions import ADDED_IN_324
 from ..page.types import Page
 from ..product.types import Category, Collection, Product
 
@@ -13,7 +14,7 @@ from ..product.types import Category, Collection, Product
 
 class MediaOwner(graphene.Union):
     class Meta:
-        description = "The entity a media object belongs to."
+        description = "The entity a media object belongs to." + ADDED_IN_324
         types = (Product, Category, Collection, Page)
 
     @classmethod

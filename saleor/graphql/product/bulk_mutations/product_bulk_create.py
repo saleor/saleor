@@ -16,6 +16,7 @@ from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_a
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
+from ....product.media import probe_media_url, validate_media_input
 from ....product.models import CollectionProduct
 from ....product.tasks import fetch_product_media_image_task
 from ....warehouse.models import Warehouse
@@ -41,7 +42,6 @@ from ...core.types import (
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
 from ...core.validators.file import clean_image_file
-from ...media.utils import probe_media_url, validate_media_input
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput

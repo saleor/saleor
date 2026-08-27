@@ -5,6 +5,7 @@ import graphene
 import pytest
 
 from ....graphql.tests.utils import get_graphql_content
+from ....plugins.manager import get_plugins_manager
 from ....product import MediaOwnerTypes
 from ....product.media import (
     MEDIA_OWNER_PERMISSION_MAP,
@@ -250,8 +251,6 @@ def test_dispatch_skips_apps_without_the_owner_permission(
     _create_webhook(media_webhook_app, MEDIA_CREATED_SUBSCRIPTION)
     page_media = page.media.create(alt="page media")
     product_media = product.media.create(alt="product media")
-
-    from ....plugins.manager import get_plugins_manager
 
     manager = get_plugins_manager(allow_replica=False)
 

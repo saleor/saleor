@@ -3,6 +3,7 @@ import pytest
 
 from .....graphql.tests.utils import get_graphql_content
 from .....product import MediaOwnerTypes, ProductMediaTypes
+from .....product.error_codes import ProductErrorCode
 from .....product.media import OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE
 
 OWNER_MEDIA_QUERIES = {
@@ -189,3 +190,52 @@ def test_media_interface_fragment_matches_page_media(
     assert media_data[0]["id"] == graphene.Node.to_global_id("PageMedia", media.pk)
     assert media_data[0]["ownerType"] == MediaOwnerTypes.PAGE.upper()
     assert media_data[0]["metadata"] == [{"key": "key", "value": "value"}]
+
+
+PRODUCT_MEDIA_DELETE_MUTATION = """
+    mutation ($id: ID!) {
+        productMediaDelete(id: $id) {
+            media { id }
+            errors { field code message }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "owner_type",
+    [
+        owner_type
+        for owner_type in MediaOwnerTypes.ALL
+        if owner_type != MediaOwnerTypes.PRODUCT
+    ],
+)
+def test_product_media_lookup_rejects_media_of_another_owner(
+    owner_type,
+    media_owner,
+    staff_api_client,
+    permission_manage_products,
+):
+    """A non-product media PK typed as `ProductMedia` must not resolve.
+
+    Media of every owner shares one table and one PK sequence, so without an
+    owner filter `MANAGE_PRODUCTS` alone would reach a page's or category's media.
+    """
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    media = media_owner.media.create(alt="not a product media")
+    mistyped_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_DELETE_MUTATION, {"id": mistyped_id}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productMediaDelete"]
+    assert data["media"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["field"] == "id"
+    assert media_owner.media.filter(pk=media.pk).exists() is True

@@ -1301,7 +1301,7 @@ def generate_thumbnail_payload(thumbnail: Thumbnail):
 @allow_writer()
 @traced_payload_generator
 def generate_product_media_payload(media: ProductMedia):
-    product_media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    product_media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
     return json.dumps({"id": product_media_id})
 
 
@@ -1316,7 +1316,7 @@ def generate_media_payload(media: ProductMedia):
         OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type] if owner_type else "ProductMedia"
     )
     payload = {
-        "id": graphene.Node.to_global_id(media_type_name, media.id),
+        "id": graphene.Node.to_global_id(media_type_name, media.pk),
         "owner_type": owner_type,
         "owner_id": (
             graphene.Node.to_global_id(

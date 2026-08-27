@@ -2083,13 +2083,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_TYPE_DELETED
 
   """A new product media is created."""
-  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_CREATED @deprecated(reason: "Use `MEDIA_CREATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is updated."""
-  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_UPDATED @deprecated(reason: "Use `MEDIA_UPDATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is deleted."""
-  PRODUCT_MEDIA_DELETED
+  PRODUCT_MEDIA_DELETED @deprecated(reason: "Use `MEDIA_DELETED` instead - it covers media of every owner type, not only products.")
   MEDIA_CREATED
   MEDIA_UPDATED
   MEDIA_DELETED
@@ -2710,13 +2710,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   PRODUCT_TYPE_DELETED
 
   """A new product media is created."""
-  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_CREATED @deprecated(reason: "Use `MEDIA_CREATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is updated."""
-  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_UPDATED @deprecated(reason: "Use `MEDIA_UPDATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is deleted."""
-  PRODUCT_MEDIA_DELETED
+  PRODUCT_MEDIA_DELETED @deprecated(reason: "Use `MEDIA_DELETED` instead - it covers media of every owner type, not only products.")
   MEDIA_CREATED
   MEDIA_UPDATED
   MEDIA_DELETED
@@ -4887,7 +4887,11 @@ type CategoryMedia implements Media & Node & ObjectWithMetadata @doc(category: "
   """The alt text of the media."""
   alt: String!
 
-  """The type of the media."""
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
   mediaType: MediaType!
 
   """The oEmbed data of the media."""
@@ -4906,10 +4910,18 @@ type CategoryMedia implements Media & Node & ObjectWithMetadata @doc(category: "
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
-  """The type of the entity the media belongs to."""
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerType: MediaOwnerType!
 
-  """ID of the entity the media belongs to."""
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerId: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -4960,7 +4972,11 @@ interface Media @doc(category: "Media") {
   """The alt text of the media."""
   alt: String!
 
-  """The type of the media."""
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
   mediaType: MediaType!
 
   """The oEmbed data of the media."""
@@ -4979,18 +4995,36 @@ interface Media @doc(category: "Media") {
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
-  """The type of the entity the media belongs to."""
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerType: MediaOwnerType!
 
-  """ID of the entity the media belongs to."""
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerId: ID!
 }
 
+"""
+The kind of content a media item holds.
+
+Added in Saleor 3.24.
+"""
 enum MediaType @doc(category: "Media") {
   IMAGE
   VIDEO
 }
 
+"""
+The kind of entity a media item belongs to.
+
+Added in Saleor 3.24.
+"""
 enum MediaOwnerType @doc(category: "Media") {
   PRODUCT
   CATEGORY
@@ -9862,7 +9896,11 @@ type ProductMedia implements Media & Node & ObjectWithMetadata @doc(category: "P
   """The alt text of the media."""
   alt: String!
 
-  """The type of the media."""
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
   mediaType: MediaType!
 
   """The oEmbed data of the media."""
@@ -9881,10 +9919,18 @@ type ProductMedia implements Media & Node & ObjectWithMetadata @doc(category: "P
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
-  """The type of the entity the media belongs to."""
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerType: MediaOwnerType!
 
-  """ID of the entity the media belongs to."""
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerId: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -10320,7 +10366,11 @@ type CollectionMedia implements Media & Node & ObjectWithMetadata @doc(category:
   """The alt text of the media."""
   alt: String!
 
-  """The type of the media."""
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
   mediaType: MediaType!
 
   """The oEmbed data of the media."""
@@ -10339,10 +10389,18 @@ type CollectionMedia implements Media & Node & ObjectWithMetadata @doc(category:
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
-  """The type of the entity the media belongs to."""
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerType: MediaOwnerType!
 
-  """ID of the entity the media belongs to."""
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerId: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -12907,7 +12965,11 @@ type PageMedia implements Media & Node & ObjectWithMetadata @doc(category: "Medi
   """The alt text of the media."""
   alt: String!
 
-  """The type of the media."""
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
   mediaType: MediaType!
 
   """The oEmbed data of the media."""
@@ -12926,10 +12988,18 @@ type PageMedia implements Media & Node & ObjectWithMetadata @doc(category: "Medi
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
-  """The type of the entity the media belongs to."""
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerType: MediaOwnerType!
 
-  """ID of the entity the media belongs to."""
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
   ownerId: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -14606,9 +14676,9 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_TYPE_CREATED
   PRODUCT_TYPE_UPDATED
   PRODUCT_TYPE_DELETED
-  PRODUCT_MEDIA_CREATED
-  PRODUCT_MEDIA_UPDATED
-  PRODUCT_MEDIA_DELETED
+  PRODUCT_MEDIA_CREATED @deprecated(reason: "Use `MEDIA_CREATED` instead - it covers media of every owner type, not only products.")
+  PRODUCT_MEDIA_UPDATED @deprecated(reason: "Use `MEDIA_UPDATED` instead - it covers media of every owner type, not only products.")
+  PRODUCT_MEDIA_DELETED @deprecated(reason: "Use `MEDIA_DELETED` instead - it covers media of every owner type, not only products.")
   MEDIA_CREATED
   MEDIA_UPDATED
   MEDIA_DELETED
@@ -29453,6 +29523,11 @@ enum MediaCreateErrorCode @doc(category: "Media") {
   UNSUPPORTED_MIME_TYPE
 }
 
+"""
+Fields required to create a media object.
+
+Added in Saleor 3.24.
+"""
 input MediaCreateInput @doc(category: "Media") {
   """Alt text for the media."""
   alt: String
@@ -29502,6 +29577,11 @@ enum MediaUpdateErrorCode @doc(category: "Media") {
   REQUIRED
 }
 
+"""
+Fields required to update a media object.
+
+Added in Saleor 3.24.
+"""
 input MediaUpdateInput @doc(category: "Media") {
   """Alt text for the media. Maximum 250 characters."""
   alt: String
@@ -29569,6 +29649,7 @@ type MediaReorderError @doc(category: "Media") {
 }
 
 enum MediaReorderErrorCode @doc(category: "Media") {
+  DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -35153,7 +35234,11 @@ type MediaCreated implements Event @doc(category: "Media") {
   owner: MediaOwner
 }
 
-"""The entity a media object belongs to."""
+"""
+The entity a media object belongs to.
+
+Added in Saleor 3.24.
+"""
 union MediaOwner = Product | Category | Collection | Page
 
 """

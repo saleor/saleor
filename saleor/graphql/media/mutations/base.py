@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
 
@@ -9,7 +11,6 @@ from ....product.media import (
     MEDIA_OWNER_PERMISSION_MAP,
     OWNER_TYPE_TO_MODEL,
 )
-from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 
@@ -27,6 +28,14 @@ def _owner_type_from_global_id(
     return type_to_owner_type.get(type_name)
 
 
+# Every permission a media mutation can end up requiring. The effective one is
+# narrowed per request in `check_permissions`; this superset is what a denial
+# reports back to the client.
+MEDIA_PERMISSIONS: tuple[BasePermissionEnum, ...] = tuple(
+    dict.fromkeys(MEDIA_OWNER_PERMISSION_MAP.values())
+)
+
+
 class BaseMediaMutation(BaseMutation):
     """Resolve the required permission from the owner encoded in the global ID.
 
@@ -40,6 +49,14 @@ class BaseMediaMutation(BaseMutation):
 
     # Maps the GraphQL type name in the `id` argument to a media owner type.
     id_type_to_owner_type: dict[str, str] = {}
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, **options: Any):  # type: ignore[override]
+        # The generated "requires one of" sentence would read as if either
+        # permission unlocks any owner; each mutation spells out the real rule.
+        options.setdefault("auto_permission_message", False)
+        options.setdefault("permissions", MEDIA_PERMISSIONS)
+        super().__init_subclass_with_meta__(**options)
 
     @classmethod
     def get_owner_type(cls, data: dict) -> str | None:
@@ -61,7 +78,7 @@ class BaseMediaMutation(BaseMutation):
         )
 
     @classmethod
-    def get_owner(cls, info: ResolveInfo, owner_id: str, error_code_enum):
+    def get_owner(cls, owner_id: str, error_code_enum):
         """Resolve the owner entity from its global ID."""
         owner_type = _owner_type_from_global_id(owner_id, GRAPHQL_TYPE_TO_OWNER_TYPE)
         if owner_type is None:
@@ -90,17 +107,17 @@ class BaseMediaMutation(BaseMutation):
         return owner_type, owner
 
     @classmethod
-    def get_media(
-        cls, media_id: str, error_code_enum
-    ) -> tuple[str, models.ProductMedia]:
-        """Resolve a media row and its owner type from an owner-typed global ID."""
+    def split_media_id(
+        cls, media_id: str, error_code_enum, field: str = "id"
+    ) -> tuple[str, str]:
+        """Split an owner-typed media global ID into its owner type and PK."""
         owner_type = _owner_type_from_global_id(
             media_id, MEDIA_GRAPHQL_TYPE_TO_OWNER_TYPE
         )
         if owner_type is None:
             raise ValidationError(
                 {
-                    "id": ValidationError(
+                    field: ValidationError(
                         "Expected a ProductMedia, CategoryMedia, CollectionMedia "
                         "or PageMedia ID.",
                         code=error_code_enum.INVALID.value,
@@ -108,9 +125,17 @@ class BaseMediaMutation(BaseMutation):
                 }
             )
         _, media_pk = from_global_id_or_error(media_id)
+        return owner_type, media_pk
+
+    @classmethod
+    def get_media(
+        cls, media_id: str, error_code_enum
+    ) -> tuple[str, models.ProductMedia]:
+        """Resolve a media row and its owner type from an owner-typed global ID."""
+        owner_type, media_pk = cls.split_media_id(media_id, error_code_enum)
         media = (
             models.ProductMedia.objects.filter(pk=media_pk)
-            .exclude(**{f"{owner_type}_id": None})
+            .filter(**{f"{owner_type}__isnull": False})
             .first()
         )
         if media is None:

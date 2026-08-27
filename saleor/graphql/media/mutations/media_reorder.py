@@ -5,6 +5,7 @@ from ....product.error_codes import MediaReorderErrorCode
 from ....product.media import (
     GRAPHQL_TYPE_TO_OWNER_TYPE,
     OWNER_TYPE_TO_UPDATED_EVENT,
+    update_media_order,
 )
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_324
@@ -12,7 +13,6 @@ from ...core.doc_category import DOC_CATEGORY_MEDIA
 from ...core.types import MediaReorderError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Media
-from ..utils import update_ordered_media
 from .base import BaseMediaMutation
 
 MEDIA_IDS_LIMIT = 100
@@ -63,9 +63,22 @@ class MediaReorder(BaseMediaMutation):
                 }
             )
 
-        owner_type, owner = cls.get_owner(info, id, MediaReorderErrorCode)
+        if len(set(media_ids)) != len(media_ids):
+            raise ValidationError(
+                {
+                    "media_ids": ValidationError(
+                        "Duplicate media IDs provided.",
+                        code=MediaReorderErrorCode.DUPLICATED_INPUT_ITEM.value,
+                    )
+                }
+            )
 
-        if len(media_ids) != owner.media.count():
+        owner_type, owner = cls.get_owner(id, MediaReorderErrorCode)
+
+        # The whole gallery is fetched once and matched in memory, so the query
+        # count does not grow with the number of media reordered.
+        gallery = {str(media.pk): media for media in owner.media.all()}
+        if len(media_ids) != len(gallery):
             raise ValidationError(
                 {
                     "media_ids": ValidationError(
@@ -77,8 +90,11 @@ class MediaReorder(BaseMediaMutation):
 
         ordered_media = []
         for media_id in media_ids:
-            _, media = cls.get_media(media_id, MediaReorderErrorCode)
-            if getattr(media, f"{owner_type}_id") != owner.pk:
+            media_owner_type, media_pk = cls.split_media_id(
+                media_id, MediaReorderErrorCode, field="media_ids"
+            )
+            media = gallery.get(media_pk) if media_owner_type == owner_type else None
+            if media is None:
                 raise ValidationError(
                     {
                         "media_ids": ValidationError(
@@ -90,7 +106,7 @@ class MediaReorder(BaseMediaMutation):
                 )
             ordered_media.append(media)
 
-        update_ordered_media(ordered_media, MediaReorderErrorCode)
+        update_media_order(ordered_media, MediaReorderErrorCode)
 
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(getattr(manager, OWNER_TYPE_TO_UPDATED_EVENT[owner_type]), owner)

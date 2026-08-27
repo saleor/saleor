@@ -241,3 +241,79 @@ def test_reorder_authorization(
         assert first.sort_order == 0
         assert second.sort_order == 1
         mock_product_updated.assert_not_called()
+
+
+def test_reorder_rejects_duplicated_media_ids(
+    staff_api_client, page, permission_manage_pages
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    first = page.media.create(alt="first", sort_order=0)
+    second = page.media.create(alt="second", sort_order=1)
+    first_id = _media_global_id(MediaOwnerTypes.PAGE, first)
+    variables = {
+        "id": _owner_global_id(MediaOwnerTypes.PAGE, page),
+        "mediaIds": [first_id, first_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(MEDIA_REORDER_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["mediaReorder"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MediaReorderErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert errors[0]["field"] == "mediaIds"
+    assert errors[0]["message"] == "Duplicate media IDs provided."
+    first.refresh_from_db(fields=("sort_order",))
+    second.refresh_from_db(fields=("sort_order",))
+    assert first.sort_order == 0
+    assert second.sort_order == 1
+
+
+def test_reorder_rejects_media_id_typed_after_another_owner(
+    staff_api_client, page, permission_manage_pages
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    media = page.media.create(alt="only", sort_order=0)
+    mistyped_id = _media_global_id(MediaOwnerTypes.PRODUCT, media)
+    variables = {
+        "id": _owner_global_id(MediaOwnerTypes.PAGE, page),
+        "mediaIds": [mistyped_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(MEDIA_REORDER_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["mediaReorder"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MediaReorderErrorCode.NOT_MEDIA_OWNER.name
+    assert errors[0]["field"] == "mediaIds"
+
+
+def test_reorder_locks_rows_before_write(
+    staff_api_client, page, permission_manage_pages, assert_locks_rows_before_write
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    first = page.media.create(alt="first", sort_order=0)
+    second = page.media.create(alt="second", sort_order=1)
+    variables = {
+        "id": _owner_global_id(MediaOwnerTypes.PAGE, page),
+        "mediaIds": [
+            _media_global_id(MediaOwnerTypes.PAGE, second),
+            _media_global_id(MediaOwnerTypes.PAGE, first),
+        ],
+    }
+
+    # when
+    with assert_locks_rows_before_write():
+        response = staff_api_client.post_graphql(MEDIA_REORDER_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["mediaReorder"]["errors"] == []

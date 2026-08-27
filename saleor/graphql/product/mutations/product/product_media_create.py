@@ -4,6 +4,11 @@ from django.core.exceptions import ValidationError
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
+from .....product.media import (
+    create_media_from_url,
+    probe_media_url,
+    validate_media_input,
+)
 from .....product.tasks import fetch_product_media_image_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
@@ -11,7 +16,6 @@ from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
 from ....core.validators.file import clean_image_file
-from ....media.utils import probe_media_url, validate_media_input
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 
@@ -106,21 +110,9 @@ class ProductMediaCreate(BaseMutation):
             # In case of images, the image is fetched asynchronously by a task.
             # Otherwise we keep only URL to remote media.
             probe_result = probe_media_url(media_url, ProductErrorCode)
+            media = create_media_from_url(product, media_url, alt, probe_result)
             if probe_result.is_image:
-                media = product.media.create(
-                    external_url=media_url,
-                    alt=alt,
-                    type=ProductMediaTypes.IMAGE,
-                )
                 fetch_product_media_image_task.delay(media.pk)
-            else:
-                oembed_data = probe_result.oembed_data
-                media = product.media.create(
-                    external_url=oembed_data["url"],
-                    alt=oembed_data.get("title", alt),
-                    type=probe_result.media_type,
-                    oembed_data=oembed_data,
-                )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         cls.call_event(manager.product_media_created, media)

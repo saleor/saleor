@@ -96,7 +96,7 @@ def test_create_with_image_upload(
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
 @patch("saleor.product.tasks.fetch_product_media_image_task.delay")
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_create_with_remote_image_url(
     mock_http_client,
     mock_fetch_task,
@@ -138,8 +138,8 @@ def test_create_with_remote_image_url(
 
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
-@patch("saleor.graphql.media.utils.get_oembed_data")
-@patch("saleor.graphql.media.utils.HTTPClient")
+@patch("saleor.product.media.get_oembed_data")
+@patch("saleor.product.media.HTTPClient")
 def test_create_with_oembed_url(
     mock_http_client,
     mock_get_oembed_data,
@@ -224,15 +224,30 @@ def test_create_triggers_owner_and_media_events(
 
 
 @pytest.mark.parametrize(
-    ("_case", "media_url", "alt", "expected_code", "expected_field"),
+    (
+        "_case",
+        "media_url",
+        "alt",
+        "expected_code",
+        "expected_field",
+        "expected_message",
+    ),
     [
-        ("no image and no url", None, "", MediaCreateErrorCode.REQUIRED.name, "input"),
+        (
+            "no image and no url",
+            None,
+            "",
+            MediaCreateErrorCode.REQUIRED.name,
+            "input",
+            "Image or external URL is required.",
+        ),
         (
             "alt too long",
             "https://images.example.com/photo.jpg",
             "a" * 251,
             MediaCreateErrorCode.INVALID.name,
             "input",
+            "Alt field exceeds the character limit of 250.",
         ),
     ],
 )
@@ -242,6 +257,7 @@ def test_create_input_validation(
     alt,
     expected_code,
     expected_field,
+    expected_message,
     staff_api_client,
     page,
     permission_manage_pages,
@@ -264,6 +280,7 @@ def test_create_input_validation(
     assert len(errors) == 1
     assert errors[0]["code"] == expected_code
     assert errors[0]["field"] == expected_field
+    assert errors[0]["message"] == expected_message
     assert ProductMedia.objects.exists() is False
 
 
