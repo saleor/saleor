@@ -610,7 +610,7 @@ def test_handle_thumbnail_view_image_exceeds_pixel_limit(
     # Pillow only raises above *twice* `MAX_IMAGE_PIXELS`, so 0 rejects any image and
     # the tiny fixture image trips the same check a real oversized image would. The
     # `settings` fixture cannot be used here: `settings.MAX_IMAGE_PIXELS` is applied to
-    # `PIL.Image.MAX_IMAGE_PIXELS` once at settings-import time.
+    # `PIL.Image.MAX_IMAGE_PIXELS` once at app startup.
     image_name = category_with_image.background_image.name
     with Image.open(category_with_image.background_image) as stored_image:
         width, height = stored_image.size

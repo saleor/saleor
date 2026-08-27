@@ -92,7 +92,7 @@ def test_clean_image_file_pixel_count_exceeds_limit(monkeypatch, caplog):
     # Pillow only raises above *twice* `MAX_IMAGE_PIXELS`, so 0 rejects any image and a
     # tiny image trips the same check a real oversized image would. The `settings`
     # fixture cannot be used here: `settings.MAX_IMAGE_PIXELS` is applied to
-    # `PIL.Image.MAX_IMAGE_PIXELS` once at settings-import time.
+    # `PIL.Image.MAX_IMAGE_PIXELS` once at app startup.
     pillow_limit = 0
     monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", pillow_limit)
     caplog.set_level(logging.WARNING)
@@ -114,9 +114,10 @@ def test_clean_image_file_pixel_count_exceeds_limit(monkeypatch, caplog):
         f"{2 * pillow_limit} pixels, could be decompression bomb DOS attack."
     )
     assert exc.value.args[0][field].code == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED
+    # the Pillow message must not leak to the user; it is only logged
     assert exc.value.args[0][field].message == (
         "Image exceeds the maximum allowed number of pixels of "
-        f"{settings.MAX_IMAGE_PIXELS}: {pillow_error}"
+        f"{settings.MAX_IMAGE_PIXELS}."
     )
     # the rejection must be traceable back to the file that caused it
     assert len(caplog.records) == 1

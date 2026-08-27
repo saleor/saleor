@@ -121,7 +121,7 @@ def test_product_media_create_mutation_pixel_count_exceeds_limit(
 ):
     # given
     # `settings.MAX_IMAGE_PIXELS` is applied to `PIL.Image.MAX_IMAGE_PIXELS` once at
-    # settings-import time, so patch Pillow directly; 0 rejects any image.
+    # app startup, so patch Pillow directly; 0 rejects any image.
     monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 0)
     staff_api_client.user.user_permissions.add(permission_manage_products)
     image_file, image_name = create_image()
@@ -145,8 +145,7 @@ def test_product_media_create_mutation_pixel_count_exceeds_limit(
     assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert errors[0]["message"] == (
         "Image exceeds the maximum allowed number of pixels of "
-        f"{settings.MAX_IMAGE_PIXELS}: Image size (1 pixels) exceeds limit of "
-        "0 pixels, could be decompression bomb DOS attack."
+        f"{settings.MAX_IMAGE_PIXELS}."
     )
     assert product.media.exists() is False
 

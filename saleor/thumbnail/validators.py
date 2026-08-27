@@ -69,8 +69,7 @@ def validate_icon_image(image_file, error_code: str):
             extra={"image_source": image_source, "pillow_error": str(e)},
         )
         raise ValidationError(
-            "Invalid file. The image exceeds the maximum allowed number of pixels: "
-            f"{e}",
+            "Invalid file. The image exceeds the maximum allowed number of pixels",
             code=error_code,
         ) from e
     except (

@@ -143,7 +143,7 @@ def clean_image_file(cleaned_input, img_field_name, error_class):
             {
                 img_field_name: ValidationError(
                     "Image exceeds the maximum allowed number of pixels of "
-                    f"{settings.MAX_IMAGE_PIXELS}: {e}",
+                    f"{settings.MAX_IMAGE_PIXELS}.",
                     code=error_class.FILE_SIZE_LIMIT_EXCEEDED,
                 )
             }
