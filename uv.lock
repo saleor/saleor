@@ -202,11 +202,14 @@ wheels = [
 
 [[package]]
 name = "beautifultable"
-version = "0.7.0"
+version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fa/60/c7274427e65f2beb3da102bf189effff6a34d5e958fa2c48544d6b384094/beautifultable-0.7.0.tar.gz", hash = "sha256:8deee768c7939578412f930c95c2ac51307fb723a6368e9e233091cdad240537", size = 20262, upload-time = "2019-01-19T09:18:02.609Z" }
+dependencies = [
+    { name = "wcwidth" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/a6/8aa4b731d0d53bd375411cb846e938028d7dda234d4966324d2e8f240588/beautifultable-1.1.0.tar.gz", hash = "sha256:040bc987444965678f4ffdfa2f17ac357f1a13e5875b161c9a1899b375319d17", size = 40190, upload-time = "2022-05-06T17:20:59.879Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/40/0e/1ef87ba3851bae0c6e8dea2338f5d8952c87f3b4dcbdaaeedffeb3ab2139/beautifultable-0.7.0-py2.py3-none-any.whl", hash = "sha256:f1185c5bbb2d522a9c7dfe24cc55151f32379031d001c9731a2b55714b927089", size = 22176, upload-time = "2019-01-19T09:18:00.986Z" },
+    { url = "https://files.pythonhosted.org/packages/85/47/b6a0dcf1b55866e27492a59c250a8bc36cd4bdb95c2ecc76878cf18a21b8/beautifultable-1.1.0-py2.py3-none-any.whl", hash = "sha256:b34053a581976c4c23064bb0e918a7f6f22273cf196c787946db323a6a2b7d84", size = 28630, upload-time = "2022-05-06T17:20:58.125Z" },
 ]
 
 [[package]]
@@ -2151,7 +2154,7 @@ wheels = [
 
 [[package]]
 name = "pytest-django-queries"
-version = "1.2.0"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beautifultable" },
@@ -2161,7 +2164,10 @@ dependencies = [
     { name = "jinja2" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/d2/8d07b2319c06b00e4bd0e164b56cbb12167121a9bd0d7610fb5a54a04264/pytest-django-queries-1.2.0.tar.gz", hash = "sha256:7d683d06af711c4f3ac049b3a7035070ce3888a3575ce8ae4b8a41b7b7869f1c", size = 14670, upload-time = "2021-03-01T11:02:12.118Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e1/3e/757ebe8af2282c9a504a191cdcfb359ee47ddd905c18b431a14c4b3339a0/pytest_django_queries-1.3.0.tar.gz", hash = "sha256:43e18574bb4cfacb65443f30b75ab085c5702afd9d2214f794451c4aa579edcd", size = 10164, upload-time = "2026-03-01T20:36:19.36Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8a/af/1712685a320fa2f32948e45cf1a82b2c91d3ef7166cfc1219b7c323c68c3/pytest_django_queries-1.3.0-py3-none-any.whl", hash = "sha256:a6be143e758e52689170319151dd1f0a4c6f518601bb1c9490b2590e3c876a4d", size = 12651, upload-time = "2026-03-01T20:36:17.846Z" },
+]
 
 [[package]]
 name = "pytest-docker-tools"
@@ -2672,7 +2678,7 @@ dev = [
     { name = "pytest-celery", specifier = ">=1.0.1,<2" },
     { name = "pytest-cov", specifier = ">=7.1.0,<8" },
     { name = "pytest-django", specifier = "==4.12.0" },
-    { name = "pytest-django-queries", specifier = ">=1.2,<1.3" },
+    { name = "pytest-django-queries", specifier = ">=1.3.0,<1.4" },
     { name = "pytest-memray", specifier = ">=1.9.0,<2" },
     { name = "pytest-mock", specifier = ">=3.6.1,<4" },
     { name = "pytest-recording", specifier = ">=0.13.0,<0.14" },
