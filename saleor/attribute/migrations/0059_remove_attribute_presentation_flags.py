@@ -5,8 +5,10 @@ class Migration(migrations.Migration):
     """De-register the attribute presentation flags from the ORM.
 
     The columns stay in the database so pods still running the previous version keep
-    working during a rolling deploy; they are made nullable so the new ORM, which no
-    longer knows them, can insert rows.
+    working during a rolling deploy. They keep their NOT NULL constraint and gain a
+    `db_default`, so the new ORM, which no longer knows them, can insert rows without
+    the old pods ever reading a NULL through the deprecated GraphQL fields, which are
+    still non-nullable there.
 
     TODO: drop the columns in 3.25, once no process runs the version that still
     writes them.
@@ -26,22 +28,28 @@ class Migration(migrations.Migration):
                 migrations.AlterField(
                     model_name="attribute",
                     name="filterable_in_storefront",
-                    field=models.BooleanField(blank=True, null=True),
+                    field=models.BooleanField(
+                        blank=True, default=False, db_default=False
+                    ),
                 ),
                 migrations.AlterField(
                     model_name="attribute",
                     name="filterable_in_dashboard",
-                    field=models.BooleanField(blank=True, null=True),
+                    field=models.BooleanField(
+                        blank=True, default=False, db_default=False
+                    ),
                 ),
                 migrations.AlterField(
                     model_name="attribute",
                     name="available_in_grid",
-                    field=models.BooleanField(blank=True, null=True),
+                    field=models.BooleanField(
+                        blank=True, default=False, db_default=False
+                    ),
                 ),
                 migrations.AlterField(
                     model_name="attribute",
                     name="storefront_search_position",
-                    field=models.IntegerField(blank=True, null=True),
+                    field=models.IntegerField(blank=True, default=0, db_default=0),
                 ),
             ],
             state_operations=[
