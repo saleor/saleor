@@ -456,15 +456,10 @@ def fetch_product_media_image_task(product_media_id: int):
                 "Image fetched for product media %s was rejected: %s",
                 product_media.pk,
                 error,
-                extra={
-                    "image_source": sanitize_url_for_logging(
-                        product_media.external_url
-                    ),
-                    "object_type": "ProductMedia",
-                    "object_pk": product_media.pk,
-                    "file_error": str(error),
-                },
             )
+            # NOTE: we do not wish to retry on this error hence why this exception
+            #       isn't listed in `app.task(autoretry_for=...)` as this is a
+            #       permanent error which will never be fixed upon retrying.
             raise
 
     validate_image_mime_type(image)

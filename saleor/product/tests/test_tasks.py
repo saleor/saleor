@@ -11,7 +11,6 @@ from faker import Faker
 from PIL import Image
 from requests.exceptions import HTTPError, InvalidSchema, RequestException
 
-from ...core.utils.url import sanitize_url_for_logging
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
 from ...thumbnail.exceptions import ImageTooLargeError
@@ -32,6 +31,15 @@ from ..tasks import (
     update_variants_names,
 )
 from ..utils.variants import fetch_variants_for_promotion_rules
+
+
+def _create_1px_image() -> bytes:
+    image_buffer = BytesIO()
+    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
+    return image_buffer.getvalue()
+
+
+IMAGE_1PX = _create_1px_image()
 
 
 @contextmanager
@@ -73,12 +81,6 @@ def assert_product_media_fetch_rejected(caplog, product_media, expected_error):
         f"Image fetched for product media {product_media.pk} was rejected: "
         f"{expected_error}"
     )
-    assert rejection_record.image_source == sanitize_url_for_logging(
-        product_media.external_url
-    )
-    assert rejection_record.object_type == "ProductMedia"
-    assert rejection_record.object_pk == product_media.pk
-    assert rejection_record.file_error == expected_error
 
     # Clean-up log
     assert failure_record.levelno == logging.WARNING
@@ -485,13 +487,9 @@ def test_fetch_product_media_image_success(
     assert product_media.external_url
     assert not product_media.image
 
-    image_buffer = BytesIO()
-    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
-    image_bytes = image_buffer.getvalue()
-
     # when
     with mock_http_response_for_product_task(
-        status_code=200, content_type="image/jpeg", content=image_bytes
+        status_code=200, content_type="image/jpeg", content=IMAGE_1PX
     ):
         fetch_product_media_image_task.apply(args=(product_media.pk,))
 
@@ -510,14 +508,11 @@ def test_fetch_product_media_image_pixel_count_exceeds_limit_sanitizes_url(
     product_media.external_url = "https://username:password@example.com/image.jpg"
     product_media.save(update_fields=("external_url",))
     pillow_error = "Image exceeds the pixel limit."
-    image_buffer = BytesIO()
-    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
-    image_bytes = image_buffer.getvalue()
 
     # when
     with (
         mock_http_response_for_product_task(
-            status_code=200, content_type="image/jpeg", content=image_bytes
+            status_code=200, content_type="image/jpeg", content=IMAGE_1PX
         ),
         patch(
             "saleor.product.tasks.validate_image_exif",
@@ -574,6 +569,7 @@ def test_fetch_product_media_image_declared_file_size_exceeds_limit(
     ("_case", "content_length"),
     [
         ("missing", None),
+        ("negative", "-1"),  # advertized content-length is invalid
         ("understated", "1"),  # advertized content-length is spoofed or wrong
     ],
 )
@@ -606,6 +602,59 @@ def test_fetch_product_media_image_streamed_file_size_exceeds_limit(
     assert_product_media_fetch_rejected(caplog, product_media, expected_error)
 
 
+@pytest.mark.parametrize(
+    ("_case", "chunks", "is_valid"),
+    [
+        # NOTE: we need a valid image hence why we use IMAGE_1PX. Otherwise it will
+        #       be rejected by the API.
+        ("below max image size while image is in 1 chunk", [IMAGE_1PX], True),
+        (
+            "below max image size but image is split into 2 chunks",
+            [IMAGE_1PX[: len(IMAGE_1PX) // 2], IMAGE_1PX[len(IMAGE_1PX) // 2 :]],
+            True,
+        ),
+        ("greater than max image size while in 1 chunk", [IMAGE_1PX + b"\0"], False),
+        ("greater than max image size while in 2 chunks", [IMAGE_1PX, b"\0"], False),
+    ],
+)
+def test_fetch_product_media_image_streamed_allowed_when_under_limit(
+    _case,
+    chunks: list[bytes],
+    is_valid: bool,
+    product_media_image_not_yet_fetched,
+    settings,
+    caplog,
+):
+    """Ensures the images are allowed when `<=` the limit."""
+
+    # given
+    product_media = product_media_image_not_yet_fetched
+    max_file_size = len(IMAGE_1PX)
+    settings.MAX_IMAGE_FILE_SIZE = max_file_size
+    expected_error = f"File too big. Maximal file size is {max_file_size}."
+    caplog.set_level(logging.WARNING)
+
+    # when
+    with mock_http_response_for_product_task(
+        status_code=200,
+        content_type="image/jpeg",
+        content_chunks=chunks,
+    ):
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
+
+    # then
+    exists = ProductMedia.objects.filter(pk=product_media.pk).exists()
+    if is_valid is True:
+        assert exists is True
+        records = [
+            record for record in caplog.records if record.name == "saleor.product.tasks"
+        ]
+        assert records == [], "shouldn't have logged any rejections or cleanups"
+    else:
+        assert exists is False
+        assert_product_media_fetch_rejected(caplog, product_media, expected_error)
+
+
 def test_fetch_product_media_image_invalid_content_length(
     product_media_image_not_yet_fetched,
     caplog,
@@ -631,40 +680,6 @@ def test_fetch_product_media_image_invalid_content_length(
     response.iter_content.assert_not_called()
     assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
     assert_product_media_fetch_rejected(caplog, product_media, expected_error)
-
-
-def test_fetch_product_media_image_file_size_at_limit(
-    product_media_image_not_yet_fetched,
-    media_root,
-    settings,
-    caplog,
-):
-    # given
-    product_media = product_media_image_not_yet_fetched
-    image_buffer = BytesIO()
-    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
-    image_bytes = image_buffer.getvalue()
-    max_file_size = len(image_bytes)
-    settings.MAX_IMAGE_FILE_SIZE = max_file_size
-    caplog.set_level(logging.WARNING)
-
-    # when
-    with mock_http_response_for_product_task(
-        status_code=200,
-        content_type="image/jpeg",
-        content=image_bytes,
-        content_length=str(max_file_size),
-    ):
-        fetch_product_media_image_task.apply(args=(product_media.pk,))
-
-    # then
-    product_media.refresh_from_db(fields=("external_url", "image"))
-    assert product_media.external_url is None
-    assert product_media.image
-    records = [
-        record for record in caplog.records if record.name == "saleor.product.tasks"
-    ]
-    assert records == [], "shouldn't have logged any rejections or cleanups"
 
 
 def test_fetch_product_media_image_unsupported_image_content_type(
@@ -774,14 +789,10 @@ def test_fetch_product_media_image_invalid_exif(
     product_media = product_media_image_not_yet_fetched
     assert not product_media.image
 
-    image_buffer = BytesIO()
-    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
-    image_bytes = image_buffer.getvalue()
-
     # when
     with (
         mock_http_response_for_product_task(
-            status_code=200, content_type="image/jpeg", content=image_bytes
+            status_code=200, content_type="image/jpeg", content=IMAGE_1PX
         ),
         patch("saleor.product.utils.tasks_utils.Image.open") as mock_image_open,
     ):
