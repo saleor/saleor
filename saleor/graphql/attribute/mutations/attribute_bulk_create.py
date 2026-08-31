@@ -7,12 +7,7 @@ from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
 from text_unidecode import unidecode
 
-from ....attribute import (
-    ATTRIBUTE_PROPERTIES_CONFIGURATION,
-    AttributeEntityType,
-    AttributeInputType,
-    models,
-)
+from ....attribute import AttributeEntityType, AttributeInputType, models
 from ....attribute.error_codes import AttributeBulkCreateErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
@@ -32,11 +27,6 @@ from .mixins import AttributeMixin
 from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
 
 ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
-DEPRECATED_ATTR_FIELDS = [
-    "storefront_search_position",
-    "filterable_in_storefront",
-    "available_in_grid",
-]
 DEPRECATED_VALUE_FIELDS = ["rich_text", "plain_text"]
 
 
@@ -326,21 +316,6 @@ class AttributeBulkCreate(BaseMutation):
                 cleaned_inputs_map[attribute_index] = None
                 continue
 
-            if any(key in DEPRECATED_ATTR_FIELDS for key in attribute_data.keys()):
-                message = (
-                    "Deprecated fields 'storefront_search_position', "
-                    "'filterable_in_storefront', 'available_in_grid' and are not "
-                    "allowed in bulk mutation."
-                )
-                index_error_map[attribute_index].append(
-                    AttributeBulkCreateError(
-                        message=message,
-                        code=AttributeBulkCreateErrorCode.INVALID.value,
-                    )
-                )
-                cleaned_inputs_map[attribute_index] = None
-                continue
-
             try:
                 AttributeMixin.validate_reference_types_limit(attribute_data)
             except ValidationError as e:
@@ -424,24 +399,6 @@ class AttributeBulkCreate(BaseMutation):
                 )
             )
             return None
-
-        # check attribute configuration
-        for field in ATTRIBUTE_PROPERTIES_CONFIGURATION.keys():
-            allowed_input_type = ATTRIBUTE_PROPERTIES_CONFIGURATION[field]
-
-            if input_type not in allowed_input_type and cleaned_input.get(field):
-                camel_case_field = to_camel_case(field)
-                index_error_map[attribute_index].append(
-                    AttributeBulkCreateError(
-                        path=camel_case_field,
-                        message=(
-                            f"Cannot set {camel_case_field} on a {input_type} "
-                            "attribute.",
-                        ),
-                        code=AttributeBulkCreateErrorCode.INVALID.value,
-                    )
-                )
-                return None
 
         entity_type = cast(str, entity_type)
         try:

@@ -2,7 +2,6 @@ import django_filters
 import graphene
 from django.db.models import Exists, OuterRef, Q
 from django.db.models.query import QuerySet
-from django.utils import timezone
 
 from ....attribute.models import (
     AssignedVariantAttribute,
@@ -16,7 +15,10 @@ from ...attribute.shared_filters import (
     validate_attribute_value_input,
 )
 from ...channel.filters import get_channel_slug_from_filter_data
-from ...core.descriptions import ADDED_IN_322, ADDED_IN_324
+from ...core.descriptions import (
+    ADDED_IN_322,
+    ADDED_IN_324,
+)
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     EnumWhereFilter,
@@ -46,17 +48,6 @@ from .shared import ProductStockFilterInput, filter_updated_at_range
 
 def filter_sku_list(qs, _, value):
     return qs.filter(sku__in=value)
-
-
-def filter_is_preorder(qs, _, value):
-    if value:
-        return qs.filter(is_preorder=True).filter(
-            Q(preorder_end_date__isnull=True) | Q(preorder_end_date__gte=timezone.now())
-        )
-    return qs.filter(
-        Q(is_preorder=False)
-        | (Q(is_preorder=True)) & Q(preorder_end_date__lt=timezone.now())
-    )
 
 
 def _get_assigned_variant_attribute_for_attribute_value_qs(
@@ -91,7 +82,6 @@ def filter_variants_by_attributes(
 class ProductVariantFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="product_variant_filter_search")
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
-    is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_updated_at_range
     )

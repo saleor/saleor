@@ -3701,26 +3701,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   """
   visibleInStorefront: Boolean!
 
-  """
-  Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInStorefront: Boolean! @deprecated
-
-  """
-  Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  filterableInDashboard: Boolean!
-
-  """
-  Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  availableInGrid: Boolean! @deprecated
-
-  """
-  The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
-  """
-  storefrontSearchPosition: Int! @deprecated
-
   """Returns translated attribute fields for the given language code."""
   translation(
     """A language code to return the translation for attribute."""
@@ -4474,7 +4454,6 @@ input ProductFilterInput @doc(category: "Products") {
   """Filter on whether product is a gift card or not."""
   giftCard: Boolean
   ids: [ID!]
-  hasPreorderedVariants: Boolean
   slugs: [String!]
 
   """Specifies the channel by which the data should be filtered."""
@@ -4728,9 +4707,6 @@ input ProductWhereInput @doc(category: "Products") {
 
   """Filter on whether product is a gift card or not."""
   giftCard: Boolean
-
-  """Filter by product with preordered variants."""
-  hasPreorderedVariants: Boolean
 
   """Filter by when was the most recent update."""
   updatedAt: DateTimeFilterInput
@@ -7467,9 +7443,6 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
     countryCode: CountryCode @deprecated(reason: "Use `address` argument instead.")
   ): Int
 
-  """Preorder data for product variant."""
-  preorder: PreorderData
-
   """The date and time when the product variant was created."""
   created: DateTime!
 
@@ -7507,9 +7480,6 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   margin: Int
-
-  """Preorder variant data."""
-  preorderThreshold: PreorderThreshold
 }
 
 """Represents channel."""
@@ -9402,15 +9372,6 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   useWeightedTaxForShipping: Boolean
 }
 
-"""Represents preorder variant data for channel."""
-type PreorderThreshold @doc(category: "Products") {
-  """Preorder threshold for product variant in this channel."""
-  quantity: Int
-
-  """Number of sold product variant in this channel."""
-  soldUnits: Int!
-}
-
 """Represents availability of a variant in the storefront."""
 type VariantPricingInfo @doc(category: "Products") {
   """Whether it is in sale or not."""
@@ -9838,26 +9799,6 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-"""Represents preorder settings for product variant."""
-type PreorderData @doc(category: "Products") {
-  """
-  The global preorder threshold for product variant.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  globalThreshold: Int
-
-  """
-  Total number of sold product variant during preorder.
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  globalSoldUnits: Int!
-
-  """Preorder end date."""
-  endDate: DateTime
-}
-
 """Represents availability of a product in the storefront."""
 type ProductPricingInfo @doc(category: "Products") {
   """Whether it is in sale or not."""
@@ -9995,7 +9936,6 @@ input ProductVariantFilterInput @doc(category: "Products") {
   search: String
   sku: [String!]
   metadata: [MetadataFilter!]
-  isPreorder: Boolean
   updatedAt: DateTimeRangeInput
 }
 
@@ -10418,9 +10358,6 @@ input AttributeFilterInput @doc(category: "Attributes") {
   valueRequired: Boolean
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
-  filterableInStorefront: Boolean
-  filterableInDashboard: Boolean
-  availableInGrid: Boolean
   metadata: [MetadataFilter!]
   search: String
   ids: [ID!]
@@ -10454,7 +10391,6 @@ input AttributeWhereInput @doc(category: "Attributes") {
   inCategory: ID
   valueRequired: Boolean
   visibleInStorefront: Boolean
-  filterableInDashboard: Boolean
 
   """List of conditions that must be met."""
   AND: [AttributeWhereInput!]
@@ -16007,7 +15943,6 @@ input OrderFilterInput @doc(category: "Orders") {
   chargeStatus: [OrderChargeStatusEnum!]
   updatedAt: DateTimeRangeInput
   isClickAndCollect: Boolean
-  isPreorder: Boolean
   ids: [ID!]
   checkoutTokens: [UUID!]
   giftCardUsed: Boolean
@@ -17310,20 +17245,6 @@ enum AttributeSortField @doc(category: "Attributes") {
 
   """Sort attributes by visibility in the storefront"""
   VISIBLE_IN_STOREFRONT
-
-  """Sort attributes by the filterable in storefront flag"""
-  FILTERABLE_IN_STOREFRONT
-
-  """Sort attributes by the filterable in dashboard flag"""
-  FILTERABLE_IN_DASHBOARD
-
-  """Sort attributes by their position in storefront"""
-  STOREFRONT_SEARCH_POSITION
-
-  """
-  Sort attributes based on whether they can be displayed or not in a product grid.
-  """
-  AVAILABLE_IN_GRID
 }
 
 """Represents ongoing installation of app."""
@@ -19008,16 +18929,6 @@ type Mutation {
     """ID of a product variant."""
     variantId: ID!
   ): ProductVariantReorderAttributeValues @doc(category: "Products")
-
-  """
-  Deactivates product variant preorder. It changes all preorder allocation into regular allocation. 
-  
-  Requires one of the following permissions: MANAGE_PRODUCTS.
-  """
-  productVariantPreorderDeactivate(
-    """ID of a variant which preorder should be deactivated."""
-    id: ID!
-  ): ProductVariantPreorderDeactivate @doc(category: "Products")
 
   """
   Assign an media to a product variant. 
@@ -24233,7 +24144,6 @@ enum ProductErrorCode @doc(category: "Products") {
   CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
   UNSUPPORTED_MEDIA_PROVIDER
-  PREORDER_VARIANT_CANNOT_BE_DEACTIVATED
   INVALID_FILE_TYPE
   UNSUPPORTED_MIME_TYPE
   FILE_SIZE_LIMIT_EXCEEDED
@@ -25044,9 +24954,6 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -25134,14 +25041,6 @@ input BulkAttributeValueInput @doc(category: "Products") {
   dateTime: DateTime
 }
 
-input PreorderSettingsInput @doc(category: "Products") {
-  """The global threshold for preorder variant."""
-  globalThreshold: Int
-
-  """The end date for preorder."""
-  endDate: DateTime
-}
-
 input StockInput @doc(category: "Products") {
   """Warehouse in which stock is located."""
   warehouse: ID!
@@ -25164,9 +25063,6 @@ input ProductVariantChannelListingAddInput @doc(category: "Products") {
   Previous price of the variant in channel. Useful for providing promotion information required by customer protection laws such as EU Omnibus directive.
   """
   priorPrice: PositiveDecimal
-
-  """The threshold for preorder variant in channel."""
-  preorderThreshold: Int
 }
 
 """
@@ -25645,9 +25541,6 @@ input ProductVariantCreateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -25827,9 +25720,6 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -25904,9 +25794,6 @@ input ChannelListingUpdateInput @doc(category: "Products") {
 
   """Price of the variant before discount."""
   priorPrice: PositiveDecimal
-
-  """The threshold for preorder variant in channel."""
-  preorderThreshold: Int
 }
 
 """
@@ -26065,9 +25952,6 @@ input ProductVariantInput @doc(category: "Products") {
   """Weight of the Product Variant."""
   weight: WeightScalar
 
-  """Determines if variant is in preorder."""
-  preorder: PreorderSettingsInput
-
   """
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   """
@@ -26198,17 +26082,6 @@ type ProductVariantReorderAttributeValues @doc(category: "Products") {
   """Product variant from which attribute values are reordered."""
   productVariant: ProductVariant
   productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
-  errors: [ProductError!]!
-}
-
-"""
-Deactivates product variant preorder. It changes all preorder allocation into regular allocation. 
-
-Requires one of the following permissions: MANAGE_PRODUCTS.
-"""
-type ProductVariantPreorderDeactivate @doc(category: "Products") {
-  """Product variant with ended preorder."""
-  productVariant: ProductVariant
   errors: [ProductError!]!
 }
 
@@ -31897,11 +31770,7 @@ enum AttributeErrorCode @doc(category: "Attributes") {
   UNIQUE
 }
 
-"""
-Represents an input for create of attribute.
-
-NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
-"""
+"""Represents an input for create of attribute."""
 input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
@@ -31932,20 +31801,6 @@ input AttributeCreateInput @doc(category: "Attributes") {
 
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in storefront."""
-  filterableInStorefront: Boolean @deprecated
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
-
-  """
-  The position of the attribute in the storefront navigation (0 by default).
-  """
-  storefrontSearchPosition: Int @deprecated
-
-  """Whether the attribute can be displayed in the admin product list."""
-  availableInGrid: Boolean @deprecated
 
   """External ID of this attribute."""
   externalReference: String
@@ -32020,11 +31875,7 @@ type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents
   errors: [AttributeError!]!
 }
 
-"""
-Represents an input for update of attribute.
-
-NOTE: Deprecated fields `filterableInStorefront`, `storefrontSearchPosition` and `availableInGrid` are not supported in bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`.
-"""
+"""Represents an input for update of attribute."""
 input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   name: String
@@ -32049,20 +31900,6 @@ input AttributeUpdateInput @doc(category: "Attributes") {
 
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
-
-  """Whether the attribute can be filtered in storefront."""
-  filterableInStorefront: Boolean @deprecated
-
-  """Whether the attribute can be filtered in dashboard."""
-  filterableInDashboard: Boolean
-
-  """
-  The position of the attribute in the storefront navigation (0 by default).
-  """
-  storefrontSearchPosition: Int @deprecated
-
-  """Whether the attribute can be displayed in the admin product list."""
-  availableInGrid: Boolean @deprecated
 
   """External ID of this product."""
   externalReference: String

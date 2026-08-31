@@ -416,6 +416,7 @@ PermissionGroupErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 PermissionGroupErrorCode.doc_category = DOC_CATEGORY_USERS
 
+
 ProductErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     product_error_codes.ProductErrorCode
 )

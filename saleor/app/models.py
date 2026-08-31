@@ -17,6 +17,9 @@ from .types import (
     DeprecatedAppExtensionHttpMethod,
 )
 
+URL_MAX_LENGTH = 2048
+"""Matches Django's ``URLValidator.max_length`` and the de facto browser cap."""
+
 
 class AppQueryset(models.QuerySet["App"]):
     def for_event_type(self, event_type: str):
@@ -69,7 +72,7 @@ class App(ModelWithMetadata):
     support_url = models.URLField(blank=True, null=True)
     configuration_url = models.URLField(blank=True, null=True)
     app_url = models.URLField(blank=True, null=True)
-    manifest_url = models.URLField(blank=True, null=True)
+    manifest_url = models.URLField(max_length=URL_MAX_LENGTH, blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
     audience = models.CharField(blank=True, null=True, max_length=256)
     is_installed = models.BooleanField(default=True)
@@ -225,7 +228,7 @@ class AppProblem(models.Model):
 class AppInstallation(Job):
     uuid = models.UUIDField(unique=True, default=uuid4)
     app_name = models.CharField(max_length=60)
-    manifest_url = models.URLField()
+    manifest_url = models.URLField(max_length=URL_MAX_LENGTH)
     permissions = models.ManyToManyField(
         Permission,
         blank=True,

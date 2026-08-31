@@ -66,9 +66,6 @@ class ChannelListingUpdateInput(BaseInputObjectType):
     price = PositiveDecimal(description="Price of the particular variant in channel.")
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     prior_price = PositiveDecimal(description="Price of the variant before discount.")
-    preorder_threshold = graphene.Int(
-        description="The threshold for preorder variant in channel."
-    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
@@ -408,14 +405,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         if sku is not None:
             cleaned_input["sku"] = clean_variant_sku(sku)
 
-        preorder_settings = cleaned_input.get("preorder")
-        if preorder_settings:
-            cleaned_input["is_preorder"] = True
-            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-                "global_threshold"
-            )
-            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
-
         base_fields_errors_count = cls.validate_base_fields(
             cleaned_input, duplicated_sku, index_error_map, index
         )
@@ -646,7 +635,6 @@ class ProductVariantBulkUpdate(BaseMutation):
                     cost_price_amount=listing_data.get("cost_price"),
                     prior_price_amount=listing_data.get("prior_price"),
                     currency=listing_data["channel"].currency_code,
-                    preorder_quantity_threshold=listing_data.get("preorder_threshold"),
                 )
                 for listing_data in listings_data
             ]
@@ -654,10 +642,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         if listings_data := listings_input.get("update"):
             for listing_data in listings_data:
                 listing = listing_data["channel_listings"]
-                if "preorder_threshold" in listing_data:
-                    listing.preorder_quantity_threshold = listing_data[
-                        "preorder_threshold"
-                    ]
                 if "price" in listing_data:
                     listing.price_amount = listing_data["price"]
                     # set the discounted price the same as price for now, the discounted
@@ -719,9 +703,6 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "metadata",
                 "private_metadata",
                 "external_reference",
-                "preorder_end_date",
-                "preorder_global_threshold",
-                "is_preorder",
             ],
         )
 
@@ -742,7 +723,6 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "discounted_price_amount",
                 "cost_price_amount",
                 "prior_price_amount",
-                "preorder_quantity_threshold",
             ],
         )
         if stocks_to_remove:

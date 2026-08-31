@@ -28,7 +28,6 @@ DEPRECATED_LEGACY_PAYMENTS = (
 
 DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION = "\n\n" + DEPRECATED_LEGACY_PAYMENTS
 
-
 PREVIEW_FEATURE = (
     "\n\nNote: this API is currently in Feature Preview and can be subject to "
     "changes at later point."
