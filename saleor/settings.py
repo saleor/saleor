@@ -497,6 +497,13 @@ MAX_IMAGE_FILE_SIZE = int(
     os.environ.get("MAX_IMAGE_FILE_SIZE", 10 * 1024 * 1024)
 )  # 10MB
 
+# Maximum number of pixels (width * height) of an image we are willing to decode.
+# This bounds decode memory, which `MAX_IMAGE_FILE_SIZE` does not: an 8000x8000 WebP
+# is 0.11MB on disk but needs ~1GB of RAM to decode, because the encoded size says
+# nothing about the decoded size. The default admits 5000x5000 with some headroom.
+# Applied to Pillow in `CoreAppConfig.ready`.
+MAX_IMAGE_PIXELS = int(os.environ.get("MAX_IMAGE_PIXELS", 30_000_000))
+
 TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 
 
