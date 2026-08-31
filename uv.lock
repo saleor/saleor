@@ -1425,15 +1425,14 @@ wheels = [
 
 [[package]]
 name = "micawber"
-version = "0.6.2"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "beautifulsoup4" },
-    { name = "lxml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/9e/bdaec8ff46c130a62c446d9feaabedfd6ef9e072a26fad940bd81aec0829/micawber-0.6.2.tar.gz", hash = "sha256:cc04c19a5e0eb3615b8cd95d5aefdad5cde4f52a61c12d45071727dfe131b760", size = 19589, upload-time = "2026-01-07T16:30:15.179Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f4/5d/2da4f9a0fecf6898e0e924b0354716d97b4ba58a57be38027d7e81f2939b/micawber-0.7.0.tar.gz", hash = "sha256:ab9c59c7569cfc487dd367dc4eda13e394ba5216e19d02f1871ac56d0a1a1944", size = 20023, upload-time = "2026-07-05T02:14:48.996Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/05/f7e8c73f7666fb09d7d38957ee06eaf200ee86fddefcdb497319a06a7b02/micawber-0.6.2-py3-none-any.whl", hash = "sha256:f9ed828f60cfbce98459e5bf639fd9a2cacb5b22a4ce7b0c30b4eab4d5d12924", size = 22426, upload-time = "2026-01-07T16:30:14.27Z" },
+    { url = "https://files.pythonhosted.org/packages/14/29/ff560c302f7f9c139f6f906468f65bb063455cab5cecda0ff5b4bec4ac26/micawber-0.7.0-py3-none-any.whl", hash = "sha256:6b07d4fad8e40fecba067be00656462cf15634d4ca0564b9600ade5960a42c03", size = 23005, upload-time = "2026-07-05T02:14:48.093Z" },
 ]
 
 [[package]]
@@ -2617,7 +2616,7 @@ requires-dist = [
     { name = "lxml", specifier = ">=6.1.1,<7" },
     { name = "markdown", specifier = ">=3.10.2,<4" },
     { name = "measurement", specifier = ">=3.2.2,<4" },
-    { name = "micawber", specifier = ">=0.6.2,<0.7" },
+    { name = "micawber", specifier = ">=0.7.0,<0.8" },
     { name = "nh3", specifier = ">=0.2.20" },
     { name = "oauthlib", specifier = "~=3.1" },
     { name = "opentelemetry-api", specifier = ">=1.32.1,<2" },
