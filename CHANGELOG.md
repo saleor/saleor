@@ -26,6 +26,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `orderAddNote` mutation, along with the `OrderAddNote` type and `OrderAddNoteInput` input. Use the `orderNoteAdd` mutation instead.
 - Removed the deprecated `exportGiftCards` and `exportVoucherCodes` mutations, along with the `ExportGiftCards`, `ExportGiftCardsInput`, `ExportVoucherCodes` and `ExportVoucherCodesInput` types. Fetch the data with the `giftCards` and `voucher` queries and format it in your app instead.
 - Removed the `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` webhook event types, along with the `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types. They were emitted only by the removed `exportGiftCards` and `exportVoucherCodes` mutations. Existing webhook subscriptions to these events are deleted by a migration; a webhook left with no other events will stop being triggered.
+- Removed the preorder GraphQL API, deprecated in 3.23. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit. Removed:
+  - the `productVariantPreorderDeactivate` mutation, along with the `ProductVariantPreorderDeactivate` type,
+  - the `PreorderData` type and the `ProductVariant.preorder` field, and the `PreorderThreshold` type and the `ProductVariantChannelListing.preorderThreshold` field,
+  - the `PreorderSettingsInput` input and the `preorder` field on `ProductVariantInput`, `ProductVariantCreateInput`, `ProductVariantBulkCreateInput` and `ProductVariantBulkUpdateInput`,
+  - the `preorderThreshold` input field on `ProductVariantChannelListingAddInput` and `ChannelListingUpdateInput`,
+  - the `hasPreorderedVariants` filter on `ProductFilterInput` and `ProductWhereInput`, and the `isPreorder` filter on `ProductVariantFilterInput` and `OrderFilterInput`,
+  - the `PREORDER_VARIANT_CANNOT_BE_DEACTIVATED` value from the `ProductErrorCode` enum.
+
+  Variants already in preorder keep being handled by the checkout and order flow; a preorder with an end date is still deactivated automatically once that date passes. The preorder database columns will be dropped in a later release.
 - Removed the `DIGITAL_LINKS` value from the `OrderEventsEmailsEnum` enum and the `DIGITAL_LINK_DOWNLOADED` value from the `CustomerEventsEnum` enum. Events with these types were deleted in 3.23, along with the legacy digital content feature that emitted them.
 - Removed the always-empty `digital_lines` key from the fulfillment confirmation notification payload. Use `physical_lines`, which holds every line of the fulfillment.
 - Attribute value and bulk attribute mutations now require the permission matching the attribute's type: `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` for `PRODUCT_TYPE` attributes, `MANAGE_PAGE_TYPES_AND_ATTRIBUTES` for `PAGE_TYPE` attributes, and `MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES` for `CUSTOMER_TYPE` attributes. Previously each mutation required a single fixed permission regardless of the attribute's type, which let a requestor modify attributes of a type they were not authorized for.

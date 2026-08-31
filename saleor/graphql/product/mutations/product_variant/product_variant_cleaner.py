@@ -40,16 +40,6 @@ def clean_quantity_limit(cleaned_input: dict):
         )
 
 
-def clean_preorder_settings(cleaned_input: dict):
-    preorder_settings = cleaned_input.get("preorder")
-    if preorder_settings:
-        cleaned_input["is_preorder"] = True
-        cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-            "global_threshold"
-        )
-        cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
-
-
 def clean_variant_attributes(product_type: "ProductType", attributes: list[dict]):
     variant_attributes_ids = set()
     variant_attributes_external_refs = set()
