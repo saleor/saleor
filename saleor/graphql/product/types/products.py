@@ -68,8 +68,6 @@ from ...core.context import (
 from ...core.descriptions import (
     ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
-    DEPRECATED_PREORDER,
-    DEPRECATED_PREORDER_TYPE_DESCRIPTION,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -277,43 +275,6 @@ class ProductPricingInfo(BasePricingInfo):
         description = "Represents availability of a product in the storefront."
 
 
-class PreorderData(BaseObjectType):
-    global_threshold = PermissionsField(
-        graphene.Int,
-        required=False,
-        description="The global preorder threshold for product variant.",
-        permissions=[ProductPermissions.MANAGE_PRODUCTS],
-        deprecation_reason=DEPRECATED_PREORDER,
-    )
-    global_sold_units = PermissionsField(
-        graphene.Int,
-        required=True,
-        description="Total number of sold product variant during preorder.",
-        permissions=[ProductPermissions.MANAGE_PRODUCTS],
-        deprecation_reason=DEPRECATED_PREORDER,
-    )
-    end_date = DateTime(
-        required=False,
-        description="Preorder end date.",
-        deprecation_reason=DEPRECATED_PREORDER,
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-        description = (
-            "Represents preorder settings for product variant."
-            + DEPRECATED_PREORDER_TYPE_DESCRIPTION
-        )
-
-    @staticmethod
-    def resolve_global_threshold(root, _info):
-        return root.global_threshold
-
-    @staticmethod
-    def resolve_global_sold_units(root, _info):
-        return root.global_sold_units
-
-
 @federated_entity("id channel")
 class ProductVariant(ChannelContextType[models.ProductVariant]):
     id = graphene.GlobalID(required=True, description="The ID of the product variant.")
@@ -460,12 +421,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                 f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
-    )
-    preorder = graphene.Field(
-        PreorderData,
-        required=False,
-        description="Preorder data for product variant.",
-        deprecation_reason=DEPRECATED_PREORDER,
     )
     created = DateTime(
         required=True,
@@ -858,32 +813,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     @staticmethod
     def resolve_weight(root: ChannelContext[models.ProductVariant], _info):
         return convert_weight_to_default_weight_unit(root.node.weight)
-
-    @staticmethod
-    @traced_resolver
-    def resolve_preorder(root: ChannelContext[models.ProductVariant], info):
-        variant = root.node
-
-        variant_channel_listings = VariantChannelListingByVariantIdLoader(
-            info.context
-        ).load(variant.id)
-
-        def calculate_global_sold_units(variant_channel_listings):
-            global_sold_units = sum(
-                channel_listing.preorder_quantity_allocated
-                for channel_listing in variant_channel_listings
-            )
-            return (
-                PreorderData(
-                    global_threshold=variant.preorder_global_threshold,
-                    global_sold_units=global_sold_units,
-                    end_date=variant.preorder_end_date,
-                )
-                if variant.is_preorder_active()
-                else None
-            )
-
-        return variant_channel_listings.then(calculate_global_sold_units)
 
     @staticmethod
     def __resolve_references(roots: list["ProductVariant"], info):

@@ -4,11 +4,8 @@ from ....tax.models import TaxClass
 
 PRODUCT_VARIANT_UPDATE_FIELDS = {
     "external_reference",
-    "is_preorder",
     "metadata",
     "name",
-    "preorder_end_date",
-    "preorder_global_threshold",
     "private_metadata",
     "quantity_limit_per_customer",
     "sku",
