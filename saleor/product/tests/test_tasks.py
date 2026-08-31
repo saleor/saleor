@@ -11,6 +11,7 @@ from faker import Faker
 from PIL import Image
 from requests.exceptions import HTTPError, InvalidSchema, RequestException
 
+from ...core.utils.url import sanitize_url_for_logging
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
 from ...thumbnail.exceptions import ImageTooLargeError
@@ -35,19 +36,56 @@ from ..utils.variants import fetch_variants_for_promotion_rules
 
 @contextmanager
 def mock_http_response_for_product_task(
-    status_code=200, content_type=None, content=None
+    status_code: int = 200,
+    content_type: str | None = None,
+    content: bytes | None = None,
+    content_length: str | None = None,
+    content_chunks: list[bytes] | None = None,
 ):
     """Patch HTTPClient.send_request to return a response with the given attributes."""
     mock_response = MagicMock()
     mock_response.status_code = status_code
-    mock_response.headers.get.return_value = content_type
-    mock_response.content = content
+    mock_response.headers = {"content-type": content_type}
+    if content_length is not None:
+        mock_response.headers["content-length"] = content_length
+    if content_chunks is None:
+        content_chunks = [content] if content is not None else []
+    mock_response.iter_content.return_value = content_chunks
 
     with patch("saleor.product.tasks.HTTPClient") as mock_client:
         mock_client.send_request.return_value.__enter__ = MagicMock(
             return_value=mock_response
         )
-        yield mock_client
+        yield mock_response
+
+
+def assert_product_media_fetch_rejected(caplog, product_media, expected_error):
+    """Assert the media fetch rejection using captured logs."""
+    records = [
+        record for record in caplog.records if record.name == "saleor.product.tasks"
+    ]
+    assert len(records) == 2
+    rejection_record, failure_record = records
+
+    # Rejection log
+    assert rejection_record.levelno == logging.WARNING
+    assert rejection_record.getMessage() == (
+        f"Image fetched for product media {product_media.pk} was rejected: "
+        f"{expected_error}"
+    )
+    assert rejection_record.image_source == sanitize_url_for_logging(
+        product_media.external_url
+    )
+    assert rejection_record.object_type == "ProductMedia"
+    assert rejection_record.object_pk == product_media.pk
+    assert rejection_record.file_error == expected_error
+
+    # Clean-up log
+    assert failure_record.levelno == logging.WARNING
+    assert failure_record.getMessage() == (
+        "Failed to fetch image for product media with id: "
+        f"{product_media.pk}. Removing product media."
+    )
 
 
 @patch(
@@ -500,6 +538,133 @@ def test_fetch_product_media_image_pixel_count_exceeds_limit_sanitizes_url(
     assert caplog.records[0].object_type == "ProductMedia"
     assert caplog.records[0].object_pk == product_media.pk
     assert caplog.records[0].pillow_error == pillow_error
+
+
+def test_fetch_product_media_image_declared_file_size_exceeds_limit(
+    product_media_image_not_yet_fetched,
+    settings,
+    caplog,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    product_media.external_url = "https://username:password@example.com/image.jpg"
+    product_media.save(update_fields=("external_url",))
+
+    max_file_size = 1
+    settings.MAX_IMAGE_FILE_SIZE = max_file_size
+    content_length = str(max_file_size + 1)
+    expected_error = f"File too big. Maximal file size is {max_file_size}."
+    caplog.set_level(logging.WARNING)
+
+    # when
+    with mock_http_response_for_product_task(
+        status_code=200,
+        content_type="image/jpeg",
+        content_length=content_length,
+    ) as response:
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
+
+    # then
+    response.iter_content.assert_not_called()
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert_product_media_fetch_rejected(caplog, product_media, expected_error)
+
+
+@pytest.mark.parametrize(
+    ("_case", "content_length"),
+    [
+        ("missing", None),
+        ("understated", "1"),  # advertized content-length is spoofed or wrong
+    ],
+)
+def test_fetch_product_media_image_streamed_file_size_exceeds_limit(
+    _case,
+    content_length,
+    product_media_image_not_yet_fetched,
+    settings,
+    caplog,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    max_file_size = 1
+    settings.MAX_IMAGE_FILE_SIZE = max_file_size
+    content_chunks = [b"a", b"b"]
+    expected_error = f"File too big. Maximal file size is {max_file_size}."
+    caplog.set_level(logging.WARNING)
+
+    # when
+    with mock_http_response_for_product_task(
+        status_code=200,
+        content_type="image/jpeg",
+        content_length=content_length,
+        content_chunks=content_chunks,
+    ):
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
+
+    # then
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert_product_media_fetch_rejected(caplog, product_media, expected_error)
+
+
+def test_fetch_product_media_image_invalid_content_length(
+    product_media_image_not_yet_fetched,
+    caplog,
+):
+    """Ensure invalid Content-Length headers are rejected."""
+
+    # given
+    product_media = product_media_image_not_yet_fetched
+    content_length = "invalid"
+    expected_error = "Received an invalid content-length header"
+    caplog.set_level(logging.WARNING)
+
+    # when
+    with mock_http_response_for_product_task(
+        status_code=200,
+        content_type="image/jpeg",
+        content_length=content_length,
+        content_chunks=[b"a"],
+    ) as response:
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
+
+    # then
+    response.iter_content.assert_not_called()
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert_product_media_fetch_rejected(caplog, product_media, expected_error)
+
+
+def test_fetch_product_media_image_file_size_at_limit(
+    product_media_image_not_yet_fetched,
+    media_root,
+    settings,
+    caplog,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    image_buffer = BytesIO()
+    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
+    image_bytes = image_buffer.getvalue()
+    max_file_size = len(image_bytes)
+    settings.MAX_IMAGE_FILE_SIZE = max_file_size
+    caplog.set_level(logging.WARNING)
+
+    # when
+    with mock_http_response_for_product_task(
+        status_code=200,
+        content_type="image/jpeg",
+        content=image_bytes,
+        content_length=str(max_file_size),
+    ):
+        fetch_product_media_image_task.apply(args=(product_media.pk,))
+
+    # then
+    product_media.refresh_from_db(fields=("external_url", "image"))
+    assert product_media.external_url is None
+    assert product_media.image
+    records = [
+        record for record in caplog.records if record.name == "saleor.product.tasks"
+    ]
+    assert records == [], "shouldn't have logged any rejections or cleanups"
 
 
 def test_fetch_product_media_image_unsupported_image_content_type(
