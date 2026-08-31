@@ -1756,11 +1756,11 @@ wheels = [
 
 [[package]]
 name = "phonenumberslite"
-version = "9.0.32"
+version = "9.0.36"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ca/72/840fb0a587ddbc2aff23e9415ca9d86394aa13343a3d9ea4db185f749796/phonenumberslite-9.0.32.tar.gz", hash = "sha256:d1bbdbc81356f98737cd0e342c84f9abb325b7342c70cad3519c7e2cd478f8c5", size = 288616, upload-time = "2026-06-05T05:48:22.319Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/44/3c/aecc0d641dd17c67f2cb6825421e94785f03d83208df42170f6670e48ccc/phonenumberslite-9.0.36.tar.gz", hash = "sha256:a56e4a70e3ad4bc2b001560d2771b78d20603142cf2fb78d7a0316422896b89e", size = 289261, upload-time = "2026-08-01T06:13:29.867Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/0d/c7ab9feff3cb55e9743e8b56b05dd23564dfc4b0c1e395f396e384f39db0/phonenumberslite-9.0.32-py2.py3-none-any.whl", hash = "sha256:e129943437cb1f7b0b7dc9d3aee482fae04871a47604064fb4c912c97ae53826", size = 473221, upload-time = "2026-06-05T05:48:20.557Z" },
+    { url = "https://files.pythonhosted.org/packages/93/b7/3d24491cd77aa93f62ab889b12f5b8855e45bb617075ac96ea9669910dd8/phonenumberslite-9.0.36-py2.py3-none-any.whl", hash = "sha256:1c0e2f68d2a17121c00ef373c2716e666e6586f9d43aab13ba9856b07e2679cf", size = 473356, upload-time = "2026-08-01T06:13:28.509Z" },
 ]
 
 [[package]]
@@ -2626,7 +2626,7 @@ requires-dist = [
     { name = "opentelemetry-semantic-conventions", specifier = ">=0.53b1,<0.54" },
     { name = "orjson", specifier = ">=3.11.9" },
     { name = "petl", specifier = "==1.7.20" },
-    { name = "phonenumberslite", specifier = ">=9.0.32,<10" },
+    { name = "phonenumberslite", specifier = ">=9.0.36,<10" },
     { name = "pillow", specifier = ">=12.3.0,<13" },
     { name = "prices", specifier = "~=1.0" },
     { name = "promise", specifier = "~=2.3" },
