@@ -409,7 +409,6 @@
       "kind": "normal",
       "has_variants": true,
       "is_shipping_required": false,
-      "is_digital": false,
       "weight": "0.0:g"
     }
   },
@@ -424,7 +423,6 @@
       "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
-      "is_digital": false,
       "weight": "1000.0:g"
     }
   },
@@ -439,7 +437,6 @@
       "kind": "normal",
       "has_variants": false,
       "is_shipping_required": true,
-      "is_digital": false,
       "weight": "1000.0:g"
     }
   },
@@ -454,7 +451,6 @@
       "kind": "normal",
       "has_variants": true,
       "is_shipping_required": true,
-      "is_digital": false,
       "weight": "1000.0:g"
     }
   },
@@ -469,7 +465,6 @@
       "kind": "normal",
       "has_variants": false,
       "is_shipping_required": true,
-      "is_digital": false,
       "weight": "1000.0:g"
     }
   },
@@ -484,7 +479,6 @@
       "kind": "normal",
       "has_variants": false,
       "is_shipping_required": false,
-      "is_digital": false,
       "weight": "0.0:g"
     }
   },
@@ -499,7 +493,6 @@
       "kind": "normal",
       "has_variants": false,
       "is_shipping_required": true,
-      "is_digital": false,
       "weight": "100.0:g"
     }
   },
@@ -514,7 +507,6 @@
       "kind": "gift_card",
       "has_variants": false,
       "is_shipping_required": false,
-      "is_digital": false,
       "weight": "0.0:g"
     }
   },

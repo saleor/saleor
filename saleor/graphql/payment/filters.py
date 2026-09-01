@@ -3,7 +3,10 @@ import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ...payment.models import TransactionEvent
-from ..core.descriptions import ADDED_IN_323
+from ..core.descriptions import (
+    ADDED_IN_323,
+    DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION,
+)
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.filters import (
     FilterInputObjectType,
@@ -40,6 +43,10 @@ class PaymentFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
         filterset_class = PaymentFilter
+        description = (
+            "Filtering options for payments."
+            + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
 
 
 class TransactionEventTypeEnumFilterInput(BaseInputObjectType):

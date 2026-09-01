@@ -122,7 +122,6 @@ class ProductVariantUpdate(DeprecatedModelMutation):
         cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-        cleaner.clean_preorder_settings(cleaned_input)
 
         return cleaned_input
 

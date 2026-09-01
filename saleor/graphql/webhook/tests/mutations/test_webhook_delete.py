@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 import graphene
+import pytest
 from django.db import IntegrityError
 
 from .....app.models import App
@@ -165,3 +166,231 @@ def test_webhook_delete_by_staff_for_removed_app(
     assert app_data["webhook"] is None
     assert app_data["errors"][0]["code"] == WebhookErrorCode.NOT_FOUND.name
     assert app_data["errors"][0]["field"] == "id"
+
+
+WEBHOOK_DELETE_BY_POINTER = """
+    mutation webhookDelete($id: ID, $identifier: String) {
+      webhookDelete(id: $id, identifier: $identifier) {
+        errors {
+          field
+          message
+          code
+        }
+        webhook {
+          id
+        }
+      }
+    }
+"""
+
+STAFF_POINTER_MESSAGE = (
+    "Webhook identifier can only be used by an app to reference its own webhook. "
+    "Use `id` instead."
+)
+POINTER_REQUIRED_MESSAGE = "At least one of arguments is required: 'id', 'identifier'."
+POINTER_COMBINED_MESSAGE = "Argument 'id' cannot be combined with 'identifier'"
+
+
+def test_webhook_delete_by_identifier(app_api_client, webhook_with_identifier):
+    # given
+    variables = {"identifier": webhook_with_identifier.identifier}
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_DELETE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["webhookDelete"]["errors"] == []
+    assert Webhook.objects.filter(pk=webhook_with_identifier.pk).exists() is False
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture"),
+    [
+        ("Unauthenticated user should be rejected", "api_client"),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+        ),
+        ("Staff user without the permission should be rejected", "staff_api_client"),
+    ],
+)
+def test_webhook_delete_by_identifier_by_unauthorized_client(
+    _case, client_fixture, request, webhook_with_identifier
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    variables = {"identifier": webhook_with_identifier.identifier}
+
+    # when
+    response = client.post_graphql(WEBHOOK_DELETE_BY_POINTER, variables=variables)
+
+    # then
+    assert_no_permission(response)
+    assert Webhook.objects.filter(pk=webhook_with_identifier.pk).exists() is True
+
+
+def test_webhook_delete_by_identifier_by_staff(
+    staff_api_client, permission_manage_apps, webhook_with_identifier
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {"identifier": webhook_with_identifier.identifier}
+
+    # when
+    response = staff_api_client.post_graphql(
+        WEBHOOK_DELETE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookDelete"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": "identifier",
+            "message": STAFF_POINTER_MESSAGE,
+            "code": WebhookErrorCode.INVALID.name,
+        }
+    ]
+    assert Webhook.objects.filter(pk=webhook_with_identifier.pk).exists() is True
+
+
+def test_webhook_delete_by_identifier_of_another_app(
+    app_api_client, webhook_with_identifier
+):
+    # given
+    other_app = App.objects.create(name="other")
+    other_webhook = Webhook.objects.create(
+        app=other_app,
+        target_url="http://www.example.com/other",
+        identifier="other-app-handler",
+    )
+    variables = {"identifier": other_webhook.identifier}
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_DELETE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookDelete"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": "identifier",
+            "message": f"Couldn't resolve to a node: {other_webhook.identifier}",
+            "code": WebhookErrorCode.NOT_FOUND.name,
+        }
+    ]
+    assert Webhook.objects.filter(pk=other_webhook.pk).exists() is True
+
+
+def test_webhook_delete_with_both_pointers(app_api_client, webhook_with_identifier):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Webhook", webhook_with_identifier.pk),
+        "identifier": webhook_with_identifier.identifier,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_DELETE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookDelete"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": POINTER_COMBINED_MESSAGE,
+            "code": WebhookErrorCode.GRAPHQL_ERROR.name,
+        }
+    ]
+    assert Webhook.objects.filter(pk=webhook_with_identifier.pk).exists() is True
+
+
+@pytest.mark.parametrize(
+    ("_case", "variables"),
+    [
+        ("identifier omitted", {}),
+        ("identifier explicitly null", {"identifier": None}),
+        ("identifier blank", {"identifier": ""}),
+    ],
+)
+def test_webhook_delete_without_pointer(
+    _case, variables, app_api_client, webhook_with_identifier
+):
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_DELETE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookDelete"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": POINTER_REQUIRED_MESSAGE,
+            "code": WebhookErrorCode.GRAPHQL_ERROR.name,
+        }
+    ]
+    assert Webhook.objects.filter(pk=webhook_with_identifier.pk).exists() is True
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifier"),
+    [
+        ("identifier explicitly null", None),
+        ("identifier blank", ""),
+    ],
+)
+def test_webhook_delete_by_id_with_falsy_identifier(
+    _case, identifier, app_api_client, webhook_with_identifier
+):
+    # given - a falsy identifier counts as not provided, so `id` still resolves
+    variables = {
+        "id": graphene.Node.to_global_id("Webhook", webhook_with_identifier.pk),
+        "identifier": identifier,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_DELETE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["webhookDelete"]["errors"] == []
+    assert Webhook.objects.filter(pk=webhook_with_identifier.pk).exists() is False
+
+
+def test_webhook_delete_null_identifier_never_matches_webhook_without_identifier(
+    app_api_client, webhook
+):
+    # given - the app owns a webhook whose identifier is NULL
+    assert webhook.identifier is None
+    variables = {"identifier": None}
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_DELETE_BY_POINTER, variables=variables
+    )
+
+    # then - the NULL-identifier webhook must not be resolved by a null pointer
+    content = get_graphql_content(response)
+    assert content["data"]["webhookDelete"]["errors"] == [
+        {
+            "field": None,
+            "message": POINTER_REQUIRED_MESSAGE,
+            "code": WebhookErrorCode.GRAPHQL_ERROR.name,
+        }
+    ]
+    assert Webhook.objects.filter(pk=webhook.pk).exists() is True

@@ -211,20 +211,6 @@ def filter_has_category(qs, _, value):
     return qs.filter(category__isnull=not value)
 
 
-def filter_has_preordered_variants(qs, _, value):
-    variants = (
-        ProductVariant.objects.using(qs.db)
-        .filter(is_preorder=True)
-        .filter(
-            Q(preorder_end_date__isnull=True) | Q(preorder_end_date__gt=timezone.now())
-        )
-        .values("product_id")
-    )
-    if value:
-        return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
-
-
 def filter_collections(qs, _, value):
     if value:
         _, collection_pks = resolve_global_ids_to_primary_keys(
@@ -612,23 +598,6 @@ def where_filter_gift_card(qs, _, value):
     )
     lookup = Exists(product_types.filter(id=OuterRef("product_type_id")))
     return qs.filter(lookup) if value is True else qs.exclude(lookup)
-
-
-def where_filter_has_preordered_variants(qs, _, value):
-    if value is None:
-        return qs.none()
-
-    variants = (
-        ProductVariant.objects.using(qs.db)
-        .filter(is_preorder=True)
-        .filter(
-            Q(preorder_end_date__isnull=True) | Q(preorder_end_date__gt=timezone.now())
-        )
-        .values("product_id")
-    )
-    if value:
-        return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
-    return qs.filter(~Exists(variants.filter(product_id=OuterRef("pk"))))
 
 
 def where_filter_updated_at_range(qs, _, value):

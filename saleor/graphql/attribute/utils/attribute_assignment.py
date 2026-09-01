@@ -3,16 +3,17 @@ from typing import TYPE_CHECKING, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.db.models.expressions import Exists, OuterRef
 from graphql.error import GraphQLError
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
+from ....attribute.lock_objects import attribute_value_qs_select_for_update
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page import models as page_models
-from ....page.error_codes import PageErrorCode
 from ....product import models as product_models
 from ....product.error_codes import ProductErrorCode
 from ...core.utils import from_global_id_or_error
@@ -22,6 +23,8 @@ from .shared import (
     T_ERROR_DICT,
     T_INSTANCE,
     AttrValuesInput,
+    get_assigned_attribute_values_map,
+    get_assigned_attribute_values_qs,
     get_assignment_model_and_fk,
 )
 from .type_handlers import (
@@ -46,6 +49,12 @@ T_INPUT_MAP = list[tuple["attribute_models.Attribute", "AttrValuesInput"]]
 T_PRE_SAVE_BULK = dict[
     AttributeValueBulkActionEnum, dict[attribute_models.Attribute, list]
 ]
+
+# Input types whose values are created per assigned instance and owned by it,
+# so the instance's save owns their lifecycle and reclaims rows it detaches.
+# REFERENCE and SINGLE_REFERENCE values have the same per-instance lifecycle
+# and may be added here once their cleanup is desired.
+INPUT_TYPES_WITH_INSTANCE_OWNED_VALUES = (AttributeInputType.FILE,)
 
 
 class AttributeAssignmentMixin:
@@ -124,11 +133,9 @@ class AttributeAssignmentMixin:
         raw_input: list[dict],
         attributes_qs: "QuerySet",
         creation: bool = True,
-        is_page_attributes: bool = False,
+        error_class=ProductErrorCode,
     ) -> T_INPUT_MAP:
         """Resolve, validate, and prepare attribute input."""
-        error_class = PageErrorCode if is_page_attributes else ProductErrorCode
-
         id_to_values_input_map, ext_ref_to_values_input_map = (
             cls._prepare_attribute_input_maps(raw_input, error_class)
         )
@@ -232,7 +239,9 @@ class AttributeAssignmentMixin:
         )
 
         if creation:
-            cls._validate_required_attributes(attributes_qs, cleaned_input, errors)
+            cls._validate_required_attributes(
+                attributes_qs, cleaned_input, errors, error_class
+            )
 
         if errors:
             raise ValidationError(errors)
@@ -277,6 +286,7 @@ class AttributeAssignmentMixin:
         attributes_qs: "QuerySet[attribute_models.Attribute]",
         cleaned_input: T_INPUT_MAP,
         errors: list[ValidationError],
+        error_class,
     ):
         """Validate that all required attributes are provided."""
         supplied_pks = {attr.pk for attr, _ in cleaned_input}
@@ -290,7 +300,7 @@ class AttributeAssignmentMixin:
             ]
             error = ValidationError(
                 "All attributes flagged as having a value required must be supplied.",
-                code=ProductErrorCode.REQUIRED.value,
+                code=error_class.REQUIRED.value,
                 params={"attributes": missing_ids},
             )
             errors.append(error)
@@ -311,7 +321,7 @@ class AttributeAssignmentMixin:
                 <Attribute>: [
                     {
                         "attribute": <Attribute>,
-                        "slug": "instance_id_attribute_id",
+                        "slug": "<assigned value slug or model_name-instance_id_attribute_id>",
                         "defaults": {"name": "...", "plain_text": "..."}
                     }
                 ],
@@ -362,7 +372,37 @@ class AttributeAssignmentMixin:
                 for action, value_data in prepared_values:
                     pre_save_bulk[action][attribute].append(value_data)
 
+        cls._use_assigned_value_slugs(instance, pre_save_bulk)
         return pre_save_bulk
+
+    @classmethod
+    def _use_assigned_value_slugs(
+        cls, instance: T_INSTANCE, pre_save_bulk: T_PRE_SAVE_BULK
+    ):
+        """Update values assigned to the instance in place under their existing slug.
+
+        Update-or-create actions match values by slug, and the handlers
+        generate the entity-aware `{model name}-{instance pk}_{attribute pk}`
+        format. Values assigned before that format was introduced (or with
+        hand-crafted slugs) would not be matched and would be replaced with
+        new rows, losing their translations and external references — so for
+        attributes with a value already assigned to the instance, match that
+        value by its existing slug instead.
+        """
+        update_or_create = pre_save_bulk.get(
+            AttributeValueBulkActionEnum.UPDATE_OR_CREATE
+        )
+        if not update_or_create:
+            return
+        assigned_values = get_assigned_attribute_values_map(
+            instance, [attribute.pk for attribute in update_or_create]
+        )
+        for attribute, values in update_or_create.items():
+            assigned_value = assigned_values.get(attribute.pk)
+            if not assigned_value:
+                continue
+            for value_data in values:
+                value_data["slug"] = assigned_value.slug
 
     @classmethod
     def save(
@@ -376,6 +416,15 @@ class AttributeAssignmentMixin:
             pre_save_bulk = cls.pre_save_values(instance, cleaned_input)
         attribute_and_values = cls._bulk_create_pre_save_values(pre_save_bulk)
 
+        owned_value_attribute_pks = [
+            attribute.pk
+            for attribute in attribute_and_values
+            if attribute.input_type in INPUT_TYPES_WITH_INSTANCE_OWNED_VALUES
+        ]
+        previous_owned_value_pks = cls._get_assigned_value_pks(
+            instance, owned_value_attribute_pks
+        )
+
         attr_val_map = defaultdict(list)
         clean_assignment_pks = []
         for attribute, values in attribute_and_values.items():
@@ -387,6 +436,10 @@ class AttributeAssignmentMixin:
         associate_attribute_values_to_instance(instance, attr_val_map)
 
         cls._clean_assignments(instance, clean_assignment_pks)
+
+        cls._delete_orphaned_owned_values(
+            instance, previous_owned_value_pks, owned_value_attribute_pks
+        )
 
     @classmethod
     def _clean_assignments(cls, instance: T_INSTANCE, clean_assignment_pks: list[int]):
@@ -420,6 +473,87 @@ class AttributeAssignmentMixin:
         ).filter(
             variant_id=instance.id,
         ).delete()
+
+    @classmethod
+    def _get_assigned_value_pks(
+        cls, instance: T_INSTANCE, attribute_pks: list[int]
+    ) -> list[int]:
+        """Capture the pks of the values assigned to the instance.
+
+        Uses the assignment queryset rather than
+        `get_assigned_attribute_values_map`, which keeps a single value per
+        attribute and would miss extra assigned rows legacy data may hold.
+        """
+        if not attribute_pks:
+            return []
+        return list(
+            get_assigned_attribute_values_qs(instance, attribute_pks).values_list(
+                "pk", flat=True
+            )
+        )
+
+    @classmethod
+    def _delete_orphaned_owned_values(
+        cls,
+        instance: T_INSTANCE,
+        previous_value_pks: list[int],
+        attribute_pks: list[int],
+    ):
+        """Delete instance-owned values this save detached from the instance.
+
+        The file handler creates a new value row for every new URL instead
+        of updating the assigned row in place, so a replace or clear leaves
+        the previous row behind. Reclaimed are the rows that were assigned
+        to the instance before this save and are assigned to nothing after
+        it. `_exclude_values_assigned_to_any_entity` keeps the legacy rows
+        that another entity still uses.
+        """
+        if not previous_value_pks:
+            return
+
+        candidates = attribute_models.AttributeValue.objects.filter(
+            pk__in=previous_value_pks
+        ).exclude(
+            # The same-URL reuse path keeps the previously assigned row attached,
+            # so a row still assigned to the instance must survive. Redundant with
+            # the broad guard below today — kept so that guard stays droppable
+            # without taking this correctness case down with it.
+            pk__in=get_assigned_attribute_values_qs(instance, attribute_pks)
+        )
+        candidates = cls._exclude_values_assigned_to_any_entity(candidates)
+
+        with transaction.atomic():
+            locked_pks = (
+                attribute_value_qs_select_for_update()
+                .filter(pk__in=candidates)
+                .values_list("pk", flat=True)
+            )
+            attribute_models.AttributeValue.objects.filter(pk__in=locked_pks).delete()
+
+    @classmethod
+    def _exclude_values_assigned_to_any_entity(
+        cls, qs: "QuerySet[AttributeValue]"
+    ) -> "QuerySet[AttributeValue]":
+        """Exclude values still referenced by any attribute assignment.
+
+        The instance's own assignments are already removed at this point, so
+        a remaining reference means the row is shared with another entity.
+        Current write paths cannot produce such a row, but the schema permits
+        it and legacy rows may exist. The sibling cleanups on entity deletion
+        (e.g. `ProductDelete.delete_assigned_attribute_values`) delete
+        unconditionally, so this guard may be dropped if it proves not worth
+        its cost.
+        """
+        for assignment_model in (
+            attribute_models.AssignedProductAttributeValue,
+            attribute_models.AssignedPageAttributeValue,
+            attribute_models.AssignedUserAttributeValue,
+            attribute_models.AssignedVariantAttributeValue,
+        ):
+            qs = qs.exclude(
+                Exists(assignment_model.objects.filter(value_id=OuterRef("pk")))
+            )
+        return qs
 
     @classmethod
     def _bulk_create_pre_save_values(cls, pre_save_bulk):

@@ -4,8 +4,6 @@ from django.core.exceptions import ValidationError
 from ....attribute import AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.exceptions import PermissionDenied
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
@@ -21,6 +19,7 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute
 from .mixins import REFERENCE_TYPES_LIMIT, AttributeMixin
+from .permissions import check_attribute_type_permissions
 
 
 class AttributeValueInput(BaseInputObjectType):
@@ -75,22 +74,6 @@ class AttributeCreateInput(BaseInputObjectType):
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
-    filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
-        + DEPRECATED_IN_3X_INPUT
-    )
-    filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
-    )
-    storefront_search_position = graphene.Int(
-        required=False,
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
-        + DEPRECATED_IN_3X_INPUT,
-    )
-    available_in_grid = graphene.Boolean(
-        required=False,
-        description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
-    )
     external_reference = graphene.String(
         description="External ID of this attribute.", required=False
     )
@@ -112,12 +95,7 @@ class AttributeCreateInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = (
-            "Represents an input for create of attribute.\n\n"
-            "NOTE: Deprecated fields `filterableInStorefront`, "
-            "`storefrontSearchPosition` and `availableInGrid` are not supported in "
-            "bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`."
-        )
+        description = "Represents an input for create of attribute."
 
 
 class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
@@ -168,13 +146,7 @@ class AttributeCreate(AttributeMixin, DeprecatedModelMutation):
         cls, _root, info: ResolveInfo, /, *, input
     ):
         # check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
-        if not cls.check_permissions(info.context, permissions):
-            raise PermissionDenied(permissions=permissions)
+        check_attribute_type_permissions(cls, info.context, [input["type"]])
 
         cls.validate_reference_types_limit(input)
         instance = models.Attribute()

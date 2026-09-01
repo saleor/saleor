@@ -1,6 +1,8 @@
 from collections import defaultdict
 from uuid import UUID
 
+from django.db.models import Q
+
 from ...checkout.models import Checkout
 from ...giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ...order.models import Order
@@ -12,11 +14,16 @@ class GiftCardsByUserLoader(DataLoader[int, list[GiftCard]]):
 
     def batch_load(self, keys):
         gift_cards = GiftCard.objects.using(self.database_connection_name).filter(
-            used_by_id__in=keys
+            Q(used_by_id__in=keys) | Q(assigned_to_id__in=keys)
         )
+        key_set = set(keys)
         gift_cards_by_user_map = defaultdict(list)
         for gift_card in gift_cards:
-            gift_cards_by_user_map[gift_card.used_by_id].append(gift_card)
+            seen = set()
+            for uid in (gift_card.used_by_id, gift_card.assigned_to_id):
+                if uid in key_set and uid not in seen:
+                    gift_cards_by_user_map[uid].append(gift_card)
+                    seen.add(uid)
         return [gift_cards_by_user_map.get(user_id, []) for user_id in keys]
 
 

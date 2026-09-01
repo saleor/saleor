@@ -4,13 +4,18 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import Case, Exists, F, OrderBy, OuterRef, Q, Value, When
 
+from ...account.models import CustomerType
 from ...core.db.fields import SanitizedJSONField
 from ...core.editorjs import clean_editorjs
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
 from ...core.utils.translations import Translation
 from ...page.models import Page, PageType
-from ...permission.enums import PageTypePermissions, ProductTypePermissions
+from ...permission.enums import (
+    CustomerTypePermissions,
+    PageTypePermissions,
+    ProductTypePermissions,
+)
 from ...permission.utils import has_one_of_permissions
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from .. import AttributeEntityType, AttributeInputType, AttributeType
@@ -44,6 +49,7 @@ class BaseAttributeQuerySet(models.QuerySet[T]):
             [
                 PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
                 ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
             ],
         ):
             return self.all()
@@ -82,6 +88,16 @@ class AttributeQuerySet(BaseAttributeQuerySet[T]):
             Q(attributepage__page_type_id=product_type_pk)
         )
 
+    def get_unassigned_customer_type_attributes(self, customer_type_pk: int):
+        return self.customer_type_attributes().exclude(
+            attributecustomertype__customer_type_id=customer_type_pk
+        )
+
+    def get_assigned_customer_type_attributes(self, customer_type_pk: int):
+        return self.customer_type_attributes().filter(
+            attributecustomertype__customer_type_id=customer_type_pk
+        )
+
     def get_public_attributes(self):
         return self.filter(visible_in_storefront=True)
 
@@ -108,6 +124,9 @@ class AttributeQuerySet(BaseAttributeQuerySet[T]):
 
     def page_type_attributes(self):
         return self.filter(type=AttributeType.PAGE_TYPE)
+
+    def customer_type_attributes(self):
+        return self.filter(type=AttributeType.CUSTOMER_TYPE)
 
 
 AttributeManager = models.Manager.from_queryset(AttributeQuerySet)
@@ -164,6 +183,13 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
         through="attribute.AttributePage",
         through_fields=("attribute", "page_type"),
     )
+    customer_types = models.ManyToManyField(
+        CustomerType,
+        blank=True,
+        related_name="customer_attributes",
+        through="attribute.AttributeCustomerType",
+        through_fields=("attribute", "customer_type"),
+    )
 
     unit = models.CharField(
         max_length=100,
@@ -176,16 +202,22 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
     is_variant_only = models.BooleanField(default=False, blank=True)
     visible_in_storefront = models.BooleanField(default=True, blank=True)
 
+    # Presentation flags that Saleor never reads. Their GraphQL API surface was
+    # removed in 3.24; the fields and their columns are to be dropped too. Dropping
+    # `storefront_search_position` also changes the default ordering below.
     filterable_in_storefront = models.BooleanField(default=False, blank=True)
     filterable_in_dashboard = models.BooleanField(default=False, blank=True)
 
     storefront_search_position = models.IntegerField(default=0, blank=True)
     available_in_grid = models.BooleanField(default=False, blank=True)
+
     max_sort_order = models.IntegerField(default=None, null=True, blank=True)
 
     objects = AttributeManager()
 
     class Meta(ModelWithMetadata.Meta):
+        # `storefront_search_position` is a leftover of the removed presentation
+        # flags; ordering falls back to `slug` when the column is dropped.
         ordering = ("storefront_search_position", "slug")
         indexes = [
             *ModelWithMetadata.Meta.indexes,
@@ -338,10 +370,10 @@ class AttributeValueManager(models.Manager):
             from ..lock_objects import attribute_value_qs_select_for_update
 
             with transaction.atomic():
-                _locked_qs = (
+                _locked_ids = list(
                     attribute_value_qs_select_for_update()
                     .filter(pk__in=[obj.pk for obj in objects_to_be_updated])
-                    .select_for_update(of=(["self"]))
+                    .values_list("pk", flat=True)
                 )
                 self.bulk_update(
                     objects_to_be_updated,

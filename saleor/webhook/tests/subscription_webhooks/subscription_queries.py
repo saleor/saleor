@@ -591,25 +591,6 @@ GIFT_CARD_METADATA_UPDATED = (
 """
 )
 
-GIFT_CARD_EXPORT_COMPLETED = (
-    fragments.GIFT_CARD_EXPORT_DETAILS
-    + fragments.RECIPIENT_APP_DETAILS
-    + """
-    subscription{
-      event{
-        recipient{
-          ...Recipient
-        }
-        ...on GiftCardExportCompleted{
-          export{
-            ...GiftCardExportDetails
-          }
-        }
-      }
-    }
-"""
-)
-
 VOUCHER_CREATED = (
     fragments.VOUCHER_DETAILS
     + fragments.RECIPIENT_APP_DETAILS
@@ -759,26 +740,6 @@ VOUCHER_METADATA_UPDATED = (
         ...on VoucherMetadataUpdated{
           voucher{
             ...VoucherDetails
-          }
-        }
-      }
-    }
-"""
-)
-
-
-VOUCHER_CODE_EXPORT_COMPLETED = (
-    fragments.VOUCHER_CODE_EXPORT_DETAILS
-    + fragments.RECIPIENT_APP_DETAILS
-    + """
-    subscription{
-      event{
-        recipient{
-          ...Recipient
-        }
-        ...on VoucherCodeExportCompleted{
-          export{
-            ...VoucherCodeExportDetails
           }
         }
       }
@@ -2276,6 +2237,63 @@ PAGE_TYPE_DELETED = (
         ...on PageTypeDeleted{
           pageType{
             ...PageTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+CUSTOMER_TYPE_CREATED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeCreated{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+CUSTOMER_TYPE_UPDATED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeUpdated{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+CUSTOMER_TYPE_DELETED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeDeleted{
+          customerType{
+            ...CustomerTypeDetails
           }
         }
       }

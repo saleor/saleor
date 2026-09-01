@@ -24,7 +24,11 @@ from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
-from .manifest_schema import ManifestSchema
+from .manifest_schema import (
+    EXTENSION_IDENTIFIER_MAX_LENGTH,
+    WEBHOOK_IDENTIFIER_MAX_LENGTH,
+    ManifestSchema,
+)
 from .models import App
 from .types import DEFAULT_APP_TARGET
 from .validators import AppURLValidator
@@ -221,10 +225,12 @@ def _clean_extensions(manifest_data, app_permissions, errors):
 
 
 def _clean_extension_identifier(extension, seen_identifiers, errors):
-    """Normalize and ensure the extension identifier is unique within the manifest.
+    """Normalize, length-check and dedupe the extension identifier.
 
     Blank or whitespace-only identifiers are treated as not provided (``None``)
-    and may repeat freely. Non-empty identifiers must be unique per app.
+    and may repeat freely. The length is measured on the stripped value (the
+    value actually persisted), matching the extensionCreate/Update mutations.
+    Non-empty identifiers must be unique per app.
     """
     identifier = (extension.get("identifier") or "").strip() or None
     extension["identifier"] = identifier
@@ -232,11 +238,55 @@ def _clean_extension_identifier(extension, seen_identifiers, errors):
     if identifier is None:
         return
 
+    if len(identifier) > EXTENSION_IDENTIFIER_MAX_LENGTH:
+        errors["extensions"].append(
+            ValidationError(
+                "Identifier is too long. Maximum length is "
+                f"{EXTENSION_IDENTIFIER_MAX_LENGTH} characters.",
+                code=AppErrorCode.INVALID.value,
+            )
+        )
+        return
+
     if identifier in seen_identifiers:
         errors["extensions"].append(
             ValidationError(
                 f"Duplicate extension identifier: {identifier}.",
                 code=AppErrorCode.DUPLICATED_EXTENSION_IDENTIFIER.value,
+            )
+        )
+    seen_identifiers.add(identifier)
+
+
+def _clean_webhook_identifier(webhook, seen_identifiers, errors):
+    """Normalize, length-check and dedupe the webhook identifier.
+
+    Blank or whitespace-only identifiers are treated as not provided (``None``)
+    and may repeat freely. The length is measured on the stripped value (the
+    value actually persisted), matching the webhookCreate/Update mutations.
+    Non-empty identifiers must be unique per app.
+    """
+    identifier = (webhook.get("identifier") or "").strip() or None
+    webhook["identifier"] = identifier
+
+    if identifier is None:
+        return
+
+    if len(identifier) > WEBHOOK_IDENTIFIER_MAX_LENGTH:
+        errors["webhooks"].append(
+            ValidationError(
+                "Identifier is too long. Maximum length is "
+                f"{WEBHOOK_IDENTIFIER_MAX_LENGTH} characters.",
+                code=AppErrorCode.INVALID.value,
+            )
+        )
+        return
+
+    if identifier in seen_identifiers:
+        errors["webhooks"].append(
+            ValidationError(
+                f"Duplicate webhook identifier: {identifier}.",
+                code=AppErrorCode.DUPLICATED_WEBHOOK_IDENTIFIER.value,
             )
         )
     seen_identifiers.add(identifier)
@@ -252,7 +302,10 @@ def _clean_webhooks(manifest_data, errors):
         str_to_enum(e_type[0]): e_type[0] for e_type in WebhookEventSyncType.CHOICES
     }
 
+    seen_identifiers: set[str] = set()
     for webhook in webhooks:
+        _clean_webhook_identifier(webhook, seen_identifiers, errors)
+
         webhook["isActive"] = webhook.get("isActive", True)
 
         webhook["events"] = []

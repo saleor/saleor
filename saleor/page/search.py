@@ -48,7 +48,7 @@ def update_pages_search_vector(
 
     # Save updates
     with transaction.atomic():
-        _locked_pages = (
+        _locked_pages = list(
             page_qs_select_for_update()
             .filter(id__in=[page.id for page in pages])
             .values_list("id", flat=True)

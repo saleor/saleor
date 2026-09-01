@@ -716,6 +716,7 @@ class OrderLine(ModelWithMetadata):
     )
 
     is_price_overridden = models.BooleanField(null=True, blank=True)
+    price_override_reason = models.CharField(max_length=255, null=True, blank=True)
 
     # Fulfilled when voucher code was used for product in the line
     voucher_code = models.CharField(max_length=255, null=True, blank=True)

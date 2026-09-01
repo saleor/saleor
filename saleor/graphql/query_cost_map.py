@@ -75,6 +75,8 @@ COST_MAP = {
         "collection": {"complexity": 1},
         "collections": {"complexity": 1, "multipliers": ["first", "last"]},
         "customers": {"complexity": 1, "multipliers": ["first", "last"]},
+        "customerType": {"complexity": 1},
+        "customerTypes": {"complexity": 1, "multipliers": ["first", "last"]},
         "draftOrders": {"complexity": 1, "multipliers": ["first", "last"]},
         "exportFile": {"complexity": 1},
         "exportFiles": {"complexity": 1, "multipliers": ["first", "last"]},
@@ -259,6 +261,10 @@ COST_MAP = {
     "CollectionChannelListing": {
         "channel": {"complexity": 1},
     },
+    "CustomerType": {
+        "attributes": {"complexity": 1},
+        "availableAttributes": {"complexity": 1, "multipliers": ["first", "last"]},
+    },
     "Fulfillment": {
         "lines": {"complexity": 1},
         "warehouse": {"complexity": 1},
@@ -294,7 +300,6 @@ COST_MAP = {
     },
     "Order": {
         "availableCollectionPoints": {"complexity": 1},
-        "availableShippingMethods": {"complexity": 1},
         "billingAddress": {"complexity": 1},
         "channel": {"complexity": 1},
         "deliveryMethod": {"complexity": 1},
@@ -422,8 +427,11 @@ COST_MAP = {
         "countries": {"complexity": 1},
     },
     "User": {
+        "assignedAttribute": {"complexity": 1},
+        "assignedAttributes": {"complexity": 1, "multipliers": ["limit"]},
         "avatar": {"complexity": 1},
         "checkout": {"complexity": 1},
+        "customerType": {"complexity": 1},
         "editableGroups": {"complexity": 1},
         "events": {"complexity": 1},
         "giftCards": {"complexity": 1, "multipliers": ["first", "last"]},

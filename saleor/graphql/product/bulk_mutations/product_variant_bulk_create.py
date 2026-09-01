@@ -394,7 +394,17 @@ class ProductVariantBulkCreate(BaseMutation):
         variant_index,
         index_error_map,
         path_prefix="channelListings",
+        existing_channel_ids=None,
     ):
+        """Validate channel listings to create for a variant.
+
+        ``existing_channel_ids`` holds the channel global IDs the variant is
+        already listed on (only relevant when updating). Listings targeting one
+        of them produce a ``DUPLICATED_INPUT_ITEM`` error and are dropped from
+        the result, so the unique ``(variant, channel)`` constraint never raises
+        an ``IntegrityError`` at insert time.
+        """
+        existing_channel_ids = existing_channel_ids or set()
         channel_ids = [
             channel_listing["channel_id"] for channel_listing in channel_listings
         ]
@@ -432,6 +442,22 @@ class ProductVariantBulkCreate(BaseMutation):
         for listing_index, channel_listing in enumerate(channel_listings):
             channel_id = channel_listing["channel_id"]
             errors_count_before_prices = len(index_error_map[variant_index])
+
+            if channel_id in existing_channel_ids:
+                index_error_map[variant_index].append(
+                    ProductVariantBulkError(
+                        field="channelId",
+                        path=f"{path_prefix}.{listing_index}.channelId",
+                        message=(
+                            "Channel listing already exists for this variant. "
+                            "Use the `update` field to modify an existing "
+                            "channel listing."
+                        ),
+                        code=ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.value,
+                        channels=[channel_id],
+                    )
+                )
+                continue
 
             if channel_id in channels_not_assigned_to_product:
                 code = ProductVariantBulkErrorCode.PRODUCT_NOT_ASSIGNED_TO_CHANNEL.value
@@ -704,14 +730,6 @@ class ProductVariantBulkCreate(BaseMutation):
         if sku is not None:
             cleaned_input["sku"] = clean_variant_sku(sku)
 
-        preorder_settings = cleaned_input.get("preorder")
-        if preorder_settings:
-            cleaned_input["is_preorder"] = True
-            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-                "global_threshold"
-            )
-            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
-
         base_fields_errors_count = cls.validate_base_fields(
             cleaned_input, duplicated_sku, errors, index_error_map, index
         )
@@ -819,7 +837,6 @@ class ProductVariantBulkCreate(BaseMutation):
                 cost_price_amount=listing_data.get("cost_price"),
                 prior_price_amount=listing_data.get("prior_price"),
                 currency=listing_data["channel"].currency_code,
-                preorder_quantity_threshold=listing_data.get("preorder_threshold"),
             )
             for listing_data in listings_input
         ]

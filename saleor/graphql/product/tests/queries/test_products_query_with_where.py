@@ -744,7 +744,16 @@ def test_products_filter_by_attributes_value_slug(
     assert returned_ids == {product1_id, product2_id}
 
 
-def test_products_filter_by_attributes_empty_list(
+@pytest.mark.parametrize(
+    ("_case", "attributes_value"),
+    [
+        ("empty_list", []),
+        ("null", None),
+    ],
+)
+def test_products_filter_by_attributes_empty(
+    _case,
+    attributes_value,
     api_client,
     product_list,
     channel_USD,
@@ -773,7 +782,7 @@ def test_products_filter_by_attributes_empty_list(
     variables = {
         "channel": channel_USD.slug,
         "where": {
-            "attributes": [],
+            "attributes": attributes_value,
         },
     }
 
@@ -1806,98 +1815,6 @@ def test_products_filter_by_none_as_gift_card(
 
     # then
     content = get_graphql_content(response)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 0
-
-
-@pytest.mark.parametrize(("filter", "index"), [(False, 0), (True, 1)])
-def test_products_query_with_filter_has_preordered_variants(
-    filter,
-    index,
-    api_client,
-    preorder_variant_global_threshold,
-    product_without_shipping,
-    channel_USD,
-):
-    # given
-    product_list = [product_without_shipping, preorder_variant_global_threshold.product]
-    variables = {
-        "channel": channel_USD.slug,
-        "where": {"hasPreorderedVariants": filter},
-    }
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
-    product_id = graphene.Node.to_global_id("Product", product_list[index].id)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == product_id
-
-
-def test_products_query_with_filter_none_as_has_preordered_variants(
-    api_client,
-    preorder_variant_global_threshold,
-    product_without_shipping,
-    channel_USD,
-):
-    # given
-    variables = {
-        "channel": channel_USD.slug,
-        "where": {"hasPreorderedVariants": None},
-    }
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
-    products = content["data"]["products"]["edges"]
-    assert len(products) == 0
-
-
-def test_products_filter_by_has_preordered_variants_before_end_date(
-    api_client, preorder_variant_global_threshold, channel_USD
-):
-    # given
-    variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=3)
-    variant.save(update_fields=["preorder_end_date"])
-
-    product = preorder_variant_global_threshold.product
-    variables = {"channel": channel_USD.slug, "where": {"hasPreorderedVariants": True}}
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
-    product_id = graphene.Node.to_global_id("Product", product.id)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == product_id
-
-
-def test_products_filter_by_has_preordered_variants_after_end_date(
-    api_client, preorder_variant_global_threshold, channel_USD
-):
-    # given
-    variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() - datetime.timedelta(days=3)
-    variant.save(update_fields=["preorder_end_date"])
-
-    variables = {"channel": channel_USD.slug, "where": {"hasPreorderedVariants": True}}
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
     products = content["data"]["products"]["edges"]
 
     assert len(products) == 0

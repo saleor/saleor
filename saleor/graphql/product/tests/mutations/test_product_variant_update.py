@@ -13,6 +13,7 @@ from .....attribute import AttributeInputType
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product.error_codes import ProductErrorCode
+from .....product.models import Product, ProductVariant
 from ....core.utils import snake_to_camel_case
 from ....tests.utils import get_graphql_content
 from ...mutations.product_variant.product_variant_create import ProductVariantInput
@@ -1377,7 +1378,9 @@ def test_update_variant_with_rich_text_attribute(
             {"id": attr_id, "richText": json.dumps(rich_text, sort_keys=True)},
         ],
     }
-    rich_text_attribute_value.slug = f"{variant.id}_{rich_text_attribute.id}"
+    rich_text_attribute_value.slug = (
+        f"productvariant-{variant.id}_{rich_text_attribute.id}"
+    )
     rich_text_attribute_value.save()
     values_count = rich_text_attribute.values.count()
     associate_attribute_values_to_instance(
@@ -1435,7 +1438,9 @@ def test_update_variant_with_plain_text_attribute(
             {"id": attr_id, "plainText": text},
         ],
     }
-    plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
+    plain_text_attribute_value.slug = (
+        f"productvariant-{variant.id}_{plain_text_attribute.id}"
+    )
     plain_text_attribute_value.save()
     values_count = plain_text_attribute.values.count()
     associate_attribute_values_to_instance(
@@ -1494,7 +1499,9 @@ def test_update_variant_with_plain_text_attribute_value_required(
             {"id": attr_id, "plainText": text},
         ],
     }
-    plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
+    plain_text_attribute_value.slug = (
+        f"productvariant-{variant.id}_{plain_text_attribute.id}"
+    )
     plain_text_attribute_value.save()
 
     plain_text_attribute.value_required = True
@@ -1549,7 +1556,9 @@ def test_update_variant_with_required_plain_text_attribute_no_value(
     attr_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.id)
 
     plain_text_attribute_value = plain_text_attribute.values.first()
-    plain_text_attribute_value.slug = f"{variant.id}_{plain_text_attribute.id}"
+    plain_text_attribute_value.slug = (
+        f"productvariant-{variant.id}_{plain_text_attribute.id}"
+    )
     plain_text_attribute_value.save()
 
     associate_attribute_values_to_instance(
@@ -1632,7 +1641,7 @@ def test_update_variant_with_date_attribute(
                 "dateTime": None,
                 "date": str(date_value),
                 "name": str(date_value),
-                "slug": f"{variant.id}_{date_attribute.id}",
+                "slug": f"productvariant-{variant.id}_{date_attribute.id}",
             }
         ],
     }
@@ -1702,7 +1711,7 @@ def test_update_variant_with_date_time_attribute(
                 "dateTime": date_time_value.isoformat(),
                 "date": None,
                 "name": str(date_time_value),
-                "slug": f"{variant.id}_{date_time_attribute.id}",
+                "slug": f"productvariant-{variant.id}_{date_time_attribute.id}",
             }
         ],
     }
@@ -1746,7 +1755,7 @@ def test_update_variant_removes_numeric_attribute_value(
             {"id": attr_id, "values": []},
         ],
     }
-    attribute_value.slug = f"{variant.id}_{numeric_attribute.id}"
+    attribute_value.slug = f"productvariant-{variant.id}_{numeric_attribute.id}"
     attribute_value.save()
     values_count = numeric_attribute.values.count()
     associate_attribute_values_to_instance(
@@ -1834,6 +1843,348 @@ def test_update_variant_adds_numeric_attribute(
         name=numeric_name, numeric=numeric_value
     ).first()
     product_variant_updated.assert_called_once_with(product.variants.last())
+
+
+def test_update_variant_numeric_attribute_does_not_change_product_with_same_pk(
+    staff_api_client,
+    permission_manage_products,
+    numeric_attribute,
+    product_type_generator,
+    category,
+):
+    """Value slug `{instance.id}_{attribute.id}` must not collide across entity types.
+
+    A product and a variant sharing the same numeric pk must not resolve to the
+    same AttributeValue row when the same attribute is used as a product
+    attribute on one product type and as a variant attribute on another.
+    """
+    # given
+    product_type_with_product_attr = product_type_generator(
+        name="Type with product attribute",
+        slug="type-with-product-attribute",
+        has_variants=False,
+        product_attributes=[numeric_attribute],
+        variant_attributes=[],
+    )
+    product_type_with_variant_attr = product_type_generator(
+        name="Type with variant attribute",
+        slug="type-with-variant-attribute",
+        has_variants=True,
+        product_attributes=[],
+        variant_attributes=[numeric_attribute],
+    )
+
+    product = Product.objects.create(
+        name="Product with numeric attribute",
+        slug="product-with-numeric-attribute",
+        product_type=product_type_with_product_attr,
+        category=category,
+    )
+    other_product = Product.objects.create(
+        name="Unrelated product",
+        slug="unrelated-product",
+        product_type=product_type_with_variant_attr,
+        category=category,
+    )
+    # force the pk collision between the product and the variant
+    variant = ProductVariant.objects.create(
+        pk=product.pk, product=other_product, sku="colliding-variant"
+    )
+
+    product_numeric_name = "221"
+    product_numeric_value = 221.0
+    # the value uses the legacy slug format that did not encode the entity type
+    product_value = AttributeValue.objects.create(
+        attribute=numeric_attribute,
+        slug=slugify(f"{product.pk}_{numeric_attribute.pk}", allow_unicode=True),
+        name=product_numeric_name,
+        numeric=product_numeric_value,
+    )
+    associate_attribute_values_to_instance(
+        product, {numeric_attribute.pk: [product_value]}
+    )
+
+    variant_numeric_name = "999"
+    variant_numeric_value = 999.0
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {"id": attr_id, "numeric": variant_numeric_name},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    assert len(content["errors"]) == 0
+
+    assigned_attributes = content["productVariant"]["assignedAttributes"]
+    expected_assigned_attribute = {
+        "attribute": {"slug": numeric_attribute.slug},
+        "value": variant_numeric_value,
+    }
+    assert expected_assigned_attribute in assigned_attributes
+
+    # the variant got its own value row instead of hijacking the product's one
+    variant_value = variant.attributes.get().values.get()
+    assert variant_value.pk != product_value.pk
+    assert variant_value.name == variant_numeric_name
+    assert variant_value.numeric == variant_numeric_value
+
+    # the product's value is intact and still linked only to the product
+    product_value.refresh_from_db()
+    assert product_value.name == product_numeric_name
+    assert product_value.numeric == product_numeric_value
+    assert product_value.variantvalueassignment.exists() is False
+    assert product.attributevalues.get().value_id == product_value.pk
+
+
+def test_update_variant_numeric_attribute_keeps_updating_value_shared_with_product(
+    staff_api_client,
+    permission_manage_products,
+    numeric_attribute,
+    product_type_generator,
+    category,
+):
+    """Document the known limitation for values corrupted before the slug fix.
+
+    A value row that is already assigned to both a product and a variant (the
+    result of the historic `{instance.id}_{attribute.id}` slug collision) is
+    not healed automatically: updating the variant still updates the shared
+    row in place, changing the product's displayed value as well. Such rows
+    have to be split manually — see the instructions in the pull request that
+    introduced the entity-aware slug format.
+    """
+    # given
+    product_type_with_product_attr = product_type_generator(
+        name="Type with product attribute",
+        slug="type-with-product-attribute",
+        has_variants=False,
+        product_attributes=[numeric_attribute],
+        variant_attributes=[],
+    )
+    product_type_with_variant_attr = product_type_generator(
+        name="Type with variant attribute",
+        slug="type-with-variant-attribute",
+        has_variants=True,
+        product_attributes=[],
+        variant_attributes=[numeric_attribute],
+    )
+
+    product = Product.objects.create(
+        name="Product with numeric attribute",
+        slug="product-with-numeric-attribute",
+        product_type=product_type_with_product_attr,
+        category=category,
+    )
+    other_product = Product.objects.create(
+        name="Unrelated product",
+        slug="unrelated-product",
+        product_type=product_type_with_variant_attr,
+        category=category,
+    )
+    # force the pk collision between the product and the variant
+    variant = ProductVariant.objects.create(
+        pk=product.pk, product=other_product, sku="colliding-variant"
+    )
+
+    # the value was corrupted into cross-entity sharing before the slug fix:
+    # a single legacy-slug row assigned to both the product and the variant
+    shared_value = AttributeValue.objects.create(
+        attribute=numeric_attribute,
+        slug=slugify(f"{product.pk}_{numeric_attribute.pk}", allow_unicode=True),
+        name="221",
+        numeric=221.0,
+    )
+    associate_attribute_values_to_instance(
+        product, {numeric_attribute.pk: [shared_value]}
+    )
+    associate_attribute_values_to_instance(
+        variant, {numeric_attribute.pk: [shared_value]}
+    )
+    values_count = numeric_attribute.values.count()
+
+    variant_numeric_name = "999"
+    variant_numeric_value = 999.0
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {"id": attr_id, "numeric": variant_numeric_name},
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)["data"]["productVariantUpdate"]
+    assert len(content["errors"]) == 0
+
+    # the shared row is updated in place — no new row is created
+    shared_value.refresh_from_db()
+    assert shared_value.name == variant_numeric_name
+    assert shared_value.numeric == variant_numeric_value
+    assert numeric_attribute.values.count() == values_count
+    assert variant.attributes.get().values.get() == shared_value
+
+    # the product still shares the row, so its displayed value changed too
+    assert product.attributevalues.get().value_id == shared_value.pk
+
+
+def test_deleting_shared_value_and_re_adding_separates_product_and_variant(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_product_types_and_attributes,
+    numeric_attribute,
+    product_type_generator,
+    category,
+):
+    """Verify the manual remediation flow for values corrupted before the slug fix.
+
+    Deleting the shared value row unlinks both entities at once; re-entering
+    the values afterwards gives the product and the variant separate rows that
+    can no longer affect each other.
+    """
+    # given
+    product_type_with_product_attr = product_type_generator(
+        name="Type with product attribute",
+        slug="type-with-product-attribute",
+        has_variants=False,
+        product_attributes=[numeric_attribute],
+        variant_attributes=[],
+    )
+    product_type_with_variant_attr = product_type_generator(
+        name="Type with variant attribute",
+        slug="type-with-variant-attribute",
+        has_variants=True,
+        product_attributes=[],
+        variant_attributes=[numeric_attribute],
+    )
+
+    product = Product.objects.create(
+        name="Product with numeric attribute",
+        slug="product-with-numeric-attribute",
+        product_type=product_type_with_product_attr,
+        category=category,
+    )
+    other_product = Product.objects.create(
+        name="Unrelated product",
+        slug="unrelated-product",
+        product_type=product_type_with_variant_attr,
+        category=category,
+    )
+    # force the pk collision between the product and the variant
+    variant = ProductVariant.objects.create(
+        pk=product.pk, product=other_product, sku="colliding-variant"
+    )
+
+    # the value was corrupted into cross-entity sharing before the slug fix
+    shared_value = AttributeValue.objects.create(
+        attribute=numeric_attribute,
+        slug=slugify(f"{product.pk}_{numeric_attribute.pk}", allow_unicode=True),
+        name="999",
+        numeric=999.0,
+    )
+    associate_attribute_values_to_instance(
+        product, {numeric_attribute.pk: [shared_value]}
+    )
+    associate_attribute_values_to_instance(
+        variant, {numeric_attribute.pk: [shared_value]}
+    )
+
+    attr_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    product_numeric_name = "221"
+    product_numeric_value = 221.0
+    variant_numeric_name = "999"
+    variant_numeric_value = 999.0
+
+    # when
+    # step 1: delete the shared value, unlinking both entities at once
+    delete_response = staff_api_client.post_graphql(
+        """
+        mutation AttributeValueDelete($id: ID!) {
+          attributeValueDelete(id: $id) {
+            errors {
+              field
+              message
+            }
+          }
+        }
+        """,
+        {"id": graphene.Node.to_global_id("AttributeValue", shared_value.pk)},
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # step 2: re-enter the value on the product
+    product_response = staff_api_client.post_graphql(
+        """
+        mutation ProductUpdate($id: ID!, $attributes: [AttributeValueInput!]) {
+          productUpdate(id: $id, input: {attributes: $attributes}) {
+            errors {
+              field
+              message
+            }
+          }
+        }
+        """,
+        {
+            "id": product_id,
+            "attributes": [{"id": attr_id, "numeric": product_numeric_name}],
+        },
+        permissions=[permission_manage_products],
+    )
+
+    # step 3: re-enter the value on the variant
+    variant_response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        {
+            "id": variant_id,
+            "attributes": [{"id": attr_id, "numeric": variant_numeric_name}],
+        },
+    )
+
+    # then
+    delete_content = get_graphql_content(delete_response)["data"]
+    product_content = get_graphql_content(product_response)["data"]
+    variant_content = get_graphql_content(variant_response)["data"]
+    assert len(delete_content["attributeValueDelete"]["errors"]) == 0
+    assert len(product_content["productUpdate"]["errors"]) == 0
+    assert len(variant_content["productVariantUpdate"]["errors"]) == 0
+
+    assert AttributeValue.objects.filter(pk=shared_value.pk).exists() is False
+
+    # each entity got its own value row
+    product_value = numeric_attribute.values.get(
+        slug=f"product-{product.pk}_{numeric_attribute.pk}"
+    )
+    variant_value = numeric_attribute.values.get(
+        slug=f"productvariant-{variant.pk}_{numeric_attribute.pk}"
+    )
+    assert product_value.pk != variant_value.pk
+    assert product_value.name == product_numeric_name
+    assert product_value.numeric == product_numeric_value
+    assert variant_value.name == variant_numeric_name
+    assert variant_value.numeric == variant_numeric_value
+    assert product.attributevalues.get().value_id == product_value.pk
+    assert variant.attributes.get().values.get() == variant_value
+    assert product_value.variantvalueassignment.exists() is False
+    assert variant_value.productvalueassignment.exists() is False
 
 
 def test_update_product_variant_with_new_attribute(
@@ -3192,95 +3543,6 @@ def test_update_product_variant_name(
     assert data["productVariant"]["name"] == new_name
 
 
-QUERY_UPDATE_VARIANT_PREORDER = """
-    mutation updateVariant (
-        $id: ID!,
-        $sku: String!,
-        $preorder: PreorderSettingsInput) {
-            productVariantUpdate(
-                id: $id,
-                input: {
-                    sku: $sku,
-                    preorder: $preorder,
-                }) {
-                productVariant {
-                    sku
-                    preorder {
-                        globalThreshold
-                        endDate
-                    }
-                }
-            }
-        }
-"""
-
-
-def test_update_product_variant_change_preorder_data(
-    staff_api_client,
-    permission_manage_products,
-    preorder_variant_global_threshold,
-):
-    variant = preorder_variant_global_threshold
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    sku = "test sku"
-
-    new_global_threshold = variant.preorder_global_threshold + 5
-    assert variant.preorder_end_date is None
-    new_preorder_end_date = (
-        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
-        .astimezone()
-        .replace(microsecond=0)
-        .isoformat()
-    )
-    variables = {
-        "id": variant_id,
-        "sku": sku,
-        "preorder": {
-            "globalThreshold": new_global_threshold,
-            "endDate": new_preorder_end_date,
-        },
-    }
-
-    response = staff_api_client.post_graphql(
-        QUERY_UPDATE_VARIANT_PREORDER,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]["productVariant"]
-
-    assert data["sku"] == sku
-    assert data["preorder"]["globalThreshold"] == new_global_threshold
-    assert data["preorder"]["endDate"] == new_preorder_end_date
-
-
-def test_update_product_variant_can_not_turn_off_preorder(
-    staff_api_client,
-    permission_manage_products,
-    preorder_variant_global_threshold,
-):
-    """Test that preorder cannot be disabled through updating the `preorder` field directly."""
-    variant = preorder_variant_global_threshold
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    sku = "test sku"
-
-    variables = {"id": variant_id, "sku": sku, "preorder": None}
-
-    response = staff_api_client.post_graphql(
-        QUERY_UPDATE_VARIANT_PREORDER,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]["productVariant"]
-
-    assert data["sku"] == sku
-    assert data["preorder"]["globalThreshold"] == variant.preorder_global_threshold
-    assert data["preorder"]["endDate"] is None
-
-
 # Query used to check how Product Variant metadata updates behaves
 # and which events are emitted
 UPDATE_METADATA_QUERY = """
@@ -3655,9 +3917,6 @@ def test_update_product_variant_nothing_changed(
     value = "some_value"
     variant.metadata = {key: value}
     variant.private_metadata = {key: value}
-    variant.is_preorder = True
-    variant.preorder_global_threshold = 10
-    variant.preorder_end_date = "2024-12-02T00:00Z"
     variant.track_inventory = True
     variant.weight = Weight(kg=10)
     variant.quantity_limit_per_customer = 10
@@ -3683,10 +3942,6 @@ def test_update_product_variant_nothing_changed(
         "name": variant.name,
         "trackInventory": variant.track_inventory,
         "weight": 10,
-        "preorder": {
-            "globalThreshold": variant.preorder_global_threshold,
-            "endDate": variant.preorder_end_date,
-        },
         "quantityLimitPerCustomer": variant.quantity_limit_per_customer,
         "metadata": [{"key": key, "value": value}],
         "privateMetadata": [{"key": key, "value": value}],
@@ -3737,9 +3992,6 @@ def test_update_product_variant_emit_event(
     value = "some_value"
     variant.metadata = {key: value}
     variant.private_metadata = {key: value}
-    variant.is_preorder = True
-    variant.preorder_global_threshold = 10
-    variant.preorder_end_date = "2024-12-02T00:00Z"
     variant.track_inventory = True
     variant.weight = Weight(kg=10)
     variant.quantity_limit_per_customer = 10
@@ -3762,10 +4014,6 @@ def test_update_product_variant_emit_event(
         "name": variant.name + "_new",
         "trackInventory": not variant.track_inventory,
         "weight": 11,
-        "preorder": {
-            "globalThreshold": variant.preorder_global_threshold + 1,
-            "endDate": "2024-12-03T00:00Z",
-        },
         "quantityLimitPerCustomer": variant.quantity_limit_per_customer + 1,
         "metadata": [{"key": key + "_new", "value": value + "_new"}],
         "privateMetadata": [{"key": key + "_new", "value": value + "_new"}],

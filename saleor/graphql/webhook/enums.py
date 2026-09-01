@@ -2,7 +2,10 @@ import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..core.descriptions import (
+    ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
+    DEPRECATED_EXPORT_MUTATIONS,
+    DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ..core.types import BaseEnum
@@ -86,13 +89,18 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CUSTOMER_UPDATED: "A customer account is updated.",
     WebhookEventAsyncType.CUSTOMER_DELETED: "A customer account is deleted.",
     WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED: "A customer account metadata is updated.",
+    WebhookEventAsyncType.CUSTOMER_TYPE_CREATED: "A new customer type is created."
+    + ADDED_IN_323,
+    WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED: "A customer type is updated."
+    + ADDED_IN_323,
+    WebhookEventAsyncType.CUSTOMER_TYPE_DELETED: "A customer type is deleted."
+    + ADDED_IN_323,
     WebhookEventAsyncType.GIFT_CARD_CREATED: "A new gift card created.",
     WebhookEventAsyncType.GIFT_CARD_UPDATED: "A gift card is updated.",
     WebhookEventAsyncType.GIFT_CARD_DELETED: "A gift card is deleted.",
     WebhookEventAsyncType.GIFT_CARD_SENT: "A gift card has been sent.",
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: "A gift card status is changed.",
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: "A gift card metadata is updated.",
-    WebhookEventAsyncType.GIFT_CARD_EXPORT_COMPLETED: "A gift card export is completed.",
     WebhookEventAsyncType.INVOICE_REQUESTED: "An invoice for order requested.",
     WebhookEventAsyncType.INVOICE_DELETED: "An invoice is deleted.",
     WebhookEventAsyncType.INVOICE_SENT: "Invoice has been sent.",
@@ -231,9 +239,6 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_UPDATED: "A voucher is updated.",
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: "A voucher metadata is updated.",
-    WebhookEventAsyncType.VOUCHER_CODE_EXPORT_COMPLETED: (
-        "A voucher code export is completed."
-    ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created.",
@@ -278,6 +283,12 @@ def description(enum):
     return "Enum determining type of webhook."
 
 
+# Events emitted only by the deprecated export mutations, removed together with them.
+EXPORT_COMPLETED_EVENTS = {
+    WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
+}
+
+
 def deprecation_reason(enum):
     if enum.value == WebhookEventAsyncType.NOTIFY_USER:
         return (
@@ -289,8 +300,12 @@ def deprecation_reason(enum):
             "The observability feature is no longer supported. "
             "This event will be removed in Saleor 3.24."
         )
+    if enum.value in EXPORT_COMPLETED_EVENTS:
+        return DEPRECATED_EXPORT_MUTATIONS
     if enum.value == WebhookEventAsyncType.ANY:
         return DEFAULT_DEPRECATION_REASON
+    if enum.value in WebhookEventSyncType.PAYMENT_EVENTS:
+        return DEPRECATED_LEGACY_PAYMENTS
     return None
 
 

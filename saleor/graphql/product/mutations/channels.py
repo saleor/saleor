@@ -393,9 +393,6 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
         "promotion information required by customer protection laws such as EU Omnibus "
         "directive."
     )
-    preorder_threshold = graphene.Int(
-        description="The threshold for preorder variant in channel."
-    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
@@ -535,10 +532,6 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 if "prior_price" in channel_listing_data.keys():
                     defaults["prior_price_amount"] = channel_listing_data.get(
                         "prior_price", None
-                    )
-                if "preorder_threshold" in channel_listing_data.keys():
-                    defaults["preorder_quantity_threshold"] = channel_listing_data.get(
-                        "preorder_threshold", None
                     )
                 ProductVariantChannelListing.objects.update_or_create(
                     variant=variant,

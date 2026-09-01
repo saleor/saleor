@@ -16,12 +16,15 @@ from ...payment.interface import (
     PaymentMethodTokenizationResult,
     StoredPaymentMethodRequestDeleteResult,
 )
+from ..core.descriptions import DEPRECATED_LEGACY_PAYMENTS
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
 
 TransactionKindEnum: Final[graphene.Enum] = to_enum(
-    TransactionKind, type_name="TransactionKind"
+    TransactionKind,
+    type_name="TransactionKind",
+    deprecation_reason=lambda _enum: DEPRECATED_LEGACY_PAYMENTS,
 )
 TransactionKindEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
@@ -71,6 +74,12 @@ class OrderAction(BaseEnum):
             return "Represents a void action."
         raise ValueError(f"Unsupported enum value: {self.value}")
 
+    @property
+    def deprecation_reason(self):
+        if self in [OrderAction.CAPTURE, OrderAction.REFUND, OrderAction.VOID]:
+            return DEPRECATED_LEGACY_PAYMENTS
+        return None
+
 
 def description(enum):
     if enum is None:
@@ -92,7 +101,10 @@ def description(enum):
 
 
 StorePaymentMethodEnum: Final[graphene.Enum] = to_enum(
-    StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
+    StorePaymentMethod,
+    type_name="StorePaymentMethodEnum",
+    description=description,
+    deprecation_reason=lambda _enum: DEPRECATED_LEGACY_PAYMENTS,
 )
 StorePaymentMethodEnum.doc_category = DOC_CATEGORY_PAYMENTS
 

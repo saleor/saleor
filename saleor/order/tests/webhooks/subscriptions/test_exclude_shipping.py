@@ -26,21 +26,6 @@ subscription{
 }
 """
 
-ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS = """
-subscription{
-  event{
-    ...on OrderFilterShippingMethods{
-      order{
-        id
-        availableShippingMethods{
-          id
-        }
-      }
-    }
-  }
-}
-"""
-
 ORDER_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS = """
 subscription{
   event{
@@ -71,16 +56,6 @@ def subscription_with_shipping_methods(
 ):
     return subscription_webhook(
         ORDER_FILTER_SHIPPING_METHODS_CIRCULAR_SHIPPING_METHODS,
-        WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
-    )
-
-
-@pytest.fixture
-def subscription_with_available_ship_methods(
-    subscription_webhook,
-):
-    return subscription_webhook(
-        ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
     )
 
@@ -151,31 +126,6 @@ def test_order_filter_shipping_methods_no_methods_in_channel(
 
     assert json.loads(delivery.payload.get_payload()) == expected_payload
     assert delivery.webhook == subscription_with_filter_shipping_methods_webhook
-
-
-def test_order_filter_shipping_methods_with_circular_call_for_available_methods(
-    order_line_with_one_allocation,
-    subscription_with_available_ship_methods,
-):
-    # given
-    event_type = WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
-    order = order_line_with_one_allocation.order
-
-    # when
-    delivery = create_delivery_for_subscription_sync_event(
-        event_type,
-        (order, []),
-        subscription_with_available_ship_methods,
-    )
-
-    # then
-    payload = json.loads(delivery.payload.get_payload())
-
-    assert len(payload["errors"]) == 1
-    assert (
-        payload["errors"][0]["message"]
-        == "Resolving this field is not allowed in synchronous events."
-    )
 
 
 def test_order_filter_shipping_methods_with_circular_call_for_shipping_methods(

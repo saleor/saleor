@@ -1,6 +1,7 @@
 import graphene
+from django.core.exceptions import ValidationError
 
-from ....attribute import AttributeInputType
+from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
 from ....core.editorjs import editorjs_to_text
 from ....core.utils.text import safe_truncate
@@ -8,7 +9,7 @@ from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValue
 from ...core.context import ChannelContext
 from ...core.descriptions import RICH_CONTENT
-from ...core.enums import LanguageCodeEnum
+from ...core.enums import LanguageCodeEnum, TranslationErrorCode
 from ...core.fields import JSONString
 from ...core.types import TranslationError
 from .utils import BaseTranslateMutation, NameTranslationInput
@@ -43,6 +44,19 @@ class AttributeValueTranslate(BaseTranslateMutation):
 
     @classmethod
     def pre_update_or_create(cls, instance, input_data, language_code):
+        # Customer attribute values are excluded from the translations domain:
+        # they may be created per user and carry customer data (PII), which
+        # must not be rewritten as a translation and echoed back through the
+        # TRANSLATION_CREATED/TRANSLATION_UPDATED webhooks.
+        if instance.attribute.type == AttributeType.CUSTOMER_TYPE:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Values of customer attributes cannot be translated.",
+                        code=TranslationErrorCode.INVALID.value,
+                    )
+                }
+            )
         if "name" not in input_data.keys() or input_data["name"] is None:
             if instance.attribute.input_type == AttributeInputType.RICH_TEXT:
                 input_data["name"] = safe_truncate(

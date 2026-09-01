@@ -42,12 +42,8 @@ def send_export_download_link_notification(export_file: "ExportFile", data_type:
     manager = get_plugins_manager(allow_replica=True)
     handler = NotifyHandler(_generate_payload)
     manager.notify(NotifyEventType.CSV_EXPORT_SUCCESS, payload_func=handler.payload)
-    if data_type == "gift cards":
-        manager.gift_card_export_completed(export_file)
     if data_type == "products":
         manager.product_export_completed(export_file)
-    if data_type == "voucher codes":
-        manager.voucher_code_export_completed(export_file)
 
 
 def send_export_failed_info(export_file: "ExportFile", data_type: str):
@@ -65,9 +61,5 @@ def send_export_failed_info(export_file: "ExportFile", data_type: str):
     manager = get_plugins_manager(allow_replica=True)
     handler = NotifyHandler(_generate_payload)
     manager.notify(NotifyEventType.CSV_EXPORT_FAILED, payload_func=handler.payload)
-    if data_type == "gift cards":
-        manager.gift_card_export_completed(export_file)
     if data_type == "products":
         manager.product_export_completed(export_file)
-    if data_type == "voucher codes":
-        manager.voucher_code_export_completed(export_file)

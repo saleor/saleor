@@ -19,7 +19,6 @@ from ....attribute.lock_objects import (
 )
 from ....core.tracing import traced_atomic_transaction
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
@@ -43,11 +42,11 @@ from ...core.utils import (
 )
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..enums import AttributeTypeEnum
 from ..types import Attribute
-from .attribute_bulk_create import DEPRECATED_ATTR_FIELDS, clean_values
+from .attribute_bulk_create import clean_values
 from .attribute_update import AttributeUpdateInput
 from .mixins import AttributeMixin
+from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
 from .utils import (
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
@@ -188,23 +187,6 @@ class AttributeBulkUpdate(BaseMutation):
                 index_error_map[attribute_index].append(
                     AttributeBulkUpdateError(
                         message=exc.message,
-                        code=AttributeBulkUpdateErrorCode.INVALID.value,
-                    )
-                )
-                cleaned_inputs_map[attribute_index] = None
-                continue
-
-            if any(
-                key in DEPRECATED_ATTR_FIELDS for key in attribute_data.fields.keys()
-            ):
-                message = (
-                    "Deprecated fields 'storefront_search_position', "
-                    "'filterable_in_storefront', 'available_in_grid' and are not "
-                    "allowed in bulk mutation."
-                )
-                index_error_map[attribute_index].append(
-                    AttributeBulkUpdateError(
-                        message=message,
                         code=AttributeBulkUpdateErrorCode.INVALID.value,
                     )
                 )
@@ -378,12 +360,19 @@ class AttributeBulkUpdate(BaseMutation):
         attribute_data["instance"] = attr
 
         # check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if attr.type == AttributeTypeEnum.PRODUCT_TYPE.value:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        permission = ATTRIBUTE_TYPE_PERMISSION_MAP.get(attr.type)
+        if permission is None:
+            index_error_map[attribute_index].append(
+                AttributeBulkUpdateError(
+                    message=(
+                        f"No permission is defined for attribute type {attr.type}."
+                    ),
+                    code=AttributeBulkUpdateErrorCode.INVALID.value,
+                )
+            )
+            return None
 
+        permissions = (permission,)
         if not cls.check_permissions(info.context, permissions):
             index_error_map[attribute_index].append(
                 AttributeBulkUpdateError(
@@ -721,7 +710,6 @@ class AttributeBulkUpdate(BaseMutation):
                     "value_required",
                     "visible_in_storefront",
                     "is_variant_only",
-                    "filterable_in_dashboard",
                     "external_reference",
                 ],
             )
