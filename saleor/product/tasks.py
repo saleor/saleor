@@ -449,7 +449,18 @@ def fetch_product_media_image_task(product_media_id: int):
         validate_status_code(response.status_code)
         mime_type = get_mime_type(response.headers.get("content-type"))
         validate_content_type_header(product_media, mime_type)
-        image = create_image(product_media, mime_type, response)
+        try:
+            image = create_image(product_media, mime_type, response)
+        except ValueError as error:
+            logger.warning(
+                "Image fetched for product media %s was rejected: %s",
+                product_media.pk,
+                error,
+            )
+            # NOTE: we do not wish to retry on this error hence why this exception
+            #       isn't listed in `app.task(autoretry_for=...)` as this is a
+            #       permanent error which will never be fixed upon retrying.
+            raise
 
     validate_image_mime_type(image)
     try:
