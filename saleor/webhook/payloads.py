@@ -1305,6 +1305,8 @@ def generate_product_media_payload(media: ProductMedia):
     return json.dumps({"id": product_media_id})
 
 
+@allow_writer()
+@traced_payload_generator
 def generate_media_payload(media: ProductMedia):
     """Build the legacy payload for the entity-agnostic `MEDIA_*` events.
 

@@ -1,10 +1,15 @@
+import json
+
 import graphene
 import pytest
 
 from .....graphql.tests.utils import get_graphql_content
 from .....product import MediaOwnerTypes, ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
-from .....product.media import OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE
+from .....product.media import (
+    OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
+)
+from ..utils import owner_global_id
 
 OWNER_MEDIA_QUERIES = {
     MediaOwnerTypes.PRODUCT: """
@@ -44,13 +49,6 @@ OWNER_QUERY_FIELDS = {
     MediaOwnerTypes.PAGE: "page",
 }
 
-OWNER_GRAPHQL_TYPES = {
-    MediaOwnerTypes.PRODUCT: "Product",
-    MediaOwnerTypes.CATEGORY: "Category",
-    MediaOwnerTypes.COLLECTION: "Collection",
-    MediaOwnerTypes.PAGE: "Page",
-}
-
 
 @pytest.mark.parametrize("owner_type", MediaOwnerTypes.ALL)
 def test_owner_media_resolves_to_the_owner_specific_type(
@@ -67,9 +65,7 @@ def test_owner_media_resolves_to_the_owner_specific_type(
     )
     alt = "an alt"
     media = media_owner.media.create(alt=alt, type=ProductMediaTypes.IMAGE)
-    owner_id = graphene.Node.to_global_id(
-        OWNER_GRAPHQL_TYPES[owner_type], media_owner.pk
-    )
+    owner_id = owner_global_id(owner_type, media_owner)
     variables = {"id": owner_id, "channel": channel_USD.slug}
 
     # when
@@ -109,9 +105,7 @@ def test_owner_media_does_not_leak_other_owners_media(
     for owner in (product, category, published_collection, page):
         owner.media.create(alt=f"{owner.__class__.__name__} media")
     variables = {
-        "id": graphene.Node.to_global_id(
-            OWNER_GRAPHQL_TYPES[owner_type], media_owner.pk
-        ),
+        "id": owner_global_id(owner_type, media_owner),
         "channel": channel_USD.slug,
     }
 
@@ -239,3 +233,67 @@ def test_product_media_lookup_rejects_media_of_another_owner(
     assert data["errors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
     assert data["errors"][0]["field"] == "id"
     assert media_owner.media.filter(pk=media.pk).exists() is True
+
+
+PRODUCT_MEDIA_LEGACY_FIELDS_QUERY = """
+    query ($id: ID!, $channel: String) {
+        product(id: $id, channel: $channel) {
+            media {
+                __typename
+                id
+                sortOrder
+                alt
+                type
+                oembedData
+                url(size: 0)
+                productId
+                metadata { key value }
+            }
+        }
+    }
+"""
+
+
+def test_product_media_legacy_fields_are_unchanged(
+    product, staff_api_client, channel_USD, permission_manage_products
+):
+    """Every field `ProductMedia` exposed before the generic gallery still resolves."""
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    alt = "an alt"
+    external_url = "https://videos.example.com/watch"
+    oembed_data = {"title": "a title"}
+    media = product.media.create(
+        alt=alt,
+        type=ProductMediaTypes.VIDEO,
+        external_url=external_url,
+        oembed_data=oembed_data,
+        sort_order=0,
+        metadata={"key": "value"},
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_LEGACY_FIELDS_QUERY, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    media_data = content["data"]["product"]["media"]
+    assert len(media_data) == 1
+    # `oembedData` is a JSON string, so it is compared as a dict.
+    assert json.loads(media_data[0].pop("oembedData")) == oembed_data
+    assert media_data[0] == {
+        "__typename": "ProductMedia",
+        "id": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "sortOrder": media.sort_order,
+        "alt": alt,
+        "type": ProductMediaTypes.VIDEO,
+        "url": external_url,
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "metadata": [{"key": "key", "value": "value"}],
+    }

@@ -85,5 +85,5 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Deprecations
 
 - `productMediaCreate`, `productMediaUpdate`, `productMediaDelete` and `productMediaReorder` are deprecated in favour of `mediaCreate`, `mediaUpdate`, `mediaDelete` and `mediaReorder`. `productMediaBulkDelete` is unaffected — it has no generic replacement yet.
-- `PRODUCT_MEDIA_CREATED`, `PRODUCT_MEDIA_UPDATED` and `PRODUCT_MEDIA_DELETED` webhook events are deprecated in favour of `MEDIA_CREATED`, `MEDIA_UPDATED` and `MEDIA_DELETED`.
+- `PRODUCT_MEDIA_CREATED`, `PRODUCT_MEDIA_UPDATED` and `PRODUCT_MEDIA_DELETED` webhook events are deprecated in favour of `MEDIA_CREATED`, `MEDIA_UPDATED` and `MEDIA_DELETED`. They keep being dispatched for product-owned media, including media created, updated or deleted through the new `mediaCreate`, `mediaUpdate` and `mediaDelete` mutations, so migrating a caller does not stop deliveries to apps still subscribed to them.
 - `ProductMedia.type` is deprecated in favour of `ProductMedia.mediaType`. Both resolve to the same value; only the enum name differs (`ProductMediaType` vs `MediaType`). `ProductMedia.type` is not scheduled for removal in a minor release.

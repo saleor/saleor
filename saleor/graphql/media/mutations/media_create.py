@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....product import ProductMediaTypes
+from ....product import MediaOwnerTypes, ProductMediaTypes
 from ....product.error_codes import MediaCreateErrorCode
 from ....product.media import (
     GRAPHQL_TYPE_TO_OWNER_TYPE,
@@ -74,6 +74,13 @@ class MediaCreate(BaseMediaMutation):
                 type=WebhookEventAsyncType.MEDIA_CREATED,
                 description="A media object was created.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PRODUCT_MEDIA_CREATED,
+                description=(
+                    "A media object owned by a product was created. Deprecated: "
+                    "subscribe to `MEDIA_CREATED` instead."
+                ),
+            ),
         ]
 
     id_type_to_owner_type = GRAPHQL_TYPE_TO_OWNER_TYPE
@@ -111,4 +118,8 @@ class MediaCreate(BaseMediaMutation):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(getattr(manager, OWNER_TYPE_TO_UPDATED_EVENT[owner_type]), owner)
         cls.call_event(manager.media_created, media)
+        # `PRODUCT_MEDIA_CREATED` is deprecated but still delivered: apps subscribed
+        # to it must keep receiving product media once callers migrate here.
+        if owner_type == MediaOwnerTypes.PRODUCT:
+            cls.call_event(manager.product_media_created, media)
         return MediaCreate(media=media)

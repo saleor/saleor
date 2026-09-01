@@ -20549,6 +20549,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - MEDIA_CREATED (async): A media object was created.
+  - PRODUCT_MEDIA_CREATED (async): A media object owned by a product was created. Deprecated: subscribe to `MEDIA_CREATED` instead.
   """
   mediaCreate(
     """
@@ -20558,7 +20559,7 @@ type Mutation {
 
     """Fields required to create a media object."""
     input: MediaCreateInput!
-  ): MediaCreate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_CREATED], syncEvents: [])
+  ): MediaCreate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_CREATED, PRODUCT_MEDIA_CREATED], syncEvents: [])
 
   """
   Updates a media object.
@@ -20569,6 +20570,7 @@ type Mutation {
   
   Triggers the following webhook events:
   - MEDIA_UPDATED (async): A media object was updated.
+  - PRODUCT_MEDIA_UPDATED (async): A media object owned by a product was updated. Deprecated: subscribe to `MEDIA_UPDATED` instead.
   """
   mediaUpdate(
     """ID of the media to update."""
@@ -20576,7 +20578,7 @@ type Mutation {
 
     """Fields required to update the media object."""
     input: MediaUpdateInput!
-  ): MediaUpdate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_UPDATED], syncEvents: [])
+  ): MediaUpdate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_UPDATED, PRODUCT_MEDIA_UPDATED], syncEvents: [])
 
   """
   Deletes a media object. The underlying file is not removed from storage.
@@ -20587,11 +20589,12 @@ type Mutation {
   
   Triggers the following webhook events:
   - MEDIA_DELETED (async): A media object was deleted.
+  - PRODUCT_MEDIA_DELETED (async): A media object owned by a product was deleted. Deprecated: subscribe to `MEDIA_DELETED` instead.
   """
   mediaDelete(
     """ID of the media to delete."""
     id: ID!
-  ): MediaDelete @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_DELETED], syncEvents: [])
+  ): MediaDelete @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_DELETED, PRODUCT_MEDIA_DELETED], syncEvents: [])
 
   """
   Changes the ordering of an entity's media gallery.
@@ -29491,8 +29494,9 @@ Added in Saleor 3.24.
 
 Triggers the following webhook events:
 - MEDIA_CREATED (async): A media object was created.
+- PRODUCT_MEDIA_CREATED (async): A media object owned by a product was created. Deprecated: subscribe to `MEDIA_CREATED` instead.
 """
-type MediaCreate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_CREATED], syncEvents: []) {
+type MediaCreate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_CREATED, PRODUCT_MEDIA_CREATED], syncEvents: []) {
   """The created media."""
   media: Media
   errors: [MediaCreateError!]!
@@ -29550,8 +29554,9 @@ Added in Saleor 3.24.
 
 Triggers the following webhook events:
 - MEDIA_UPDATED (async): A media object was updated.
+- PRODUCT_MEDIA_UPDATED (async): A media object owned by a product was updated. Deprecated: subscribe to `MEDIA_UPDATED` instead.
 """
-type MediaUpdate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_UPDATED], syncEvents: []) {
+type MediaUpdate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_UPDATED, PRODUCT_MEDIA_UPDATED], syncEvents: []) {
   """The updated media."""
   media: Media
   errors: [MediaUpdateError!]!
@@ -29596,8 +29601,9 @@ Added in Saleor 3.24.
 
 Triggers the following webhook events:
 - MEDIA_DELETED (async): A media object was deleted.
+- PRODUCT_MEDIA_DELETED (async): A media object owned by a product was deleted. Deprecated: subscribe to `MEDIA_DELETED` instead.
 """
-type MediaDelete @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_DELETED], syncEvents: []) {
+type MediaDelete @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_DELETED, PRODUCT_MEDIA_DELETED], syncEvents: []) {
   """The deleted media."""
   media: Media
   errors: [MediaDeleteError!]!
@@ -35208,7 +35214,7 @@ interface Event {
 union IssuingPrincipal = App | User
 
 """
-Event sent when new media is created for any supported entity. Not sent when media is removed as a side effect of deleting its owner.
+Event sent when new media is created for any supported entity.
 
 Added in Saleor 3.24.
 """

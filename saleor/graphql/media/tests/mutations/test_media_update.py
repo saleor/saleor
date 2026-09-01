@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import graphene
 import pytest
 
 from .....graphql.tests.utils import (
@@ -11,8 +10,12 @@ from .....graphql.tests.utils import (
 from .....product import MediaOwnerTypes
 from .....product.error_codes import MediaUpdateErrorCode
 from .....product.media import (
-    MEDIA_OWNER_PERMISSION_MAP,
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
+)
+from ..utils import (
+    MEDIA_AUTH_CASES,
+    MEDIA_AUTH_PARAMS,
+    media_global_id,
 )
 
 MEDIA_UPDATE_MUTATION = """
@@ -35,12 +38,6 @@ MEDIA_UPDATE_MUTATION = """
 ALL_OWNER_TYPES = MediaOwnerTypes.ALL
 
 
-def _media_global_id(owner_type, media):
-    return graphene.Node.to_global_id(
-        OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type], media.pk
-    )
-
-
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
 @patch("saleor.plugins.manager.PluginsManager.media_updated")
 def test_update_alt(
@@ -57,7 +54,7 @@ def test_update_alt(
     )
     media = media_owner.media.create(alt="old alt")
     new_alt = "new alt"
-    variables = {"id": _media_global_id(owner_type, media), "alt": new_alt}
+    variables = {"id": media_global_id(owner_type, media), "alt": new_alt}
 
     # when
     response = staff_api_client.post_graphql(MEDIA_UPDATE_MUTATION, variables)
@@ -80,7 +77,7 @@ def test_update_rejects_alt_over_limit(staff_api_client, page, permission_manage
     original_alt = "keep me"
     media = page.media.create(alt=original_alt)
     variables = {
-        "id": _media_global_id(MediaOwnerTypes.PAGE, media),
+        "id": media_global_id(MediaOwnerTypes.PAGE, media),
         "alt": "a" * 251,
     }
 
@@ -108,7 +105,7 @@ def test_update_rejects_id_of_a_different_owner_type(
     original_alt = "keep me"
     media = page.media.create(alt=original_alt)
     # The row exists, but it is addressed as if it belonged to a product.
-    media_id = _media_global_id(MediaOwnerTypes.PRODUCT, media)
+    media_id = media_global_id(MediaOwnerTypes.PRODUCT, media)
     variables = {"id": media_id, "alt": "new alt"}
 
     # when
@@ -126,31 +123,7 @@ def test_update_rejects_id_of_a_different_owner_type(
 
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
-@pytest.mark.parametrize(
-    ("_case", "client_fixture", "permission_fixture", "is_allowed"),
-    [
-        ("Unauthenticated user should be rejected", "api_client", None, False),
-        ("Unprivileged user should be rejected", "user_api_client", None, False),
-        (
-            "Staff user without the permission should be rejected",
-            "staff_api_client",
-            None,
-            False,
-        ),
-        (
-            "Staff user with the owner's permission should be allowed",
-            "staff_api_client",
-            "owner",
-            True,
-        ),
-        (
-            "Staff user with the other domain's permission should be rejected",
-            "staff_api_client",
-            "other",
-            False,
-        ),
-    ],
-)
+@pytest.mark.parametrize(MEDIA_AUTH_PARAMS, MEDIA_AUTH_CASES)
 @patch("saleor.plugins.manager.PluginsManager.media_updated")
 def test_update_authorization(
     mock_media_updated,
@@ -161,27 +134,15 @@ def test_update_authorization(
     owner_type,
     media_owner,
     request,
+    grant_media_permission,
 ):
     # given
     client = request.getfixturevalue(client_fixture)
-    owner_permission = MEDIA_OWNER_PERMISSION_MAP[owner_type]
-    other_permission = next(
-        permission
-        for permission in MEDIA_OWNER_PERMISSION_MAP.values()
-        if permission != owner_permission
-    )
-    if permission_fixture:
-        permission = {"owner": owner_permission, "other": other_permission}[
-            permission_fixture
-        ]
-        codename = permission.value.split(".")[1]
-        perm_object = request.getfixturevalue(f"permission_{codename}")
-        if client.user:
-            client.user.user_permissions.add(perm_object)
+    grant_media_permission(client, permission_fixture)
 
     original_alt = "keep me"
     media = media_owner.media.create(alt=original_alt)
-    variables = {"id": _media_global_id(owner_type, media), "alt": "new alt"}
+    variables = {"id": media_global_id(owner_type, media), "alt": "new alt"}
 
     # when
     response = client.post_graphql(MEDIA_UPDATE_MUTATION, variables)
@@ -200,3 +161,36 @@ def test_update_authorization(
         media.refresh_from_db(fields=("alt",))
         assert media.alt == original_alt
         mock_media_updated.assert_not_called()
+
+
+@pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
+@patch("saleor.plugins.manager.PluginsManager.product_media_updated")
+@patch("saleor.plugins.manager.PluginsManager.media_updated")
+def test_update_also_fires_the_deprecated_product_media_event(
+    mock_media_updated,
+    mock_product_media_updated,
+    owner_type,
+    media_owner,
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_pages,
+):
+    """`PRODUCT_MEDIA_UPDATED` must keep firing for product-owned media."""
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_products, permission_manage_pages
+    )
+    media = media_owner.media.create(alt="old alt")
+    variables = {"id": media_global_id(owner_type, media), "alt": "new alt"}
+
+    # when
+    response = staff_api_client.post_graphql(MEDIA_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["mediaUpdate"]["errors"] == []
+    mock_media_updated.assert_called_once_with(media)
+    if owner_type == MediaOwnerTypes.PRODUCT:
+        mock_product_media_updated.assert_called_once_with(media)
+    else:
+        mock_product_media_updated.assert_not_called()

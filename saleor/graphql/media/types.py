@@ -4,10 +4,7 @@ from promise import Promise
 
 from ...core.utils import build_absolute_uri
 from ...product import MediaOwnerTypes, ProductMediaTypes, models
-from ...product.media import (
-    OWNER_TYPE_TO_GRAPHQL_TYPE,
-    OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
-)
+from ...product.media import OWNER_TYPE_TO_GRAPHQL_TYPE
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_original_image_proxy_url,
@@ -221,8 +218,10 @@ class PageMedia(MediaResolvers, ModelObjectType[models.ProductMedia]):
 
 
 MEDIA_TYPE_BY_OWNER_TYPE = {
-    owner_type: globals()[graphql_type]
-    for owner_type, graphql_type in OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE.items()
+    MediaOwnerTypes.PRODUCT: ProductMedia,
+    MediaOwnerTypes.CATEGORY: CategoryMedia,
+    MediaOwnerTypes.COLLECTION: CollectionMedia,
+    MediaOwnerTypes.PAGE: PageMedia,
 }
 
 

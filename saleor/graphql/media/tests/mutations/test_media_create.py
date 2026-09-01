@@ -13,12 +13,16 @@ from .....graphql.tests.utils import (
 from .....product import MediaOwnerTypes, ProductMediaTypes
 from .....product.error_codes import MediaCreateErrorCode
 from .....product.media import (
-    MEDIA_OWNER_PERMISSION_MAP,
     OWNER_TYPE_TO_GRAPHQL_TYPE,
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
 )
 from .....product.models import ProductMedia
 from .....product.tests.utils import create_image
+from ..utils import (
+    MEDIA_AUTH_CASES,
+    MEDIA_AUTH_PARAMS,
+    owner_global_id,
+)
 
 MEDIA_CREATE_MUTATION = """
     mutation createMedia($id: ID!, $image: Upload, $mediaUrl: String, $alt: String) {
@@ -116,9 +120,7 @@ def test_create_with_remote_image_url(
     mock_http_client.send_request.return_value.__enter__.return_value = mock_response
     media_url = "https://images.example.com/photo.jpg"
     variables = {
-        "id": graphene.Node.to_global_id(
-            OWNER_TYPE_TO_GRAPHQL_TYPE[owner_type], media_owner.pk
-        ),
+        "id": owner_global_id(owner_type, media_owner),
         "mediaUrl": media_url,
         "alt": "",
     }
@@ -161,9 +163,7 @@ def test_create_with_oembed_url(
     oembed_data = {"url": media_url, "title": "A video"}
     mock_get_oembed_data.return_value = (oembed_data, ProductMediaTypes.VIDEO)
     variables = {
-        "id": graphene.Node.to_global_id(
-            OWNER_TYPE_TO_GRAPHQL_TYPE[owner_type], media_owner.pk
-        ),
+        "id": owner_global_id(owner_type, media_owner),
         "mediaUrl": media_url,
         "alt": "",
     }
@@ -200,9 +200,7 @@ def test_create_triggers_owner_and_media_events(
     )
     image_file, image_name = create_image()
     variables = {
-        "id": graphene.Node.to_global_id(
-            OWNER_TYPE_TO_GRAPHQL_TYPE[owner_type], media_owner.pk
-        ),
+        "id": owner_global_id(owner_type, media_owner),
         "alt": "",
         "image": image_name,
     }
@@ -338,31 +336,7 @@ def test_create_rejects_missing_owner(
 
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
-@pytest.mark.parametrize(
-    ("_case", "client_fixture", "permission_fixture", "is_allowed"),
-    [
-        ("Unauthenticated user should be rejected", "api_client", None, False),
-        ("Unprivileged user should be rejected", "user_api_client", None, False),
-        (
-            "Staff user without the permission should be rejected",
-            "staff_api_client",
-            None,
-            False,
-        ),
-        (
-            "Staff user with the owner's permission should be allowed",
-            "staff_api_client",
-            "owner",
-            True,
-        ),
-        (
-            "Staff user with the other domain's permission should be rejected",
-            "staff_api_client",
-            "other",
-            False,
-        ),
-    ],
-)
+@pytest.mark.parametrize(MEDIA_AUTH_PARAMS, MEDIA_AUTH_CASES)
 @patch("saleor.plugins.manager.PluginsManager.media_created")
 def test_create_authorization(
     mock_media_created,
@@ -373,31 +347,16 @@ def test_create_authorization(
     owner_type,
     media_owner,
     request,
+    grant_media_permission,
     media_root,
 ):
     # given
     client = request.getfixturevalue(client_fixture)
-    owner_permission = MEDIA_OWNER_PERMISSION_MAP[owner_type]
-    other_permission = next(
-        permission
-        for permission in MEDIA_OWNER_PERMISSION_MAP.values()
-        if permission != owner_permission
-    )
-    if permission_fixture:
-        permission = {"owner": owner_permission, "other": other_permission}[
-            permission_fixture
-        ]
-        app_label, codename = permission.value.split(".")
-        perm_object = request.getfixturevalue(f"permission_{codename}")
-        assert perm_object.content_type.app_label == app_label
-        if client.user:
-            client.user.user_permissions.add(perm_object)
+    grant_media_permission(client, permission_fixture)
 
     image_file, image_name = create_image()
     variables = {
-        "id": graphene.Node.to_global_id(
-            OWNER_TYPE_TO_GRAPHQL_TYPE[owner_type], media_owner.pk
-        ),
+        "id": owner_global_id(owner_type, media_owner),
         "alt": "",
         "image": image_name,
     }
@@ -420,3 +379,45 @@ def test_create_authorization(
         assert content["data"]["mediaCreate"] is None
         assert ProductMedia.objects.exists() is False
         mock_media_created.assert_not_called()
+
+
+@pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
+@patch("saleor.plugins.manager.PluginsManager.product_media_created")
+@patch("saleor.plugins.manager.PluginsManager.media_created")
+def test_create_also_fires_the_deprecated_product_media_event(
+    mock_media_created,
+    mock_product_media_created,
+    owner_type,
+    media_owner,
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_pages,
+    media_root,
+):
+    """`PRODUCT_MEDIA_CREATED` must keep firing for product-owned media."""
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_products, permission_manage_pages
+    )
+    image_file, image_name = create_image()
+    variables = {
+        "id": owner_global_id(owner_type, media_owner),
+        "alt": "",
+        "image": image_name,
+    }
+    body = get_multipart_request_body(
+        MEDIA_CREATE_MUTATION, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["mediaCreate"]["errors"] == []
+    media = media_owner.media.get()
+    mock_media_created.assert_called_once_with(media)
+    if owner_type == MediaOwnerTypes.PRODUCT:
+        mock_product_media_created.assert_called_once_with(media)
+    else:
+        mock_product_media_created.assert_not_called()

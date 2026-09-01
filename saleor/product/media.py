@@ -192,7 +192,7 @@ def create_media_from_url(
     """Attach a media row for an already-probed remote URL to `owner`.
 
     An image URL is only recorded here; the file itself is downloaded by
-    `fetch_product_media_image_task`, which the caller schedules after commit.
+    `fetch_product_media_image_task`, which the caller schedules.
     """
     if probe_result.is_image:
         return owner.media.create(

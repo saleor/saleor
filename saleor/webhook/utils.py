@@ -235,14 +235,15 @@ def filter_webhooks_by_media_owner(
     that, a subscription may narrow itself to a set of owner types; an empty set
     means "all owner types".
     """
-    app_label, codename = MEDIA_OWNER_PERMISSION_MAP[owner_type].value.split(".")
+    owner_permission = MEDIA_OWNER_PERMISSION_MAP[owner_type]
+    required_permission = (owner_permission.app_label, owner_permission.codename)
     filtered: list[Webhook] = []
     for webhook in webhooks:
         app_permissions = {
             (permission.content_type.app_label, permission.codename)
             for permission in webhook.app.permissions.all()
         }
-        if (app_label, codename) not in app_permissions:
+        if required_permission not in app_permissions:
             continue
         requested_owner_types = list(webhook.filterable_media_owner_types)
         if requested_owner_types and owner_type not in requested_owner_types:
