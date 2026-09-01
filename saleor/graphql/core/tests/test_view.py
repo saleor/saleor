@@ -757,3 +757,32 @@ def test_real_public_mutation_blocked_when_disabled(
     # then
     assert response.status_code == 401
     assert response.json() == EXPECTED_STOREFRONT_TRAFFIC_ERROR
+
+
+def test_subscription_operation_is_rejected(api_client, caplog):
+    # given
+    query = """
+        subscription {
+            event {
+                ... on ProductCreated {
+                    product { id }
+                }
+            }
+        }
+    """
+
+    # when
+    with caplog.at_level(logging.ERROR, logger="saleor.graphql.errors.unhandled"):
+        response = api_client.post_graphql(query, check_no_permissions=False)
+
+    # then
+    assert response.status_code == 400
+    content = get_graphql_content_from_response(response)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == (
+        "Subscriptions are supported only as webhooks. See "
+        "https://docs.saleor.io/developer/extending/webhooks/overview"
+    )
+    assert errors[0]["extensions"]["exception"]["code"] == "GraphQLError"
+    assert caplog.records == []
