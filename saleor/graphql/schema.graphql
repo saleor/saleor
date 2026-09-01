@@ -4973,6 +4973,13 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
 
+  """
+  Translated category background image alt text.
+  
+  Added in Saleor 3.23.
+  """
+  backgroundImageAlt: String!
+
   """Represents the category fields to translate."""
   translatableContent: CategoryTranslatableContent
 }
@@ -7364,6 +7371,13 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """
+  Category background image alt text to translate.
+  
+  Added in Saleor 3.23.
+  """
+  backgroundImageAlt: String!
 
   """Returns translated category fields for the given language code."""
   translation(
@@ -9879,6 +9893,20 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   """The alt text of the media."""
   alt: String!
 
+  """
+  Returns translated product media fields for the given language code.
+  
+  Added in Saleor 3.23.
+  """
+  translation(
+    """
+    A language code to return the translation for product media.
+    
+    Added in Saleor 3.23.
+    """
+    languageCode: LanguageCodeEnum!
+  ): ProductMediaTranslation
+
   """The type of the media."""
   type: ProductMediaType!
 
@@ -9900,6 +9928,90 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
 
   """Product id the media refers to."""
   productId: ID
+}
+
+"""
+Represents product media translations.
+
+Added in Saleor 3.23.
+"""
+type ProductMediaTranslation implements Node @doc(category: "Products") {
+  """
+  The ID of the product media translation.
+  
+  Added in Saleor 3.23.
+  """
+  id: ID!
+
+  """
+  Translation language.
+  
+  Added in Saleor 3.23.
+  """
+  language: LanguageDisplay!
+
+  """
+  Translated product media alt text.
+  
+  Added in Saleor 3.23.
+  """
+  alt: String!
+
+  """
+  Represents the product media fields to translate.
+  
+  Added in Saleor 3.23.
+  """
+  translatableContent: ProductMediaTranslatableContent
+}
+
+"""
+Represents product media's original translatable fields and related translations.
+
+Added in Saleor 3.23.
+"""
+type ProductMediaTranslatableContent implements Node @doc(category: "Products") {
+  """
+  The ID of the product media translatable content.
+  
+  Added in Saleor 3.23.
+  """
+  id: ID!
+
+  """
+  The ID of the product media to translate.
+  
+  Added in Saleor 3.23.
+  """
+  productMediaId: ID!
+
+  """
+  Product media alt text to translate.
+  
+  Added in Saleor 3.23.
+  """
+  alt: String!
+
+  """
+  Returns translated product media fields for the given language code.
+  
+  Added in Saleor 3.23.
+  """
+  translation(
+    """
+    A language code to return the translation for product media.
+    
+    Added in Saleor 3.23.
+    """
+    languageCode: LanguageCodeEnum!
+  ): ProductMediaTranslation
+
+  """
+  Represents a product media.
+  
+  Added in Saleor 3.23.
+  """
+  productMedia: ProductMedia @deprecated(reason: "Get model fields from the root level queries.")
 }
 
 enum ProductMediaType @doc(category: "Products") {
@@ -10343,6 +10455,13 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
 
+  """
+  Translated collection background image alt text.
+  
+  Added in Saleor 3.23.
+  """
+  backgroundImageAlt: String!
+
   """Represents the collection fields to translate."""
   translatableContent: CollectionTranslatableContent
 }
@@ -10386,6 +10505,13 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
+
+  """
+  Collection background image alt text to translate.
+  
+  Added in Saleor 3.23.
+  """
+  backgroundImageAlt: String!
 
   """Returns translated collection fields for the given language code."""
   translation(
@@ -14667,7 +14793,7 @@ type TranslatableItemEdge {
   cursor: String!
 }
 
-union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent | SaleTranslatableContent
+union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductMediaTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent | SaleTranslatableContent
 
 """
 Represents menu item's original translatable fields and related translations.
@@ -15174,6 +15300,7 @@ enum TranslatableKinds {
   MENU_ITEM
   PAGE
   PRODUCT
+  PRODUCT_MEDIA
   PROMOTION
   PROMOTION_RULE
   SALE
@@ -18625,7 +18752,7 @@ type Mutation {
     id: ID!
 
     """Fields required to update category translations."""
-    input: TranslationInput!
+    input: CategoryTranslationInput!
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
@@ -18723,7 +18850,7 @@ type Mutation {
     id: ID!
 
     """Fields required to update collection translations."""
-    input: TranslationInput!
+    input: CollectionTranslationInput!
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
@@ -18905,6 +19032,36 @@ type Mutation {
     """ID of product that media order will be altered."""
     productId: ID!
   ): ProductMediaReorder @doc(category: "Products")
+
+  """
+  Creates or updates a product media translation.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  productMediaTranslate(
+    """
+    ProductMedia ID or ProductMediaTranslatableContent ID.
+    
+    Added in Saleor 3.23.
+    """
+    id: ID!
+
+    """
+    Fields required to update product media translations.
+    
+    Added in Saleor 3.23.
+    """
+    input: ProductMediaTranslationInput!
+
+    """
+    Translation language code.
+    
+    Added in Saleor 3.23.
+    """
+    languageCode: LanguageCodeEnum!
+  ): ProductMediaTranslate @doc(category: "Products")
 
   """
   Updates a product media. 
@@ -24770,18 +24927,55 @@ type CategoryTranslate @doc(category: "Products") {
   category: Category
 }
 
-input TranslationInput {
-  slug: String
-  seoTitle: String
-  seoDescription: String
+"""
+Fields required to translate a category.
+
+Added in Saleor 3.23.
+"""
+input CategoryTranslationInput @doc(category: "Products") {
+  """
+  Translated category name.
+  
+  Added in Saleor 3.23.
+  """
   name: String
 
   """
-  Translated description.
+  Translated category slug.
+  
+  Added in Saleor 3.23.
+  """
+  slug: String
+
+  """
+  Translated category SEO title.
+  
+  Added in Saleor 3.23.
+  """
+  seoTitle: String
+
+  """
+  Translated category SEO description.
+  
+  Added in Saleor 3.23.
+  """
+  seoDescription: String
+
+  """
+  Translated category description.
   
   Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
   """
   description: JSONString
+
+  """
+  Translated category background image alt text.
+  
+  Added in Saleor 3.23.
+  """
+  backgroundImageAlt: String
 }
 
 """
@@ -25002,6 +25196,57 @@ type CollectionTranslate @doc(category: "Products") {
   translationErrors: [TranslationError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [TranslationError!]!
   collection: Collection
+}
+
+"""
+Fields required to translate a collection.
+
+Added in Saleor 3.23.
+"""
+input CollectionTranslationInput @doc(category: "Products") {
+  """
+  Translated collection name.
+  
+  Added in Saleor 3.23.
+  """
+  name: String
+
+  """
+  Translated collection slug.
+  
+  Added in Saleor 3.23.
+  """
+  slug: String
+
+  """
+  Translated collection SEO title.
+  
+  Added in Saleor 3.23.
+  """
+  seoTitle: String
+
+  """
+  Translated collection SEO description.
+  
+  Added in Saleor 3.23.
+  """
+  seoDescription: String
+
+  """
+  Translated collection description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  description: JSONString
+
+  """
+  Translated collection background image alt text.
+  
+  Added in Saleor 3.23.
+  """
+  backgroundImageAlt: String
 }
 
 """
@@ -25692,6 +25937,20 @@ input ProductBulkTranslateInput @doc(category: "Products") {
   translationFields: TranslationInput!
 }
 
+input TranslationInput {
+  slug: String
+  seoTitle: String
+  seoDescription: String
+  name: String
+
+  """
+  Translated description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+}
+
 """
 Creates/updates translations for a product. 
 
@@ -25869,6 +26128,61 @@ type ProductMediaReorder @doc(category: "Products") {
   media: [ProductMedia!]
   productErrors: [ProductError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ProductError!]!
+}
+
+"""
+Creates or updates a product media translation.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type ProductMediaTranslate @doc(category: "Products") {
+  errors: [ProductMediaTranslateError!]!
+  productMedia: ProductMedia
+}
+
+"""
+Represents an error in product media translation input.
+
+Added in Saleor 3.23.
+"""
+type ProductMediaTranslateError @doc(category: "Products") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """
+  The error code.
+  
+  Added in Saleor 3.23.
+  """
+  code: ProductMediaTranslateErrorCode!
+}
+
+enum ProductMediaTranslateErrorCode @doc(category: "Products") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+"""
+Fields required to translate product media.
+
+Added in Saleor 3.23.
+"""
+input ProductMediaTranslationInput @doc(category: "Products") {
+  """
+  Translated product media alt text.
+  
+  Added in Saleor 3.23.
+  """
+  alt: String
 }
 
 """
@@ -38191,7 +38505,7 @@ type TranslationCreated implements Event @doc(category: "Miscellaneous") {
   translation: TranslationTypes
 }
 
-union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | VoucherTranslation | MenuItemTranslation | PromotionTranslation | PromotionRuleTranslation | SaleTranslation
+union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTranslation | AttributeTranslation | AttributeValueTranslation | ProductMediaTranslation | ProductVariantTranslation | PageTranslation | ShippingMethodTranslation | VoucherTranslation | MenuItemTranslation | PromotionTranslation | PromotionRuleTranslation | SaleTranslation
 
 """Event sent when translation is updated."""
 type TranslationUpdated implements Event @doc(category: "Miscellaneous") {

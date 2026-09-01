@@ -1187,7 +1187,7 @@ def test_product_variant_translation_mutation_validates_inputs_length(
 
 
 COLLECTION_TRANSLATE_MUTATION = """
-mutation collectionTranslate($collectionId: ID!, $input: TranslationInput!) {
+mutation collectionTranslate($collectionId: ID!, $input: CollectionTranslationInput!) {
     collectionTranslate(
             id: $collectionId, languageCode: PL,
             input: $input) {
@@ -1364,7 +1364,7 @@ def test_collection_translation_mutation_validates_inputs_length(
 
 
 CATEGORY_TRANSLATE_MUTATION = """
-mutation categoryTranslate($categoryId: ID!, $input: TranslationInput!) {
+mutation categoryTranslate($categoryId: ID!, $input: CategoryTranslationInput!) {
     categoryTranslate(
             id: $categoryId, languageCode: PL,
             input: $input) {

@@ -35,7 +35,12 @@ from ..attribute.dataloaders.assigned_attributes import (
     AttributeValuesByVariantIdAndAttributeIdAndLimitLoader,
 )
 from ..core.context import ChannelContext, get_database_connection_name
-from ..core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_TYPE, RICH_CONTENT
+from ..core.descriptions import (
+    ADDED_IN_321,
+    ADDED_IN_323,
+    DEPRECATED_IN_3X_TYPE,
+    RICH_CONTENT,
+)
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -54,6 +59,7 @@ from ..product.dataloaders import (
     CategoryByIdLoader,
     CollectionByIdLoader,
     ProductByIdLoader,
+    ProductMediaByIdLoader,
     ProductVariantByIdLoader,
 )
 from ..shipping.dataloaders import ShippingMethodByIdLoader
@@ -336,6 +342,80 @@ class ProductVariantTranslatableContent(ModelObjectType[product_models.ProductVa
         return graphene.Node.to_global_id("ProductVariant", root.id)
 
 
+class ProductMediaTranslation(
+    BaseTranslationType[product_models.ProductMediaTranslation]
+):
+    id = graphene.GlobalID(
+        required=True,
+        description="The ID of the product media translation." + ADDED_IN_323,
+    )
+    language = graphene.Field(
+        LanguageDisplay,
+        description="Translation language." + ADDED_IN_323,
+        required=True,
+    )
+    alt = graphene.String(
+        required=True,
+        description="Translated product media alt text." + ADDED_IN_323,
+    )
+    translatable_content = graphene.Field(
+        "saleor.graphql.translations.types.ProductMediaTranslatableContent",
+        description="Represents the product media fields to translate." + ADDED_IN_323,
+    )
+
+    class Meta:
+        model = product_models.ProductMediaTranslation
+        interfaces = [graphene.relay.Node]
+        description = "Represents product media translations." + ADDED_IN_323
+
+    @staticmethod
+    def resolve_translatable_content(
+        root: product_models.ProductMediaTranslation, info
+    ):
+        return ProductMediaByIdLoader(info.context).load(root.product_media_id)
+
+
+class ProductMediaTranslatableContent(ModelObjectType[product_models.ProductMedia]):
+    id = graphene.GlobalID(
+        required=True,
+        description="The ID of the product media translatable content." + ADDED_IN_323,
+    )
+    product_media_id = graphene.ID(
+        required=True,
+        description="The ID of the product media to translate." + ADDED_IN_323,
+    )
+    alt = graphene.String(
+        required=True,
+        description="Product media alt text to translate." + ADDED_IN_323,
+    )
+    translation = TranslationField(
+        ProductMediaTranslation,
+        type_name="product media",
+        description_suffix=ADDED_IN_323,
+    )
+    product_media = graphene.Field(
+        "saleor.graphql.product.types.products.ProductMedia",
+        description="Represents a product media." + ADDED_IN_323,
+        deprecation_reason="Get model fields from the root level queries.",
+    )
+
+    class Meta:
+        model = product_models.ProductMedia
+        interfaces = [graphene.relay.Node]
+        description = (
+            "Represents product media's original translatable fields and related "
+            "translations." + ADDED_IN_323
+        )
+
+    @staticmethod
+    def resolve_product_media(root: product_models.ProductMedia, _info):
+        return root
+
+    @staticmethod
+    def resolve_product_media_id(root: product_models.ProductMedia, _info):
+        return graphene.Node.to_global_id("ProductMedia", root.pk)
+
+
 class ProductTranslation(BaseTranslationType[product_models.ProductTranslation]):
     id = graphene.GlobalID(
         required=True, description="The ID of the product translation."
@@ -468,6 +548,10 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
         description="Translated description of the collection." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
     )
+    background_image_alt = graphene.String(
+        required=True,
+        description=("Translated collection background image alt text." + ADDED_IN_323),
+    )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CollectionTranslatableContent",
         description="Represents the collection fields to translate.",
@@ -505,6 +589,10 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     description_json = JSONString(
         description="Description of the collection." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
+    )
+    background_image_alt = graphene.String(
+        required=True,
+        description="Collection background image alt text to translate." + ADDED_IN_323,
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
@@ -560,6 +648,10 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
         description="Translated description of the category." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
     )
+    background_image_alt = graphene.String(
+        required=True,
+        description="Translated category background image alt text." + ADDED_IN_323,
+    )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CategoryTranslatableContent",
         description="Represents the category fields to translate.",
@@ -600,6 +692,10 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
+    )
+    background_image_alt = graphene.String(
+        required=True,
+        description="Category background image alt text to translate." + ADDED_IN_323,
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
