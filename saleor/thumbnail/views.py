@@ -20,6 +20,7 @@ from ..plugins.manager import get_plugins_manager
 from ..product.models import Category, Collection, ProductMedia
 from ..thumbnail.models import Thumbnail
 from . import ALLOWED_ICON_THUMBNAIL_FORMATS, ALLOWED_THUMBNAIL_FORMATS
+from .exceptions import ImageTooLargeError
 from .utils import (
     ProcessedIconImage,
     ProcessedImage,
@@ -132,6 +133,19 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
     except FileNotFoundError as error:
         logger.info(str(error))
         return HttpResponseNotFound("Cannot found image file.")
+    except ImageTooLargeError as error:
+        # Logged at warning level rather than error: this view is unauthenticated, so
+        # repeated requests for a known-oversized image are attacker-controlled volume.
+        logger.warning(
+            "Cannot create a thumbnail, image exceeds the pixel limit: %s",
+            error,
+            extra={
+                "image_source": image.name,
+                "object_type": object_type,
+                "object_pk": pk,
+            },
+        )
+        return HttpResponseBadRequest("Image is too large.")
     except ValueError as error:
         logger.info(str(error))
         return HttpResponseBadRequest("Invalid image.")
