@@ -6,16 +6,20 @@ from .resolvers import resolve_translation
 
 
 class TranslationField(graphene.Field):
-    def __init__(self, model, type_name, resolver=resolve_translation):
+    def __init__(
+        self, model, type_name, resolver=resolve_translation, description_suffix=""
+    ):
         super().__init__(
             model,
             language_code=graphene.Argument(
                 LanguageCodeEnum,
                 description=TranslationDescriptions.LANGUAGE_CODE.format(
                     type_name=type_name
-                ),
+                )
+                + description_suffix,
                 required=True,
             ),
-            description=TranslationDescriptions.DESCRIPTION.format(type_name=type_name),
+            description=TranslationDescriptions.DESCRIPTION.format(type_name=type_name)
+            + description_suffix,
             resolver=resolver,
         )
