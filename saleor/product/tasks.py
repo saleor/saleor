@@ -1,7 +1,6 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
-from uuid import UUID
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -120,16 +119,6 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int])
         _update_variants_names(instance, saved_attributes)
 
 
-@app.task
-@allow_writer()
-def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
-    # FIXME: Should be removed in Saleor 3.21
-
-    # In case of triggering this task by old server worker, mark promotion
-    # as dirty. The reclacultion will happen in the background
-    PromotionRule.objects.filter(promotion_id=promotion_pk).update(variants_dirty=True)
-
-
 def _get_channel_to_products_map(rule_to_variant_list):
     variant_ids = {
         rule_to_variant.productvariant_id for rule_to_variant in rule_to_variant_list
@@ -236,21 +225,6 @@ def update_variant_relations_for_active_promotion_rules_task():
         update_variant_relations_for_active_promotion_rules_task.delay()
 
 
-@app.task
-@allow_writer()
-def update_products_discounted_prices_for_promotion_task(
-    product_ids: Iterable[int],
-    start_id: UUID | None = None,
-    *,
-    rule_ids: list[UUID] | None = None,
-):
-    # FIXME: Should be removed in Saleor 3.21
-
-    # In case of triggered the task by old server worker, mark all active promotions as
-    # dirty. This will make the same re-calculation as the old task.
-    PromotionRule.objects.filter(variants_dirty=False).update(variants_dirty=True)
-
-
 def _send_variant_price_updated_webhooks(
     changed_prices: list[VariantDiscountedPriceChange],
 ) -> None:
@@ -304,18 +278,6 @@ def recalculate_discounted_price_for_products_task():
                 discounted_price_dirty=False
             )
         recalculate_discounted_price_for_products_task.delay()
-
-
-@app.task
-@allow_writer()
-def update_discounted_prices_task(product_ids: Iterable[int]):
-    # FIXME: Should be removed in Saleor 3.21
-
-    # in case triggering the task by old server worker, we will just mark the products
-    # as dirty. The recalculation will happen in the background.
-    ProductChannelListing.objects.filter(product_id__in=product_ids).update(
-        discounted_price_dirty=True
-    )
 
 
 @app.task
