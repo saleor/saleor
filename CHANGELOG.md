@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated Razorpay payment gateway plugin (`mirumee.payments.razorpay`).
 - Removed the deprecated Braintree payment gateway plugin (`mirumee.payments.braintree`).
 - Removed the deprecated Dummy (`mirumee.payments.dummy`) and Dummy Credit Card (`mirumee.payments.dummy_credit_card`) payment gateway plugins.
+- Removed the deprecated Sendgrid email plugin (`mirumee.notifications.sendgrid_email`), along with the `sendgrid` dependency. It sent customer notification emails (account confirmation, password reset, order confirmation, fulfillment, invoice and gift card) through SendGrid dynamic templates, and served custom events passed to `externalNotificationTrigger` with its `pluginId`. Use the SMTP app or your own app subscribing to the corresponding webhook events instead. Staff notification emails are unaffected — they are sent by the separate Admin emails plugin (`mirumee.notifications.admin_email`).
 - Apps will be no longer to be granted with `MANAGE_APPS` permission. In certain cases, this permission was able to be assigned by the authorized user.
   App with such permission was not able to *act* like an admin app, but permission technically was granted.
 

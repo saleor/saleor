@@ -3,6 +3,7 @@ from unittest.mock import patch
 from graphql_relay.node.node import to_global_id
 
 from ....account.models import User
+from ....plugins.tests.sample_plugins import PluginSample
 
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
@@ -26,7 +27,7 @@ def test_notify_via_external_notification_trigger(
             "extraPayload": '{"recipient_email":"test@gmail.com"}',
             "externalEventType": test_template_id,
         },
-        "pluginId": "mirumee.notifications.sendgrid_email",
+        "pluginId": PluginSample.PLUGIN_ID,
         "channel": channel_PLN.slug,
     }
 
