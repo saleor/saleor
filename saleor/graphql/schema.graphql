@@ -9900,6 +9900,13 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
 
   """Product id the media refers to."""
   productId: ID
+
+  """
+  List of tags assigned to the media. Tags are lowercased and deduplicated when saved. Empty when the media has no tags.
+  
+  Added in Saleor 3.23.
+  """
+  tags: [String!]!
 }
 
 enum ProductMediaType @doc(category: "Products") {
@@ -25370,6 +25377,13 @@ input MediaInput {
 
   """Represents an URL to an external media."""
   mediaUrl: String
+
+  """
+  List of tags to assign to the media. Tags are stripped, lowercased and deduplicated. Maximum of 20 tags, 50 characters each.
+  
+  Added in Saleor 3.23.
+  """
+  tags: [String!]
 }
 
 input ProductChannelListingCreateInput @doc(category: "Products") {
@@ -25812,6 +25826,13 @@ input ProductMediaCreateInput @doc(category: "Products") {
 
   """Represents an URL to an external media."""
   mediaUrl: String
+
+  """
+  List of tags to assign to the media. Tags are stripped, lowercased and deduplicated. Maximum of 20 tags, 50 characters each.
+  
+  Added in Saleor 3.23.
+  """
+  tags: [String!]
 }
 
 """
@@ -25886,6 +25907,13 @@ type ProductMediaUpdate @doc(category: "Products") {
 input ProductMediaUpdateInput @doc(category: "Products") {
   """Alt text for a product media."""
   alt: String
+
+  """
+  List of tags to assign to the media. Replaces all existing tags; pass an empty list to clear them, or omit the field to leave them unchanged. Tags are stripped, lowercased and deduplicated. Maximum of 20 tags, 50 characters each.
+  
+  Added in Saleor 3.23.
+  """
+  tags: [String!]
 }
 
 """

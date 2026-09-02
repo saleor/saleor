@@ -5,6 +5,7 @@ from typing import Optional
 
 import graphene
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
@@ -39,6 +40,7 @@ from ..permission.enums import (
 from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 from ..tax.models import TaxClass
 from . import (
+    MEDIA_TAG_CHAR_LIMIT,
     MEDIA_URL_CHAR_LIMIT,
     ProductMediaTypes,
     ProductTypeKind,
@@ -594,6 +596,11 @@ class ProductMedia(SortableModel, ModelWithMetadata):
         max_length=MEDIA_URL_CHAR_LIMIT, blank=True, null=True
     )
     oembed_data = JSONField(blank=True, default=dict)
+    tags = ArrayField(
+        models.CharField(max_length=MEDIA_TAG_CHAR_LIMIT),
+        default=list,
+        blank=True,
+    )
     # DEPRECATED
     to_remove = models.BooleanField(default=False)
 

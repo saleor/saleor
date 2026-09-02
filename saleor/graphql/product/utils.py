@@ -22,7 +22,7 @@ from ...core.utils.validators import (
 )
 from ...order import OrderStatus
 from ...order import models as order_models
-from ...product import MEDIA_URL_CHAR_LIMIT
+from ...product import MEDIA_TAG_CHAR_LIMIT, MEDIA_TAGS_LIMIT, MEDIA_URL_CHAR_LIMIT
 from ...warehouse.models import Stock
 from ..core.enums import ProductErrorCode
 
@@ -76,6 +76,49 @@ def validate_media_input(
             field="mediaUrl",
         )
     return None
+
+
+def clean_media_tags(tags: Iterable[str], error_code_enum) -> list[str]:
+    """Normalize media tags to their stored form.
+
+    Tags are stripped, lowercased and deduplicated, preserving the input order.
+    Raises ValidationError for empty, too long or too many tags.
+    """
+    cleaned: list[str] = []
+    for tag in tags:
+        tag = tag.strip().lower()
+        if not tag:
+            raise ValidationError(
+                {
+                    "tags": ValidationError(
+                        "Tag cannot be empty.",
+                        code=error_code_enum.INVALID.value,
+                    )
+                }
+            )
+        if len(tag) > MEDIA_TAG_CHAR_LIMIT:
+            raise ValidationError(
+                {
+                    "tags": ValidationError(
+                        f"Tag exceeds the character limit of "
+                        f"{MEDIA_TAG_CHAR_LIMIT}: {tag}.",
+                        code=error_code_enum.INVALID.value,
+                    )
+                }
+            )
+        if tag not in cleaned:
+            cleaned.append(tag)
+
+    if len(cleaned) > MEDIA_TAGS_LIMIT:
+        raise ValidationError(
+            {
+                "tags": ValidationError(
+                    f"Number of tags exceeds the limit of {MEDIA_TAGS_LIMIT}.",
+                    code=error_code_enum.INVALID.value,
+                )
+            }
+        )
+    return cleaned
 
 
 @dataclass
