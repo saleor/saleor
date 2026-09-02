@@ -76,5 +76,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Fixes
 
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
+- Fixed transaction webhook `externalUrl` validation rejecting valid relative URLs that contain reserved characters (e.g. `=`) in path segments. The field now accepts any URL that conforms to RFC 3986, including relative paths and absolute URLs. - #18012 by @MajidAsghariTabrizi
 
 ### Deprecations

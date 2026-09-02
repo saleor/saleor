@@ -1274,3 +1274,67 @@ def test_payment_gateway_initialize_schema_invalid_data(data_value):
     # then
     assert len(exc_info.value.errors()) == 1
     assert exc_info.value.errors()[0]["loc"] == ("data",)
+
+
+@pytest.mark.parametrize(
+    ("_case", "external_url"),
+    [
+        (
+            "absolute_with_equals_in_path_segment",
+            "/dashboard/apps/QXBwOjY=/app/app/transactions/abc123==",
+        ),
+        (
+            "absolute_with_equals_in_app_id",
+            "/dashboard/apps/QXBwOjI=/app/app/transactions/75ad3453-fddb-4e32-abf9-2804702e4fe0",
+        ),
+        (
+            "absolute_simple_path",
+            "/dashboard/transactions/123",
+        ),
+        (
+            "absolute_with_query",
+            "/dashboard/transactions/123?ref=abc=",
+        ),
+    ],
+)
+def test_transaction_schema_accepts_valid_relative_external_url(
+    _case, external_url
+):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "externalUrl": external_url,
+    }
+
+    # when
+    transaction = TransactionBaseSchema.model_validate(data)
+
+    # then
+    assert str(transaction.external_url) == external_url
+
+
+@pytest.mark.parametrize(
+    "external_url",
+    [
+        "",
+        "not a url with spaces and no scheme",
+    ],
+)
+def test_transaction_schema_rejects_invalid_external_url(external_url):
+    # given
+    data = {
+        "pspReference": "psp-123",
+        "amount": Decimal("100.50"),
+        "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "externalUrl": external_url,
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        TransactionBaseSchema.model_validate(data)
+
+    # then
+    assert len(exc_info.value.errors()) == 1
+    assert exc_info.value.errors()[0]["loc"] == ("externalUrl",)
