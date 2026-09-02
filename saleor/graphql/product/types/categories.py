@@ -19,13 +19,16 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import ChannelQsContext, get_database_connection_name
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_324, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.scalars import DateTime
-from ...core.types import Image, ModelObjectType, ThumbnailField
+from ...core.types import Image, ModelObjectType, NonNullList, ThumbnailField
 from ...core.utils import validate_and_apply_search_rank_sorting
+from ...media.dataloaders import MediaByCategoryIdLoader
+from ...media.types import CategoryMedia
+from ...media.utils import sort_media
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CategoryTranslation
@@ -36,7 +39,7 @@ from ..dataloaders import (
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
 from ..filters.product import ProductFilterInput, ProductWhereInput
-from ..sorters import ProductOrder, ProductOrderField
+from ..sorters import MediaSortingInput, ProductOrder, ProductOrderField
 from .products import ProductCountableConnection
 
 
@@ -87,6 +90,12 @@ class Category(ModelObjectType[models.Category]):
         description="List of children of the category.",
     )
     background_image = ThumbnailField(description="Background image of the category.")
+    media = NonNullList(
+        CategoryMedia,
+        sort_by=graphene.Argument(MediaSortingInput, description="Sort media."),
+        required=True,
+        description="List of media for the category." + ADDED_IN_324,
+    )
     translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:
@@ -140,6 +149,14 @@ class Category(ModelObjectType[models.Category]):
             ThumbnailByCategoryIdSizeAndFormatLoader(info.context)
             .load((root.id, selected_size, format))
             .then(_resolve_background_image)
+        )
+
+    @staticmethod
+    def resolve_media(root: models.Category, info, sort_by=None):
+        return (
+            MediaByCategoryIdLoader(info.context)
+            .load(root.pk)
+            .then(lambda media: sort_media(media, sort_by))
         )
 
     @staticmethod

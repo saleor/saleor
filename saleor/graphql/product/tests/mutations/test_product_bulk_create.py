@@ -1113,7 +1113,7 @@ def test_product_bulk_create_with_media_image_with_invalid_exif(
     assert len(error_1) == 1
 
 
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 @pytest.mark.vcr
 def test_product_bulk_create_with_media_with_media_url(
     mock_HTTPClient,
@@ -1212,9 +1212,9 @@ def test_product_bulk_create_with_media_with_media_url(
     )
 
 
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 @patch(
-    "saleor.graphql.product.utils.get_oembed_data",
+    "saleor.product.media.get_oembed_data",
 )
 def test_product_bulk_create_with_media_with_media_url_invalid_provider(
     mocked_get_oembed_data,
@@ -1328,7 +1328,7 @@ def test_product_bulk_create_with_media_url_character_limit(
     return_value=False,
 )
 @patch(
-    "saleor.graphql.product.utils.HTTPClient",
+    "saleor.product.media.HTTPClient",
 )
 def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     mocked_http_client,
@@ -1392,7 +1392,7 @@ def test_product_bulk_create_with_media_with_media_url_invalid_image_type(
     assert len(error_1) == 1
 
 
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_bulk_create_with_media_invalid_image_file_fetch_only_header(
     mock_HTTPClient,
     staff_api_client,
@@ -1509,7 +1509,7 @@ def test_product_bulk_create_with_media_image_file_is_fetched_only_once(
 @patch(
     "saleor.graphql.product.bulk_mutations.product_bulk_create.fetch_product_media_image_task.delay"
 )
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_bulk_create_with_no_extension_media_url(
     mock_HTTPClient,
     mock_fetch_product_media_image_task,
@@ -3489,7 +3489,7 @@ def test_product_bulk_create_with_media_when_alt_is_null(
     assert content["results"][0]["product"]["media"][0]["alt"] == ""
 
 
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_bulk_create_with_media_url_when_alt_is_null(
     mock_HTTPClient,
     staff_api_client,
@@ -3539,7 +3539,7 @@ def test_product_bulk_create_with_media_url_when_alt_is_null(
         InvalidSchema("No adapters found for url"),
     ],
 )
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.product.media.HTTPClient")
 def test_product_bulk_create_with_media_url_request_exception(
     mock_HTTPClient,
     exception,

@@ -863,6 +863,30 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
+    def media_created(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "media_created", default_value, media, channel_slug=None
+        )
+
+    # Note: this method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from plugin to core modules.
+    def media_updated(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "media_updated", default_value, media, channel_slug=None
+        )
+
+    # Note: this method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from plugin to core modules.
+    def media_deleted(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "media_deleted", default_value, media, channel_slug=None
+        )
+
+    # Note: this method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from plugin to core modules.
     def product_metadata_updated(self, product: "Product"):
         default_value = None
         return self.__run_method_on_plugins(

@@ -29,6 +29,7 @@ from ...payment.interface import (
     TransactionActionData,
     TransactionSessionData,
 )
+from ...product import models as product_models
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -63,6 +64,7 @@ from ..core.descriptions import (
 from ..core.doc_category import (
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MEDIA,
     DOC_CATEGORY_MISC,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAYMENTS,
@@ -75,6 +77,7 @@ from ..core.fields import BaseField
 from ..core.scalars import JSON, DateTime, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
+from ..media.enums import MediaOwnerType
 from ..order.dataloaders import OrderByIdLoader
 from ..order.types import Order, OrderGrantedRefund
 from ..payment.enums import TokenizedPaymentFlowEnum, TransactionActionEnum
@@ -938,7 +941,11 @@ class ProductMediaCreated(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when new product media is created."
+        description = (
+            "Event sent when new product media is created."
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `MediaCreated` event instead."
+        )
 
 
 class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
@@ -946,7 +953,11 @@ class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when product media is updated."
+        description = (
+            "Event sent when product media is updated."
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `MediaUpdated` event instead."
+        )
 
 
 class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
@@ -954,7 +965,79 @@ class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
         root_type = "ProductMedia"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when product media is deleted."
+        description = (
+            "Event sent when product media is deleted."
+            + DEPRECATED_IN_3X_EVENT
+            + " Use `MediaDeleted` event instead."
+        )
+
+
+class MediaBase(AbstractType):
+    """Shared shape of the entity-agnostic `MEDIA_*` events.
+
+    These events cannot enable dry run: `webhookDryRun`/`webhookTrigger` match the
+    given `objectId` against a single `root_type`, and media has one concrete type
+    per owner (`ProductMedia`, `CategoryMedia`, ...), so no single one fits.
+    """
+
+    media = graphene.Field(
+        "saleor.graphql.media.types.Media",
+        description="The media the event relates to.",
+    )
+    owner = graphene.Field(
+        "saleor.graphql.media.unions.MediaOwner",
+        description=(
+            "The entity the media belongs to. Channel-dependent fields on "
+            "`Product` and `Collection` resolve to `null`, as the event carries no "
+            "channel."
+        ),
+    )
+
+    @staticmethod
+    def resolve_media(root, _info: ResolveInfo):
+        _, media = root
+        return media
+
+    @staticmethod
+    def resolve_owner(root, _info: ResolveInfo):
+        _, media = root
+        owner = media.owner
+        if owner is None or isinstance(owner, product_models.Category):
+            return owner
+        return ChannelContext(node=owner, channel_slug=None)
+
+
+class MediaCreated(SubscriptionObjectType, MediaBase):
+    class Meta:
+        enable_dry_run = False
+        doc_category = DOC_CATEGORY_MEDIA
+        interfaces = (Event,)
+        description = (
+            "Event sent when new media is created for any supported entity."
+            + ADDED_IN_324
+        )
+
+
+class MediaUpdated(SubscriptionObjectType, MediaBase):
+    class Meta:
+        enable_dry_run = False
+        doc_category = DOC_CATEGORY_MEDIA
+        interfaces = (Event,)
+        description = (
+            "Event sent when media is updated for any supported entity." + ADDED_IN_324
+        )
+
+
+class MediaDeleted(SubscriptionObjectType, MediaBase):
+    class Meta:
+        enable_dry_run = False
+        doc_category = DOC_CATEGORY_MEDIA
+        interfaces = (Event,)
+        description = (
+            "Event sent when media is deleted for any supported entity. "
+            "Not sent when media is removed as a side effect of deleting its "
+            "owner." + ADDED_IN_324
+        )
 
 
 class ProductVariantBase(AbstractType):
@@ -2845,8 +2928,19 @@ class WarehouseMetadataUpdated(SubscriptionObjectType, WarehouseBase):
         description = "Event sent when warehouse metadata is updated."
 
 
-def default_channel_filterable_resolver(root, info, channels=None):
+def default_filterable_resolver(root, info, **filters):
+    """Pass the event through; the filter argument is applied at dispatch time."""
     return Observable.from_([root])
+
+
+owner_types_argument = graphene.Argument(
+    NonNullList(MediaOwnerType),
+    description=(
+        "List of media owner types. The event will be sent only if the media "
+        "belongs to an entity of one of the provided types. If the list is empty "
+        "or not provided, media of every owner type is sent."
+    ),
+)
 
 
 channels_argument = graphene.Argument(
@@ -2865,45 +2959,66 @@ class Subscription(SubscriptionObjectType):
         Event,
         description="Look up subscription event.",
     )
+    media_created = BaseField(
+        MediaCreated,
+        description="Event sent when new media is created." + ADDED_IN_324,
+        resolver=default_filterable_resolver,
+        owner_types=owner_types_argument,
+        doc_category=DOC_CATEGORY_MEDIA,
+    )
+    media_updated = BaseField(
+        MediaUpdated,
+        description="Event sent when media is updated." + ADDED_IN_324,
+        resolver=default_filterable_resolver,
+        owner_types=owner_types_argument,
+        doc_category=DOC_CATEGORY_MEDIA,
+    )
+    media_deleted = BaseField(
+        MediaDeleted,
+        description="Event sent when media is deleted." + ADDED_IN_324,
+        resolver=default_filterable_resolver,
+        owner_types=owner_types_argument,
+        doc_category=DOC_CATEGORY_MEDIA,
+    )
     draft_order_created = BaseField(
         DraftOrderCreated,
         description=("Event sent when new draft order is created." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     draft_order_updated = BaseField(
         DraftOrderUpdated,
         description=("Event sent when draft order is updated." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     draft_order_deleted = BaseField(
         DraftOrderDeleted,
         description=("Event sent when draft order is deleted." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_created = BaseField(
         OrderCreated,
         description=("Event sent when new order is created." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_updated = BaseField(
         OrderUpdated,
         description=("Event sent when order is updated." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_confirmed = BaseField(
         OrderConfirmed,
         description=("Event sent when order is confirmed." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2913,14 +3028,14 @@ class Subscription(SubscriptionObjectType):
             "Payment has been made. The order may be partially or fully paid."
             + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_fully_paid = BaseField(
         OrderFullyPaid,
         description=("Event sent when order is fully paid." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2930,42 +3045,42 @@ class Subscription(SubscriptionObjectType):
             "The order received a refund. The order may be partially or fully "
             "refunded." + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_fully_refunded = BaseField(
         OrderFullyRefunded,
         description=("The order is fully refunded." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_fulfilled = BaseField(
         OrderFulfilled,
         description=("Event sent when order is fulfilled." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_cancelled = BaseField(
         OrderCancelled,
         description=("Event sent when order is cancelled." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_expired = BaseField(
         OrderExpired,
         description=("Event sent when order becomes expired." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
     order_metadata_updated = BaseField(
         OrderMetadataUpdated,
         description=("Event sent when order metadata is updated." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_ORDERS,
     )
@@ -2979,35 +3094,35 @@ class Subscription(SubscriptionObjectType):
     checkout_created = BaseField(
         CheckoutCreated,
         description=("Event sent when new checkout is created." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_updated = BaseField(
         CheckoutUpdated,
         description=("Event sent when checkout is updated." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_fully_paid = BaseField(
         CheckoutFullyPaid,
         description=("Event sent when checkout is fully-paid." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_fully_authorized = BaseField(
         CheckoutFullyAuthorized,
         description=("Event sent when checkout is fully authorized." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
     checkout_metadata_updated = BaseField(
         CheckoutMetadataUpdated,
         description=("Event sent when checkout metadata is updated." + PREVIEW_FEATURE),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
@@ -3018,7 +3133,7 @@ class Subscription(SubscriptionObjectType):
             + ADDED_IN_322
             + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -3030,7 +3145,7 @@ class Subscription(SubscriptionObjectType):
             "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
             "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -3042,7 +3157,7 @@ class Subscription(SubscriptionObjectType):
             "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
             "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -3054,7 +3169,7 @@ class Subscription(SubscriptionObjectType):
             "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
             "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -3066,7 +3181,7 @@ class Subscription(SubscriptionObjectType):
             "\n\nNote: Only triggered when the `useLegacyShippingZoneStockAvailability` "
             "shop setting is disabled." + ADDED_IN_323 + PREVIEW_FEATURE
         ),
-        resolver=default_channel_filterable_resolver,
+        resolver=default_filterable_resolver,
         channels=channels_argument,
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -3247,6 +3362,9 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: ProductMediaCreated,
     WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: ProductMediaUpdated,
     WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: ProductMediaDeleted,
+    WebhookEventAsyncType.MEDIA_CREATED: MediaCreated,
+    WebhookEventAsyncType.MEDIA_UPDATED: MediaUpdated,
+    WebhookEventAsyncType.MEDIA_DELETED: MediaDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: ProductVariantCreated,
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,

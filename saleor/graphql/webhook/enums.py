@@ -288,6 +288,13 @@ EXPORT_COMPLETED_EVENTS = {
     WebhookEventAsyncType.PRODUCT_EXPORT_COMPLETED,
 }
 
+# Product-only media events superseded by the entity-agnostic `MEDIA_*` events.
+LEGACY_PRODUCT_MEDIA_EVENTS = {
+    WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: WebhookEventAsyncType.MEDIA_CREATED,
+    WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: WebhookEventAsyncType.MEDIA_UPDATED,
+    WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: WebhookEventAsyncType.MEDIA_DELETED,
+}
+
 
 def deprecation_reason(enum):
     if enum.value == WebhookEventAsyncType.NOTIFY_USER:
@@ -306,6 +313,11 @@ def deprecation_reason(enum):
         return DEFAULT_DEPRECATION_REASON
     if enum.value in WebhookEventSyncType.PAYMENT_EVENTS:
         return DEPRECATED_LEGACY_PAYMENTS
+    if replacement := LEGACY_PRODUCT_MEDIA_EVENTS.get(enum.value):
+        return (
+            f"Use `{str_to_enum(replacement)}` instead - it covers media of every "
+            "owner type, not only products."
+        )
     return None
 
 

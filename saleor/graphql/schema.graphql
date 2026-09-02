@@ -2083,13 +2083,16 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_TYPE_DELETED
 
   """A new product media is created."""
-  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_CREATED @deprecated(reason: "Use `MEDIA_CREATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is updated."""
-  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_UPDATED @deprecated(reason: "Use `MEDIA_UPDATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is deleted."""
-  PRODUCT_MEDIA_DELETED
+  PRODUCT_MEDIA_DELETED @deprecated(reason: "Use `MEDIA_DELETED` instead - it covers media of every owner type, not only products.")
+  MEDIA_CREATED
+  MEDIA_UPDATED
+  MEDIA_DELETED
 
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
@@ -2707,13 +2710,16 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   PRODUCT_TYPE_DELETED
 
   """A new product media is created."""
-  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_CREATED @deprecated(reason: "Use `MEDIA_CREATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is updated."""
-  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_UPDATED @deprecated(reason: "Use `MEDIA_UPDATED` instead - it covers media of every owner type, not only products.")
 
   """A product media is deleted."""
-  PRODUCT_MEDIA_DELETED
+  PRODUCT_MEDIA_DELETED @deprecated(reason: "Use `MEDIA_DELETED` instead - it covers media of every owner type, not only products.")
+  MEDIA_CREATED
+  MEDIA_UPDATED
+  MEDIA_DELETED
 
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
@@ -4401,6 +4407,16 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
+  """
+  List of media for the category.
+  
+  Added in Saleor 3.24.
+  """
+  media(
+    """Sort media."""
+    sortBy: MediaSortingInput
+  ): [CategoryMedia!]!
+
   """Returns translated category fields for the given language code."""
   translation(
     """A language code to return the translation for category."""
@@ -4854,6 +4870,179 @@ enum ThumbnailFormatEnum {
   ORIGINAL
   AVIF
   WEBP
+}
+
+"""
+Represents a category media.
+
+Added in Saleor 3.24.
+"""
+type CategoryMedia implements Media & Node & ObjectWithMetadata @doc(category: "Media") {
+  """The unique ID of the category media."""
+  id: ID!
+
+  """The sort order of the media."""
+  sortOrder: Int
+
+  """The alt text of the media."""
+  alt: String!
+
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
+  mediaType: MediaType!
+
+  """The oEmbed data of the media."""
+  oembedData: JSONString!
+
+  """The URL of the media."""
+  url(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): String!
+
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerType: MediaOwnerType!
+
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerId: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+}
+
+"""
+Represents a media item (an image or an oEmbed video) owned by a single entity. The concrete type identifies the kind of owner.
+
+Note: `Media` does not implement `Node` or `ObjectWithMetadata`; select those fields through an inline fragment on the concrete type.
+
+Added in Saleor 3.24.
+"""
+interface Media @doc(category: "Media") {
+  """The unique ID of the media."""
+  id: ID!
+
+  """The sort order of the media."""
+  sortOrder: Int
+
+  """The alt text of the media."""
+  alt: String!
+
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
+  mediaType: MediaType!
+
+  """The oEmbed data of the media."""
+  oembedData: JSONString!
+
+  """The URL of the media."""
+  url(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): String!
+
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerType: MediaOwnerType!
+
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerId: ID!
+}
+
+"""
+The kind of content a media item holds.
+
+Added in Saleor 3.24.
+"""
+enum MediaType @doc(category: "Media") {
+  IMAGE
+  VIDEO
+}
+
+"""
+The kind of entity a media item belongs to.
+
+Added in Saleor 3.24.
+"""
+enum MediaOwnerType @doc(category: "Media") {
+  PRODUCT
+  CATEGORY
+  COLLECTION
+  PAGE
+}
+
+input MediaSortingInput @doc(category: "Products") {
+  """Specifies the direction in which to sort media."""
+  direction: OrderDirection!
+
+  """Sort media by the selected field."""
+  field: MediaChoicesSortField!
+}
+
+enum MediaChoicesSortField @doc(category: "Products") {
+  """Sort media by ID."""
+  ID
 }
 
 """Represents category translations."""
@@ -9697,9 +9886,52 @@ type ProductImage @doc(category: "Products") {
 }
 
 """Represents a product media."""
-type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products") {
+type ProductMedia implements Media & Node & ObjectWithMetadata @doc(category: "Products") {
   """The unique ID of the product media."""
   id: ID!
+
+  """The sort order of the media."""
+  sortOrder: Int
+
+  """The alt text of the media."""
+  alt: String!
+
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
+  mediaType: MediaType!
+
+  """The oEmbed data of the media."""
+  oembedData: JSONString!
+
+  """The URL of the media."""
+  url(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): String!
+
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerType: MediaOwnerType!
+
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerId: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
@@ -9731,30 +9963,8 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   """
   metafields(keys: [String!]): Metadata
 
-  """The sort order of the media."""
-  sortOrder: Int
-
-  """The alt text of the media."""
-  alt: String!
-
   """The type of the media."""
-  type: ProductMediaType!
-
-  """The oEmbed data of the media."""
-  oembedData: JSONString!
-
-  """The URL of the media."""
-  url(
-    """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
-    """
-    size: Int
-
-    """
-    The format of the image. When not provided, format of the original image will be used.
-    """
-    format: ThumbnailFormatEnum = ORIGINAL
-  ): String!
+  type: ProductMediaType! @deprecated(reason: "Use the `mediaType` field instead.")
 
   """Product id the media refers to."""
   productId: ID
@@ -10007,19 +10217,6 @@ enum ProductVariantSortField @doc(category: "Products") {
   LAST_MODIFIED_AT
 }
 
-input MediaSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort media."""
-  direction: OrderDirection!
-
-  """Sort media by the selected field."""
-  field: MediaChoicesSortField!
-}
-
-enum MediaChoicesSortField @doc(category: "Products") {
-  """Sort media by ID."""
-  ID
-}
-
 """Represents a collection of products."""
 type Collection implements Node & ObjectWithMetadata @doc(category: "Products") {
   """The ID of the collection."""
@@ -10130,6 +10327,16 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
+  """
+  List of media for the collection.
+  
+  Added in Saleor 3.24.
+  """
+  media(
+    """Sort media."""
+    sortBy: MediaSortingInput
+  ): [CollectionMedia!]!
+
   """Returns translated collection fields for the given language code."""
   translation(
     """A language code to return the translation for collection."""
@@ -10142,6 +10349,89 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   channelListings: [CollectionChannelListing!]
+}
+
+"""
+Represents a collection media.
+
+Added in Saleor 3.24.
+"""
+type CollectionMedia implements Media & Node & ObjectWithMetadata @doc(category: "Media") {
+  """The unique ID of the collection media."""
+  id: ID!
+
+  """The sort order of the media."""
+  sortOrder: Int
+
+  """The alt text of the media."""
+  alt: String!
+
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
+  mediaType: MediaType!
+
+  """The oEmbed data of the media."""
+  oembedData: JSONString!
+
+  """The URL of the media."""
+  url(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): String!
+
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerType: MediaOwnerType!
+
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerId: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
 }
 
 """Represents collection translations."""
@@ -12559,6 +12849,16 @@ type Page implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(categ
 
   """List of attributes assigned to this page."""
   attributes: [SelectedAttribute!]! @deprecated(reason: "Use `assignedAttributes` field instead.")
+
+  """
+  List of media for the page.
+  
+  Added in Saleor 3.24.
+  """
+  media(
+    """Sort media."""
+    sortBy: MediaSortingInput
+  ): [PageMedia!]!
 }
 
 """Represents page translations."""
@@ -12648,6 +12948,89 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
 
   """List of page content attribute values that can be translated."""
   attributeValues: [AttributeValueTranslatableContent!]!
+}
+
+"""
+Represents a page media.
+
+Added in Saleor 3.24.
+"""
+type PageMedia implements Media & Node & ObjectWithMetadata @doc(category: "Media") {
+  """The unique ID of the page media."""
+  id: ID!
+
+  """The sort order of the media."""
+  sortOrder: Int
+
+  """The alt text of the media."""
+  alt: String!
+
+  """
+  The type of the media.
+  
+  Added in Saleor 3.24.
+  """
+  mediaType: MediaType!
+
+  """The oEmbed data of the media."""
+  oembedData: JSONString!
+
+  """The URL of the media."""
+  url(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): String!
+
+  """
+  The type of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerType: MediaOwnerType!
+
+  """
+  ID of the entity the media belongs to.
+  
+  Added in Saleor 3.24.
+  """
+  ownerId: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
 }
 
 enum OrderAction @doc(category: "Payments") {
@@ -14293,9 +14676,12 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_TYPE_CREATED
   PRODUCT_TYPE_UPDATED
   PRODUCT_TYPE_DELETED
-  PRODUCT_MEDIA_CREATED
-  PRODUCT_MEDIA_UPDATED
-  PRODUCT_MEDIA_DELETED
+  PRODUCT_MEDIA_CREATED @deprecated(reason: "Use `MEDIA_CREATED` instead - it covers media of every owner type, not only products.")
+  PRODUCT_MEDIA_UPDATED @deprecated(reason: "Use `MEDIA_UPDATED` instead - it covers media of every owner type, not only products.")
+  PRODUCT_MEDIA_DELETED @deprecated(reason: "Use `MEDIA_DELETED` instead - it covers media of every owner type, not only products.")
+  MEDIA_CREATED
+  MEDIA_UPDATED
+  MEDIA_DELETED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
   PRODUCT_VARIANT_DELETED
@@ -18544,7 +18930,7 @@ type Mutation {
   productMediaCreate(
     """Fields required to create a product media."""
     input: ProductMediaCreateInput!
-  ): ProductMediaCreate @doc(category: "Products")
+  ): ProductMediaCreate @doc(category: "Products") @deprecated(reason: "Use the `mediaCreate` mutation instead.")
 
   """
   Reorder the variants of a product. Mutation updates updated_at on product and triggers PRODUCT_UPDATED webhook. 
@@ -18567,7 +18953,7 @@ type Mutation {
   productMediaDelete(
     """ID of a product media to delete."""
     id: ID!
-  ): ProductMediaDelete @doc(category: "Products")
+  ): ProductMediaDelete @doc(category: "Products") @deprecated(reason: "Use the `mediaDelete` mutation instead.")
 
   """
   Deletes product media. 
@@ -18592,7 +18978,7 @@ type Mutation {
 
     """ID of product that media order will be altered."""
     productId: ID!
-  ): ProductMediaReorder @doc(category: "Products")
+  ): ProductMediaReorder @doc(category: "Products") @deprecated(reason: "Use the `mediaReorder` mutation instead.")
 
   """
   Updates a product media. 
@@ -18605,7 +18991,7 @@ type Mutation {
 
     """Fields required to update a product media."""
     input: ProductMediaUpdateInput!
-  ): ProductMediaUpdate @doc(category: "Products")
+  ): ProductMediaUpdate @doc(category: "Products") @deprecated(reason: "Use the `mediaUpdate` mutation instead.")
 
   """
   Creates a new product type. 
@@ -20153,6 +20539,81 @@ type Mutation {
     """The menu position data."""
     moves: [MenuItemMoveInput!]!
   ): MenuItemMove @doc(category: "Menu") @webhookEventsInfo(asyncEvents: [MENU_ITEM_UPDATED], syncEvents: [])
+
+  """
+  Create a media object (image or video URL) attached to a product, category, collection or page. For an image, this mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+  
+  Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+  
+  Added in Saleor 3.24.
+  
+  Triggers the following webhook events:
+  - MEDIA_CREATED (async): A media object was created.
+  - PRODUCT_MEDIA_CREATED (async): A media object owned by a product was created. Deprecated: subscribe to `MEDIA_CREATED` instead.
+  """
+  mediaCreate(
+    """
+    ID of the entity the media will be attached to. Supported entities: `Product`, `Category`, `Collection`, `Page`.
+    """
+    id: ID!
+
+    """Fields required to create a media object."""
+    input: MediaCreateInput!
+  ): MediaCreate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_CREATED, PRODUCT_MEDIA_CREATED], syncEvents: [])
+
+  """
+  Updates a media object.
+  
+  Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+  
+  Added in Saleor 3.24.
+  
+  Triggers the following webhook events:
+  - MEDIA_UPDATED (async): A media object was updated.
+  - PRODUCT_MEDIA_UPDATED (async): A media object owned by a product was updated. Deprecated: subscribe to `MEDIA_UPDATED` instead.
+  """
+  mediaUpdate(
+    """ID of the media to update."""
+    id: ID!
+
+    """Fields required to update the media object."""
+    input: MediaUpdateInput!
+  ): MediaUpdate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_UPDATED, PRODUCT_MEDIA_UPDATED], syncEvents: [])
+
+  """
+  Deletes a media object. The underlying file is not removed from storage.
+  
+  Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+  
+  Added in Saleor 3.24.
+  
+  Triggers the following webhook events:
+  - MEDIA_DELETED (async): A media object was deleted.
+  - PRODUCT_MEDIA_DELETED (async): A media object owned by a product was deleted. Deprecated: subscribe to `MEDIA_DELETED` instead.
+  """
+  mediaDelete(
+    """ID of the media to delete."""
+    id: ID!
+  ): MediaDelete @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_DELETED, PRODUCT_MEDIA_DELETED], syncEvents: [])
+
+  """
+  Changes the ordering of an entity's media gallery.
+  
+  Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+  
+  Added in Saleor 3.24.
+  """
+  mediaReorder(
+    """
+    ID of the entity whose media order will be altered. Supported entities: `Product`, `Category`, `Collection`, `Page`.
+    """
+    id: ID!
+
+    """
+    IDs of the entity's media in the desired order. Must list every media the entity owns. Maximum 100 items.
+    """
+    mediaIds: [ID!]!
+  ): MediaReorder @doc(category: "Media")
 
   """
   Request an invoice for the order using plugin. 
@@ -29025,6 +29486,183 @@ input MenuItemMoveInput {
 }
 
 """
+Create a media object (image or video URL) attached to a product, category, collection or page. For an image, this mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec
+
+Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+
+Added in Saleor 3.24.
+
+Triggers the following webhook events:
+- MEDIA_CREATED (async): A media object was created.
+- PRODUCT_MEDIA_CREATED (async): A media object owned by a product was created. Deprecated: subscribe to `MEDIA_CREATED` instead.
+"""
+type MediaCreate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_CREATED, PRODUCT_MEDIA_CREATED], syncEvents: []) {
+  """The created media."""
+  media: Media
+  errors: [MediaCreateError!]!
+}
+
+type MediaCreateError @doc(category: "Media") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: MediaCreateErrorCode!
+}
+
+enum MediaCreateErrorCode @doc(category: "Media") {
+  DUPLICATED_INPUT_ITEM
+  FILE_SIZE_LIMIT_EXCEEDED
+  GRAPHQL_ERROR
+  INVALID
+  INVALID_FILE_TYPE
+  NOT_FOUND
+  REQUIRED
+  UNSUPPORTED_MEDIA_PROVIDER
+  UNSUPPORTED_MIME_TYPE
+}
+
+"""
+Fields required to create a media object.
+
+Added in Saleor 3.24.
+"""
+input MediaCreateInput @doc(category: "Media") {
+  """Alt text for the media."""
+  alt: String
+
+  """Represents an image file in a multipart request."""
+  image: Upload
+
+  """
+  Represents an URL to an external media. The URL is fetched once: if it points to an image, the image is downloaded in the background; otherwise it is stored as oEmbed data.
+  """
+  mediaUrl: String
+}
+
+"""
+Updates a media object.
+
+Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+
+Added in Saleor 3.24.
+
+Triggers the following webhook events:
+- MEDIA_UPDATED (async): A media object was updated.
+- PRODUCT_MEDIA_UPDATED (async): A media object owned by a product was updated. Deprecated: subscribe to `MEDIA_UPDATED` instead.
+"""
+type MediaUpdate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_UPDATED, PRODUCT_MEDIA_UPDATED], syncEvents: []) {
+  """The updated media."""
+  media: Media
+  errors: [MediaUpdateError!]!
+}
+
+type MediaUpdateError @doc(category: "Media") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: MediaUpdateErrorCode!
+}
+
+enum MediaUpdateErrorCode @doc(category: "Media") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+"""
+Fields required to update a media object.
+
+Added in Saleor 3.24.
+"""
+input MediaUpdateInput @doc(category: "Media") {
+  """Alt text for the media. Maximum 250 characters."""
+  alt: String
+}
+
+"""
+Deletes a media object. The underlying file is not removed from storage.
+
+Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+
+Added in Saleor 3.24.
+
+Triggers the following webhook events:
+- MEDIA_DELETED (async): A media object was deleted.
+- PRODUCT_MEDIA_DELETED (async): A media object owned by a product was deleted. Deprecated: subscribe to `MEDIA_DELETED` instead.
+"""
+type MediaDelete @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_DELETED, PRODUCT_MEDIA_DELETED], syncEvents: []) {
+  """The deleted media."""
+  media: Media
+  errors: [MediaDeleteError!]!
+}
+
+type MediaDeleteError @doc(category: "Media") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: MediaDeleteErrorCode!
+}
+
+enum MediaDeleteErrorCode @doc(category: "Media") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Changes the ordering of an entity's media gallery.
+
+Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
+
+Added in Saleor 3.24.
+"""
+type MediaReorder @doc(category: "Media") {
+  """The media in the new order."""
+  media: [Media!]
+  errors: [MediaReorderError!]!
+}
+
+type MediaReorderError @doc(category: "Media") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: MediaReorderErrorCode!
+}
+
+enum MediaReorderErrorCode @doc(category: "Media") {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  NOT_MEDIA_OWNER
+}
+
+"""
 Request an invoice for the order using plugin. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
@@ -34205,6 +34843,42 @@ type Subscription @doc(category: "Miscellaneous") {
   event: Event
 
   """
+  Event sent when new media is created.
+  
+  Added in Saleor 3.24.
+  """
+  mediaCreated(
+    """
+    List of media owner types. The event will be sent only if the media belongs to an entity of one of the provided types. If the list is empty or not provided, media of every owner type is sent.
+    """
+    ownerTypes: [MediaOwnerType!]
+  ): MediaCreated @doc(category: "Media")
+
+  """
+  Event sent when media is updated.
+  
+  Added in Saleor 3.24.
+  """
+  mediaUpdated(
+    """
+    List of media owner types. The event will be sent only if the media belongs to an entity of one of the provided types. If the list is empty or not provided, media of every owner type is sent.
+    """
+    ownerTypes: [MediaOwnerType!]
+  ): MediaUpdated @doc(category: "Media")
+
+  """
+  Event sent when media is deleted.
+  
+  Added in Saleor 3.24.
+  """
+  mediaDeleted(
+    """
+    List of media owner types. The event will be sent only if the media belongs to an entity of one of the provided types. If the list is empty or not provided, media of every owner type is sent.
+    """
+    ownerTypes: [MediaOwnerType!]
+  ): MediaDeleted @doc(category: "Media")
+
+  """
   Event sent when new draft order is created.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
@@ -34538,6 +35212,94 @@ interface Event {
 }
 
 union IssuingPrincipal = App | User
+
+"""
+Event sent when new media is created for any supported entity.
+
+Added in Saleor 3.24.
+"""
+type MediaCreated implements Event @doc(category: "Media") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The media the event relates to."""
+  media: Media
+
+  """
+  The entity the media belongs to. Channel-dependent fields on `Product` and `Collection` resolve to `null`, as the event carries no channel.
+  """
+  owner: MediaOwner
+}
+
+"""
+The entity a media object belongs to.
+
+Added in Saleor 3.24.
+"""
+union MediaOwner = Product | Category | Collection | Page
+
+"""
+Event sent when media is updated for any supported entity.
+
+Added in Saleor 3.24.
+"""
+type MediaUpdated implements Event @doc(category: "Media") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The media the event relates to."""
+  media: Media
+
+  """
+  The entity the media belongs to. Channel-dependent fields on `Product` and `Collection` resolve to `null`, as the event carries no channel.
+  """
+  owner: MediaOwner
+}
+
+"""
+Event sent when media is deleted for any supported entity. Not sent when media is removed as a side effect of deleting its owner.
+
+Added in Saleor 3.24.
+"""
+type MediaDeleted implements Event @doc(category: "Media") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The media the event relates to."""
+  media: Media
+
+  """
+  The entity the media belongs to. Channel-dependent fields on `Product` and `Collection` resolve to `null`, as the event carries no channel.
+  """
+  owner: MediaOwner
+}
 
 """Event sent when new draft order is created."""
 type DraftOrderCreated implements Event @doc(category: "Orders") {
@@ -36106,7 +36868,11 @@ type ProductTypeDeleted implements Event @doc(category: "Products") {
   productType: ProductType
 }
 
-"""Event sent when new product media is created."""
+"""
+Event sent when new product media is created.
+
+DEPRECATED: this event will be removed. Use `MediaCreated` event instead.
+"""
 type ProductMediaCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -36124,7 +36890,11 @@ type ProductMediaCreated implements Event @doc(category: "Products") {
   productMedia: ProductMedia
 }
 
-"""Event sent when product media is updated."""
+"""
+Event sent when product media is updated.
+
+DEPRECATED: this event will be removed. Use `MediaUpdated` event instead.
+"""
 type ProductMediaUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -36142,7 +36912,11 @@ type ProductMediaUpdated implements Event @doc(category: "Products") {
   productMedia: ProductMedia
 }
 
-"""Event sent when product media is deleted."""
+"""
+Event sent when product media is deleted.
+
+DEPRECATED: this event will be removed. Use `MediaDeleted` event instead.
+"""
 type ProductMediaDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
@@ -38702,7 +39476,7 @@ type AssignedMultiCollectionReferenceAttribute implements AssignedAttribute @doc
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | PageType | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order
+union _Entity = App | ProductMedia | PageType | Address | User | Group | ProductVariant | Product | ProductType | Category | Collection | Order
 
 """_Service manifest as defined by Federation spec."""
 type _Service {
