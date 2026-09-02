@@ -12,6 +12,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import transaction
 from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models.functions import Coalesce
 from prices import Money
 
 from ...channel.models import Channel
@@ -371,22 +372,21 @@ def _get_best_gift_reward(
     if not available_variant_ids:
         return None, None
 
-    # check variant channel availability
-    available_variant_listings = ProductVariantChannelListing.objects.using(
-        database_connection_name
-    ).filter(
-        variant_id__in=available_variant_ids,
-        channel_id=channel.id,
-        price_amount__isnull=False,
+    # check variant channel availability and pick the top-priced listing;
+    # a listing awaiting discounted-price recalculation counts as its base price
+    listing = (
+        ProductVariantChannelListing.objects.using(database_connection_name)
+        .filter(
+            variant_id__in=available_variant_ids,
+            channel_id=channel.id,
+            price_amount__isnull=False,
+        )
+        .order_by(Coalesce("discounted_price_amount", "price_amount").desc())
+        .first()
     )
-    if not available_variant_listings:
+    if listing is None:
         return None, None
 
-    listing = max(
-        list(available_variant_listings),
-        # sort over a top price
-        key=lambda x: x.discounted_price_amount or Decimal(0),
-    )
     rule_gift = rule_gifts.filter(productvariant_id=listing.variant_id).first()
     rule = rule_gift.promotionrule if rule_gift else None
     return rule, listing
