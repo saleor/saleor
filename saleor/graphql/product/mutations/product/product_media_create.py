@@ -2,7 +2,7 @@ from typing import Any
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError
 
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
@@ -133,8 +133,7 @@ class ProductMediaCreate(BaseMutation):
             # The product can be deleted concurrently while the image is uploaded or
             # the remote URL is probed, so the insert may fail on the foreign key.
             try:
-                with transaction.atomic():
-                    media = product.media.create(**media_data)
+                media = product.media.create(**media_data)
             except IntegrityError as e:
                 if not models.Product.objects.filter(pk=product.pk).exists():
                     raise ValidationError(
