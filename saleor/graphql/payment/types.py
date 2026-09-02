@@ -587,6 +587,79 @@ class GiftCardPaymentMethodDetails(BaseObjectType):
         return bool(root.gift_card_id)
 
 
+class TransactionSummary(BaseObjectType):
+    created_at = DateTime(
+        required=True,
+        description="Date and time at which payment transaction was created.",
+    )
+    payment_method_details = graphene.Field(
+        PaymentMethodDetails,
+        description="The payment method used for this transaction.",
+    )
+    authorized_amount = graphene.Field(
+        Money, required=True, description="Total amount authorized for this payment."
+    )
+    authorize_pending_amount = graphene.Field(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing authorization requests for the transaction."
+        ),
+    )
+    charged_amount = graphene.Field(
+        Money, required=True, description="Total amount charged for this payment."
+    )
+    charge_pending_amount = graphene.Field(
+        Money,
+        required=True,
+        description="Total amount of ongoing charge requests for the transaction.",
+    )
+    refunded_amount = graphene.Field(
+        Money, required=True, description="Total amount refunded for this payment."
+    )
+    canceled_amount = graphene.Field(
+        Money, required=True, description="Total amount canceled for this payment."
+    )
+
+    class Meta:
+        description = (
+            "Customer-facing summary of a single payment transaction. Exposes the "
+            "payment method and the amounts, without the identifiers, events and "
+            "actions available on `TransactionItem`." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+    @staticmethod
+    def resolve_payment_method_details(root: models.TransactionItem, _info):
+        if not root.payment_method_type:
+            return None
+        return root
+
+    @staticmethod
+    def resolve_authorized_amount(root: models.TransactionItem, _info):
+        return root.amount_authorized
+
+    @staticmethod
+    def resolve_authorize_pending_amount(root: models.TransactionItem, _info):
+        return root.amount_authorize_pending
+
+    @staticmethod
+    def resolve_charged_amount(root: models.TransactionItem, _info):
+        return root.amount_charged
+
+    @staticmethod
+    def resolve_charge_pending_amount(root: models.TransactionItem, _info):
+        return root.amount_charge_pending
+
+    @staticmethod
+    def resolve_refunded_amount(root: models.TransactionItem, _info):
+        return root.amount_refunded
+
+    @staticmethod
+    def resolve_canceled_amount(root: models.TransactionItem, _info):
+        return root.amount_canceled
+
+
 class TransactionItem(ModelObjectType[models.TransactionItem]):
     token = graphene.Field(
         UUIDScalar, description="The transaction token.", required=True
