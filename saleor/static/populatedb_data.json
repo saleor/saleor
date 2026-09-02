@@ -9862,11 +9862,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -9883,11 +9879,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -9904,11 +9896,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -9925,11 +9913,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -9946,11 +9930,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -9967,11 +9947,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -9988,11 +9964,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10009,11 +9981,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10030,11 +9998,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10051,11 +10015,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10072,11 +10032,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10093,11 +10049,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10114,11 +10066,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10135,11 +10083,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10156,11 +10100,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10177,11 +10117,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10198,11 +10134,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -10219,11 +10151,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -17703,11 +17631,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -17724,11 +17648,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -17745,11 +17665,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": true,
-      "filterable_in_dashboard": true,
-      "storefront_search_position": 0,
-      "available_in_grid": true
+      "visible_in_storefront": true
     }
   },
   {
@@ -17766,11 +17682,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": true,
-      "filterable_in_dashboard": true,
-      "storefront_search_position": 0,
-      "available_in_grid": true
+      "visible_in_storefront": true
     }
   },
   {
@@ -17787,11 +17699,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": true,
-      "filterable_in_dashboard": true,
-      "storefront_search_position": 0,
-      "available_in_grid": true
+      "visible_in_storefront": true
     }
   },
   {
@@ -17808,11 +17716,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
@@ -17829,11 +17733,7 @@
       "unit": null,
       "value_required": false,
       "is_variant_only": false,
-      "visible_in_storefront": true,
-      "filterable_in_storefront": false,
-      "filterable_in_dashboard": false,
-      "storefront_search_position": 0,
-      "available_in_grid": false
+      "visible_in_storefront": true
     }
   },
   {
