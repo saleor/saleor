@@ -57,8 +57,7 @@ from ....product.models import (
 from ....shipping.models import ShippingMethod, ShippingMethodTranslation
 from ....tests import race_condition
 from ....tests.utils import dummy_editorjs
-from ....warehouse import WarehouseClickAndCollectOption
-from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
+from ....warehouse.models import Reservation, Stock
 from ...core.utils import to_global_id_or_none
 from ...payment.enums import TokenizedPaymentFlowEnum
 from ...tests.utils import assert_no_permission, get_graphql_content
@@ -928,64 +927,6 @@ query AvailableCollectionPoints($id: ID) {
 """
 
 
-def test_available_collection_points_for_preorders_variants_in_checkout(
-    api_client, staff_api_client, checkout_with_preorders_only, channel_USD
-):
-    # given
-    expected_collection_points = list(
-        Warehouse.objects.for_channel(channel_USD.id)
-        .exclude(
-            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
-        )
-        .values("name")
-    )
-
-    # when
-    response = staff_api_client.post_graphql(
-        QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
-        variables={"id": to_global_id_or_none(checkout_with_preorders_only)},
-    )
-
-    # then
-    response_content = get_graphql_content(response)
-    assert (
-        expected_collection_points
-        == response_content["data"]["checkout"]["availableCollectionPoints"]
-    )
-
-
-def test_available_collection_points_for_preorders_and_regular_variants_in_checkout(
-    api_client,
-    staff_api_client,
-    checkout_with_preorders_and_regular_variant,
-    preorder_variant_with_end_date,
-    warehouses_for_cc,
-):
-    # given
-    warehouse = warehouses_for_cc[1]
-    Stock.objects.create(
-        warehouse=warehouse,
-        product_variant=preorder_variant_with_end_date,
-        quantity=10,
-    )
-    expected_collection_points = [{"name": warehouse.name}]
-
-    # wne
-    response = staff_api_client.post_graphql(
-        QUERY_GET_ALL_COLLECTION_POINTS_FROM_CHECKOUT,
-        variables={
-            "id": to_global_id_or_none(checkout_with_preorders_and_regular_variant)
-        },
-    )
-
-    # then
-    response_content = get_graphql_content(response)
-    assert (
-        expected_collection_points
-        == response_content["data"]["checkout"]["availableCollectionPoints"]
-    )
-
-
 def test_checkout_available_collection_points_with_lines_avail_in_1_local_and_1_all(
     api_client, checkout_with_items_for_cc, stocks_for_cc
 ):
@@ -1195,22 +1136,6 @@ def test_checkout_reservation_date_for_stock_reservation(
     assert parse_datetime(data) == reservation.reserved_until
 
 
-def test_checkout_reservation_date_for_preorder_reservation(
-    site_settings_with_reservations,
-    api_client,
-    checkout_line_with_reserved_preorder_item,
-    address,
-):
-    reservation = PreorderReservation.objects.order_by("reserved_until").first()
-    query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
-    variables = {
-        "id": to_global_id_or_none(checkout_line_with_reserved_preorder_item.checkout)
-    }
-    response = api_client.post_graphql(query, variables)
-    data = get_graphql_content(response)["data"]["checkout"]["stockReservationExpires"]
-    assert parse_datetime(data) == reservation.reserved_until
-
-
 def test_checkout_reservation_date_for_multiple_reservations(
     site_settings_with_reservations,
     api_client,
@@ -1228,41 +1153,13 @@ def test_checkout_reservation_date_for_multiple_reservations(
     assert parse_datetime(data) == reservation.reserved_until
 
 
-def test_checkout_reservation_date_for_multiple_reservations_types(
-    site_settings_with_reservations,
-    api_client,
-    checkout_line_with_one_reservation,
-    checkout_line_with_reserved_preorder_item,
-    address,
-):
-    Reservation.objects.update(
-        reserved_until=timezone.now() + datetime.timedelta(minutes=3)
-    )
-    PreorderReservation.objects.update(
-        reserved_until=timezone.now() + datetime.timedelta(minutes=1)
-    )
-
-    reservation = PreorderReservation.objects.order_by("reserved_until").first()
-    query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
-    variables = {
-        "id": to_global_id_or_none(checkout_line_with_one_reservation.checkout)
-    }
-    response = api_client.post_graphql(query, variables)
-    data = get_graphql_content(response)["data"]["checkout"]["stockReservationExpires"]
-    assert parse_datetime(data) == reservation.reserved_until
-
-
 def test_checkout_reservation_date_for_expired_reservations(
     site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
-    checkout_line_with_reserved_preorder_item,
     address,
 ):
     Reservation.objects.update(
-        reserved_until=timezone.now() - datetime.timedelta(minutes=1)
-    )
-    PreorderReservation.objects.update(
         reserved_until=timezone.now() - datetime.timedelta(minutes=1)
     )
 
@@ -1279,11 +1176,9 @@ def test_checkout_reservation_date_for_no_reservations(
     site_settings_with_reservations,
     api_client,
     checkout_line_with_one_reservation,
-    checkout_line_with_reserved_preorder_item,
     address,
 ):
     Reservation.objects.all().delete()
-    PreorderReservation.objects.all().delete()
 
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY
     variables = {
@@ -1297,7 +1192,6 @@ def test_checkout_reservation_date_for_no_reservations(
 def test_checkout_reservation_date_for_disabled_reservations(
     api_client,
     checkout_line_with_one_reservation,
-    checkout_line_with_reserved_preorder_item,
     address,
 ):
     query = GET_CHECKOUT_STOCK_RESERVATION_EXPIRES_QUERY

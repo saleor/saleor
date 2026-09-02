@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from ....plugins.manager import get_plugins_manager
 from ....product.models import ProductVariantChannelListing
-from ...fetch import fetch_checkout_info, fetch_checkout_lines
+from ...fetch import fetch_checkout_info
 from ...models import Checkout, CheckoutDelivery, CheckoutLine, CheckoutMetadata
 from ..utils import add_variant_to_checkout
 
@@ -438,39 +438,6 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
 
 
 @pytest.fixture
-def checkout_with_preorders_only(
-    checkout,
-    stocks_for_cc,
-    preorder_variant_with_end_date,
-    preorder_variant_channel_threshold,
-):
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(
-        checkout, lines, get_plugins_manager(allow_replica=False)
-    )
-    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
-    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 2)
-
-    checkout.save()
-    return checkout
-
-
-@pytest.fixture
-def checkout_with_preorders_and_regular_variant(
-    checkout, stocks_for_cc, preorder_variant_with_end_date, product_variant_list
-):
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(
-        checkout, lines, get_plugins_manager(allow_replica=False)
-    )
-    add_variant_to_checkout(checkout_info, preorder_variant_with_end_date, 2)
-    add_variant_to_checkout(checkout_info, product_variant_list[0], 2)
-
-    checkout.save()
-    return checkout
-
-
-@pytest.fixture
 def checkout_with_gift_card_items(
     checkout, non_shippable_gift_card_product, shippable_gift_card_product
 ):
@@ -483,17 +450,6 @@ def checkout_with_gift_card_items(
     add_variant_to_checkout(checkout_info, shippable_variant, 2)
     checkout.save()
     return checkout
-
-
-@pytest.fixture
-def checkout_with_item_and_preorder_item(
-    checkout_with_item, product, preorder_variant_channel_threshold
-):
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, [], get_plugins_manager(allow_replica=False)
-    )
-    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
-    return checkout_with_item
 
 
 @pytest.fixture

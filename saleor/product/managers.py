@@ -359,20 +359,6 @@ class ProductVariantQueryset(models.QuerySet):
 ProductVariantManager = models.Manager.from_queryset(ProductVariantQueryset)
 
 
-class ProductVariantChannelListingQuerySet(models.QuerySet):
-    def annotate_preorder_quantity_allocated(self):
-        return self.annotate(
-            preorder_quantity_allocated=Coalesce(
-                Sum("preorder_allocations__quantity"), 0
-            ),
-        )
-
-
-ProductVariantChannelListingManager = models.Manager.from_queryset(
-    ProductVariantChannelListingQuerySet
-)
-
-
 class CollectionsQueryset(models.QuerySet):
     def published(self, channel_slug: str):
         today = datetime.datetime.now(tz=datetime.UTC)

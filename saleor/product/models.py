@@ -10,7 +10,6 @@ from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.db.models import JSONField, TextField
-from django.utils import timezone
 from django_measurement.models import MeasurementField
 from measurement.measures import Weight
 from mptt.managers import TreeManager
@@ -357,10 +356,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         "product.ProductMedia", through="product.VariantMedia"
     )
     track_inventory = models.BooleanField(default=True)
-    # TODO remove after 3.24: preorder API was removed in 3.24
-    is_preorder = models.BooleanField(default=False)
-    preorder_end_date = models.DateTimeField(null=True, blank=True)
-    preorder_global_threshold = models.IntegerField(blank=True, null=True)
     quantity_limit_per_customer = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(1)]
     )
@@ -448,11 +443,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     def get_ordering_queryset(self):
         return self.product.variants.all()
 
-    def is_preorder_active(self):
-        return self.is_preorder and (
-            self.preorder_end_date is None or timezone.now() <= self.preorder_end_date
-        )
-
 
 class ProductVariantTranslation(Translation):
     product_variant = models.ForeignKey(
@@ -534,11 +524,6 @@ class ProductVariantChannelListing(models.Model):
         through="product.VariantChannelListingPromotionRule",
         blank=True,
     )
-
-    # TODO remove after 3.24: preorder API was removed in 3.24
-    preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
-
-    objects = managers.ProductVariantChannelListingManager()
 
     class Meta:
         unique_together = [["variant", "channel"]]
