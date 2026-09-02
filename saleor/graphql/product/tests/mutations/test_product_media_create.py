@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.conf import settings
-from django.db import connection
 from PIL import Image
 from requests import RequestException
 from requests.exceptions import InvalidSchema
@@ -663,6 +662,9 @@ def test_product_media_create_mutation_with_empty_product_id(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
+# The insert must really hit the database for the foreign key to be checked, so
+# this test needs actual commits instead of the usual wrapping transaction.
+@pytest.mark.django_db(transaction=True)
 @patch("saleor.graphql.product.utils.HTTPClient")
 def test_product_media_create_when_product_deleted_while_media_url_is_probed(
     mock_HTTPClient, staff_api_client, product, permission_manage_products
@@ -679,12 +681,6 @@ def test_product_media_create_when_product_deleted_while_media_url_is_probed(
         return mock_HTTPClient.send_request.return_value
 
     mock_HTTPClient.send_request.side_effect = delete_product_mid_probe
-
-    # Django declares foreign keys as DEFERRABLE INITIALLY DEFERRED, so inside the
-    # test transaction the violation would only surface on a commit that never
-    # happens. In production every statement commits, so the check is immediate.
-    with connection.cursor() as cursor:
-        cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
 
     variables = {
         "product": graphene.Node.to_global_id("Product", product.id),
