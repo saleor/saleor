@@ -240,7 +240,6 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.VOUCHER_DELETED: "A voucher is deleted.",
     WebhookEventAsyncType.VOUCHER_METADATA_UPDATED: "A voucher metadata is updated.",
     WebhookEventAsyncType.ANY: "All the events.",
-    WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created.",
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: "Shop metadata is updated.",
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
@@ -294,11 +293,6 @@ def deprecation_reason(enum):
         return (
             "See the docs for more details about migrating from NOTIFY_USER to other events: "
             "https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user"
-        )
-    if enum.value == WebhookEventAsyncType.OBSERVABILITY:
-        return (
-            "The observability feature is no longer supported. "
-            "This event will be removed in Saleor 3.24."
         )
     if enum.value in EXPORT_COMPLETED_EVENTS:
         return DEPRECATED_EXPORT_MUTATIONS
