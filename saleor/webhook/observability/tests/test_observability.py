@@ -73,7 +73,6 @@ def test_send_observability_events(
     mock_send_webhook_using_scheme_method.assert_called_once_with(
         observability_webhook_data.target_url,
         observability_webhook_data.saleor_domain,
-        observability_webhook_data.secret_key,
         WebhookEventAsyncType.OBSERVABILITY,
         concatenate_json_events(events),
     )
@@ -112,7 +111,6 @@ def test_send_observability_events_to_google_pub_sub(
     mock_send_webhook_using_scheme_method.assert_called_with(
         observability_webhook_data.target_url,
         observability_webhook_data.saleor_domain,
-        observability_webhook_data.secret_key,
         WebhookEventAsyncType.OBSERVABILITY,
         events[-1],
     )
