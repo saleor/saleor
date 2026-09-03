@@ -1888,7 +1888,6 @@ def test_send_webhook_request_async_with_success_response(
     mocked_send_response.assert_called_once_with(
         event_delivery.webhook.target_url,
         "example.com",
-        event_delivery.webhook.secret_key,
         event_delivery.event_type,
         event_delivery.payload.get_payload().encode("utf-8"),
         event_delivery.webhook.custom_headers,
@@ -2297,10 +2296,9 @@ def test_send_webhook_request_async_with_request_exception(
     # given
     event_payload = event_delivery.payload
     data = event_payload.get_payload()
-    webhook = event_delivery.webhook
     domain = "example.com"
     message = data.encode("utf-8")
-    signature = signature_for_payload(message, webhook.secret_key)
+    signature = signature_for_payload(message)
     expected_request_headers = generate_request_headers(
         event_delivery.event_type, domain, signature
     )
