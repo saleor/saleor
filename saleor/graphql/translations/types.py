@@ -548,10 +548,6 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
         description="Translated description of the collection." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
     )
-    background_image_alt = graphene.String(
-        required=True,
-        description=("Translated collection background image alt text." + ADDED_IN_323),
-    )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CollectionTranslatableContent",
         description="Represents the collection fields to translate.",
@@ -589,10 +585,6 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     description_json = JSONString(
         description="Description of the collection." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
-    )
-    background_image_alt = graphene.String(
-        required=True,
-        description="Collection background image alt text to translate." + ADDED_IN_323,
     )
     translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
@@ -648,10 +640,6 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
         description="Translated description of the category." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
     )
-    background_image_alt = graphene.String(
-        required=True,
-        description="Translated category background image alt text." + ADDED_IN_323,
-    )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.CategoryTranslatableContent",
         description="Represents the category fields to translate.",
@@ -692,10 +680,6 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
-    )
-    background_image_alt = graphene.String(
-        required=True,
-        description="Category background image alt text to translate." + ADDED_IN_323,
     )
     translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(

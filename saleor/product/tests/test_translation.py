@@ -82,27 +82,6 @@ def test_product_media_translation(settings, product_media_image):
     assert get_translation(product_media_image).alt == translated_alt
 
 
-@pytest.mark.parametrize(
-    ("_case", "translatable_fixture"),
-    [
-        ("category", "category"),
-        ("collection", "published_collection"),
-    ],
-)
-def test_background_image_alt_translation(
-    _case, translatable_fixture, request, settings
-):
-    instance = request.getfixturevalue(translatable_fixture)
-    settings.LANGUAGE_CODE = "fr"
-    translated_alt = "French background image alt text"
-    translation = instance.translations.create(
-        language_code="fr", background_image_alt=translated_alt
-    )
-
-    assert get_translation(instance).background_image_alt == translated_alt
-    assert translation.get_translated_keys()["background_image_alt"] == translated_alt
-
-
 def test_attribute_value_translation(settings, product, attribute_value_translation_fr):
     attribute = product.product_type.product_attributes.first().values.first()
     assert not get_translation(attribute).name == "French name"
