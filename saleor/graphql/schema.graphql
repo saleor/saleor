@@ -4973,13 +4973,6 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
 
-  """
-  Translated category background image alt text.
-  
-  Added in Saleor 3.23.
-  """
-  backgroundImageAlt: String!
-
   """Represents the category fields to translate."""
   translatableContent: CategoryTranslatableContent
 }
@@ -7371,13 +7364,6 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """
-  Category background image alt text to translate.
-  
-  Added in Saleor 3.23.
-  """
-  backgroundImageAlt: String!
 
   """Returns translated category fields for the given language code."""
   translation(
@@ -10455,13 +10441,6 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
 
-  """
-  Translated collection background image alt text.
-  
-  Added in Saleor 3.23.
-  """
-  backgroundImageAlt: String!
-
   """Represents the collection fields to translate."""
   translatableContent: CollectionTranslatableContent
 }
@@ -10505,13 +10484,6 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "Use the `description` field instead.")
-
-  """
-  Collection background image alt text to translate.
-  
-  Added in Saleor 3.23.
-  """
-  backgroundImageAlt: String!
 
   """Returns translated collection fields for the given language code."""
   translation(
@@ -18752,7 +18724,7 @@ type Mutation {
     id: ID!
 
     """Fields required to update category translations."""
-    input: CategoryTranslationInput!
+    input: TranslationInput!
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
@@ -18850,7 +18822,7 @@ type Mutation {
     id: ID!
 
     """Fields required to update collection translations."""
-    input: CollectionTranslationInput!
+    input: TranslationInput!
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
@@ -24927,55 +24899,18 @@ type CategoryTranslate @doc(category: "Products") {
   category: Category
 }
 
-"""
-Fields required to translate a category.
-
-Added in Saleor 3.23.
-"""
-input CategoryTranslationInput @doc(category: "Products") {
-  """
-  Translated category name.
-  
-  Added in Saleor 3.23.
-  """
+input TranslationInput {
+  slug: String
+  seoTitle: String
+  seoDescription: String
   name: String
 
   """
-  Translated category slug.
-  
-  Added in Saleor 3.23.
-  """
-  slug: String
-
-  """
-  Translated category SEO title.
-  
-  Added in Saleor 3.23.
-  """
-  seoTitle: String
-
-  """
-  Translated category SEO description.
-  
-  Added in Saleor 3.23.
-  """
-  seoDescription: String
-
-  """
-  Translated category description.
+  Translated description.
   
   Rich text format. For reference see https://editorjs.io/
-  
-  Added in Saleor 3.23.
   """
   description: JSONString
-
-  """
-  Translated category background image alt text.
-  
-  Added in Saleor 3.23.
-  """
-  backgroundImageAlt: String
 }
 
 """
@@ -25196,57 +25131,6 @@ type CollectionTranslate @doc(category: "Products") {
   translationErrors: [TranslationError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [TranslationError!]!
   collection: Collection
-}
-
-"""
-Fields required to translate a collection.
-
-Added in Saleor 3.23.
-"""
-input CollectionTranslationInput @doc(category: "Products") {
-  """
-  Translated collection name.
-  
-  Added in Saleor 3.23.
-  """
-  name: String
-
-  """
-  Translated collection slug.
-  
-  Added in Saleor 3.23.
-  """
-  slug: String
-
-  """
-  Translated collection SEO title.
-  
-  Added in Saleor 3.23.
-  """
-  seoTitle: String
-
-  """
-  Translated collection SEO description.
-  
-  Added in Saleor 3.23.
-  """
-  seoDescription: String
-
-  """
-  Translated collection description.
-  
-  Rich text format. For reference see https://editorjs.io/
-  
-  Added in Saleor 3.23.
-  """
-  description: JSONString
-
-  """
-  Translated collection background image alt text.
-  
-  Added in Saleor 3.23.
-  """
-  backgroundImageAlt: String
 }
 
 """
@@ -25935,20 +25819,6 @@ input ProductBulkTranslateInput @doc(category: "Products") {
 
   """Translation fields."""
   translationFields: TranslationInput!
-}
-
-input TranslationInput {
-  slug: String
-  seoTitle: String
-  seoDescription: String
-  name: String
-
-  """
-  Translated description.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
 }
 
 """

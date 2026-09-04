@@ -93,7 +93,6 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
     )
     name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
-    background_image_alt = models.CharField(max_length=128, blank=True)
 
     class Meta:
         constraints = [
@@ -120,7 +119,6 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
             {
                 "name": self.name,
                 "description": self.description,
-                "background_image_alt": self.background_image_alt,
             }
         )
         return translated_keys
@@ -728,7 +726,6 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
     )
     name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
-    background_image_alt = models.CharField(max_length=128, blank=True)
 
     class Meta:
         constraints = [
@@ -755,7 +752,6 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
             {
                 "name": self.name,
                 "description": self.description,
-                "background_image_alt": self.background_image_alt,
             }
         )
         return translated_keys
