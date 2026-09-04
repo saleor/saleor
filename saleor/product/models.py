@@ -611,6 +611,32 @@ class ProductMedia(SortableModel, ModelWithMetadata):
         super(SortableModel, self).delete(*args, **kwargs)
 
 
+class ProductMediaTranslation(Translation):
+    product_media = models.ForeignKey(
+        ProductMedia, related_name="translations", on_delete=models.CASCADE
+    )
+    alt = models.CharField(max_length=250, blank=True)
+
+    class Meta:
+        unique_together = (("language_code", "product_media"),)
+
+    def __repr__(self):
+        class_ = type(self)
+        return (
+            f"{class_.__name__}(pk={self.pk!r}, alt={self.alt!r}, "
+            f"product_media_pk={self.product_media_id!r})"
+        )
+
+    def __str__(self):
+        return self.alt or str(self.product_media)
+
+    def get_translated_object_id(self):
+        return "ProductMedia", self.product_media_id
+
+    def get_translated_keys(self):
+        return {"alt": self.alt}
+
+
 class VariantMedia(models.Model):
     variant = models.ForeignKey(
         "ProductVariant", related_name="variant_media", on_delete=models.CASCADE

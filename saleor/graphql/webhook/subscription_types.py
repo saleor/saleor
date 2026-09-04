@@ -32,6 +32,7 @@ from ...payment.interface import (
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
+    ProductMediaTranslation,
     ProductTranslation,
     ProductVariantTranslation,
 )
@@ -99,6 +100,7 @@ TRANSLATIONS_TYPES_MAP = {
     CategoryTranslation: translation_types.CategoryTranslation,
     AttributeTranslation: translation_types.AttributeTranslation,
     AttributeValueTranslation: translation_types.AttributeValueTranslation,
+    ProductMediaTranslation: translation_types.ProductMediaTranslation,
     ProductVariantTranslation: translation_types.ProductVariantTranslation,
     PageTranslation: translation_types.PageTranslation,
     ShippingMethodTranslation: translation_types.ShippingMethodTranslation,

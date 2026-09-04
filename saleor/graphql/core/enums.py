@@ -348,6 +348,12 @@ ProductTranslateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 ProductTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
 
+ProductMediaTranslateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    translatable_error_codes.ProductMediaTranslateErrorCode
+)
+ProductMediaTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
+
 ProductVariantTranslateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     translatable_error_codes.ProductVariantTranslateErrorCode
 )

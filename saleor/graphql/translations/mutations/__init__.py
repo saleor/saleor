@@ -7,6 +7,7 @@ from .collection_translate import CollectionTranslate
 from .menu_item_translate import MenuItemTranslate
 from .page_translate import PageTranslate
 from .product_bulk_translate import ProductBulkTranslate
+from .product_media_translate import ProductMediaTranslate
 from .product_translate import ProductTranslate
 from .product_variant_bulk_translate import ProductVariantBulkTranslate
 from .product_variant_translate import ProductVariantTranslate
@@ -28,6 +29,7 @@ __all__ = [
     "PageTranslate",
     "ProductTranslate",
     "ProductBulkTranslate",
+    "ProductMediaTranslate",
     "ProductVariantTranslate",
     "ProductVariantBulkTranslate",
     "PromotionTranslate",

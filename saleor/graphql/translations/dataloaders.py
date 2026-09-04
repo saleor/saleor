@@ -100,6 +100,14 @@ class ProductTranslationByIdAndLanguageCodeLoader(
     relation_name = "product_id"
 
 
+class ProductMediaTranslationByIdAndLanguageCodeLoader(
+    BaseTranslationByIdAndLanguageCodeLoader[product_models.ProductMediaTranslation]
+):
+    context_key = "product_media_translation_by_id_and_language_code"
+    model = product_models.ProductMediaTranslation
+    relation_name = "product_media_id"
+
+
 class ProductVariantTranslationByIdAndLanguageCodeLoader(
     BaseTranslationByIdAndLanguageCodeLoader[product_models.ProductVariantTranslation]
 ):

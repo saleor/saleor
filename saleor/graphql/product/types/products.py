@@ -68,6 +68,7 @@ from ...core.context import (
 from ...core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_PREORDER,
     DEPRECATED_PREORDER_TYPE_DESCRIPTION,
@@ -122,7 +123,11 @@ from ...tax.dataloaders import (
 )
 from ...tax.types import TaxClass
 from ...translations.fields import TranslationField
-from ...translations.types import ProductTranslation, ProductVariantTranslation
+from ...translations.types import (
+    ProductMediaTranslation,
+    ProductTranslation,
+    ProductVariantTranslation,
+)
 from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
@@ -2083,6 +2088,11 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
     )
     sort_order = graphene.Int(description="The sort order of the media.")
     alt = graphene.String(required=True, description="The alt text of the media.")
+    translation = TranslationField(
+        ProductMediaTranslation,
+        type_name="product media",
+        description_suffix=ADDED_IN_323,
+    )
     type = ProductMediaType(required=True, description="The type of the media.")
     oembed_data = JSONString(required=True, description="The oEmbed data of the media.")
     url = ThumbnailField(

@@ -4,6 +4,7 @@ import graphene
 
 from ...event_types import WebhookEventAsyncType
 from ...transport.asynchronous.transport import create_deliveries_for_subscriptions
+from . import subscription_queries as queries
 
 
 def test_translation_created_product(
@@ -68,6 +69,40 @@ def test_translation_created_product_variant(
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
+
+
+def test_translation_created_product_media(product_media_image, subscription_webhook):
+    translated_alt = "French alt text"
+    translation = product_media_image.translations.create(
+        language_code="fr", alt=translated_alt
+    )
+    webhook = subscription_webhook(
+        queries.TRANSLATION_CREATED_PRODUCT_MEDIA,
+        WebhookEventAsyncType.TRANSLATION_CREATED,
+    )
+    translation_id = graphene.Node.to_global_id(
+        "ProductMediaTranslation", translation.pk
+    )
+    product_media_id = graphene.Node.to_global_id(
+        "ProductMedia", product_media_image.pk
+    )
+
+    deliveries = create_deliveries_for_subscriptions(
+        WebhookEventAsyncType.TRANSLATION_CREATED, translation, [webhook]
+    )
+
+    assert len(deliveries) == 1
+    assert json.loads(deliveries[0].payload.get_payload()) == {
+        "translation": {
+            "id": translation_id,
+            "alt": translated_alt,
+            "translatableContent": {
+                "productMediaId": product_media_id,
+                "alt": product_media_image.alt,
+            },
+        }
+    }
+    assert deliveries[0].webhook == webhook
 
 
 def test_translation_created_collection(
@@ -489,6 +524,40 @@ def test_translation_updated_product_variant(
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
+
+
+def test_translation_updated_product_media(product_media_image, subscription_webhook):
+    translated_alt = "French alt text"
+    translation = product_media_image.translations.create(
+        language_code="fr", alt=translated_alt
+    )
+    webhook = subscription_webhook(
+        queries.TRANSLATION_UPDATED_PRODUCT_MEDIA,
+        WebhookEventAsyncType.TRANSLATION_UPDATED,
+    )
+    translation_id = graphene.Node.to_global_id(
+        "ProductMediaTranslation", translation.pk
+    )
+    product_media_id = graphene.Node.to_global_id(
+        "ProductMedia", product_media_image.pk
+    )
+
+    deliveries = create_deliveries_for_subscriptions(
+        WebhookEventAsyncType.TRANSLATION_UPDATED, translation, [webhook]
+    )
+
+    assert len(deliveries) == 1
+    assert json.loads(deliveries[0].payload.get_payload()) == {
+        "translation": {
+            "id": translation_id,
+            "alt": translated_alt,
+            "translatableContent": {
+                "productMediaId": product_media_id,
+                "alt": product_media_image.alt,
+            },
+        }
+    }
+    assert deliveries[0].webhook == webhook
 
 
 def test_translation_updated_collection(
