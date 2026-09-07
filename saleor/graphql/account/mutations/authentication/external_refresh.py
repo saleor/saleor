@@ -48,6 +48,7 @@ class ExternalRefresh(BaseMutation):
 
         if access_tokens_response.user and access_tokens_response.user.id:
             user = access_tokens_response.user
+            info.context.user = user
             info.context._cached_user = user
             update_user_last_login_if_required(user)
 
