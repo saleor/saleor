@@ -13069,7 +13069,9 @@ type TransactionSummary @doc(category: "Payments") {
   """Date and time at which payment transaction was created."""
   createdAt: DateTime!
 
-  """The payment method used for this transaction."""
+  """
+  The payment method used for this transaction. As this field is public, card number digits and expiration date are stripped: `firstDigits`, `lastDigits`, `expMonth` and `expYear` of `CardPaymentMethodDetails` are always `null` here. Read them through `Order.transactions` instead, which requires MANAGE_ORDERS or HANDLE_PAYMENTS.
+  """
   paymentMethodDetails: PaymentMethodDetails
 
   """Total amount authorized for this payment."""

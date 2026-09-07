@@ -16,5 +16,10 @@ fields added to `TransactionItem` later cannot leak through it.
 
 The field is meant to be queried by a storefront (account page, order summary) to show the money
 that moved to and from the customer. That is why transactions with all amounts at zero are
-filtered out: they are abandoned payment attempts, carry no information for the customer, and
-would otherwise expose the brand and last digits of every card the buyer merely tried.
+filtered out: they are abandoned payment attempts and carry no information for the customer.
+
+Card data is stripped for the same reason. `paymentMethodDetails` reuses the shared
+`PaymentMethodDetails` types, but the resolver blanks `firstDigits`, `lastDigits`, `expMonth` and
+`expYear` on a copy of the transaction, so a public caller sees the payment method and the brand
+and nothing that identifies the instrument. Staff read the full card data through
+`Order.transactions` as before.

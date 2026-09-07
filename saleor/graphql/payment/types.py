@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Any
 from uuid import UUID
 
@@ -594,7 +595,14 @@ class TransactionSummary(BaseObjectType):
     )
     payment_method_details = graphene.Field(
         PaymentMethodDetails,
-        description="The payment method used for this transaction.",
+        description=(
+            "The payment method used for this transaction. As this field is public, "
+            "card number digits and expiration date are stripped: `firstDigits`, "
+            "`lastDigits`, `expMonth` and `expYear` of "
+            "`CardPaymentMethodDetails` are always `null` here. Read them through "
+            "`Order.transactions` instead, which requires MANAGE_ORDERS or "
+            "HANDLE_PAYMENTS."
+        ),
     )
     authorized_amount = graphene.Field(
         Money, required=True, description="Total amount authorized for this payment."
@@ -633,7 +641,16 @@ class TransactionSummary(BaseObjectType):
     def resolve_payment_method_details(root: models.TransactionItem, _info):
         if not root.payment_method_type:
             return None
-        return root
+        # The shared `CardPaymentMethodDetails` resolvers read the card data
+        # straight off the transaction, so strip it from a copy - this field is
+        # public and the digits and expiration date must not leak. The copy is
+        # never saved.
+        public_transaction = copy(root)
+        public_transaction.cc_first_digits = None
+        public_transaction.cc_last_digits = None
+        public_transaction.cc_exp_month = None
+        public_transaction.cc_exp_year = None
+        return public_transaction
 
     @staticmethod
     def resolve_authorized_amount(root: models.TransactionItem, _info):

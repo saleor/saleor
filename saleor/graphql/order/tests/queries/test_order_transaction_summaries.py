@@ -35,6 +35,23 @@ query Order($id: ID!) {
 }
 """
 
+ORDER_TRANSACTION_SUMMARIES_GIFT_CARD_QUERY = """
+query Order($id: ID!) {
+  order(id: $id) {
+    transactionSummaries {
+      paymentMethodDetails {
+        name
+        ... on GiftCardPaymentMethodDetails {
+          brand
+          lastChars
+          isSaleorGiftcard
+        }
+      }
+    }
+  }
+}
+"""
+
 
 @pytest.mark.parametrize(
     ("api_client_fixture", "grant_manage_orders"),
@@ -78,26 +95,22 @@ def test_available_to_any_requester_that_can_resolve_the_order(
     assert summaries[0]["paymentMethodDetails"] is None
 
 
-def test_payment_method_details_are_returned(
+def test_card_digits_and_expiration_date_are_stripped(
     api_client, order, transaction_item_generator
 ):
     # given
     payment_method_name = "Credit card"
     brand = "visa"
-    first_digits = "4111"
-    last_digits = "1111"
-    exp_month = 12
-    exp_year = 2035
-    transaction_item_generator(
+    transaction = transaction_item_generator(
         order_id=order.pk,
         charged_value=Decimal("10.00"),
         payment_method_type=PaymentMethodType.CARD,
         payment_method_name=payment_method_name,
         cc_brand=brand,
-        cc_first_digits=first_digits,
-        cc_last_digits=last_digits,
-        cc_exp_month=exp_month,
-        cc_exp_year=exp_year,
+        cc_first_digits="4111",
+        cc_last_digits="1111",
+        cc_exp_month=12,
+        cc_exp_year=2035,
     )
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
@@ -111,10 +124,45 @@ def test_payment_method_details_are_returned(
     assert summaries[0]["paymentMethodDetails"] == {
         "name": payment_method_name,
         "brand": brand,
-        "firstDigits": first_digits,
-        "lastDigits": last_digits,
-        "expMonth": exp_month,
-        "expYear": exp_year,
+        "firstDigits": None,
+        "lastDigits": None,
+        "expMonth": None,
+        "expYear": None,
+    }
+    # the stripping happens on a copy, the stored card data is untouched
+    transaction.refresh_from_db()
+    assert transaction.cc_last_digits == "1111"
+
+
+def test_gift_card_details_are_returned(api_client, order, transaction_item_generator):
+    # given
+    payment_method_name = "Gift card"
+    brand = "Saleor"
+    last_chars = "a1b2"
+    transaction_item_generator(
+        order_id=order.pk,
+        charged_value=Decimal("10.00"),
+        payment_method_type=PaymentMethodType.GIFT_CARD,
+        payment_method_name=payment_method_name,
+        gift_card_brand=brand,
+        gift_card_last_chars=last_chars,
+    )
+    variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
+
+    # when
+    response = api_client.post_graphql(
+        ORDER_TRANSACTION_SUMMARIES_GIFT_CARD_QUERY, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    summaries = content["data"]["order"]["transactionSummaries"]
+    assert len(summaries) == 1
+    assert summaries[0]["paymentMethodDetails"] == {
+        "name": payment_method_name,
+        "brand": brand,
+        "lastChars": last_chars,
+        "isSaleorGiftcard": False,
     }
 
 
