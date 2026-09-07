@@ -10,8 +10,6 @@ from .....account.error_codes import AccountErrorCode
 from .....account.throttling import authenticate_with_throttling
 from .....core.tokens import (
     account_confirm_token_generator,
-    legacy_account_confirm_token_generator,
-    try_generators,
 )
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
@@ -155,9 +153,7 @@ class ConfirmAccount(BaseMutation):
             error = True
             user = models.User()
 
-        valid_token = try_generators(
-            current_generator=account_confirm_token_generator,
-            fallback_generator=legacy_account_confirm_token_generator,
+        valid_token = account_confirm_token_generator.check_token(
             user=user,
             token=data["token"],
         )
