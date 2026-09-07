@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           # Do not allow cache as other actions could write to that cache
           # for lateral movement, and the workflow runs too infrequently
