@@ -10,6 +10,7 @@ from .....graphql.tests.utils import (
     get_graphql_content_from_response,
     get_multipart_request_body,
 )
+from .....page.models import Page
 from .....product import MediaOwnerTypes, ProductMediaTypes
 from .....product.error_codes import MediaCreateErrorCode
 from .....product.media import (
@@ -307,6 +308,45 @@ def test_create_rejects_unsupported_owner_type(
     assert errors[0]["message"] == (
         "Media can only be attached to a Product, Category, Collection or Page."
     )
+    assert ProductMedia.objects.exists() is False
+
+
+# The insert must really hit the database for the foreign key to be checked, so
+# this test needs actual commits instead of the usual wrapping transaction.
+@pytest.mark.django_db(transaction=True)
+@patch("saleor.product.media.HTTPClient")
+def test_create_when_owner_deleted_while_media_url_is_probed(
+    mock_http_client, staff_api_client, page, permission_manage_pages
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="image/jpeg")
+    mock_http_client.send_request.return_value.__enter__.return_value = mock_response
+
+    def delete_page_mid_probe(*args, **kwargs):
+        """Simulate a concurrent request deleting the page while the URL is probed."""
+        Page.objects.filter(pk=page.pk).delete()
+        return mock_http_client.send_request.return_value
+
+    mock_http_client.send_request.side_effect = delete_page_mid_probe
+
+    variables = {
+        "id": graphene.Node.to_global_id("Page", page.pk),
+        "mediaUrl": "https://images.example.com/photo.jpg",
+        "alt": "",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(MEDIA_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["mediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MediaCreateErrorCode.NOT_FOUND.name
+    assert errors[0]["field"] == "id"
+    assert errors[0]["message"] == "Page no longer exists."
     assert ProductMedia.objects.exists() is False
 
 

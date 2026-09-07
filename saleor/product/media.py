@@ -14,7 +14,7 @@ from typing import NamedTuple
 import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from ..core.exceptions import UnsupportedMediaProviderException
 from ..core.http_client import HTTPClient
@@ -186,8 +186,38 @@ def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
     )
 
 
+def create_owned_media(
+    owner, error_code_enum, error_field: str, **media_data
+) -> product_models.ProductMedia:
+    """Attach a media row to `owner`.
+
+    The owner can be deleted concurrently while the image is uploaded or the
+    remote URL is probed, so the insert may lose the race and fail on the foreign
+    key. That is reported as `NOT_FOUND`; any other constraint violation is a bug.
+    """
+    try:
+        return owner.media.create(**media_data)
+    except IntegrityError as e:
+        owner_model = type(owner)
+        if not owner_model._default_manager.filter(pk=owner.pk).exists():
+            raise ValidationError(
+                {
+                    error_field: ValidationError(
+                        f"{owner_model.__name__} no longer exists.",
+                        code=error_code_enum.NOT_FOUND.value,
+                    )
+                }
+            ) from e
+        raise
+
+
 def create_media_from_url(
-    owner, media_url: str, alt: str, probe_result: MediaUrlProbeResult
+    owner,
+    media_url: str,
+    alt: str,
+    probe_result: MediaUrlProbeResult,
+    error_code_enum,
+    error_field: str,
 ) -> product_models.ProductMedia:
     """Attach a media row for an already-probed remote URL to `owner`.
 
@@ -195,11 +225,19 @@ def create_media_from_url(
     `fetch_product_media_image_task`, which the caller schedules.
     """
     if probe_result.is_image:
-        return owner.media.create(
-            external_url=media_url, alt=alt, type=ProductMediaTypes.IMAGE
+        return create_owned_media(
+            owner,
+            error_code_enum,
+            error_field,
+            external_url=media_url,
+            alt=alt,
+            type=ProductMediaTypes.IMAGE,
         )
     oembed_data = probe_result.oembed_data
-    return owner.media.create(
+    return create_owned_media(
+        owner,
+        error_code_enum,
+        error_field,
         external_url=oembed_data["url"],
         alt=oembed_data.get("title", alt),
         type=probe_result.media_type,

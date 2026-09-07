@@ -6,6 +6,7 @@ from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
 from .....product.media import (
     create_media_from_url,
+    create_owned_media,
     probe_media_url,
     validate_media_input,
 )
@@ -102,15 +103,22 @@ class ProductMediaCreate(BaseMutation):
         if image:
             input["image"] = info.context.FILES.get(image)
             image_data = clean_image_file(input, "image", ProductErrorCode)
-            media = product.media.create(
-                image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
+            media = create_owned_media(
+                product,
+                ProductErrorCode,
+                "product",
+                image=image_data,
+                alt=alt,
+                type=ProductMediaTypes.IMAGE,
             )
         elif media_url:
             # Remote URLs can point to the images or oembed data.
             # In case of images, the image is fetched asynchronously by a task.
             # Otherwise we keep only URL to remote media.
             probe_result = probe_media_url(media_url, ProductErrorCode)
-            media = create_media_from_url(product, media_url, alt, probe_result)
+            media = create_media_from_url(
+                product, media_url, alt, probe_result, ProductErrorCode, "product"
+            )
             if probe_result.is_image:
                 fetch_product_media_image_task.delay(media.pk)
         manager = get_plugin_manager_promise(info.context).get()

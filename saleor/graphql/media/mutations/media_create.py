@@ -7,6 +7,7 @@ from ....product.media import (
     GRAPHQL_TYPE_TO_OWNER_TYPE,
     OWNER_TYPE_TO_UPDATED_EVENT,
     create_media_from_url,
+    create_owned_media,
     probe_media_url,
     validate_media_input,
 )
@@ -104,14 +105,21 @@ class MediaCreate(BaseMediaMutation):
         if image:
             input["image"] = info.context.FILES.get(image)
             image_data = clean_image_file(input, "image", MediaCreateErrorCode)
-            media = owner.media.create(
-                image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
+            media = create_owned_media(
+                owner,
+                MediaCreateErrorCode,
+                "id",
+                image=image_data,
+                alt=alt,
+                type=ProductMediaTypes.IMAGE,
             )
         else:
             # Remote URLs can point to images or to oEmbed data. Images are fetched
             # asynchronously by a task; for anything else only the URL is kept.
             probe_result = probe_media_url(media_url, MediaCreateErrorCode)
-            media = create_media_from_url(owner, media_url, alt, probe_result)
+            media = create_media_from_url(
+                owner, media_url, alt, probe_result, MediaCreateErrorCode, "id"
+            )
             if probe_result.is_image:
                 fetch_product_media_image_task.delay(media.pk)
 
