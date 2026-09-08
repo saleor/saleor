@@ -50,6 +50,7 @@ from ...permission.enums import (
     PaymentPermissions,
     ProductPermissions,
 )
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMedia, ProductMediaTypes
 from ...shipping.interface import ShippingMethodData
@@ -428,7 +429,9 @@ class OrderGrantedRefund(
 
     @staticmethod
     @one_of_permissions_required(
-        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+        expand_read_permissions(
+            [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+        )
     )
     def resolve_transaction_events(
         root: SyncWebhookControlContext[models.OrderGrantedRefund], info
@@ -439,7 +442,9 @@ class OrderGrantedRefund(
 
     @staticmethod
     @one_of_permissions_required(
-        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+        expand_read_permissions(
+            [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+        )
     )
     def resolve_transaction(
         root: SyncWebhookControlContext[models.OrderGrantedRefund], info
@@ -626,8 +631,9 @@ class OrderEvent(
             check_is_owner_or_has_one_of_perms(
                 requestor,
                 user,
-                AppPermission.MANAGE_APPS,
-                OrderPermissions.MANAGE_ORDERS,
+                *expand_read_permissions(
+                    [AppPermission.MANAGE_APPS, OrderPermissions.MANAGE_ORDERS]
+                ),
             )
             return (
                 AppByIdLoader(info.context).load(event.app_id) if event.app_id else None
@@ -2185,7 +2191,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             if order.use_old_id is False:
                 return address
             if user and is_owner_or_has_one_of_perms(
-                requester, user, OrderPermissions.MANAGE_ORDERS
+                requester,
+                user,
+                *expand_read_permissions([OrderPermissions.MANAGE_ORDERS]),
             ):
                 return address
 
@@ -2219,7 +2227,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             if order.use_old_id is False:
                 return address
             if user and is_owner_or_has_one_of_perms(
-                requester, user, OrderPermissions.MANAGE_ORDERS
+                requester,
+                user,
+                *expand_read_permissions([OrderPermissions.MANAGE_ORDERS]),
             ):
                 return address
             return obfuscate_address(address)
@@ -2588,7 +2598,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
 
     @staticmethod
     @one_of_permissions_required(
-        [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+        expand_read_permissions(
+            [OrderPermissions.MANAGE_ORDERS, PaymentPermissions.HANDLE_PAYMENTS]
+        )
     )
     def resolve_transactions(root: SyncWebhookControlContext[models.Order], info):
         return TransactionItemsByOrderIDLoader(info.context).load(root.node.id)
@@ -2659,7 +2671,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             if order.use_old_id is False:
                 return email_to_return
             if user and is_owner_or_has_one_of_perms(
-                requester, user, OrderPermissions.MANAGE_ORDERS
+                requester,
+                user,
+                *expand_read_permissions([OrderPermissions.MANAGE_ORDERS]),
             ):
                 return email_to_return
 
@@ -2683,10 +2697,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             check_is_owner_or_has_one_of_perms(
                 requester,
                 user,
-                AccountPermissions.MANAGE_USERS,
-                OrderPermissions.MANAGE_ORDERS,
-                PaymentPermissions.HANDLE_PAYMENTS,
-                CheckoutPermissions.HANDLE_TAXES,
+                *expand_read_permissions(
+                    [
+                        AccountPermissions.MANAGE_USERS,
+                        OrderPermissions.MANAGE_ORDERS,
+                        PaymentPermissions.HANDLE_PAYMENTS,
+                        CheckoutPermissions.HANDLE_TAXES,
+                    ]
+                ),
             )
             return user
 
@@ -2840,7 +2858,9 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
             return InvoicesByOrderIdLoader(info.context).load(order.id)
         if order.user_id:
             check_is_owner_or_has_one_of_perms(
-                requester, order.user, OrderPermissions.MANAGE_ORDERS
+                requester,
+                order.user,
+                *expand_read_permissions([OrderPermissions.MANAGE_ORDERS]),
             )
             return InvoicesByOrderIdLoader(info.context).load(order.id)
         return []
@@ -3228,7 +3248,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     def __resolve_references(roots: list["Order"], info):
         requestor = get_user_or_app_from_context(info.context)
         requestor_has_access_to_all = has_one_of_permissions(
-            requestor, [OrderPermissions.MANAGE_ORDERS]
+            requestor, expand_read_permissions([OrderPermissions.MANAGE_ORDERS])
         )
 
         if requestor:

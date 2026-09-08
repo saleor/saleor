@@ -5,6 +5,8 @@ from ...checkout import models as checkout_models
 from ...order import models as order_models
 from ...payment import models
 from ...permission.enums import OrderPermissions
+from ...permission.read_permissions import expand_read_permissions
+from ...permission.utils import has_one_of_permissions
 from ..account.utils import get_user_accessible_channels
 from ..core.context import get_database_connection_name
 from ..utils import get_user_or_app_from_context
@@ -51,7 +53,9 @@ def resolve_transactions(info):
 
     if isinstance(requestor, app_models.App):
         # App with MANAGE_ORDERS permission can see all transactions
-        if requestor.has_perm(OrderPermissions.MANAGE_ORDERS):
+        if has_one_of_permissions(
+            requestor, expand_read_permissions([OrderPermissions.MANAGE_ORDERS])
+        ):
             return transactions
         # Otherwise, app can only see transactions it created
         return transactions.filter(app_id=requestor.id)
