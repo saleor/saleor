@@ -22,7 +22,11 @@ from ...channel.mutations import BaseChannelListingMutation
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import (
+    ADDED_IN_321,
+    DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_PREORDER_INPUT,
+)
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date, DateTime, PositiveDecimal
@@ -394,7 +398,9 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
         "directive." + ADDED_IN_321
     )
     preorder_threshold = graphene.Int(
-        description="The threshold for preorder variant in channel."
+        description=(
+            f"The threshold for preorder variant in channel.{DEPRECATED_PREORDER_INPUT}"
+        )
     )
 
     class Meta:

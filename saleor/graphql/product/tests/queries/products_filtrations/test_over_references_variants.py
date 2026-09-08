@@ -43,6 +43,7 @@ def test_products_query_with_attribute_value_reference_to_product_variants(
         input_type=reference_attribute.input_type,
         entity_type=AttributeEntityType.PRODUCT_VARIANT,
     )
+    product_type.product_attributes.add(second_variant_reference_attribute)
 
     first_variant_sku = "test-variant-1"
     second_variant_sku = "test-variant-2"

@@ -15,6 +15,18 @@ def webhook(app):
 
 
 @pytest.fixture
+def webhook_with_identifier(app):
+    webhook = Webhook.objects.create(
+        name="Identified webhook",
+        app=app,
+        target_url="http://www.example.com/identified",
+        identifier="order-created-handler",
+    )
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
 def webhook_without_name(app):
     webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
     webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)

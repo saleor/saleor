@@ -24,10 +24,13 @@ from .filters import GiftCardFilterInput, GiftCardTagFilterInput
 from .mutations import (
     GiftCardActivate,
     GiftCardAddNote,
+    GiftCardAssignUser,
+    GiftCardBalanceAdjust,
     GiftCardCreate,
     GiftCardDeactivate,
     GiftCardDelete,
     GiftCardResend,
+    GiftCardUnassignUser,
     GiftCardUpdate,
 )
 from .resolvers import resolve_gift_card, resolve_gift_card_tags, resolve_gift_cards
@@ -136,6 +139,9 @@ class GiftCardQueries(graphene.ObjectType):
 
 class GiftCardMutations(graphene.ObjectType):
     gift_card_activate = GiftCardActivate.Field()
+    gift_card_assign_user = GiftCardAssignUser.Field()
+    gift_card_unassign_user = GiftCardUnassignUser.Field()
+    gift_card_balance_adjust = GiftCardBalanceAdjust.Field()
     gift_card_create = GiftCardCreate.Field()
     gift_card_delete = GiftCardDelete.Field()
     gift_card_deactivate = GiftCardDeactivate.Field()

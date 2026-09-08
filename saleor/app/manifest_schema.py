@@ -11,6 +11,9 @@ from .error_codes import AppErrorCode
 from .types import DEFAULT_APP_TARGET
 from .validators import AppURLValidator, image_url_validator
 
+EXTENSION_IDENTIFIER_MAX_LENGTH = 256
+WEBHOOK_IDENTIFIER_MAX_LENGTH = 256
+
 _CAMEL_CONFIG = ConfigDict(
     extra="ignore",
     populate_by_name=True,
@@ -59,6 +62,7 @@ class ManifestExtensionSchema(BaseModel):
     target: str = DEFAULT_APP_TARGET
     permissions: list[str] = []
     options: dict = {}
+    identifier: str | None = None
 
 
 class ManifestWebhookSchema(BaseModel):
@@ -71,6 +75,7 @@ class ManifestWebhookSchema(BaseModel):
     async_events: list[str] = []
     sync_events: list[str] = []
     custom_headers: dict | None = None
+    identifier: str | None = None
 
     @field_validator("target_url")
     @classmethod

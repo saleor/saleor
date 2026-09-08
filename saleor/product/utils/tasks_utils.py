@@ -5,6 +5,7 @@ from requests.exceptions import HTTPError
 
 from ...core.utils import create_file_from_response
 from ...core.utils.validators import is_valid_image_content_type
+from ...thumbnail.exceptions import ImageTooLargeError
 from ...thumbnail.utils import ProcessedImage, get_filename_from_url
 
 
@@ -42,6 +43,8 @@ def validate_image_exif(image: IO[bytes]):
         # Validate by getting exif.
         pil_image_obj = Image.open(image)
         pil_image_obj.getexif()
+    except Image.DecompressionBombError as exc:
+        raise ImageTooLargeError(exc) from exc
     except (
         ValueError,
         TypeError,

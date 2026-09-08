@@ -10,9 +10,9 @@ def create_default_category(apps, schema_editor):
         Category.objects.create(
             name="Default Category",
             slug="default-category",
-            lft=0,
-            rght=0,
-            tree_id=0,
+            lft=1,
+            rght=2,
+            tree_id=1,
             level=0,
         )
 

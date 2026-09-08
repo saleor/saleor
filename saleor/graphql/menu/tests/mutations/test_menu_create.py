@@ -7,8 +7,9 @@ from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.db.locks import AdvisoryLock
 from .....core.utils.json_serializer import CustomJsonEncoder
-from .....menu.models import Menu
+from .....menu.models import Menu, MenuItem
 from .....product.models import Category
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
@@ -76,6 +77,42 @@ def test_create_menu(
     content = get_graphql_content(response)
     assert content["data"]["menuCreate"]["menu"]["name"] == "test-menu"
     assert content["data"]["menuCreate"]["menu"]["slug"] == "test-menu"
+
+
+def test_takes_menu_item_tree_lock_before_items_insert(
+    staff_api_client,
+    published_collection,
+    category,
+    page,
+    permission_manage_menus,
+    assert_advisory_lock_before_tree_write,
+):
+    # given
+    name = "test-menu-locked"
+    variables = {
+        "name": name,
+        "collection": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "category": graphene.Node.to_global_id("Category", category.pk),
+        "page": graphene.Node.to_global_id("Page", page.pk),
+        "url": "http://www.example.com",
+    }
+
+    # when
+    with assert_advisory_lock_before_tree_write(
+        AdvisoryLock.MENU_ITEM_TREE, MenuItem._meta.db_table
+    ):
+        response = staff_api_client.post_graphql(
+            CREATE_MENU_QUERY, variables, permissions=[permission_manage_menus]
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["menuCreate"]["menu"]["name"] == name
+    menu = Menu.objects.get(name=name)
+    items = list(menu.items.all())
+    assert len(items) == 4
+    tree_ids = {item.tree_id for item in items}
+    assert len(tree_ids) == 4
 
 
 @freeze_time("2022-05-12 12:00:00")

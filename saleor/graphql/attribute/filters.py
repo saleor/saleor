@@ -11,6 +11,7 @@ from ...permission.utils import has_one_of_permissions
 from ...product import models as product_models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.filters import get_channel_slug_from_filter_data
+from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.filters import (
@@ -38,6 +39,11 @@ from ..core.types.common import NonNullList
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_ids, filter_slug_list, filter_where_by_value_field
+from .descriptions import (
+    DASHBOARD_FLAG_DEPRECATION_REASON,
+    STOREFRONT_FLAG_DEPRECATION_REASON,
+    AttributeDescriptions,
+)
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 
@@ -136,6 +142,24 @@ class AttributeFilter(MetadataFilterBase):
     in_collection = GlobalIDFilter(method="filter_in_collection")
     in_category = GlobalIDFilter(method="filter_in_category")
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
+    filterable_in_storefront = django_filters.BooleanFilter(
+        help_text=(
+            f"{AttributeDescriptions.FILTERABLE_IN_STOREFRONT}"
+            f"{DEPRECATED_IN_3X_INPUT} {STOREFRONT_FLAG_DEPRECATION_REASON}"
+        )
+    )
+    available_in_grid = django_filters.BooleanFilter(
+        help_text=(
+            f"{AttributeDescriptions.AVAILABLE_IN_GRID}"
+            f"{DEPRECATED_IN_3X_INPUT} {STOREFRONT_FLAG_DEPRECATION_REASON}"
+        )
+    )
+    filterable_in_dashboard = django_filters.BooleanFilter(
+        help_text=(
+            f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD}"
+            f"{DEPRECATED_IN_3X_INPUT} {DASHBOARD_FLAG_DEPRECATION_REASON}"
+        )
+    )
 
     class Meta:
         model = Attribute
@@ -143,9 +167,6 @@ class AttributeFilter(MetadataFilterBase):
             "value_required",
             "is_variant_only",
             "visible_in_storefront",
-            "filterable_in_storefront",
-            "filterable_in_dashboard",
-            "available_in_grid",
         ]
 
     def filter_in_collection(self, qs, name, value):
@@ -288,7 +309,12 @@ class AttributeWhere(MetadataWhereFilterBase):
     in_category = GlobalIDWhereFilter(method="filter_in_category")
     value_required = BooleanWhereFilter()
     visible_in_storefront = BooleanWhereFilter()
-    filterable_in_dashboard = BooleanWhereFilter()
+    filterable_in_dashboard = BooleanWhereFilter(
+        help_text=(
+            f"{AttributeDescriptions.FILTERABLE_IN_DASHBOARD}"
+            f"{DEPRECATED_IN_3X_INPUT} {DASHBOARD_FLAG_DEPRECATION_REASON}"
+        )
+    )
 
     class Meta:
         model = Attribute

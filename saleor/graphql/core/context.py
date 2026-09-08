@@ -60,10 +60,17 @@ def get_database_connection_name(context: SaleorContext) -> str:
 
 
 def setup_context_user(context: SaleorContext) -> None:
-    if hasattr(context.user, "_wrapped") and (
-        context.user._wrapped is empty or context.user._wrapped is None  # type: ignore[union-attr]
-    ):
-        context.user._setup()  # type: ignore[union-attr]
+    """Replace the lazy ``context.user`` proxy with the resolved user object.
+
+    Resolve the ``SimpleLazyObject`` if it has not been accessed yet, then unwrap
+    it unconditionally. Unwrapping only in the ``empty``/``None`` case leaves the
+    proxy in place whenever something (e.g. the storefront-traffic guard) already
+    forced authentication earlier in the request, so downstream code would see a
+    ``SimpleLazyObject`` instead of a plain ``User``.
+    """
+    if hasattr(context.user, "_wrapped"):
+        if context.user._wrapped is empty:  # type: ignore[union-attr]
+            context.user._setup()  # type: ignore[union-attr]
         context.user = context.user._wrapped  # type: ignore[union-attr]
 
 

@@ -4,6 +4,7 @@ import pytest
 
 from ....account.models import Group, User, UserManager
 from ....permission.enums import get_permissions
+from .customer_type import get_or_create_default_customer_type
 
 
 def dangerously_get_or_create_superuser(
@@ -37,6 +38,9 @@ def dangerously_create_test_user(
     email = UserManager.normalize_email(email)
     # Google OAuth2 backend send unnecessary username field
     extra_fields.pop("username", None)
+
+    if "customer_type" not in extra_fields and "customer_type_id" not in extra_fields:
+        extra_fields["customer_type"] = get_or_create_default_customer_type()
 
     user = User(email=email, is_active=is_active, is_staff=is_staff, **extra_fields)
     if password:

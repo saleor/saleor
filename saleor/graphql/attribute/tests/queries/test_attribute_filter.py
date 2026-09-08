@@ -122,6 +122,23 @@ def test_filter_attributes_if_available_in_grid(
     assert attributes[0]["node"]["slug"] == "size"
 
 
+def test_filter_attributes_if_filterable_in_storefront(
+    api_client, color_attribute, size_attribute
+):
+    color_attribute.filterable_in_storefront = False
+    color_attribute.save(update_fields=["filterable_in_storefront"])
+    assert size_attribute.filterable_in_storefront is True
+
+    variables = {"filters": {"filterableInStorefront": True}}
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 1
+    assert attributes[0]["node"]["slug"] == size_attribute.slug
+
+
 def test_filter_attributes_by_global_id_list(api_client, product_type_attribute_list):
     global_ids = [
         graphene.Node.to_global_id("Attribute", attribute.pk)

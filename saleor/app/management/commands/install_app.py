@@ -46,7 +46,7 @@ class Command(BaseCommand):
         manifest_url = options["manifest-url"]
 
         self.validate_manifest_url(manifest_url)
-        manifest_data = fetch_manifest(manifest_url)
+        manifest_data = fetch_manifest(manifest_url, max_retries=2)
         permissions = clean_permissions(manifest_data.get("permissions", []))
 
         if quiet and (

@@ -82,6 +82,7 @@ from ..core.descriptions import (
     ADDED_IN_322,
     ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -129,6 +130,7 @@ from ..payment.types import (
     PaymentChargeStatusEnum,
     TransactionEvent,
     TransactionItem,
+    TransactionSummary,
 )
 from ..product.dataloaders import (
     ImagesByProductIdLoader,
@@ -1183,6 +1185,15 @@ class OrderLine(
     is_price_overridden = graphene.Boolean(
         description="Returns True, if the line unit price was overridden."
     )
+    price_override_reason = PermissionsField(
+        graphene.String,
+        description=(
+            "Reason explaining why a custom price was set on the line, copied from "
+            "the checkout line when the order was created from a checkout."
+            + ADDED_IN_323
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,
@@ -1725,8 +1736,22 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         ),
         required=True,
     )
+    transaction_summaries = NonNullList(
+        TransactionSummary,
+        description=(
+            "Payment history of the order, with one entry per payment transaction "
+            "that moved any money. Unlike `transactions`, it requires no permission "
+            "and exposes only the payment method and the amounts, so it can be used "
+            "to display payment details to the customer without exposing internal "
+            "information." + ADDED_IN_323
+        ),
+        required=True,
+    )
     payments = NonNullList(
-        Payment, description="List of payments for the order.", required=True
+        Payment,
+        description="List of payments for the order.",
+        required=True,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
@@ -2567,6 +2592,22 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     def resolve_transactions(root: SyncWebhookControlContext[models.Order], info):
         return TransactionItemsByOrderIDLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_transaction_summaries(
+        root: SyncWebhookControlContext[models.Order], info
+    ):
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.node.id)
+            .then(
+                lambda transactions: [
+                    transaction
+                    for transaction in transactions
+                    if transaction.has_money_movement()
+                ]
+            )
+        )
 
     @staticmethod
     def resolve_status_display(root: SyncWebhookControlContext[models.Order], _info):

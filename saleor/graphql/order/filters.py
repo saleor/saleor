@@ -21,7 +21,7 @@ from ...product.models import ProductVariant
 from ...warehouse.models import Stock, Warehouse
 from ..account.filters import AddressFilterInput, filter_address
 from ..channel.filters import get_currency_from_filter_data
-from ..core.descriptions import ADDED_IN_322
+from ..core.descriptions import ADDED_IN_322, DEPRECATED_PREORDER_INPUT
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
@@ -402,7 +402,13 @@ class OrderFilter(DraftOrderFilter):
     is_click_and_collect = django_filters.BooleanFilter(
         method=filter_is_click_and_collect
     )
-    is_preorder = django_filters.BooleanFilter(method=filter_is_preorder)
+    is_preorder = django_filters.BooleanFilter(
+        method=filter_is_preorder,
+        help_text=(
+            "Filter by orders containing a variant that is currently in preorder."
+            f"{DEPRECATED_PREORDER_INPUT}"
+        ),
+    )
     ids = GlobalIDMultipleChoiceFilter(method=filter_order_by_id)
     checkout_tokens = ListObjectTypeFilter(
         input_class=UUIDScalar, method=filter_by_checkout_tokens

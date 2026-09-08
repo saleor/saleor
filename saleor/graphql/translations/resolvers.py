@@ -1,3 +1,4 @@
+from ...attribute import AttributeType
 from ...attribute import models as attribute_models
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -63,9 +64,16 @@ def resolve_shipping_methods(info):
 
 
 def resolve_attribute_values(info):
-    return attribute_models.AttributeValue.objects.using(
-        get_database_connection_name(info.context)
-    ).all()
+    # Customer attribute values are excluded from the translations domain:
+    # they may be created per user and carry customer data (PII) that
+    # MANAGE_TRANSLATIONS holders must not be able to read.
+    return (
+        attribute_models.AttributeValue.objects.using(
+            get_database_connection_name(info.context)
+        )
+        .exclude(attribute__type=AttributeType.CUSTOMER_TYPE)
+        .all()
+    )
 
 
 def resolve_products(info):

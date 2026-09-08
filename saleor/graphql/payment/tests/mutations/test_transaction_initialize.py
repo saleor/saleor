@@ -22,6 +22,7 @@ from .....giftcard.const import (
     SALEOR_GIFT_CARD_BRAND,
     SALEOR_GIFT_CARD_PAYMENT_METHOD_NAME,
 )
+from .....giftcard.gateway import INVALID_GIFT_CARD_CODE_MESSAGE
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderStatus
 from .....order.models import Order
 from .....payment import (
@@ -3561,7 +3562,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_does_not_exist(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        expected_message="Gift card code is not valid.",
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
     )
 
 
@@ -3603,7 +3604,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_different_cur
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        expected_message="Gift card code is not valid.",
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
     )
 
 
@@ -3645,7 +3646,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_is_inactive(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        expected_message="Gift card code is not valid.",
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
     )
 
 
@@ -3687,7 +3688,7 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_is_expired(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        expected_message="Gift card code is not valid.",
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
     )
 
 
@@ -3730,6 +3731,386 @@ def test_for_checkout_with_gift_card_payment_gateway_gift_card_has_insufficient_
         response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
         app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
         expected_message="Gift card has insufficient amount (0.10) to cover requested amount (1.00).",
+    )
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_assigned_to_checkout_user(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    customer_user,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    assert checkout.user == customer_user
+    gift_card_created_by_staff.assigned_to = customer_user
+    gift_card_created_by_staff.assigned_to_email = customer_user.email
+    gift_card_created_by_staff.save(update_fields=["assigned_to", "assigned_to_email"])
+
+    variables = {
+        "action": None,
+        "amount": 1,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {
+            "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+            "data": {"code": gift_card_created_by_staff.code},
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=Decimal(1),
+        gift_card=gift_card_created_by_staff,
+        expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
+        available_actions=[TransactionAction.CANCEL],
+    )
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_assigned_to_other_user(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    customer_user,
+    customer_user2,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    assert checkout.user == customer_user
+    gift_card_created_by_staff.assigned_to = customer_user2
+    gift_card_created_by_staff.assigned_to_email = customer_user2.email
+    gift_card_created_by_staff.save(update_fields=["assigned_to", "assigned_to_email"])
+    balance_before = gift_card_created_by_staff.current_balance_amount
+
+    # when
+    response = user_api_client.post_graphql(
+        TRANSACTION_INITIALIZE,
+        {
+            "action": None,
+            "amount": 1,
+            "id": to_global_id_or_none(checkout),
+            "paymentGateway": {
+                "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+                "data": {"code": gift_card_created_by_staff.code},
+            },
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        # Same message as a nonexistent code — must not reveal that the card
+        # exists or that it belongs to somebody else.
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
+    )
+    gift_card_created_by_staff.refresh_from_db()
+    assert gift_card_created_by_staff.current_balance_amount == balance_before
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_restricted_gift_card_and_guest_checkout(
+    mocked_uuid4,
+    api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    customer_user,
+):
+    # given a guest checkout whose email matches the assignee — matching the email
+    # is not enough, the customer must be authenticated
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    checkout.user = None
+    checkout.email = customer_user.email
+    checkout.save(update_fields=["user", "email"])
+    gift_card_created_by_staff.assigned_to = customer_user
+    gift_card_created_by_staff.assigned_to_email = customer_user.email
+    gift_card_created_by_staff.save(update_fields=["assigned_to", "assigned_to_email"])
+    balance_before = gift_card_created_by_staff.current_balance_amount
+
+    # when
+    response = api_client.post_graphql(
+        TRANSACTION_INITIALIZE,
+        {
+            "action": None,
+            "amount": 1,
+            "id": to_global_id_or_none(checkout),
+            "paymentGateway": {
+                "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+                "data": {"code": gift_card_created_by_staff.code},
+            },
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
+    )
+    gift_card_created_by_staff.refresh_from_db()
+    assert gift_card_created_by_staff.current_balance_amount == balance_before
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_gift_card_assignee_deleted(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    customer_user,
+):
+    # given a card restricted to a now-deleted user: assigned_to was nulled while
+    # assigned_to_email was retained. It can no longer be validated against an
+    # owner, so nobody may use it — not even a logged-in user with that email.
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    assert checkout.user == customer_user
+    gift_card_created_by_staff.assigned_to = None
+    gift_card_created_by_staff.assigned_to_email = customer_user.email
+    gift_card_created_by_staff.save(update_fields=["assigned_to", "assigned_to_email"])
+    balance_before = gift_card_created_by_staff.current_balance_amount
+
+    # when
+    response = user_api_client.post_graphql(
+        TRANSACTION_INITIALIZE,
+        {
+            "action": None,
+            "amount": 1,
+            "id": to_global_id_or_none(checkout),
+            "paymentGateway": {
+                "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+                "data": {"code": gift_card_created_by_staff.code},
+            },
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
+    )
+    gift_card_created_by_staff.refresh_from_db()
+    assert gift_card_created_by_staff.current_balance_amount == balance_before
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_other_users_gift_card_does_not_leak_balance(
+    mocked_uuid4,
+    user_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    customer_user2,
+):
+    # given a restricted card that also has insufficient funds
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    balance_before = Decimal("0.1")
+    gift_card_created_by_staff.assigned_to = customer_user2
+    gift_card_created_by_staff.assigned_to_email = customer_user2.email
+    gift_card_created_by_staff.current_balance_amount = balance_before
+    gift_card_created_by_staff.save(
+        update_fields=["assigned_to", "assigned_to_email", "current_balance_amount"]
+    )
+
+    # when
+    response = user_api_client.post_graphql(
+        TRANSACTION_INITIALIZE,
+        {
+            "action": None,
+            "amount": 1,
+            "id": to_global_id_or_none(checkout),
+            "paymentGateway": {
+                "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+                "data": {"code": gift_card_created_by_staff.code},
+            },
+        },
+    )
+
+    # then the assignment check runs before the balance check, so a non-owner never
+    # learns the card's remaining balance
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
+    )
+    gift_card_created_by_staff.refresh_from_db()
+    assert gift_card_created_by_staff.current_balance_amount == balance_before
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_unrestricted_gift_card_and_guest_checkout(
+    mocked_uuid4,
+    api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+):
+    # given
+    checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    checkout.user = None
+    checkout.save(update_fields=["user"])
+    assert gift_card_created_by_staff.assigned_to_id is None
+    assert gift_card_created_by_staff.assigned_to_email is None
+
+    # when
+    response = api_client.post_graphql(
+        TRANSACTION_INITIALIZE,
+        {
+            "action": None,
+            "amount": 1,
+            "id": to_global_id_or_none(checkout),
+            "paymentGateway": {
+                "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+                "data": {"code": gift_card_created_by_staff.code},
+            },
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    checkout.refresh_from_db()
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=Decimal(1),
+        gift_card=gift_card_created_by_staff,
+        expected_message=f"Gift card (ending: {gift_card_created_by_staff.display_code}).",
+        available_actions=[TransactionAction.CANCEL],
+    )
+
+
+@mock.patch("saleor.giftcard.gateway.uuid4")
+def test_for_checkout_with_gift_card_payment_gateway_rejection_keeps_owner_authorization(
+    mocked_uuid4,
+    user2_api_client,
+    checkout_with_prices,
+    gift_card_created_by_staff,
+    customer_user,
+    customer_user2,
+    transaction_item_generator,
+):
+    # given the assignee already holds a live authorization on their own checkout
+    owner_checkout = checkout_with_prices
+    mocked_uuid4.return_value = uuid4()
+
+    gift_card_created_by_staff.assigned_to = customer_user
+    gift_card_created_by_staff.assigned_to_email = customer_user.email
+    gift_card_created_by_staff.save(update_fields=["assigned_to", "assigned_to_email"])
+    owner_transaction = transaction_item_generator(
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        checkout_id=owner_checkout.pk,
+        gift_card=gift_card_created_by_staff,
+        authorized_value=Decimal(5),
+    )
+
+    other_checkout = Checkout.objects.create(
+        currency=owner_checkout.currency,
+        user=customer_user2,
+        channel=owner_checkout.channel,
+        base_total=Money("15", owner_checkout.currency),
+        base_subtotal=Money("10", owner_checkout.currency),
+    )
+
+    # when the other customer tries the same code
+    response = user2_api_client.post_graphql(
+        TRANSACTION_INITIALIZE,
+        {
+            "action": None,
+            "amount": 1,
+            "id": to_global_id_or_none(other_checkout),
+            "paymentGateway": {
+                "id": GIFT_CARD_PAYMENT_GATEWAY_ID,
+                "data": {"code": gift_card_created_by_staff.code},
+            },
+        },
+    )
+
+    # then the attempt fails and the assignee's authorization is untouched — a
+    # rejected call must not be usable to cancel somebody else's payment
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=other_checkout,
+        expected_amount=Decimal(1),
+        expected_psp_reference=str(mocked_uuid4.return_value),
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        response_event_type=TransactionEventType.AUTHORIZATION_FAILURE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        expected_message=INVALID_GIFT_CARD_CODE_MESSAGE,
+    )
+
+    owner_transaction.refresh_from_db()
+    assert owner_transaction.gift_card == gift_card_created_by_staff
+    assert owner_transaction.authorized_value == Decimal(5)
+    assert (
+        owner_transaction.events.filter(
+            type=TransactionEventType.CANCEL_REQUEST
+        ).exists()
+        is False
+    )
+    assert (
+        owner_transaction.events.filter(
+            type=TransactionEventType.CANCEL_SUCCESS
+        ).exists()
+        is False
     )
 
 

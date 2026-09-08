@@ -116,7 +116,21 @@ class AttributeTypeHandler(abc.ABC):
         instance: T_INSTANCE,
         value_defaults: dict,
     ):
-        slug = slugify(unidecode(f"{instance.id}_{self.attribute.id}"))
+        """Prepare an update-or-create action for a value owned by the instance.
+
+        The slug must encode the entity type: products, variants and pages use
+        independent pk sequences, so the bare `{pk}_{attribute pk}` slug used
+        historically made a product and a variant with the same pk share (and
+        overwrite) a single value row.
+
+        The slug is a fallback for matching new values only — a value already
+        assigned to the instance is matched by the assignment and updated in
+        place under its existing slug; see
+        `AttributeAssignmentMixin._use_assigned_value_slugs`.
+        """
+        slug = slugify(
+            unidecode(f"{instance._meta.model_name}-{instance.pk}_{self.attribute.pk}")
+        )
         value = {
             "attribute": self.attribute,
             "slug": slug,

@@ -42,6 +42,7 @@ class AttributeInputType:
     TYPES_WITH_UNIQUE_VALUES = [
         FILE,
         REFERENCE,
+        SINGLE_REFERENCE,
         RICH_TEXT,
         PLAIN_TEXT,
         NUMERIC,
@@ -97,8 +98,13 @@ ATTRIBUTE_PROPERTIES_CONFIGURATION = {
 class AttributeType:
     PRODUCT_TYPE = "product-type"
     PAGE_TYPE = "page-type"
+    CUSTOMER_TYPE = "customer-type"
 
-    CHOICES = [(PRODUCT_TYPE, "Product type"), (PAGE_TYPE, "Page type")]
+    CHOICES = [
+        (PRODUCT_TYPE, "Product type"),
+        (PAGE_TYPE, "Page type"),
+        (CUSTOMER_TYPE, "Customer type"),
+    ]
 
 
 class AttributeEntityType:

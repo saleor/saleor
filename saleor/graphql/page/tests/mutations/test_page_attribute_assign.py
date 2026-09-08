@@ -262,6 +262,83 @@ def test_assign_attributes_to_page_type_not_page_attribute(
     assert errors[0]["attributes"] == [color_attribute_id]
 
 
+def test_assign_attributes_to_page_type_nonexistent_attribute(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    page_type,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+
+    page_type_attr_count = page_type.page_attributes.count()
+
+    nonexistent_attr_id = graphene.Node.to_global_id("Attribute", -1)
+
+    variables = {
+        "pageTypeId": graphene.Node.to_global_id("PageType", page_type.pk),
+        "attributeIds": [nonexistent_attr_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageAttributeAssign"]
+    errors = data["errors"]
+
+    assert not data["pageType"]
+    page_type.refresh_from_db()
+    assert page_type.page_attributes.count() == page_type_attr_count
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributeIds"
+    assert errors[0]["code"] == PageErrorCode.NOT_FOUND.name
+    assert errors[0]["message"] == "Attribute doesn't exist."
+    assert errors[0]["attributes"] == [nonexistent_attr_id]
+
+
+def test_assign_attributes_to_page_type_nonexistent_and_valid_attribute(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    page_type,
+    author_page_attribute,
+):
+    # given
+    staff_user = staff_api_client.user
+    staff_user.user_permissions.add(permission_manage_page_types_and_attributes)
+
+    page_type_attr_count = page_type.page_attributes.count()
+
+    author_page_attr_id = graphene.Node.to_global_id(
+        "Attribute", author_page_attribute.pk
+    )
+    nonexistent_attr_id = graphene.Node.to_global_id("Attribute", -1)
+
+    variables = {
+        "pageTypeId": graphene.Node.to_global_id("PageType", page_type.pk),
+        "attributeIds": [author_page_attr_id, nonexistent_attr_id],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PAGE_ASSIGN_ATTR_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["pageAttributeAssign"]
+    errors = data["errors"]
+
+    assert not data["pageType"]
+    page_type.refresh_from_db()
+    assert page_type.page_attributes.count() == page_type_attr_count
+    assert author_page_attribute not in page_type.page_attributes.all()
+    assert len(errors) == 1
+    assert errors[0]["field"] == "attributeIds"
+    assert errors[0]["code"] == PageErrorCode.NOT_FOUND.name
+    assert errors[0]["message"] == "Attribute doesn't exist."
+    assert errors[0]["attributes"] == [nonexistent_attr_id]
+
+
 def test_assign_attributes_to_page_type_attribute_already_assigned(
     staff_api_client,
     permission_manage_page_types_and_attributes,

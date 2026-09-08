@@ -34,6 +34,7 @@ from .payloads import (
     generate_category_payload,
     generate_collection_payload,
     generate_customer_payload,
+    generate_customer_type_payload,
     generate_export_payload,
     generate_fulfillment_payload,
     generate_gift_card_payload,
@@ -2572,6 +2573,73 @@ def test_page_type_deleted(page_type, subscription_page_type_deleted_webhook):
 
     # then
     assert deliveries[0].payload.get_payload() == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_customer_type_created(
+    customer_type, subscription_customer_type_created_webhook
+):
+    # given
+    webhooks = [subscription_customer_type_created_webhook]
+    event_type = WebhookEventAsyncType.CUSTOMER_TYPE_CREATED
+    expected_payload = generate_customer_type_payload(
+        customer_type, subscription_customer_type_created_webhook.app
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, customer_type, webhooks
+    )
+
+    # then
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_customer_type_updated(
+    customer_type, subscription_customer_type_updated_webhook
+):
+    # given
+    webhooks = [subscription_customer_type_updated_webhook]
+    event_type = WebhookEventAsyncType.CUSTOMER_TYPE_UPDATED
+    expected_payload = generate_customer_type_payload(
+        customer_type, subscription_customer_type_updated_webhook.app
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, customer_type, webhooks
+    )
+
+    # then
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_customer_type_deleted(
+    customer_type, subscription_customer_type_deleted_webhook
+):
+    # given
+    customer_type_id = customer_type.id
+    customer_type.delete()
+    customer_type.id = customer_type_id
+
+    webhooks = [subscription_customer_type_deleted_webhook]
+    event_type = WebhookEventAsyncType.CUSTOMER_TYPE_DELETED
+    expected_payload = generate_customer_type_payload(
+        customer_type, subscription_customer_type_deleted_webhook.app
+    )
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type, customer_type, webhooks
+    )
+
+    # then
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

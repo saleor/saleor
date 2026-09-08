@@ -15,6 +15,10 @@ from ....attribute.utils.attribute_assignment import (
 from ....attribute.utils.shared import AttrValuesInput
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import (
+    DEPRECATED_PREORDER_INPUT,
+    DEPRECATED_PREORDER_TYPE_DESCRIPTION,
+)
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import DateTime, WeightScalar
@@ -37,12 +41,20 @@ T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
 
 class PreorderSettingsInput(BaseInputObjectType):
     global_threshold = graphene.Int(
-        description="The global threshold for preorder variant."
+        description=(
+            f"The global threshold for preorder variant.{DEPRECATED_PREORDER_INPUT}"
+        )
     )
-    end_date = DateTime(description="The end date for preorder.")
+    end_date = DateTime(
+        description=f"The end date for preorder.{DEPRECATED_PREORDER_INPUT}"
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+        description = (
+            "Preorder settings for a product variant."
+            + DEPRECATED_PREORDER_TYPE_DESCRIPTION
+        )
 
 
 class ProductVariantInput(BaseInputObjectType):
@@ -62,7 +74,9 @@ class ProductVariantInput(BaseInputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description="Determines if variant is in preorder."
+        description=(
+            f"Determines if variant is in preorder.{DEPRECATED_PREORDER_INPUT}"
+        )
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,

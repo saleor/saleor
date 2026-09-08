@@ -3,6 +3,7 @@ from typing import Final
 import graphene
 
 from ...site import (
+    AccountConfirmMode,
     AnnouncementImportance,
     GiftCardSettingsExpiryType,
     PasswordLoginMode,
@@ -32,3 +33,8 @@ AnnouncementImportanceEnum: Final[graphene.Enum] = to_enum(
     description=AnnouncementImportance.__doc__,
 )
 AnnouncementImportanceEnum.doc_category = DOC_CATEGORY_SHOP
+
+AccountConfirmModeEnum: Final[graphene.Enum] = to_enum(
+    AccountConfirmMode, description=AccountConfirmMode.__doc__
+)
+AccountConfirmModeEnum.doc_category = DOC_CATEGORY_AUTH

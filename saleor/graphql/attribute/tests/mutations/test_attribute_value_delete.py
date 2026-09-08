@@ -14,7 +14,7 @@ from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ATTRIBUTE_VALUE_DELETE_MUTATION = """
     mutation AttributeValueDelete($id: ID!) {
@@ -75,7 +75,7 @@ def test_delete_attribute_value_update_search_index_dirty_in_product(
 def test_delete_attribute_value_update_search_index_dirty_in_page(
     staff_api_client,
     page,
-    permission_manage_product_types_and_attributes,
+    permission_manage_page_types_and_attributes,
 ):
     # given
     attribute_value = page.attributevalues.first()
@@ -86,7 +86,7 @@ def test_delete_attribute_value_update_search_index_dirty_in_page(
 
     # when
     staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query, variables, permissions=[permission_manage_page_types_and_attributes]
     )
 
     # then
@@ -339,3 +339,116 @@ def test_delete_attribute_value_by_external_reference_not_existing(
     # then
     errors = content["data"]["attributeValueDelete"]["errors"]
     assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "client_fixture",
+        "attribute_fixture",
+        "permission_fixture",
+        "is_allowed",
+    ),
+    [
+        (
+            "Unauthenticated user should be rejected",
+            "api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Staff user w/o any permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Product attribute value w/ page permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_page_types_and_attributes",
+            False,
+        ),
+        (
+            "Product attribute value w/ product permission should be allowed",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_product_types_and_attributes",
+            True,
+        ),
+        (
+            "Page attribute value w/ legacy product permission should be allowed",
+            "staff_api_client",
+            "size_page_attribute",
+            "permission_manage_product_types_and_attributes",
+            True,
+        ),
+        (
+            "Page attribute value w/ page permission should be allowed",
+            "staff_api_client",
+            "size_page_attribute",
+            "permission_manage_page_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute value w/ customer permission should be allowed",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_customer_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute value w/ legacy product permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_product_types_and_attributes",
+            False,
+        ),
+        (
+            "Customer attribute value w/ page permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_page_types_and_attributes",
+            False,
+        ),
+        (
+            "Product attribute value w/ customer permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_customer_types_and_attributes",
+            False,
+        ),
+    ],
+)
+def test_authorization(
+    request, _case, client_fixture, attribute_fixture, permission_fixture, is_allowed
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    attribute = request.getfixturevalue(attribute_fixture)
+    if permission_fixture:
+        client.user.user_permissions.add(request.getfixturevalue(permission_fixture))
+    value = attribute.values.first()
+    variables = {"id": graphene.Node.to_global_id("AttributeValue", value.pk)}
+
+    # when
+    response = client.post_graphql(ATTRIBUTE_VALUE_DELETE_MUTATION, variables)
+
+    # then
+    if is_allowed:
+        content = get_graphql_content(response)
+        data = content["data"]["attributeValueDelete"]
+        assert data["attributeValue"]["name"] == value.name
+        assert attribute.values.filter(pk=value.pk).exists() is False
+    else:
+        assert_no_permission(response)
+        assert attribute.values.filter(pk=value.pk).exists() is True

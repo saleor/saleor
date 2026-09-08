@@ -5,6 +5,7 @@ import graphene
 import pytest
 
 from .....app.models import App
+from .....webhook.models import Webhook
 from ....core.enums import WebhookErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import WebhookEventTypeAsyncEnum
@@ -18,6 +19,7 @@ WEBHOOK_UPDATE = """
           code
         }
         webhook {
+          identifier
           syncEvents {
             eventType
           }
@@ -65,6 +67,70 @@ def test_webhook_update_by_app(app_api_client, app, webhook):
     )
     assert data["webhook"]["isActive"] is False
     assert data["webhook"]["customHeaders"] == json.dumps(custom_headers)
+
+
+def test_webhook_update_identifier(app_api_client, webhook):
+    # given
+    identifier = "order-created-handler"
+    assert webhook.identifier is None
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id, "input": {"identifier": identifier}}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert not data["errors"]
+    assert data["webhook"]["identifier"] == identifier
+    webhook.refresh_from_db()
+    assert webhook.identifier == identifier
+
+
+def test_webhook_update_blank_identifier_clears_it(app_api_client, webhook):
+    # given
+    webhook.identifier = "order-created-handler"
+    webhook.save(update_fields=["identifier"])
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id, "input": {"identifier": "   "}}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then - blank clears the identifier back to NULL
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert not data["errors"]
+    assert data["webhook"]["identifier"] is None
+    webhook.refresh_from_db()
+    assert webhook.identifier is None
+
+
+def test_webhook_update_duplicate_identifier_for_same_app(app_api_client, app, webhook):
+    # given - the app owns another webhook already using the target identifier
+    identifier = "order-created-handler"
+    Webhook.objects.create(
+        app=app, target_url="https://www.example.com/other", identifier=identifier
+    )
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id, "input": {"identifier": identifier}}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then - rejected and the webhook keeps its previous (unset) identifier
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": "Webhook with this App and Identifier already exists.",
+            "code": WebhookErrorCode.UNIQUE.name,
+        }
+    ]
+    webhook.refresh_from_db()
+    assert webhook.identifier is None
 
 
 def test_webhook_update_by_other_app(app_api_client, webhook):
@@ -430,3 +496,319 @@ def test_webhook_create_assigns_filterable_channel_slugs_above_max_limit(
     error = content["data"]["webhookUpdate"]["errors"][0]
     assert error["field"] == "query"
     assert error["code"] == WebhookErrorCode.INVALID.name
+
+
+WEBHOOK_UPDATE_BY_POINTER = """
+    mutation webhookUpdate($id: ID, $identifier: String, $input: WebhookUpdateInput!) {
+      webhookUpdate(id: $id, identifier: $identifier, input: $input) {
+        errors {
+          field
+          message
+          code
+        }
+        webhook {
+          id
+          identifier
+          isActive
+        }
+      }
+    }
+"""
+
+STAFF_POINTER_MESSAGE = (
+    "Webhook identifier can only be used by an app to reference its own webhook. "
+    "Use `id` instead."
+)
+POINTER_REQUIRED_MESSAGE = "At least one of arguments is required: 'id', 'identifier'."
+POINTER_COMBINED_MESSAGE = "Argument 'id' cannot be combined with 'identifier'"
+
+
+def test_webhook_update_by_identifier(app_api_client, webhook_with_identifier):
+    # given
+    assert webhook_with_identifier.is_active is True
+    variables = {
+        "identifier": webhook_with_identifier.identifier,
+        "input": {"isActive": False},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["errors"] == []
+    assert data["webhook"]["identifier"] == webhook_with_identifier.identifier
+    assert data["webhook"]["isActive"] is False
+    webhook_with_identifier.refresh_from_db(fields=("is_active",))
+    assert webhook_with_identifier.is_active is False
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture"),
+    [
+        ("Unauthenticated user should be rejected", "api_client"),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+        ),
+        ("Staff user without the permission should be rejected", "staff_api_client"),
+    ],
+)
+def test_webhook_update_by_identifier_by_unauthorized_client(
+    _case, client_fixture, request, webhook_with_identifier
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    variables = {
+        "identifier": webhook_with_identifier.identifier,
+        "input": {"isActive": False},
+    }
+
+    # when
+    response = client.post_graphql(WEBHOOK_UPDATE_BY_POINTER, variables=variables)
+
+    # then
+    assert_no_permission(response)
+    webhook_with_identifier.refresh_from_db(fields=("is_active",))
+    assert webhook_with_identifier.is_active is True
+
+
+def test_webhook_update_by_identifier_by_staff(
+    staff_api_client, permission_manage_apps, webhook_with_identifier
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    variables = {
+        "identifier": webhook_with_identifier.identifier,
+        "input": {"isActive": False},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": "identifier",
+            "message": STAFF_POINTER_MESSAGE,
+            "code": WebhookErrorCode.INVALID.name,
+        }
+    ]
+    webhook_with_identifier.refresh_from_db(fields=("is_active",))
+    assert webhook_with_identifier.is_active is True
+
+
+def test_webhook_update_by_identifier_of_another_app(
+    app_api_client, webhook_with_identifier
+):
+    # given
+    other_app = App.objects.create(name="other")
+    other_webhook = Webhook.objects.create(
+        app=other_app,
+        target_url="http://www.example.com/other",
+        identifier="other-app-handler",
+    )
+    variables = {"identifier": other_webhook.identifier, "input": {"isActive": False}}
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": "identifier",
+            "message": f"Couldn't resolve to a node: {other_webhook.identifier}",
+            "code": WebhookErrorCode.NOT_FOUND.name,
+        }
+    ]
+    other_webhook.refresh_from_db(fields=("is_active",))
+    assert other_webhook.is_active is True
+
+
+def test_webhook_update_by_identifier_renames_identifier(
+    app_api_client, webhook_with_identifier
+):
+    # given
+    new_identifier = "order-created-handler-v2"
+    variables = {
+        "identifier": webhook_with_identifier.identifier,
+        "input": {"identifier": new_identifier},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["errors"] == []
+    assert data["webhook"]["identifier"] == new_identifier
+    webhook_with_identifier.refresh_from_db(fields=("identifier",))
+    assert webhook_with_identifier.identifier == new_identifier
+
+
+def test_webhook_update_by_identifier_rename_to_taken_identifier(
+    app_api_client, app, webhook_with_identifier
+):
+    # given
+    taken_identifier = "already-taken"
+    previous_identifier = webhook_with_identifier.identifier
+    Webhook.objects.create(
+        app=app,
+        target_url="http://www.example.com/other",
+        identifier=taken_identifier,
+    )
+    variables = {
+        "identifier": previous_identifier,
+        "input": {"identifier": taken_identifier},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["webhookUpdate"]["errors"] == [
+        {
+            "field": None,
+            "message": "Webhook with this App and Identifier already exists.",
+            "code": WebhookErrorCode.UNIQUE.name,
+        }
+    ]
+    webhook_with_identifier.refresh_from_db(fields=("identifier",))
+    assert webhook_with_identifier.identifier == previous_identifier
+
+
+def test_webhook_update_with_both_pointers(app_api_client, webhook_with_identifier):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Webhook", webhook_with_identifier.pk),
+        "identifier": webhook_with_identifier.identifier,
+        "input": {"isActive": False},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": POINTER_COMBINED_MESSAGE,
+            "code": WebhookErrorCode.GRAPHQL_ERROR.name,
+        }
+    ]
+    webhook_with_identifier.refresh_from_db(fields=("is_active",))
+    assert webhook_with_identifier.is_active is True
+
+
+@pytest.mark.parametrize(
+    ("_case", "variables"),
+    [
+        ("identifier omitted", {"input": {"isActive": False}}),
+        (
+            "identifier explicitly null",
+            {"identifier": None, "input": {"isActive": False}},
+        ),
+        ("identifier blank", {"identifier": "", "input": {"isActive": False}}),
+    ],
+)
+def test_webhook_update_without_pointer(
+    _case, variables, app_api_client, webhook_with_identifier
+):
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["webhook"] is None
+    assert data["errors"] == [
+        {
+            "field": None,
+            "message": POINTER_REQUIRED_MESSAGE,
+            "code": WebhookErrorCode.GRAPHQL_ERROR.name,
+        }
+    ]
+    webhook_with_identifier.refresh_from_db(fields=("is_active",))
+    assert webhook_with_identifier.is_active is True
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifier"),
+    [
+        ("identifier explicitly null", None),
+        ("identifier blank", ""),
+    ],
+)
+def test_webhook_update_by_id_with_falsy_identifier(
+    _case, identifier, app_api_client, webhook_with_identifier
+):
+    # given - a falsy identifier counts as not provided, so `id` still resolves
+    variables = {
+        "id": graphene.Node.to_global_id("Webhook", webhook_with_identifier.pk),
+        "identifier": identifier,
+        "input": {"isActive": False},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["errors"] == []
+    assert data["webhook"]["isActive"] is False
+    webhook_with_identifier.refresh_from_db(fields=("is_active",))
+    assert webhook_with_identifier.is_active is False
+
+
+def test_webhook_update_null_identifier_never_matches_webhook_without_identifier(
+    app_api_client, webhook
+):
+    # given - the app owns a webhook whose identifier is NULL
+    assert webhook.identifier is None
+    variables = {"identifier": None, "input": {"isActive": False}}
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_UPDATE_BY_POINTER, variables=variables
+    )
+
+    # then - the NULL-identifier webhook must not be resolved by a null pointer
+    content = get_graphql_content(response)
+    assert content["data"]["webhookUpdate"]["errors"] == [
+        {
+            "field": None,
+            "message": POINTER_REQUIRED_MESSAGE,
+            "code": WebhookErrorCode.GRAPHQL_ERROR.name,
+        }
+    ]
+    webhook.refresh_from_db(fields=("is_active",))
+    assert webhook.is_active is True

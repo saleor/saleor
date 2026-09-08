@@ -1,8 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import prefetch_related_objects
 from graphql.error import GraphQLError
 
-from ....attribute import AttributeInputType, models
+from ....attribute import AttributeInputType, AttributeType, models
 from ....core.editorjs import editorjs_to_text
 from ....core.utils.text import safe_truncate
 from ....permission.enums import SitePermissions
@@ -131,6 +132,32 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
             cleaned_inputs_map[index] = data
 
         return cleaned_inputs_map
+
+    @classmethod
+    def get_base_objects(cls, cleaned_inputs_map: dict):
+        base_objects = super().get_base_objects(cleaned_inputs_map)
+        prefetch_related_objects(base_objects, "attribute")
+        return base_objects
+
+    @classmethod
+    def find_base_object(cls, pk, external_ref, base_objects, index_error_map, index):
+        base_object = super().find_base_object(
+            pk, external_ref, base_objects, index_error_map, index
+        )
+        # Customer attribute values are excluded from the translations domain:
+        # they may be created per user and carry customer data (PII), which
+        # must not be rewritten as a translation and echoed back through the
+        # TRANSLATION_CREATED/TRANSLATION_UPDATED webhooks.
+        if base_object and base_object.attribute.type == AttributeType.CUSTOMER_TYPE:
+            index_error_map[index].append(
+                AttributeValueBulkTranslateError(
+                    message="Values of customer attributes cannot be translated.",
+                    code=AttributeValueTranslateErrorCode.INVALID.value,
+                    path="id" if pk else "externalReference",
+                )
+            )
+            return None
+        return base_object
 
     @classmethod
     def pre_update_or_create(cls, instance, input_data):

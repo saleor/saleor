@@ -34,7 +34,7 @@ from ..thumbnail.models import Thumbnail
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
-    from ..account.models import Address, Group, User
+    from ..account.models import Address, CustomerType, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
     from ..channel.models import Channel
@@ -629,6 +629,24 @@ class BasePlugin:
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
     customer_metadata_updated: Callable[["User", Any, None], Any]
+
+    # Trigger when customer type is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a customer
+    # type is created.
+    customer_type_created: Callable[["CustomerType", Any], Any]
+
+    # Trigger when customer type is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a customer
+    # type is updated.
+    customer_type_updated: Callable[["CustomerType", Any], Any]
+
+    # Trigger when customer type is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after a customer
+    # type is deleted.
+    customer_type_deleted: Callable[["CustomerType", Any, None], Any]
 
     # Handle authentication request.
     #

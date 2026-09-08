@@ -11,7 +11,7 @@ from ......account.models import Group, User
 from ......account.notifications import get_default_user_payload
 from ......core.notify import NotifyEventType
 from ......core.tests.utils import get_site_context_payload
-from ......core.tokens import token_generator
+from ......core.tokens import password_reset_token_generator
 from ......core.utils.json_serializer import CustomJsonEncoder
 from ......core.utils.url import prepare_url
 from ......webhook.event_types import WebhookEventAsyncType
@@ -121,7 +121,7 @@ def test_staff_create(
     assert len(groups) == 1
     assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
 
-    token = token_generator.make_token(staff_user)
+    token = password_reset_token_generator.make_token(staff_user)
     params = urlencode({"email": email, "token": token})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -375,7 +375,7 @@ def test_staff_create_out_of_scope_group(
     assert len(groups) == 2
     for group in expected_groups:
         assert group in groups
-    token = token_generator.make_token(staff_user)
+    token = password_reset_token_generator.make_token(staff_user)
     params = urlencode({"email": email, "token": token})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -416,7 +416,7 @@ def test_staff_create_send_password_with_url(
     staff_user = User.objects.get(email=email)
     assert staff_user.is_staff
 
-    token = token_generator.make_token(staff_user)
+    token = password_reset_token_generator.make_token(staff_user)
     params = urlencode({"email": email, "token": token})
     password_set_url = prepare_url(params, redirect_url)
     expected_payload = {
@@ -509,3 +509,22 @@ def test_staff_create_with_upper_case_email(
     data = content["data"]["staffCreate"]
     assert not data["errors"]
     assert data["user"]["email"] == email.lower()
+
+
+def test_create_assigns_default_customer_type(
+    staff_api_client, permission_manage_staff, default_customer_type
+):
+    # given
+    email = "staff-customer-type@example.com"
+    variables = {"input": {"email": email}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["staffCreate"]["errors"]
+    new_user = User.objects.get(email=email)
+    assert new_user.customer_type == default_customer_type

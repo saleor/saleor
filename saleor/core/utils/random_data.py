@@ -15,7 +15,7 @@ import graphene
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.files import File
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import F
 from django.utils import timezone
 from django.utils.text import slugify
@@ -29,7 +29,7 @@ from ...account.search import (
     update_user_search_vector,
 )
 from ...account.tests.fixtures.user import dangerously_create_test_user
-from ...account.utils import store_user_address
+from ...account.utils import get_default_customer_type, store_user_address
 from ...app.models import App
 from ...attribute.models import (
     AssignedProductAttributeValue,
@@ -59,6 +59,7 @@ from ...discount.models import (
 )
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
+from ...menu.lock_objects import acquire_menu_item_tree_lock
 from ...menu.models import Menu, MenuItem
 from ...order import OrderStatus
 from ...order.models import Fulfillment, Order, OrderLine
@@ -80,6 +81,7 @@ from ...permission.enums import (
 )
 from ...permission.models import Permission
 from ...plugins.manager import get_plugins_manager
+from ...product.lock_objects import acquire_category_tree_lock
 from ...product.models import (
     Category,
     Collection,
@@ -220,7 +222,9 @@ def create_categories(categories_data, placeholder_dir):
             defaults["background_image"] = background_image
         if parent:
             defaults["parent"] = Category.objects.get(pk=parent)
-        Category.objects.update_or_create(pk=pk, defaults=defaults)
+        with transaction.atomic():
+            acquire_category_tree_lock()
+            Category.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def create_collection_channel_listings(collection_channel_listings_data):
@@ -527,7 +531,7 @@ def create_address(save=True, **kwargs):
     return address
 
 
-def create_fake_user(user_password, save=True, generate_id=False):
+def create_fake_user(user_password, save=True, generate_id=False, customer_type=None):
     address = create_address(save=save)
     email = get_email(address.first_name, address.last_name)
 
@@ -559,6 +563,7 @@ def create_fake_user(user_password, save=True, generate_id=False):
     )
 
     if save:
+        user.customer_type = customer_type or get_default_customer_type()
         password_validation.validate_password(user_password, user)
         user.set_password(user_password)
         user.save()
@@ -1115,8 +1120,9 @@ def create_fake_order_promotion():
 
 
 def create_users(user_password, how_many=10):
+    default_customer_type = get_default_customer_type()
     for _ in range(how_many):
-        user = create_fake_user(user_password)
+        user = create_fake_user(user_password, customer_type=default_customer_type)
         yield f"User: {user.email}"
 
 
@@ -1142,6 +1148,7 @@ def create_permission_groups(staff_password):
 
 
 def create_staffs(staff_password):
+    default_customer_type = get_default_customer_type()
     for permission in get_permissions():
         base_name = permission.codename.split("_")[1:]
 
@@ -1153,7 +1160,9 @@ def create_staffs(staff_password):
         user_email = ".".join(email_base_name)
         user_email += ".manager@example.com"
 
-        user = _create_staff_user(staff_password, email=user_email)
+        user = _create_staff_user(
+            staff_password, email=user_email, customer_type=default_customer_type
+        )
         group = create_group(group_name, [permission], [user])
 
         yield f"Group: {group}"
@@ -1167,7 +1176,7 @@ def create_group(name, permissions, users):
     return group
 
 
-def _create_staff_user(staff_password, email=None, superuser=False):
+def _create_staff_user(staff_password, email=None, superuser=False, customer_type=None):
     address = create_address()
     first_name = address.first_name
     last_name = address.last_name
@@ -1188,6 +1197,7 @@ def _create_staff_user(staff_password, email=None, superuser=False):
         is_staff=True,
         is_active=True,
         is_superuser=superuser,
+        customer_type=customer_type or get_default_customer_type(),
     )
     staff_user.addresses.add(address)
     update_user_search_vector(staff_user)
@@ -1195,9 +1205,12 @@ def _create_staff_user(staff_password, email=None, superuser=False):
 
 
 def create_staff_users(staff_password, how_many=2, superuser=False):
+    default_customer_type = get_default_customer_type()
     users = []
     for _ in range(how_many):
-        staff_user = _create_staff_user(staff_password, superuser=superuser)
+        staff_user = _create_staff_user(
+            staff_password, superuser=superuser, customer_type=default_customer_type
+        )
         users.append(staff_user)
     return users
 
@@ -1823,7 +1836,9 @@ def create_menus():
         defaults["menu_id"] = defaults.pop("menu")
         defaults["page_id"] = defaults.pop("page")
         defaults.pop("parent")
-        menu_item, _ = MenuItem.objects.update_or_create(pk=pk, defaults=defaults)
+        with transaction.atomic():
+            acquire_menu_item_tree_lock()
+            menu_item, _ = MenuItem.objects.update_or_create(pk=pk, defaults=defaults)
         yield f"MenuItem {menu_item.name} created"
     for menu_item in menu_item_data:
         pk = menu_item["pk"]

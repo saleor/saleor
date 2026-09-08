@@ -2,9 +2,11 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....core.editorjs import editorjs_to_text
+from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
+from .....product.lock_objects import acquire_category_tree_lock
 from ....core import ResolveInfo
 from ....core.descriptions import RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -95,6 +97,16 @@ class CategoryCreate(DeprecatedModelMutation):
             clean_image_file(cleaned_input, "background_image", ProductErrorCode)
         clean_seo_fields(cleaned_input)
         return cleaned_input
+
+    @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input, /, instance_tracker=None):
+        """Insert under the tree lock. Updates can't re-parent, so they skip it."""
+        if instance.pk is not None:
+            super().save(info, instance, cleaned_input, instance_tracker)
+            return
+        with traced_atomic_transaction():
+            acquire_category_tree_lock()
+            instance.save()
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):

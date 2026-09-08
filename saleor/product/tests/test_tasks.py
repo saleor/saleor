@@ -13,6 +13,7 @@ from requests.exceptions import HTTPError, InvalidSchema, RequestException
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
+from ...thumbnail.exceptions import ImageTooLargeError
 from ..interface import VariantDiscountedPriceChange
 from ..models import (
     Product,
@@ -460,6 +461,45 @@ def test_fetch_product_media_image_success(
     product_media.refresh_from_db()
     assert product_media.external_url is None
     assert product_media.image
+
+
+def test_fetch_product_media_image_pixel_count_exceeds_limit_sanitizes_url(
+    product_media_image_not_yet_fetched,
+    caplog,
+):
+    # given
+    product_media = product_media_image_not_yet_fetched
+    product_media.external_url = "https://username:password@example.com/image.jpg"
+    product_media.save(update_fields=("external_url",))
+    pillow_error = "Image exceeds the pixel limit."
+    image_buffer = BytesIO()
+    Image.new("RGB", (1, 1)).save(image_buffer, format="JPEG")
+    image_bytes = image_buffer.getvalue()
+
+    # when
+    with (
+        mock_http_response_for_product_task(
+            status_code=200, content_type="image/jpeg", content=image_bytes
+        ),
+        patch(
+            "saleor.product.tasks.validate_image_exif",
+            side_effect=ImageTooLargeError(pillow_error),
+        ),
+        pytest.raises(ImageTooLargeError),
+    ):
+        fetch_product_media_image_task(product_media.pk)
+
+    # then
+    sanitized_url = "https://***:***@example.com/image.jpg"
+    assert len(caplog.records) == 1
+    assert caplog.records[0].getMessage() == (
+        f"Image fetched for product media {product_media.pk} exceeds the pixel "
+        f"limit: {sanitized_url}"
+    )
+    assert caplog.records[0].image_source == sanitized_url
+    assert caplog.records[0].object_type == "ProductMedia"
+    assert caplog.records[0].object_pk == product_media.pk
+    assert caplog.records[0].pillow_error == pillow_error
 
 
 def test_fetch_product_media_image_unsupported_image_content_type(

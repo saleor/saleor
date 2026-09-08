@@ -9,6 +9,7 @@ from ...account import models as account_models
 from ...giftcard import models
 from ...order import models as order_models
 from ...product import models as product_models
+from ..core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.filters import (
     FilterInputObjectType,
@@ -48,6 +49,20 @@ def filter_used_by(qs, _, value):
 def filter_gift_cards_by_used_by_user(qs, user_pks):
     users = account_models.User.objects.using(qs.db).filter(pk__in=user_pks)
     return qs.filter(Exists(users.filter(pk=OuterRef("used_by_id"))))
+
+
+# Intentionally not gated behind MANAGE_USERS (unlike resolving the assignedTo
+# User object). Reaching this filter already requires MANAGE_GIFT_CARD, which
+# exposes the assignee via the assignedToEmail field, so filtering by a
+# caller-supplied user id reveals no additional information. It also only
+# narrows gift cards; it never returns a User entity (the only thing gated
+# behind MANAGE_USERS). This mirrors the used_by filter. See ADR 0005.
+def filter_assigned_to(qs, _, value):
+    if value:
+        _, user_pks = resolve_global_ids_to_primary_keys(value, "User")
+        users = account_models.User.objects.using(qs.db).filter(pk__in=user_pks)
+        qs = qs.filter(Exists(users.filter(pk=OuterRef("assigned_to_id"))))
+    return qs
 
 
 def filter_tags_list(qs, _, value):
@@ -93,7 +108,19 @@ def filter_created_by_email(qs, _, value):
 class GiftCardFilter(MetadataFilterBase):
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
-    used_by = GlobalIDMultipleChoiceFilter(method=filter_used_by)
+    used_by = GlobalIDMultipleChoiceFilter(
+        method=filter_used_by,
+        help_text=(
+            "Filter by the customer who used a gift card." + DEPRECATED_IN_3X_INPUT
+        ),
+    )
+    assigned_to = GlobalIDMultipleChoiceFilter(
+        method=filter_assigned_to,
+        help_text=(
+            "Filter by the customer the gift card usage is restricted to."
+            + ADDED_IN_323
+        ),
+    )
     used = django_filters.BooleanFilter(method=filter_gift_card_used)
     currency = django_filters.CharFilter(method=filter_currency)
     current_balance = ObjectTypeFilter(

@@ -304,6 +304,22 @@ def generate_page_type_payload(page_type, app):
     }
 
 
+def generate_customer_type_payload(customer_type, app):
+    customer_type_id = graphene.Node.to_global_id("CustomerType", customer_type.pk)
+    return {
+        "recipient": {
+            "id": graphene.Node.to_global_id("App", app.pk),
+            "name": app.name,
+        },
+        "customerType": {
+            "id": customer_type_id,
+            "name": customer_type.name,
+            "slug": customer_type.slug,
+            "isDefault": customer_type.is_default,
+        },
+    }
+
+
 def generate_permission_group_payload(group, app):
     return {
         "recipient": {

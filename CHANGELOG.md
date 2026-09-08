@@ -2,7 +2,7 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/saleor/saleor/releases) page.
 
-# 3.23.0 [Unreleased]
+# 3.23.0
 
 ### Breaking changes
 
@@ -34,6 +34,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Added `identifier` field to the `Webhook` type. It holds an app-provided, stable identifier that is unique per app. It can be set through the app manifest (`webhooks[].identifier`) and the `webhookCreate`/`webhookUpdate` mutations.
+- Added `Shop.allowStorefrontTraffic` field and `ShopSettingsInput.allowStorefrontTraffic` input. When disabled, only apps and staff users may call the GraphQL API directly; anonymous requests and non-staff customers are rejected with HTTP 401 and the `STOREFRONT_TRAFFIC_NOT_ALLOWED` error code.
 - Gift cards support as payment method within Transaction API (read more in the [docs](https://docs.saleor.io/developer/gift-cards#using-gift-cards-in-checkout)).
 - `Attribute` fields `name`, `slug` and `type` are now non-nullable in schema.
 - Added new scalar `NonNegativeInt` which allows integer values greater than or equal to zero.
@@ -45,9 +47,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added `PasswordLoginMode` setting to control password-based authentication. When set to `DISABLED`, all password authentication mutations (`tokenCreate`, `setPassword`, `passwordChange`, `requestPasswordReset`, `tokenRefresh`) return errors. When set to `CUSTOMERS_ONLY`, staff users who log in with a password are treated as customers without staff
 permissions.
 - `staffDelete` mutation now always deletes the staff user. Previously, staff members with existing orders were only deactivated (`is_staff` set to `False`); now they are fully removed regardless of order history.
+- Add `giftCardBalanceAdjust` mutation to change a gift card balance by a signed delta atomically.
+- Add customer restriction for gift cards: `assignedTo`/`assignedToEmail` fields, `giftCardAssignUser`/`giftCardUnassignUser` mutations, `assignedTo` on `GiftCardCreateInput`, and `assignedTo` gift card filter. Restricted cards can only be used by the assigned customer at checkout, in both the `checkoutAddPromoCode` and the `transactionInitialize` (`saleor.io.gift-card-payment-gateway`) flows. A card used by a payment transaction cannot be assigned or reassigned.
+- Added `Order.transactionSummaries` field returning a `TransactionSummary` per payment transaction that moved any money. Unlike `Order.transactions` it requires no permission, so storefronts can show the payment history of an order; it exposes only `createdAt`, `paymentMethodDetails` and the amounts, with the card digits and expiration date stripped.
+- Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
+- Added `ID` sort field to `ProductVariantSortField`. Sorting by the variant primary key gives a stable order and stable cursors, unlike `LAST_MODIFIED_AT`, whose value changes when a variant is updated during pagination.
 
 ### Webhooks
 
+- Deprecated the `OBSERVABILITY` webhook event type (`WebhookEventTypeEnum`, `WebhookEventTypeAsyncEnum`, `WebhookSampleEventTypeEnum`). The observability feature is no longer supported and the event will be removed in Saleor 3.24.
 - For order webhook events, sync webhooks (such as `ORDER_CALCULATE_TAXES` and `ORDER_FILTER_SHIPPING_METHODS`) are no longer pre-fired before sending async webhook events. Sync webhooks are now only triggered when their data is actually requested, improving performance and decoupling async event delivery from sync webhook execution.
 -  Building payloads for webhook order events (including draft orders and fulfillments) is now delegated to a separate background task. This speeds up the execution of most order mutations by deferring the expensive payload serialization out of the request path.
 
@@ -121,4 +129,12 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 
 - Deprecate the `hasVariants` field on `ProductType`.
 - Deprecate export mutations (`exportProducts`, `exportGiftCards`, `exportVoucherCodes`). All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
+- Deprecate the export webhook event types emitted by those mutations: `PRODUCT_EXPORT_COMPLETED`, `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` (`WebhookEventTypeEnum`, `WebhookEventTypeAsyncEnum`, `WebhookSampleEventTypeEnum`), along with the `ProductExportCompleted`, `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types.
 - Deprecate `voucher` input field on `DraftOrderInput` and `DraftOrderCreateInput`. Use `voucherCode` instead.
+- Deprecate the preorder API. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to `false` to sell without a stock limit. The following are deprecated:
+  - Mutation `productVariantPreorderDeactivate`.
+  - Types `PreorderData` (and `ProductVariant.preorder`) and `PreorderThreshold` (and `ProductVariantChannelListing.preorderThreshold`).
+  - Input `PreorderSettingsInput` and the `preorder` field on `ProductVariantInput`, `ProductVariantCreateInput`, `ProductVariantBulkCreateInput` and `ProductVariantBulkUpdateInput`.
+  - Input field `preorderThreshold` on `ProductVariantChannelListingAddInput` and `ChannelListingUpdateInput`.
+  - Filters `hasPreorderedVariants` (`ProductFilterInput`, `ProductWhereInput`) and `isPreorder` (`ProductVariantFilterInput`, `OrderFilterInput`).
+  - Error code `PREORDER_VARIANT_CANNOT_BE_DEACTIVATED` on `ProductErrorCode`.

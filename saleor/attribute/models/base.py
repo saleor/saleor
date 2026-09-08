@@ -4,13 +4,18 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import Case, Exists, F, OrderBy, OuterRef, Q, Value, When
 
+from ...account.models import CustomerType
 from ...core.db.fields import SanitizedJSONField
 from ...core.editorjs import clean_editorjs
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
 from ...core.utils.translations import Translation
 from ...page.models import Page, PageType
-from ...permission.enums import PageTypePermissions, ProductTypePermissions
+from ...permission.enums import (
+    CustomerTypePermissions,
+    PageTypePermissions,
+    ProductTypePermissions,
+)
 from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
@@ -46,6 +51,7 @@ class BaseAttributeQuerySet(models.QuerySet[T]):
                 [
                     PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
                     ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+                    CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
                 ]
             ),
         ):
@@ -85,6 +91,16 @@ class AttributeQuerySet(BaseAttributeQuerySet[T]):
             Q(attributepage__page_type_id=product_type_pk)
         )
 
+    def get_unassigned_customer_type_attributes(self, customer_type_pk: int):
+        return self.customer_type_attributes().exclude(
+            attributecustomertype__customer_type_id=customer_type_pk
+        )
+
+    def get_assigned_customer_type_attributes(self, customer_type_pk: int):
+        return self.customer_type_attributes().filter(
+            attributecustomertype__customer_type_id=customer_type_pk
+        )
+
     def get_public_attributes(self):
         return self.filter(visible_in_storefront=True)
 
@@ -111,6 +127,9 @@ class AttributeQuerySet(BaseAttributeQuerySet[T]):
 
     def page_type_attributes(self):
         return self.filter(type=AttributeType.PAGE_TYPE)
+
+    def customer_type_attributes(self):
+        return self.filter(type=AttributeType.CUSTOMER_TYPE)
 
 
 AttributeManager = models.Manager.from_queryset(AttributeQuerySet)
@@ -166,6 +185,13 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
         related_name="page_attributes",
         through="attribute.AttributePage",
         through_fields=("attribute", "page_type"),
+    )
+    customer_types = models.ManyToManyField(
+        CustomerType,
+        blank=True,
+        related_name="customer_attributes",
+        through="attribute.AttributeCustomerType",
+        through_fields=("attribute", "customer_type"),
     )
 
     unit = models.CharField(
