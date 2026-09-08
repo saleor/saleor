@@ -10005,6 +10005,13 @@ input ProductVariantSortingInput @doc(category: "Products") {
 enum ProductVariantSortField @doc(category: "Products") {
   """Sort product variants by last modification date."""
   LAST_MODIFIED_AT
+
+  """
+  Sort product variants by ID.
+  
+  Added in Saleor 3.23.
+  """
+  ID
 }
 
 input MediaSortingInput @doc(category: "Products") {
