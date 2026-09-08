@@ -48,6 +48,11 @@ from .metrics import (
     record_request_duration,
 )
 from .query_cost_map import COST_MAP, QUERY_COST_FAILED_OPERATION
+from .storefront_traffic import (
+    STOREFRONT_TRAFFIC_ERROR_CODE,
+    STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+    is_storefront_traffic_blocked,
+)
 from .utils import (
     format_error,
     get_source_service_name_value,
@@ -57,6 +62,20 @@ from .utils import (
 from .utils.validators import check_if_query_contains_only_schema
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
+
+# Sentinel result returned by `execute_graphql_request` when a request is rejected
+# as disallowed storefront traffic. `get_response` matches it by identity and maps
+# it to a 401 without running it through `format_error` (which would relocate and
+# annotate the error and log it as a failed query).
+STOREFRONT_TRAFFIC_BLOCKED = ExecutionResult(invalid=True)
+STOREFRONT_TRAFFIC_BLOCKED_RESPONSE: GraphQLOperationResult = {
+    "errors": [
+        {
+            "message": STOREFRONT_TRAFFIC_ERROR_MESSAGE,
+            "extensions": {"code": STOREFRONT_TRAFFIC_ERROR_CODE},
+        }
+    ]
+}
 
 
 def default_serializer(obj):
@@ -288,6 +307,12 @@ class GraphQLView(View):
     ) -> tuple[GraphQLOperationResult | None, int]:
         with observability.report_gql_operation() as operation:
             execution_result = self.execute_graphql_request(request, data)
+            # The request was rejected as disallowed storefront traffic, so the query
+            # was never executed and there is no result to format. Return the canned
+            # error with a 401 and skip the `format_error` / observability handling
+            # below, which is meant for real execution failures.
+            if execution_result is STOREFRONT_TRAFFIC_BLOCKED:
+                return STOREFRONT_TRAFFIC_BLOCKED_RESPONSE, 401
             status_code = 200
             result: GraphQLOperationResult = {}
             if execution_result.errors:
@@ -426,6 +451,30 @@ class GraphQLView(View):
                     saleor_attributes.SALEOR_SOURCE_SERVICE_NAME, source_service_name
                 )
 
+            if operation_type == "subscription":
+                # The schema exposes a `Subscription` type only so apps can define
+                # webhook subscription documents. The synchronous executor used here
+                # cannot run them and raises a bare `Exception`, which surfaces as an
+                # unhandled error. Reject with a proper GraphQL error instead.
+                subscription_error = GraphQLError(
+                    "Subscriptions are supported only as webhooks. See "
+                    "https://docs.saleor.io/developer/extending/webhooks/overview"
+                )
+                span.set_status(
+                    status=StatusCode.ERROR, description=str(subscription_error)
+                )
+                error_type = subscription_error.__class__.__name__
+                record_graphql_query_count(
+                    operation_type=operation_type, error_type=error_type
+                )
+                record_graphql_query_cost(
+                    QUERY_COST_FAILED_OPERATION,
+                    operation_type=operation_type,
+                    error_type=error_type,
+                )
+                query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
+                return ExecutionResult(errors=[subscription_error], invalid=True)
+
             query_cost, cost_errors = validate_query(
                 schema=schema,
                 document_ast=document.document_ast,
@@ -463,6 +512,13 @@ class GraphQLView(View):
                 span.set_attribute(saleor_attributes.SALEOR_APP_NAME, app.name)
 
             try:
+                # Reject disallowed storefront traffic before executing. App and
+                # staff-user requests are always allowed; anonymous and customer
+                # requests follow the cached shop setting. Checked here so it reuses
+                # the single context created above (cleaned by the `finally`) rather
+                # than building and tearing down a second one.
+                if is_storefront_traffic_blocked(context):
+                    return STOREFRONT_TRAFFIC_BLOCKED
                 response = None
                 error_type = None
                 should_use_cache_for_scheme = query_contains_schema & (

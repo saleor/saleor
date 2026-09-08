@@ -7,13 +7,14 @@ from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
 
+from .....attribute import AttributeType
 from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.models import Attribute
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import MeasurementUnitsEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 
 CREATE_ATTRIBUTE_MUTATION = """
@@ -1864,3 +1865,67 @@ def test_create_attribute_with_reference_types_product_types_provided_for_page_r
     assert len(errors) == 1
     assert errors[0]["field"] == "referenceTypes"
     assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_create_customer_attribute(
+    staff_api_client, permission_manage_customer_types_and_attributes
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Loyalty level"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.CUSTOMER_TYPE.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    assert data["errors"] == []
+    assert data["attribute"]["name"] == attribute_name
+    assert data["attribute"]["slug"] == slugify(attribute_name)
+    assert data["attribute"]["type"] == AttributeTypeEnum.CUSTOMER_TYPE.name
+
+    attribute = Attribute.objects.get(slug=slugify(attribute_name))
+    assert attribute.type == AttributeType.CUSTOMER_TYPE
+
+
+def test_create_customer_attribute_without_customer_type_permission(
+    staff_api_client,
+    permission_manage_page_types_and_attributes,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = CREATE_ATTRIBUTE_MUTATION
+
+    attribute_name = "Loyalty level"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.CUSTOMER_TYPE.name,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_page_types_and_attributes,
+            permission_manage_product_types_and_attributes,
+        ],
+    )
+
+    # then
+    assert_no_permission(response)
+    assert not Attribute.objects.filter(slug=slugify(attribute_name)).exists()

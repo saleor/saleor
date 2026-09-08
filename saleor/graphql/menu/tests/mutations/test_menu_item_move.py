@@ -2,9 +2,14 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
+from django.core.exceptions import ValidationError
 
+from .....core.db.locks import AdvisoryLock
+from .....menu.error_codes import MenuErrorCode
 from .....menu.models import Menu, MenuItem
 from ....tests.utils import get_graphql_content
+from ...mutations.menu_item_move import MenuItemMove, _MenuMoveOperation
 
 QUERY_REORDER_MENU = """
 mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput!]!) {
@@ -628,3 +633,145 @@ def test_menu_cannot_pass_an_invalid_menu_item_node_type(
             "menu": None,
         }
     }
+
+
+def test_moves_to_same_parent_keep_tree_consistent(
+    staff_api_client, permission_manage_menus, menu_item_list
+):
+    # given
+    menu_item_list = list(menu_item_list)
+    menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
+    new_parent, first_moved, second_moved = menu_item_list
+    parent_global_id = graphene.Node.to_global_id("MenuItem", new_parent.pk)
+    moves_input = [
+        {
+            "itemId": graphene.Node.to_global_id("MenuItem", first_moved.pk),
+            "parentId": parent_global_id,
+            "sortOrder": None,
+        },
+        {
+            "itemId": graphene.Node.to_global_id("MenuItem", second_moved.pk),
+            "parentId": parent_global_id,
+            "sortOrder": None,
+        },
+    ]
+
+    # when
+    response = get_graphql_content(
+        staff_api_client.post_graphql(
+            QUERY_REORDER_MENU,
+            {"moves": moves_input, "menu": menu_global_id},
+            [permission_manage_menus],
+        )
+    )["data"]["menuItemMove"]
+
+    # then
+    assert response["errors"] == []
+    new_parent.refresh_from_db()
+    first_moved.refresh_from_db()
+    second_moved.refresh_from_db()
+    assert (new_parent.lft, new_parent.rght) == (1, 6)
+    children_intervals = {
+        (first_moved.lft, first_moved.rght),
+        (second_moved.lft, second_moved.rght),
+    }
+    assert children_intervals == {(2, 3), (4, 5)}
+    assert first_moved.tree_id == new_parent.tree_id
+    assert second_moved.tree_id == new_parent.tree_id
+
+
+def test_change_parent_operation_refreshes_stale_parent(menu_item_list):
+    # given
+    new_parent, temp_child, moved_item = menu_item_list
+    temp_child.parent = new_parent
+    temp_child.save()
+    stale_parent = MenuItem.objects.get(pk=new_parent.pk)
+    assert (stale_parent.lft, stale_parent.rght) == (1, 4)
+    # Simulate a concurrent writer renumbering the tree after the parent was
+    # fetched - deleting the child shrinks the parent's interval to (1, 2).
+    temp_child.refresh_from_db()
+    temp_child.delete()
+    operation = _MenuMoveOperation(
+        menu_item=moved_item,
+        parent_changed=True,
+        new_parent=stale_parent,
+        sort_order=None,
+    )
+
+    # when
+    MenuItemMove.perform_change_parent_operation(operation)
+
+    # then
+    new_parent.refresh_from_db()
+    moved_item.refresh_from_db()
+    assert (new_parent.lft, new_parent.rght) == (1, 4)
+    assert (moved_item.lft, moved_item.rght) == (2, 3)
+    assert moved_item.parent_id == new_parent.pk
+    assert moved_item.tree_id == new_parent.tree_id
+
+
+def test_change_parent_operation_racing_cycle_raises_validation_error(menu_item_list):
+    # given
+    new_parent, moved_item, _unchanged_item = menu_item_list
+    stale_parent = MenuItem.objects.get(pk=new_parent.pk)
+    # Simulate a concurrent writer making the target a child of the moved
+    # item after the target was fetched, so the move would form a cycle.
+    new_parent.parent = moved_item
+    new_parent.save()
+    operation = _MenuMoveOperation(
+        menu_item=moved_item,
+        parent_changed=True,
+        new_parent=stale_parent,
+        sort_order=None,
+    )
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        MenuItemMove.perform_change_parent_operation(operation)
+
+    # then
+    errors = exc_info.value.error_dict["parent_id"]
+    assert len(errors) == 1
+    assert errors[0].code == MenuErrorCode.CANNOT_ASSIGN_NODE.value
+    assert errors[0].message == (
+        "A node may not be made a child of any of its descendants."
+    )
+    moved_item.refresh_from_db()
+    new_parent.refresh_from_db()
+    assert moved_item.parent_id is None
+    assert new_parent.parent_id == moved_item.pk
+
+
+def test_takes_menu_item_tree_lock_before_move(
+    staff_api_client,
+    permission_manage_menus,
+    menu_item_list,
+    assert_advisory_lock_before_tree_write,
+):
+    # given
+    menu_item_list = list(menu_item_list)
+    menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
+    new_parent = menu_item_list[0]
+    moved_item = menu_item_list[2]
+    moves_input = [
+        {
+            "itemId": graphene.Node.to_global_id("MenuItem", moved_item.pk),
+            "parentId": graphene.Node.to_global_id("MenuItem", new_parent.pk),
+            "sortOrder": None,
+        }
+    ]
+    variables = {"moves": moves_input, "menu": menu_global_id}
+
+    # when
+    with assert_advisory_lock_before_tree_write(
+        AdvisoryLock.MENU_ITEM_TREE, MenuItem._meta.db_table
+    ):
+        response = staff_api_client.post_graphql(
+            QUERY_REORDER_MENU, variables, [permission_manage_menus]
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["menuItemMove"]["errors"] == []
+    moved_item.refresh_from_db(fields=("parent",))
+    assert moved_item.parent_id == new_parent.pk

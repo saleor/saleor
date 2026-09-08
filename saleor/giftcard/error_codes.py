@@ -10,3 +10,4 @@ class GiftCardErrorCode(Enum):
     UNIQUE = "unique"
     EXPIRED_GIFT_CARD = "expired_gift_card"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+    CANNOT_ASSIGN = "cannot_assign"

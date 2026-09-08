@@ -7,6 +7,9 @@ from django.core.exceptions import ValidationError
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from ......account.models import User
+from ......attribute.models import AssignedUserAttributeValue, AttributeValue
+from ......page.models import Page
 from ......webhook.event_types import WebhookEventAsyncType
 from .....tests.utils import get_graphql_content
 from ....mutations.staff import CustomerDelete
@@ -215,3 +218,142 @@ def test_delete_customer_by_external_reference_not_existing(
     # then
     errors = content["data"]["customerDelete"]["errors"]
     assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"
+
+
+def test_deletes_unique_attribute_values_and_keeps_shared_choices(
+    staff_api_client,
+    customer_user,
+    customer_user2,
+    permission_manage_users,
+    description_customer_attribute,
+    loyalty_customer_attribute,
+):
+    # given: the customer has a unique (plain text) value and a shared choice,
+    # and another customer holds their own unique value on the same attribute
+    plain_text = "Notes about the customer"
+    unique_value = AttributeValue.objects.create(
+        attribute=description_customer_attribute,
+        name=plain_text,
+        slug=f"{customer_user.pk}_{description_customer_attribute.pk}",
+        plain_text=plain_text,
+    )
+    other_user_plain_text = "Notes about the other customer"
+    other_user_value = AttributeValue.objects.create(
+        attribute=description_customer_attribute,
+        name=other_user_plain_text,
+        slug=f"{customer_user2.pk}_{description_customer_attribute.pk}",
+        plain_text=other_user_plain_text,
+    )
+    choice_value = loyalty_customer_attribute.values.get(slug="gold")
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=unique_value)
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=choice_value)
+    AssignedUserAttributeValue.objects.create(
+        user=customer_user2, value=other_user_value
+    )
+    variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_DELETE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then: the unique value is deleted with the user, the shared choice and
+    # the other customer's value stay
+    content = get_graphql_content(response)
+    assert content["data"]["customerDelete"]["errors"] == []
+    assert User.objects.filter(pk=customer_user.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=unique_value.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=choice_value.pk).exists() is True
+    assert AttributeValue.objects.filter(pk=other_user_value.pk).exists() is True
+    assert AssignedUserAttributeValue.objects.get(user=customer_user2).value == (
+        other_user_value
+    )
+
+
+def test_deletes_single_reference_attribute_values(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    customer_type_page_single_reference_attribute,
+    page,
+):
+    # given: the customer holds a per-user single-reference value
+    reference_value = AttributeValue.objects.create(
+        attribute=customer_type_page_single_reference_attribute,
+        name=page.title,
+        slug=f"{customer_user.pk}_{page.pk}",
+        reference_page=page,
+    )
+    AssignedUserAttributeValue.objects.create(user=customer_user, value=reference_value)
+    variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_DELETE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then: the per-user value is deleted with the user, the referenced page stays
+    content = get_graphql_content(response)
+    assert content["data"]["customerDelete"]["errors"] == []
+    assert User.objects.filter(pk=customer_user.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=reference_value.pk).exists() is False
+    assert Page.objects.filter(pk=page.pk).exists() is True
+
+
+def test_deleting_user_keeps_other_users_single_reference_values(
+    staff_api_client,
+    customer_user,
+    customer_user2,
+    permission_manage_users,
+    customer_type_page_single_reference_attribute,
+    default_customer_type,
+    page,
+):
+    # given: both users reference the same page through the same attribute,
+    # assigned via the real mutation path so the per-user value creation
+    # (not a hand-built slug) is what is under test
+    default_customer_type.customer_attributes.add(
+        customer_type_page_single_reference_attribute
+    )
+    attribute_id = graphene.Node.to_global_id(
+        "Attribute", customer_type_page_single_reference_attribute.pk
+    )
+    page_id = graphene.Node.to_global_id("Page", page.pk)
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    update_mutation = """
+        mutation CustomerUpdate($id: ID!, $input: CustomerInput!) {
+            customerUpdate(id: $id, input: $input) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    for user in [customer_user, customer_user2]:
+        variables = {
+            "id": graphene.Node.to_global_id("User", user.pk),
+            "input": {"attributes": [{"id": attribute_id, "reference": page_id}]},
+        }
+        response = staff_api_client.post_graphql(update_mutation, variables)
+        content = get_graphql_content(response)
+        assert content["data"]["customerUpdate"]["errors"] == []
+    # the same reference produced one value row per user - rows are not shared
+    values = AttributeValue.objects.filter(
+        attribute=customer_type_page_single_reference_attribute
+    )
+    assert values.count() == 2
+
+    # when: one of the users is deleted
+    variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
+    response = staff_api_client.post_graphql(CUSTOMER_DELETE_MUTATION, variables)
+
+    # then: only the deleted user's value is gone
+    content = get_graphql_content(response)
+    assert content["data"]["customerDelete"]["errors"] == []
+    assert User.objects.filter(pk=customer_user.pk).exists() is False
+    remaining_value = AttributeValue.objects.get(
+        attribute=customer_type_page_single_reference_attribute
+    )
+    assert remaining_value.uservalueassignment.get().user == customer_user2
+    assert remaining_value.reference_page == page

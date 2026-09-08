@@ -1,5 +1,9 @@
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.types import BaseEnum, SortInputObjectType
+from .descriptions import (
+    DASHBOARD_FLAG_DEPRECATION_REASON,
+    STOREFRONT_FLAG_DEPRECATION_REASON,
+)
 
 
 class AttributeSortField(BaseEnum):
@@ -48,6 +52,17 @@ class AttributeSortField(BaseEnum):
         if self.name in descriptions:
             return descriptions[self.name]
         raise ValueError(f"Unsupported enum value: {self.value}")
+
+    @property
+    def deprecation_reason(self):
+        # pylint: disable=no-member
+        deprecations = {
+            AttributeSortField.FILTERABLE_IN_STOREFRONT.name: STOREFRONT_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            AttributeSortField.STOREFRONT_SEARCH_POSITION.name: STOREFRONT_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            AttributeSortField.AVAILABLE_IN_GRID.name: STOREFRONT_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            AttributeSortField.FILTERABLE_IN_DASHBOARD.name: DASHBOARD_FLAG_DEPRECATION_REASON,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+        }
+        return deprecations.get(self.name)
 
 
 class AttributeSortingInput(SortInputObjectType):

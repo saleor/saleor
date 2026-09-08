@@ -6,7 +6,11 @@ from .....account import events as account_events
 from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....core.db.connection import allow_writer
-from .....core.tokens import token_generator
+from .....core.tokens import (
+    legacy_password_reset_token_generator,
+    password_reset_token_generator,
+    try_generators,
+)
 from .....order.utils import match_orders_with_new_user
 from ....core import ResolveInfo
 from ....core.context import disallow_replica_in_context
@@ -63,7 +67,12 @@ class SetPassword(CreateToken):
             error = True
             user = models.User()
 
-        valid_token = token_generator.check_token(user, token)
+        valid_token = try_generators(
+            current_generator=password_reset_token_generator,
+            fallback_generator=legacy_password_reset_token_generator,
+            user=user,
+            token=token,
+        )
         if not valid_token or error:
             raise ValidationError(
                 {

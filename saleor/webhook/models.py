@@ -35,6 +35,12 @@ class Webhook(models.Model):
         default=list,
         size=MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT,
     )
+    # blank=True is required because webhookCreate/webhookUpdate run full_clean:
+    # Django's field validation rejects an unset value (None is in empty_values)
+    # when blank=False, even with null=True, which would break every mutation
+    # that doesn't set an identifier. Empty string stays blocked by the
+    # identifier_not_blank CheckConstraint below.
+    identifier = models.CharField(max_length=256, null=True, blank=True)
 
     class Meta:
         ordering = ("pk",)
@@ -43,6 +49,16 @@ class Webhook(models.Model):
                 name="filterable_channel_slugs_idx",
                 fields=["filterable_channel_slugs"],
             )
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["app", "identifier"],
+                name="unique_webhook_identifier",
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(identifier=""),
+                name="webhook_identifier_not_blank",
+            ),
         ]
 
     def __str__(self):

@@ -9,7 +9,9 @@ from ..attribute.models import Attribute
 from ..core.exceptions import PermissionDenied
 from ..permission.auth_filters import is_app, is_staff_user
 from ..permission.enums import (
+    AccountPermissions,
     BasePermissionEnum,
+    CustomerTypePermissions,
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
@@ -129,6 +131,11 @@ def check_attribute_required_permissions():
             permissions = [
                 PagePermissions.MANAGE_PAGES,
                 PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+            ]
+        elif attribute.type == AttributeType.CUSTOMER_TYPE:
+            permissions = [
+                AccountPermissions.MANAGE_USERS,
+                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
             ]
         else:
             permissions = [

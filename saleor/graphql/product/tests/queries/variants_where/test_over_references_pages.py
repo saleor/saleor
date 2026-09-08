@@ -4,6 +4,7 @@ from ......attribute import AttributeEntityType, AttributeInputType, AttributeTy
 from ......attribute.models import Attribute, AttributeValue
 from ......attribute.utils import associate_attribute_values_to_instance
 from ......page.models import Page
+from ......product.models import ProductVariant
 from .....core.utils import to_global_id_or_none
 from .....tests.utils import get_graphql_content
 from .shared import PRODUCT_VARIANTS_WHERE_QUERY
@@ -344,3 +345,36 @@ def test_product_variants_query_with_attr_slug_and_attribute_value_referenced_pa
     content = get_graphql_content(response)
     product_variants_nodes = content["data"]["productVariants"]["edges"]
     assert len(product_variants_nodes) == expected_count
+
+
+def test_product_variants_query_with_empty_page_slugs_container_matches_all_variants(
+    staff_api_client,
+    product_variant_list,
+    channel_USD,
+):
+    # given: a no-op reference filter - the container declares no
+    # containsAny/containsAll key
+    variables = {
+        "where": {"attributes": [{"value": {"reference": {"pageSlugs": {}}}}]},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_VARIANTS_WHERE_QUERY, variables)
+
+    # then: the pre-3.23 behaviour is retained - a no-op filter matches all
+    # variants.
+    # TODO (main / 3.24): this should match no variants instead - update this
+    # test when removing `legacy_noop_filter_matches_all`.
+    content = get_graphql_content(response)
+    returned_ids = {
+        edge["node"]["id"] for edge in content["data"]["productVariants"]["edges"]
+    }
+    expected_ids = {
+        to_global_id_or_none(variant)
+        for variant in ProductVariant.objects.filter(
+            channel_listings__channel=channel_USD
+        )
+    }
+    assert expected_ids
+    assert returned_ids == expected_ids

@@ -32,7 +32,12 @@ from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection
 from ..core.context import get_database_connection_name
 from ..core.dataloaders import DataLoader
-from ..core.descriptions import ADDED_IN_319, ADDED_IN_321, ADDED_IN_322
+from ..core.descriptions import (
+    ADDED_IN_319,
+    ADDED_IN_321,
+    ADDED_IN_322,
+    ADDED_IN_323,
+)
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import PermissionsField
@@ -141,6 +146,13 @@ class AppManifestExtension(BaseObjectType):
         JSON,
         description="App extension settings." + ADDED_IN_322,
         required=True,
+    )
+
+    identifier = graphene.String(
+        description=(
+            "Extension identifier, unique per app. Null when the app does not "
+            "declare one." + ADDED_IN_323
+        )
     )
 
     class Meta:

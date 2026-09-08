@@ -69,6 +69,8 @@ from ...core.descriptions import (
     ADDED_IN_321,
     ADDED_IN_322,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_PREORDER,
+    DEPRECATED_PREORDER_TYPE_DESCRIPTION,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -288,18 +290,27 @@ class PreorderData(BaseObjectType):
         required=False,
         description="The global preorder threshold for product variant.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
+        deprecation_reason=DEPRECATED_PREORDER,
     )
     global_sold_units = PermissionsField(
         graphene.Int,
         required=True,
         description="Total number of sold product variant during preorder.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
+        deprecation_reason=DEPRECATED_PREORDER,
     )
-    end_date = DateTime(required=False, description="Preorder end date.")
+    end_date = DateTime(
+        required=False,
+        description="Preorder end date.",
+        deprecation_reason=DEPRECATED_PREORDER,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
-        description = "Represents preorder settings for product variant."
+        description = (
+            "Represents preorder settings for product variant."
+            + DEPRECATED_PREORDER_TYPE_DESCRIPTION
+        )
 
     @staticmethod
     def resolve_global_threshold(root, _info):
@@ -461,6 +472,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         PreorderData,
         required=False,
         description="Preorder data for product variant.",
+        deprecation_reason=DEPRECATED_PREORDER,
     )
     created = DateTime(
         required=True,

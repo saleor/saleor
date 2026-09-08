@@ -1,7 +1,7 @@
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
-from ..core.descriptions import ADDED_IN_322
+from ..core.descriptions import ADDED_IN_322, DEPRECATED_LEGACY_PAYMENTS
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.types import BaseEnum, SortInputObjectType
 
@@ -44,6 +44,7 @@ class OrderSortField(BaseEnum):
         deprecations = {
             OrderSortField.CREATION_DATE.name: "Use `CREATED_AT` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             OrderSortField.FULFILLMENT_STATUS.name: "Use `STATUS` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            OrderSortField.PAYMENT.name: DEPRECATED_LEGACY_PAYMENTS,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in deprecations:
             return deprecations[self.name]

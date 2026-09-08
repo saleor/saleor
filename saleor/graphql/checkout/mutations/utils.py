@@ -32,6 +32,7 @@ from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_323
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
 
@@ -54,6 +55,8 @@ class CheckoutLineData:
     quantity_to_update: bool = False
     custom_price: Decimal | None = None
     custom_price_to_update: bool = False
+    custom_price_reason: str | None = None
+    custom_price_reason_to_update: bool = False
     metadata_list: list = field(default_factory=list)
 
 
@@ -358,6 +361,19 @@ def group_lines_input_on_add(
         if "price" in line:
             line_data.custom_price = line["price"]
             line_data.custom_price_to_update = True
+            # Reason is per-operation: it is tied to the price-setting operation.
+            # Setting a price without a reason clears any previous reason.
+            line_data.custom_price_reason = _clean_price_override_reason(
+                line.get("price_override_reason")
+            )
+            line_data.custom_price_reason_to_update = True
+        elif "price_override_reason" in line:
+            # Reason-only update; allowed when the line already has a price override
+            # (enforced later by `validate_price_override_reason`).
+            line_data.custom_price_reason = _clean_price_override_reason(
+                line.get("price_override_reason")
+            )
+            line_data.custom_price_reason_to_update = True
 
     grouped_checkout_lines_data += list(checkout_lines_data_map.values())
     return grouped_checkout_lines_data
@@ -407,6 +423,19 @@ def group_lines_input_data_on_update(
         if "price" in line:
             line_data.custom_price = line["price"]
             line_data.custom_price_to_update = True
+            # Reason is per-operation: it is tied to the price-setting operation.
+            # Setting a price without a reason clears any previous reason.
+            line_data.custom_price_reason = _clean_price_override_reason(
+                line.get("price_override_reason")
+            )
+            line_data.custom_price_reason_to_update = True
+        elif "price_override_reason" in line:
+            # Reason-only update; allowed when the line already has a price override
+            # (enforced later by `validate_price_override_reason`).
+            line_data.custom_price_reason = _clean_price_override_reason(
+                line.get("price_override_reason")
+            )
+            line_data.custom_price_reason_to_update = True
 
         line_data.metadata_list += metadata_list_from_input
 
@@ -420,13 +449,73 @@ def check_permissions_for_custom_prices(app, lines):
     Checkout line custom price can be changed only by app with
     handle checkout permission.
     """
-    if any("price" in line for line in lines) and (
+    if any("price" in line or "price_override_reason" in line for line in lines) and (
         not app or not app.has_perm(CheckoutPermissions.HANDLE_CHECKOUTS)
     ):
         raise PermissionDenied(
             message="Setting the custom price is allowed only for apps with `MANAGE_CHECKOUTS` permission.",
             permissions=[CheckoutPermissions.HANDLE_CHECKOUTS],
         )
+
+
+PRICE_OVERRIDE_REASON_MAX_LENGTH = models.CheckoutLine._meta.get_field(
+    "price_override_reason"
+).max_length
+
+PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION = (
+    "Reason explaining why a custom `price` was set on the line, for debugging "
+    "and auditing. Can be set only by apps with `HANDLE_CHECKOUTS` permission and "
+    "only when the line has a `price` override. Setting a new `price` without a "
+    "reason clears the previous reason. Blank values are stored as no reason. "
+    "Limited to 255 characters; longer values are truncated." + ADDED_IN_323
+)
+
+
+def _clean_price_override_reason(reason: str | None) -> str | None:
+    """Normalize a price override reason.
+
+    Blank strings are treated as no reason and the value is truncated to the
+    stored column's max length so an over-long reason cannot crash on save.
+    """
+    if reason is None:
+        return None
+    reason = reason.strip()[:PRICE_OVERRIDE_REASON_MAX_LENGTH]
+    return reason or None
+
+
+def validate_price_override_reason(
+    checkout_lines_data: list[CheckoutLineData],
+    existing_lines_info: list[CheckoutLineInfo] | None = None,
+):
+    """Reject a price override reason that is not backed by a price override.
+
+    A reason may only be stored when the line has a price override - either set in
+    the same operation or already present on the line.
+    """
+    existing_override_by_line_id = {
+        str(line_info.line.pk): line_info.line.price_override
+        for line_info in (existing_lines_info or [])
+    }
+    for line_data in checkout_lines_data:
+        reason_is_set = (
+            line_data.custom_price_reason_to_update
+            and line_data.custom_price_reason is not None
+        )
+        if not reason_is_set:
+            continue
+        # When the same operation sets the price, only the incoming value counts -
+        # a null price clears the override, so the existing one must not be credited.
+        if line_data.custom_price_to_update:
+            effective_override = line_data.custom_price
+        elif line_data.line_id:
+            effective_override = existing_override_by_line_id.get(line_data.line_id)
+        else:
+            effective_override = None
+        if effective_override is None:
+            raise ValidationError(
+                "Cannot set priceOverrideReason without a price override on the line.",
+                code=CheckoutErrorCode.PRICE_OVERRIDE_REASON_WITHOUT_OVERRIDE.value,
+            )
 
 
 def find_line_id_when_variant_parameter_used(

@@ -24,6 +24,7 @@ from ..core.descriptions import (
     ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import (
     DOC_CATEGORY_AUTH,
@@ -55,6 +56,7 @@ from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
 from .enums import (
+    AccountConfirmModeEnum,
     AnnouncementImportanceEnum,
     GiftCardSettingsExpiryTypeEnum,
     PasswordLoginModeEnum,
@@ -242,6 +244,7 @@ class Shop(graphene.ObjectType):
         ),
         description="List of available payment gateways.",
         required=True,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     available_external_authentications = NonNullList(
         ExternalAuthentication,
@@ -330,6 +333,16 @@ class Shop(graphene.ObjectType):
         description=(
             "This field is used as a default value for `ProductVariant.trackInventory`."
         )
+    )
+    allow_storefront_traffic = graphene.Boolean(
+        description=(
+            "Determines whether the GraphQL API accepts storefront requests "
+            "(anonymous requests and authenticated non-staff customers). When "
+            "disabled, only apps and staff users may call the API directly; all "
+            "other requests are rejected with an HTTP 401 and the "
+            "`STOREFRONT_TRAFFIC_NOT_ALLOWED` error code." + ADDED_IN_323
+        ),
+        required=True,
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)
@@ -470,6 +483,16 @@ class Shop(graphene.ObjectType):
         required=True,
     )
 
+    account_confirm_merge_mode = AccountConfirmModeEnum(
+        description=(
+            "Controls the method used for merging existing orders and giftcards "
+            "when password-based authentication is used. "
+            "Learn more at "
+            "https://docs.saleor.io/upgrade-guides/core/migrate-account-merging"
+        ),
+        required=True,
+    )
+
     # legacy settings
     use_legacy_update_webhook_emission = graphene.Boolean(
         description=(
@@ -604,6 +627,11 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_track_inventory_by_default(_, _info, site):
         return site.settings.track_inventory_by_default
+
+    @staticmethod
+    @load_site_callback
+    def resolve_allow_storefront_traffic(_, _info, site):
+        return site.settings.allow_storefront_traffic
 
     @staticmethod
     @load_site_callback
@@ -771,3 +799,8 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_use_legacy_update_webhook_emission(_, _info, site):
         return site.settings.use_legacy_update_webhook_emission
+
+    @staticmethod
+    @load_site_callback
+    def resolve_account_confirm_merge_mode(_, _info, site):
+        return site.settings.account_confirm_merge_mode

@@ -66,6 +66,7 @@ def test_group_on_add_when_same_variants_in_multiple_lines_and_price_provided():
             quantity_to_update=True,
             custom_price=1.22,
             custom_price_to_update=True,
+            custom_price_reason_to_update=True,
         ),
         CheckoutLineData(
             variant_id="2",
@@ -74,6 +75,7 @@ def test_group_on_add_when_same_variants_in_multiple_lines_and_price_provided():
             quantity_to_update=True,
             custom_price=10,
             custom_price_to_update=True,
+            custom_price_reason_to_update=True,
         ),
     ]
 
@@ -107,6 +109,7 @@ def test_group_on_add_when_same_variants_in_multiple_lines_and_force_new_line():
             quantity_to_update=True,
             custom_price=1.22,
             custom_price_to_update=True,
+            custom_price_reason_to_update=True,
         ),
         CheckoutLineData(
             variant_id="2",
@@ -115,6 +118,7 @@ def test_group_on_add_when_same_variants_in_multiple_lines_and_force_new_line():
             quantity_to_update=True,
             custom_price=10,
             custom_price_to_update=True,
+            custom_price_reason_to_update=True,
         ),
     ]
 
@@ -138,6 +142,7 @@ def test_group_on_update_when_line_id_as_parameter_provided():
             quantity_to_update=True,
             custom_price=1.22,
             custom_price_to_update=True,
+            custom_price_reason_to_update=True,
         ),
         CheckoutLineData(
             variant_id=None,
@@ -146,6 +151,7 @@ def test_group_on_update_when_line_id_as_parameter_provided():
             quantity_to_update=True,
             custom_price=10,
             custom_price_to_update=True,
+            custom_price_reason_to_update=True,
         ),
     ]
 
@@ -174,6 +180,7 @@ def test_group_on_update_when_one_line_and_mixed_parameters_provided(
             quantity_to_update=True,
             custom_price=10,
             custom_price_to_update=True,
+            custom_price_reason_to_update=True,
         )
     ]
     assert expected == group_lines_input_data_on_update(

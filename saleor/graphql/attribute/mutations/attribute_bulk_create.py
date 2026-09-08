@@ -16,7 +16,6 @@ from ....attribute import (
 from ....attribute.error_codes import AttributeBulkCreateErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
-from ....permission.enums import PageTypePermissions, ProductTypePermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
@@ -27,10 +26,10 @@ from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.types import AttributeBulkCreateError, BaseObjectType, NonNullList
 from ...core.utils import WebhookEventInfo, get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..enums import AttributeTypeEnum
 from ..mutations.attribute_create import AttributeCreateInput, AttributeValueCreateInput
 from ..types import Attribute
 from .mixins import AttributeMixin
+from .permissions import get_attribute_type_permissions
 
 ONLY_SWATCH_FIELDS = ["file_url", "content_type", "value"]
 DEPRECATED_ATTR_FIELDS = [
@@ -384,11 +383,19 @@ class AttributeBulkCreate(BaseMutation):
         )
 
         # check permissions based on attribute type
-        permissions: tuple[ProductTypePermissions] | tuple[PageTypePermissions]
-        if cleaned_input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
-            permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
-        else:
-            permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
+        attribute_type = cleaned_input["type"]
+        permissions = get_attribute_type_permissions(attribute_type)
+        if permissions is None:
+            index_error_map[attribute_index].append(
+                AttributeBulkCreateError(
+                    path="type",
+                    message=(
+                        f"No permission is defined for attribute type {attribute_type}."
+                    ),
+                    code=AttributeBulkCreateErrorCode.INVALID.value,
+                )
+            )
+            return None
 
         if not cls.check_permissions(info.context, permissions):
             index_error_map[attribute_index].append(

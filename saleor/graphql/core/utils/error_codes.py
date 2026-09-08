@@ -37,7 +37,7 @@ def get_error_code_from_error(error) -> str:
     code = error.code
     if code in ["required", "blank", "null"]:
         return "required"
-    if code in ["unique", "unique_for_date"]:
+    if code in ["unique", "unique_for_date", "unique_together"]:
         return "unique"
     if (
         code is None

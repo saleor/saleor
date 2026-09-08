@@ -1,6 +1,8 @@
 import graphene
 
+from ....core.tracing import traced_atomic_transaction
 from ....menu import models
+from ....menu.lock_objects import acquire_menu_item_tree_lock
 from ....permission.enums import MenuPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
@@ -29,6 +31,13 @@ class MenuItemDelete(ModelDeleteMutation):
                 description="A menu item was deleted.",
             ),
         ]
+
+    @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **kwargs):
+        """Delete under the tree lock - MPTTModel.delete() renumbers the tree."""
+        with traced_atomic_transaction():
+            acquire_menu_item_tree_lock()
+            return super().perform_mutation(_root, info, **kwargs)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

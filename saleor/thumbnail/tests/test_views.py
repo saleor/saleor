@@ -1,3 +1,4 @@
+import logging
 from unittest.mock import patch
 
 import graphene
@@ -600,3 +601,44 @@ def test_handle_original_image_for_product_media_image_type_with_external_url_bu
     # then
     assert response.status_code == 503
     assert response["Retry-After"] == "60"
+
+
+def test_handle_thumbnail_view_image_exceeds_pixel_limit(
+    client, category_with_image, monkeypatch, caplog
+):
+    # given
+    # Pillow only raises above *twice* `MAX_IMAGE_PIXELS`, so 0 rejects any image and
+    # the tiny fixture image trips the same check a real oversized image would. The
+    # `settings` fixture cannot be used here: `settings.MAX_IMAGE_PIXELS` is applied to
+    # `PIL.Image.MAX_IMAGE_PIXELS` once at app startup.
+    image_name = category_with_image.background_image.name
+    with Image.open(category_with_image.background_image) as stored_image:
+        width, height = stored_image.size
+    # patched only after reading the size above, which would otherwise be rejected too
+    pillow_limit = 0
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", pillow_limit)
+    caplog.set_level(logging.WARNING)
+    size = 128
+    category_id = graphene.Node.to_global_id("Category", category_with_image.pk)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{category_id}/{size}/")
+
+    # then
+    assert response.status_code == 400
+    assert response.content == b"Image is too large."
+    assert Thumbnail.objects.count() == thumbnail_count
+
+    # the rejection must be traceable back to both the stored file and the object,
+    # so an operator can find every affected row from the logs alone
+    assert len(caplog.records) == 2
+    decode_record, view_record = caplog.records
+    assert decode_record.image_source == image_name
+    assert decode_record.pillow_error == (
+        f"Image size ({width * height} pixels) exceeds limit of "
+        f"{2 * pillow_limit} pixels, could be decompression bomb DOS attack."
+    )
+    assert view_record.image_source == image_name
+    assert view_record.object_type == "Category"
+    assert view_record.object_pk == str(category_with_image.pk)

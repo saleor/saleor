@@ -73,7 +73,7 @@ class PageCreate(DeprecatedModelMutation):
         attributes_qs = page_type.page_attributes
         attributes_qs = cast(QuerySet, attributes_qs)
         cleaned_attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, is_page_attributes=True
+            attributes, attributes_qs, error_class=PageErrorCode
         )
         return cleaned_attributes
 

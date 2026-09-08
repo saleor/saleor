@@ -2,6 +2,7 @@ import datetime
 import json
 import time
 import warnings
+from functools import partial
 from unittest import mock
 from unittest.mock import MagicMock, Mock, call, patch
 
@@ -473,6 +474,74 @@ def test_get_or_create_user_from_payload_creates_user_with_sub(
     assert not user_from_payload.has_usable_password()
     assert user_from_payload.is_active
     assert user_from_payload.is_confirmed
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_does_not_match_orders_for_existing_user(
+    mocked_cache_get,
+    _mocked_cache_set,
+    customer_user,
+    customer_user2,
+    order,
+    gift_card,
+):
+    """When a user already exists, it should NOT merge anonymous objects."""
+
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # This user has the email address that 'login_as_user' user will use to login
+    other_user = customer_user2
+    other_email = other_user.email
+
+    # The user that we are logging as
+    login_as_user = customer_user
+    original_email = login_as_user.email
+    login_as_user.private_metadata = {"oidc:https://saleor.io/oauth": "oauth|1234"}
+    login_as_user.save(update_fields=("private_metadata",))
+    assert other_email != original_email
+
+    perform_get_or_create = partial(
+        get_or_create_user_from_payload,
+        payload={"sub": "oauth|1234", "email": other_email},
+        oauth_url="https://saleor.io/oauth",
+    )
+
+    # Create anonymous objects assigned to the targeted email
+    order.user = gift_card.created_by = None
+    order.user_email = gift_card.created_by_email = other_email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+    order.save(update_fields=["user", "user_email"])
+
+    # Perform the call - it shouldn't attempt to associate the anonymous objects
+    user_from_payload, created, _updated = perform_get_or_create()
+    assert created is False, "should have found the user already exists"
+
+    # Ensure we indeed did not merge the account with 'other_user'
+    login_as_user.refresh_from_db(fields=("email",))
+    assert login_as_user.email == original_email, "shouldn't have changed the email"
+
+    order.refresh_from_db(fields=("user",))
+    assert order.user is None, "shouldn't have associated the anonymous order"
+    gift_card.refresh_from_db(fields=("created_by",))
+    assert gift_card.created_by is None, (
+        "shouldn't have associated the anonymous giftcard"
+    )
+
+    # Sanity check: if the user doesn't exist in DB, then it should merge
+    # the anonymous objects
+    other_user.delete()
+    user_from_payload, created, _updated = perform_get_or_create()
+
+    # Ensure we now updated the email address as it's no longer taken
+    login_as_user.refresh_from_db(fields=("email",))
+    assert login_as_user.email == other_email, "should have changed the email"
+
+    assert created is False, "shouldn't have created a new user"
+    order.refresh_from_db(fields=("user",))
+    assert order.user == user_from_payload, "should have merged the order"
+    gift_card.refresh_from_db(fields=("created_by",))
+    assert gift_card.created_by is None, "shouldn't have merged the giftcard"
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
@@ -1131,25 +1200,44 @@ def test_update_user_details_no_user_with_new_email_in_db(
 @patch("saleor.plugins.openid_connect.utils.match_orders_with_new_user")
 @patch("saleor.plugins.openid_connect.utils.logger")
 def test_update_user_details_user_with_new_email_in_db(
-    mock_logger, mock_match_orders_with_new_user, customer_user, customer_user2
+    mock_logger,
+    mock_match_orders_with_new_user,
+    customer_user,
+    customer_user2,
+    order,
+    gift_card,
 ):
+    """When a user already exists, it shouldn't merge anonymous objects."""
+
+    existing_user = customer_user2
+    existing_email = existing_user.email
+
+    update_details = partial(
+        _update_user_details,
+        user=customer_user,
+        oidc_key="test oidc_key",
+        user_email=existing_email,
+        user_first_name=customer_user.first_name,
+        user_last_name=customer_user.last_name,
+        sub="test oidc_sub",
+        last_login=customer_user.last_login,
+    )
+
+    # Create anonymous objects assigned to the targeted email
+    order.user = gift_card.created_by = None
+    order.user_email = gift_card.created_by_email = existing_email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+    order.save(update_fields=["user", "user_email"])
+
     # given
     assert customer_user.email != customer_user2.email
 
     # when
-    _update_user_details(
-        customer_user,
-        "test oidc_key",
-        customer_user2.email,
-        customer_user.first_name,
-        customer_user.last_name,
-        "test oidc_sub",
-        customer_user.last_login,
-    )
+    update_details()
 
     # then
     customer_user.refresh_from_db()
-    assert customer_user.email != customer_user2.email
+    assert customer_user.email != existing_email
     assert mock_logger.mock_calls == [
         call.warning(
             "Unable to update user email as the new one already exists in DB",
@@ -1157,6 +1245,14 @@ def test_update_user_details_user_with_new_email_in_db(
         )
     ]
     mock_match_orders_with_new_user.assert_not_called()
+
+    # Sanity check: if the user doesn't exist in DB, then it should merge
+    # the anonymous objects
+    existing_user.delete()
+    update_details()
+    customer_user.refresh_from_db(fields=("email",))
+    assert customer_user.email == existing_email, "should have changed the email"
+    mock_match_orders_with_new_user.assert_called_once_with(customer_user)
 
 
 @patch(
@@ -1251,3 +1347,25 @@ def test_update_user_details_nothing_changed(
     assert customer_user.first_name == first_name
     assert updated is False
     update_user_search_vector_mock.assert_not_called()
+
+
+@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
+@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+def test_get_or_create_user_from_payload_assigns_default_customer_type(
+    mocked_cache_get, mocked_cache_set, default_customer_type
+):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    customer_email = "email.customer@example.com"
+    mocked_cache_get.side_effect = lambda cache_key: None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    assert created is True
+    assert user_from_payload.customer_type == default_customer_type

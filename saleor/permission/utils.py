@@ -56,10 +56,11 @@ def _get_result_of_permissions_checks(
 
     requestor = get_user_or_app_from_context(context)
 
-    perm_checks_results = []
-    if requestor and permissions:
-        perm_checks_results = [requestor.has_perm(perm) for perm in permissions]
-    return perm_checks_results
+    if not permissions:
+        return []
+    if not requestor:
+        return [False]
+    return [requestor.has_perm(perm) for perm in permissions]
 
 
 def _get_result_of_authorization_filters_checks(
