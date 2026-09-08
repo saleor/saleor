@@ -36,6 +36,7 @@ from ..permission.enums import (
     ProductPermissions,
     ProductTypePermissions,
 )
+from ..permission.read_permissions import expand_read_permissions
 from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 from ..tax.models import TaxClass
 from . import (
@@ -45,13 +46,15 @@ from . import (
     managers,
 )
 
-ALL_PRODUCTS_PERMISSIONS = [
-    # List of permissions, where each of them allows viewing all products
-    # (including unpublished).
-    OrderPermissions.MANAGE_ORDERS,
-    DiscountPermissions.MANAGE_DISCOUNTS,
-    ProductPermissions.MANAGE_PRODUCTS,
-]
+ALL_PRODUCTS_PERMISSIONS = expand_read_permissions(
+    [
+        # List of permissions, where each of them allows viewing all products
+        # (including unpublished).
+        OrderPermissions.MANAGE_ORDERS,
+        DiscountPermissions.MANAGE_DISCOUNTS,
+        ProductPermissions.MANAGE_PRODUCTS,
+    ]
+)
 
 
 class Category(ModelWithMetadata, MPTTModel, SeoModel):
@@ -158,6 +161,10 @@ class ProductType(ModelWithMetadata):
                 ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.codename,
                 "Manage product types and attributes.",
             ),
+            (
+                ProductTypePermissions.READ_PRODUCT_TYPES_AND_ATTRIBUTES.codename,
+                "Read product types and attributes.",
+            ),
         )
         indexes = [
             *ModelWithMetadata.Meta.indexes,
@@ -226,6 +233,7 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         ordering = ("slug",)
         permissions = (
             (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
+            (ProductPermissions.READ_PRODUCTS.codename, "Read products."),
         )
         indexes = [
             GinIndex(

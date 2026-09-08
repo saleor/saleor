@@ -11,6 +11,7 @@ from ...core.units import MeasurementUnits
 from ...core.utils.translations import Translation
 from ...page.models import Page, PageType
 from ...permission.enums import PageTypePermissions, ProductTypePermissions
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import Category, Collection, Product, ProductType, ProductVariant
 from .. import AttributeEntityType, AttributeInputType, AttributeType
@@ -41,10 +42,12 @@ class BaseAttributeQuerySet(models.QuerySet[T]):
     def get_visible_to_user(self, requestor: Union["User", "App", None]):
         if has_one_of_permissions(
             requestor,
-            [
-                PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
-                ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
-            ],
+            expand_read_permissions(
+                [
+                    PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+                    ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+                ]
+            ),
         ):
             return self.all()
         return self.get_public_attributes()
