@@ -10166,6 +10166,13 @@ input ProductVariantSortingInput @doc(category: "Products") {
 enum ProductVariantSortField @doc(category: "Products") {
   """Sort product variants by last modification date."""
   LAST_MODIFIED_AT
+
+  """
+  Sort product variants by ID.
+  
+  Added in Saleor 3.23.
+  """
+  ID
 }
 
 input MediaSortingInput @doc(category: "Products") {
@@ -12115,6 +12122,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   transactions: [TransactionItem!]!
 
+  """
+  Payment history of the order, with one entry per payment transaction that moved any money. Unlike `transactions`, it requires no permission and exposes only the payment method and the amounts, so it can be used to display payment details to the customer without exposing internal information.
+  
+  Added in Saleor 3.23.
+  """
+  transactionSummaries: [TransactionSummary!]!
+
   """List of payments for the order."""
   payments: [Payment!]! @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
 
@@ -13054,6 +13068,49 @@ enum OrderChargeStatusEnum @doc(category: "Orders") {
 }
 
 """
+Customer-facing summary of a single payment transaction. Exposes the payment method and the amounts, without the identifiers, events and actions available on `TransactionItem`.
+
+Added in Saleor 3.23.
+"""
+type TransactionSummary @doc(category: "Payments") {
+  """Date and time at which payment transaction was created."""
+  createdAt: DateTime!
+
+  """
+  The payment method used for this transaction. As this field is public, card number digits and expiration date are stripped: `firstDigits`, `lastDigits`, `expMonth` and `expYear` of `CardPaymentMethodDetails` are always `null` here. Read them through `Order.transactions` instead, which requires MANAGE_ORDERS or HANDLE_PAYMENTS.
+  """
+  paymentMethodDetails: PaymentMethodDetails
+
+  """Total amount authorized for this payment."""
+  authorizedAmount: Money!
+
+  """Total amount of ongoing authorization requests for the transaction."""
+  authorizePendingAmount: Money!
+
+  """Total amount charged for this payment."""
+  chargedAmount: Money!
+
+  """Total amount of ongoing charge requests for the transaction."""
+  chargePendingAmount: Money!
+
+  """Total amount refunded for this payment."""
+  refundedAmount: Money!
+
+  """Total amount canceled for this payment."""
+  canceledAmount: Money!
+}
+
+"""
+Represents a payment method used for a transaction.
+
+Added in Saleor 3.22.
+"""
+interface PaymentMethodDetails {
+  """Name of the payment method."""
+  name: String!
+}
+
+"""
 Represents a payment of a given type.
 
 The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.
@@ -13711,16 +13768,6 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
 }
 
 union UserOrApp = User | App
-
-"""
-Represents a payment method used for a transaction.
-
-Added in Saleor 3.22.
-"""
-interface PaymentMethodDetails {
-  """Name of the payment method."""
-  name: String!
-}
 
 """
 Determine a current authorize status for checkout.
