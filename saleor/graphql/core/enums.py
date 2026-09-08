@@ -18,6 +18,7 @@ from ...core.units import (
     WeightUnits,
 )
 from ...csv import error_codes as csv_error_codes
+from ...discount import VoucherRejectionReason as voucher_rejection_reason
 from ...discount import error_codes as discount_error_codes
 from ...giftcard import error_codes as giftcard_error_codes
 from ...invoice import error_codes as invoice_error_codes
@@ -279,6 +280,12 @@ VoucherCodeBulkDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     discount_error_codes.VoucherCodeBulkDeleteErrorCode
 )
 VoucherCodeBulkDeleteErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
+
+VoucherRejectionReason: Final[graphene.Enum] = graphene.Enum.from_enum(
+    voucher_rejection_reason,
+    description="The specific reason why a voucher code cannot be applied.",
+)
+VoucherRejectionReason.doc_category = DOC_CATEGORY_DISCOUNTS
 
 PluginErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     plugin_error_codes.PluginErrorCode
