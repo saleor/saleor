@@ -94,6 +94,16 @@ def permission_impersonate_user():
 
 
 @pytest.fixture
+def permission_read_products():
+    return Permission.objects.get(codename="read_products")
+
+
+@pytest.fixture
+def permission_read_product_types_and_attributes():
+    return Permission.objects.get(codename="read_product_types_and_attributes")
+
+
+@pytest.fixture
 def permission_read_users():
     return Permission.objects.get(codename="read_users")
 
