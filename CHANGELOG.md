@@ -51,6 +51,7 @@ permissions.
 - Add customer restriction for gift cards: `assignedTo`/`assignedToEmail` fields, `giftCardAssignUser`/`giftCardUnassignUser` mutations, `assignedTo` on `GiftCardCreateInput`, and `assignedTo` gift card filter. Restricted cards can only be used by the assigned customer at checkout, in both the `checkoutAddPromoCode` and the `transactionInitialize` (`saleor.io.gift-card-payment-gateway`) flows. A card used by a payment transaction cannot be assigned or reassigned.
 - Added `Order.transactionSummaries` field returning a `TransactionSummary` per payment transaction that moved any money. Unlike `Order.transactions` it requires no permission, so storefronts can show the payment history of an order; it exposes only `createdAt`, `paymentMethodDetails` and the amounts, with the card digits and expiration date stripped.
 - Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
+- Added `ID` sort field to `ProductVariantSortField`. Sorting by the variant primary key gives a stable order and stable cursors, unlike `LAST_MODIFIED_AT`, whose value changes when a variant is updated during pagination.
 
 ### Webhooks
 
