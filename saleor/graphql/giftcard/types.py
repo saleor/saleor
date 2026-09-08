@@ -14,6 +14,8 @@ from ...permission.enums import (
     GiftcardPermissions,
     OrderPermissions,
 )
+from ...permission.read_permissions import expand_read_permissions
+from ...permission.utils import has_one_of_permissions
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import (
     check_is_owner_or_has_one_of_perms,
@@ -487,8 +489,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         requestor = get_user_or_app_from_context(info.context)
         if requestor:
             requestor_is_owner = requestor.pk in owner_ids
-            if requestor_is_owner or requestor.has_perm(
-                GiftcardPermissions.MANAGE_GIFT_CARD
+            if requestor_is_owner or has_one_of_permissions(
+                requestor,
+                expand_read_permissions([GiftcardPermissions.MANAGE_GIFT_CARD]),
             ):
                 return root.code
         return PermissionDenied(
@@ -536,7 +539,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         def _resolve_created_by_email(user):
             requester = get_user_or_app_from_context(info.context)
             if is_owner_or_has_one_of_perms(
-                requester, user, GiftcardPermissions.MANAGE_GIFT_CARD
+                requester,
+                user,
+                *expand_read_permissions([GiftcardPermissions.MANAGE_GIFT_CARD]),
             ):
                 return user.email if user else root.created_by_email
             return obfuscate_email(user.email if user else root.created_by_email)
@@ -555,7 +560,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         def _resolve_used_by_email(user):
             requester = get_user_or_app_from_context(info.context)
             if is_owner_or_has_one_of_perms(
-                requester, user, GiftcardPermissions.MANAGE_GIFT_CARD
+                requester,
+                user,
+                *expand_read_permissions([GiftcardPermissions.MANAGE_GIFT_CARD]),
             ):
                 return user.email if user else root.used_by_email
             return obfuscate_email(user.email if user else root.used_by_email)
@@ -596,7 +603,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
             # holding MANAGE_USERS. Fetching the full User object is stricter and
             # is gated behind MANAGE_USERS in `resolve_assigned_to`. See ADR 0005.
             if is_owner_or_has_one_of_perms(
-                requestor, user, GiftcardPermissions.MANAGE_GIFT_CARD
+                requestor,
+                user,
+                *expand_read_permissions([GiftcardPermissions.MANAGE_GIFT_CARD]),
             ):
                 return user.email if user else root.assigned_to_email
             return obfuscate_email(user.email if user else root.assigned_to_email)
@@ -636,8 +645,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     def resolve_events(root: models.GiftCard, info, **kwargs):
         def filter_events(events):
             requestor = get_user_or_app_from_context(info.context)
-            has_manage_gift_card = requestor and requestor.has_perm(
-                GiftcardPermissions.MANAGE_GIFT_CARD
+            has_manage_gift_card = requestor and has_one_of_permissions(
+                requestor,
+                expand_read_permissions([GiftcardPermissions.MANAGE_GIFT_CARD]),
             )
             if not has_manage_gift_card:
                 events = [

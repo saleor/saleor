@@ -342,6 +342,10 @@ class Promotion(ModelWithMetadata):
                 DiscountPermissions.MANAGE_DISCOUNTS.codename,
                 "Manage promotions and vouchers.",
             ),
+            (
+                DiscountPermissions.READ_DISCOUNTS.codename,
+                "Read promotions and vouchers.",
+            ),
         )
         indexes = [
             BTreeIndex(fields=["start_date"], name="start_date_idx"),

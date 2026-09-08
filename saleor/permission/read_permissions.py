@@ -19,6 +19,8 @@ from collections.abc import Iterable
 from .enums import (
     AccountPermissions,
     BasePermissionEnum,
+    DiscountPermissions,
+    GiftcardPermissions,
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
@@ -32,6 +34,8 @@ MANAGE_TO_READ_PERMISSION_MAP: dict[BasePermissionEnum, BasePermissionEnum] = {
     AccountPermissions.MANAGE_USERS: AccountPermissions.READ_USERS,
     AccountPermissions.MANAGE_STAFF: AccountPermissions.READ_STAFF,
     OrderPermissions.MANAGE_ORDERS: OrderPermissions.READ_ORDERS,
+    DiscountPermissions.MANAGE_DISCOUNTS: DiscountPermissions.READ_DISCOUNTS,
+    GiftcardPermissions.MANAGE_GIFT_CARD: GiftcardPermissions.READ_GIFT_CARD,
     ProductPermissions.MANAGE_PRODUCTS: ProductPermissions.READ_PRODUCTS,
     ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES: (
         ProductTypePermissions.READ_PRODUCT_TYPES_AND_ATTRIBUTES
