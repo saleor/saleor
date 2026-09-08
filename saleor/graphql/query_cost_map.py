@@ -380,6 +380,8 @@ COST_MAP = {
     },
     "ProductVariantChannelListing": {
         "channel": {"complexity": 1},
+        "pricing": {"complexity": 1},
+        "quantityAvailable": {"complexity": 1},
     },
     "Sale": {
         "categories": {"complexity": 1, "multipliers": ["first", "last"]},
