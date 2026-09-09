@@ -98,6 +98,8 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         create_products_by_schema(self.placeholders_dir, create_images)
         self.stdout.write("Created products")
+        for msg in create_tax_classes():
+            self.stdout.write(msg)
         for msg in create_catalogue_promotions(2):
             self.stdout.write(msg)
         for msg in create_order_promotions(2):
@@ -115,8 +117,6 @@ class Command(BaseCommand):
         for msg in create_checkout_with_preorders():
             self.stdout.write(msg)
         for msg in create_checkout_with_custom_prices():
-            self.stdout.write(msg)
-        for msg in create_tax_classes():
             self.stdout.write(msg)
         for msg in create_checkout_with_same_variant_in_multiple_lines():
             self.stdout.write(msg)
