@@ -8,20 +8,21 @@ from ...giftcard.models import GiftCard
 
 
 class InvalidPromoCode(ValidationError):
-    def __init__(self, message=None, voucher_rejection=None, **kwargs):
+    def __init__(self, message=None, promo_code_rejection=None, **kwargs):
         """Raise a generic invalid promo code error.
 
-        `voucher_rejection` carries a `VoucherRejection` describing why a voucher
-        code was rejected; it is absent for gift card codes.
+        `promo_code_rejection` carries a `PromoCodeRejection` describing why the
+        code was rejected, for voucher and gift card codes alike.
         """
+        self.rejection = promo_code_rejection
         if message is None:
             message = {
                 "promo_code": ValidationError(
                     "Promo code is invalid",
                     code=GiftCardErrorCode.INVALID.value,
                     params=(
-                        {"voucher_details": voucher_rejection}
-                        if voucher_rejection
+                        {"promo_code_details": promo_code_rejection}
+                        if promo_code_rejection
                         else None
                     ),
                 )

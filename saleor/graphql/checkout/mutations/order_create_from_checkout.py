@@ -28,6 +28,10 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
+from ...core.types.common import (
+    PROMO_CODE_DETAILS_DESCRIPTION,
+    PromoCodeRejectionDetails,
+)
 from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...order.types import Order
@@ -49,6 +53,11 @@ class OrderCreateFromCheckoutError(Error):
     lines = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of line Ids which cause the error.",
+        required=False,
+    )
+    promo_code_details = graphene.Field(
+        PromoCodeRejectionDetails,
+        description=PROMO_CODE_DETAILS_DESCRIPTION,
         required=False,
     )
 
@@ -244,6 +253,7 @@ class OrderCreateFromCheckout(BaseMutation):
                     "voucher_code": ValidationError(
                         "Voucher not applicable",
                         code=code,
+                        params={"promo_code_details": e.rejection},
                     )
                 }
             ) from e

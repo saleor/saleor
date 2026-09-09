@@ -29,8 +29,8 @@ from ..core.utils.url import validate_storefront_url
 from ..discount import (
     DiscountType,
     DiscountValueType,
-    VoucherRejection,
-    VoucherRejectionReason,
+    PromoCodeRejection,
+    PromoCodeRejectionReason,
 )
 from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils.promotion import get_sale_id
@@ -125,7 +125,7 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
 
     if checkout.voucher_code and not voucher_code:
         msg = "Voucher expired in meantime. Order placement aborted."
-        raise NotApplicable(msg, reason=VoucherRejectionReason.NO_LONGER_AVAILABLE)
+        raise NotApplicable(msg, reason=PromoCodeRejectionReason.NO_LONGER_AVAILABLE)
 
     if not voucher_code or not voucher:
         return {}
@@ -977,8 +977,8 @@ def _prepare_checkout_with_transactions(
                     "Voucher not applicable",
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                     params={
-                        "voucher_details": VoucherRejection(
-                            reason=VoucherRejectionReason.NO_LONGER_AVAILABLE
+                        "promo_code_details": PromoCodeRejection(
+                            reason=PromoCodeRejectionReason.NO_LONGER_AVAILABLE
                         )
                     },
                 )
@@ -1045,7 +1045,7 @@ def _get_order_data(
         raise ValidationError(
             "Voucher not applicable",
             code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
-            params={"voucher_details": e.rejection},
+            params={"promo_code_details": e.rejection},
         ) from e
     except GiftCardNotApplicable as e:
         raise ValidationError(e.message, code=e.code) from e
@@ -1822,7 +1822,7 @@ def complete_checkout_with_transaction(
                 "voucher_code": ValidationError(
                     "Voucher not applicable",
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
-                    params={"voucher_details": e.rejection},
+                    params={"promo_code_details": e.rejection},
                 )
             }
         ) from e

@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from ..core.exceptions import GiftCardNotApplicable
 from ..core.taxes import TaxError
+from ..discount import PromoCodeRejection, PromoCodeRejectionReason
 from ..giftcard.models import GiftCard
 from ..payment import gateway
 from ..payment import models as payment_models
@@ -190,6 +191,11 @@ def validate_checkout(
                 "voucher_code": ValidationError(
                     "Voucher not applicable",
                     code=OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                    params={
+                        "promo_code_details": PromoCodeRejection(
+                            reason=PromoCodeRejectionReason.NO_LONGER_AVAILABLE
+                        )
+                    },
                 )
             }
         )

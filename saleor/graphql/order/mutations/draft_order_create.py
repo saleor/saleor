@@ -22,7 +22,8 @@ from ....order.utils import (
     recalculate_order_weight,
     update_order_display_gross_prices,
 )
-from ....permission.enums import OrderPermissions
+from ....permission.enums import DiscountPermissions, OrderPermissions
+from ....permission.utils import one_of_permissions_or_auth_filter_required
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
@@ -243,7 +244,13 @@ class DraftOrderCreate(
         channel = cleaned_input.pop("channel_id")
         cleaned_input["channel"] = channel
 
-        draft_order_cleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
+        draft_order_cleaner.clean_voucher_and_voucher_code(
+            channel,
+            cleaned_input,
+            disclose_private_reasons=one_of_permissions_or_auth_filter_required(
+                info.context, [DiscountPermissions.MANAGE_DISCOUNTS]
+            ),
+        )
 
         if channel:
             cleaned_input["currency"] = channel.currency_code

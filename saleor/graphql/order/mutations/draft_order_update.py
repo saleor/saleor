@@ -19,7 +19,8 @@ from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ....order.utils import invalidate_order_prices
-from ....permission.enums import OrderPermissions
+from ....permission.enums import DiscountPermissions, OrderPermissions
+from ....permission.utils import one_of_permissions_or_auth_filter_required
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.mixins import AddressMetadataMixin
@@ -128,7 +129,13 @@ class DraftOrderUpdate(
         cleaned_input.update(shipping_method_input)
 
         channel = instance.channel or cleaned_input.get("channel_id")
-        draft_order_cleaner.clean_voucher_and_voucher_code(channel, cleaned_input)
+        draft_order_cleaner.clean_voucher_and_voucher_code(
+            channel,
+            cleaned_input,
+            disclose_private_reasons=one_of_permissions_or_auth_filter_required(
+                info.context, [DiscountPermissions.MANAGE_DISCOUNTS]
+            ),
+        )
 
         cls.clean_addresses(
             info, instance, cleaned_input, shipping_address, billing_address

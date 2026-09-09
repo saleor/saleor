@@ -18,7 +18,7 @@ from ...core.units import (
     WeightUnits,
 )
 from ...csv import error_codes as csv_error_codes
-from ...discount import VoucherRejectionReason as voucher_rejection_reason
+from ...discount import PromoCodeRejectionReason as promo_code_rejection_reason
 from ...discount import error_codes as discount_error_codes
 from ...giftcard import error_codes as giftcard_error_codes
 from ...invoice import error_codes as invoice_error_codes
@@ -281,11 +281,92 @@ VoucherCodeBulkDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 VoucherCodeBulkDeleteErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
 
-VoucherRejectionReason: Final[graphene.Enum] = graphene.Enum.from_enum(
-    voucher_rejection_reason,
-    description="The specific reason why a voucher code cannot be applied.",
+
+_RESTRICTED_REASON_NOTE = (
+    " Requires one of the following permissions: MANAGE_DISCOUNTS; "
+    "reported as `NOT_FOUND` to any other caller."
 )
-VoucherRejectionReason.doc_category = DOC_CATEGORY_DISCOUNTS
+
+
+def promo_code_rejection_reason_description(enum):
+    if enum is None:
+        return (
+            "The specific reason why a promo code cannot be applied. "
+            "Some reasons would confirm the existence of a voucher the caller "
+            "cannot otherwise see, and are reported as `NOT_FOUND` unless the "
+            "caller holds MANAGE_DISCOUNTS."
+        )
+    return {
+        promo_code_rejection_reason.NOT_FOUND: (
+            "No promo code matches the given code. Also reported in place of a "
+            "reason the caller is not permitted to see, so this value does not "
+            "prove that no voucher or gift card exists with that code."
+        ),
+        promo_code_rejection_reason.CODE_DEACTIVATED: (
+            "The code is inactive, e.g. a single-use code that was already used."
+        ),
+        promo_code_rejection_reason.NOT_STARTED: (
+            "The voucher's start date is in the future." + _RESTRICTED_REASON_NOTE
+        ),
+        promo_code_rejection_reason.EXPIRED: "The voucher's end date is in the past.",
+        promo_code_rejection_reason.USAGE_LIMIT_REACHED: (
+            "The voucher's total usage limit, summed over all of its codes, "
+            "is exhausted."
+        ),
+        promo_code_rejection_reason.NOT_AVAILABLE_IN_CHANNEL: (
+            "The voucher is not assigned to this channel, or the channel is "
+            "inactive." + _RESTRICTED_REASON_NOTE
+        ),
+        promo_code_rejection_reason.MIN_SPENT_NOT_REACHED: (
+            "The order value is below the voucher's minimum. "
+            "Populates the `minSpent` field."
+        ),
+        promo_code_rejection_reason.MIN_QUANTITY_NOT_REACHED: (
+            "The order contains fewer items than the voucher's minimum. "
+            "Populates the `minCheckoutItemsQuantity` field."
+        ),
+        promo_code_rejection_reason.ALREADY_USED_BY_CUSTOMER: (
+            "The voucher is limited to one use per customer and this customer "
+            "already used it. Reported only to the authenticated owner of the "
+            "email address; for any other caller the whole `promoCodeDetails` "
+            "field is null, as the address on a checkout is otherwise "
+            "unverified."
+        ),
+        promo_code_rejection_reason.CUSTOMER_EMAIL_REQUIRED: (
+            "The voucher is limited to one use per customer, so a customer email "
+            "must be set on the checkout before it can be applied."
+        ),
+        promo_code_rejection_reason.STAFF_ONLY: (
+            "The voucher is limited to staff customers."
+        ),
+        promo_code_rejection_reason.SHIPPING_NOT_REQUIRED: (
+            "The voucher applies to shipping, but nothing in the order requires "
+            "shipping."
+        ),
+        promo_code_rejection_reason.DELIVERY_METHOD_NOT_SET: (
+            "The voucher applies to shipping, but no delivery method is selected "
+            "yet. Selecting one may make the voucher applicable."
+        ),
+        promo_code_rejection_reason.COUNTRY_NOT_ELIGIBLE: (
+            "The voucher applies to shipping, but the shipping address country is "
+            "not covered by the voucher. Populates the `countries` field."
+        ),
+        promo_code_rejection_reason.NO_ELIGIBLE_LINES: (
+            "The voucher applies to specific products, collections or categories, "
+            "and none of the ordered lines match."
+        ),
+        promo_code_rejection_reason.NO_LONGER_AVAILABLE: (
+            "The voucher was applicable when the code was added, but is no longer "
+            "available."
+        ),
+    }.get(enum)
+
+
+PromoCodeRejectionReason: Final[graphene.Enum] = graphene.Enum.from_enum(
+    promo_code_rejection_reason,
+    description=promo_code_rejection_reason_description,
+)
+PromoCodeRejectionReason.doc_category = DOC_CATEGORY_DISCOUNTS
 
 PluginErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     plugin_error_codes.PluginErrorCode

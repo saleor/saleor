@@ -46,12 +46,16 @@ class VoucherType:
     ]
 
 
-class VoucherRejectionReason(Enum):
-    """Specific reason why a voucher code cannot be applied.
+class PromoCodeRejectionReason(Enum):
+    """Specific reason why a promo code cannot be applied.
 
     Complements the coarse GraphQL error codes (`INVALID`,
     `VOUCHER_NOT_APPLICABLE`), which stay unchanged, so a storefront can render
     a precise message instead of a generic "voucher is not applicable".
+
+    Most values describe voucher conditions, but the vocabulary is shared with
+    gift cards so that a rejection is reported the same way whichever kind of
+    promo code was submitted -- the field name alone must not reveal which.
     """
 
     NOT_FOUND = "not_found"
@@ -73,10 +77,10 @@ class VoucherRejectionReason(Enum):
 
 
 @dataclass
-class VoucherRejection:
-    """Structured details about why a voucher code was rejected."""
+class PromoCodeRejection:
+    """Structured details about why a promo code was rejected."""
 
-    reason: VoucherRejectionReason
+    reason: PromoCodeRejectionReason
     min_spent: Money | None = None
     min_checkout_items_quantity: int | None = None
     countries: list[str] | None = None

@@ -357,6 +357,7 @@ def _validate_voucher(
                 ValidationError(
                     message=e.args[0],
                     code=OrderErrorCode.INVALID_VOUCHER.value,
+                    params={"promo_code_details": e.rejection},
                 )
             )
 

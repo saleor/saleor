@@ -52,7 +52,7 @@ from .....shipping.models import ShippingMethod
 from .....tests import race_condition
 from .....warehouse.models import Reservation, Stock, WarehouseClickAndCollectOption
 from .....warehouse.tests.utils import get_available_quantity_for_stock
-from ....core.enums import VoucherRejectionReason
+from ....core.enums import PromoCodeRejectionReason
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 
@@ -125,7 +125,7 @@ MUTATION_CHECKOUT_COMPLETE = """
                 message,
                 variants,
                 code
-                voucherDetails {
+                promoCodeDetails {
                     reason
                 }
             }
@@ -1102,8 +1102,8 @@ def test_checkout_with_voucher_not_applicable(
     assert data["errors"][0]["field"] == "voucherCode"
     assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
     assert (
-        data["errors"][0]["voucherDetails"]["reason"]
-        == VoucherRejectionReason.NO_LONGER_AVAILABLE.name
+        data["errors"][0]["promoCodeDetails"]["reason"]
+        == PromoCodeRejectionReason.NO_LONGER_AVAILABLE.name
     )
 
 
@@ -1151,8 +1151,8 @@ def test_checkout_with_voucher_inactive_code(
     assert data["errors"][0]["field"] == "voucherCode"
     assert data["errors"][0]["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
     assert (
-        data["errors"][0]["voucherDetails"]["reason"]
-        == VoucherRejectionReason.NO_LONGER_AVAILABLE.name
+        data["errors"][0]["promoCodeDetails"]["reason"]
+        == PromoCodeRejectionReason.NO_LONGER_AVAILABLE.name
     )
 
 

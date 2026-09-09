@@ -11,6 +11,8 @@ from ....checkout.utils import (
     add_promo_code_to_checkout,
     invalidate_checkout,
 )
+from ....permission.enums import DiscountPermissions
+from ....permission.utils import one_of_permissions_or_auth_filter_required
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -105,6 +107,9 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info,
             lines,
             promo_code,
+            disclose_private_reasons=one_of_permissions_or_auth_filter_required(
+                info.context, [DiscountPermissions.MANAGE_DISCOUNTS]
+            ),
         )
 
         shipping_update_fields = mark_checkout_deliveries_as_stale_if_needed(

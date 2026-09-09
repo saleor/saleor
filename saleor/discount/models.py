@@ -23,12 +23,12 @@ from ..permission.enums import DiscountPermissions
 from . import (
     DiscountType,
     DiscountValueType,
+    PromoCodeRejection,
+    PromoCodeRejectionReason,
     PromotionEvents,
     PromotionType,
     RewardType,
     RewardValueType,
-    VoucherRejection,
-    VoucherRejectionReason,
     VoucherType,
 )
 
@@ -43,7 +43,7 @@ class NotApplicable(ValueError):
     price or the order quantity is below the minimum quantity of items.
     Minimum price will be available as the `min_spent` attribute.
     Minimum quantity will be available as the `min_checkout_items_quantity` attribute.
-    `reason` carries a `VoucherRejectionReason` value so the API can report the
+    `reason` carries a `PromoCodeRejectionReason` value so the API can report the
     precise cause; it is empty for discounts other than vouchers.
     """
 
@@ -62,11 +62,11 @@ class NotApplicable(ValueError):
         self.countries = countries
 
     @property
-    def rejection(self) -> VoucherRejection | None:
+    def rejection(self) -> PromoCodeRejection | None:
         """Return the structured rejection details, if the cause is known."""
         if not self.reason:
             return None
-        return VoucherRejection(
+        return PromoCodeRejection(
             reason=self.reason,
             min_spent=self.min_spent,
             min_checkout_items_quantity=self.min_checkout_items_quantity,
@@ -181,7 +181,7 @@ class Voucher(ModelWithMetadata):
         if not voucher_channel_listing:
             raise NotApplicable(
                 "This voucher is not assigned to this channel",
-                reason=VoucherRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
+                reason=PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
             )
         if self.discount_value_type == DiscountValueType.FIXED:
             discount_amount = Money(
@@ -208,7 +208,7 @@ class Voucher(ModelWithMetadata):
         if not voucher_channel_listing:
             raise NotApplicable(
                 "This voucher is not assigned to this channel",
-                reason=VoucherRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
+                reason=PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
             )
         min_spent = voucher_channel_listing.min_spent
         if min_spent and value < min_spent:
@@ -217,7 +217,7 @@ class Voucher(ModelWithMetadata):
             raise NotApplicable(
                 msg,
                 min_spent=min_spent,
-                reason=VoucherRejectionReason.MIN_SPENT_NOT_REACHED,
+                reason=PromoCodeRejectionReason.MIN_SPENT_NOT_REACHED,
             )
 
     def validate_min_checkout_items_quantity(self, quantity):
@@ -230,10 +230,17 @@ class Voucher(ModelWithMetadata):
             raise NotApplicable(
                 msg,
                 min_checkout_items_quantity=min_checkout_items_quantity,
-                reason=VoucherRejectionReason.MIN_QUANTITY_NOT_REACHED,
+                reason=PromoCodeRejectionReason.MIN_QUANTITY_NOT_REACHED,
             )
 
-    def validate_once_per_customer(self, customer_email):
+    def validate_once_per_customer(self, customer_email, email_verified: bool):
+        """Reject the voucher if `customer_email` already redeemed it.
+
+        The reason is disclosed only when `email_verified` is set, i.e. the
+        email belongs to the authenticated requester. A guest can put any
+        address on a checkout, so reporting the reason otherwise would let
+        anyone probe another customer's redemption history.
+        """
         voucher_codes = self.codes.all()
         voucher_customer = VoucherCustomer.objects.filter(
             Exists(voucher_codes.filter(id=OuterRef("voucher_code_id"))),
@@ -242,7 +249,12 @@ class Voucher(ModelWithMetadata):
         if voucher_customer:
             msg = "This offer is valid only once per customer."
             raise NotApplicable(
-                msg, reason=VoucherRejectionReason.ALREADY_USED_BY_CUSTOMER
+                msg,
+                reason=(
+                    PromoCodeRejectionReason.ALREADY_USED_BY_CUSTOMER
+                    if email_verified
+                    else None
+                ),
             )
 
     def validate_only_for_staff(self, customer: Optional["User"]):
@@ -251,7 +263,7 @@ class Voucher(ModelWithMetadata):
 
         if not customer or not customer.is_staff:
             msg = "This offer is valid only for staff customers."
-            raise NotApplicable(msg, reason=VoucherRejectionReason.STAFF_ONLY)
+            raise NotApplicable(msg, reason=PromoCodeRejectionReason.STAFF_ONLY)
 
 
 class VoucherCode(models.Model):
