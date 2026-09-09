@@ -153,6 +153,10 @@ class CustomerType(ModelWithMetadata):
                 CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.codename,
                 "Manage customer types and attributes.",
             ),
+            (
+                CustomerTypePermissions.READ_CUSTOMER_TYPES_AND_ATTRIBUTES.codename,
+                "Read customer types and attributes.",
+            ),
         )
         constraints = [
             models.UniqueConstraint(
