@@ -1,3 +1,4 @@
+import json
 from unittest import mock
 
 import graphene
@@ -303,6 +304,22 @@ query ($channel: String) {
 }
 """
 
+PRODUCT_RICH_TEXT_ATTRIBUTE_QUERY = """
+query ProductRichTextAttribute($id: ID!, $channel: String!) {
+  product(id: $id, channel: $channel) {
+    attributes {
+      attribute {
+        slug
+      }
+      values {
+        slug
+        richText
+      }
+    }
+  }
+}
+"""
+
 
 @pytest.mark.parametrize("is_staff", [False, True])
 def test_resolve_attributes_with_hidden(
@@ -391,6 +408,32 @@ def test_resolve_attribute_values(user_api_client, product, staff_user, channel_
         variant_attributes[0]["attribute"]["type"]
         == AttributeTypeEnum.PRODUCT_TYPE.name
     )
+
+
+def test_resolve_rich_text_attribute_value(
+    staff_api_client, product_with_rich_text_attribute, channel_USD
+):
+    product, _variant = product_with_rich_text_attribute
+    attribute = product.product_type.product_attributes.get()
+    attribute_value = attribute.values.get()
+    expected_rich_text = attribute_value.rich_text
+
+    response = staff_api_client.post_graphql(
+        PRODUCT_RICH_TEXT_ATTRIBUTE_QUERY,
+        variables={
+            "id": graphene.Node.to_global_id("Product", product.pk),
+            "channel": channel_USD.slug,
+        },
+    )
+
+    content = get_graphql_content(response)
+    attributes = content["data"]["product"]["attributes"]
+
+    assert len(attributes) == 1
+    assert attributes[0]["attribute"]["slug"] == attribute.slug
+    assert len(attributes[0]["values"]) == 1
+    assert attributes[0]["values"][0]["slug"] == attribute_value.slug
+    assert json.loads(attributes[0]["values"][0]["richText"]) == expected_rich_text
 
 
 def test_resolve_attribute_values_non_assigned_to_node(
