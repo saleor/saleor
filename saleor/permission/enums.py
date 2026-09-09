@@ -59,6 +59,8 @@ class CheckoutPermissions(BasePermissionEnum):
     HANDLE_CHECKOUTS = "checkout.handle_checkouts"
     HANDLE_TAXES = "checkout.handle_taxes"
     MANAGE_TAXES = "checkout.manage_taxes"
+    READ_CHECKOUTS = "checkout.read_checkouts"
+    READ_TAXES = "checkout.read_taxes"
 
 
 class OrderPermissions(BasePermissionEnum):
@@ -98,6 +100,8 @@ class ShippingPermissions(BasePermissionEnum):
 class SitePermissions(BasePermissionEnum):
     MANAGE_SETTINGS = "site.manage_settings"
     MANAGE_TRANSLATIONS = "site.manage_translations"
+    READ_SETTINGS = "site.read_settings"
+    READ_TRANSLATIONS = "site.read_translations"
 
 
 PERMISSIONS_ENUMS = [
