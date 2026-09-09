@@ -258,13 +258,11 @@ def test_promotion_create_by_app(
 
 
 @freeze_time("2020-03-18 12:00:00")
-@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_created")
 def test_promotion_create_by_customer(
     promotion_created_mock,
     promotion_started_mock,
-    update_products_discounted_prices_of_promotion_task_mock,
     api_client,
     description_json,
     channel_USD,
@@ -312,7 +310,6 @@ def test_promotion_create_by_customer(
 
     promotion_created_mock.assert_not_called()
     promotion_started_mock.assert_not_called()
-    update_products_discounted_prices_of_promotion_task_mock.assert_not_called()
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -1558,13 +1555,11 @@ def test_promotion_create_exceeds_gifts_number_limit(
     assert errors[0]["giftsLimitExceedBy"] == len(gift_ids) - gift_limit
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_created")
 def test_promotion_create_rules_without_channels_and_percentage_reward(
     promotion_created_mock,
     promotion_started_mock,
-    update_products_discounted_prices_of_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     variant,
@@ -1789,9 +1784,7 @@ def test_promotion_create_events_by_app(
     assert all(rule["id"] in rule_ids for rule in rules)
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 def test_promotion_create_gift_promotion(
-    _,
     staff_api_client,
     permission_group_manage_discounts,
     channel_USD,

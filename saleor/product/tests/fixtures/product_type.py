@@ -34,9 +34,6 @@ def product_type_generator(
                 slug="color",
                 name="Color",
                 type=AttributeType.PRODUCT_TYPE,
-                filterable_in_storefront=True,
-                filterable_in_dashboard=True,
-                available_in_grid=True,
             )
 
             attribute_value_generator(
@@ -53,9 +50,6 @@ def product_type_generator(
                 slug="size",
                 name="Size",
                 type=AttributeType.PRODUCT_TYPE,
-                filterable_in_storefront=True,
-                filterable_in_dashboard=True,
-                available_in_grid=True,
             )
 
             attribute_value_generator(

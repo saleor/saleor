@@ -25,31 +25,26 @@ def attributes_for_filtering_with_channels(
                 name="Attr1",
                 slug="attr1",
                 value_required=True,
-                storefront_search_position=4,
             ),
             Attribute(
                 name="AttrAttr1",
                 slug="attr_attr1",
                 value_required=True,
-                storefront_search_position=3,
             ),
             Attribute(
                 name="AttrAttr2",
                 slug="attr_attr2",
                 value_required=True,
-                storefront_search_position=2,
             ),
             Attribute(
                 name="Attr2",
                 slug="attr2",
                 value_required=False,
-                storefront_search_position=5,
             ),
             Attribute(
                 name="Attr3",
                 slug="attr3",
                 value_required=False,
-                storefront_search_position=1,
             ),
         ]
     )

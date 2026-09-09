@@ -126,6 +126,7 @@ from ..payment.types import (
     PaymentChargeStatusEnum,
     TransactionEvent,
     TransactionItem,
+    TransactionSummary,
 )
 from ..product.dataloaders import (
     ImagesByProductIdLoader,
@@ -1723,6 +1724,17 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         ),
         required=True,
     )
+    transaction_summaries = NonNullList(
+        TransactionSummary,
+        description=(
+            "Payment history of the order, with one entry per payment transaction "
+            "that moved any money. Unlike `transactions`, it requires no permission "
+            "and exposes only the payment method and the amounts, so it can be used "
+            "to display payment details to the customer without exposing internal "
+            "information." + ADDED_IN_323
+        ),
+        required=True,
+    )
     payments = NonNullList(
         Payment,
         description="List of payments for the order.",
@@ -2568,6 +2580,22 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     def resolve_transactions(root: SyncWebhookControlContext[models.Order], info):
         return TransactionItemsByOrderIDLoader(info.context).load(root.node.id)
+
+    @staticmethod
+    def resolve_transaction_summaries(
+        root: SyncWebhookControlContext[models.Order], info
+    ):
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.node.id)
+            .then(
+                lambda transactions: [
+                    transaction
+                    for transaction in transactions
+                    if transaction.has_money_movement()
+                ]
+            )
+        )
 
     @staticmethod
     def resolve_status_display(root: SyncWebhookControlContext[models.Order], _info):
