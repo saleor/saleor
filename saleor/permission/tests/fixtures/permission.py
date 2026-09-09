@@ -129,6 +129,26 @@ def permission_read_gift_card():
 
 
 @pytest.fixture
+def permission_read_checkouts():
+    return Permission.objects.get(codename="read_checkouts")
+
+
+@pytest.fixture
+def permission_read_taxes():
+    return Permission.objects.get(codename="read_taxes")
+
+
+@pytest.fixture
+def permission_read_settings():
+    return Permission.objects.get(codename="read_settings")
+
+
+@pytest.fixture
+def permission_read_translations():
+    return Permission.objects.get(codename="read_translations")
+
+
+@pytest.fixture
 def permission_read_users():
     return Permission.objects.get(codename="read_users")
 

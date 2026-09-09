@@ -7,6 +7,8 @@ from ...permission.enums import (
     CheckoutPermissions,
     PaymentPermissions,
 )
+from ...permission.read_permissions import expand_read_permissions
+from ...permission.utils import has_one_of_permissions
 from ..channel.dataloaders.by_self import ChannelByIdLoader
 from ..core.context import SyncWebhookControlContext, get_database_connection_name
 from ..core.tracing import traced_resolver
@@ -52,8 +54,9 @@ def resolve_checkout(info, token, id):
                 )
             # resolve checkout for staff or app
             if requester := get_user_or_app_from_context(info.context):
-                has_manage_checkout = requester.has_perm(
-                    CheckoutPermissions.MANAGE_CHECKOUTS
+                has_manage_checkout = has_one_of_permissions(
+                    requester,
+                    expand_read_permissions([CheckoutPermissions.MANAGE_CHECKOUTS]),
                 )
                 has_impersonate_user = requester.has_perm(
                     AccountPermissions.IMPERSONATE_USER
