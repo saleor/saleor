@@ -8,6 +8,7 @@ from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.models import Checkout
+from ...core.taxes import zero_money
 from ...discount import DiscountType, DiscountValueType
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
@@ -27,6 +28,7 @@ from ..utils import (
     get_total_order_discount_excluding_shipping,
     match_orders_with_new_user,
     order_info_for_logs,
+    refresh_order_base_shipping_price,
     store_user_addresses_from_draft_order,
     update_order_display_gross_prices,
 )
@@ -801,3 +803,89 @@ def test_store_user_addresses_from_draft_order_only_draft_save_billing_address_t
     order.refresh_from_db()
     assert order.draft_save_shipping_address is None
     assert order.draft_save_billing_address is None
+
+
+def test_refresh_order_base_shipping_price_keeps_shipping_voucher_discount(
+    draft_order, shipping_method, voucher_shipping_type
+):
+    # given
+    order = draft_order
+    order.shipping_method = shipping_method
+    order.base_shipping_price_amount = Decimal(0)
+    order.undiscounted_base_shipping_price_amount = Decimal(0)
+    order.save(
+        update_fields=[
+            "shipping_method",
+            "base_shipping_price_amount",
+            "undiscounted_base_shipping_price_amount",
+        ]
+    )
+    shipping_price = shipping_method.channel_listings.get(channel=order.channel).price
+    discount_value = Decimal(4)
+    order.discounts.create(
+        type=DiscountType.VOUCHER,
+        value_type=DiscountValueType.FIXED,
+        value=discount_value,
+        amount_value=Decimal(0),
+        currency=order.currency,
+        voucher=voucher_shipping_type,
+    )
+
+    # when
+    refresh_order_base_shipping_price(order, order.lines.all())
+
+    # then
+    discount_amount = Money(discount_value, order.currency)
+    assert order.undiscounted_base_shipping_price == shipping_price
+    assert order.base_shipping_price == shipping_price - discount_amount
+
+    discount = order.discounts.get()
+    assert discount.amount == discount_amount
+
+
+def test_refresh_order_base_shipping_price_no_line_requires_shipping(
+    draft_order, shipping_method
+):
+    # given
+    order = draft_order
+    order.shipping_method = shipping_method
+    order.save(update_fields=["shipping_method"])
+    order.lines.update(is_shipping_required=False)
+    assert order.is_shipping_required() is False
+
+    # when
+    refresh_order_base_shipping_price(order, order.lines.all())
+
+    # then
+    assert order.undiscounted_base_shipping_price == zero_money(order.currency)
+    assert order.base_shipping_price == zero_money(order.currency)
+
+
+def test_refresh_order_base_shipping_price_skips_non_draft_order(
+    order_with_lines, shipping_method
+):
+    """An order the customer already placed keeps the price they agreed to."""
+    # given
+    order = order_with_lines
+    agreed_price = Money(Decimal("3.00"), order.currency)
+    order.status = OrderStatus.UNCONFIRMED
+    order.shipping_method = shipping_method
+    order.base_shipping_price = agreed_price
+    order.undiscounted_base_shipping_price = agreed_price
+    order.save(
+        update_fields=[
+            "status",
+            "shipping_method",
+            "base_shipping_price_amount",
+            "undiscounted_base_shipping_price_amount",
+        ]
+    )
+    listing_price = shipping_method.channel_listings.get(channel=order.channel).price
+    assert listing_price != agreed_price
+
+    # when
+    refresh_order_base_shipping_price(order, order.lines.all())
+
+    # then
+    assert order.undiscounted_base_shipping_price == agreed_price
+    assert order.base_shipping_price == agreed_price
