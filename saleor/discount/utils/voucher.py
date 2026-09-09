@@ -24,6 +24,7 @@ from ...core.taxes import zero_money
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import Order, OrderLine
 from .. import (
+    NOT_APPLICABLE_MESSAGE,
     DiscountType,
     PromoCodeRejection,
     PromoCodeRejectionReason,
@@ -138,8 +139,7 @@ def add_voucher_usage_by_customer(
     )
     if not created:
         raise NotApplicable(
-            "This offer is only valid once per customer.",
-            reason=PromoCodeRejectionReason.NOT_APPLICABLE,
+            NOT_APPLICABLE_MESSAGE, reason=PromoCodeRejectionReason.NOT_APPLICABLE
         )
 
 

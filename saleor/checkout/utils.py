@@ -33,6 +33,7 @@ from ..core.utils.promo_code import (
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import (
+    NOT_APPLICABLE_MESSAGE,
     DiscountType,
     PromoCodeRejection,
     PromoCodeRejectionReason,
@@ -459,8 +460,9 @@ def _get_shipping_voucher_discount_for_checkout(
     # check if voucher is limited to specified countries
     if address:
         if voucher.countries and address.country.code not in voucher.countries:
-            msg = "This offer is not valid in your country."
-            raise NotApplicable(msg, reason=PromoCodeRejectionReason.NOT_APPLICABLE)
+            raise NotApplicable(
+                NOT_APPLICABLE_MESSAGE, reason=PromoCodeRejectionReason.NOT_APPLICABLE
+            )
 
     shipping_price = base_calculations.base_checkout_undiscounted_delivery_price(
         checkout_info=checkout_info, lines=lines

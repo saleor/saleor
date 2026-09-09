@@ -21,6 +21,7 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
 from ..permission.enums import DiscountPermissions
 from . import (
+    NOT_APPLICABLE_MESSAGE,
     DiscountType,
     DiscountValueType,
     PromoCodeRejection,
@@ -177,7 +178,7 @@ class Voucher(ModelWithMetadata):
 
         if not voucher_channel_listing:
             raise NotApplicable(
-                "This voucher is not assigned to this channel",
+                NOT_APPLICABLE_MESSAGE,
                 reason=PromoCodeRejectionReason.NOT_APPLICABLE,
             )
         if self.discount_value_type == DiscountValueType.FIXED:
@@ -204,7 +205,7 @@ class Voucher(ModelWithMetadata):
         voucher_channel_listing = self.channel_listings.filter(channel=channel).first()
         if not voucher_channel_listing:
             raise NotApplicable(
-                "This voucher is not assigned to this channel",
+                NOT_APPLICABLE_MESSAGE,
                 reason=PromoCodeRejectionReason.NOT_APPLICABLE,
             )
         min_spent = voucher_channel_listing.min_spent
@@ -243,16 +244,18 @@ class Voucher(ModelWithMetadata):
             customer_email=customer_email,
         )
         if voucher_customer:
-            msg = "This offer is valid only once per customer."
-            raise NotApplicable(msg, reason=PromoCodeRejectionReason.NOT_APPLICABLE)
+            raise NotApplicable(
+                NOT_APPLICABLE_MESSAGE, reason=PromoCodeRejectionReason.NOT_APPLICABLE
+            )
 
     def validate_only_for_staff(self, customer: Optional["User"]):
         if not self.only_for_staff:
             return
 
         if not customer or not customer.is_staff:
-            msg = "This offer is valid only for staff customers."
-            raise NotApplicable(msg, reason=PromoCodeRejectionReason.NOT_APPLICABLE)
+            raise NotApplicable(
+                NOT_APPLICABLE_MESSAGE, reason=PromoCodeRejectionReason.NOT_APPLICABLE
+            )
 
 
 class VoucherCode(models.Model):

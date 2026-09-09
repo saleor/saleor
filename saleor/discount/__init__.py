@@ -81,6 +81,15 @@ class PromoCodeRejectionReason(Enum):
     NO_LONGER_AVAILABLE = "no_longer_available"
 
 
+NOT_APPLICABLE_MESSAGE = "This offer cannot be applied."
+"""Message paired with `PromoCodeRejectionReason.NOT_APPLICABLE`.
+
+Kept as vague as the reason it accompanies: a message naming the condition
+(staff-only, already redeemed, another country or channel) would disclose
+through the error text exactly what the generic reason withholds.
+"""
+
+
 @dataclass
 class PromoCodeRejection:
     """Structured details about why a promo code was rejected."""
