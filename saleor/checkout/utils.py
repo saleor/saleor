@@ -460,11 +460,7 @@ def _get_shipping_voucher_discount_for_checkout(
     if address:
         if voucher.countries and address.country.code not in voucher.countries:
             msg = "This offer is not valid in your country."
-            raise NotApplicable(
-                msg,
-                reason=PromoCodeRejectionReason.COUNTRY_NOT_ELIGIBLE,
-                countries=[country.code for country in voucher.countries],
-            )
+            raise NotApplicable(msg, reason=PromoCodeRejectionReason.NOT_APPLICABLE)
 
     shipping_price = base_calculations.base_checkout_undiscounted_delivery_price(
         checkout_info=checkout_info, lines=lines
@@ -702,24 +698,13 @@ def add_promo_code_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     promo_code: str,
-    disclose_private_reasons: bool = False,
 ):
     """Add gift card or voucher data to checkout.
 
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
-
-    `disclose_private_reasons` reports rejection reasons that confirm a voucher
-    the caller cannot otherwise see; set it only for callers holding
-    `MANAGE_DISCOUNTS`.
     """
     if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(
-            manager,
-            checkout_info,
-            lines,
-            promo_code,
-            disclose_private_reasons,
-        )
+        add_voucher_code_to_checkout(manager, checkout_info, lines, promo_code)
     elif promo_code_is_gift_card(promo_code):
         if not checkout_info.channel.allow_legacy_gift_card_use:
             raise ValidationError(
@@ -751,17 +736,12 @@ def add_voucher_code_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: list["CheckoutLineInfo"],
     voucher_code: str,
-    disclose_private_reasons: bool = False,
 ):
     """Add voucher data to checkout by code.
 
     Raise InvalidPromoCode() if voucher of given type cannot be applied.
     """
-    code_instance = get_voucher_code_instance(
-        voucher_code,
-        checkout_info.channel.slug,
-        disclose_private_reasons=disclose_private_reasons,
-    )
+    code_instance = get_voucher_code_instance(voucher_code, checkout_info.channel.slug)
     try:
         add_voucher_to_checkout(
             manager, checkout_info, lines, code_instance.voucher, code_instance

@@ -5,7 +5,7 @@ import graphene
 from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
-from ...account.enums import AddressTypeEnum, CountryCodeEnum
+from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
@@ -265,8 +265,7 @@ class ChannelError(Error):
 
 PROMO_CODE_DETAILS_DESCRIPTION = (
     "Details of the promo code that caused the error. Null when the error is "
-    "not related to a promo code, or when the reason may not be disclosed to "
-    "the current caller." + ADDED_IN_323
+    "not a promo code rejection." + ADDED_IN_323
 )
 
 
@@ -287,14 +286,6 @@ class PromoCodeRejectionDetails(BaseObjectType):
         description=(
             "The minimum number of items required by the voucher. "
             "Set only when `reason` is `MIN_QUANTITY_NOT_REACHED`."
-        ),
-        required=False,
-    )
-    countries = NonNullList(
-        CountryCodeEnum,
-        description=(
-            "The countries the voucher is valid in. "
-            "Set only when `reason` is `COUNTRY_NOT_ELIGIBLE`."
         ),
         required=False,
     )

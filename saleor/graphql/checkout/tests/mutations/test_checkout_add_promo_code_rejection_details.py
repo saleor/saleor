@@ -24,14 +24,13 @@ MUTATION_ADD_PROMO_CODE = """
                         currency
                     }
                     minCheckoutItemsQuantity
-                    countries
                 }
             }
         }
     }
 """
 
-NO_PARAMS = {"minSpent": None, "minCheckoutItemsQuantity": None, "countries": None}
+NO_PARAMS = {"minSpent": None, "minCheckoutItemsQuantity": None}
 
 
 def _add_promo_code(client, checkout, promo_code):
@@ -105,7 +104,7 @@ def test_min_quantity_not_reached(api_client, checkout_with_item, voucher):
     )
 
 
-def test_staff_only(api_client, checkout_with_item, voucher):
+def test_staff_only_reports_not_applicable(api_client, checkout_with_item, voucher):
     # given
     voucher.only_for_staff = True
     voucher.save(update_fields=["only_for_staff"])
@@ -117,15 +116,13 @@ def test_staff_only(api_client, checkout_with_item, voucher):
     _assert_single_error(
         data,
         CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
-        NO_PARAMS | {"reason": PromoCodeRejectionReason.STAFF_ONLY.name},
+        NO_PARAMS | {"reason": PromoCodeRejectionReason.NOT_APPLICABLE.name},
     )
 
 
-def test_already_used_by_customer(user_api_client, checkout_with_item, voucher):
-    """Reported only to the verified owner of the email.
-
-    See the disclosure tests for the guest case.
-    """
+def test_already_used_by_customer_reports_not_applicable(
+    user_api_client, checkout_with_item, voucher
+):
     # given
     customer = user_api_client.user
     voucher.apply_once_per_customer = True
@@ -144,7 +141,7 @@ def test_already_used_by_customer(user_api_client, checkout_with_item, voucher):
     _assert_single_error(
         data,
         CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
-        NO_PARAMS | {"reason": PromoCodeRejectionReason.ALREADY_USED_BY_CUSTOMER.name},
+        NO_PARAMS | {"reason": PromoCodeRejectionReason.NOT_APPLICABLE.name},
     )
 
 
@@ -203,7 +200,7 @@ def test_delivery_method_not_set(api_client, checkout_with_item, voucher_shippin
     )
 
 
-def test_country_not_eligible(
+def test_country_not_eligible_reports_not_applicable(
     api_client,
     checkout_with_item,
     voucher_shipping_type,
@@ -227,11 +224,7 @@ def test_country_not_eligible(
     _assert_single_error(
         data,
         CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
-        NO_PARAMS
-        | {
-            "reason": PromoCodeRejectionReason.COUNTRY_NOT_ELIGIBLE.name,
-            "countries": eligible_countries,
-        },
+        NO_PARAMS | {"reason": PromoCodeRejectionReason.NOT_APPLICABLE.name},
     )
 
 
@@ -252,23 +245,20 @@ def test_expired(api_client, checkout_with_item, voucher):
     )
 
 
-def test_not_started(
-    staff_api_client, checkout_with_item, voucher, permission_manage_discounts
-):
-    """`NOT_STARTED` is private; see the disclosure tests for the public case."""
+def test_not_started_reports_not_found(api_client, checkout_with_item, voucher):
+    """An unlaunched campaign must not be confirmed; see the disclosure tests."""
     # given
-    staff_api_client.user.user_permissions.add(permission_manage_discounts)
     voucher.start_date = timezone.now() + datetime.timedelta(days=1)
     voucher.save(update_fields=["start_date"])
 
     # when
-    data = _add_promo_code(staff_api_client, checkout_with_item, voucher.code)
+    data = _add_promo_code(api_client, checkout_with_item, voucher.code)
 
     # then
     _assert_single_error(
         data,
         CheckoutErrorCode.INVALID,
-        NO_PARAMS | {"reason": PromoCodeRejectionReason.NOT_STARTED.name},
+        NO_PARAMS | {"reason": PromoCodeRejectionReason.NOT_FOUND.name},
     )
 
 
@@ -291,7 +281,10 @@ def test_usage_limit_reached(api_client, checkout_with_item, voucher):
     )
 
 
-def test_code_deactivated(api_client, checkout_with_item, voucher):
+def test_redeemed_single_use_code_reports_usage_limit_reached(
+    api_client, checkout_with_item, voucher
+):
+    """A code is deactivated only once a single-use code has been redeemed."""
     # given
     code = voucher.codes.get()
     code.is_active = False
@@ -304,29 +297,25 @@ def test_code_deactivated(api_client, checkout_with_item, voucher):
     _assert_single_error(
         data,
         CheckoutErrorCode.INVALID,
-        NO_PARAMS | {"reason": PromoCodeRejectionReason.CODE_DEACTIVATED.name},
+        NO_PARAMS | {"reason": PromoCodeRejectionReason.USAGE_LIMIT_REACHED.name},
     )
 
 
-def test_not_available_in_channel(
-    staff_api_client, checkout_with_item, voucher, permission_manage_discounts
+def test_not_available_in_channel_reports_not_found(
+    api_client, checkout_with_item, voucher
 ):
-    """`NOT_AVAILABLE_IN_CHANNEL` is private.
-
-    See the disclosure tests for the public case.
-    """
+    """A campaign in another channel must not be confirmed."""
     # given
-    staff_api_client.user.user_permissions.add(permission_manage_discounts)
     voucher.channel_listings.all().delete()
 
     # when
-    data = _add_promo_code(staff_api_client, checkout_with_item, voucher.code)
+    data = _add_promo_code(api_client, checkout_with_item, voucher.code)
 
     # then
     _assert_single_error(
         data,
         CheckoutErrorCode.INVALID,
-        NO_PARAMS | {"reason": PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL.name},
+        NO_PARAMS | {"reason": PromoCodeRejectionReason.NOT_FOUND.name},
     )
 
 

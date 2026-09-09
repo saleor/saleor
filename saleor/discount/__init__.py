@@ -56,22 +56,27 @@ class PromoCodeRejectionReason(Enum):
     Most values describe voucher conditions, but the vocabulary is shared with
     gift cards so that a rejection is reported the same way whichever kind of
     promo code was submitted -- the field name alone must not reveal which.
+
+    Submitting a code that matches nothing must stay indistinguishable from
+    submitting one that exists but cannot be used, otherwise the response is an
+    oracle for guessing codes. So before a code is known to be usable only
+    `NOT_FOUND`, `EXPIRED` and `USAGE_LIMIT_REACHED` may be reported -- the
+    latter two are a deliberate product decision to help shoppers holding a
+    real code. Everything else is reported only once the code is proven live
+    (a voucher accepted onto the checkout, a gift card already attached to it),
+    where the caller has demonstrably seen the code work and there is nothing
+    left to disclose. No reason depends on the caller's permissions.
     """
 
     NOT_FOUND = "not_found"
-    CODE_DEACTIVATED = "code_deactivated"
-    NOT_STARTED = "not_started"
     EXPIRED = "expired"
     USAGE_LIMIT_REACHED = "usage_limit_reached"
-    NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
+    NOT_APPLICABLE = "not_applicable"
     MIN_SPENT_NOT_REACHED = "min_spent_not_reached"
     MIN_QUANTITY_NOT_REACHED = "min_quantity_not_reached"
-    ALREADY_USED_BY_CUSTOMER = "already_used_by_customer"
     CUSTOMER_EMAIL_REQUIRED = "customer_email_required"
-    STAFF_ONLY = "staff_only"
     SHIPPING_NOT_REQUIRED = "shipping_not_required"
     DELIVERY_METHOD_NOT_SET = "delivery_method_not_set"
-    COUNTRY_NOT_ELIGIBLE = "country_not_eligible"
     NO_ELIGIBLE_LINES = "no_eligible_lines"
     NO_LONGER_AVAILABLE = "no_longer_available"
 
@@ -83,7 +88,6 @@ class PromoCodeRejection:
     reason: PromoCodeRejectionReason
     min_spent: Money | None = None
     min_checkout_items_quantity: int | None = None
-    countries: list[str] | None = None
 
 
 class PromotionType:

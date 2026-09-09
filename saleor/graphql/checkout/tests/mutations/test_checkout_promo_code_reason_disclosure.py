@@ -1,7 +1,9 @@
-"""Guard the information the voucher rejection reason may disclose.
+"""Guard the information a promo code rejection reason may disclose.
 
-Each test pins a case where reporting the true reason would let an
-unprivileged caller confirm something they are not entitled to know.
+Each test pins a case where reporting a more precise reason would let a caller
+confirm something they are not entitled to know. No reason depends on the
+caller's permissions, so several cases assert that a privileged client gets the
+very same response as an anonymous one.
 """
 
 import datetime
@@ -11,7 +13,6 @@ from django.utils import timezone
 
 from .....checkout.error_codes import CheckoutErrorCode
 from .....discount.models import VoucherCustomer
-from .....permission.enums import DiscountPermissions
 from ....core.enums import PromoCodeRejectionReason
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -45,7 +46,17 @@ def _single_error(data):
     return data["errors"][0]
 
 
-# --- P1: an unusable gift card must be indistinguishable from an unknown code ---
+def _yesterday():
+    return datetime.datetime.now(tz=datetime.UTC).date() - datetime.timedelta(days=1)
+
+
+def _set(gift_card, **fields):
+    for name, value in fields.items():
+        setattr(gift_card, name, value)
+    gift_card.save(update_fields=list(fields))
+
+
+# --- an unusable gift card must be indistinguishable from an unknown code ---
 
 
 @pytest.mark.parametrize(
@@ -99,7 +110,7 @@ def test_gift_card_assigned_to_another_customer_matches_unknown_code(
     assert checkout_with_item.gift_cards.exists() is False
 
 
-# --- P2: redemption history is disclosed only to the verified owner ---
+# --- redemption history is never disclosed ---
 
 
 def _mark_used_by(voucher, email):
@@ -110,10 +121,10 @@ def _mark_used_by(voucher, email):
     )
 
 
-def test_already_used_hidden_from_guest_probing_another_email(
+def test_already_used_reports_generic_reason_to_guest_probing_another_email(
     api_client, checkout_with_item, voucher, customer_user
 ):
-    """A guest may set any email, so the reason must not be reported."""
+    """A guest may set any email, so the reason must not name the redemption."""
     # given
     _mark_used_by(voucher, customer_user.email)
     checkout_with_item.email = customer_user.email
@@ -125,12 +136,15 @@ def test_already_used_hidden_from_guest_probing_another_email(
 
     # then
     assert error["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
-    assert error["promoCodeDetails"] is None
+    assert error["promoCodeDetails"] == {
+        "reason": PromoCodeRejectionReason.NOT_APPLICABLE.name
+    }
 
 
-def test_already_used_reported_to_verified_owner(
+def test_already_used_reports_the_same_reason_to_the_owner(
     user_api_client, checkout_with_item, voucher
 ):
+    """The owner learns no more than the guest -- the reason cannot be a probe."""
     # given
     customer = user_api_client.user
     _mark_used_by(voucher, customer.email)
@@ -146,22 +160,20 @@ def test_already_used_reported_to_verified_owner(
     # then
     assert error["code"] == CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.name
     assert error["promoCodeDetails"] == {
-        "reason": PromoCodeRejectionReason.ALREADY_USED_BY_CUSTOMER.name
+        "reason": PromoCodeRejectionReason.NOT_APPLICABLE.name
     }
 
 
-# --- P3: private voucher state needs MANAGE_DISCOUNTS ---
+# --- voucher state the caller has no access to stays hidden from everyone ---
 
 
 def _make_not_started(voucher):
     voucher.start_date = timezone.now() + datetime.timedelta(days=7)
     voucher.save(update_fields=["start_date"])
-    return PromoCodeRejectionReason.NOT_STARTED
 
 
 def _make_out_of_channel(voucher):
     voucher.channel_listings.all().delete()
-    return PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL
 
 
 @pytest.mark.parametrize(
@@ -171,59 +183,32 @@ def _make_out_of_channel(voucher):
         ("other_channel_campaign", _make_out_of_channel),
     ],
 )
-def test_private_reason_hidden_without_permission(
-    _case, setup, api_client, checkout_with_item, voucher
+@pytest.mark.parametrize(
+    "client_fixture", ["api_client", "user_api_client", "staff_api_client"]
+)
+def test_inaccessible_voucher_matches_unknown_code(
+    _case,
+    setup,
+    client_fixture,
+    request,
+    checkout_with_item,
+    voucher,
+    permission_manage_discounts,
 ):
     # given
     setup(voucher)
-    baseline = _single_error(
-        _add_promo_code(api_client, checkout_with_item, UNKNOWN_CODE)
-    )
+    client = request.getfixturevalue(client_fixture)
+    if client.user:
+        client.user.user_permissions.add(permission_manage_discounts)
+    baseline = _single_error(_add_promo_code(client, checkout_with_item, UNKNOWN_CODE))
 
     # when
-    error = _single_error(_add_promo_code(api_client, checkout_with_item, voucher.code))
+    error = _single_error(_add_promo_code(client, checkout_with_item, voucher.code))
 
     # then
     assert error == baseline
     assert error["promoCodeDetails"] == {
         "reason": PromoCodeRejectionReason.NOT_FOUND.name
     }
-
-
-@pytest.mark.parametrize(
-    ("_case", "setup"),
-    [
-        ("unlaunched_campaign", _make_not_started),
-        ("other_channel_campaign", _make_out_of_channel),
-    ],
-)
-def test_private_reason_reported_with_manage_discounts(
-    _case,
-    setup,
-    staff_api_client,
-    checkout_with_item,
-    voucher,
-    permission_manage_discounts,
-):
-    # given
-    expected_reason = setup(voucher)
-    staff_api_client.user.user_permissions.add(permission_manage_discounts)
-    assert staff_api_client.user.has_perm(DiscountPermissions.MANAGE_DISCOUNTS.value)
-
-    # when
-    error = _single_error(
-        _add_promo_code(staff_api_client, checkout_with_item, voucher.code)
-    )
-
-    # then
-    assert error["promoCodeDetails"] == {"reason": expected_reason.name}
-
-
-def _yesterday():
-    return datetime.datetime.now(tz=datetime.UTC).date() - datetime.timedelta(days=1)
-
-
-def _set(gift_card, **fields):
-    for name, value in fields.items():
-        setattr(gift_card, name, value)
-    gift_card.save(update_fields=list(fields))
+    checkout_with_item.refresh_from_db(fields=("voucher_code",))
+    assert checkout_with_item.voucher_code is None

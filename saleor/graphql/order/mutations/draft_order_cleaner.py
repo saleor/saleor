@@ -24,9 +24,7 @@ def clean_redirect_url(redirect_url: str, cleaned_input: dict):
     cleaned_input["redirect_url"] = redirect_url
 
 
-def clean_voucher_and_voucher_code(
-    channel: "Channel", cleaned_input: dict, disclose_private_reasons: bool = False
-):
+def clean_voucher_and_voucher_code(channel: "Channel", cleaned_input: dict):
     voucher = cleaned_input.get("voucher", None)
     voucher_code = cleaned_input.get("voucher_code", None)
     if voucher and voucher_code:
@@ -41,18 +39,15 @@ def clean_voucher_and_voucher_code(
         )
 
     if "voucher" in cleaned_input:
-        clean_voucher(voucher, channel, cleaned_input, disclose_private_reasons)
+        clean_voucher(voucher, channel, cleaned_input)
     elif "voucher_code" in cleaned_input:
-        clean_voucher_code(
-            voucher_code, channel, cleaned_input, disclose_private_reasons
-        )
+        clean_voucher_code(voucher_code, channel, cleaned_input)
 
 
 def clean_voucher(
     voucher: Voucher | None,
     channel: Channel,
     cleaned_input: dict,
-    disclose_private_reasons: bool = False,
 ):
     # We need to clean voucher_code as well
     if voucher is None:
@@ -73,9 +68,7 @@ def clean_voucher(
     code_instance = None
     validate_usage = channel.include_draft_order_in_voucher_usage
     try:
-        code_instance = get_active_voucher_code(
-            voucher, channel.slug, validate_usage, disclose_private_reasons
-        )
+        code_instance = get_active_voucher_code(voucher, channel.slug, validate_usage)
     except InvalidPromoCode as e:
         raise ValidationError(
             {
@@ -97,7 +90,6 @@ def clean_voucher_code(
     voucher_code: str | None,
     channel: Channel,
     cleaned_input: dict,
-    disclose_private_reasons: bool = False,
 ):
     # We need to clean voucher instance as well
     if voucher_code is None:
@@ -106,7 +98,7 @@ def clean_voucher_code(
     validate_usage = channel.include_draft_order_in_voucher_usage
     try:
         code_instance = get_voucher_code_instance(
-            voucher_code, channel.slug, validate_usage, disclose_private_reasons
+            voucher_code, channel.slug, validate_usage
         )
     except InvalidPromoCode as e:
         raise ValidationError(

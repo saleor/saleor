@@ -1048,7 +1048,9 @@ def _get_order_data(
             params={"promo_code_details": e.rejection},
         ) from e
     except GiftCardNotApplicable as e:
-        raise ValidationError(e.message, code=e.code) from e
+        raise ValidationError(
+            e.message, code=e.code, params={"promo_code_details": e.rejection}
+        ) from e
     except TaxError as e:
         raise ValidationError(
             f"Unable to calculate taxes - {str(e)}",
@@ -1215,7 +1217,11 @@ def complete_checkout_post_payment_part(
                 voucher=checkout_info.voucher,
                 payment=payment,
             )
-            raise ValidationError(code=e.code, message=e.message) from e
+            raise ValidationError(
+                code=e.code,
+                message=e.message,
+                params={"promo_code_details": e.rejection},
+            ) from e
 
     return order, action_required, action_data
 
@@ -1830,7 +1836,17 @@ def complete_checkout_with_transaction(
         error = prepare_insufficient_stock_checkout_validation_error(e)
         raise error from e
     except GiftCardNotApplicable as e:
-        raise ValidationError({"gift_cards": e}) from e
+        raise ValidationError(
+            {
+                "gift_cards": ValidationError(
+                    e.message,
+                    # Deliberately no `code`: this path has always reported the
+                    # default `INVALID` rather than the exception's
+                    # GIFT_CARD_NOT_APPLICABLE, and clients depend on it.
+                    params={"promo_code_details": e.rejection},
+                )
+            }
+        ) from e
 
 
 def complete_checkout_with_payment(

@@ -53,13 +53,11 @@ class NotApplicable(ValueError):
         min_spent=None,
         min_checkout_items_quantity=None,
         reason=None,
-        countries=None,
     ):
         super().__init__(msg)
         self.min_spent = min_spent
         self.min_checkout_items_quantity = min_checkout_items_quantity
         self.reason = reason
-        self.countries = countries
 
     @property
     def rejection(self) -> PromoCodeRejection | None:
@@ -70,7 +68,6 @@ class NotApplicable(ValueError):
             reason=self.reason,
             min_spent=self.min_spent,
             min_checkout_items_quantity=self.min_checkout_items_quantity,
-            countries=self.countries,
         )
 
 
@@ -181,7 +178,7 @@ class Voucher(ModelWithMetadata):
         if not voucher_channel_listing:
             raise NotApplicable(
                 "This voucher is not assigned to this channel",
-                reason=PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
+                reason=PromoCodeRejectionReason.NOT_APPLICABLE,
             )
         if self.discount_value_type == DiscountValueType.FIXED:
             discount_amount = Money(
@@ -208,7 +205,7 @@ class Voucher(ModelWithMetadata):
         if not voucher_channel_listing:
             raise NotApplicable(
                 "This voucher is not assigned to this channel",
-                reason=PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
+                reason=PromoCodeRejectionReason.NOT_APPLICABLE,
             )
         min_spent = voucher_channel_listing.min_spent
         if min_spent and value < min_spent:
@@ -233,13 +230,12 @@ class Voucher(ModelWithMetadata):
                 reason=PromoCodeRejectionReason.MIN_QUANTITY_NOT_REACHED,
             )
 
-    def validate_once_per_customer(self, customer_email, email_verified: bool):
+    def validate_once_per_customer(self, customer_email):
         """Reject the voucher if `customer_email` already redeemed it.
 
-        The reason is disclosed only when `email_verified` is set, i.e. the
-        email belongs to the authenticated requester. A guest can put any
-        address on a checkout, so reporting the reason otherwise would let
-        anyone probe another customer's redemption history.
+        Reported as the generic `NOT_APPLICABLE`: the address on a checkout is
+        attacker-supplied and unverified, so a reason naming the redemption
+        would let anyone probe another customer's history.
         """
         voucher_codes = self.codes.all()
         voucher_customer = VoucherCustomer.objects.filter(
@@ -248,14 +244,7 @@ class Voucher(ModelWithMetadata):
         )
         if voucher_customer:
             msg = "This offer is valid only once per customer."
-            raise NotApplicable(
-                msg,
-                reason=(
-                    PromoCodeRejectionReason.ALREADY_USED_BY_CUSTOMER
-                    if email_verified
-                    else None
-                ),
-            )
+            raise NotApplicable(msg, reason=PromoCodeRejectionReason.NOT_APPLICABLE)
 
     def validate_only_for_staff(self, customer: Optional["User"]):
         if not self.only_for_staff:
@@ -263,7 +252,7 @@ class Voucher(ModelWithMetadata):
 
         if not customer or not customer.is_staff:
             msg = "This offer is valid only for staff customers."
-            raise NotApplicable(msg, reason=PromoCodeRejectionReason.STAFF_ONLY)
+            raise NotApplicable(msg, reason=PromoCodeRejectionReason.NOT_APPLICABLE)
 
 
 class VoucherCode(models.Model):

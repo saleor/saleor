@@ -139,7 +139,7 @@ def add_voucher_usage_by_customer(
     if not created:
         raise NotApplicable(
             "This offer is only valid once per customer.",
-            reason=PromoCodeRejectionReason.ALREADY_USED_BY_CUSTOMER,
+            reason=PromoCodeRejectionReason.NOT_APPLICABLE,
         )
 
 
@@ -166,34 +166,10 @@ def release_voucher_code_usage(
         remove_voucher_usage_by_customer(code, user_email)
 
 
-PRIVATE_REJECTION_REASONS = frozenset(
-    {
-        PromoCodeRejectionReason.NOT_STARTED,
-        PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
-    }
-)
-"""Reasons that confirm a voucher the caller is not entitled to know about.
-
-`NOT_STARTED` reveals an unlaunched campaign and `NOT_AVAILABLE_IN_CHANNEL`
-reveals one belonging to another channel. Both are reported only to callers
-holding `MANAGE_DISCOUNTS`; everyone else gets `NOT_FOUND`.
-"""
-
-
-def public_rejection_reason(
-    reason: PromoCodeRejectionReason, disclose_private_reasons: bool
-) -> PromoCodeRejectionReason:
-    """Return the reason as it may be shown to the current caller."""
-    if disclose_private_reasons or reason not in PRIVATE_REJECTION_REASONS:
-        return reason
-    return PromoCodeRejectionReason.NOT_FOUND
-
-
 def get_voucher_code_instance(
     voucher_code: str,
     channel_slug: str,
     validate_usage_limit=True,
-    disclose_private_reasons=False,
 ):
     """Return a voucher code instance if it's valid or raise an error."""
     if (
@@ -217,11 +193,8 @@ def get_voucher_code_instance(
     else:
         raise InvalidPromoCode(
             promo_code_rejection=PromoCodeRejection(
-                reason=public_rejection_reason(
-                    diagnose_invalid_voucher_code(
-                        voucher_code, channel_slug, validate_usage_limit
-                    ),
-                    disclose_private_reasons,
+                reason=diagnose_invalid_voucher_code(
+                    voucher_code, channel_slug, validate_usage_limit
                 )
             )
         )
@@ -244,7 +217,9 @@ def diagnose_invalid_voucher_code(
     if code is None:
         return PromoCodeRejectionReason.NOT_FOUND
     if not code.is_active:
-        return PromoCodeRejectionReason.CODE_DEACTIVATED
+        # A code is deactivated only when a single-use code has been redeemed,
+        # which is a usage limit of one, reached.
+        return PromoCodeRejectionReason.USAGE_LIMIT_REACHED
 
     return (
         diagnose_inactive_voucher(code.voucher, channel_slug, validate_usage_limit)
@@ -261,10 +236,14 @@ def diagnose_inactive_voucher(
 
     Only called once a voucher has already been found unusable, so the extra
     queries never run on the happy path.
+
+    An unlaunched voucher and one belonging to another channel are reported as
+    `NOT_FOUND`: both would otherwise confirm a campaign the caller has no
+    access to, and neither is actionable by a shopper.
     """
     now = timezone.now()
     if voucher.start_date > now:
-        return PromoCodeRejectionReason.NOT_STARTED
+        return PromoCodeRejectionReason.NOT_FOUND
     if voucher.end_date and voucher.end_date < now:
         return PromoCodeRejectionReason.EXPIRED
     if validate_usage_limit and voucher.usage_limit is not None:
@@ -281,13 +260,11 @@ def diagnose_inactive_voucher(
         channel__slug=channel_slug,
         channel__is_active=True,
     ).exists():
-        return PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL
+        return PromoCodeRejectionReason.NOT_FOUND
     return None
 
 
-def get_active_voucher_code(
-    voucher, channel_slug, validate_usage_limit=True, disclose_private_reasons=False
-):
+def get_active_voucher_code(voucher, channel_slug, validate_usage_limit=True):
     """Return an active VoucherCode instance.
 
     This method along with `Voucher.code` should be removed in Saleor 4.0.
@@ -301,16 +278,12 @@ def get_active_voucher_code(
             diagnose_inactive_voucher(voucher, channel_slug, validate_usage_limit)
             or PromoCodeRejectionReason.NOT_FOUND
         )
-        raise InvalidPromoCode(
-            promo_code_rejection=PromoCodeRejection(
-                reason=public_rejection_reason(reason, disclose_private_reasons)
-            )
-        )
+        raise InvalidPromoCode(promo_code_rejection=PromoCodeRejection(reason=reason))
     voucher_code = VoucherCode.objects.filter(voucher=voucher, is_active=True).first()
     if not voucher_code:
         raise InvalidPromoCode(
             promo_code_rejection=PromoCodeRejection(
-                reason=PromoCodeRejectionReason.CODE_DEACTIVATED
+                reason=PromoCodeRejectionReason.USAGE_LIMIT_REACHED
             )
         )
     return voucher_code
@@ -460,8 +433,7 @@ def validate_voucher(
     voucher.validate_min_spent(total_price, channel)
     voucher.validate_min_checkout_items_quantity(quantity)
     if voucher.apply_once_per_customer:
-        email_verified = bool(customer and customer.email == customer_email)
-        voucher.validate_once_per_customer(customer_email, email_verified)
+        voucher.validate_once_per_customer(customer_email)
     if voucher.only_for_staff:
         voucher.validate_only_for_staff(customer)
 

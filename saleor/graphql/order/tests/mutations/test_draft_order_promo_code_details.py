@@ -21,7 +21,6 @@ DRAFT_ORDER_UPDATE_MUTATION = """
                         currency
                     }
                     minCheckoutItemsQuantity
-                    countries
                 }
             }
         }
@@ -44,14 +43,13 @@ DRAFT_ORDER_COMPLETE_MUTATION = """
                         currency
                     }
                     minCheckoutItemsQuantity
-                    countries
                 }
             }
         }
     }
 """
 
-NO_PARAMS = {"minSpent": None, "minCheckoutItemsQuantity": None, "countries": None}
+NO_PARAMS = {"minSpent": None, "minCheckoutItemsQuantity": None}
 
 
 def _expire(voucher):
@@ -78,9 +76,9 @@ def _assert_single_error(data, expected_code, expected_field, expected_reason):
     [
         ("expired_voucher", _expire, PromoCodeRejectionReason.EXPIRED),
         (
-            "deactivated_code",
+            "redeemed_single_use_code",
             _deactivate_code,
-            PromoCodeRejectionReason.CODE_DEACTIVATED,
+            PromoCodeRejectionReason.USAGE_LIMIT_REACHED,
         ),
     ],
 )
@@ -143,9 +141,9 @@ def test_draft_order_update_unknown_voucher_code(
     [
         ("expired_voucher", _expire, PromoCodeRejectionReason.EXPIRED),
         (
-            "deactivated_code",
+            "redeemed_single_use_code",
             _deactivate_code,
-            PromoCodeRejectionReason.CODE_DEACTIVATED,
+            PromoCodeRejectionReason.USAGE_LIMIT_REACHED,
         ),
     ],
 )
@@ -198,6 +196,6 @@ def test_draft_order_complete_voucher_not_in_channel(
         data,
         OrderErrorCode.INVALID_VOUCHER,
         "voucher",
-        PromoCodeRejectionReason.NOT_AVAILABLE_IN_CHANNEL,
+        PromoCodeRejectionReason.NOT_APPLICABLE,
     )
     assert data["order"] is None

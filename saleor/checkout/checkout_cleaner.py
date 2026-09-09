@@ -120,7 +120,9 @@ def _validate_gift_cards(checkout: Checkout):
     )
     if not all_gift_cards == active_gift_cards:
         msg = "Gift card has expired. Order placement cancelled."
-        raise GiftCardNotApplicable(msg)
+        raise GiftCardNotApplicable(
+            msg, PromoCodeRejection(reason=PromoCodeRejectionReason.EXPIRED)
+        )
 
     # Re-check restricted gift cards at completion time: a card may have been
     # assigned to another customer after it was added to the checkout.
@@ -140,7 +142,8 @@ def _validate_gift_cards(checkout: Checkout):
     if restricted.exists():
         # Generic message — do not reveal the assignee.
         raise GiftCardNotApplicable(
-            "Gift card cannot be used. Order placement cancelled."
+            "Gift card cannot be used. Order placement cancelled.",
+            PromoCodeRejection(reason=PromoCodeRejectionReason.NOT_APPLICABLE),
         )
 
 

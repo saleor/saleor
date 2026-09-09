@@ -261,7 +261,17 @@ class OrderCreateFromCheckout(BaseMutation):
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error from e
         except GiftCardNotApplicable as e:
-            raise ValidationError({"gift_cards": e}) from e
+            raise ValidationError(
+                {
+                    "gift_cards": ValidationError(
+                        e.message,
+                        # Deliberately no `code`: this path has always reported
+                        # the default `INVALID` rather than the exception's
+                        # GIFT_CARD_NOT_APPLICABLE, and clients depend on it.
+                        params={"promo_code_details": e.rejection},
+                    )
+                }
+            ) from e
         except TaxDataError as e:
             raise ValidationError(
                 "Configured Tax App returned invalid response.",

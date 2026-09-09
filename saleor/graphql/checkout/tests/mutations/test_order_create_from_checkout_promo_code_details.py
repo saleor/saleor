@@ -23,14 +23,13 @@ mutation orderCreateFromCheckout($id: ID!) {
                     currency
                 }
                 minCheckoutItemsQuantity
-                countries
             }
         }
     }
 }
 """
 
-NO_PARAMS = {"minSpent": None, "minCheckoutItemsQuantity": None, "countries": None}
+NO_PARAMS = {"minSpent": None, "minCheckoutItemsQuantity": None}
 
 
 @pytest.fixture
@@ -78,7 +77,7 @@ def test_voucher_no_longer_available(
     _assert_rejected(data, PromoCodeRejectionReason.NO_LONGER_AVAILABLE)
 
 
-def test_voucher_already_used_by_customer(
+def test_voucher_not_applicable_for_customer(
     app_api_client,
     permission_handle_checkouts,
     checkout_ready_for_order,
@@ -98,4 +97,4 @@ def test_voucher_already_used_by_customer(
     data = _create_order(app_api_client, checkout_ready_for_order)
 
     # then
-    _assert_rejected(data, PromoCodeRejectionReason.ALREADY_USED_BY_CUSTOMER)
+    _assert_rejected(data, PromoCodeRejectionReason.NOT_APPLICABLE)
