@@ -119,6 +119,10 @@ mutation DraftOrderUpdate($input: DraftOrderInput!, $id: ID!) {
           __typename
         }
       }
+      shippingMethod {
+        id
+        __typename
+      }
     }
   }
 }

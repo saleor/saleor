@@ -106,6 +106,8 @@ def test_cannot_fullfill_order_with_invalid_shipping_method_core_0203(
     )
 
     assert draft_order["order"]["deliveryMethod"]["id"] == us_shipping_method_id
+    assert draft_order["order"]["shippingMethod"]["id"] == us_shipping_method_id
+    assert draft_order["order"]["shippingMethod"]["__typename"] == "ShippingMethod"
 
     # Step 3 - Update order's shipping address for country PL
     draft_update = draft_order_update(
