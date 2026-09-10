@@ -33,7 +33,6 @@ def test_app_extensions(staff_api_client, app, permission_manage_products):
         label="Create product with App",
         url="https://www.example.com/app-product",
         mount="product_overview_more_actions",
-        http_target_method="POST",
         target="widget",
     )
     app_extension.permissions.add(permission_manage_products)
@@ -397,7 +396,6 @@ def test_app_extensions_case_insensitive_filter(
         url="https://www.example.com/app-extension",
         mount=mount_value,
         target=target_value,
-        http_target_method="POST",
     )
     variables = {"filter": filter}
 
