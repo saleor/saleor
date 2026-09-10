@@ -804,7 +804,6 @@ def send_webhook_request_async(
                 response = send_webhook_using_scheme_method(
                     webhook.target_url,
                     domain,
-                    webhook.secret_key,
                     delivery.event_type,
                     data,
                     webhook.custom_headers,
@@ -895,7 +894,6 @@ def send_webhooks_async_for_app(
                 response = send_webhook_using_scheme_method(
                     webhook.target_url,
                     domain,
-                    webhook.secret_key,
                     delivery.event_type,
                     data,
                     webhook.custom_headers,
@@ -960,7 +958,6 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
                     response = send_webhook_using_scheme_method(
                         webhook.target_url,
                         webhook.saleor_domain,
-                        webhook.secret_key,
                         event_type,
                         event,
                     )
@@ -970,7 +967,6 @@ def send_observability_events(webhooks: list[WebhookData], events: list[bytes]):
                 response = send_webhook_using_scheme_method(
                     webhook.target_url,
                     webhook.saleor_domain,
-                    webhook.secret_key,
                     event_type,
                     observability.concatenate_json_events(events),
                 )

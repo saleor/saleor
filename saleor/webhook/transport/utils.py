@@ -220,7 +220,7 @@ def send_webhook_using_http(
     :param target_url: Target URL request will be sent to.
     :param message: Payload that will be used.
     :param domain: Current site domain.
-    :param signature: Webhook secret key checksum.
+    :param signature: JWS signature of the payload.
     :param event_type: Webhook event type.
     :param timeout: Request timeout.
     :param custom_headers: Custom headers which will be added to request headers.
@@ -346,14 +346,13 @@ def send_webhook_using_google_cloud_pubsub(
 def send_webhook_using_scheme_method(
     target_url,
     domain,
-    secret,
     event_type,
     data,
     custom_headers=None,
 ) -> WebhookResponse:
     parts = urlparse(target_url)
     message = data if isinstance(data, bytes) else data.encode("utf-8")
-    signature = signature_for_payload(message, secret)
+    signature = signature_for_payload(message)
     scheme_matrix: dict[WebhookSchemes, Callable] = {
         WebhookSchemes.HTTP: send_webhook_using_http,
         WebhookSchemes.HTTPS: send_webhook_using_http,

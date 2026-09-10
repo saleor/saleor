@@ -150,10 +150,9 @@ def test_send_webhook_request_sync_request_exception(
     # given
     event_payload = event_delivery.payload
     data = event_payload.get_payload()
-    webhook = event_delivery.webhook
     domain = Site.objects.get_current().domain
     message = data.encode("utf-8")
-    signature = signature_for_payload(message, webhook.secret_key)
+    signature = signature_for_payload(message)
     expected_request_headers = generate_request_headers(
         event_delivery.event_type, domain, signature
     )
