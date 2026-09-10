@@ -21,7 +21,6 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Fulfillment, Order
 from ..utils import prepare_insufficient_stock_order_validation_errors
-from .order_fulfill import OrderFulfill
 
 
 class FulfillmentApprove(BaseMutation):
@@ -59,7 +58,6 @@ class FulfillmentApprove(BaseMutation):
                 code=OrderErrorCode.INVALID.value,
             )
 
-        OrderFulfill.check_lines_for_preorder([line.order_line for line in fulfillment])
         site = get_site_promise(info.context).get()
         if (
             not site.settings.fulfillment_allow_unpaid

@@ -21,7 +21,7 @@ from ...order.utils import get_total_quantity
 from ...product.models import Product, ProductChannelListing, ProductVariant
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
-from ...warehouse.availability import check_stock_and_preorder_quantity
+from ...warehouse.availability import check_stock_quantity
 from ..core.validators import validate_variants_available_in_channel
 
 if TYPE_CHECKING:
@@ -190,7 +190,7 @@ def validate_order_lines(
             )
         elif line.variant.track_inventory:
             try:
-                check_stock_and_preorder_quantity(
+                check_stock_quantity(
                     line.variant,
                     country,
                     channel.slug,

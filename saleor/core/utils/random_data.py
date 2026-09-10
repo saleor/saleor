@@ -117,7 +117,7 @@ from ...tax.models import TaxClass, TaxClassCountryRate, TaxConfiguration
 from ...tax.utils import get_tax_class_kwargs_for_order_line
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
-from ...warehouse.models import PreorderAllocation, Stock, Warehouse
+from ...warehouse.models import Stock, Warehouse
 from ..postgres import FlatConcatSearchVector
 
 fake = cast(Any, Factory.create())
@@ -1147,7 +1147,7 @@ def create_order_lines(order, how_many=10):
         "variant_id", flat=True
     )
     variants = (
-        ProductVariant.objects.filter(pk__in=available_variant_ids, is_preorder=False)
+        ProductVariant.objects.filter(pk__in=available_variant_ids)
         .order_by("?")
         .prefetch_related("product__product_type")[:how_many]
     )
@@ -1198,77 +1198,10 @@ def create_order_lines(order, how_many=10):
     return lines
 
 
-def create_order_lines_with_preorder(order, how_many=1):
-    channel = order.channel
-    available_variant_ids = channel.variant_listings.values_list(
-        "variant_id", flat=True
-    )
-    variants = (
-        ProductVariant.objects.filter(pk__in=available_variant_ids, is_preorder=True)
-        .order_by("?")
-        .prefetch_related("product__product_type")[:how_many]
-    )
-    variants_iter = itertools.cycle(variants)
-    lines = []
-    for _ in range(how_many):
-        variant = next(variants_iter)
-        lines.append(_get_new_order_line(order, variant, channel))
-
-    lines = OrderLine.objects.bulk_create(lines)
-    manager = get_plugins_manager(allow_replica=False)
-
-    preorder_allocations = []
-    for line in lines:
-        variant = cast(ProductVariant, line.variant)
-        unit_price_data = manager.calculate_order_line_unit(
-            order, line, variant, variant.product, lines
-        )
-        total_price_data = manager.calculate_order_line_total(
-            order, line, variant, variant.product, lines
-        )
-        line.unit_price = unit_price_data.price_with_discounts
-        line.total_price = total_price_data.price_with_discounts
-        line.undiscounted_unit_price = unit_price_data.undiscounted_price
-        line.undiscounted_total_price = total_price_data.undiscounted_price
-        line.tax_rate = (
-            unit_price_data.price_with_discounts.tax
-            / unit_price_data.price_with_discounts.net
-        )
-        variant_channel_listing = variant.channel_listings.get(channel=channel)
-        preorder_allocations.append(
-            PreorderAllocation(
-                order_line=line,
-                product_variant_channel_listing=variant_channel_listing,
-                quantity=line.quantity,
-            )
-        )
-    PreorderAllocation.objects.bulk_create(preorder_allocations)
-
-    OrderLine.objects.bulk_update(
-        lines,
-        [
-            "unit_price_net_amount",
-            "unit_price_gross_amount",
-            "undiscounted_unit_price_gross_amount",
-            "undiscounted_unit_price_net_amount",
-            "undiscounted_total_price_gross_amount",
-            "undiscounted_total_price_net_amount",
-            "currency",
-            "tax_rate",
-        ],
-    )
-    return lines
-
-
 def _get_new_order_line(order, variant, channel):
     variant_channel_listing = variant.channel_listings.get(channel=channel)
     product = variant.product
-    quantity = random.randrange(
-        1,
-        variant_channel_listing.preorder_quantity_threshold
-        or variant.preorder_global_threshold
-        or 5,
-    )
+    quantity = random.randrange(1, 5)
     untaxed_unit_price = variant.get_price(
         variant_channel_listing,
     )
@@ -1316,7 +1249,7 @@ def create_fulfillments(order):
     update_order_status(order)
 
 
-def create_fake_order(max_order_lines=5, create_preorder_lines=False):
+def create_fake_order(max_order_lines=5):
     channel = (
         Channel.objects.filter(slug__in=[settings.DEFAULT_CHANNEL_SLUG, "channel-pln"])
         .order_by("?")
@@ -1332,7 +1265,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     customer = random.choice([None, customers.first()])
 
     # # 10% chance to be unconfirmed order.
-    will_be_unconfirmed = (random.random() < 0.1) if not create_preorder_lines else True
+    will_be_unconfirmed = random.random() < 0.1
 
     if customer and customer.default_shipping_address:
         address = customer.default_shipping_address
@@ -1374,10 +1307,7 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
         order_data["status"] = OrderStatus.UNCONFIRMED
 
     order = Order.objects.create(**order_data)
-    if create_preorder_lines:
-        lines = create_order_lines_with_preorder(order)
-    else:
-        lines = create_order_lines(order, random.randrange(1, max_order_lines))
+    lines = create_order_lines(order, random.randrange(1, max_order_lines))
     order.total = sum([line.total_price for line in lines], shipping_price)
     order.subtotal = sum(
         [line.total_price for line in lines],
@@ -2316,27 +2246,6 @@ def prepare_checkout_info():
         checkout, [], get_plugins_manager(allow_replica=False)
     )
     return checkout_info
-
-
-def create_checkout_with_preorders():
-    checkout_info = prepare_checkout_info()
-    for product_variant in ProductVariant.objects.all()[:2]:
-        product_variant.is_preorder = True
-        product_variant.preorder_global_threshold = 10
-        product_variant.preorder_end_date = timezone.now() + datetime.timedelta(days=10)
-        product_variant.save(
-            update_fields=[
-                "is_preorder",
-                "preorder_global_threshold",
-                "preorder_end_date",
-                "updated_at",
-            ]
-        )
-        add_variant_to_checkout(checkout_info, product_variant, 2)
-    yield (
-        "Created checkout with two preorders. Checkout token: "
-        f"{checkout_info.checkout.token}"
-    )
 
 
 def create_checkout_with_custom_prices():

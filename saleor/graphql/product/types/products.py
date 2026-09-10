@@ -1,4 +1,3 @@
-import sys
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
@@ -35,7 +34,6 @@ from ....thumbnail.utils import (
     get_thumbnail_format,
     get_thumbnail_size,
 )
-from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
 from ...attribute.filters import (
@@ -122,7 +120,6 @@ from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
     AvailableQuantityByProductVariantIdAndChannelSlugLoader,
     AvailableQuantityByProductVariantIdCountryCodeAndChannelSlugLoader,
-    PreorderQuantityReservedByVariantChannelListingIdLoader,
     StocksByProductVariantIdLoader,
     StocksWithAvailableQuantityByProductVariantIdAndChannelSlugLoader,
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
@@ -494,100 +491,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             global_quantity_limit_per_checkout = (
                 site.settings.limit_quantity_per_checkout
             )
-
-        if root.node.is_preorder_active():
-            variant = root.node
-            channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
-                info.context
-            ).load((variant.id, channel_slug))
-
-            def calculate_available_per_channel(channel_listing):
-                if (
-                    channel_listing
-                    and channel_listing.preorder_quantity_threshold is not None
-                ):
-                    if is_reservation_enabled(site.settings):
-                        quantity_reserved = (
-                            PreorderQuantityReservedByVariantChannelListingIdLoader(
-                                info.context
-                            ).load(channel_listing.id)
-                        )
-
-                        def calculate_available_channel_quantity_with_reservations(
-                            reserved_quantity,
-                        ):
-                            return max(
-                                min(
-                                    channel_listing.preorder_quantity_threshold
-                                    - channel_listing.preorder_quantity_allocated
-                                    - reserved_quantity,
-                                    global_quantity_limit_per_checkout or sys.maxsize,
-                                ),
-                                0,
-                            )
-
-                        return quantity_reserved.then(
-                            calculate_available_channel_quantity_with_reservations
-                        )
-
-                    return min(
-                        channel_listing.preorder_quantity_threshold
-                        - channel_listing.preorder_quantity_allocated,
-                        global_quantity_limit_per_checkout or sys.maxsize,
-                    )
-                if variant.preorder_global_threshold is not None:
-                    variant_channel_listings = VariantChannelListingByVariantIdLoader(
-                        info.context
-                    ).load(variant.id)
-
-                    def calculate_available_global(variant_channel_listings):
-                        if not variant_channel_listings:
-                            return global_quantity_limit_per_checkout
-                        global_sold_units = sum(
-                            channel_listing.preorder_quantity_allocated
-                            for channel_listing in variant_channel_listings
-                        )
-
-                        available_quantity = variant.preorder_global_threshold
-                        available_quantity -= global_sold_units
-
-                        if is_reservation_enabled(site.settings):
-                            quantity_reserved = (
-                                PreorderQuantityReservedByVariantChannelListingIdLoader(
-                                    info.context
-                                ).load_many(
-                                    [listing.id for listing in variant_channel_listings]
-                                )
-                            )
-
-                            def calculate_available_global_quantity_with_reservations(
-                                reserved_quantities,
-                            ):
-                                return max(
-                                    min(
-                                        variant.preorder_global_threshold
-                                        - global_sold_units
-                                        - sum(reserved_quantities),
-                                        global_quantity_limit_per_checkout
-                                        or sys.maxsize,
-                                    ),
-                                    0,
-                                )
-
-                            return quantity_reserved.then(
-                                calculate_available_global_quantity_with_reservations
-                            )
-
-                        return min(
-                            variant.preorder_global_threshold - global_sold_units,
-                            global_quantity_limit_per_checkout or sys.maxsize,
-                        )
-
-                    return variant_channel_listings.then(calculate_available_global)
-
-                return global_quantity_limit_per_checkout
-
-            return channel_listing.then(calculate_available_per_channel)
 
         if not root.node.track_inventory:
             return global_quantity_limit_per_checkout

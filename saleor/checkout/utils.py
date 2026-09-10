@@ -54,7 +54,7 @@ from ..giftcard.utils import (
 from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
-from ..warehouse.reservations import reserve_stocks_and_preorders
+from ..warehouse.reservations import reserve_stocks_for_checkout
 from . import AddressType, base_calculations, calculations
 from .delivery_context import is_shipping_required
 from .error_codes import CheckoutErrorCode
@@ -277,7 +277,7 @@ def add_variants_to_checkout(
                 if line.pk not in updated_lines_ids:
                     lines_to_update_reservation_time.append(line)
 
-            reserve_stocks_and_preorders(
+            reserve_stocks_for_checkout(
                 to_reserve,
                 lines_to_update_reservation_time,
                 variants,

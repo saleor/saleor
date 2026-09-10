@@ -3,17 +3,15 @@ from collections import defaultdict
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, NamedTuple
 
-from django.conf import settings
-from django.db.models import F, Sum
-from django.db.models.functions import Coalesce
+from django.db.models import Sum
 from django.utils import timezone
 
 from ..core.exceptions import InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
-from ..product.models import ProductVariant, ProductVariantChannelListing
+from ..product.models import ProductVariant
 from .lock_objects import stock_qs_select_for_update
 from .management import sort_stocks
-from .models import Allocation, PreorderReservation, Reservation
+from .models import Allocation, Reservation
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -26,7 +24,7 @@ class StockData(NamedTuple):
 
 
 @traced_atomic_transaction()
-def reserve_stocks_and_preorders(
+def reserve_stocks_for_checkout(
     checkout_lines: Iterable["CheckoutLine"],
     lines_to_update_reservation_time: Iterable["CheckoutLine"],
     variants: Iterable["ProductVariant"],
@@ -37,55 +35,23 @@ def reserve_stocks_and_preorders(
     calculate_stocks_with_shipping_zones: bool,
     replace: bool = True,
 ):
-    stock_variants, stock_lines = [], []
-    preorder_variants, preorder_lines = [], []
-
-    for variant in variants:
-        if variant.is_preorder_active():
-            preorder_variants.append(variant)
-        else:
-            stock_variants.append(variant)
-
-    for line in checkout_lines:
-        if line.variant.is_preorder_active():
-            preorder_lines.append(line)
-        else:
-            stock_lines.append(line)
-
     reserved_until = timezone.now() + datetime.timedelta(minutes=length_in_minutes)
 
-    if stock_lines:
-        reserve_stocks(
-            stock_lines,
-            stock_variants,
-            country_code,
-            channel,
-            reserved_until,
-            replace=replace,
-            calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
-        )
+    reserve_stocks(
+        checkout_lines,
+        variants,
+        country_code,
+        channel,
+        reserved_until,
+        replace=replace,
+        calculate_stocks_with_shipping_zones=calculate_stocks_with_shipping_zones,
+    )
 
-        # Refresh reserved_until for already existing lines
-        if lines_to_update_reservation_time:
-            Reservation.objects.filter(
-                checkout_line__in=lines_to_update_reservation_time
-            ).update(reserved_until=reserved_until)
-
-    if preorder_lines:
-        reserve_preorders(
-            preorder_lines,
-            preorder_variants,
-            country_code,
-            channel.slug,
-            reserved_until,
-            replace=replace,
-        )
-
-        # Refresh reserved_until for already existing lines
-        if lines_to_update_reservation_time:
-            PreorderReservation.objects.filter(
-                checkout_line__in=lines_to_update_reservation_time
-            ).update(reserved_until=reserved_until)
+    # Refresh reserved_until for already existing lines
+    if lines_to_update_reservation_time:
+        Reservation.objects.filter(
+            checkout_line__in=lines_to_update_reservation_time
+        ).update(reserved_until=reserved_until)
 
 
 def reserve_stocks(
@@ -244,144 +210,6 @@ def _create_stock_reservations(
     return [], []
 
 
-def reserve_preorders(
-    checkout_lines: Iterable["CheckoutLine"],
-    variants: Iterable["ProductVariant"],
-    country_code: str,
-    channel_slug: str,
-    reserved_until: datetime.datetime,
-    *,
-    replace: bool = True,
-):
-    """Reserve preorders for given `checkout_lines` in given country."""
-    variants_ids = [line.variant_id for line in checkout_lines]
-    variants = [variant for variant in variants if variant.pk in variants_ids]
-    variants_map = {variant.id: variant for variant in variants}
-
-    all_variants_channel_listings = (
-        ProductVariantChannelListing.objects.filter(variant__in=variants)
-        .annotate_preorder_quantity_allocated()
-        .annotate(
-            available_preorder_quantity=F("preorder_quantity_threshold")
-            - Coalesce(Sum("preorder_allocations__quantity"), 0),
-        )
-        .select_related("channel")
-    )
-    variants_channel_listings = {
-        channel_listing.variant_id: channel_listing
-        for channel_listing in all_variants_channel_listings
-        if channel_listing.channel.slug == channel_slug
-    }
-
-    checkout_lines_to_reserve = []
-    for line in checkout_lines:
-        line_variant_channel_listing = variants_channel_listings[line.variant_id]
-        if (
-            line.variant.preorder_global_threshold
-            or line_variant_channel_listing.preorder_quantity_threshold is not None
-        ):
-            checkout_lines_to_reserve.append(line)
-
-    if not checkout_lines_to_reserve:
-        return
-
-    variant_channels: dict[int, list[ProductVariantChannelListing]] = defaultdict(list)
-    for channel_listing in all_variants_channel_listings:
-        variant_channels[channel_listing.variant_id].append(channel_listing)
-
-    variants_global_allocations = {
-        variant_id: sum(
-            channel_listing.preorder_quantity_allocated  # type: ignore[attr-defined]
-            for channel_listing in channel_listings
-        )
-        for variant_id, channel_listings in variant_channels.items()
-    }
-
-    listings_reservations: dict = get_listings_reservations(
-        checkout_lines, all_variants_channel_listings
-    )
-
-    insufficient_stocks: list[InsufficientStockData] = []
-    reservations: list[PreorderReservation] = []
-    for line in checkout_lines_to_reserve:
-        insufficient_stocks, reservation = _create_preorder_reservation(
-            line,
-            variants_map[line.variant_id],
-            variants_channel_listings[line.variant_id],
-            variant_channels[line.variant_id],
-            variants_global_allocations[line.variant_id],
-            listings_reservations,
-            insufficient_stocks,
-            reserved_until,
-        )
-        if reservation:
-            reservations.append(reservation)
-
-    if insufficient_stocks:
-        raise InsufficientStock(insufficient_stocks)
-
-    if reservation:
-        if replace:
-            PreorderReservation.objects.filter(
-                checkout_line__in=checkout_lines_to_reserve
-            ).delete()
-        PreorderReservation.objects.bulk_create(reservations)
-
-
-def _create_preorder_reservation(
-    line: "CheckoutLine",
-    variant: "ProductVariant",
-    listing: "ProductVariantChannelListing",
-    all_listings: list["ProductVariantChannelListing"],
-    global_allocations: int,
-    listings_reservations: dict[int, int],
-    insufficient_stocks: list[InsufficientStockData],
-    reserved_until: datetime.datetime,
-):
-    if listing.preorder_quantity_threshold is not None:
-        available_channel_quantity = listing.available_preorder_quantity  # type: ignore[attr-defined]
-        available_channel_quantity = max(
-            available_channel_quantity - listings_reservations[listing.id], 0
-        )
-        if line.quantity > available_channel_quantity:
-            insufficient_stocks.append(
-                InsufficientStockData(
-                    variant=variant,
-                    available_quantity=available_channel_quantity,
-                )
-            )
-
-    if variant.preorder_global_threshold:
-        # check global reservations
-        available_global_quantity = variant.preorder_global_threshold
-        available_global_quantity -= global_allocations
-        global_reservations = 0
-        for channel_listing in all_listings:
-            global_reservations += listings_reservations[channel_listing.id]
-
-        available_global_quantity -= global_reservations
-        available_global_quantity = max(available_global_quantity, 0)
-
-        if line.quantity > available_global_quantity:
-            insufficient_stocks.append(
-                InsufficientStockData(
-                    variant=variant,
-                    available_quantity=available_global_quantity,
-                )
-            )
-
-    if listing.preorder_quantity_threshold or variant.preorder_global_threshold:
-        # create reservation
-        return insufficient_stocks, PreorderReservation(
-            checkout_line=line,
-            product_variant_channel_listing=listing,
-            quantity_reserved=line.quantity,
-            reserved_until=reserved_until,
-        )
-
-    return insufficient_stocks, None
-
-
 def get_checkout_lines_to_reserve(
     lines: Iterable["CheckoutLine"],
     variants_map: dict[int, "ProductVariant"],
@@ -409,29 +237,3 @@ def get_reservation_length(site, user) -> int | None:
     if user:
         return site.settings.reserve_stock_duration_authenticated_user
     return site.settings.reserve_stock_duration_anonymous_user
-
-
-def get_listings_reservations(
-    checkout_lines: Iterable["CheckoutLine"] | None,
-    all_variants_channel_listings,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-) -> dict[int, int]:
-    quantity_reservation_list = (
-        PreorderReservation.objects.using(database_connection_name)
-        .filter(
-            product_variant_channel_listing__in=all_variants_channel_listings,
-            quantity_reserved__gt=0,
-        )
-        .not_expired()
-        .exclude_checkout_lines(checkout_lines)
-        .values("product_variant_channel_listing")
-        .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )
-    listings_reservations: dict = defaultdict(int)
-
-    for reservation in quantity_reservation_list:
-        listings_reservations[reservation["product_variant_channel_listing"]] += (
-            reservation["quantity_reserved_sum"]
-        )
-
-    return listings_reservations
