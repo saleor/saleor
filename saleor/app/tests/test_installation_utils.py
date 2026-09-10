@@ -121,6 +121,24 @@ def test_install_app_created_app_with_audience(
     assert app.audience == audience
 
 
+def test_install_app_attributes_token_to_installer(
+    app_manifest, app_installation, staff_user, monkeypatch
+):
+    # given
+    app_installation.installed_by = staff_user
+    app_installation.save(update_fields=["installed_by"])
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.tokens.get().created_by == staff_user
+
+
 def test_install_app_with_required_saleor_version(
     app_manifest, app_installation, monkeypatch
 ):
