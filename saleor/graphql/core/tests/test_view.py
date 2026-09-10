@@ -462,7 +462,7 @@ INTROSPECTION_RESULT = {"__schema": {"queryType": {"name": "Query"}}}
 # cache object itself: the object is shared, so patching its methods would also capture
 # the storefront traffic guard's own lookups and break the call assertions below.
 @mock.patch("saleor.graphql.views.cache")
-@override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
+@override_settings(DEBUG=False)
 def test_introspection_query_is_cached(cache_mock, api_client):
     cache_mock.get.return_value = None
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
@@ -476,7 +476,7 @@ def test_introspection_query_is_cached(cache_mock, api_client):
 
 
 @mock.patch("saleor.graphql.views.cache")
-@override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
+@override_settings(DEBUG=False)
 def test_introspection_query_is_cached_only_once(cache_mock, api_client):
     cache_mock.get.return_value = ExecutionResult(data=INTROSPECTION_RESULT)
     cache_key = generate_cache_key(INTROSPECTION_QUERY)
@@ -488,7 +488,7 @@ def test_introspection_query_is_cached_only_once(cache_mock, api_client):
 
 
 @mock.patch("saleor.graphql.views.cache")
-@override_settings(DEBUG=True, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
+@override_settings(DEBUG=True)
 def test_introspection_query_is_not_cached_in_debug_mode(cache_mock, api_client):
     response = api_client.post_graphql(INTROSPECTION_QUERY)
     content = get_graphql_content(response)
