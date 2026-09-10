@@ -19,12 +19,19 @@ query products(
   $attributeId: ID
   $direction: OrderDirection!
   $channel: String
+  $first: Int = 100
+  $after: String
 ) {
   products(
-    first: 100,
+    first: $first,
+    after: $after,
     channel: $channel,
     sortBy: { field: $field, attributeId: $attributeId, direction: $direction }
   ) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
     edges {
       node {
         name
@@ -692,3 +699,171 @@ def test_sort_product_by_attribute_using_attribute_having_no_products(
 
     assert len(products) == product_models.Product.objects.count()
     assert products[0]["node"]["name"] == expected_first_product.name
+
+
+# Values whose numeric order differs from their lexicographic order. Fractional, so
+# that cursors have to round-trip a non-integral float.
+NUMERIC_VALUES = (2.5, 9.5, 10.25, 100.5)
+
+
+def _publish_product(name, product_type, category, channel):
+    product = product_models.Product.objects.create(
+        name=name,
+        slug=name.lower().replace(" ", "-"),
+        product_type=product_type,
+        category=category,
+    )
+    product_models.ProductChannelListing.objects.create(
+        product=product,
+        channel=channel,
+        is_published=True,
+        visible_in_listings=True,
+    )
+    variant = product_models.ProductVariant.objects.create(
+        product=product, sku=product.slug
+    )
+    product_models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel,
+        price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel.currency_code,
+    )
+    return product
+
+
+def _numeric_attribute_value(attribute, number):
+    return attribute_models.AttributeValue.objects.create(
+        attribute=attribute,
+        name=str(number),
+        slug=str(number),
+        numeric=number,
+    )
+
+
+def _sort_products_by_attribute(api_client, attribute, direction, channel):
+    variables = {
+        "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "direction": direction,
+        "channel": channel.slug,
+    }
+    response = get_graphql_content(
+        api_client.post_graphql(QUERY_SORT_PRODUCTS_BY_ATTRIBUTE, variables)
+    )
+    return [edge["node"]["name"] for edge in response["data"]["products"]["edges"]]
+
+
+@pytest.fixture
+def numeric_product_type(numeric_attribute):
+    product_type = product_models.ProductType.objects.create(
+        name="Rated", slug="rated", has_variants=False
+    )
+    product_type.product_attributes.add(numeric_attribute)
+    return product_type
+
+
+@pytest.fixture
+def products_with_numeric_attribute(
+    numeric_attribute, numeric_product_type, category, channel_USD
+):
+    for number in NUMERIC_VALUES:
+        product = _publish_product(
+            f"Product {number}", numeric_product_type, category, channel_USD
+        )
+        associate_attribute_values_to_instance(
+            product,
+            {
+                numeric_attribute.pk: [
+                    _numeric_attribute_value(numeric_attribute, number)
+                ]
+            },
+        )
+    return numeric_attribute
+
+
+@pytest.mark.parametrize("descending", [False, True])
+def test_sort_product_by_numeric_attribute(
+    api_client, products_with_numeric_attribute, descending, channel_USD
+):
+    # given
+    attribute = products_with_numeric_attribute
+    expected_names = [
+        f"Product {number}" for number in sorted(NUMERIC_VALUES, reverse=descending)
+    ]
+
+    # when
+    names = _sort_products_by_attribute(
+        api_client, attribute, "DESC" if descending else "ASC", channel_USD
+    )
+
+    # then
+    assert names == expected_names
+
+
+@pytest.mark.parametrize("descending", [False, True])
+def test_sort_product_by_numeric_attribute_without_assigned_values(
+    api_client,
+    numeric_attribute,
+    numeric_product_type,
+    category,
+    channel_USD,
+    descending,
+):
+    """Rank products with a value first, then valueless, then unrelated types."""
+    # given
+    other_product_type = product_models.ProductType.objects.create(
+        name="Unrated", slug="unrated", has_variants=False
+    )
+
+    with_value = _publish_product(
+        "With value", numeric_product_type, category, channel_USD
+    )
+    associate_attribute_values_to_instance(
+        with_value,
+        {numeric_attribute.pk: [_numeric_attribute_value(numeric_attribute, 7)]},
+    )
+    _publish_product("Without value", numeric_product_type, category, channel_USD)
+    _publish_product("Other type", other_product_type, category, channel_USD)
+
+    expected_names = ["With value", "Without value", "Other type"]
+    if descending:
+        expected_names.reverse()
+
+    # when
+    names = _sort_products_by_attribute(
+        api_client, numeric_attribute, "DESC" if descending else "ASC", channel_USD
+    )
+
+    # then
+    assert names == expected_names
+
+
+def test_sort_product_by_numeric_attribute_paginates_in_numeric_order(
+    api_client, products_with_numeric_attribute, channel_USD
+):
+    """Ensure the float sort value survives the cursor round-trip."""
+    # given
+    attribute = products_with_numeric_attribute
+    page_size = 2
+    expected_names = [f"Product {number}" for number in sorted(NUMERIC_VALUES)]
+    variables = {
+        "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "direction": "ASC",
+        "channel": channel_USD.slug,
+        "first": page_size,
+        "after": None,
+    }
+
+    # when
+    collected_names = []
+    for _ in range(len(NUMERIC_VALUES) // page_size):
+        response = get_graphql_content(
+            api_client.post_graphql(QUERY_SORT_PRODUCTS_BY_ATTRIBUTE, variables)
+        )
+        products = response["data"]["products"]
+        collected_names += [edge["node"]["name"] for edge in products["edges"]]
+        variables["after"] = products["pageInfo"]["endCursor"]
+
+    # then
+    assert collected_names == expected_names
+    assert products["pageInfo"]["hasNextPage"] is False

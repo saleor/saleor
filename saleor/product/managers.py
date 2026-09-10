@@ -11,6 +11,7 @@ from django.db.models import (
     Exists,
     ExpressionWrapper,
     F,
+    Min,
     OuterRef,
     Q,
     Subquery,
@@ -175,12 +176,21 @@ class ProductsQueryset(models.QuerySet):
                 concatenated_values_order=Value(
                     None, output_field=models.IntegerField()
                 ),
+                numeric_value=Value(None, output_field=models.FloatField()),
                 concatenated_values=Value(None, output_field=models.CharField()),
             )
 
         qs = qs.annotate(
             # Implicit `GROUP BY` required for the `StringAgg` aggregation
             grouped_ids=Count("id"),
+            # Numeric attributes must sort by their value, not by its string
+            # representation, otherwise "10" would come before "9". The aggregate
+            # reuses the join `concatenated_values` already needs and stays `NULL`
+            # for every other input type, making it a no-op for them.
+            numeric_value=Min(
+                "attributevalues__value__numeric",
+                filter=Q(attributevalues__value__attribute_id=attribute_pk),
+            ),
             # String aggregation of the attribute's values to efficiently sort them
             concatenated_values=Case(
                 # If the product has no association data but has
@@ -232,6 +242,7 @@ class ProductsQueryset(models.QuerySet):
         ordering = "-" if descending else ""
         return qs.order_by(
             f"{ordering}concatenated_values_order",
+            f"{ordering}numeric_value",
             f"{ordering}concatenated_values",
             f"{ordering}name",
         )
