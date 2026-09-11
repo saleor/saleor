@@ -384,7 +384,7 @@ QUERY_GET_PRODUCT_VARIANTS_PRICING_NO_ADDRESS = """
 
 
 @patch(
-    "saleor.graphql.product.types.products.get_tax_rate_for_country",
+    "saleor.graphql.product.types.availability.get_tax_rate_for_country",
 )
 def test_product_variant_price_no_address(
     mock_get_tax_rate_for_country, user_api_client, variant, stock, channel_USD

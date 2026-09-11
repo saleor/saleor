@@ -7482,11 +7482,42 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   priorPrice: Money
 
   """
+  The price of the variant with promotions applied.
+  
+  Added in Saleor 3.23.
+  """
+  discountedPrice: Money
+
+  """
   Gross margin percentage value.
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   margin: Int
+
+  """
+  Lists the storefront variant's pricing in this channel, the current price and discounts, only meant for displaying.
+  
+  Added in Saleor 3.23.
+  """
+  pricing(
+    """
+    Destination address used to determine the country the taxes are calculated for. If address is empty, the channel's default country is used.
+    """
+    address: AddressInput
+  ): VariantPricingInfo
+
+  """
+  Quantity of a variant available for sale in one checkout in this channel. Field value will be `null` when no `limitQuantityPerCheckout` in global settings has been set, and the variant stocks are not tracked.
+  
+  Added in Saleor 3.23.
+  """
+  quantityAvailable(
+    """
+    Destination address used to find warehouses where stock availability for this variant is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration. When `Shop.useLegacyShippingZoneStockAvailability` is disabled, this argument is ignored - stock availability is determined by the direct warehouse-channel link instead of shipping zones.
+    """
+    address: AddressInput
+  ): Int
 }
 
 """Represents channel."""
