@@ -20,7 +20,11 @@ from ...permission.enums import (
     CustomerTypePermissions,
     OrderPermissions,
 )
-from ...permission.utils import one_of_permissions_or_auth_filter_required
+from ...permission.read_permissions import expand_read_permissions
+from ...permission.utils import (
+    has_one_of_permissions,
+    one_of_permissions_or_auth_filter_required,
+)
 from ...plugins.manager import PluginsManager
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
@@ -822,7 +826,10 @@ class User(ModelObjectType[models.User]):
         user_or_app = get_user_or_app_from_context(info.context)
         if not user_or_app or (
             root != user_or_app
-            and not user_or_app.has_perm(OrderPermissions.MANAGE_ORDERS)
+            and not has_one_of_permissions(
+                user_or_app,
+                expand_read_permissions([OrderPermissions.MANAGE_ORDERS]),
+            )
         ):
             raise PermissionDenied(
                 permissions=[
@@ -841,7 +848,10 @@ class User(ModelObjectType[models.User]):
                 qs = models.Order.objects.using(database_connection_name).filter(
                     user_id=root.id
                 )
-                if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
+                if not has_one_of_permissions(
+                    requester,
+                    expand_read_permissions([OrderPermissions.MANAGE_ORDERS]),
+                ):
                     qs = qs.non_draft()
                 # Return only orders from channels that the user has access to.
                 # The app has access to all channels.

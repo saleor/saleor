@@ -375,6 +375,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         permissions = (
             (OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),
             (OrderPermissions.MANAGE_ORDERS_IMPORT.codename, "Manage orders import."),
+            (OrderPermissions.READ_ORDERS.codename, "Read orders."),
         )
         indexes = [
             *ModelWithMetadata.Meta.indexes,
