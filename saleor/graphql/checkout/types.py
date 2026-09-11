@@ -26,6 +26,7 @@ from ...permission.enums import (
     DiscountPermissions,
     PaymentPermissions,
 )
+from ...permission.read_permissions import expand_read_permissions
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_checkout_delivery_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
@@ -1234,7 +1235,9 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
 
     @staticmethod
     @one_of_permissions_required(
-        [CheckoutPermissions.MANAGE_CHECKOUTS, PaymentPermissions.HANDLE_PAYMENTS]
+        expand_read_permissions(
+            [CheckoutPermissions.MANAGE_CHECKOUTS, PaymentPermissions.HANDLE_PAYMENTS]
+        )
     )
     def resolve_transactions(
         root: SyncWebhookControlContext[models.Checkout], info: ResolveInfo
