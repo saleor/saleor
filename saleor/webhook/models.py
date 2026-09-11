@@ -5,6 +5,7 @@ from django.db import models
 from ..app.models import App
 from ..app.validators import AppURLValidator
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..product import MediaOwnerTypes
 from .const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from .validators import custom_headers_validator
 
@@ -34,6 +35,15 @@ class Webhook(models.Model):
         blank=True,
         default=list,
         size=MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT,
+    )
+    # Owner types the `media*` subscriptions are narrowed to. Empty means "all".
+    # No index: the closed set of owner types is filtered over an already-fetched
+    # Python list of webhooks, the same way channel slugs are.
+    filterable_media_owner_types = ArrayField(
+        models.CharField(max_length=32),
+        blank=True,
+        default=list,
+        size=len(MediaOwnerTypes.ALL),
     )
     # blank=True is required because webhookCreate/webhookUpdate run full_clean:
     # Django's field validation rejects an unset value (None is in empty_values)

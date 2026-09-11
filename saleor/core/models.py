@@ -2,7 +2,7 @@ import datetime
 from collections.abc import Iterable
 from typing import Any, TypeVar
 
-from django.contrib.postgres.indexes import GinIndex, PostgresIndex
+from django.contrib.postgres.indexes import GinIndex
 from django.core.files.base import ContentFile
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
@@ -92,7 +92,7 @@ class ModelWithMetadata(models.Model):
     )
 
     class Meta:
-        indexes: list[PostgresIndex] = [
+        indexes: list[models.Index] = [
             GinIndex(fields=["private_metadata"], name="%(class)s_p_meta_idx"),
             GinIndex(fields=["metadata"], name="%(class)s_meta_idx"),
         ]

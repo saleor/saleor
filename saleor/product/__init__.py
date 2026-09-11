@@ -11,6 +11,27 @@ class ProductMediaTypes:
     ]
 
 
+class MediaOwnerTypes:
+    """Entity types a `ProductMedia` row can be attached to.
+
+    Values match the name of the owner foreign key on `ProductMedia`.
+    """
+
+    PRODUCT = "product"
+    CATEGORY = "category"
+    COLLECTION = "collection"
+    PAGE = "page"
+
+    CHOICES = [
+        (PRODUCT, "A product."),
+        (CATEGORY, "A category."),
+        (COLLECTION, "A collection."),
+        (PAGE, "A page."),
+    ]
+
+    ALL = [choice[0] for choice in CHOICES]
+
+
 class ProductTypeKind:
     NORMAL = "normal"
     GIFT_CARD = "gift_card"

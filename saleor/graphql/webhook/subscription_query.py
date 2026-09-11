@@ -14,6 +14,7 @@ from graphql.language.ast import (
     OperationDefinition,
 )
 
+from ...product.media import ENUM_NAME_TO_OWNER_TYPE
 from ...webhook.error_codes import WebhookErrorCode
 
 
@@ -33,11 +34,27 @@ class SubscriptionQuery:
         self.error_msg: str = ";".join({str(err.message) for err in self.errors})
 
     def get_filterable_channel_slugs(self) -> list[str]:
-        """Get filterable channel slugs from the subscription.
+        """Get filterable channel slugs from the subscription."""
+        return self._get_list_argument_values("channels")
 
-        Subscription is filterable if it has arguments provided that can be used to
-        filter out records. If arguments are not provided, the subscription is not
-        filterable, then needs to be treated as normal subscription.
+    def get_filterable_media_owner_types(self) -> list[str]:
+        """Get the media owner types the subscription narrowed itself to.
+
+        The AST carries GraphQL enum member names (`PRODUCT`); the webhook stores
+        the values that match `ProductMedia`'s owner columns (`product`).
+        """
+        return [
+            ENUM_NAME_TO_OWNER_TYPE[name]
+            for name in self._get_list_argument_values("ownerTypes")
+            if name in ENUM_NAME_TO_OWNER_TYPE
+        ]
+
+    def _get_list_argument_values(self, argument_name: str) -> list[str]:
+        """Read a top-level list argument the event can be filtered by.
+
+        A subscription is filterable only when it selects exactly one top-level
+        field and passes the argument. Otherwise it is treated as a normal,
+        unfiltered subscription.
         """
         if not self.is_valid:
             return []
@@ -55,14 +72,10 @@ class SubscriptionQuery:
         selection = subscription.selection_set.selections[0]
         if not selection.arguments:
             return []
-        channels = []
         for arg in selection.arguments:
-            argument_name = arg.name.value
-            argument_values = getattr(arg.value, "values", [])
-            if argument_name == "channels":
-                channels = [value.value for value in argument_values]
-                break
-        return channels
+            if arg.name.value == argument_name:
+                return [value.value for value in getattr(arg.value, "values", [])]
+        return []
 
     def _check_if_invalid_top_field_selection(self, subscription: OperationDefinition):
         """Check if subscription selects only one top field.

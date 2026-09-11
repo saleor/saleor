@@ -39,6 +39,7 @@ def resolve_object_with_metadata_type(instance):
     from ..discount import types as discount_types
     from ..giftcard import types as giftcard_types
     from ..invoice import types as invoice_types
+    from ..media.types import resolve_media_type_for_owner
     from ..menu import types as menu_types
     from ..order import types as order_types
     from ..page import types as page_types
@@ -91,6 +92,11 @@ def resolve_object_with_metadata_type(instance):
             instance, "old_sale_id", False
         ):
             return discount_types.Sale, instance.pk
+        if isinstance(instance, product_models.ProductMedia):
+            # One table, one GraphQL type per owner. Owner-less legacy rows keep
+            # resolving as ProductMedia.
+            media_type = resolve_media_type_for_owner(instance)
+            return media_type or product_types.ProductMedia, instance.pk
         return MODEL_TO_TYPE_MAP[instance.__class__], instance.pk
 
     if dataclasses.is_dataclass(instance):

@@ -68,6 +68,7 @@ from ...webhook.payloads import (
     generate_fulfillment_payload,
     generate_invoice_payload,
     generate_list_gateways_payload,
+    generate_media_payload,
     generate_meta,
     generate_metadata_updated_payload,
     generate_order_payload,
@@ -119,6 +120,7 @@ from ...webhook.transport.utils import (
     get_sqs_message_group_id,
 )
 from ...webhook.utils import (
+    filter_webhooks_by_media_owner,
     filter_webhooks_for_channel,
     get_webhooks_for_app_lifecycle_event,
     get_webhooks_for_event,
@@ -1996,6 +1998,42 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
                 legacy_data_generator=media_data_generator,
             )
+        return previous_value
+
+    def _trigger_media_event(self, event_type: str, media: "ProductMedia") -> None:
+        owner_type = media.owner_type
+        if not owner_type:
+            return
+        webhooks = filter_webhooks_by_media_owner(
+            get_webhooks_for_event(event_type), owner_type
+        )
+        if not webhooks:
+            return
+        self.trigger_webhooks_async(
+            None,
+            event_type,
+            webhooks,
+            media,
+            self.requestor,
+            legacy_data_generator=partial(generate_media_payload, media),
+        )
+
+    def media_created(self, media: "ProductMedia", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_media_event(WebhookEventAsyncType.MEDIA_CREATED, media)
+        return previous_value
+
+    def media_updated(self, media: "ProductMedia", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_media_event(WebhookEventAsyncType.MEDIA_UPDATED, media)
+        return previous_value
+
+    def media_deleted(self, media: "ProductMedia", previous_value: None) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_media_event(WebhookEventAsyncType.MEDIA_DELETED, media)
         return previous_value
 
     def product_variant_created(

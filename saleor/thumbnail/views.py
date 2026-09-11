@@ -50,7 +50,12 @@ TYPE_TO_MODEL_DATA_MAPPING = {
     "User": ModelData(User, "avatar", "user"),
     "Category": ModelData(Category, "background_image", "category"),
     "Collection": ModelData(Collection, "background_image", "collection"),
+    # The "ProductMedia" key is permanent: it is baked into CDN-cached proxy URLs
+    # and into editorjs image blocks stored in customer content.
     "ProductMedia": ModelData(ProductMedia, "image", "product_media"),
+    "CategoryMedia": ModelData(ProductMedia, "image", "product_media"),
+    "CollectionMedia": ModelData(ProductMedia, "image", "product_media"),
+    "PageMedia": ModelData(ProductMedia, "image", "product_media"),
     **ICON_TYPE_TO_MODEL_DATA_MAPPING,
 }
 UUID_IDENTIFIABLE_TYPES = ["User", "App", "AppInstallation"]

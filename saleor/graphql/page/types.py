@@ -33,14 +33,23 @@ from ..core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ..core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ..core.descriptions import (
+    ADDED_IN_322,
+    ADDED_IN_324,
+    DEPRECATED_IN_3X_INPUT,
+    RICH_CONTENT,
+)
 from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import FilterConnectionField, JSONString, PermissionsField
 from ..core.scalars import Date, DateTime, PositiveInt
 from ..core.types import ModelObjectType, NonNullList
 from ..core.types.context import ChannelContextType
+from ..media.dataloaders import MediaByPageIdLoader
+from ..media.types import PageMedia
+from ..media.utils import sort_media
 from ..meta.types import ObjectWithMetadata
+from ..product.sorters import MediaSortingInput
 from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
 from .dataloaders import (
@@ -218,6 +227,12 @@ class Page(ChannelContextType[models.Page]):
         description="List of attributes assigned to this page.",
         deprecation_reason="Use `assignedAttributes` field instead.",
     )
+    media = NonNullList(
+        PageMedia,
+        sort_by=graphene.Argument(MediaSortingInput, description="Sort media."),
+        required=True,
+        description="List of media for the page." + ADDED_IN_324,
+    )
 
     class Meta:
         default_resolver = ChannelContextType.resolver_with_context
@@ -227,6 +242,16 @@ class Page(ChannelContextType[models.Page]):
         )
         interfaces = [graphene.relay.Node, ObjectWithMetadata, ObjectWithAttributes]
         model = models.Page
+
+    @staticmethod
+    def resolve_media(
+        root: ChannelContext[models.Page], info: ResolveInfo, sort_by=None
+    ):
+        return (
+            MediaByPageIdLoader(info.context)
+            .load(root.node.pk)
+            .then(lambda media: sort_media(media, sort_by))
+        )
 
     @staticmethod
     def resolve_publication_date(root: ChannelContext[models.Page], _info: ResolveInfo):

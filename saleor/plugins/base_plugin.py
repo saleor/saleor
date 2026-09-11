@@ -1325,6 +1325,33 @@ class BasePlugin:
     # Webhook-related functionality will be moved from the plugin to core modules.
     product_media_deleted: Callable[["ProductMedia", Any], Any]
 
+    # Trigger when media of any owner type is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a media
+    # object is created.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    media_created: Callable[["ProductMedia", Any], Any]
+
+    # Trigger when media of any owner type is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a media
+    # object is updated.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    media_updated: Callable[["ProductMedia", Any], Any]
+
+    # Trigger when media of any owner type is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after a media
+    # object is deleted.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    media_deleted: Callable[["ProductMedia", Any], Any]
+
     # Trigger when product metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
