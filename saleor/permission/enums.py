@@ -38,6 +38,7 @@ class CustomerTypePermissions(BasePermissionEnum):
 
 class DiscountPermissions(BasePermissionEnum):
     MANAGE_DISCOUNTS = "discount.manage_discounts"
+    READ_DISCOUNTS = "discount.read_discounts"
 
 
 class PluginsPermissions(BasePermissionEnum):
@@ -46,6 +47,7 @@ class PluginsPermissions(BasePermissionEnum):
 
 class GiftcardPermissions(BasePermissionEnum):
     MANAGE_GIFT_CARD = "giftcard.manage_gift_card"
+    READ_GIFT_CARD = "giftcard.read_gift_card"
 
 
 class MenuPermissions(BasePermissionEnum):
