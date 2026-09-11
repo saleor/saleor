@@ -397,10 +397,12 @@ class CustomerType(ModelObjectType[models.CustomerType]):
 
         if one_of_permissions_or_auth_filter_required(
             info.context,
-            [
-                AccountPermissions.MANAGE_USERS,
-                CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
-            ],
+            expand_read_permissions(
+                [
+                    AccountPermissions.MANAGE_USERS,
+                    CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+                ]
+            ),
         ):
             return (
                 CustomerAttributesAllByCustomerTypeIdLoader(info.context)

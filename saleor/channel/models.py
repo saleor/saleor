@@ -82,6 +82,10 @@ class Channel(ModelWithMetadata):
                 ChannelPermissions.MANAGE_CHANNELS.codename,
                 "Manage channels.",
             ),
+            (
+                ChannelPermissions.READ_CHANNELS.codename,
+                "Read channels.",
+            ),
         )
 
     def __str__(self):
