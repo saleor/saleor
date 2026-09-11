@@ -68,6 +68,7 @@ from ..enums import (
     ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
     ProductVariantTranslateErrorCode,
+    PromoCodeRejectionReason,
     RefundSettingsErrorCode,
     ReturnSettingsErrorCode,
     SendConfirmationEmailErrorCode,
@@ -97,7 +98,7 @@ from ..enums import (
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
 from .base import BaseObjectType
-from .money import VAT
+from .money import VAT, Money
 from .upload import Upload
 
 if TYPE_CHECKING:
@@ -262,6 +263,40 @@ class ChannelError(Error):
         doc_category = DOC_CATEGORY_CHANNELS
 
 
+PROMO_CODE_DETAILS_DESCRIPTION = (
+    "Details of the promo code that caused the error. Null when the error is "
+    "not a promo code rejection." + ADDED_IN_323
+)
+
+
+class PromoCodeRejectionDetails(BaseObjectType):
+    reason = PromoCodeRejectionReason(
+        description="The specific reason why the promo code cannot be applied.",
+        required=True,
+    )
+    min_spent = graphene.Field(
+        Money,
+        description=(
+            "The minimum order value required by the voucher. "
+            "Set only when `reason` is `MIN_SPENT_NOT_REACHED`."
+        ),
+        required=False,
+    )
+    min_checkout_items_quantity = graphene.Int(
+        description=(
+            "The minimum number of items required by the voucher. "
+            "Set only when `reason` is `MIN_QUANTITY_NOT_REACHED`."
+        ),
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
+        description = (
+            "Details explaining why a promo code cannot be applied." + ADDED_IN_323
+        )
+
+
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
     variants = NonNullList(
@@ -276,6 +311,11 @@ class CheckoutError(Error):
     )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
+    )
+    promo_code_details = graphene.Field(
+        PromoCodeRejectionDetails,
+        description=PROMO_CODE_DETAILS_DESCRIPTION,
+        required=False,
     )
 
     class Meta:
@@ -415,6 +455,11 @@ class OrderError(Error):
     )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
+    )
+    promo_code_details = graphene.Field(
+        PromoCodeRejectionDetails,
+        description=PROMO_CODE_DETAILS_DESCRIPTION,
+        required=False,
     )
 
     class Meta:

@@ -4,7 +4,16 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union, cast
 from uuid import UUID
 
-from django.db.models import Case, Exists, F, IntegerField, OuterRef, Value, When
+from django.db.models import (
+    Case,
+    Exists,
+    F,
+    IntegerField,
+    OuterRef,
+    Sum,
+    Value,
+    When,
+)
 from django.utils import timezone
 from prices import Money
 
@@ -14,13 +23,20 @@ from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import Order, OrderLine
-from .. import DiscountType, VoucherType
+from .. import (
+    NOT_APPLICABLE_MESSAGE,
+    DiscountType,
+    PromoCodeRejection,
+    PromoCodeRejectionReason,
+    VoucherType,
+)
 from ..interface import DiscountInfo, VoucherInfo
 from ..models import (
     DiscountValueType,
     NotApplicable,
     OrderLineDiscount,
     Voucher,
+    VoucherChannelListing,
     VoucherCode,
     VoucherCustomer,
 )
@@ -113,13 +129,18 @@ def add_voucher_usage_by_customer(
     code: "VoucherCode", customer_email: str | None
 ) -> None:
     if not customer_email:
-        raise NotApplicable("Unable to apply voucher as customer details are missing.")
+        raise NotApplicable(
+            "Unable to apply voucher as customer details are missing.",
+            reason=PromoCodeRejectionReason.CUSTOMER_EMAIL_REQUIRED,
+        )
 
     _, created = VoucherCustomer.objects.get_or_create(
         voucher_code=code, customer_email=customer_email
     )
     if not created:
-        raise NotApplicable("This offer is only valid once per customer.")
+        raise NotApplicable(
+            NOT_APPLICABLE_MESSAGE, reason=PromoCodeRejectionReason.NOT_APPLICABLE
+        )
 
 
 def remove_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
@@ -170,8 +191,77 @@ def get_voucher_code_instance(
     ):
         code_instance = VoucherCode.objects.get(code=voucher_code)
     else:
-        raise InvalidPromoCode()
+        raise InvalidPromoCode(
+            promo_code_rejection=PromoCodeRejection(
+                reason=diagnose_invalid_voucher_code(
+                    voucher_code, channel_slug, validate_usage_limit
+                )
+            )
+        )
     return code_instance
+
+
+def diagnose_invalid_voucher_code(
+    voucher_code: str,
+    channel_slug: str,
+    validate_usage_limit: bool,
+) -> PromoCodeRejectionReason:
+    """Return the `PromoCodeRejectionReason` explaining why a code was rejected.
+
+    Only called once a code has already been found unusable, so the extra
+    queries never run on the happy path.
+    """
+    code = (
+        VoucherCode.objects.filter(code=voucher_code).select_related("voucher").first()
+    )
+    if code is None:
+        return PromoCodeRejectionReason.NOT_FOUND
+    if not code.is_active:
+        # A code is deactivated only when a single-use code has been redeemed,
+        # which is a usage limit of one, reached.
+        return PromoCodeRejectionReason.USAGE_LIMIT_REACHED
+
+    return (
+        diagnose_inactive_voucher(code.voucher, channel_slug, validate_usage_limit)
+        or PromoCodeRejectionReason.NOT_FOUND
+    )
+
+
+def diagnose_inactive_voucher(
+    voucher: "Voucher",
+    channel_slug: str,
+    validate_usage_limit: bool,
+) -> PromoCodeRejectionReason | None:
+    """Return why a voucher is not currently usable, or None if it is.
+
+    Only called once a voucher has already been found unusable, so the extra
+    queries never run on the happy path.
+
+    An unlaunched voucher and one belonging to another channel are reported as
+    `NOT_FOUND`: both would otherwise confirm a campaign the caller has no
+    access to, and neither is actionable by a shopper.
+    """
+    now = timezone.now()
+    if voucher.start_date > now:
+        return PromoCodeRejectionReason.NOT_FOUND
+    if voucher.end_date and voucher.end_date < now:
+        return PromoCodeRejectionReason.EXPIRED
+    if validate_usage_limit and voucher.usage_limit is not None:
+        used = (
+            VoucherCode.objects.filter(voucher_id=voucher.pk).aggregate(
+                total_used=Sum("used")
+            )["total_used"]
+            or 0
+        )
+        if used >= voucher.usage_limit:
+            return PromoCodeRejectionReason.USAGE_LIMIT_REACHED
+    if not VoucherChannelListing.objects.filter(
+        voucher_id=voucher.pk,
+        channel__slug=channel_slug,
+        channel__is_active=True,
+    ).exists():
+        return PromoCodeRejectionReason.NOT_FOUND
+    return None
 
 
 def get_active_voucher_code(voucher, channel_slug, validate_usage_limit=True):
@@ -184,10 +274,18 @@ def get_active_voucher_code(voucher, channel_slug, validate_usage_limit=True):
         timezone.now(), channel_slug, validate_usage_limit
     )
     if not voucher_queryset.filter(pk=voucher.pk).exists():
-        raise InvalidPromoCode()
+        reason = (
+            diagnose_inactive_voucher(voucher, channel_slug, validate_usage_limit)
+            or PromoCodeRejectionReason.NOT_FOUND
+        )
+        raise InvalidPromoCode(promo_code_rejection=PromoCodeRejection(reason=reason))
     voucher_code = VoucherCode.objects.filter(voucher=voucher, is_active=True).first()
     if not voucher_code:
-        raise InvalidPromoCode()
+        raise InvalidPromoCode(
+            promo_code_rejection=PromoCodeRejection(
+                reason=PromoCodeRejectionReason.USAGE_LIMIT_REACHED
+            )
+        )
     return voucher_code
 
 

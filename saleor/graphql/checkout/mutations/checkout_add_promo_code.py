@@ -100,12 +100,7 @@ class CheckoutAddPromoCode(BaseMutation):
 
         checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-        add_promo_code_to_checkout(
-            manager,
-            checkout_info,
-            lines,
-            promo_code,
-        )
+        add_promo_code_to_checkout(manager, checkout_info, lines, promo_code)
 
         shipping_update_fields = mark_checkout_deliveries_as_stale_if_needed(
             checkout_info.checkout, lines
