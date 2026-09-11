@@ -52,6 +52,7 @@ permissions.
 - Added `Order.transactionSummaries` field returning a `TransactionSummary` per payment transaction that moved any money. Unlike `Order.transactions` it requires no permission, so storefronts can show the payment history of an order; it exposes only `createdAt`, `paymentMethodDetails` and the amounts, with the card digits and expiration date stripped.
 - Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
 - Added `ID` sort field to `ProductVariantSortField`. Sorting by the variant primary key gives a stable order and stable cursors, unlike `LAST_MODIFIED_AT`, whose value changes when a variant is updated during pagination.
+- Sorting products by a numeric attribute (`products(sortBy: { attributeId: ... })`) now orders by the numeric value instead of its string representation, so `10` no longer sorts before `9`.
 
 ### Webhooks
 
@@ -131,6 +132,10 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Deprecate export mutations (`exportProducts`, `exportGiftCards`, `exportVoucherCodes`). All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools.
 - Deprecate the export webhook event types emitted by those mutations: `PRODUCT_EXPORT_COMPLETED`, `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` (`WebhookEventTypeEnum`, `WebhookEventTypeAsyncEnum`, `WebhookSampleEventTypeEnum`), along with the `ProductExportCompleted`, `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types.
 - Deprecate `voucher` input field on `DraftOrderInput` and `DraftOrderCreateInput`. Use `voucherCode` instead.
+- Deprecate the product rating API. Model ratings with a numeric attribute instead: create a numeric attribute, assign it to the relevant product types, and set the value per product. The following are deprecated:
+  - Field `Product.rating`.
+  - Input field `rating` on `ProductInput`, `ProductCreateInput` and `ProductBulkCreateInput`.
+  - Sort field `RATING` on `ProductOrderField`.
 - Deprecate the preorder API. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to `false` to sell without a stock limit. The following are deprecated:
   - Mutation `productVariantPreorderDeactivate`.
   - Types `PreorderData` (and `ProductVariant.preorder`) and `PreorderThreshold` (and `ProductVariantChannelListing.preorderThreshold`).
