@@ -78,10 +78,12 @@ class PageTypePermissions(BasePermissionEnum):
 
 class ProductPermissions(BasePermissionEnum):
     MANAGE_PRODUCTS = "product.manage_products"
+    READ_PRODUCTS = "product.read_products"
 
 
 class ProductTypePermissions(BasePermissionEnum):
     MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES = "product.manage_product_types_and_attributes"
+    READ_PRODUCT_TYPES_AND_ATTRIBUTES = "product.read_product_types_and_attributes"
 
 
 class ShippingPermissions(BasePermissionEnum):

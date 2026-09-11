@@ -15,6 +15,7 @@ from ....core.utils.country import get_active_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
+from ....permission.read_permissions import expand_read_permissions
 from ....permission.utils import has_one_of_permissions
 from ....product import ProductMediaTypes, models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
@@ -1905,7 +1906,9 @@ class ProductType(ModelObjectType[models.ProductType]):
         if (
             requestor
             and requestor.is_active
-            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+            and has_one_of_permissions(
+                requestor, expand_read_permissions([ProductPermissions.MANAGE_PRODUCTS])
+            )
         ):
             return (
                 ProductAttributesAllByProductTypeIdLoader(info.context)
@@ -1943,7 +1946,9 @@ class ProductType(ModelObjectType[models.ProductType]):
         if (
             requestor
             and requestor.is_active
-            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+            and has_one_of_permissions(
+                requestor, expand_read_permissions([ProductPermissions.MANAGE_PRODUCTS])
+            )
         ):
             return (
                 VariantAttributesAllByProductTypeIdLoader(info.context)
@@ -1994,7 +1999,9 @@ class ProductType(ModelObjectType[models.ProductType]):
         if (
             requestor
             and requestor.is_active
-            and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+            and has_one_of_permissions(
+                requestor, expand_read_permissions([ProductPermissions.MANAGE_PRODUCTS])
+            )
         ):
             return (
                 VariantAttributesAllByProductTypeIdLoader(info.context)
