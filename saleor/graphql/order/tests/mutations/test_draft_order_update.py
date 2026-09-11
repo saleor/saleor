@@ -4002,3 +4002,83 @@ def test_draft_order_update_with_inactive_voucher_code(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
     assert errors[0]["field"] == "voucherCode"
+
+
+DRAFT_ORDER_UPDATE_SHIPPING_ADDRESS_MUTATION = """
+    mutation draftUpdate($id: ID!, $shippingAddress: AddressInput!){
+        draftOrderUpdate(
+            id: $id,
+            input: {
+                shippingAddress: $shippingAddress
+            }) {
+            errors {
+                field
+                message
+                code
+            }
+            order {
+                shippingPrice {
+                    net {
+                        amount
+                    }
+                }
+                undiscountedShippingPrice {
+                    amount
+                }
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_update_shipping_price_set_when_address_added_after_method(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    shipping_method,
+    graphql_address_data,
+):
+    """Shipping price must follow a shipping address added after the method."""
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.shipping_method = None
+    order.shipping_address = None
+    order.base_shipping_price_amount = Decimal(0)
+    order.undiscounted_base_shipping_price_amount = Decimal(0)
+    order.save(
+        update_fields=[
+            "shipping_method",
+            "shipping_address",
+            "base_shipping_price_amount",
+            "undiscounted_base_shipping_price_amount",
+        ]
+    )
+    assert order.is_shipping_required() is True
+
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.pk)
+    shipping_price = shipping_method.channel_listings.get(channel=order.channel).price
+
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION,
+        {"id": order_id, "shippingMethod": method_id},
+    )
+    assert get_graphql_content(response)["data"]["draftOrderUpdate"]["errors"] == []
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_SHIPPING_ADDRESS_MUTATION,
+        {"id": order_id, "shippingAddress": graphql_address_data},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert data["errors"] == []
+    assert data["order"]["shippingPrice"]["net"]["amount"] == shipping_price.amount
+    assert data["order"]["undiscountedShippingPrice"]["amount"] == shipping_price.amount
+
+    order.refresh_from_db()
+    assert order.undiscounted_base_shipping_price == shipping_price
+    assert order.base_shipping_price == shipping_price

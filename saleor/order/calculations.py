@@ -58,6 +58,7 @@ from .utils import (
     calculate_draft_order_line_price_expiration_date,
     log_address_if_validation_skipped_for_order,
     order_info_for_logs,
+    refresh_order_base_shipping_price,
 )
 
 if TYPE_CHECKING:
@@ -149,6 +150,7 @@ def process_order_prices(
                             "shipping_price_net_amount",
                             "shipping_price_gross_amount",
                             "base_shipping_price_amount",
+                            "undiscounted_base_shipping_price_amount",
                             "shipping_tax_rate",
                             "should_refresh_prices",
                             "tax_error",
@@ -171,6 +173,10 @@ def process_order_prices(
             return order, lines
 
     with allow_writer_for_default_connection(database_connection_name):
+        refresh_order_base_shipping_price(
+            order, lines, database_connection_name=database_connection_name
+        )
+
         calculate_prices(
             order,
             lines,

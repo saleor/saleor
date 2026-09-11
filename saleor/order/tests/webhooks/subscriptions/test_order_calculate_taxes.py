@@ -299,6 +299,9 @@ def test_draft_order_calculate_taxes_entire_order_voucher(
     order = draft_order_with_voucher
     webhook = subscription_order_calculate_taxes
     expected_shipping_price = Money("2.00", order.currency)
+    order.shipping_method.channel_listings.filter(channel=order.channel).update(
+        price_amount=expected_shipping_price.amount
+    )
 
     voucher = draft_order_with_voucher.voucher
     voucher.type = VoucherType.ENTIRE_ORDER
@@ -396,6 +399,9 @@ def test_draft_order_calculate_taxes_apply_once_per_order_voucher(
     order = draft_order_with_voucher
     webhook = subscription_order_calculate_taxes
     expected_shipping_price = Money("2.00", order.currency)
+    order.shipping_method.channel_listings.filter(channel=order.channel).update(
+        price_amount=expected_shipping_price.amount
+    )
 
     voucher = draft_order_with_voucher.voucher
     voucher.type = VoucherType.ENTIRE_ORDER

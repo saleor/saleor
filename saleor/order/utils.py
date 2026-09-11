@@ -45,6 +45,7 @@ from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
 from ..payment import TransactionEventType
 from ..payment.model_helpers import get_total_authorized
+from ..shipping.models import ShippingMethodChannelListing
 from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
     decrease_allocations,
@@ -106,6 +107,90 @@ def invalidate_order_prices(order: Order, *, save: bool = False) -> None:
 
     if save:
         order.save(update_fields=["should_refresh_prices", "updated_at"])
+
+
+def get_undiscounted_base_shipping_price(
+    order: Order,
+    shipping_channel_listing: Optional["ShippingMethodChannelListing"],
+    shipping_required: bool,
+) -> Money:
+    """Return the shipping price implied by the shipping method assigned to the order.
+
+    The order is charged for shipping only when it has a shipping method priced in
+    its channel, an address to ship to and at least one line that requires shipping.
+    """
+    has_shipping_address = (
+        order.shipping_address_id is not None or order.shipping_address is not None
+    )
+    if (
+        shipping_channel_listing
+        and order.shipping_method_id
+        and has_shipping_address
+        and shipping_required
+    ):
+        return shipping_channel_listing.price
+    return zero_money(order.currency)
+
+
+def apply_shipping_voucher_to_base_price(order: Order) -> None:
+    """Discount the base shipping price with the shipping voucher assigned to order."""
+    shipping_discount = order.discounts.filter(
+        voucher__type=VoucherType.SHIPPING
+    ).first()
+    if not shipping_discount:
+        return
+
+    undiscounted_shipping_price = order.undiscounted_base_shipping_price
+    shipping_price = apply_discount_to_value(
+        value=shipping_discount.value,
+        value_type=shipping_discount.value_type,
+        currency=order.currency,
+        price_to_discount=undiscounted_shipping_price,
+    )
+    order.base_shipping_price = shipping_price
+    shipping_discount_amount = undiscounted_shipping_price - shipping_price
+    if shipping_discount.amount != shipping_discount_amount:
+        shipping_discount.amount = shipping_discount_amount
+        shipping_discount.save(update_fields=["amount_value"])
+
+
+def refresh_order_base_shipping_price(
+    order: Order,
+    lines: Iterable[OrderLine],
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> None:
+    """Re-derive the base shipping price of a draft order.
+
+    The stored shipping price depends on the shipping method channel listing, the
+    shipping address and the lines that require shipping. All of them can change after
+    the shipping method has been assigned, so the price has to be re-derived whenever
+    the draft order prices are recalculated. Placed orders keep the price the customer
+    agreed to. Orders with no shipping method are left untouched - detaching the method
+    zeroes the price on its own.
+    """
+    if order.status != OrderStatus.DRAFT or not order.shipping_method_id:
+        return
+
+    shipping_channel_listing = (
+        ShippingMethodChannelListing.objects.using(database_connection_name)
+        .filter(
+            shipping_method_id=order.shipping_method_id,
+            channel_id=order.channel_id,
+        )
+        .first()
+    )
+
+    undiscounted_price = get_undiscounted_base_shipping_price(
+        order,
+        shipping_channel_listing,
+        shipping_required=any(line.is_shipping_required for line in lines),
+    )
+    if undiscounted_price == order.undiscounted_base_shipping_price:
+        return
+
+    order.undiscounted_base_shipping_price = undiscounted_price
+    order.base_shipping_price = undiscounted_price
+    apply_shipping_voucher_to_base_price(order)
 
 
 def recalculate_order_weight(order: Order, *, save: bool = False):

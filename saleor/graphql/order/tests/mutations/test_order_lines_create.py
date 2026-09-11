@@ -2246,3 +2246,99 @@ def test_order_lines_create_sets_product_type_id_for_order_line(
     order.refresh_from_db()
     assert len(order.lines.all()) == 1
     assert order.lines.first().product_type_id == expected_product_type_id
+
+
+ORDER_LINES_CREATE_SHIPPING_PRICE_MUTATION = """
+    mutation OrderLinesCreate($orderId: ID!, $variantId: ID!, $quantity: Int!) {
+        orderLinesCreate(
+            id: $orderId,
+            input: [{variantId: $variantId, quantity: $quantity}]
+        ) {
+            errors {
+                field
+                code
+                message
+            }
+            order {
+                shippingPrice {
+                    net {
+                        amount
+                    }
+                }
+                undiscountedShippingPrice {
+                    amount
+                }
+            }
+        }
+    }
+"""
+
+DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
+    mutation draftUpdate($id: ID!, $shippingMethod: ID) {
+        draftOrderUpdate(id: $id, input: {shippingMethod: $shippingMethod}) {
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_shipping_price_set_when_line_added_after_shipping_method(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    shipping_method,
+    variant_with_many_stocks,
+):
+    """Shipping price must follow a shippable line added after the method."""
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.lines.all().delete()
+    order.shipping_method = None
+    order.base_shipping_price_amount = Decimal(0)
+    order.undiscounted_base_shipping_price_amount = Decimal(0)
+    order.save(
+        update_fields=[
+            "shipping_method",
+            "base_shipping_price_amount",
+            "undiscounted_base_shipping_price_amount",
+        ]
+    )
+    assert order.shipping_address is not None
+
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.pk)
+    variant = variant_with_many_stocks
+    assert variant.is_shipping_required() is True
+    shipping_price = shipping_method.channel_listings.get(channel=order.channel).price
+
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION,
+        {"id": order_id, "shippingMethod": method_id},
+    )
+    assert get_graphql_content(response)["data"]["draftOrderUpdate"]["errors"] == []
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_LINES_CREATE_SHIPPING_PRICE_MUTATION,
+        {
+            "orderId": order_id,
+            "variantId": graphene.Node.to_global_id("ProductVariant", variant.pk),
+            "quantity": 1,
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["errors"] == []
+    assert data["order"]["shippingPrice"]["net"]["amount"] == shipping_price.amount
+    assert data["order"]["undiscountedShippingPrice"]["amount"] == shipping_price.amount
+
+    order.refresh_from_db()
+    assert order.undiscounted_base_shipping_price == shipping_price
+    assert order.base_shipping_price == shipping_price
