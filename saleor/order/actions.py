@@ -824,7 +824,7 @@ def cancel_fulfillment(
             order=fulfillment.order, user=user, app=app, fulfillment=fulfillment
         )
         if warehouse:
-            restock_fulfillment_lines(fulfillment, warehouse)
+            restock_fulfillment_lines(fulfillment, warehouse, requestor=app or user)
             events.fulfillment_restocked_items_event(
                 order=fulfillment.order,
                 user=user,

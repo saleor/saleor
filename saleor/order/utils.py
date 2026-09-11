@@ -659,7 +659,7 @@ def delete_order_line(
     line_info.line.delete()
 
 
-def restock_fulfillment_lines(fulfillment, warehouse):
+def restock_fulfillment_lines(fulfillment, warehouse, requestor=None):
     """Return fulfilled products to corresponding stocks.
 
     Return products to stocks and update order lines quantity fulfilled values.
@@ -667,7 +667,13 @@ def restock_fulfillment_lines(fulfillment, warehouse):
     order_lines = []
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
-            increase_stock(line.order_line, warehouse, line.quantity, allocate=True)
+            increase_stock(
+                line.order_line,
+                warehouse,
+                line.quantity,
+                allocate=True,
+                requestor=requestor,
+            )
         order_line = line.order_line
         order_line.quantity_fulfilled -= line.quantity
         order_lines.append(order_line)

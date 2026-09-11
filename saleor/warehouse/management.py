@@ -42,6 +42,7 @@ from .models import (
 from .webhooks.stock_events import (
     trigger_product_variant_back_in_stock,
     trigger_product_variant_out_of_stock,
+    trigger_product_variant_stocks_updated,
 )
 
 if TYPE_CHECKING:
@@ -212,6 +213,14 @@ def allocate_stocks(
 
         Stock.objects.bulk_update(stocks_to_update_map.values(), ["quantity_allocated"])
 
+        transaction.on_commit(
+            partial(
+                trigger_product_variant_stocks_updated,
+                list(stocks_to_update_map.values()),
+                requestor,
+            )
+        )
+
         legacy_stock_availability = (
             site_settings.use_legacy_shipping_zone_stock_availability
         )
@@ -360,7 +369,8 @@ def deallocate_stock(
     order_lines_data: list["OrderLineInfo"],
     site_settings: "SiteSettings",
     requestor: T_REQUESTOR,
-):
+    trigger_stock_updated: bool = True,
+) -> list[Stock]:
     """Deallocate stocks for given `order_lines`.
 
     Function lock for update stocks and allocations related to given `order_lines`.
@@ -368,6 +378,9 @@ def deallocate_stock(
     as needed of available in stock for order line, until deallocated all required
     quantity for the order line. If there is less quantity in stocks then
     raise an exception.
+
+    Return the updated stocks. When `trigger_stock_updated` is False, the caller
+    is responsible for firing PRODUCT_VARIANT_STOCK_UPDATED for them.
     """
     # local import: to be removed when all webhook logic will be moved outside plugin
     from .channel_stock_availability import (
@@ -448,8 +461,17 @@ def deallocate_stock(
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
+    # the same stock can be appended once per allocation - deduplicate
+    unique_stocks = list({stock.pk: stock for stock in stocks_to_update}.values())
+    if trigger_stock_updated and unique_stocks:
+        transaction.on_commit(
+            partial(trigger_product_variant_stocks_updated, unique_stocks, requestor)
+        )
+
     if not_dellocated_lines:
         raise AllocationError(not_dellocated_lines)
+
+    return unique_stocks
 
 
 @traced_atomic_transaction()
@@ -458,6 +480,7 @@ def increase_stock(
     warehouse: Warehouse,
     quantity: int,
     allocate: bool = False,
+    requestor: T_REQUESTOR = None,
 ):
     """Increse stock quantity for given `order_line` in a given warehouse.
 
@@ -492,6 +515,9 @@ def increase_stock(
             )
         stock.quantity_allocated = F("quantity_allocated") + quantity
         stock.save(update_fields=["quantity_allocated"])
+    transaction.on_commit(
+        partial(trigger_product_variant_stocks_updated, [stock], requestor)
+    )
 
 
 def _reduce_quantity_allocated_for_stocks(
@@ -569,17 +595,28 @@ def decrease_allocations(
     lines_info: list["OrderLineInfo"],
     site_settings: "SiteSettings",
     requestor: T_REQUESTOR,
-):
-    """Decrease allocations for provided order lines."""
+    trigger_stock_updated: bool = True,
+) -> list[Stock]:
+    """Decrease allocations for provided order lines.
+
+    Return the updated stocks. When `trigger_stock_updated` is False, the caller
+    is responsible for firing PRODUCT_VARIANT_STOCK_UPDATED for them.
+    """
     lines_to_deallocate = get_order_lines_to_deallocate(lines_info)
     if not lines_to_deallocate:
-        return
+        return []
     try:
-        deallocate_stock(lines_info, site_settings, requestor)
+        return deallocate_stock(
+            lines_info,
+            site_settings,
+            requestor,
+            trigger_stock_updated=trigger_stock_updated,
+        )
     except AllocationError as exc:
         Allocation.objects.order_by("stock_id").filter(
             order_line__in=exc.order_lines
         ).update(quantity_allocated=0)
+        return []
 
 
 @traced_atomic_transaction()
@@ -598,10 +635,22 @@ def decrease_stock(
     function decrease it by given value.
     If allow_stock_to_be_exceeded flag is True then quantity could be < 0.
     """
-    decrease_allocations(order_lines_info, site_settings, requestor)
+    # deallocation + quantity decrease are one logical operation; a single
+    # PRODUCT_VARIANT_STOCK_UPDATED with the final stock state is fired below
+    deallocated_stocks = decrease_allocations(
+        order_lines_info, site_settings, requestor, trigger_stock_updated=False
+    )
 
     order_lines_info = get_order_lines_with_track_inventory(order_lines_info)
     if not order_lines_info:
+        if deallocated_stocks:
+            transaction.on_commit(
+                partial(
+                    trigger_product_variant_stocks_updated,
+                    deallocated_stocks,
+                    requestor,
+                )
+            )
         return
     variants = [line_info.variant for line_info in order_lines_info]
     warehouse_pks = [line_info.warehouse_pk for line_info in order_lines_info]
@@ -633,12 +682,24 @@ def decrease_stock(
         quantity_allocation_for_stocks[allocation["stock"]] += allocation[
             "quantity_allocated__sum"
         ]
-    _decrease_stocks_quantity(
+    updated_stocks = _decrease_stocks_quantity(
         order_lines_info,
         variant_and_warehouse_to_stock,
         quantity_allocation_for_stocks,
         allow_stock_to_be_exceeded,
     )
+    # fire once per stock touched by either the deallocation or the quantity
+    # decrease; prefer the quantity-updated instance which holds the final state
+    stocks_to_notify = {stock.pk: stock for stock in deallocated_stocks}
+    stocks_to_notify.update({stock.pk: stock for stock in updated_stocks})
+    if stocks_to_notify:
+        transaction.on_commit(
+            partial(
+                trigger_product_variant_stocks_updated,
+                list(stocks_to_notify.values()),
+                requestor,
+            )
+        )
 
     stock_ids = (s.id for s in stocks)
     for stock in Stock.objects.filter(id__in=stock_ids).annotate_available_quantity():
@@ -653,7 +714,7 @@ def _decrease_stocks_quantity(
     variant_and_warehouse_to_stock: dict[int, dict[UUID, Stock]],
     quantity_allocation_for_stocks: dict[int, int],
     allow_stock_to_be_exceeded: bool = False,
-):
+) -> list[Stock]:
     insufficient_stocks: list[InsufficientStockData] = []
     stocks_to_update = []
     for line_info in order_lines_info:
@@ -700,6 +761,7 @@ def _decrease_stocks_quantity(
         raise InsufficientStock(insufficient_stocks)
 
     Stock.objects.bulk_update(stocks_to_update, ["quantity"])
+    return stocks_to_update
 
 
 def _get_variant_for_order_line_info(
@@ -805,6 +867,11 @@ def deallocate_stock_for_orders(
 
     allocations.update(quantity_allocated=0)
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
+
+    if stocks_to_update:
+        transaction.on_commit(
+            partial(trigger_product_variant_stocks_updated, stocks_to_update, requestor)
+        )
 
 
 @traced_atomic_transaction()
