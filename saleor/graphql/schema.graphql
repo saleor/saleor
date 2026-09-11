@@ -31515,6 +31515,13 @@ type CheckoutError @doc(category: "Checkout") {
 
   """A type of address that causes the error."""
   addressType: AddressTypeEnum
+
+  """
+  Details of the voucher that caused the error. Null when the error is not related to a voucher.
+  
+  Added in Saleor 3.23.
+  """
+  voucherDetails: VoucherRejectionDetails
 }
 
 enum CheckoutErrorCode @doc(category: "Checkout") {
@@ -31551,6 +31558,51 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   NON_REMOVABLE_GIFT_LINE
   SHIPPING_CHANGE_FORBIDDEN
   MISSING_ADDRESS_DATA
+}
+
+"""
+Details explaining why a voucher code cannot be applied.
+
+Added in Saleor 3.23.
+"""
+type VoucherRejectionDetails @doc(category: "Checkout") {
+  """The specific reason why the voucher cannot be applied."""
+  reason: VoucherRejectionReason!
+
+  """
+  The minimum order value required by the voucher. Set only when `reason` is `MIN_SPENT_NOT_REACHED`.
+  """
+  minSpent: Money
+
+  """
+  The minimum number of items required by the voucher. Set only when `reason` is `MIN_QUANTITY_NOT_REACHED`.
+  """
+  minCheckoutItemsQuantity: Int
+
+  """
+  The countries the voucher is valid in. Set only when `reason` is `COUNTRY_NOT_ELIGIBLE`.
+  """
+  countries: [CountryCode!]
+}
+
+"""The specific reason why a voucher code cannot be applied."""
+enum VoucherRejectionReason @doc(category: "Discounts") {
+  NOT_FOUND
+  CODE_DEACTIVATED
+  NOT_STARTED
+  EXPIRED
+  USAGE_LIMIT_REACHED
+  NOT_AVAILABLE_IN_CHANNEL
+  MIN_SPENT_NOT_REACHED
+  MIN_QUANTITY_NOT_REACHED
+  ALREADY_USED_BY_CUSTOMER
+  CUSTOMER_EMAIL_REQUIRED
+  STAFF_ONLY
+  SHIPPING_NOT_REQUIRED
+  DELIVERY_METHOD_NOT_SET
+  COUNTRY_NOT_ELIGIBLE
+  NO_ELIGIBLE_LINES
+  NO_LONGER_AVAILABLE
 }
 
 """
