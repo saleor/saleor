@@ -104,6 +104,16 @@ def permission_read_product_types_and_attributes():
 
 
 @pytest.fixture
+def permission_read_pages():
+    return Permission.objects.get(codename="read_pages")
+
+
+@pytest.fixture
+def permission_read_page_types_and_attributes():
+    return Permission.objects.get(codename="read_page_types_and_attributes")
+
+
+@pytest.fixture
 def permission_read_users():
     return Permission.objects.get(codename="read_users")
 

@@ -8,6 +8,8 @@ from ..core.db.fields import SanitizedJSONField
 from ..core.editorjs import clean_editorjs
 from ..core.models import ModelWithMetadata, PublishableModel, PublishedQuerySet
 from ..permission.enums import PagePermissions, PageTypePermissions
+from ..permission.read_permissions import expand_read_permissions
+from ..permission.utils import has_one_of_permissions
 from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 
 if TYPE_CHECKING:
@@ -17,7 +19,9 @@ if TYPE_CHECKING:
 
 class PageQueryset(PublishedQuerySet):
     def visible_to_user(self, requestor: Union["App", "User", None]):
-        if requestor and requestor.has_perm(PagePermissions.MANAGE_PAGES):
+        if requestor and has_one_of_permissions(
+            requestor, expand_read_permissions([PagePermissions.MANAGE_PAGES])
+        ):
             return self.all()
         return self.published()
 
@@ -40,7 +44,10 @@ class Page(ModelWithMetadata, SeoModel, PublishableModel):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
-        permissions = ((PagePermissions.MANAGE_PAGES.codename, "Manage pages."),)
+        permissions = (
+            (PagePermissions.MANAGE_PAGES.codename, "Manage pages."),
+            (PagePermissions.READ_PAGES.codename, "Read pages."),
+        )
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             GinIndex(
@@ -102,6 +109,10 @@ class PageType(ModelWithMetadata):
             (
                 PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES.codename,
                 "Manage page types and attributes.",
+            ),
+            (
+                PageTypePermissions.READ_PAGE_TYPES_AND_ATTRIBUTES.codename,
+                "Read page types and attributes.",
             ),
         )
         indexes = [*ModelWithMetadata.Meta.indexes, GinIndex(fields=["name", "slug"])]

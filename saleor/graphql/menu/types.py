@@ -3,6 +3,7 @@ from graphene import relay
 
 from ...menu import models
 from ...permission.enums import PagePermissions
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.dataloaders.by_self import ChannelBySlugLoader
@@ -222,7 +223,10 @@ class MenuItem(ChannelContextType[models.MenuItem]):
             requestor_has_access_to_all = (
                 requestor
                 and requestor.is_active
-                and requestor.has_perm(PagePermissions.MANAGE_PAGES)
+                and has_one_of_permissions(
+                    requestor,
+                    expand_read_permissions([PagePermissions.MANAGE_PAGES]),
+                )
             )
 
             def resolve_page_with_channel(page):
