@@ -21,7 +21,7 @@ dependencies = [
   "boto3~=1.28",
   "botocore~=1.37",
   "braintree>=4.2,<4.32",
-  "cryptography>=49.0.0",
+  "cryptography>=50.0.1",
   "dj-database-url>=2,<3",
   "dj-email-url>=1,<2",
   "django[bcrypt]~=5.2.17",
@@ -55,7 +55,7 @@ dependencies = [
   "prices~=1.0",
   "promise~=2.3",
   "pybars3>=0.9.7,<0.10",
-  "pyjwt>=2.13.0,<3",
+  "pyjwt>=2.14.0,<3",
   "python-dateutil>=2.8.2,<3",
   "python-http-client>=3.3.7,<4",
   "python-json-logger>=0.1.11,<3.3.0",
@@ -195,6 +195,8 @@ exclude-newer = "3 weeks"
 # To customize on a per-package basis, for example you can do this:
 # setuptools = "2026-04-07T14:30:00Z"
 django = "2026-08-04T15:05:00Z" # https://www.djangoproject.com/weblog/2026/aug/04/security-releases/
+cryptography = "2026-08-25T19:45:45.499357Z" # https://pypi.org/pypi/cryptography/50.0.1/json
+pyjwt = "2026-09-11T13:11:54.638995Z" # https://pypi.org/pypi/pyjwt/2.14.0/json
 
 [tool.deptry]
 extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
