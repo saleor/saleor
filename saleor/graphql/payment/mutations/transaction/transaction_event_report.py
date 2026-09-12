@@ -409,8 +409,11 @@ class TransactionEventReport(DeprecatedModelMutation):
             if existing_event and existing_event.amount != transaction_event.amount:
                 error_code = TransactionEventReportErrorCode.INCORRECT_DETAILS.value
                 error_msg = (
-                    "The transaction with provided `pspReference` and "
-                    "`type` already exists with different amount."
+                    f"Transaction event already exists with different amount. "
+                    f"pspReference={psp_reference}, "
+                    f"eventType={type}, "
+                    f"reportedAmount={transaction_event.amount}, "
+                    f"existingAmount={existing_event.amount}."
                 )
                 error_field = "pspReference"
             elif existing_event:
