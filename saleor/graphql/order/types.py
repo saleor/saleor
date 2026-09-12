@@ -217,18 +217,14 @@ def get_order_discount_event(discount_obj: dict):
 
 
 def get_payment_status_for_order(
-    order, granted_refunds: list[models.OrderGrantedRefund], net_charged=None
+    order, granted_refunds: list[models.OrderGrantedRefund]
 ):
     zero_price = zero_money(order.currency)
     total_granted = sum(
         [granted_refund.amount for granted_refund in granted_refunds],
         zero_price,
     )
-    charged_money = (
-        order.total_charged
-        if net_charged is None
-        else prices.Money(net_charged, order.currency)
-    )
+    charged_money = order.total_charged
     current_order_total = quantize_price(
         order.total.gross - total_granted, order.currency
     )
@@ -245,7 +241,7 @@ def get_payment_status_for_order(
 
 
 def get_charged_and_refunded_amounts(transactions):
-    """Return the (charged, refunded, refund pending, canceled) amounts of a transaction.
+    """Return the (charged, refunded, refund pending) amounts of the order.
 
     The charged amount of a transaction already has the successfully refunded money
     subtracted, so the refunds that are only reported as a request are subtracted on
@@ -256,21 +252,11 @@ def get_charged_and_refunded_amounts(transactions):
     charged = Decimal(0)
     refunded = Decimal(0)
     refund_pending = Decimal(0)
-    canceled = Decimal(0)
     for transaction in transactions:
         charged += max(transaction.charged_value, Decimal(0))
         refunded += transaction.refunded_value
         refund_pending += transaction.refund_pending_value
-        canceled += transaction.canceled_value + transaction.cancel_pending_value
-    return charged, refunded, refund_pending, canceled
-
-
-def get_net_charged_amount(transactions) -> Decimal:
-    """Return the amount the customer actually paid for the transactions."""
-    charged, _, refund_pending, canceled = get_charged_and_refunded_amounts(
-        transactions
-    )
-    return max(charged - refund_pending - canceled, Decimal(0))
+    return charged, refunded, refund_pending
 
 
 def get_payment_status_for_transaction_order(order, granted_refunds, transactions):
@@ -279,17 +265,15 @@ def get_payment_status_for_transaction_order(order, granted_refunds, transaction
     Falls back to the charge based calculation when no refund was made, so an order
     that is only partially paid keeps reporting the charged status.
     """
-    charged_amount, refunded, refund_pending, canceled = (
-        get_charged_and_refunded_amounts(transactions)
+    charged_amount, refunded, refund_pending = get_charged_and_refunded_amounts(
+        transactions
     )
     if refunded <= Decimal(0) and refund_pending <= Decimal(0):
-        return get_payment_status_for_order(
-            order, granted_refunds, get_net_charged_amount(transactions)
-        )
-    # The charged amount is reported before the refunds and the cancellations, so they
-    # are added back to tell a full refund from a partial one.
+        return get_payment_status_for_order(order, granted_refunds)
+    # The charged amount is reported before the refunds, so they are added back to tell
+    # a full refund from a partial one.
     return get_payment_status_for_transactions(
-        charged_amount=charged_amount + refunded + refund_pending + canceled,
+        charged_amount=charged_amount + refunded + refund_pending,
         refunded=refunded,
         refund_pending=refund_pending,
     )

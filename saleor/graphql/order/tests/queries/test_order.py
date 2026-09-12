@@ -933,7 +933,6 @@ def test_order_query_with_transactions_details(
                 name="Credit card",
                 psp_reference="111",
                 currency="USD",
-                charged_value=Decimal(34),
                 canceled_value=Decimal(19),
                 available_actions=[],
             ),
@@ -975,16 +974,11 @@ def test_order_query_with_transactions_details(
 
     assert len(order_data["payments"]) == order.payments.count()
     assert Decimal(order_data["totalAuthorized"]["amount"]) == Decimal(25)
-    # the canceled transaction reports what it charged, so the charged amount covers it
-    charged_amount = Decimal(15) + Decimal(34)
-    canceled_amount = Decimal(19)
-    assert Decimal(order_data["totalCaptured"]["amount"]) == charged_amount
-    assert Decimal(order_data["totalCharged"]["amount"]) == charged_amount
-    assert Decimal(order_data["totalCanceled"]["amount"]) == canceled_amount
+    assert Decimal(order_data["totalCaptured"]["amount"]) == Decimal(15)
+    assert Decimal(order_data["totalCharged"]["amount"]) == Decimal(15)
+    assert Decimal(order_data["totalCanceled"]["amount"]) == Decimal(19)
 
-    assert Decimal(str(order_data["totalBalance"]["amount"])) == (
-        charged_amount - order.total.gross.amount
-    )
+    assert Decimal(str(order_data["totalBalance"]["amount"])) == Decimal("-83.4")
 
     for transaction in order_data["transactions"]:
         assert len(transaction["events"]) == 1
