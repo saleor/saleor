@@ -2552,6 +2552,24 @@ TRANSLATION_CREATED_PRODUCT_VARIANT = build_translation_query(
     TranslationQueryType.CREATED,
     "productVariantId",
 )
+TRANSLATION_CREATED_PRODUCT_MEDIA = """
+    subscription {
+      event {
+        ... on TranslationCreated {
+          translation {
+            ... on ProductMediaTranslation {
+              id
+              alt
+              translatableContent {
+                productMediaId
+                alt
+              }
+            }
+          }
+        }
+      }
+    }
+"""
 TRANSLATION_CREATED_COLLECTION = build_translation_query(
     TranslationTypes.COLLECTION_TRANSLATION,
     TranslationQueryType.CREATED,
@@ -2697,6 +2715,24 @@ TRANSLATION_UPDATED_PRODUCT_VARIANT = build_translation_query(
     TranslationQueryType.UPDATED,
     "productVariantId",
 )
+TRANSLATION_UPDATED_PRODUCT_MEDIA = """
+    subscription {
+      event {
+        ... on TranslationUpdated {
+          translation {
+            ... on ProductMediaTranslation {
+              id
+              alt
+              translatableContent {
+                productMediaId
+                alt
+              }
+            }
+          }
+        }
+      }
+    }
+"""
 TRANSLATION_UPDATED_COLLECTION = build_translation_query(
     TranslationTypes.COLLECTION_TRANSLATION,
     TranslationQueryType.UPDATED,
