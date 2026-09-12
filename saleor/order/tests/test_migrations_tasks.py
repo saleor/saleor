@@ -38,7 +38,7 @@ def test_sets_the_statuses_of_a_refunded_order(
         amounts=[order_total],
     )
     recalculate_transaction_amounts(transaction)
-    # the statuses an order refunded before the field was added has stored
+    # the stale statuses an order refunded before the field was added has stored
     order.refund_status = OrderRefundStatus.NONE
     order.charge_status = OrderChargeStatus.FULL
     order.total_charged_amount = Decimal(0)
@@ -53,11 +53,11 @@ def test_sets_the_statuses_of_a_refunded_order(
     assert order.charge_status == OrderChargeStatus.NONE
 
 
-def test_keeps_the_statuses_of_a_charged_order(
+def test_corrects_the_statuses_of_a_charged_order(
     order_with_lines,
     transaction_item_generator,
 ):
-    """An order without refunds keeps the statuses it already has."""
+    """An order without refunds is reported as charged and not refunded."""
     # given
     order = order_with_lines
     order_total = order.total_gross_amount
@@ -66,8 +66,9 @@ def test_keeps_the_statuses_of_a_charged_order(
         charged_value=order_total,
         authorized_value=order_total,
     )
-    order.refund_status = OrderRefundStatus.NONE
-    order.charge_status = OrderChargeStatus.FULL
+    # the stale statuses an order has before the backfill runs
+    order.refund_status = OrderRefundStatus.FULL
+    order.charge_status = OrderChargeStatus.NONE
     order.total_charged_amount = order_total
     order.save(update_fields=["refund_status", "charge_status", "total_charged_amount"])
 

@@ -10,7 +10,8 @@ from ....core.db.connection import allow_writer
 from ...lock_objects import order_qs_select_for_update
 from ...models import Order
 from ...utils import (
-    _get_total_canceled,
+    _get_total_charged,
+    _get_total_charged_before_refunds,
     _get_total_refund_pending,
     _get_total_refunded,
     update_order_charge_status,
@@ -62,17 +63,22 @@ def backfill_order_statuses(
         for order in orders:
             order_payments = order.payments.all()
             order_transactions = order.payment_transactions.all()
+            total_charged = _get_total_charged(order_payments, order_transactions)
+            total_refunded = _get_total_refunded(order_payments, order_transactions)
+            total_refund_pending = _get_total_refund_pending(order_transactions)
+            refunded_amount = total_refunded + total_refund_pending
+
             update_order_refund_status(
                 order,
-                order_payments=order_payments,
-                order_transactions=order_transactions,
+                total_refunded=refunded_amount,
+                total_charged=_get_total_charged_before_refunds(
+                    order_payments, total_charged, refunded_amount
+                ),
             )
             update_order_charge_status(
                 order,
                 _get_granted_refunds_amount(order),
-                _get_total_refunded(order_payments, order_transactions)
-                + _get_total_refund_pending(order_transactions),
-                _get_total_canceled(order_transactions),
+                refunded_amount,
             )
         Order.objects.bulk_update(orders, ["refund_status", "charge_status"])
 
