@@ -1356,6 +1356,7 @@ def process_order_with_transaction(
             [
                 "total_charged_amount",
                 "charge_status",
+                "refund_status",
                 "total_authorized_amount",
                 "authorize_status",
             ]

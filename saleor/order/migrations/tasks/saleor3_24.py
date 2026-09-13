@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db import transaction
@@ -9,14 +7,7 @@ from ....celeryconf import app
 from ....core.db.connection import allow_writer
 from ...lock_objects import order_qs_select_for_update
 from ...models import Order
-from ...utils import (
-    _get_total_charged,
-    _get_total_charged_before_refunds,
-    _get_total_refund_pending,
-    _get_total_refunded,
-    update_order_charge_status,
-    update_order_refund_status,
-)
+from ...utils import update_order_charge_data
 
 # Kills the task if it recurses more than 10000 times (=> 10M rows),
 # something is likely wrong if it does. Assuming 1 task = 1sec, it would
@@ -37,10 +28,11 @@ def backfill_order_statuses(
 ):
     """Set the refund and the charge status for the orders that already have refunds.
 
-    The statuses are derived from the refunded and the charged amount of the order,
-    matching how ``update_order_refund_status`` and ``update_order_charge_status``
-    calculate them. A refund that is still processed by the payment app counts as well,
-    so the status does not change once the refund is reported as successful.
+    The statuses are derived from the refunded and the charged amount of the order by
+    ``update_order_charge_data``, the same way they are calculated for an order that is
+    updated, so the backfilled orders match the ones processed by the new code. A refund
+    that is still processed by the payment app counts as well, so the status does not
+    change once the refund is reported as successful.
 
     The charge status is recalculated as well: an order with nothing charged left and a
     granted refund covering the whole total was previously reported as fully charged,
@@ -61,26 +53,16 @@ def backfill_order_statuses(
             return
 
         for order in orders:
-            order_payments = order.payments.all()
-            order_transactions = order.payment_transactions.all()
-            total_charged = _get_total_charged(order_payments, order_transactions)
-            total_refunded = _get_total_refunded(order_payments, order_transactions)
-            total_refund_pending = _get_total_refund_pending(order_transactions)
-            refunded_amount = total_refunded + total_refund_pending
-
-            update_order_refund_status(
+            update_order_charge_data(
                 order,
-                total_refunded=refunded_amount,
-                total_charged=_get_total_charged_before_refunds(
-                    order_payments, total_charged, refunded_amount
-                ),
+                order_payments=order.payments.all(),
+                order_transactions=order.payment_transactions.all(),
+                order_granted_refunds=order.granted_refunds.all(),
+                with_save=False,
             )
-            update_order_charge_status(
-                order,
-                _get_granted_refunds_amount(order),
-                refunded_amount,
-            )
-        Order.objects.bulk_update(orders, ["refund_status", "charge_status"])
+        Order.objects.bulk_update(
+            orders, ["total_charged_amount", "refund_status", "charge_status"]
+        )
 
     task_logger.info("Backfilled the statuses of %d orders", len(orders))
 
@@ -110,10 +92,3 @@ def _get_locked_orders_batch(last_order_pk: int | None) -> list[Order]:
     if last_order_pk is not None:
         queryset = queryset.filter(pk__lt=last_order_pk)
     return list(queryset[:BACKFILL_ORDER_STATUSES_BATCH_SIZE])
-
-
-def _get_granted_refunds_amount(order: Order) -> Decimal:
-    return sum(
-        (granted_refund.amount_value for granted_refund in order.granted_refunds.all()),
-        Decimal(0),
-    )

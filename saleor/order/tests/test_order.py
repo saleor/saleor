@@ -15,8 +15,9 @@ from ...discount.models import (
 from ...discount.utils.voucher import validate_voucher_in_order
 from ...graphql.order.utils import OrderLineData
 from ...graphql.tests.utils import get_graphql_content
-from ...payment import ChargeStatus
+from ...payment import ChargeStatus, TransactionKind
 from ...payment.models import Payment
+from ...payment.utils import update_payment_charge_status
 from ...plugins.manager import get_plugins_manager
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
@@ -1511,3 +1512,73 @@ def test_update_refund_status_persisted_in_updates_amounts(order_with_lines):
     # then
     order_with_lines.refresh_from_db()
     assert order_with_lines.refund_status == OrderRefundStatus.FULL
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "refund_ratio",
+        "expected_refund_status",
+        "expected_charge_status",
+    ),
+    [
+        (
+            "partially_refunded",
+            Decimal("0.4"),
+            OrderRefundStatus.PARTIAL,
+            OrderChargeStatus.PARTIAL,
+        ),
+        (
+            "half_refunded",
+            Decimal("0.5"),
+            OrderRefundStatus.PARTIAL,
+            OrderChargeStatus.PARTIAL,
+        ),
+        (
+            "mostly_refunded",
+            Decimal("0.6"),
+            OrderRefundStatus.PARTIAL,
+            OrderChargeStatus.PARTIAL,
+        ),
+        (
+            "fully_refunded",
+            Decimal(1),
+            OrderRefundStatus.FULL,
+            OrderChargeStatus.NONE,
+        ),
+    ],
+)
+def test_update_order_statuses_for_refunded_payment(
+    _case,
+    refund_ratio,
+    expected_refund_status,
+    expected_charge_status,
+    order_with_lines,
+    payment_txn_captured,
+):
+    """A refunded payment keeps the order charged for the part that was not refunded.
+
+    The captured amount of a refunded payment is decreased by the refund, so the amount
+    that is left charged is the one the customer paid.
+    """
+    # given
+    order = order_with_lines
+    payment = payment_txn_captured
+    refund_amount = (payment.total * refund_ratio).quantize(Decimal("0.01"))
+    refund_transaction = payment.transactions.create(
+        amount=refund_amount,
+        currency=payment.currency,
+        kind=TransactionKind.REFUND,
+        gateway_response={},
+        is_success=True,
+    )
+    assert order.refund_status == OrderRefundStatus.NONE
+
+    # when
+    update_payment_charge_status(payment, refund_transaction)
+    update_order_charge_data(order)
+
+    # then
+    order.refresh_from_db()
+    assert order.refund_status == expected_refund_status
+    assert order.charge_status == expected_charge_status

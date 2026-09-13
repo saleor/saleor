@@ -1,11 +1,15 @@
 from decimal import Decimal
 
+import graphene
+import pytest
+
 from .....core.prices import quantize_price
-from .....order import OrderGrantedRefundStatus
+from .....order import OrderGrantedRefundStatus, OrderRefundStatus
 from .....order.utils import update_order_charge_data
 from .....payment import TransactionEventType
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.utils import to_global_id_or_none
+from ....payment.enums import TransactionEventTypeEnum
 from ....tests.utils import get_graphql_content
 
 ORDER_PAYMENT_STATUS_QUERY = """
@@ -17,6 +21,27 @@ query OrderPaymentStatus($id: ID!) {
         chargeStatus
         paymentStatus
         refundStatus
+    }
+}
+"""
+
+TRANSACTION_EVENT_REPORT_MUTATION = """
+mutation TransactionEventReport(
+    $id: ID!
+    $type: TransactionEventTypeEnum!
+    $amount: PositiveDecimal!
+    $pspReference: String!
+) {
+    transactionEventReport(
+        id: $id
+        type: $type
+        amount: $amount
+        pspReference: $pspReference
+    ) {
+        errors {
+            field
+            message
+        }
     }
 }
 """
@@ -113,9 +138,9 @@ def test_payment_status_pending_partial_transaction_refund(
     # then
     assert order_data["paymentStatus"] == "PARTIALLY_REFUNDED"
     assert order_data["refundStatus"] == "PARTIAL"
-    # an unrefunded part of the order is still with the merchant, so the order is not
-    # reported as fully charged
-    assert order_data["chargeStatus"] == "NONE"
+    # the customer still holds the unrefunded part of the order, so the order is
+    # partially charged
+    assert order_data["chargeStatus"] == "PARTIAL"
 
 
 def test_payment_status_successful_transaction_refund(
@@ -212,3 +237,87 @@ def test_payment_status_granted_refund_is_not_a_refund_yet(
     # then
     assert order_data["paymentStatus"] == "FULLY_CHARGED"
     assert order_data["refundStatus"] == "NONE"
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "refund_ratio",
+        "expected_refund_status",
+        "expected_stored_refund_status",
+        "expected_payment_status",
+        "expected_charge_status",
+    ),
+    [
+        (
+            "partially_refunded",
+            Decimal("0.4"),
+            "PARTIAL",
+            OrderRefundStatus.PARTIAL,
+            "PARTIALLY_REFUNDED",
+            "PARTIAL",
+        ),
+        (
+            "fully_refunded",
+            Decimal(1),
+            "FULL",
+            OrderRefundStatus.FULL,
+            "FULLY_REFUNDED",
+            "NONE",
+        ),
+    ],
+)
+def test_refund_status_reported_by_app_is_stored(
+    _case,
+    refund_ratio,
+    expected_refund_status,
+    expected_stored_refund_status,
+    expected_payment_status,
+    expected_charge_status,
+    staff_api_client,
+    permission_group_manage_orders,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+    transaction_item_generator,
+):
+    """The app reports the processed refund asynchronously.
+
+    The reported event updates the amounts of the order, so the refund status stored
+    for the order has to match the one derived from those amounts.
+    """
+    # given
+    order = order_with_lines
+    order_total = order.total_gross_amount
+    transaction = transaction_item_generator(
+        app=app_api_client.app,
+        order_id=order.pk,
+        charged_value=order_total,
+        authorized_value=order_total,
+    )
+    refund_amount = (order_total * refund_ratio).quantize(Decimal("0.01"))
+    assert order.refund_status == OrderRefundStatus.NONE
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_EVENT_REPORT_MUTATION,
+        {
+            "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+            "type": TransactionEventTypeEnum.REFUND_SUCCESS.name,
+            "amount": refund_amount,
+            "pspReference": "refund-1",
+        },
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["transactionEventReport"]["errors"] == []
+    order.refresh_from_db()
+    assert order.refund_status == expected_stored_refund_status
+    order_data = _get_order_data(
+        staff_api_client, order, permission_group_manage_orders
+    )
+    assert order_data["refundStatus"] == expected_refund_status
+    assert order_data["paymentStatus"] == expected_payment_status
+    assert order_data["chargeStatus"] == expected_charge_status

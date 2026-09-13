@@ -40,7 +40,11 @@ from ...order.utils import (
 )
 from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
-from ...payment.model_helpers import get_last_payment, get_total_authorized
+from ...payment.model_helpers import (
+    get_last_payment,
+    get_total_authorized,
+    legacy_payment_holds_refunds,
+)
 from ...permission.auth_filters import AuthorizationFilters, is_app, is_staff_user
 from ...permission.enums import (
     AccountPermissions,
@@ -3040,13 +3044,8 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         def _resolve_total_refund(data):
             payments, transactions = data
             last_payment = get_last_payment(payments)
-            payment_is_active = last_payment and last_payment.is_active
-            payment_is_fully_refunded = (
-                last_payment
-                and last_payment.charge_status == ChargeStatus.FULLY_REFUNDED
-            )
 
-            if payment_is_active or payment_is_fully_refunded:
+            if legacy_payment_holds_refunds(last_payment):
                 return (
                     TransactionByPaymentIdLoader(info.context)
                     .load(last_payment.id)
