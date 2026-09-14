@@ -164,13 +164,16 @@ class GiftCardBulkCreate(BaseMutation):
         instances: Iterable[models.GiftCard], tags_values: Iterable[str]
     ):
         tags = {tag.lower() for tag in tags_values}
-        tags_instances = models.GiftCardTag.objects.filter(name__in=tags)
-        tags_to_create = tags - set(tags_instances.values_list("name", flat=True))
-        models.GiftCardTag.objects.bulk_create(
-            [models.GiftCardTag(name=tag) for tag in tags_to_create]
-        )
-        for tag_instance in tags_instances.iterator(chunk_size=1000):
-            tag_instance.gift_cards.set(instances)
+        tags_instances = list(models.GiftCardTag.objects.filter(name__in=tags))
+        existing_names = {tag.name for tag in tags_instances}
+        tags_to_create = tags - existing_names
+        if tags_to_create:
+            created_tags = models.GiftCardTag.objects.bulk_create(
+                [models.GiftCardTag(name=tag) for tag in tags_to_create]
+            )
+            tags_instances.extend(created_tags)
+        for tag_instance in tags_instances:
+            tag_instance.gift_cards.add(*instances)
 
     @classmethod
     def call_gift_card_created_on_plugins(cls, instances, manager):
