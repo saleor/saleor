@@ -64,6 +64,7 @@ from ..product.dataloaders import (
 )
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from .fields import TranslationField
+from .resolvers import resolve_translation
 
 type ATTRIBUTE_ID = int
 
@@ -388,15 +389,21 @@ class ProductMediaTranslatableContent(ModelObjectType[product_models.ProductMedi
         required=True,
         description="Product media alt text to translate." + ADDED_IN_323,
     )
-    translation = TranslationField(
+    translation = graphene.Field(
         ProductMediaTranslation,
-        type_name="product media",
-        description_suffix=ADDED_IN_323,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for product media."
+            + ADDED_IN_323,
+            required=True,
+        ),
+        description="Returns translated product media fields for the given language code."
+        + ADDED_IN_323,
+        resolver=resolve_translation,
     )
     product_media = graphene.Field(
         "saleor.graphql.product.types.products.ProductMedia",
         description="Represents a product media." + ADDED_IN_323,
-        deprecation_reason="Get model fields from the root level queries.",
     )
 
     class Meta:

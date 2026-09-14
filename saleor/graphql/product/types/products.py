@@ -76,7 +76,7 @@ from ...core.descriptions import (
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
-from ...core.enums import ReportingPeriod
+from ...core.enums import LanguageCodeEnum, ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import (
     ConnectionField,
@@ -124,6 +124,7 @@ from ...tax.dataloaders import (
 )
 from ...tax.types import TaxClass
 from ...translations.fields import TranslationField
+from ...translations.resolvers import resolve_translation
 from ...translations.types import (
     ProductMediaTranslation,
     ProductTranslation,
@@ -2092,10 +2093,17 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
     )
     sort_order = graphene.Int(description="The sort order of the media.")
     alt = graphene.String(required=True, description="The alt text of the media.")
-    translation = TranslationField(
+    translation = graphene.Field(
         ProductMediaTranslation,
-        type_name="product media",
-        description_suffix=ADDED_IN_323,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for product media."
+            + ADDED_IN_323,
+            required=True,
+        ),
+        description="Returns translated product media fields for the given language code."
+        + ADDED_IN_323,
+        resolver=resolve_translation,
     )
     type = ProductMediaType(required=True, description="The type of the media.")
     oembed_data = JSONString(required=True, description="The oEmbed data of the media.")

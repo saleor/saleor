@@ -4,6 +4,37 @@ from ...core.enums import LanguageCodeEnum
 from ...tests.utils import get_graphql_content
 from ..schema import TranslatableKinds
 
+
+def test_product_media_is_visible_in_default_introspection(api_client):
+    # given
+    query = """
+        query {
+            __type(name: "ProductMediaTranslatableContent") {
+                fields {
+                    name
+                }
+            }
+        }
+    """
+
+    # when
+    response = api_client.post_graphql(query)
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data == {
+        "__type": {
+            "fields": [
+                {"name": "id"},
+                {"name": "productMediaId"},
+                {"name": "alt"},
+                {"name": "translation"},
+                {"name": "productMedia"},
+            ]
+        }
+    }
+
+
 PRODUCT_MEDIA_TRANSLATION_QUERY = """
     query ProductMediaTranslation($productId: ID!, $channel: String!) {
         product(id: $productId, channel: $channel) {
@@ -137,6 +168,10 @@ PRODUCT_MEDIA_TRANSLATABLE_CONTENT_QUERY = """
                 id
                 productMediaId
                 alt
+                productMedia {
+                    id
+                    alt
+                }
                 translation(languageCode: $languageCode) {
                     id
                     alt
@@ -182,6 +217,10 @@ def test_translation_query_product_media(
         "id": content_id,
         "productMediaId": product_media_id,
         "alt": product_media_image.alt,
+        "productMedia": {
+            "id": product_media_id,
+            "alt": product_media_image.alt,
+        },
         "translation": {
             "id": translation_id,
             "alt": translated_alt,

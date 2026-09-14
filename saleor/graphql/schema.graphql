@@ -9997,7 +9997,7 @@ type ProductMediaTranslatableContent implements Node @doc(category: "Products") 
   
   Added in Saleor 3.23.
   """
-  productMedia: ProductMedia @deprecated(reason: "Get model fields from the root level queries.")
+  productMedia: ProductMedia
 }
 
 enum ProductMediaType @doc(category: "Products") {
