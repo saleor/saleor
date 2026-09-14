@@ -28,6 +28,76 @@ DELETE_COLLECTION_MUTATION = """
 """
 
 
+DELETE_COLLECTION_BY_EXTERNAL_REFERENCE_MUTATION = """
+    mutation deleteCollection($id: ID, $externalReference: String) {
+        collectionDelete(id: $id, externalReference: $externalReference) {
+            collection {
+                name
+                externalReference
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_delete_collection_by_external_reference(
+    staff_api_client, collection, permission_manage_products
+):
+    # given
+    external_reference = "test-ext-ref"
+    collection.external_reference = external_reference
+    collection.save(update_fields=["external_reference"])
+    variables = {"externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_COLLECTION_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionDelete"]
+    assert not data["errors"]
+    assert data["collection"]["name"] == collection.name
+    assert data["collection"]["externalReference"] == external_reference
+    with pytest.raises(collection._meta.model.DoesNotExist):
+        collection.refresh_from_db()
+
+
+def test_delete_collection_by_both_id_and_external_reference(
+    staff_api_client, collection, permission_manage_products
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.id),
+        "externalReference": "test-ext-ref",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_COLLECTION_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionDelete"]
+
+    # then
+    assert data["errors"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+    collection.refresh_from_db()
+
+
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
 def test_delete_collection(
     deleted_webhook_mock,

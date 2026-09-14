@@ -14,6 +14,7 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
     ADDED_IN_322,
+    ADDED_IN_324,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -102,6 +103,7 @@ from .mutations.channels import (
 from .resolvers import (
     resolve_categories,
     resolve_category_by_translated_slug,
+    resolve_collection_by_external_reference,
     resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collection_by_translated_slug,
@@ -171,14 +173,18 @@ class ProductQueries(graphene.ObjectType):
             LanguageCodeEnum,
             description="Language code of the collection slug, omit to use primary slug.",
         ),
+        external_reference=graphene.Argument(
+            graphene.String,
+            description=f"External ID of the collection.{ADDED_IN_324}",
+        ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
         description=(
-            "Look up a collection by ID or slug. If slugLanguageCode is provided, "
-            "category will be fetched by slug translation. Requires one of the "
-            "following permissions to include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            "Look up a collection by ID, slug or external reference. If "
+            "slugLanguageCode is provided, category will be fetched by slug "
+            "translation. Requires one of the following permissions to include "
+            f"the unpublished items: {', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -369,8 +375,11 @@ class ProductQueries(graphene.ObjectType):
         slug=None,
         channel=None,
         slug_language_code=None,
+        external_reference=None,
     ):
-        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        validate_one_of_args_is_in_query(
+            "id", id, "slug", slug, "external_reference", external_reference
+        )
         requestor = get_user_or_app_from_context(info.context)
 
         has_required_permissions = has_one_of_permissions(
@@ -384,6 +393,10 @@ class ProductQueries(graphene.ObjectType):
         if id:
             _, id = from_global_id_or_error(id, Collection)
             collection = resolve_collection_by_id(info, id, channel, requestor)
+        elif external_reference:
+            collection = resolve_collection_by_external_reference(
+                info, external_reference, channel, requestor
+            )
         else:
             if slug_language_code is None:
                 collection = resolve_collection_by_slug(

@@ -14,6 +14,139 @@ from ....tests.utils import (
     get_multipart_request_body,
 )
 
+MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE = """
+    mutation updateCollection(
+        $id: ID, $externalReference: String, $input: CollectionInput!
+    ) {
+        collectionUpdate(
+            id: $id, externalReference: $externalReference, input: $input
+        ) {
+            errors {
+                message
+                field
+                code
+            }
+            collection {
+                name
+                externalReference
+            }
+        }
+    }
+"""
+
+
+def test_update_collection_by_external_reference(
+    staff_api_client, collection, permission_manage_products
+):
+    # given
+    external_reference = "test-ext-ref"
+    collection.external_reference = external_reference
+    collection.save(update_fields=["external_reference"])
+    variables = {
+        "externalReference": external_reference,
+        "input": {"name": "New name"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionUpdate"]
+    assert not data["errors"]
+    collection.refresh_from_db()
+    assert data["collection"]["name"] == "New name"
+    assert collection.name == "New name"
+    assert collection.external_reference == external_reference
+
+
+def test_update_collection_by_both_id_and_external_reference(
+    staff_api_client, collection, permission_manage_products
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.id),
+        "externalReference": "test-ext-ref",
+        "input": {"name": "New name"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionUpdate"]
+
+    # then
+    assert data["errors"]
+    assert (
+        data["errors"][0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_update_collection_by_external_reference_not_existing(
+    staff_api_client, permission_manage_products
+):
+    # given
+    external_reference = "non-existing-ext-ref"
+    variables = {
+        "externalReference": external_reference,
+        "input": {},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionUpdate"]
+
+    # then
+    assert data["errors"]
+    assert (
+        data["errors"][0]["message"]
+        == f"Couldn't resolve to a node: {external_reference}"
+    )
+
+
+def test_update_collection_with_non_unique_external_reference(
+    staff_api_client, collection, collection_list, permission_manage_products
+):
+    # given
+    ext_ref = "test-ext-ref"
+    other_collection = collection_list[0]
+    other_collection.external_reference = ext_ref
+    other_collection.save(update_fields=["external_reference"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", collection.id),
+        "input": {"externalReference": ext_ref},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionUpdate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
+
 
 @patch("saleor.plugins.manager.PluginsManager.collection_updated")
 @patch("saleor.plugins.manager.PluginsManager.collection_created")

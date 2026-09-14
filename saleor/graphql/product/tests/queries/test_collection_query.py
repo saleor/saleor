@@ -24,6 +24,99 @@ QUERY_COLLECTION = """
     """
 
 
+QUERY_COLLECTION_BY_EXTERNAL_REFERENCE = """
+    query ($id: ID, $externalReference: String, $slug: String, $channel: String){
+        collection(
+            id: $id,
+            slug: $slug,
+            externalReference: $externalReference,
+            channel: $channel,
+        ) {
+            id
+            name
+            externalReference
+        }
+    }
+    """
+
+
+def test_collection_query_by_external_reference(
+    staff_api_client, permission_manage_products, published_collection, channel_USD
+):
+    # given
+    published_collection.external_reference = "test-ext-id"
+    published_collection.save(update_fields=["external_reference"])
+    variables = {
+        "externalReference": published_collection.external_reference,
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    collection_data = content["data"]["collection"]
+    assert collection_data is not None
+    assert collection_data["name"] == published_collection.name
+    assert (
+        collection_data["externalReference"] == published_collection.external_reference
+    )
+
+
+def test_collection_query_by_external_reference_not_found(
+    staff_api_client, permission_manage_products, channel_USD
+):
+    # given
+    variables = {
+        "externalReference": "non-existing-ext-ref",
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["collection"] is None
+
+
+def test_collection_query_error_when_id_and_external_reference_provided(
+    user_api_client,
+    published_collection,
+    graphql_log_handler,
+):
+    # given
+    handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+    handled_errors_logger.setLevel(logging.DEBUG)
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "externalReference": "test-ext-id",
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_COLLECTION_BY_EXTERNAL_REFERENCE, variables=variables
+    )
+
+    # then
+    assert graphql_log_handler.messages == [
+        "saleor.graphql.errors.handled[DEBUG].GraphQLError"
+    ]
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) == 1
+
+
 def test_collection_query_by_id(user_api_client, published_collection, channel_USD):
     variables = {
         "id": graphene.Node.to_global_id("Collection", published_collection.pk),

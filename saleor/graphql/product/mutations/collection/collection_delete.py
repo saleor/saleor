@@ -6,7 +6,8 @@ from .....product import models
 from .....product.tasks import collection_product_updated_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
-from ....core.mutations import ModelDeleteMutation
+from ....core.descriptions import ADDED_IN_324
+from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import CollectionError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection
@@ -16,9 +17,13 @@ from ...types import Collection
 PRODUCTS_BATCH_SIZE = 25000
 
 
-class CollectionDelete(ModelDeleteMutation):
+class CollectionDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a collection to delete.")
+        id = graphene.ID(required=False, description="ID of a collection to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a collection to delete.{ADDED_IN_324}",
+        )
 
     class Meta:
         description = "Deletes a collection."
@@ -36,12 +41,14 @@ class CollectionDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
-        instance = cls.get_node_or_error(info, id, only_type=Collection)
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
         product_ids = list(instance.products.values_list("id", flat=True))
 
-        result = super().perform_mutation(_root, info, id=id)
+        result = super().perform_mutation(
+            _root, info, external_reference=external_reference, id=id
+        )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.collection_deleted, instance)
 

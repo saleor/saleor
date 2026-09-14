@@ -59,6 +59,75 @@ CREATE_COLLECTION_MUTATION = """
 """
 
 
+CREATE_COLLECTION_WITH_EXTERNAL_REFERENCE_MUTATION = """
+    mutation createCollection($name: String!, $externalReference: String) {
+        collectionCreate(
+            input: {name: $name, externalReference: $externalReference}
+        ) {
+            collection {
+                name
+                externalReference
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_create_collection_with_external_reference(
+    staff_api_client, permission_manage_products
+):
+    # given
+    name = "test-collection"
+    external_reference = "test-ext-ref"
+    variables = {"name": name, "externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_COLLECTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionCreate"]
+    assert not data["errors"]
+    assert data["collection"]["externalReference"] == external_reference
+    collection = Collection.objects.get(name=name)
+    assert collection.external_reference == external_reference
+
+
+def test_create_collection_with_non_unique_external_reference(
+    staff_api_client, collection, permission_manage_products
+):
+    # given
+    external_reference = "test-ext-ref"
+    collection.external_reference = external_reference
+    collection.save(update_fields=["external_reference"])
+
+    variables = {"name": "new-collection", "externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_COLLECTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["collectionCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == CollectionErrorCode.UNIQUE.name
+
+
 @patch("saleor.plugins.manager.PluginsManager.collection_updated")
 @patch("saleor.plugins.manager.PluginsManager.collection_created")
 def test_create_collection(

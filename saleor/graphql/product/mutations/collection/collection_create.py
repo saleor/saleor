@@ -11,7 +11,7 @@ from .....product.error_codes import CollectionErrorCode
 from .....product.tasks import collection_product_updated_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
-from ....core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ....core.descriptions import ADDED_IN_324, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import DeprecatedModelMutation
@@ -40,6 +40,10 @@ class CollectionInput(BaseInputObjectType):
     )
     name = graphene.String(description="Name of the collection.")
     slug = graphene.String(description="Slug of the collection.")
+    external_reference = graphene.String(
+        description=f"External ID of this collection.{ADDED_IN_324}",
+        required=False,
+    )
     description = JSONString(
         description="Description of the collection." + RICH_CONTENT
     )

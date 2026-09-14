@@ -24,7 +24,7 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_324, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -58,6 +58,9 @@ class Collection(ChannelContextType[models.Collection]):
         description="Description of the collection." + RICH_CONTENT
     )
     slug = graphene.String(required=True, description="Slug of the collection.")
+    external_reference = graphene.String(
+        description=f"External ID of this collection.{ADDED_IN_324}"
+    )
     channel = graphene.String(
         description=(
             "Channel given to retrieve this collection. Also used by federation "
