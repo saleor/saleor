@@ -4140,7 +4140,7 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   defaultVariant: ProductVariant
 
   """Rating of the product."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Channel given to retrieve this product. Also used by federation gateway to resolve this object in a federated query.
@@ -4914,7 +4914,7 @@ enum ProductOrderField @doc(category: "Products") {
   COLLECTION
 
   """Sort products by rating."""
-  RATING
+  RATING @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """Sort products by creation date."""
   CREATED_AT
@@ -25159,7 +25159,7 @@ input ProductCreateInput @doc(category: "Products") {
   weight: WeightScalar
 
   """Defines the product rating value."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
@@ -25376,7 +25376,7 @@ input ProductBulkCreateInput @doc(category: "Products") {
   weight: WeightScalar
 
   """Defines the product rating value."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
@@ -25659,7 +25659,7 @@ input ProductInput @doc(category: "Products") {
   weight: WeightScalar
 
   """Defines the product rating value."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.

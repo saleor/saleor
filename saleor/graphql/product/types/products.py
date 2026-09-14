@@ -71,6 +71,7 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_PREORDER,
     DEPRECATED_PREORDER_TYPE_DESCRIPTION,
+    DEPRECATED_PRODUCT_RATING,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -958,7 +959,10 @@ class Product(ChannelContextType[models.Product]):
     default_variant = graphene.Field(
         ProductVariant, description="Default variant of the product."
     )
-    rating = graphene.Float(description="Rating of the product.")
+    rating = graphene.Float(
+        description="Rating of the product.",
+        deprecation_reason=DEPRECATED_PRODUCT_RATING,
+    )
     channel = graphene.String(
         description=(
             "Channel given to retrieve this product. Also used by federation "

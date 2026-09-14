@@ -266,7 +266,12 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
 
     @staticmethod
     def sort_by_attribute_fields() -> list:
-        return ["concatenated_values_order", "concatenated_values", "name"]
+        return [
+            "concatenated_values_order",
+            "numeric_value",
+            "concatenated_values",
+            "name",
+        ]
 
 
 class ProductTranslation(SeoModelTranslationWithSlug):
