@@ -184,9 +184,11 @@ class ProductsQueryset(models.QuerySet):
             # Implicit `GROUP BY` required for the `StringAgg` aggregation
             grouped_ids=Count("id"),
             # Numeric attributes must sort by their value, not by its string
-            # representation, otherwise "10" would come before "9". The aggregate
-            # reuses the join `concatenated_values` already needs and stays `NULL`
-            # for every other input type, making it a no-op for them.
+            # representation, otherwise "10" would come before "9". A numeric
+            # attribute holds exactly one value per product, so the choice of
+            # aggregate is arbitrary (`Min` == `Max` here); it merely reuses the
+            # join `concatenated_values` already needs and stays `NULL` for every
+            # other input type, making it a no-op for them.
             numeric_value=Min(
                 "attributevalues__value__numeric",
                 filter=Q(attributevalues__value__attribute_id=attribute_pk),

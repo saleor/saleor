@@ -52,7 +52,7 @@ permissions.
 - Added `Order.transactionSummaries` field returning a `TransactionSummary` per payment transaction that moved any money. Unlike `Order.transactions` it requires no permission, so storefronts can show the payment history of an order; it exposes only `createdAt`, `paymentMethodDetails` and the amounts, with the card digits and expiration date stripped.
 - Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
 - Added `ID` sort field to `ProductVariantSortField`. Sorting by the variant primary key gives a stable order and stable cursors, unlike `LAST_MODIFIED_AT`, whose value changes when a variant is updated during pagination.
-- Sorting products by a numeric attribute (`products(sortBy: { attributeId: ... })`) now orders by the numeric value instead of its string representation, so `10` no longer sorts before `9`.
+- Sorting products by a numeric attribute (`products(sortBy: { attributeId: ... })`) now orders by the numeric value instead of its string representation, so `10` no longer sorts before `9`. The pagination cursor for attribute-sorted product lists gained a fourth field, so cursors issued before this change are rejected with `Received cursor is invalid`; a client paginating across the deploy must restart from the first page.
 
 ### Webhooks
 

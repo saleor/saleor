@@ -49,6 +49,41 @@ query products(
 }
 """
 
+# Separate query for the paging walk: no `first` default, so a backward walk can
+# send `last`/`before` without `first` sneaking in and being rejected.
+QUERY_PAGINATE_PRODUCTS_BY_ATTRIBUTE = """
+query products(
+  $attributeId: ID
+  $direction: OrderDirection!
+  $channel: String
+  $first: Int
+  $after: String
+  $last: Int
+  $before: String
+) {
+  products(
+    first: $first,
+    after: $after,
+    last: $last,
+    before: $before,
+    channel: $channel,
+    sortBy: { attributeId: $attributeId, direction: $direction }
+  ) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      node {
+        name
+      }
+    }
+  }
+}
+"""
+
 COLORS = (["Blue", "Red"], ["Blue", "Gray"], ["Pink"], ["Pink"], ["Green"])
 TRADEMARKS = ("A", "A", "ab", "b", "y")
 DUMMIES = ("Oopsie",)
@@ -763,7 +798,7 @@ def numeric_product_type(numeric_attribute):
 
 
 @pytest.fixture
-def products_with_numeric_attribute(
+def numeric_attribute_with_products(
     numeric_attribute, numeric_product_type, category, channel_USD
 ):
     for number in NUMERIC_VALUES:
@@ -781,12 +816,88 @@ def products_with_numeric_attribute(
     return numeric_attribute
 
 
+# Dropdown values whose sorted order (by value name) is the reverse of the owning
+# product names, so a name-only sort would give a different result. One product
+# holds multiple values ("b", "c") — the representative case for the
+# concatenated-values sort, whose cursor carries `None` in the numeric slot.
+DROPDOWN_PRODUCTS = {
+    "Product D": ["a"],
+    "Product C": ["b", "c"],
+    "Product B": ["d"],
+    "Product A": ["e"],
+}
+
+
+@pytest.fixture
+def dropdown_attribute_with_products(category, channel_USD):
+    attribute = attribute_models.Attribute.objects.create(
+        name="Flavor",
+        slug="flavor",
+        input_type=AttributeInputType.MULTISELECT,
+        type=AttributeType.PRODUCT_TYPE,
+    )
+    product_type = product_models.ProductType.objects.create(
+        name="Flavored", slug="flavored", has_variants=False
+    )
+    product_type.product_attributes.add(attribute)
+    for name, value_names in DROPDOWN_PRODUCTS.items():
+        product = _publish_product(name, product_type, category, channel_USD)
+        values = [
+            attribute_models.AttributeValue.objects.create(
+                attribute=attribute, name=value, slug=value
+            )
+            for value in value_names
+        ]
+        associate_attribute_values_to_instance(product, {attribute.pk: values})
+    return attribute
+
+
+def _walk_pages(api_client, attribute, direction, channel, page_size, backward):
+    """Paginate through every page and return the collected names in order."""
+    variables = {
+        "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "direction": direction,
+        "channel": channel.slug,
+    }
+    collected: list[str] = []
+    cursor = None
+    while True:
+        if backward:
+            page_variables = {
+                **variables,
+                "first": None,
+                "last": page_size,
+                "before": cursor,
+            }
+        else:
+            page_variables = {**variables, "first": page_size, "after": cursor}
+        response = get_graphql_content(
+            api_client.post_graphql(
+                QUERY_PAGINATE_PRODUCTS_BY_ATTRIBUTE, page_variables
+            )
+        )
+        products = response["data"]["products"]
+        page_names = [edge["node"]["name"] for edge in products["edges"]]
+        page_info = products["pageInfo"]
+        if backward:
+            collected = page_names + collected
+            if not page_info["hasPreviousPage"]:
+                break
+            cursor = page_info["startCursor"]
+        else:
+            collected += page_names
+            if not page_info["hasNextPage"]:
+                break
+            cursor = page_info["endCursor"]
+    return collected
+
+
 @pytest.mark.parametrize("descending", [False, True])
 def test_sort_product_by_numeric_attribute(
-    api_client, products_with_numeric_attribute, descending, channel_USD
+    api_client, numeric_attribute_with_products, descending, channel_USD
 ):
     # given
-    attribute = products_with_numeric_attribute
+    attribute = numeric_attribute_with_products
     expected_names = [
         f"Product {number}" for number in sorted(NUMERIC_VALUES, reverse=descending)
     ]
@@ -838,32 +949,52 @@ def test_sort_product_by_numeric_attribute_without_assigned_values(
     assert names == expected_names
 
 
-def test_sort_product_by_numeric_attribute_paginates_in_numeric_order(
-    api_client, products_with_numeric_attribute, channel_USD
+@pytest.mark.parametrize("backward", [False, True])
+@pytest.mark.parametrize("descending", [False, True])
+@pytest.mark.parametrize(
+    ("attribute_fixture", "ordered_names"),
+    [
+        (
+            "numeric_attribute_with_products",
+            [f"Product {number}" for number in sorted(NUMERIC_VALUES)],
+        ),
+        (
+            "dropdown_attribute_with_products",
+            ["Product D", "Product C", "Product B", "Product A"],
+        ),
+    ],
+)
+def test_sort_product_by_attribute_survives_cursor_round_trip(
+    api_client,
+    request,
+    channel_USD,
+    attribute_fixture,
+    ordered_names,
+    descending,
+    backward,
 ):
-    """Ensure the float sort value survives the cursor round-trip."""
+    """Sort value survives the cursor round-trip in both directions and walks.
+
+    For a numeric attribute the cursor round-trips a non-integral float; for a
+    dropdown attribute (one product holding multiple values) it round-trips a
+    `None` numeric slot. A flipped direction also moves PostgreSQL's `NULL`s to
+    the other end, and a backward walk (`last`/`before`) must yield the same
+    full order as the forward walk (`first`/`after`).
+    """
     # given
-    attribute = products_with_numeric_attribute
+    attribute = request.getfixturevalue(attribute_fixture)
     page_size = 2
-    expected_names = [f"Product {number}" for number in sorted(NUMERIC_VALUES)]
-    variables = {
-        "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
-        "direction": "ASC",
-        "channel": channel_USD.slug,
-        "first": page_size,
-        "after": None,
-    }
+    expected_names = list(reversed(ordered_names)) if descending else ordered_names
 
     # when
-    collected_names = []
-    for _ in range(len(NUMERIC_VALUES) // page_size):
-        response = get_graphql_content(
-            api_client.post_graphql(QUERY_SORT_PRODUCTS_BY_ATTRIBUTE, variables)
-        )
-        products = response["data"]["products"]
-        collected_names += [edge["node"]["name"] for edge in products["edges"]]
-        variables["after"] = products["pageInfo"]["endCursor"]
+    names = _walk_pages(
+        api_client,
+        attribute,
+        "DESC" if descending else "ASC",
+        channel_USD,
+        page_size,
+        backward=backward,
+    )
 
     # then
-    assert collected_names == expected_names
-    assert products["pageInfo"]["hasNextPage"] is False
+    assert names == expected_names
