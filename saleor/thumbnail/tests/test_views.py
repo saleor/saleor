@@ -205,20 +205,32 @@ def test_handle_thumbnail_view_no_image(client, category):
     assert response.status_code == 404
 
 
-def test_handle_thumbnail_view_for_product_media_image_type_with_external_url_but_no_image(
-    client, product
+@pytest.mark.parametrize(
+    ("_case", "owner_fixture", "owner_type"),
+    [
+        ("product media", "product", MediaOwnerTypes.PRODUCT),
+        ("category media", "category", MediaOwnerTypes.CATEGORY),
+        ("collection media", "collection", MediaOwnerTypes.COLLECTION),
+        ("page media", "page", MediaOwnerTypes.PAGE),
+    ],
+)
+def test_handle_thumbnail_view_for_media_image_type_with_external_url_but_no_image(
+    _case, owner_fixture, owner_type, client, request
 ):
     # given
     size = 500
-    product_media = product.media.create(
+    owner = request.getfixturevalue(owner_fixture)
+    media = owner.media.create(
         image=None,
         type=ProductMediaTypes.IMAGE,
         external_url="https://example.com/image.jpg",
     )
-    product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+    media_id = graphene.Node.to_global_id(
+        OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type], media.pk
+    )
 
     # when
-    response = client.get(f"/thumbnail/{product_media_id}/{size}/")
+    response = client.get(f"/thumbnail/{media_id}/{size}/")
 
     # then
     assert response.status_code == 503
@@ -588,19 +600,31 @@ def test_handle_original_image_for_product_media_without_image(client, product):
     assert response.status_code == 404
 
 
-def test_handle_original_image_for_product_media_image_type_with_external_url_but_no_image(
-    client, product
+@pytest.mark.parametrize(
+    ("_case", "owner_fixture", "owner_type"),
+    [
+        ("product media", "product", MediaOwnerTypes.PRODUCT),
+        ("category media", "category", MediaOwnerTypes.CATEGORY),
+        ("collection media", "collection", MediaOwnerTypes.COLLECTION),
+        ("page media", "page", MediaOwnerTypes.PAGE),
+    ],
+)
+def test_handle_original_image_for_media_image_type_with_external_url_but_no_image(
+    _case, owner_fixture, owner_type, client, request
 ):
     # given
-    product_media = product.media.create(
+    owner = request.getfixturevalue(owner_fixture)
+    media = owner.media.create(
         image=None,
         type=ProductMediaTypes.IMAGE,
         external_url="https://example.com/image.jpg",
     )
-    product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+    media_id = graphene.Node.to_global_id(
+        OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type], media.pk
+    )
 
     # when
-    response = client.get(f"/image/{product_media_id}/")
+    response = client.get(f"/image/{media_id}/")
 
     # then
     assert response.status_code == 503
