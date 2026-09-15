@@ -4212,9 +4212,6 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   ): ProductTranslation
 
   """Date when product is available for purchase."""
-  availableForPurchase: Date @deprecated(reason: "Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
-
-  """Date when product is available for purchase."""
   availableForPurchaseAt: DateTime
 
   """
@@ -9875,7 +9872,6 @@ type ProductChannelListing implements Node @doc(category: "Products") {
 
   """Indicates product visibility in the channel listings."""
   visibleInListings: Boolean!
-  availableForPurchase: Date @deprecated(reason: "Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
 
   """The product available for purchase date time."""
   availableForPurchaseAt: DateTime
@@ -25342,11 +25338,6 @@ input ProductChannelListingAddInput @doc(category: "Products") {
   Determines if product should be available for purchase in this channel. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
   """
   isAvailableForPurchase: Boolean
-
-  """
-  A start date from which a product will be available for purchase. When not set and isAvailable is set to True, the current day is assumed.
-  """
-  availableForPurchaseDate: Date @deprecated(reason: "Use `availableForPurchaseAt` field instead.")
 
   """
   A start date time from which a product will be available for purchase. When not set and `isAvailable` is set to True, the current day is assumed.
