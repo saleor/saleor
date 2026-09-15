@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import patch
 
@@ -1292,3 +1293,93 @@ def test_product_variant_bulk_update_channel_listings_input_with_prior_price(
         new_variant_listing.prior_price_amount
         == not_existing_variant_listing_prior_price
     )
+
+
+def test_product_variant_bulk_update_channel_listings_availability_only(
+    staff_api_client, variant, permission_manage_products, channel_USD
+):
+    """The flag must be updatable on its own, without resending the price."""
+    # given
+    listing = variant.channel_listings.get(channel=channel_USD)
+    price_amount = listing.price_amount
+    assert listing.is_available_for_purchase is True
+
+    variants = [
+        {
+            "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+            "channelListings": {
+                "update": [
+                    {
+                        "channelListing": graphene.Node.to_global_id(
+                            "ProductVariantChannelListing", listing.pk
+                        ),
+                        "isAvailableForPurchase": False,
+                    }
+                ]
+            },
+        }
+    ]
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", variant.product_id),
+        "variants": variants,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkUpdate"]
+    assert data["results"][0]["errors"] == []
+    assert data["count"] == 1
+
+    listing.refresh_from_db(fields=("is_available_for_purchase", "price_amount"))
+    assert listing.is_available_for_purchase is False
+    assert listing.price_amount == price_amount
+
+
+def test_product_variant_bulk_update_channel_listings_create_with_availability(
+    staff_api_client, variant, permission_manage_products, channel_PLN
+):
+    # given
+    price = 20.0
+    product = variant.product
+    ProductChannelListing.objects.create(product=product, channel=channel_PLN)
+
+    variants = [
+        {
+            "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+            "channelListings": {
+                "create": [
+                    {
+                        "channelId": graphene.Node.to_global_id(
+                            "Channel", channel_PLN.pk
+                        ),
+                        "price": price,
+                        "isAvailableForPurchase": False,
+                    }
+                ]
+            },
+        }
+    ]
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "variants": variants,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["productVariantBulkUpdate"]["results"][0]["errors"] == []
+
+    new_listing = variant.channel_listings.get(channel=channel_PLN)
+    assert new_listing.is_available_for_purchase is False
+    assert new_listing.price_amount == Decimal(str(price))

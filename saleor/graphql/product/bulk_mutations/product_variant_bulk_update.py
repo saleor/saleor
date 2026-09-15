@@ -17,7 +17,7 @@ from ....warehouse.management import delete_stocks, stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
-from ...core.descriptions import DEPRECATED_PREORDER_INPUT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_PREORDER_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
@@ -28,7 +28,10 @@ from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ...webhook.subscription_payload import generate_pre_save_payloads
-from ..mutations.channels import ProductVariantChannelListingAddInput
+from ..mutations.channels import (
+    ProductVariantChannelListingAddInput,
+    get_listing_availability,
+)
 from ..mutations.product.product_create import StockInput, StockUpdateInput
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
 from .product_variant_bulk_create import (
@@ -71,6 +74,10 @@ class ChannelListingUpdateInput(BaseInputObjectType):
         description=(
             f"The threshold for preorder variant in channel.{DEPRECATED_PREORDER_INPUT}"
         )
+    )
+    is_available_for_purchase = graphene.Boolean(
+        description="Determines whether the variant can be bought in this channel. "
+        "When omitted, the current value is kept." + ADDED_IN_323
     )
 
     class Meta:
@@ -643,6 +650,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                     prior_price_amount=listing_data.get("prior_price"),
                     currency=listing_data["channel"].currency_code,
                     preorder_quantity_threshold=listing_data.get("preorder_threshold"),
+                    is_available_for_purchase=get_listing_availability(listing_data),
                 )
                 for listing_data in listings_data
             ]
@@ -663,6 +671,10 @@ class ProductVariantBulkUpdate(BaseMutation):
                     listing.cost_price_amount = listing_data["cost_price"]
                 if "prior_price" in listing_data:
                     listing.prior_price_amount = listing_data["prior_price"]
+                if listing_data.get("is_available_for_purchase") is not None:
+                    listing.is_available_for_purchase = listing_data[
+                        "is_available_for_purchase"
+                    ]
                 listings_to_update.append(listing)
 
     @classmethod
@@ -739,6 +751,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "cost_price_amount",
                 "prior_price_amount",
                 "preorder_quantity_threshold",
+                "is_available_for_purchase",
             ],
         )
         if stocks_to_remove:

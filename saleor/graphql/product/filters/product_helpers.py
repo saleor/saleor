@@ -224,10 +224,8 @@ def filter_products_is_published(qs, _, value, channel_slug):
     # Filter out product for which there is no variant with price
     variant_channel_listings = (
         ProductVariantChannelListing.objects.using(qs.db)
-        .filter(
-            Exists(channel.filter(pk=OuterRef("channel_id"))),
-            price_amount__isnull=False,
-        )
+        .sellable()
+        .filter(Exists(channel.filter(pk=OuterRef("channel_id"))))
         .values("id")
     )
     variants = (

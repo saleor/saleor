@@ -23,6 +23,7 @@ from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
 from ...core.descriptions import (
     ADDED_IN_321,
+    ADDED_IN_323,
     DEPRECATED_PREORDER,
     DEPRECATED_PREORDER_TYPE_DESCRIPTION,
 )
@@ -333,6 +334,13 @@ class ProductVariantChannelListing(
         "promotion information required by customer protection laws such as EU Omnibus "
         "directive.\n\n Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually."
         + ADDED_IN_321,
+    )
+    is_available_for_purchase = graphene.Boolean(
+        required=True,
+        description="Determines whether the variant can be bought in this channel. "
+        "When set to `false`, the variant behaves as if it had no listing in this "
+        "channel: it is hidden from customers and cannot be added to a checkout or "
+        "an order. Its prices are preserved." + ADDED_IN_323,
     )
     margin = PermissionsField(
         graphene.Int,
