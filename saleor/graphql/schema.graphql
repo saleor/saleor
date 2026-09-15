@@ -9922,32 +9922,16 @@ Represents product media translations.
 Added in Saleor 3.23.
 """
 type ProductMediaTranslation implements Node @doc(category: "Products") {
-  """
-  The ID of the product media translation.
-  
-  Added in Saleor 3.23.
-  """
+  """The ID of the product media translation."""
   id: ID!
 
-  """
-  Translation language.
-  
-  Added in Saleor 3.23.
-  """
+  """Translation language."""
   language: LanguageDisplay!
 
-  """
-  Translated product media alt text.
-  
-  Added in Saleor 3.23.
-  """
+  """Translated product media alt text."""
   alt: String!
 
-  """
-  Represents the product media fields to translate.
-  
-  Added in Saleor 3.23.
-  """
+  """Represents the product media fields to translate."""
   translatableContent: ProductMediaTranslatableContent
 }
 
@@ -9957,46 +9941,22 @@ Represents product media's original translatable fields and related translations
 Added in Saleor 3.23.
 """
 type ProductMediaTranslatableContent implements Node @doc(category: "Products") {
-  """
-  The ID of the product media translatable content.
-  
-  Added in Saleor 3.23.
-  """
+  """The ID of the product media translatable content."""
   id: ID!
 
-  """
-  The ID of the product media to translate.
-  
-  Added in Saleor 3.23.
-  """
+  """The ID of the product media to translate."""
   productMediaId: ID!
 
-  """
-  Product media alt text to translate.
-  
-  Added in Saleor 3.23.
-  """
+  """Product media alt text to translate."""
   alt: String!
 
-  """
-  Returns translated product media fields for the given language code.
-  
-  Added in Saleor 3.23.
-  """
+  """Returns translated product media fields for the given language code."""
   translation(
-    """
-    A language code to return the translation for product media.
-    
-    Added in Saleor 3.23.
-    """
+    """A language code to return the translation for product media."""
     languageCode: LanguageCodeEnum!
   ): ProductMediaTranslation
 
-  """
-  Represents a product media.
-  
-  Added in Saleor 3.23.
-  """
+  """Represents a product media."""
   productMedia: ProductMedia
 }
 
@@ -19060,25 +19020,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   productMediaTranslate(
-    """
-    ProductMedia ID or ProductMediaTranslatableContent ID.
-    
-    Added in Saleor 3.23.
-    """
+    """ProductMedia ID or ProductMediaTranslatableContent ID."""
     id: ID!
 
-    """
-    Fields required to update product media translations.
-    
-    Added in Saleor 3.23.
-    """
+    """Fields required to update product media translations."""
     input: ProductMediaTranslationInput!
 
-    """
-    Translation language code.
-    
-    Added in Saleor 3.23.
-    """
+    """Translation language code."""
     languageCode: LanguageCodeEnum!
   ): ProductMediaTranslate @doc(category: "Products")
 
@@ -26073,11 +26021,7 @@ type ProductMediaTranslateError @doc(category: "Products") {
   """The error message."""
   message: String
 
-  """
-  The error code.
-  
-  Added in Saleor 3.23.
-  """
+  """The error code."""
   code: ProductMediaTranslateErrorCode!
 }
 
@@ -26094,11 +26038,7 @@ Fields required to translate product media.
 Added in Saleor 3.23.
 """
 input ProductMediaTranslationInput @doc(category: "Products") {
-  """
-  Translated product media alt text.
-  
-  Added in Saleor 3.23.
-  """
+  """Translated product media alt text."""
   alt: String
 }
 

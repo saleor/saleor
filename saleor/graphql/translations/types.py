@@ -64,7 +64,6 @@ from ..product.dataloaders import (
 )
 from ..shipping.dataloaders import ShippingMethodByIdLoader
 from .fields import TranslationField
-from .resolvers import resolve_translation
 
 type ATTRIBUTE_ID = int
 
@@ -348,20 +347,15 @@ class ProductMediaTranslation(
 ):
     id = graphene.GlobalID(
         required=True,
-        description="The ID of the product media translation." + ADDED_IN_323,
-    )
-    language = graphene.Field(
-        LanguageDisplay,
-        description="Translation language." + ADDED_IN_323,
-        required=True,
+        description="The ID of the product media translation.",
     )
     alt = graphene.String(
         required=True,
-        description="Translated product media alt text." + ADDED_IN_323,
+        description="Translated product media alt text.",
     )
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.ProductMediaTranslatableContent",
-        description="Represents the product media fields to translate." + ADDED_IN_323,
+        description="Represents the product media fields to translate.",
     )
 
     class Meta:
@@ -379,31 +373,20 @@ class ProductMediaTranslation(
 class ProductMediaTranslatableContent(ModelObjectType[product_models.ProductMedia]):
     id = graphene.GlobalID(
         required=True,
-        description="The ID of the product media translatable content." + ADDED_IN_323,
+        description="The ID of the product media translatable content.",
     )
     product_media_id = graphene.ID(
         required=True,
-        description="The ID of the product media to translate." + ADDED_IN_323,
+        description="The ID of the product media to translate.",
     )
     alt = graphene.String(
         required=True,
-        description="Product media alt text to translate." + ADDED_IN_323,
+        description="Product media alt text to translate.",
     )
-    translation = graphene.Field(
-        ProductMediaTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for product media."
-            + ADDED_IN_323,
-            required=True,
-        ),
-        description="Returns translated product media fields for the given language code."
-        + ADDED_IN_323,
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(ProductMediaTranslation, type_name="product media")
     product_media = graphene.Field(
         "saleor.graphql.product.types.products.ProductMedia",
-        description="Represents a product media." + ADDED_IN_323,
+        description="Represents a product media.",
     )
 
     class Meta:

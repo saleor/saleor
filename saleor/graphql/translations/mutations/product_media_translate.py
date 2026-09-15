@@ -12,7 +12,7 @@ from .utils import BaseTranslateMutation
 
 class ProductMediaTranslateError(Error):
     code = ProductMediaTranslateErrorCode(
-        description="The error code." + ADDED_IN_323,
+        description="The error code.",
         required=True,
     )
 
@@ -24,9 +24,7 @@ class ProductMediaTranslateError(Error):
 
 
 class ProductMediaTranslationInput(BaseInputObjectType):
-    alt = graphene.String(
-        description="Translated product media alt text." + ADDED_IN_323
-    )
+    alt = graphene.String(description="Translated product media alt text.")
 
     class Meta:
         description = "Fields required to translate product media." + ADDED_IN_323
@@ -37,19 +35,16 @@ class ProductMediaTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
             required=True,
-            description=(
-                "ProductMedia ID or ProductMediaTranslatableContent ID." + ADDED_IN_323
-            ),
+            description="ProductMedia ID or ProductMediaTranslatableContent ID.",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum,
             required=True,
-            description="Translation language code." + ADDED_IN_323,
+            description="Translation language code.",
         )
         input = ProductMediaTranslationInput(
             required=True,
-            description="Fields required to update product media translations."
-            + ADDED_IN_323,
+            description="Fields required to update product media translations.",
         )
 
     class Meta:
