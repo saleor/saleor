@@ -28,6 +28,15 @@ DEPRECATED_LEGACY_PAYMENTS = (
 
 DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION = "\n\n" + DEPRECATED_LEGACY_PAYMENTS
 
+DEPRECATED_PRODUCT_RATING = (
+    "Product rating is deprecated and will be removed. Use a numeric attribute instead."
+)
+
+DEPRECATED_PRODUCT_RATING_INPUT = (
+    f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_PRODUCT_RATING}"
+)
+
+
 PREVIEW_FEATURE = (
     "\n\nNote: this API is currently in Feature Preview and can be subject to "
     "changes at later point."
