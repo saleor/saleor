@@ -9,7 +9,7 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import JSONField, TextField
+from django.db.models import F, JSONField, Q, TextField
 from django.utils import timezone
 from django_measurement.models import MeasurementField
 from measurement.measures import Weight
@@ -576,6 +576,115 @@ class VariantChannelListingPromotionRule(models.Model):
 
     class Meta:
         unique_together = [["variant_channel_listing", "promotion_rule"]]
+
+
+class VariantChannelListingPrice(models.Model):
+    """An additional base price of a variant listing, limited to a scope.
+
+    The scope is any combination of customer types, customer attribute values
+    and a validity window. The database does not require any condition, so a
+    row with none is possible and would always override the listing price.
+    Rejecting such rows is the responsibility of the write paths.
+    """
+
+    variant_channel_listing = models.ForeignKey(
+        ProductVariantChannelListing,
+        related_name="prices",
+        on_delete=models.CASCADE,
+    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    price = MoneyField(amount_field="price_amount", currency_field="currency")
+    valid_from = models.DateTimeField(null=True, blank=True)
+    valid_to = models.DateTimeField(null=True, blank=True)
+    customer_types = models.ManyToManyField(
+        "account.CustomerType",
+        through="product.VariantChannelListingPriceCustomerType",
+        related_name="variant_listing_prices",
+        blank=True,
+    )
+    attribute_values = models.ManyToManyField(
+        "attribute.AttributeValue",
+        through="product.VariantChannelListingPriceAttributeValue",
+        related_name="variant_listing_prices",
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("pk",)
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(price_amount__gte=0),
+                name="variantchannellistingprice_price_non_negative",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    Q(valid_from__isnull=True)
+                    | Q(valid_to__isnull=True)
+                    | Q(valid_from__lt=F("valid_to"))
+                ),
+                name="variantchannellistingprice_valid_window",
+            ),
+        ]
+
+
+class VariantChannelListingPriceCustomerType(models.Model):
+    """A customer type the buyer must belong to for the price to apply.
+
+    The customer type is protected so that deleting it cannot silently widen
+    the price to more buyers.
+    """
+
+    listing_price = models.ForeignKey(
+        VariantChannelListingPrice,
+        related_name="customer_type_conditions",
+        on_delete=models.CASCADE,
+    )
+    customer_type = models.ForeignKey(
+        "account.CustomerType",
+        related_name="variant_listing_price_conditions",
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["listing_price", "customer_type"],
+                name="variantchannellistingprice_customer_type_unique",
+            ),
+        ]
+
+
+class VariantChannelListingPriceAttributeValue(models.Model):
+    """A customer attribute value the buyer must hold for the price to apply.
+
+    The value is protected so that deleting it, or its attribute, cannot
+    silently widen the price to more buyers.
+    """
+
+    listing_price = models.ForeignKey(
+        VariantChannelListingPrice,
+        related_name="attribute_value_conditions",
+        on_delete=models.CASCADE,
+    )
+    value = models.ForeignKey(
+        "attribute.AttributeValue",
+        related_name="variant_listing_price_conditions",
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["listing_price", "value"],
+                name="variantchannellistingprice_attribute_value_unique",
+            ),
+        ]
 
 
 class ProductMedia(SortableModel, ModelWithMetadata):
