@@ -80,7 +80,7 @@ from ...core.fields import (
     JSONString,
     PermissionsField,
 )
-from ...core.scalars import Date, DateTime, PositiveInt
+from ...core.scalars import DateTime, PositiveInt
 from ...core.tracing import traced_resolver
 from ...core.types import (
     BaseObjectType,
@@ -1025,10 +1025,6 @@ class Product(ChannelContextType[models.Product]):
         type_name="product",
         resolver=ChannelContextType.resolve_translation,
     )
-    available_for_purchase = Date(
-        description="Date when product is available for purchase.",
-        deprecation_reason="Use the `availableForPurchaseAt` field to fetch the available for purchase date.",
-    )
     available_for_purchase_at = DateTime(
         description="Date when product is available for purchase."
     )
@@ -1543,23 +1539,6 @@ class Product(ChannelContextType[models.Product]):
             ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
             .load((root.node.id, channel_slug))
             .then(calculate_is_available_for_purchase)
-        )
-
-    @staticmethod
-    def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
-        if not root.channel_slug:
-            return None
-        channel_slug = str(root.channel_slug)
-
-        def calculate_available_for_purchase(product_channel_listing):
-            if not product_channel_listing:
-                return None
-            return product_channel_listing.available_for_purchase_at
-
-        return (
-            ProductChannelListingByProductIdAndChannelSlugLoader(info.context)
-            .load((root.node.id, channel_slug))
-            .then(calculate_available_for_purchase)
         )
 
     @staticmethod
