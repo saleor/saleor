@@ -7,9 +7,13 @@ from django.core.files import File
 from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
+from .....product.error_codes import CollectionErrorCode
+from .....product.models import Collection
 from .....thumbnail.models import Thumbnail
 from ....tests.utils import (
+    assert_no_permission,
     get_graphql_content,
+    get_graphql_content_from_response,
 )
 
 DELETE_COLLECTION_MUTATION = """
@@ -64,38 +68,10 @@ def test_delete_collection_by_external_reference(
 
     # then
     data = content["data"]["collectionDelete"]
-    assert not data["errors"]
+    assert data["errors"] == []
     assert data["collection"]["name"] == collection.name
     assert data["collection"]["externalReference"] == external_reference
-    with pytest.raises(collection._meta.model.DoesNotExist):
-        collection.refresh_from_db()
-
-
-def test_delete_collection_by_both_id_and_external_reference(
-    staff_api_client, collection, permission_manage_products
-):
-    # given
-    variables = {
-        "id": graphene.Node.to_global_id("Collection", collection.id),
-        "externalReference": "test-ext-ref",
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        DELETE_COLLECTION_BY_EXTERNAL_REFERENCE_MUTATION,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["collectionDelete"]
-
-    # then
-    assert data["errors"]
-    assert (
-        data["errors"][0]["message"]
-        == "Argument 'id' cannot be combined with 'external_reference'"
-    )
-    collection.refresh_from_db()
+    assert Collection.objects.filter(pk=collection.pk).exists() is False
 
 
 @patch("saleor.plugins.manager.PluginsManager.collection_deleted")
@@ -312,3 +288,153 @@ def test_collection_delete_removes_reference_to_page(
         collection.refresh_from_db()
 
     assert not data["errors"]
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "null",
+            {"id": None, "externalReference": None},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "empty",
+            {"externalReference": ""},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "both",
+            {"externalReference": "existing-reference"},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "Argument 'id' cannot be combined with 'external_reference'",
+        ),
+        (
+            "not_found",
+            {"externalReference": "missing-reference"},
+            "externalReference",
+            CollectionErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    collection.external_reference = "existing-reference"
+    collection.save(update_fields=("external_reference",))
+    original_name = collection.name
+    original_reference = collection.external_reference
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.collection_deleted")
+    task = mocker.patch("saleor.product.tasks.collection_product_updated_task.delay")
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["id"] = graphene.Node.to_global_id("Collection", collection.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_COLLECTION_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["collectionDelete"]
+    assert data["collection"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    collection.refresh_from_db(fields=("name", "external_reference"))
+    assert collection.name == original_name
+    assert collection.external_reference == original_reference
+    webhook.assert_not_called()
+    task.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    collection,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    collection.external_reference = "existing-reference"
+    collection.save(update_fields=("external_reference",))
+    original_name = collection.name
+    original_reference = collection.external_reference
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.collection_deleted")
+    task = mocker.patch("saleor.product.tasks.collection_product_updated_task.delay")
+    variables = {"externalReference": original_reference}
+
+    # when
+    response = client.post_graphql(
+        DELETE_COLLECTION_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["collectionDelete"]
+        assert data["errors"] == []
+        assert Collection.objects.filter(pk=collection.pk).exists() is False
+        assert data["collection"] == {
+            "name": original_name,
+            "externalReference": original_reference,
+        }
+        webhook.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"collectionDelete": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["collectionDelete"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: MANAGE_PRODUCTS"
+        )
+        collection.refresh_from_db(fields=("name", "external_reference"))
+        assert collection.name == original_name
+        assert collection.external_reference == original_reference
+        webhook.assert_not_called()
+        task.assert_not_called()

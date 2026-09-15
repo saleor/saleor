@@ -4,13 +4,15 @@ import graphene
 import pytest
 from django.core.files import File
 
-from .....product.error_codes import ProductErrorCode
+from .....product.error_codes import CollectionErrorCode, ProductErrorCode
 from .....product.models import Collection
 from .....product.tests.utils import create_image, create_zip_file_with_image_ext
 from .....tests.utils import dummy_editorjs
 from .....thumbnail.models import Thumbnail
 from ....tests.utils import (
+    assert_no_permission,
     get_graphql_content,
+    get_graphql_content_from_response,
     get_multipart_request_body,
 )
 
@@ -42,9 +44,10 @@ def test_update_collection_by_external_reference(
     external_reference = "test-ext-ref"
     collection.external_reference = external_reference
     collection.save(update_fields=["external_reference"])
+    name = "New name"
     variables = {
         "externalReference": external_reference,
-        "input": {"name": "New name"},
+        "input": {"name": name},
     }
 
     # when
@@ -57,79 +60,25 @@ def test_update_collection_by_external_reference(
 
     # then
     data = content["data"]["collectionUpdate"]
-    assert not data["errors"]
-    collection.refresh_from_db()
-    assert data["collection"]["name"] == "New name"
-    assert collection.name == "New name"
+    assert data["errors"] == []
+    collection.refresh_from_db(fields=("name", "external_reference"))
+    assert data["collection"]["name"] == name
+    assert collection.name == name
     assert collection.external_reference == external_reference
-
-
-def test_update_collection_by_both_id_and_external_reference(
-    staff_api_client, collection, permission_manage_products
-):
-    # given
-    variables = {
-        "id": graphene.Node.to_global_id("Collection", collection.id),
-        "externalReference": "test-ext-ref",
-        "input": {"name": "New name"},
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
-        variables=variables,
-        permissions=[permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["collectionUpdate"]
-
-    # then
-    assert data["errors"]
-    assert (
-        data["errors"][0]["message"]
-        == "Argument 'id' cannot be combined with 'external_reference'"
-    )
-
-
-def test_update_collection_by_external_reference_not_existing(
-    staff_api_client, permission_manage_products
-):
-    # given
-    external_reference = "non-existing-ext-ref"
-    variables = {
-        "externalReference": external_reference,
-        "input": {},
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
-        variables=variables,
-        permissions=[permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["collectionUpdate"]
-
-    # then
-    assert data["errors"]
-    assert (
-        data["errors"][0]["message"]
-        == f"Couldn't resolve to a node: {external_reference}"
-    )
 
 
 def test_update_collection_with_non_unique_external_reference(
     staff_api_client, collection, collection_list, permission_manage_products
 ):
     # given
-    ext_ref = "test-ext-ref"
+    external_reference = "test-ext-ref"
     other_collection = collection_list[0]
-    other_collection.external_reference = ext_ref
+    other_collection.external_reference = external_reference
     other_collection.save(update_fields=["external_reference"])
 
     variables = {
-        "id": graphene.Node.to_global_id("Collection", collection.id),
-        "input": {"externalReference": ext_ref},
+        "id": graphene.Node.to_global_id("Collection", collection.pk),
+        "input": {"externalReference": external_reference},
     }
 
     # when
@@ -142,10 +91,17 @@ def test_update_collection_with_non_unique_external_reference(
 
     # then
     data = content["data"]["collectionUpdate"]
+    collection.refresh_from_db(fields=("external_reference",))
+    assert collection.external_reference is None
+    assert data["collection"] is None
     errors = data["errors"]
     assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "Collection with this External reference already exists."
+    )
     assert errors[0]["field"] == "externalReference"
-    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
+    assert errors[0]["code"] == CollectionErrorCode.UNIQUE.name
 
 
 @patch("saleor.plugins.manager.PluginsManager.collection_updated")
@@ -654,3 +610,199 @@ def test_update_collection_mutation_remove_background_image(
     assert not data["backgroundImage"]
     collection_with_image.refresh_from_db()
     assert not collection_with_image.background_image
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "null",
+            {"id": None, "externalReference": None},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "empty",
+            {"externalReference": ""},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "both",
+            {"externalReference": "existing-reference"},
+            None,
+            CollectionErrorCode.GRAPHQL_ERROR,
+            "Argument 'id' cannot be combined with 'external_reference'",
+        ),
+        (
+            "not_found",
+            {"externalReference": "missing-reference"},
+            "externalReference",
+            CollectionErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    collection.external_reference = "existing-reference"
+    collection.save(update_fields=("external_reference",))
+    original_name = collection.name
+    original_reference = collection.external_reference
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.collection_updated")
+    task = mocker.patch("saleor.product.tasks.collection_product_updated_task.delay")
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["id"] = graphene.Node.to_global_id("Collection", collection.pk)
+    variables["input"] = {"name": "Changed name"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["collectionUpdate"]
+    assert data["collection"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    collection.refresh_from_db(fields=("name", "external_reference"))
+    assert collection.name == original_name
+    assert collection.external_reference == original_reference
+    webhook.assert_not_called()
+    task.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    collection,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    collection.external_reference = "existing-reference"
+    collection.save(update_fields=("external_reference",))
+    original_name = collection.name
+    original_reference = collection.external_reference
+    name = "Changed collection"
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.collection_updated")
+    task = mocker.patch("saleor.product.tasks.collection_product_updated_task.delay")
+    variables = {"externalReference": original_reference, "input": {"name": name}}
+
+    # when
+    response = client.post_graphql(
+        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["collectionUpdate"]
+        assert data["errors"] == []
+        collection.refresh_from_db(fields=("name", "external_reference"))
+        assert collection.name == name
+        assert collection.external_reference == original_reference
+        assert data["collection"] == {
+            "name": name,
+            "externalReference": original_reference,
+        }
+        webhook.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"collectionUpdate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["collectionUpdate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: MANAGE_PRODUCTS"
+        )
+        collection.refresh_from_db(fields=("name", "external_reference"))
+        assert collection.name == original_name
+        assert collection.external_reference == original_reference
+        assert Collection.objects.filter(name=name).exists() is False
+        webhook.assert_not_called()
+        task.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "reference_input", "expected_reference"),
+    [
+        ("changed", {"externalReference": "new-reference"}, "new-reference"),
+        ("cleared", {"externalReference": None}, None),
+        ("omitted", {}, "original-reference"),
+    ],
+)
+def test_external_reference_input(
+    _case,
+    reference_input,
+    expected_reference,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+):
+    # given
+    collection.external_reference = "original-reference"
+    collection.save(update_fields=("external_reference",))
+    name = "Updated collection"
+    variables = {
+        "externalReference": collection.external_reference,
+        "input": {"name": name, **reference_input},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["collectionUpdate"]
+    assert data["errors"] == []
+    assert data["collection"] == {"name": name, "externalReference": expected_reference}
+    collection.refresh_from_db(fields=("name", "external_reference"))
+    assert collection.name == name
+    assert collection.external_reference == expected_reference

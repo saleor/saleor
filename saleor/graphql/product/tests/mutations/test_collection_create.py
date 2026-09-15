@@ -9,7 +9,9 @@ from .....product.models import Collection
 from .....product.tests.utils import create_image
 from .....tests.utils import dummy_editorjs
 from ....tests.utils import (
+    assert_no_permission,
     get_graphql_content,
+    get_graphql_content_from_response,
     get_multipart_request_body,
 )
 
@@ -96,7 +98,7 @@ def test_create_collection_with_external_reference(
 
     # then
     data = content["data"]["collectionCreate"]
-    assert not data["errors"]
+    assert data["errors"] == []
     assert data["collection"]["externalReference"] == external_reference
     collection = Collection.objects.get(name=name)
     assert collection.external_reference == external_reference
@@ -110,7 +112,8 @@ def test_create_collection_with_non_unique_external_reference(
     collection.external_reference = external_reference
     collection.save(update_fields=["external_reference"])
 
-    variables = {"name": "new-collection", "externalReference": external_reference}
+    name = "new-collection"
+    variables = {"name": name, "externalReference": external_reference}
 
     # when
     response = staff_api_client.post_graphql(
@@ -122,8 +125,14 @@ def test_create_collection_with_non_unique_external_reference(
 
     # then
     data = content["data"]["collectionCreate"]
+    assert data["collection"] is None
+    assert Collection.objects.filter(name=name).exists() is False
     errors = data["errors"]
     assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "Collection with this External reference already exists."
+    )
     assert errors[0]["field"] == "externalReference"
     assert errors[0]["code"] == CollectionErrorCode.UNIQUE.name
 
@@ -312,3 +321,101 @@ def test_create_collection_file_size_exceeds_limit(
     assert errors[0]["code"] == CollectionErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
     assert not Collection.objects.filter(name=collection_name).exists()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    collection,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    collection.external_reference = "existing-reference"
+    collection.save(update_fields=("external_reference",))
+    original_name = collection.name
+    original_reference = collection.external_reference
+    name = "Changed collection"
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.collection_created")
+    task = mocker.patch("saleor.product.tasks.collection_product_updated_task.delay")
+    variables = {"name": name, "externalReference": "new-reference"}
+
+    # when
+    response = client.post_graphql(
+        CREATE_COLLECTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["collectionCreate"]
+        assert data["errors"] == []
+        created = Collection.objects.get(external_reference="new-reference")
+        assert created.name == name
+        assert data["collection"] == {
+            "name": name,
+            "externalReference": created.external_reference,
+        }
+        webhook.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"collectionCreate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["collectionCreate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: MANAGE_PRODUCTS"
+        )
+        collection.refresh_from_db(fields=("name", "external_reference"))
+        assert collection.name == original_name
+        assert collection.external_reference == original_reference
+        assert Collection.objects.filter(name=name).exists() is False
+        webhook.assert_not_called()
+        task.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "reference_input"),
+    [("omitted", {}), ("null", {"externalReference": None})],
+)
+def test_without_external_reference(
+    _case,
+    reference_input,
+    staff_api_client,
+    collection,
+    permission_manage_products,
+):
+    # given
+    assert collection.external_reference is None
+    name = "Collection without reference"
+    variables = {"name": name, **reference_input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_COLLECTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["collectionCreate"]
+    assert data["errors"] == []
+    assert data["collection"] == {"name": name, "externalReference": None}
+    created = Collection.objects.get(name=name)
+    assert created.external_reference is None
