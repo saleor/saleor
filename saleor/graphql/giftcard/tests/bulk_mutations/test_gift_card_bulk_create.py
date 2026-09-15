@@ -373,6 +373,48 @@ def test_create_gift_cards_with_existing_tags_keeps_them_on_previously_tagged_gi
     assert new_tag.gift_cards.count() == 1
 
 
+def test_create_gift_cards_normalizes_tag_names(
+    staff_api_client,
+    gift_card,
+    permission_manage_gift_card,
+):
+    # given
+    existing_tag = gift_card.tags.first().name
+    new_tag = "new-tag"
+    tags_count = GiftCardTag.objects.count()
+    count = 3
+    variables = {
+        "input": {
+            "count": count,
+            "balance": {
+                "amount": 100,
+                "currency": "USD",
+            },
+            "tags": [existing_tag.upper(), existing_tag, new_tag.upper(), new_tag],
+            "isActive": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GIFT_CARD_BULK_CREATE_TAGS_MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardBulkCreate"]["errors"]
+    data = content["data"]["giftCardBulkCreate"]
+
+    assert not errors
+    assert data["count"] == count
+    for card_data in data["giftCards"]:
+        assert {tag["name"] for tag in card_data["tags"]} == {existing_tag, new_tag}
+    # only one lower-cased tag is created, the existing one is reused
+    assert GiftCardTag.objects.count() == tags_count + 1
+
+
 @pytest.mark.parametrize(
     ("first_batch_tags", "second_batch_tags"),
     [
