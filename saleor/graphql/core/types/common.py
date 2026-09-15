@@ -505,6 +505,22 @@ class ProductChannelListingError(ProductError):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
+class ProductVariantChannelListingAvailabilityUpdateError(Error):
+    code = ProductErrorCode(description="The error code.", required=True)
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        description = (
+            "Error of the `productVariantChannelListingAvailabilityUpdate` mutation."
+            + ADDED_IN_323
+        )
+
+
 class CollectionChannelListingError(ProductError):
     channels = NonNullList(
         graphene.ID,

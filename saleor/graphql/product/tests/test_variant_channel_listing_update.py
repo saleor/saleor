@@ -655,3 +655,101 @@ def test_variant_channel_listing_update_with_prior_price(
     assert variant_data["id"] == variant_id
     assert variant_data["channelListings"][0]["priorPrice"]["currency"] == "USD"
     assert variant_data["channelListings"][0]["priorPrice"]["amount"] == prior_price
+
+
+@pytest.mark.parametrize(
+    ("_case", "initial_availability", "availability_input"),
+    [
+        ("omitted on an available listing", True, {}),
+        ("omitted on an unavailable listing", False, {}),
+        (
+            "explicit null on an available listing",
+            True,
+            {"isAvailableForPurchase": None},
+        ),
+        (
+            "explicit null on an unavailable listing",
+            False,
+            {"isAvailableForPurchase": None},
+        ),
+    ],
+)
+def test_variant_channel_listing_update_keeps_availability(
+    _case,
+    initial_availability,
+    availability_input,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    new_price = 33
+    variant = product.variants.get()
+    listing = variant.channel_listings.get(channel=channel_USD)
+    listing.is_available_for_purchase = initial_availability
+    listing.save(update_fields=("is_available_for_purchase",))
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "input": [
+            {
+                "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                "price": new_price,
+                **availability_input,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantChannelListingUpdate"]
+    assert data["errors"] == []
+
+    listing.refresh_from_db(fields=("is_available_for_purchase", "price_amount"))
+    assert listing.is_available_for_purchase is initial_availability
+    assert listing.price_amount == new_price
+
+
+def test_variant_channel_listing_update_sets_availability(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    new_price = 44
+    variant = product.variants.get()
+    listing = variant.channel_listings.get(channel=channel_USD)
+    assert listing.is_available_for_purchase is True
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "input": [
+            {
+                "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                "price": new_price,
+                "isAvailableForPurchase": False,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantChannelListingUpdate"]
+    assert data["errors"] == []
+
+    listing.refresh_from_db(fields=("is_available_for_purchase", "price_amount"))
+    assert listing.is_available_for_purchase is False
+    assert listing.price_amount == new_price
