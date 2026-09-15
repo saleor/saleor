@@ -56,6 +56,17 @@ def resolve_collection_by_id(info: ResolveInfo, id, channel_slug, requestor):
     )
 
 
+def resolve_collection_by_external_reference(
+    info: ResolveInfo, external_reference, channel_slug, requestor
+):
+    return (
+        models.Collection.objects.using(get_database_connection_name(info.context))
+        .visible_to_user(requestor, channel_slug=channel_slug)
+        .filter(external_reference=external_reference)
+        .first()
+    )
+
+
 def resolve_collection_by_slug(info: ResolveInfo, slug, channel_slug, requestor):
     return (
         models.Collection.objects.using(get_database_connection_name(info.context))
