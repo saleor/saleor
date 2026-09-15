@@ -33,6 +33,7 @@ from ..translations.mutations import (
     CategoryTranslate,
     CollectionTranslate,
     ProductBulkTranslate,
+    ProductMediaTranslate,
     ProductTranslate,
     ProductVariantBulkTranslate,
     ProductVariantTranslate,
@@ -669,6 +670,7 @@ class ProductMutations(graphene.ObjectType):
     product_media_delete = ProductMediaDelete.Field()
     product_media_bulk_delete = ProductMediaBulkDelete.Field()
     product_media_reorder = ProductMediaReorder.Field()
+    product_media_translate = ProductMediaTranslate.Field()
     product_media_update = ProductMediaUpdate.Field()
 
     product_type_create = ProductTypeCreate.Field()
