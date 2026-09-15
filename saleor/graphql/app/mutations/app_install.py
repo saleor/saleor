@@ -73,6 +73,10 @@ class AppInstall(DeprecatedModelMutation):
             ensure_app_permissions_allowed(permissions)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
+
+        # Carried over to the token minted by `install_app`, which runs in a
+        # Celery task with no request context of its own.
+        cleaned_input["installed_by"] = info.context.user
         return cleaned_input
 
     @classmethod
