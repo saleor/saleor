@@ -19,6 +19,7 @@ from collections.abc import Iterable
 from .enums import (
     AccountPermissions,
     BasePermissionEnum,
+    CheckoutPermissions,
     DiscountPermissions,
     GiftcardPermissions,
     OrderPermissions,
@@ -26,6 +27,7 @@ from .enums import (
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
+    SitePermissions,
 )
 
 # Explicit MANAGE -> READ registry. Keep this the single source of truth for the
@@ -44,6 +46,10 @@ MANAGE_TO_READ_PERMISSION_MAP: dict[BasePermissionEnum, BasePermissionEnum] = {
     PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES: (
         PageTypePermissions.READ_PAGE_TYPES_AND_ATTRIBUTES
     ),
+    CheckoutPermissions.MANAGE_CHECKOUTS: CheckoutPermissions.READ_CHECKOUTS,
+    CheckoutPermissions.MANAGE_TAXES: CheckoutPermissions.READ_TAXES,
+    SitePermissions.MANAGE_SETTINGS: SitePermissions.READ_SETTINGS,
+    SitePermissions.MANAGE_TRANSLATIONS: SitePermissions.READ_TRANSLATIONS,
 }
 
 
