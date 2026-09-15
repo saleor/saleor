@@ -279,9 +279,7 @@ def test_duplicated_channel_is_rejected(
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-@patch("saleor.graphql.product.mutations.channels.mark_products_in_channels_as_dirty")
 def test_unchanged_flag_emits_no_events(
-    mocked_mark_dirty,
     mocked_variant_updated,
     staff_api_client,
     variant,
@@ -291,6 +289,10 @@ def test_unchanged_flag_emits_no_events(
     # given
     listing = variant.channel_listings.get(channel=channel_USD)
     assert listing.is_available_for_purchase is True
+    product_listing = variant.product.channel_listings.get(channel=channel_USD)
+    product_listing.discounted_price_dirty = False
+    product_listing.save(update_fields=("discounted_price_dirty",))
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
         "input": [
@@ -305,21 +307,20 @@ def test_unchanged_flag_emits_no_events(
     response = staff_api_client.post_graphql(
         PRODUCT_VARIANT_CHANNEL_LISTING_AVAILABILITY_UPDATE_MUTATION,
         variables=variables,
-        permissions=(permission_manage_products,),
     )
 
     # then
     content = get_graphql_content(response)
     data = content["data"]["productVariantChannelListingAvailabilityUpdate"]
     assert data["errors"] == []
-    assert mocked_mark_dirty.call_count == 0
     assert mocked_variant_updated.call_count == 0
+
+    product_listing.refresh_from_db(fields=("discounted_price_dirty",))
+    assert product_listing.discounted_price_dirty is False
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
-@patch("saleor.graphql.product.mutations.channels.mark_products_in_channels_as_dirty")
 def test_changed_flag_marks_product_dirty_and_notifies(
-    mocked_mark_dirty,
     mocked_variant_updated,
     staff_api_client,
     variant,
@@ -327,6 +328,10 @@ def test_changed_flag_marks_product_dirty_and_notifies(
     channel_USD,
 ):
     # given
+    product_listing = variant.product.channel_listings.get(channel=channel_USD)
+    product_listing.discounted_price_dirty = False
+    product_listing.save(update_fields=("discounted_price_dirty",))
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
         "input": [
@@ -341,15 +346,16 @@ def test_changed_flag_marks_product_dirty_and_notifies(
     response = staff_api_client.post_graphql(
         PRODUCT_VARIANT_CHANNEL_LISTING_AVAILABILITY_UPDATE_MUTATION,
         variables=variables,
-        permissions=(permission_manage_products,),
     )
 
     # then
     content = get_graphql_content(response)
     data = content["data"]["productVariantChannelListingAvailabilityUpdate"]
     assert data["errors"] == []
-    mocked_mark_dirty.assert_called_once_with({channel_USD.pk: {variant.product_id}})
     assert mocked_variant_updated.call_count == 1
+
+    product_listing.refresh_from_db(fields=("discounted_price_dirty",))
+    assert product_listing.discounted_price_dirty is True
 
 
 @pytest.mark.parametrize(

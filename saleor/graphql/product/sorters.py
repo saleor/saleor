@@ -17,6 +17,7 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 
+from ...product.managers import sellable_listing_q
 from ...product.models import (
     Category,
     CollectionChannelListing,
@@ -227,8 +228,7 @@ class ProductOrderField(BaseEnum):
             min_variants_price_amount=Min(
                 "variants__channel_listings__price_amount",
                 filter=Q(variants__channel_listings__channel__slug=str(channel_slug))
-                & Q(variants__channel_listings__price_amount__isnull=False)
-                & Q(variants__channel_listings__is_available_for_purchase=True),
+                & sellable_listing_q("variants__channel_listings__"),
             )
         )
 

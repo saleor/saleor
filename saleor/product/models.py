@@ -557,9 +557,9 @@ class ProductVariantChannelListing(models.Model):
 
     @property
     def is_sellable(self) -> bool:
-        """Return whether the variant can be bought in this channel.
+        """Whether the variant can be bought in this channel.
 
-        Mirrors `managers.SELLABLE_LISTING` for already-fetched instances.
+        In-Python twin of `managers.sellable_listing_q`; keep the two in sync.
         """
         return self.price_amount is not None and self.is_available_for_purchase
 

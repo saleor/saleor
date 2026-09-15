@@ -396,11 +396,10 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 def get_listing_availability(listing_data: dict) -> bool:
     """Resolve the availability flag of a listing input.
 
-    Both an omitted field and an explicit `null` mean "leave it to the default",
-    since the column is not nullable.
+    An omitted field and an explicit `null` both mean "keep the default", since the
+    column is not nullable.
     """
-    is_available_for_purchase = listing_data.get("is_available_for_purchase")
-    return True if is_available_for_purchase is None else is_available_for_purchase
+    return listing_data.get("is_available_for_purchase") is not False
 
 
 class ProductVariantChannelListingAddInput(BaseInputObjectType):
@@ -643,7 +642,7 @@ class ProductVariantChannelListingAvailabilityInput(BaseInputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_available_for_purchase = graphene.Boolean(
         required=True,
-        description=("Determines whether the variant can be bought in this channel."),
+        description="Determines whether the variant can be bought in this channel.",
     )
 
     class Meta:
@@ -727,11 +726,9 @@ class ProductVariantChannelListingAvailabilityUpdate(
     ) -> list[ProductVariantChannelListing]:
         """Return the listings whose flag actually changes.
 
-        Must run inside a transaction: the rows are locked so a concurrent toggle
-        of the same listing cannot be silently lost.
-
-        Raises when the variant has no listing in one of the requested channels —
-        this mutation updates listings, it must not create price-less ones.
+        Must run inside a transaction — the rows are locked so a concurrent toggle of
+        the same listing cannot be silently lost. Raises when the variant has no
+        listing in a requested channel; this mutation must not create price-less ones.
         """
         listings = list(
             product_variant_channel_listing_qs_select_for_update().filter(

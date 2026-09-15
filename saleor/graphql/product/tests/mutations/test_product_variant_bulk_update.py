@@ -1341,6 +1341,50 @@ def test_product_variant_bulk_update_channel_listings_availability_only(
     assert listing.price_amount == price_amount
 
 
+def test_product_variant_bulk_update_channel_listings_marks_product_price_dirty(
+    staff_api_client, variant, permission_manage_products, channel_USD
+):
+    """The stored product price range must be recalculated after a listing change."""
+    # given
+    listing = variant.channel_listings.get(channel=channel_USD)
+    product_listing = variant.product.channel_listings.get(channel=channel_USD)
+    product_listing.discounted_price_dirty = False
+    product_listing.save(update_fields=("discounted_price_dirty",))
+
+    variants = [
+        {
+            "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+            "channelListings": {
+                "update": [
+                    {
+                        "channelListing": graphene.Node.to_global_id(
+                            "ProductVariantChannelListing", listing.pk
+                        ),
+                        "isAvailableForPurchase": False,
+                    }
+                ]
+            },
+        }
+    ]
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", variant.product_id),
+        "variants": variants,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["productVariantBulkUpdate"]["results"][0]["errors"] == []
+
+    product_listing.refresh_from_db(fields=("discounted_price_dirty",))
+    assert product_listing.discounted_price_dirty is True
+
+
 def test_product_variant_bulk_update_channel_listings_create_with_availability(
     staff_api_client, variant, permission_manage_products, channel_PLN
 ):
