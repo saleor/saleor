@@ -14,7 +14,6 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import (
     DEFAULT_APP_TARGET,
     AppType,
-    DeprecatedAppExtensionHttpMethod,
 )
 
 URL_MAX_LENGTH = 2048
@@ -169,10 +168,13 @@ class AppExtension(models.Model):
         blank=True,
         help_text="Specific permissions for this app extension.",
     )
+    # Deprecated: the only remaining reader is the 3.23 `settings` backfill
+    # (see migrations/tasks/saleor3_23.py), which a 3.22 -> 3.24 upgrade still
+    # runs. Dropping the column now would break that upgrade path, so drop it
+    # once no 3.22 instances are gone.
     http_target_method = models.CharField(
         blank=False,
         null=True,
-        choices=DeprecatedAppExtensionHttpMethod.CHOICES,
     )
     settings = models.JSONField(blank=True, default=dict, db_default={})
     identifier = models.CharField(max_length=256, null=True)
