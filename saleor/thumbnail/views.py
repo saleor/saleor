@@ -16,9 +16,9 @@ from ..app.models import App, AppInstallation
 from ..core.db.connection import allow_writer
 from ..core.utils.events import call_event
 from ..graphql.core.utils import from_global_id_or_error
-from ..media.models import CategoryMedia, CollectionMedia, PageMedia
+from ..media.models import CategoryMedia, CollectionMedia, PageMedia, ProductMedia
 from ..plugins.manager import get_plugins_manager
-from ..product.models import Category, Collection, ProductMedia
+from ..product.models import Category, Collection
 from ..thumbnail.models import Thumbnail
 from . import ALLOWED_ICON_THUMBNAIL_FORMATS, ALLOWED_THUMBNAIL_FORMATS
 from .exceptions import ImageTooLargeError

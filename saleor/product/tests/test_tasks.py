@@ -13,12 +13,12 @@ from requests.exceptions import HTTPError, InvalidSchema, RequestException
 
 from ...discount import PromotionType, RewardValueType
 from ...discount.models import Promotion, PromotionRule
+from ...media.models import ProductMedia
 from ...thumbnail.exceptions import ImageTooLargeError
 from ..interface import VariantDiscountedPriceChange
 from ..models import (
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductVariantChannelListing,
 )
 from ..tasks import (

@@ -13,6 +13,7 @@ from ....checkout.tests.utils import add_variant_to_checkout
 from ....checkout.utils import calculate_checkout_quantity
 from ....core.db.locks import AdvisoryLock
 from ....discount.utils.promotion import get_active_catalogue_promotion_rules
+from ....media.models import ProductMedia
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import get_plugins_manager
@@ -22,7 +23,6 @@ from ....product.models import (
     Collection,
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,

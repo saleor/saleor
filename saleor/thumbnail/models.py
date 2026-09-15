@@ -3,8 +3,8 @@ from django.db import models
 
 from ..account.models import User
 from ..app.models import App, AppInstallation
-from ..media.models import CategoryMedia, CollectionMedia, PageMedia
-from ..product.models import Category, Collection, ProductMedia
+from ..media.models import CategoryMedia, CollectionMedia, PageMedia, ProductMedia
+from ..product.models import Category, Collection
 from . import THUMBNAIL_SIZES, ThumbnailFormat
 
 

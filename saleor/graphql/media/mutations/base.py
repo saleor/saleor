@@ -138,6 +138,9 @@ class BaseMediaMutation(BaseMutation):
             # Only `ProductMedia.product` is nullable, for legacy reasons, and
             # such owner-less rows are not addressable through the API. On every
             # other model the database already guarantees this.
+            # TODO: revisit once deployments are confirmed free of owner-less
+            # rows - making `ProductMedia.product` non-nullable drops this
+            # filter and the matching one in `graphql/media/types.py`.
             .filter(**{f"{media_model.owner_field}__isnull": False})
             .first()
         )

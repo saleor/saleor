@@ -64,6 +64,7 @@ from ...discount.models import (
 )
 from ...giftcard import events as gift_card_events
 from ...giftcard.models import GiftCard, GiftCardTag
+from ...media.models import ProductMedia
 from ...menu.lock_objects import acquire_menu_item_tree_lock
 from ...menu.models import Menu, MenuItem
 from ...order import OrderOrigin, OrderStatus
@@ -94,7 +95,6 @@ from ...product.models import (
     CollectionProduct,
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductTranslation,
     ProductType,
     ProductVariant,

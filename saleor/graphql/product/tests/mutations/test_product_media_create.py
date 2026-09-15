@@ -11,9 +11,10 @@ from requests.exceptions import InvalidSchema
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
+from .....media.models import ProductMedia
 from .....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
-from .....product.models import Product, ProductMedia
+from .....product.models import Product
 from .....product.tests.utils import create_image, create_zip_file_with_image_ext
 
 PRODUCT_MEDIA_CREATE_QUERY = """

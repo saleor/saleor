@@ -359,5 +359,9 @@ def fetch_product_media_image_task(product_media_id: int):
     Superseded by `fetch_media_image_task`, which takes an owner type. Kept
     registered under its original name so messages queued before the rollout
     still resolve to a task.
+
+    TODO: remove once no queue can still hold a message naming this task -
+    one release after the rollout is enough, since a message only survives
+    `FETCH_IMAGES_QUEUE_NAME` until its retries are exhausted.
     """
     fetch_media_image(MediaOwnerTypes.PRODUCT, product_media_id)

@@ -23,7 +23,7 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..media.models import BaseMedia
+from ..media.models import BaseMedia, ProductMedia
 from ..media.utils import (
     OWNER_TYPE_TO_GRAPHQL_TYPE,
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
@@ -35,7 +35,7 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..payment.models import Payment, TransactionItem
 from ..product import ProductMediaTypes
-from ..product.models import Collection, Product, ProductMedia, ProductVariant
+from ..product.models import Collection, Product, ProductVariant
 from ..shipping.models import ShippingMethod
 from ..tax.models import TaxClassCountryRate
 from ..thumbnail.models import Thumbnail

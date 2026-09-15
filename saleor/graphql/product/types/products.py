@@ -13,6 +13,7 @@ from ....core.db.connection import allow_writer_in_context
 from ....core.utils import build_absolute_uri
 from ....core.utils.country import get_active_country
 from ....core.weight import convert_weight_to_default_weight_unit
+from ....media import models as media_models
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
 from ....permission.utils import has_one_of_permissions
@@ -1945,12 +1946,12 @@ class ProductImage(BaseObjectType):
         description = "Represents a product image."
 
     @staticmethod
-    def resolve_id(root: models.ProductMedia, info) -> str:
+    def resolve_id(root: media_models.ProductMedia, info) -> str:
         return graphene.Node.to_global_id("ProductImage", root.id)
 
     @staticmethod
     def resolve_url(
-        root: models.ProductMedia,
+        root: media_models.ProductMedia,
         info,
         *,
         size: int | None = None,

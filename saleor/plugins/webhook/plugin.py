@@ -136,6 +136,7 @@ if TYPE_CHECKING:
     from ...giftcard.models import GiftCard
     from ...graphql.core.dataloaders import DataLoader
     from ...invoice.models import Invoice
+    from ...media.models import BaseMedia, ProductMedia
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
     from ...page.models import Page, PageType
@@ -143,7 +144,6 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
-        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -2000,7 +2000,7 @@ class WebhookPlugin(BasePlugin):
             )
         return previous_value
 
-    def _trigger_media_event(self, event_type: str, media: "ProductMedia") -> None:
+    def _trigger_media_event(self, event_type: str, media: "BaseMedia") -> None:
         owner_type = media.owner_type
         if not owner_type:
             return
@@ -2018,19 +2018,19 @@ class WebhookPlugin(BasePlugin):
             legacy_data_generator=partial(generate_media_payload, media),
         )
 
-    def media_created(self, media: "ProductMedia", previous_value: None) -> None:
+    def media_created(self, media: "BaseMedia", previous_value: None) -> None:
         if not self.active:
             return previous_value
         self._trigger_media_event(WebhookEventAsyncType.MEDIA_CREATED, media)
         return previous_value
 
-    def media_updated(self, media: "ProductMedia", previous_value: None) -> None:
+    def media_updated(self, media: "BaseMedia", previous_value: None) -> None:
         if not self.active:
             return previous_value
         self._trigger_media_event(WebhookEventAsyncType.MEDIA_UPDATED, media)
         return previous_value
 
-    def media_deleted(self, media: "ProductMedia", previous_value: None) -> None:
+    def media_deleted(self, media: "BaseMedia", previous_value: None) -> None:
         if not self.active:
             return previous_value
         self._trigger_media_event(WebhookEventAsyncType.MEDIA_DELETED, media)

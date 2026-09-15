@@ -7,7 +7,6 @@ from ...media import MediaOwnerTypes
 from ...media import models as media_models
 from ...media.utils import OWNER_TYPE_TO_GRAPHQL_TYPE
 from ...product import ProductMediaTypes
-from ...product import models as product_models
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_original_image_proxy_url,
@@ -133,7 +132,7 @@ class MediaResolvers:
 
 
 @federated_entity("id")
-class ProductMedia(MediaResolvers, ModelObjectType[product_models.ProductMedia]):
+class ProductMedia(MediaResolvers, ModelObjectType[media_models.ProductMedia]):
     id = graphene.GlobalID(
         required=True, description="The unique ID of the product media."
     )
@@ -147,19 +146,26 @@ class ProductMedia(MediaResolvers, ModelObjectType[product_models.ProductMedia])
     class Meta:
         description = "Represents a product media."
         interfaces = [Media, relay.Node, ObjectWithMetadata]
-        model = product_models.ProductMedia
+        model = media_models.ProductMedia
 
     thumbnail_loader = ThumbnailByProductMediaIdSizeAndFormatLoader
 
     @classmethod
-    def get_node(cls, _, id) -> product_models.ProductMedia | None:
+    def get_node(cls, _, id) -> media_models.ProductMedia | None:
         """Hide the owner-less rows that predate the deletion-task refactor.
 
         `ownerId` is non-null on the `Media` interface, which such a row cannot
         satisfy; no other media model can hold one.
+
+        To check whether a deployment still holds any:
+            SELECT count(*) FROM product_productmedia WHERE product_id IS NULL;
+
+        TODO: revisit if we can make `ProductMedia.product` non-nullable - that
+        drops this override and the matching filter in
+        `graphql/media/mutations/base.py`.
         """
         return (
-            product_models.ProductMedia.objects.filter(pk=id)
+            media_models.ProductMedia.objects.filter(pk=id)
             .filter(product__isnull=False)
             .first()
         )
@@ -170,13 +176,13 @@ class ProductMedia(MediaResolvers, ModelObjectType[product_models.ProductMedia])
         return resolve_federation_references(
             ProductMedia,
             roots,
-            product_models.ProductMedia.objects.using(database_connection_name).filter(
+            media_models.ProductMedia.objects.using(database_connection_name).filter(
                 product__isnull=False
             ),
         )
 
     @staticmethod
-    def resolve_product_id(root: product_models.ProductMedia, info) -> str:
+    def resolve_product_id(root: media_models.ProductMedia, info) -> str:
         return graphene.Node.to_global_id("Product", root.product_id)
 
 

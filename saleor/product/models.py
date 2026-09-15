@@ -30,8 +30,6 @@ from ..core.units import WeightUnits
 from ..core.utils.translations import Translation
 from ..core.weight import zero_weight
 from ..discount.models import PromotionRule
-from ..media import MediaOwnerTypes
-from ..media.models import BaseMedia
 from ..permission.enums import (
     DiscountPermissions,
     OrderPermissions,
@@ -350,9 +348,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    media = models.ManyToManyField(
-        "product.ProductMedia", through="product.VariantMedia"
-    )
+    media = models.ManyToManyField("media.ProductMedia", through="product.VariantMedia")
     track_inventory = models.BooleanField(default=True)
     # TODO remove after 3.24: preorder API was removed in 3.24
     is_preorder = models.BooleanField(default=False)
@@ -570,39 +566,12 @@ class VariantChannelListingPromotionRule(models.Model):
         unique_together = [["variant_channel_listing", "promotion_rule"]]
 
 
-class ProductMedia(BaseMedia):
-    """A single media item owned by a product.
-
-    `product` stays nullable for historical reasons: owner-less rows exist in
-    deployments that predate the deletion-task refactor. They are unreachable
-    through the API - every resolver filters them out - but they must not break
-    a migration.
-    """
-
-    owner_type = MediaOwnerTypes.PRODUCT
-    owner_field = "product"
-
-    product = models.ForeignKey(
-        Product,
-        related_name="media",
-        on_delete=models.CASCADE,
-        # DEPRECATED
-        null=True,
-        blank=True,
-    )
-    # DEPRECATED
-    to_remove = models.BooleanField(default=False)
-
-    class Meta(BaseMedia.Meta):
-        app_label = "product"
-
-
 class VariantMedia(models.Model):
     variant = models.ForeignKey(
         "ProductVariant", related_name="variant_media", on_delete=models.CASCADE
     )
     media = models.ForeignKey(
-        ProductMedia, related_name="variant_media", on_delete=models.CASCADE
+        "media.ProductMedia", related_name="variant_media", on_delete=models.CASCADE
     )
 
     class Meta:

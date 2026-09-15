@@ -64,6 +64,35 @@ class BaseMedia(SortableModel, ModelWithMetadata):
         super(SortableModel, self).delete(*args, **kwargs)
 
 
+class ProductMedia(BaseMedia):
+    """A single media item owned by a product.
+
+    `product` stays nullable for historical reasons: owner-less rows exist in
+    deployments that predate the deletion-task refactor. They are unreachable
+    through the API - every resolver filters them out - but they must not break
+    a migration.
+    """
+
+    owner_type = MediaOwnerTypes.PRODUCT
+    owner_field = "product"
+
+    product = models.ForeignKey(
+        "product.Product",
+        related_name="media",
+        on_delete=models.CASCADE,
+        # DEPRECATED
+        null=True,
+        blank=True,
+    )
+    # DEPRECATED
+    to_remove = models.BooleanField(default=False)
+
+    class Meta(BaseMedia.Meta):
+        # The table predates the media app and is baked into CDN-cached
+        # thumbnail proxy URLs, so it keeps its original name.
+        db_table = "product_productmedia"
+
+
 class CategoryMedia(BaseMedia):
     owner_type = MediaOwnerTypes.CATEGORY
     owner_field = "category"

@@ -30,7 +30,13 @@ from ..product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
 from ..product import models as product_models
 from . import ALT_CHAR_LIMIT, MediaOwnerTypes
 from .lock_objects import media_qs_select_for_update
-from .models import BaseMedia, CategoryMedia, CollectionMedia, PageMedia
+from .models import (
+    BaseMedia,
+    CategoryMedia,
+    CollectionMedia,
+    PageMedia,
+    ProductMedia,
+)
 
 OWNER_TYPE_TO_MODEL: dict[str, type] = {
     MediaOwnerTypes.PRODUCT: product_models.Product,
@@ -40,7 +46,7 @@ OWNER_TYPE_TO_MODEL: dict[str, type] = {
 }
 
 OWNER_TYPE_TO_MEDIA_MODEL: dict[str, type[BaseMedia]] = {
-    MediaOwnerTypes.PRODUCT: product_models.ProductMedia,
+    MediaOwnerTypes.PRODUCT: ProductMedia,
     MediaOwnerTypes.CATEGORY: CategoryMedia,
     MediaOwnerTypes.COLLECTION: CollectionMedia,
     MediaOwnerTypes.PAGE: PageMedia,

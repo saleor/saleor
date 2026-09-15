@@ -1,9 +1,11 @@
+from unittest.mock import patch
+
 import pytest
 from django.db.utils import IntegrityError
 
 from ....media import MediaOwnerTypes
+from ....media.models import ProductMedia
 from ....media.utils import OWNER_TYPE_TO_MEDIA_MODEL
-from ....product.models import ProductMedia
 
 
 @pytest.mark.parametrize("owner_type", MediaOwnerTypes.ALL)
@@ -64,3 +66,35 @@ def test_sort_order_is_assigned_per_owner(owner_type, media_owner):
     # then
     assert first.sort_order == 0
     assert second.sort_order == 1
+
+
+@pytest.mark.parametrize("owner_type", MediaOwnerTypes.ALL)
+@patch("saleor.media.signals.delete_from_storage_task.delay")
+def test_deleting_media_removes_its_file_from_storage(
+    mock_delete_from_storage, owner_type, media_owner, image
+):
+    # given
+    media = media_owner.media.create(alt="alt", image=image)
+
+    # when
+    media.delete()
+
+    # then
+    mock_delete_from_storage.assert_called_once_with(media.image.name)
+
+
+@pytest.mark.parametrize("owner_type", MediaOwnerTypes.ALL)
+@patch("saleor.media.signals.delete_from_storage_task.delay")
+def test_deleting_owner_removes_its_media_files_from_storage(
+    mock_delete_from_storage, owner_type, media_owner, image
+):
+    """Media is usually removed by a cascade, which never calls `delete()`."""
+    # given
+    media = media_owner.media.create(alt="alt", image=image)
+    image_name = media.image.name
+
+    # when
+    media_owner.delete()
+
+    # then
+    mock_delete_from_storage.assert_called_once_with(image_name)

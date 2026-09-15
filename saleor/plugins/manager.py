@@ -64,6 +64,7 @@ if TYPE_CHECKING:
     from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
+    from ..media.models import BaseMedia, ProductMedia
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
@@ -72,7 +73,6 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
-        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -863,7 +863,7 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def media_created(self, media: "ProductMedia"):
+    def media_created(self, media: "BaseMedia"):
         default_value = None
         return self.__run_method_on_plugins(
             "media_created", default_value, media, channel_slug=None
@@ -871,7 +871,7 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def media_updated(self, media: "ProductMedia"):
+    def media_updated(self, media: "BaseMedia"):
         default_value = None
         return self.__run_method_on_plugins(
             "media_updated", default_value, media, channel_slug=None
@@ -879,7 +879,7 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def media_deleted(self, media: "ProductMedia"):
+    def media_deleted(self, media: "BaseMedia"):
         default_value = None
         return self.__run_method_on_plugins(
             "media_deleted", default_value, media, channel_slug=None

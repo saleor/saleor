@@ -48,6 +48,7 @@ if TYPE_CHECKING:
     from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
+    from ..media.models import BaseMedia, ProductMedia
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
@@ -57,7 +58,6 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
-        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -1332,7 +1332,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    media_created: Callable[["ProductMedia", Any], Any]
+    media_created: Callable[["BaseMedia", Any], Any]
 
     # Trigger when media of any owner type is updated.
     #
@@ -1341,7 +1341,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    media_updated: Callable[["ProductMedia", Any], Any]
+    media_updated: Callable[["BaseMedia", Any], Any]
 
     # Trigger when media of any owner type is deleted.
     #
@@ -1350,7 +1350,7 @@ class BasePlugin:
     #
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
-    media_deleted: Callable[["ProductMedia", Any], Any]
+    media_deleted: Callable[["BaseMedia", Any], Any]
 
     # Trigger when product metadata is updated.
     #
