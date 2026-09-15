@@ -3,7 +3,8 @@ import graphene
 from ...attribute import models as attribute_models
 from ...page import models
 from ...permission.enums import PagePermissions, PageTypePermissions
-from ...permission.utils import all_permissions_required
+from ...permission.read_permissions import expand_read_permissions
+from ...permission.utils import one_of_permissions_or_auth_filter_required
 from ..attribute.dataloaders.assigned_attributes import (
     AttributeByPageIdAndAttributeSlugLoader,
     AttributesByPageIdAndLimitLoader,
@@ -101,7 +102,9 @@ class PageType(ModelObjectType[models.PageType]):
         def wrap_with_channel_context(attributes):
             return [ChannelContext(attribute, None) for attribute in attributes]
 
-        if all_permissions_required(info.context, [PagePermissions.MANAGE_PAGES]):
+        if one_of_permissions_or_auth_filter_required(
+            info.context, expand_read_permissions([PagePermissions.MANAGE_PAGES])
+        ):
             return (
                 PageAttributesAllByPageTypeIdLoader(info.context)
                 .load(root.pk)
@@ -285,7 +288,9 @@ class Page(ChannelContextType[models.Page]):
                 for attribute in attributes
             ]
 
-        if all_permissions_required(info.context, [PagePermissions.MANAGE_PAGES]):
+        if one_of_permissions_or_auth_filter_required(
+            info.context, expand_read_permissions([PagePermissions.MANAGE_PAGES])
+        ):
             dataloader = AttributesByPageIdAndLimitLoader(info.context)
         else:
             dataloader = AttributesVisibleToCustomerByPageIdAndLimitLoader(info.context)
@@ -306,8 +311,8 @@ class Page(ChannelContextType[models.Page]):
         def with_assigned_attribute(attribute: attribute_models.Attribute | None):
             if not attribute:
                 return None
-            has_permission = all_permissions_required(
-                info.context, [PagePermissions.MANAGE_PAGES]
+            has_permission = one_of_permissions_or_auth_filter_required(
+                info.context, expand_read_permissions([PagePermissions.MANAGE_PAGES])
             )
             if not has_permission and not attribute.visible_in_storefront:
                 return None
