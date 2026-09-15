@@ -16,8 +16,9 @@ from ..app.models import App, AppInstallation
 from ..core.db.connection import allow_writer
 from ..core.utils.events import call_event
 from ..graphql.core.utils import from_global_id_or_error
+from ..media.models import CategoryMedia, CollectionMedia, PageMedia, ProductMedia
 from ..plugins.manager import get_plugins_manager
-from ..product.models import Category, Collection, ProductMedia
+from ..product.models import Category, Collection
 from ..thumbnail.models import Thumbnail
 from . import ALLOWED_ICON_THUMBNAIL_FORMATS, ALLOWED_THUMBNAIL_FORMATS
 from .exceptions import ImageTooLargeError
@@ -25,7 +26,7 @@ from .utils import (
     ProcessedIconImage,
     ProcessedImage,
     get_thumbnail_size,
-    is_product_media_image_pending,
+    is_media_image_pending,
     prepare_thumbnail_file_name,
 )
 
@@ -35,7 +36,17 @@ PENDING_IMAGE_RETRY_AFTER = "60"
 
 
 class ModelData(NamedTuple):
-    model: type[App | AppInstallation | Category | Collection | ProductMedia | User]
+    model: type[
+        App
+        | AppInstallation
+        | Category
+        | CategoryMedia
+        | Collection
+        | CollectionMedia
+        | PageMedia
+        | ProductMedia
+        | User
+    ]
     image_field: str
     thumbnail_field: str
 
@@ -50,7 +61,12 @@ TYPE_TO_MODEL_DATA_MAPPING = {
     "User": ModelData(User, "avatar", "user"),
     "Category": ModelData(Category, "background_image", "category"),
     "Collection": ModelData(Collection, "background_image", "collection"),
+    # The "ProductMedia" key is permanent: it is baked into CDN-cached proxy URLs
+    # and into editorjs image blocks stored in customer content.
     "ProductMedia": ModelData(ProductMedia, "image", "product_media"),
+    "CategoryMedia": ModelData(CategoryMedia, "image", "category_media"),
+    "CollectionMedia": ModelData(CollectionMedia, "image", "collection_media"),
+    "PageMedia": ModelData(PageMedia, "image", "page_media"),
     **ICON_TYPE_TO_MODEL_DATA_MAPPING,
 }
 UUID_IDENTIFIABLE_TYPES = ["User", "App", "AppInstallation"]
@@ -108,7 +124,7 @@ def handle_thumbnail(request, instance_id: str, size: str, format: str | None = 
 
     image = getattr(instance, model_data.image_field)
     if not bool(image):
-        if is_product_media_image_pending(object_type, instance):
+        if is_media_image_pending(instance):
             return HttpResponse(
                 "Image has not been fetched yet, try later.",
                 status=503,
@@ -186,7 +202,7 @@ def handle_original_image(request, instance_id: str):
 
     image = getattr(instance, model_data.image_field)
     if not bool(image):
-        if is_product_media_image_pending(object_type, instance):
+        if is_media_image_pending(instance):
             return HttpResponse(
                 "Image has not been fetched yet, try later.",
                 status=503,

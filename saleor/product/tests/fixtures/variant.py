@@ -4,12 +4,12 @@ from decimal import Decimal
 import pytest
 from django.utils import timezone
 
+from ....media.models import ProductMedia
 from ....warehouse.models import Stock
 from ... import ProductTypeKind
 from ...models import (
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,

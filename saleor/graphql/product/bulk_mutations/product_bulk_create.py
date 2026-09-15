@@ -13,6 +13,8 @@ from ....core.editorjs import editorjs_to_text
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
+from ....media import models as media_models
+from ....media.utils import probe_media_url, validate_media_input
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
@@ -45,7 +47,6 @@ from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
-from ..utils import probe_media_url, validate_media_input
 from .product_variant_bulk_create import (
     ProductVariantBulkCreate,
     ProductVariantBulkCreateInput,
@@ -816,7 +817,7 @@ class ProductBulkCreate(BaseMutation):
                 variants_input_data.extend(variants_data)
 
         models.Product.objects.bulk_create(products_to_create)
-        models.ProductMedia.objects.bulk_create(media_to_create)
+        media_models.ProductMedia.objects.bulk_create(media_to_create)
         transaction.on_commit(
             lambda: cls.schedule_fetch_product_media_image_tasks(media_to_create)
         )
@@ -892,7 +893,7 @@ class ProductBulkCreate(BaseMutation):
 
             if img_data := media_input.get("image"):
                 media_to_create.append(
-                    models.ProductMedia(
+                    media_models.ProductMedia(
                         image=img_data,
                         alt=alt,
                         product=product,
@@ -901,7 +902,7 @@ class ProductBulkCreate(BaseMutation):
                 )
             elif not media_input.get("image") and media_input.get("external_url"):
                 media_to_create.append(
-                    models.ProductMedia(
+                    media_models.ProductMedia(
                         external_url=media_input["external_url"],
                         image=None,
                         alt=alt,
@@ -912,7 +913,7 @@ class ProductBulkCreate(BaseMutation):
 
             if oembed_data := media_input.get("oembed_data"):
                 media_to_create.append(
-                    models.ProductMedia(
+                    media_models.ProductMedia(
                         external_url=oembed_data["url"],
                         alt=oembed_data.get("title", alt),
                         product=product,

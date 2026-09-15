@@ -14,6 +14,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MEDIA,
     DOC_CATEGORY_MENU,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAGES,
@@ -49,6 +50,10 @@ from ..enums import (
     InvoiceErrorCode,
     JobStatusEnum,
     LanguageCodeEnum,
+    MediaCreateErrorCode,
+    MediaDeleteErrorCode,
+    MediaReorderErrorCode,
+    MediaUpdateErrorCode,
     MenuErrorCode,
     MetadataErrorCode,
     OrderBulkCreateErrorCode,
@@ -455,6 +460,34 @@ class PermissionGroupError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
+
+
+class MediaCreateError(Error):
+    code = MediaCreateErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MEDIA
+
+
+class MediaUpdateError(Error):
+    code = MediaUpdateErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MEDIA
+
+
+class MediaDeleteError(Error):
+    code = MediaDeleteErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MEDIA
+
+
+class MediaReorderError(Error):
+    code = MediaReorderErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MEDIA
 
 
 class ProductError(Error):

@@ -407,18 +407,6 @@ def test_costs_get_margin_for_variant_channel_listing(
     assert not get_margin_for_variant_channel_listing(variant_channel_listing)
 
 
-@patch("saleor.product.signals.delete_from_storage_task.delay")
-def test_product_media_delete(delete_from_storage_task_mock, product_with_image):
-    # given
-    media = product_with_image.media.first()
-
-    # when
-    media.delete()
-
-    # then
-    delete_from_storage_task_mock.assert_called_once_with(media.image.name)
-
-
 @patch("saleor.product.tasks._update_variants_names")
 def test_product_update_variants_names(mock__update_variants_names, product_type):
     variant_attributes = [product_type.variant_attributes.first()]

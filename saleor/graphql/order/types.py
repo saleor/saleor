@@ -29,6 +29,7 @@ from ...graphql.core.federation.resolvers import (
 from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
+from ...media.models import ProductMedia
 from ...order import OrderOrigin, OrderStatus, models
 from ...order.delivery_context import (
     get_external_shipping_id,
@@ -51,7 +52,7 @@ from ...permission.enums import (
     ProductPermissions,
 )
 from ...permission.utils import has_one_of_permissions
-from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMedia, ProductMediaTypes
+from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMediaTypes
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
