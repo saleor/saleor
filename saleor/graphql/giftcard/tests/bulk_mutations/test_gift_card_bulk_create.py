@@ -327,14 +327,13 @@ GIFT_CARD_BULK_CREATE_TAGS_MUTATION = """
 """
 
 
-def test_create_gift_cards_with_existing_tags_keeps_tags_on_other_gift_cards(
+def test_create_gift_cards_with_existing_tags_keeps_them_on_previously_tagged_gift_cards(
     staff_api_client,
     gift_card,
     permission_manage_gift_card,
 ):
     # given
-    existing_tags = list(gift_card.tags.all())
-    existing_tag_names = {tag.name for tag in existing_tags}
+    existing_tags = set(gift_card.tags.values_list("name", flat=True))
     new_tag = GiftCardTag.objects.create(name="new-tag")
     gift_card.tags.add(new_tag)
     count = 3
@@ -345,7 +344,7 @@ def test_create_gift_cards_with_existing_tags_keeps_tags_on_other_gift_cards(
                 "amount": 100,
                 "currency": "USD",
             },
-            "tags": list(existing_tag_names),
+            "tags": list(existing_tags),
             "isActive": True,
         }
     }
@@ -365,13 +364,13 @@ def test_create_gift_cards_with_existing_tags_keeps_tags_on_other_gift_cards(
     assert not errors
     assert data["count"] == count
     for card_data in data["giftCards"]:
-        assert {tag["name"] for tag in card_data["tags"]} == existing_tag_names
+        assert {tag["name"] for tag in card_data["tags"]} == existing_tags
     # the previously tagged gift card must keep all its tags
-    assert set(gift_card.tags.values_list("name", flat=True)) == existing_tag_names | {
-        new_tag.name
-    }
-    for tag in existing_tags:
-        assert tag.gift_cards.count() == count + 1
+    current_tags = set(gift_card.tags.values_list("name", flat=True))
+    assert current_tags == {*existing_tags, new_tag.name}
+    for tag_name in existing_tags:
+        assert GiftCardTag.objects.get(name=tag_name).gift_cards.count() == count + 1
+    assert new_tag.gift_cards.count() == 1
 
 
 @pytest.mark.parametrize(
@@ -383,7 +382,7 @@ def test_create_gift_cards_with_existing_tags_keeps_tags_on_other_gift_cards(
         (["tag-1", "tag-2"], ["tag-3"]),
     ],
 )
-def test_create_gift_cards_keeps_tags_of_previously_created_gift_cards(
+def test_create_gift_cards_with_tags_keeps_tags_of_previously_created_gift_cards_intact(
     first_batch_tags,
     second_batch_tags,
     staff_api_client,
@@ -439,16 +438,19 @@ def test_create_gift_cards_keeps_tags_of_previously_created_gift_cards(
     }
     for card_data in data["giftCards"]:
         assert {tag["name"] for tag in card_data["tags"]} == set(second_batch_tags)
-    for tag in set(first_batch_tags) | set(second_batch_tags):
+    all_tags = set(first_batch_tags) | set(second_batch_tags)
+    for tag in all_tags:
         expected_ids = set()
         if tag in first_batch_tags:
-            expected_ids |= first_batch_ids
+            expected_ids.update(first_batch_ids)
         if tag in second_batch_tags:
-            expected_ids |= second_batch_ids
+            expected_ids.update(second_batch_ids)
         tagged_ids = set(
             GiftCardTag.objects.get(name=tag).gift_cards.values_list("id", flat=True)
         )
-        assert tagged_ids == expected_ids, tag
+        assert tagged_ids == expected_ids, (
+            f"gift cards assigned to tag {tag} do not match"
+        )
 
 
 def test_create_gift_cards_by_cutomer(api_client):
