@@ -19,14 +19,18 @@ from collections.abc import Iterable
 from .enums import (
     AccountPermissions,
     BasePermissionEnum,
+    ChannelPermissions,
     CheckoutPermissions,
+    CustomerTypePermissions,
     DiscountPermissions,
     GiftcardPermissions,
+    MenuPermissions,
     OrderPermissions,
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
+    ShippingPermissions,
     SitePermissions,
 )
 
@@ -50,6 +54,12 @@ MANAGE_TO_READ_PERMISSION_MAP: dict[BasePermissionEnum, BasePermissionEnum] = {
     CheckoutPermissions.MANAGE_TAXES: CheckoutPermissions.READ_TAXES,
     SitePermissions.MANAGE_SETTINGS: SitePermissions.READ_SETTINGS,
     SitePermissions.MANAGE_TRANSLATIONS: SitePermissions.READ_TRANSLATIONS,
+    ChannelPermissions.MANAGE_CHANNELS: ChannelPermissions.READ_CHANNELS,
+    MenuPermissions.MANAGE_MENUS: MenuPermissions.READ_MENUS,
+    ShippingPermissions.MANAGE_SHIPPING: ShippingPermissions.READ_SHIPPING,
+    CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES: (
+        CustomerTypePermissions.READ_CUSTOMER_TYPES_AND_ATTRIBUTES
+    ),
 }
 
 
