@@ -3,13 +3,6 @@ name: Tests & Linters
 on:
   pull_request:
     types: [ opened, synchronize, reopened ]
-    paths:
-      - "**.py"
-      - Dockerfile
-      - "saleor/**"
-      - .github/workflows/tests-and-linters.yml
-      - pyproject.toml
-      - poetry.lock
   push:
     branches:
       - main
@@ -62,13 +55,58 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for changes requiring tests
+        id: changes
+        env:
+          BASE_COMMIT_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          # This check replaces an `on.pull_request.paths` filter. A workflow skipped
+          # by path filtering never reports a check run, so it can never be made a
+          # required status check without deadlocking every PR it does not match.
+          # A job that runs and exits early does report, so it can be required.
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Files that require this workflow to run, as extended regular expressions.
+          # Mirrors what used to be the `on.pull_request.paths` filter.
+          RELEVANT_PATHS=(
+            '\.py$'
+            '^Dockerfile$'
+            '^saleor/'
+            '^pyproject\.toml$'
+            '^poetry\.lock$'
+            '^\.github/workflows/tests-and-linters\.yml$'
+          )
+
+          # `git config` is a workaround for https://github.com/actions/runner-images/issues/6775
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+          # The checkout is shallow, so the base commit has to be fetched before diffing.
+          git fetch --depth=1 origin "$BASE_COMMIT_SHA"
+
+          if git diff --name-only "$BASE_COMMIT_SHA" HEAD \
+            | grep -qEf <(printf '%s\n' "${RELEVANT_PATHS[@]}"); then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            MSG="No Python, Dockerfile or dependency changes - skipping tests."
+            echo "$MSG"
+            echo "$MSG" >> "$GITHUB_STEP_SUMMARY"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install system dependencies
         run: |
           apt-get install -y libpq-dev
+        if: steps.changes.outputs.run == 'true'
 
       - name: Install and configure poetry
         run: |
           pip install poetry==2.1.1
+        if: steps.changes.outputs.run == 'true'
 
       - name: Cache the venv
         id: cached-poetry-dependencies
@@ -76,12 +114,13 @@ jobs:
         with:
           path: ~/.cache/pypoetry/virtualenvs
           key: ${{ runner.os }}-venv-${{ hashFiles('**/poetry.lock') }}
+        if: steps.changes.outputs.run == 'true'
 
       - name: Install dependencies
         run: |
           poetry env use python3.12
           poetry sync
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        if: ${{ steps.changes.outputs.run == 'true' && steps.cached-poetry-dependencies.outputs.cache-hit != 'true' }}
 
       - name: Add Python Virtual Environment to PATH
         run: |
@@ -89,6 +128,7 @@ jobs:
           # may not be able to find which virtual environment is in use.
           # Ticket: https://github.com/python-poetry/poetry/issues/7190
           echo "$(poetry env info -p)"/bin >> $GITHUB_PATH
+        if: steps.changes.outputs.run == 'true'
 
       - name: Run unit tests
         env:
@@ -101,17 +141,19 @@ jobs:
             --junitxml=junit/test-results.xml \
             --django-db-bench=${{ env.BENCH_PATH }} \
             -n logical
+        if: steps.changes.outputs.run == 'true'
 
       # Publish coverage and test results
       - uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        if: steps.changes.outputs.run == 'true'
 
       - uses: actions/upload-artifact@v4
         with:
           name: pytest-results
           path: junit/test-results.xml
-        if: ${{ always() }}
+        if: ${{ always() && steps.changes.outputs.run == 'true' }}
 
       # Publish detected differences as comment
       - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
@@ -119,7 +161,7 @@ jobs:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
           diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
-        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor'
+        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor' && steps.changes.outputs.run == 'true'
 
       # Save results for future comparison against pull requests
       - uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
