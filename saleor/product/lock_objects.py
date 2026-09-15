@@ -1,7 +1,7 @@
 from django.db.models import QuerySet
 
 from ..core.db.locks import AdvisoryLock, acquire_advisory_xact_lock
-from .models import Category, Product
+from .models import Category, Product, VariantChannelListingPrice
 
 
 def product_qs_select_for_update() -> QuerySet[Product]:
@@ -10,6 +10,14 @@ def product_qs_select_for_update() -> QuerySet[Product]:
 
 def category_qs_select_for_update() -> QuerySet[Category]:
     return Category.objects.order_by("pk").select_for_update(of=["self"])
+
+
+def variant_channel_listing_price_qs_select_for_update() -> QuerySet[
+    VariantChannelListingPrice
+]:
+    return VariantChannelListingPrice.objects.order_by("pk").select_for_update(
+        of=["self"]
+    )
 
 
 def acquire_category_tree_lock() -> None:

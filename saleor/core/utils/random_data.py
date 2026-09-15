@@ -26,19 +26,22 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...account.models import Address, Group, User
+from ...account.models import Address, CustomerType, Group, User
 from ...account.search import (
     update_user_search_vector,
 )
 from ...account.tests.fixtures.user import dangerously_create_test_user
 from ...account.utils import get_default_customer_type, store_user_address
 from ...app.models import App
+from ...attribute import AttributeInputType, AttributeType
 from ...attribute.models import (
     AssignedPageAttributeValue,
     AssignedProductAttributeValue,
+    AssignedUserAttributeValue,
     AssignedVariantAttribute,
     AssignedVariantAttributeValue,
     Attribute,
+    AttributeCustomerType,
     AttributePage,
     AttributeProduct,
     AttributeTranslation,
@@ -99,6 +102,9 @@ from ...product.models import (
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
+    VariantChannelListingPrice,
+    VariantChannelListingPriceAttributeValue,
+    VariantChannelListingPriceCustomerType,
     VariantMedia,
 )
 from ...product.search import update_products_search_vector
@@ -1536,6 +1542,133 @@ def create_users(user_password, how_many=10):
     for _ in range(how_many):
         user = create_fake_user(user_password, customer_type=default_customer_type)
         yield f"User: {user.email}"
+
+
+WHOLESALE_CUSTOMER_TYPE_SLUG = "wholesale"
+CUSTOMER_TIER_ATTRIBUTE_SLUG = "customer-tier"
+SCOPED_PRICE_LISTINGS_COUNT = 10
+
+
+def _create_customer_segmentation() -> tuple[CustomerType, AttributeValue]:
+    """Create the Wholesale customer type and the customer tier attribute.
+
+    The tier attribute is assigned to the default and Wholesale types. Some
+    seeded customers are moved to Wholesale and given a tier value. Returns the
+    Wholesale type and the VIP tier value, which the scoped prices reference.
+    """
+    default_customer_type = get_default_customer_type()
+    wholesale_type, _ = CustomerType.objects.get_or_create(
+        slug=WHOLESALE_CUSTOMER_TYPE_SLUG, defaults={"name": "Wholesale"}
+    )
+    tier_attribute, _ = Attribute.objects.get_or_create(
+        slug=CUSTOMER_TIER_ATTRIBUTE_SLUG,
+        defaults={
+            "name": "Customer tier",
+            "type": AttributeType.CUSTOMER_TYPE,
+            "input_type": AttributeInputType.DROPDOWN,
+        },
+    )
+    gold_value, _ = AttributeValue.objects.get_or_create(
+        attribute=tier_attribute, slug="gold", defaults={"name": "Gold"}
+    )
+    vip_value, _ = AttributeValue.objects.get_or_create(
+        attribute=tier_attribute, slug="vip", defaults={"name": "VIP"}
+    )
+    for customer_type in (default_customer_type, wholesale_type):
+        AttributeCustomerType.objects.get_or_create(
+            attribute=tier_attribute, customer_type=customer_type
+        )
+
+    customers = list(User.objects.filter(is_staff=False).order_by("pk")[:6])
+    wholesale_customer_pks = [customer.pk for customer in customers[:3]]
+    User.objects.filter(pk__in=wholesale_customer_pks).update(
+        customer_type=wholesale_type
+    )
+    AssignedUserAttributeValue.objects.bulk_create(
+        [
+            AssignedUserAttributeValue(user=customer, value=value)
+            for customer, value in zip(
+                customers, itertools.cycle([gold_value, vip_value]), strict=False
+            )
+        ],
+        ignore_conflicts=True,
+    )
+    return wholesale_type, vip_value
+
+
+def create_customer_pricing():
+    """Seed scoped variant prices so buyer-aware pricing can be demoed.
+
+    The first priced listings get three rows each: a Wholesale-only price, a
+    VIP-tier price and a validity-only price for the next 30 days. Listings
+    that already have rows are skipped, so rerunning adds nothing.
+    """
+    wholesale_type, vip_value = _create_customer_segmentation()
+    yield f"Customer type: {wholesale_type.name}"
+
+    candidate_listings = list(
+        ProductVariantChannelListing.objects.filter(price_amount__isnull=False)
+        .select_related("variant", "channel")
+        .order_by("pk")[:SCOPED_PRICE_LISTINGS_COUNT]
+    )
+    seeded_listing_pks = set(
+        VariantChannelListingPrice.objects.filter(
+            variant_channel_listing__in=candidate_listings
+        ).values_list("variant_channel_listing_id", flat=True)
+    )
+    listings = [
+        listing
+        for listing in candidate_listings
+        if listing.pk not in seeded_listing_pks
+    ]
+    now = timezone.now()
+    rows_per_listing = [
+        # (price multiplier, valid_from, valid_to, customer type, attribute value)
+        (Decimal("0.85"), None, None, wholesale_type, None),
+        (Decimal("0.75"), None, None, None, vip_value),
+        (Decimal("0.90"), now, now + datetime.timedelta(days=30), None, None),
+    ]
+    listing_prices = VariantChannelListingPrice.objects.bulk_create(
+        [
+            VariantChannelListingPrice(
+                variant_channel_listing=listing,
+                currency=listing.currency,
+                price_amount=(listing.price_amount * multiplier).quantize(
+                    Decimal("0.01")
+                ),
+                valid_from=valid_from,
+                valid_to=valid_to,
+            )
+            for listing in listings
+            for multiplier, valid_from, valid_to, _, _ in rows_per_listing
+        ]
+    )
+    customer_type_conditions = []
+    attribute_value_conditions = []
+    for listing_price, (_, _, _, customer_type, value) in zip(
+        listing_prices, itertools.cycle(rows_per_listing), strict=False
+    ):
+        if customer_type:
+            customer_type_conditions.append(
+                VariantChannelListingPriceCustomerType(
+                    listing_price=listing_price, customer_type=customer_type
+                )
+            )
+        if value:
+            attribute_value_conditions.append(
+                VariantChannelListingPriceAttributeValue(
+                    listing_price=listing_price, value=value
+                )
+            )
+    VariantChannelListingPriceCustomerType.objects.bulk_create(customer_type_conditions)
+    VariantChannelListingPriceAttributeValue.objects.bulk_create(
+        attribute_value_conditions
+    )
+    for listing in listings:
+        yield (
+            f"Scoped prices for variant: {listing.variant.sku} "
+            f"in channel: {listing.channel.slug}"
+        )
 
 
 def create_permission_groups(staff_password):
