@@ -12,6 +12,7 @@ from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_a
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
+from ....product.utils.product import mark_products_in_channels_as_dirty
 from ....warehouse import models as warehouse_models
 from ....warehouse.management import delete_stocks, stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
@@ -780,6 +781,10 @@ class ProductVariantBulkUpdate(BaseMutation):
         impacted_channel_ids,
     ):
         if impacted_channel_ids:
+            cls.call_event(
+                mark_products_in_channels_as_dirty,
+                {channel_id: {product.pk} for channel_id in impacted_channel_ids},
+            )
             cls.call_event(
                 mark_active_catalogue_promotion_rules_as_dirty, impacted_channel_ids
             )

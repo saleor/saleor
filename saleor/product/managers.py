@@ -266,6 +266,20 @@ class ProductsQueryset(models.QuerySet):
 ProductManager = models.Manager.from_queryset(ProductsQueryset)
 
 
+def sellable_listing_q(prefix: str = "") -> Q:
+    """Q matching a variant channel listing a customer can actually buy.
+
+    `prefix` is the lookup path to the listing, e.g. `"channel_listings__"`, so the
+    same definition can be applied from a related model.
+    """
+    return Q(
+        **{
+            f"{prefix}price_amount__isnull": False,
+            f"{prefix}is_available_for_purchase": True,
+        }
+    )
+
+
 class ProductVariantQueryset(models.QuerySet):
     def annotate_quantities(self):
         """Annotate the queryset with quantity-related fields.
@@ -353,9 +367,8 @@ class ProductVariantQueryset(models.QuerySet):
         # - have a product channel listing for this channel and the product is published
         #  and visible in listings
         variants = self.filter(
+            sellable_listing_q("channel_listings__"),
             channel_listings__channel_id=channel.id,
-            channel_listings__price_amount__isnull=False,
-            channel_listings__is_available_for_purchase=True,
         )
 
         today = datetime.datetime.now(tz=datetime.UTC)
@@ -372,16 +385,9 @@ class ProductVariantQueryset(models.QuerySet):
 ProductVariantManager = models.Manager.from_queryset(ProductVariantQueryset)
 
 
-SELLABLE_LISTING = Q(price_amount__isnull=False, is_available_for_purchase=True)
-"""A variant channel listing that a customer can actually buy.
-
-Mirrored by `ProductVariantChannelListing.is_sellable` for fetched instances.
-"""
-
-
 class ProductVariantChannelListingQuerySet(models.QuerySet):
     def sellable(self):
-        return self.filter(SELLABLE_LISTING)
+        return self.filter(sellable_listing_q())
 
     def annotate_preorder_quantity_allocated(self):
         return self.annotate(

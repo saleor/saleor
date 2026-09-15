@@ -11,6 +11,9 @@ import pytest
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.models import Checkout
+from ....discount.utils.checkout import (
+    create_or_update_discount_objects_from_promotion_for_checkout,
+)
 from ....order.error_codes import OrderErrorCode
 from ....order.models import Order
 from ....product.models import Product, ProductVariantChannelListing
@@ -352,3 +355,106 @@ def test_price_less_listing_stays_unsellable_despite_the_default(
     content = get_graphql_content(response)
     returned_ids = {node["id"] for node in content["data"]["product"]["variants"]}
     assert graphene.Node.to_global_id("ProductVariant", variant.pk) not in returned_ids
+
+
+def test_checkout_complete_rejects_the_variant(api_client, checkout_with_item):
+    # given
+    mutation = """
+        mutation CheckoutComplete($id: ID) {
+            checkoutComplete(id: $id) {
+                order {
+                    id
+                }
+                errors {
+                    field
+                    code
+                    message
+                    variants
+                }
+            }
+        }
+    """
+    line = checkout_with_item.lines.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    listing = line.variant.channel_listings.get(channel=checkout_with_item.channel)
+    listing.is_available_for_purchase = False
+    listing.save(update_fields=("is_available_for_purchase",))
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout_with_item.pk)}
+
+    # when
+    response = api_client.post_graphql(mutation, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["order"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "lines"
+    assert (
+        data["errors"][0]["code"]
+        == CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.name
+    )
+    assert data["errors"][0]["variants"] == [variant_id]
+    assert Order.objects.exists() is False
+
+
+def test_order_lines_create_rejects_the_variant(
+    staff_api_client, draft_order, unavailable_variant, permission_group_manage_orders
+):
+    # given
+    mutation = """
+        mutation OrderLinesCreate($id: ID!, $input: [OrderLineCreateInput!]!) {
+            orderLinesCreate(id: $id, input: $input) {
+                errors {
+                    field
+                    code
+                    message
+                    variants
+                }
+                orderLines {
+                    id
+                }
+            }
+        }
+    """
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    lines_count = draft_order.lines.count()
+    variant_id = graphene.Node.to_global_id("ProductVariant", unavailable_variant.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Order", draft_order.pk),
+        "input": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(mutation, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "input"
+    assert data["errors"][0]["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
+    assert data["errors"][0]["variants"] == [variant_id]
+    assert draft_order.lines.count() == lines_count
+
+
+def test_unavailable_gift_is_not_added_to_the_checkout(
+    checkout_info, checkout_lines_info, gift_promotion_rule, channel_USD
+):
+    # given
+    ProductVariantChannelListing.objects.filter(
+        variant__in=gift_promotion_rule.gifts.all(), channel=channel_USD
+    ).update(is_available_for_purchase=False)
+    lines_count = len(checkout_lines_info)
+
+    # when
+    create_or_update_discount_objects_from_promotion_for_checkout(
+        checkout_info, checkout_lines_info
+    )
+
+    # then
+    checkout = checkout_info.checkout
+    assert checkout.lines.filter(is_gift=True).exists() is False
+    assert checkout.lines.count() == lines_count
+    assert len(checkout_lines_info) == lines_count
