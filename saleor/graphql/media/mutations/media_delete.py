@@ -25,7 +25,7 @@ class MediaDelete(BaseMediaMutation):
 
     class Meta:
         description = (
-            "Deletes a media object. The underlying file is not removed from "
+            "Deletes a media object. The underlying file is removed from "
             "storage.\n\n"
             "Requires `MANAGE_PRODUCTS` for product, category and collection owners, "
             "and `MANAGE_PAGES` for page owners." + ADDED_IN_324

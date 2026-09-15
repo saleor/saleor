@@ -20581,7 +20581,7 @@ type Mutation {
   ): MediaUpdate @doc(category: "Media") @webhookEventsInfo(asyncEvents: [MEDIA_UPDATED, PRODUCT_MEDIA_UPDATED], syncEvents: [])
 
   """
-  Deletes a media object. The underlying file is not removed from storage.
+  Deletes a media object. The underlying file is removed from storage.
   
   Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
   
@@ -29593,7 +29593,7 @@ input MediaUpdateInput @doc(category: "Media") {
 }
 
 """
-Deletes a media object. The underlying file is not removed from storage.
+Deletes a media object. The underlying file is removed from storage.
 
 Requires `MANAGE_PRODUCTS` for product, category and collection owners, and `MANAGE_PAGES` for page owners.
 
