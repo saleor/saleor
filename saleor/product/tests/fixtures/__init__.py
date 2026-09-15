@@ -4,3 +4,4 @@ from .product import *  # noqa: F403
 from .product_media import *  # noqa: F403
 from .product_type import *  # noqa: F403
 from .variant import *  # noqa: F403
+from .variant_channel_listing_price import *  # noqa: F403
