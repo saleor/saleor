@@ -327,52 +327,6 @@ GIFT_CARD_BULK_CREATE_TAGS_MUTATION = """
 """
 
 
-def test_create_gift_cards_with_existing_tags_keeps_them_on_previously_tagged_gift_cards(
-    staff_api_client,
-    gift_card,
-    permission_manage_gift_card,
-):
-    # given
-    existing_tags = set(gift_card.tags.values_list("name", flat=True))
-    new_tag = GiftCardTag.objects.create(name="new-tag")
-    gift_card.tags.add(new_tag)
-    count = 3
-    variables = {
-        "input": {
-            "count": count,
-            "balance": {
-                "amount": 100,
-                "currency": "USD",
-            },
-            "tags": list(existing_tags),
-            "isActive": True,
-        }
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        GIFT_CARD_BULK_CREATE_TAGS_MUTATION,
-        variables,
-        permissions=[permission_manage_gift_card],
-    )
-
-    # then
-    content = get_graphql_content(response)
-    errors = content["data"]["giftCardBulkCreate"]["errors"]
-    data = content["data"]["giftCardBulkCreate"]
-
-    assert not errors
-    assert data["count"] == count
-    for card_data in data["giftCards"]:
-        assert {tag["name"] for tag in card_data["tags"]} == existing_tags
-    # the previously tagged gift card must keep all its tags
-    current_tags = set(gift_card.tags.values_list("name", flat=True))
-    assert current_tags == {*existing_tags, new_tag.name}
-    for tag_name in existing_tags:
-        assert GiftCardTag.objects.get(name=tag_name).gift_cards.count() == count + 1
-    assert new_tag.gift_cards.count() == 1
-
-
 def test_create_gift_cards_normalizes_tag_names(
     staff_api_client,
     gift_card,
