@@ -40,8 +40,12 @@ def grant_media_permission(request, owner_type):
         ]
         perm_object = request.getfixturevalue(f"permission_{permission.codename}")
         assert perm_object.content_type.app_label == permission.app_label
-        if client.user:
+        if client.app:
+            client.app.permissions.add(perm_object)
+        elif client.user:
             client.user.user_permissions.add(perm_object)
+        else:
+            raise AssertionError("Couldn't add the permission")
 
     return grant
 

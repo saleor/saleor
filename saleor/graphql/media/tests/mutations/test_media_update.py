@@ -15,6 +15,8 @@ from .....media.utils import (
 from ..utils import (
     MEDIA_AUTH_CASES,
     MEDIA_AUTH_PARAMS,
+    NON_PRODUCT_OWNER_TYPES,
+    create_colliding_media,
     media_global_id,
 )
 
@@ -96,12 +98,15 @@ def test_update_rejects_alt_over_limit(staff_api_client, page, permission_manage
 
 
 def test_update_rejects_id_of_a_different_owner_type(
-    staff_api_client, page, permission_manage_pages, permission_manage_products
+    staff_api_client, page, permission_manage_products
 ):
+    """A page media addressed as `ProductMedia` must not resolve.
+
+    The client holds only `MANAGE_PRODUCTS`, so the type name in the ID is the
+    single thing that could grant it reach into the page's gallery.
+    """
     # given
-    staff_api_client.user.user_permissions.add(
-        permission_manage_pages, permission_manage_products
-    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     original_alt = "keep me"
     media = page.media.create(alt=original_alt)
     # The row exists, but it is addressed as if it belonged to a product.
@@ -120,6 +125,81 @@ def test_update_rejects_id_of_a_different_owner_type(
     assert errors[0]["message"] == f"Couldn't resolve to an object: {media_id}"
     media.refresh_from_db(fields=("alt",))
     assert media.alt == original_alt
+
+
+@pytest.mark.parametrize("owner_type", NON_PRODUCT_OWNER_TYPES)
+def test_update_writes_the_product_row_when_pks_collide(
+    owner_type,
+    media_owner,
+    product,
+    staff_api_client,
+    permission_manage_products,
+):
+    """One pk names a real row in every media table; the type name picks one.
+
+    Without a colliding row the mistyped-ID test above can only prove the other
+    table was empty, so this case asserts which of the two rows was written.
+    """
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product_media, other_media = create_colliding_media(
+        owner_type, media_owner, product
+    )
+    original_alt = other_media.alt
+    new_alt = "written by the mutation"
+    media_id = media_global_id(MediaOwnerTypes.PRODUCT, product_media)
+
+    # when
+    response = staff_api_client.post_graphql(
+        MEDIA_UPDATE_MUTATION, {"id": media_id, "alt": new_alt}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["mediaUpdate"]
+    assert data["errors"] == []
+    assert data["media"]["id"] == media_id
+    assert data["media"]["alt"] == new_alt
+    product_media.refresh_from_db(fields=("alt",))
+    assert product_media.alt == new_alt
+    other_media.refresh_from_db(fields=("alt",))
+    assert other_media.alt == original_alt
+
+
+@pytest.mark.parametrize("owner_type", NON_PRODUCT_OWNER_TYPES)
+def test_update_denies_a_colliding_pk_without_the_product_permission(
+    owner_type,
+    media_owner,
+    product,
+    staff_api_client,
+    permission_manage_pages,
+):
+    """`MANAGE_PAGES` must not write a product media, even at a shared pk."""
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    product_media, other_media = create_colliding_media(
+        owner_type, media_owner, product
+    )
+    original_product_alt = product_media.alt
+    original_other_alt = other_media.alt
+
+    # when
+    response = staff_api_client.post_graphql(
+        MEDIA_UPDATE_MUTATION,
+        {
+            "id": media_global_id(MediaOwnerTypes.PRODUCT, product_media),
+            "alt": "should not be written",
+        },
+    )
+
+    # then
+    assert_no_permission(response)
+    content = get_graphql_content_from_response(response)
+    assert content["data"]["mediaUpdate"] is None
+    product_media.refresh_from_db(fields=("alt",))
+    assert product_media.alt == original_product_alt
+    other_media.refresh_from_db(fields=("alt",))
+    assert other_media.alt == original_other_alt
 
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)

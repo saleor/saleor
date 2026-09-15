@@ -312,6 +312,38 @@ def test_create_rejects_unsupported_owner_type(
     assert media_count() == 0
 
 
+def test_create_with_an_unsupported_owner_type_reports_invalid_not_denied(
+    api_client, order
+):
+    """An ID naming no supported owner skips the permission check by design.
+
+    `check_permissions` cannot resolve a permission to require, so it lets the
+    mutation run and answer with a precise `INVALID` instead of a misleading
+    denial. Nothing is reachable either way - this pins that down so the bypass
+    cannot quietly widen into a path that touches data.
+    """
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+        "mediaUrl": "https://images.example.com/photo.jpg",
+        "alt": "",
+    }
+
+    # when
+    response = api_client.post_graphql(MEDIA_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["mediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == MediaCreateErrorCode.INVALID.name
+    assert errors[0]["field"] == "id"
+    assert errors[0]["message"] == (
+        "Media can only be attached to a Product, Category, Collection or Page."
+    )
+    assert media_count() == 0
+
+
 # The insert must really hit the database for the foreign key to be checked, so
 # this test needs actual commits instead of the usual wrapping transaction.
 @pytest.mark.django_db(transaction=True)

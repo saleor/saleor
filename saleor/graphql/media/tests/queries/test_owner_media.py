@@ -5,12 +5,13 @@ import pytest
 
 from .....graphql.tests.utils import get_graphql_content
 from .....media import MediaOwnerTypes
+from .....media.models import ProductMedia
 from .....media.utils import (
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
 )
 from .....product import ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
-from ..utils import owner_global_id
+from ..utils import NON_PRODUCT_OWNER_TYPES, create_colliding_media, owner_global_id
 
 OWNER_MEDIA_QUERIES = {
     MediaOwnerTypes.PRODUCT: """
@@ -197,24 +198,17 @@ PRODUCT_MEDIA_DELETE_MUTATION = """
 """
 
 
-@pytest.mark.parametrize(
-    "owner_type",
-    [
-        owner_type
-        for owner_type in MediaOwnerTypes.ALL
-        if owner_type != MediaOwnerTypes.PRODUCT
-    ],
-)
+@pytest.mark.parametrize("owner_type", NON_PRODUCT_OWNER_TYPES)
 def test_product_media_lookup_rejects_media_of_another_owner(
     owner_type,
     media_owner,
     staff_api_client,
     permission_manage_products,
 ):
-    """A non-product media PK typed as `ProductMedia` must not resolve.
+    """A non-product media PK typed as `ProductMedia` must not resolve to it.
 
-    Media of every owner shares one table and one PK sequence, so without an
-    owner filter `MANAGE_PRODUCTS` alone would reach a page's or category's media.
+    `MANAGE_PRODUCTS` must not reach a page's or a category's media, whether or
+    not a product media happens to sit at the same pk.
     """
     # given
     staff_api_client.user.user_permissions.add(permission_manage_products)
@@ -234,6 +228,43 @@ def test_product_media_lookup_rejects_media_of_another_owner(
     assert data["errors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
     assert data["errors"][0]["field"] == "id"
     assert media_owner.media.filter(pk=media.pk).exists() is True
+
+
+@pytest.mark.parametrize("owner_type", NON_PRODUCT_OWNER_TYPES)
+def test_product_media_lookup_resolves_the_product_row_when_pks_collide(
+    owner_type,
+    media_owner,
+    product,
+    staff_api_client,
+    permission_manage_products,
+):
+    """Each media model has its own pk sequence, so one pk names two real rows.
+
+    The type name in the global ID must decide which table is read: the product
+    media is deleted and the other owner's row at the same pk is left alone.
+    """
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product_media, other_media = create_colliding_media(
+        owner_type, media_owner, product
+    )
+    assert product_media.pk == other_media.pk
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_DELETE_MUTATION,
+        {"id": graphene.Node.to_global_id("ProductMedia", product_media.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productMediaDelete"]
+    assert data["errors"] == []
+    assert data["media"]["id"] == graphene.Node.to_global_id(
+        "ProductMedia", product_media.pk
+    )
+    assert ProductMedia.objects.filter(pk=product_media.pk).exists() is False
+    assert media_owner.media.filter(pk=other_media.pk).exists() is True
 
 
 PRODUCT_MEDIA_LEGACY_FIELDS_QUERY = """
@@ -298,3 +329,81 @@ def test_product_media_legacy_fields_are_unchanged(
         "productId": graphene.Node.to_global_id("Product", product.pk),
         "metadata": [{"key": "key", "value": "value"}],
     }
+
+
+PRODUCT_MEDIA_UPDATE_MUTATION = """
+    mutation ($id: ID!, $alt: String!) {
+        productMediaUpdate(id: $id, input: {alt: $alt}) {
+            media { id alt }
+            errors { field code message }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize("owner_type", NON_PRODUCT_OWNER_TYPES)
+def test_product_media_update_writes_the_product_row_when_pks_collide(
+    owner_type,
+    media_owner,
+    product,
+    staff_api_client,
+    permission_manage_products,
+):
+    """The deprecated write path must pick its table by type name too."""
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product_media, other_media = create_colliding_media(
+        owner_type, media_owner, product
+    )
+    original_alt = other_media.alt
+    new_alt = "written by the mutation"
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_UPDATE_MUTATION,
+        {
+            "id": graphene.Node.to_global_id("ProductMedia", product_media.pk),
+            "alt": new_alt,
+        },
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productMediaUpdate"]
+    assert data["errors"] == []
+    assert data["media"]["alt"] == new_alt
+    product_media.refresh_from_db(fields=("alt",))
+    assert product_media.alt == new_alt
+    other_media.refresh_from_db(fields=("alt",))
+    assert other_media.alt == original_alt
+
+
+def test_product_media_lookup_hides_an_owner_less_product_media(
+    staff_api_client, permission_manage_products
+):
+    """Owner-less legacy rows are unreachable through `get_node`.
+
+    They cannot satisfy the non-null `ownerId` on the `Media` interface, so every
+    resolver filters them out. `productMediaBulkDelete` is the deliberate
+    exception - see `test_deletes_an_owner_less_legacy_row` - and remains the
+    only way to clear them.
+    """
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    media = ProductMedia.objects.create(alt="owner-less legacy row")
+    assert media.product_id is None
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_DELETE_MUTATION, {"id": media_id}
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productMediaDelete"]
+    assert data["media"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["field"] == "id"
+    assert ProductMedia.objects.filter(pk=media.pk).exists() is True

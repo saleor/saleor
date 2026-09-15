@@ -71,7 +71,7 @@ def test_sort_order_is_assigned_per_owner(owner_type, media_owner):
 @pytest.mark.parametrize("owner_type", MediaOwnerTypes.ALL)
 @patch("saleor.media.signals.delete_from_storage_task.delay")
 def test_deleting_media_removes_its_file_from_storage(
-    mock_delete_from_storage, owner_type, media_owner, image
+    mock_delete_from_storage, owner_type, media_owner, image, media_root
 ):
     # given
     media = media_owner.media.create(alt="alt", image=image)
@@ -86,7 +86,7 @@ def test_deleting_media_removes_its_file_from_storage(
 @pytest.mark.parametrize("owner_type", MediaOwnerTypes.ALL)
 @patch("saleor.media.signals.delete_from_storage_task.delay")
 def test_deleting_owner_removes_its_media_files_from_storage(
-    mock_delete_from_storage, owner_type, media_owner, image
+    mock_delete_from_storage, owner_type, media_owner, image, media_root
 ):
     """Media is usually removed by a cascade, which never calls `delete()`."""
     # given

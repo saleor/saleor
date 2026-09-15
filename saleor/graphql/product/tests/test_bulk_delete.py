@@ -836,36 +836,6 @@ def test_delete_products_variants_in_draft_order(
         assert param in event.parameters
 
 
-def test_delete_product_media(
-    staff_api_client, product_with_images, permission_manage_products
-):
-    media = product_with_images.media.all()
-
-    query = """
-    mutation productMediaBulkDelete($ids: [ID!]!) {
-        productMediaBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
-
-    variables = {
-        "ids": [
-            graphene.Node.to_global_id("ProductMedia", media_obj.id)
-            for media_obj in media
-        ]
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-
-    assert content["data"]["productMediaBulkDelete"]["count"] == 2
-    assert not ProductMedia.objects.filter(
-        id__in=[media_obj.id for media_obj in media]
-    ).exists()
-
-
 PRODUCT_TYPE_BULK_DELETE_MUTATION = """
     mutation productTypeBulkDelete($ids: [ID!]!) {
         productTypeBulkDelete(ids: $ids) {
