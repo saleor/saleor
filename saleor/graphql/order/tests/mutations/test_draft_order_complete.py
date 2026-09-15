@@ -33,7 +33,7 @@ from .....plugins.tests.sample_plugins import PluginSample
 from .....product.models import ProductVariant
 from .....shipping.interface import ExcludedShippingMethod
 from .....tests import race_condition
-from .....warehouse.models import Allocation, PreorderAllocation, Stock
+from .....warehouse.models import Allocation, Stock
 from .....warehouse.tests.utils import get_available_quantity_for_stock
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
@@ -1087,80 +1087,6 @@ def test_draft_order_complete_unavailable_for_purchase(
 
     assert error["field"] == "lines"
     assert error["code"] == OrderErrorCode.PRODUCT_UNAVAILABLE_FOR_PURCHASE.name
-
-
-def test_draft_order_complete_preorders(
-    staff_api_client,
-    permission_group_manage_orders,
-    staff_user,
-    draft_order_with_preorder_lines,
-):
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    order = draft_order_with_preorder_lines
-
-    # Ensure no events were created
-    assert not OrderEvent.objects.exists()
-
-    # Ensure no preorder allocation were created
-    assert not PreorderAllocation.objects.filter(order_line__order=order).exists()
-
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    variables = {"id": order_id}
-    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["draftOrderComplete"]["order"]
-    order.refresh_from_db()
-    assert data["status"] == order.status.upper()
-    assert data["origin"] == OrderOrigin.DRAFT.upper()
-
-    for line in order.lines.all():
-        preorder_allocation = line.preorder_allocations.get()
-        assert preorder_allocation.quantity == line.quantity_unfulfilled
-
-    # ensure there are only 2 events with correct types
-    event_params = {
-        "user": staff_user,
-        "type__in": [
-            order_events.OrderEvents.PLACED_FROM_DRAFT,
-            order_events.OrderEvents.CONFIRMED,
-        ],
-        "parameters": {},
-    }
-    matching_events = OrderEvent.objects.filter(**event_params)
-    assert matching_events.count() == 2
-    assert matching_events[0].type != matching_events[1].type
-    assert not OrderEvent.objects.exclude(**event_params).exists()
-
-
-def test_draft_order_complete_insufficient_stock_preorders(
-    staff_api_client,
-    permission_group_manage_orders,
-    staff_user,
-    draft_order_with_preorder_lines,
-    channel_USD,
-):
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    order = draft_order_with_preorder_lines
-
-    # Ensure no events were created
-    assert not OrderEvent.objects.exists()
-
-    line = order.lines.order_by("-quantity").first()
-    channel_listing = line.variant.channel_listings.get(channel_id=channel_USD.id)
-    line.quantity = channel_listing.preorder_quantity_threshold + 1
-    line.save()
-
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    variables = {"id": order_id}
-    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
-    content = get_graphql_content(response)
-    error = content["data"]["draftOrderComplete"]["errors"][0]
-    order.refresh_from_db()
-    assert order.status == OrderStatus.DRAFT
-    assert order.origin == OrderOrigin.DRAFT
-
-    assert error["field"] == "lines"
-    assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
 
 
 def test_draft_order_complete_not_draft_order(

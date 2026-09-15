@@ -2560,9 +2560,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzkz",
       "product": 160,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T11:57:19.386Z",
       "updated_at": "2022-05-18T19:30:32.573Z",
@@ -2581,9 +2578,6 @@
       "name": "S",
       "product": 161,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T12:03:59.123Z",
       "updated_at": "2022-05-17T12:03:59.178Z",
@@ -2602,9 +2596,6 @@
       "name": "M",
       "product": 161,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T12:03:59.193Z",
       "updated_at": "2022-05-17T12:03:59.243Z",
@@ -2622,9 +2613,6 @@
       "name": "L",
       "product": 161,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T12:03:59.262Z",
       "updated_at": "2022-05-17T12:03:59.311Z",
@@ -2642,9 +2630,6 @@
       "name": "XL",
       "product": 161,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T12:03:59.329Z",
       "updated_at": "2022-05-17T12:03:59.383Z",
@@ -2662,9 +2647,6 @@
       "name": "XXL",
       "product": 161,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T12:03:59.400Z",
       "updated_at": "2022-05-17T12:03:59.450Z",
@@ -2682,9 +2664,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzk5",
       "product": 162,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-18T12:06:54.246Z",
       "updated_at": "2022-05-18T12:07:49.819Z",
@@ -2703,9 +2682,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6NDAw",
       "product": 163,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-18T19:29:35.277Z",
       "updated_at": "2022-05-18T19:29:47.123Z",
@@ -2724,9 +2700,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6NDAx",
       "product": 164,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-18T19:31:14.677Z",
       "updated_at": "2022-05-18T19:31:14.745Z",
@@ -2745,9 +2718,6 @@
       "name": "MP3",
       "product": 126,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-12T22:09:40.752Z",
       "updated_at": "2022-05-12T22:29:28.421Z",
@@ -2766,9 +2736,6 @@
       "name": "41 Pure blue",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:39:26.112Z",
       "updated_at": "2022-05-13T20:39:26.185Z",
@@ -2787,9 +2754,6 @@
       "name": "40 Pure blue",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:39:26.216Z",
       "updated_at": "2022-05-13T20:39:26.245Z",
@@ -2808,9 +2772,6 @@
       "name": "42 Pure blue",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:39:26.254Z",
       "updated_at": "2022-05-13T20:39:26.280Z",
@@ -2829,9 +2790,6 @@
       "name": "39",
       "product": 129,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:47:03.499Z",
       "updated_at": "2022-05-13T20:47:03.620Z",
@@ -2850,9 +2808,6 @@
       "name": "40",
       "product": 129,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:47:03.655Z",
       "updated_at": "2022-05-13T20:47:03.695Z",
@@ -2870,9 +2825,6 @@
       "name": "41",
       "product": 129,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:47:03.705Z",
       "updated_at": "2022-05-13T20:47:03.731Z",
@@ -2890,9 +2842,6 @@
       "name": "42",
       "product": 129,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:47:03.738Z",
       "updated_at": "2022-05-13T20:47:03.775Z",
@@ -2910,9 +2859,6 @@
       "name": "43",
       "product": 129,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:47:03.809Z",
       "updated_at": "2022-05-13T20:47:03.837Z",
@@ -2930,9 +2876,6 @@
       "name": "39",
       "product": 130,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:57:45.685Z",
       "updated_at": "2022-05-13T20:57:45.754Z",
@@ -2951,9 +2894,6 @@
       "name": "40",
       "product": 130,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:57:45.785Z",
       "updated_at": "2022-05-13T20:57:45.820Z",
@@ -2971,9 +2911,6 @@
       "name": "41",
       "product": 130,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:57:45.826Z",
       "updated_at": "2022-05-13T20:57:45.854Z",
@@ -2991,9 +2928,6 @@
       "name": "42",
       "product": 130,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:57:45.861Z",
       "updated_at": "2022-05-13T20:57:45.880Z",
@@ -3011,9 +2945,6 @@
       "name": "45",
       "product": 130,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T20:57:45.887Z",
       "updated_at": "2022-05-13T20:57:45.927Z",
@@ -3031,9 +2962,6 @@
       "name": "HD-GR-S",
       "product": 131,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:07:45.439Z",
       "updated_at": "2022-05-13T21:10:33.980Z",
@@ -3052,9 +2980,6 @@
       "name": "S",
       "product": 134,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:22:25.536Z",
       "updated_at": "2022-05-13T23:26:53.236Z",
@@ -3073,9 +2998,6 @@
       "name": "M",
       "product": 134,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:22:25.647Z",
       "updated_at": "2022-05-13T23:26:53.374Z",
@@ -3093,9 +3015,6 @@
       "name": "L",
       "product": 134,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:22:25.700Z",
       "updated_at": "2022-05-13T23:26:53.453Z",
@@ -3113,9 +3032,6 @@
       "name": "XL",
       "product": 134,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:22:25.736Z",
       "updated_at": "2022-05-13T23:26:53.488Z",
@@ -3133,9 +3049,6 @@
       "name": "XXL",
       "product": 134,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:22:25.789Z",
       "updated_at": "2022-05-13T23:26:53.520Z",
@@ -3153,9 +3066,6 @@
       "name": "S",
       "product": 135,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:30:50.614Z",
       "updated_at": "2022-05-13T23:26:53.207Z",
@@ -3174,9 +3084,6 @@
       "name": "M",
       "product": 135,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:30:50.694Z",
       "updated_at": "2022-05-13T23:26:53.296Z",
@@ -3194,9 +3101,6 @@
       "name": "L",
       "product": 135,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:30:50.756Z",
       "updated_at": "2022-05-13T23:26:53.422Z",
@@ -3214,9 +3118,6 @@
       "name": "XL",
       "product": 135,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:30:50.795Z",
       "updated_at": "2022-05-13T23:26:53.470Z",
@@ -3234,9 +3135,6 @@
       "name": "XXL",
       "product": 135,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:30:50.889Z",
       "updated_at": "2022-05-13T23:26:53.507Z",
@@ -3254,9 +3152,6 @@
       "name": "S",
       "product": 136,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:38:56.282Z",
       "updated_at": "2022-05-13T23:26:53.164Z",
@@ -3275,9 +3170,6 @@
       "name": "M",
       "product": 136,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:38:56.373Z",
       "updated_at": "2022-05-13T23:26:53.257Z",
@@ -3295,9 +3187,6 @@
       "name": "XXL",
       "product": 136,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:38:56.422Z",
       "updated_at": "2022-05-13T23:26:53.392Z",
@@ -3315,9 +3204,6 @@
       "name": "M",
       "product": 137,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:42:43.229Z",
       "updated_at": "2022-05-13T23:26:53.217Z",
@@ -3336,9 +3222,6 @@
       "name": "L",
       "product": 137,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:42:43.314Z",
       "updated_at": "2022-05-13T23:26:53.309Z",
@@ -3356,9 +3239,6 @@
       "name": "XL",
       "product": 137,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:42:43.351Z",
       "updated_at": "2022-05-13T23:26:53.439Z",
@@ -3376,9 +3256,6 @@
       "name": "S",
       "product": 138,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:44:58.194Z",
       "updated_at": "2022-05-13T23:26:53.194Z",
@@ -3397,9 +3274,6 @@
       "name": "M",
       "product": 138,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:44:58.258Z",
       "updated_at": "2022-05-13T23:26:53.285Z",
@@ -3417,9 +3291,6 @@
       "name": "L",
       "product": 138,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T21:44:58.304Z",
       "updated_at": "2022-05-13T23:26:53.407Z",
@@ -3437,9 +3308,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6MzY4",
       "product": 141,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-13T23:50:16.869Z",
       "updated_at": "2022-05-14T21:33:36.523Z",
@@ -3458,9 +3326,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzcw",
       "product": 143,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:10:01.587Z",
       "updated_at": "2022-05-14T21:33:04.241Z",
@@ -3479,9 +3344,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzcx",
       "product": 144,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:24:57.904Z",
       "updated_at": "2022-05-14T21:25:09.225Z",
@@ -3500,9 +3362,6 @@
       "name": "DVD",
       "product": 145,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:55:45.910Z",
       "updated_at": "2022-05-14T21:55:45.938Z",
@@ -3521,9 +3380,6 @@
       "name": "iTunes",
       "product": 145,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:55:45.950Z",
       "updated_at": "2022-05-14T21:55:45.974Z",
@@ -3541,9 +3397,6 @@
       "name": "MP3",
       "product": 145,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-14T21:55:45.983Z",
       "updated_at": "2022-05-14T21:55:46.009Z",
@@ -3561,9 +3414,6 @@
       "name": "Vinyl",
       "product": 146,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:05:27.383Z",
       "updated_at": "2022-05-15T09:05:27.419Z",
@@ -3582,9 +3432,6 @@
       "name": "DVD",
       "product": 146,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:05:27.430Z",
       "updated_at": "2022-05-15T09:05:27.464Z",
@@ -3602,9 +3449,6 @@
       "name": "iTunes",
       "product": 146,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:05:27.476Z",
       "updated_at": "2022-05-15T09:05:27.516Z",
@@ -3622,9 +3466,6 @@
       "name": "CD",
       "product": 146,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:05:27.531Z",
       "updated_at": "2022-05-15T09:05:27.585Z",
@@ -3642,9 +3483,6 @@
       "name": "iTunes",
       "product": 147,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:21:06.168Z",
       "updated_at": "2022-05-15T09:21:06.190Z",
@@ -3663,9 +3501,6 @@
       "name": "MP3",
       "product": 147,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:21:06.197Z",
       "updated_at": "2022-05-15T09:21:06.218Z",
@@ -3683,9 +3518,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzgy",
       "product": 150,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:28:13.324Z",
       "updated_at": "2022-05-15T09:28:13.363Z",
@@ -3704,9 +3536,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzgz",
       "product": 151,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-15T09:32:27.397Z",
       "updated_at": "2022-05-16T16:38:35.759Z",
@@ -3725,9 +3554,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzg0",
       "product": 152,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:19:51.191Z",
       "updated_at": "2022-05-18T12:21:40.806Z",
@@ -3746,9 +3572,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzg1",
       "product": 153,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:25:11.701Z",
       "updated_at": "2022-05-16T16:25:11.757Z",
@@ -3767,9 +3590,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzg2",
       "product": 154,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:27:16.900Z",
       "updated_at": "2022-05-16T16:27:16.924Z",
@@ -3788,9 +3608,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzg3",
       "product": 155,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-16T16:28:15.149Z",
       "updated_at": "2022-05-17T12:36:31.454Z",
@@ -3809,9 +3626,6 @@
       "name": "UHJvZHVjdFZhcmlhbnQ6Mzg4",
       "product": 156,
       "track_inventory": false,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T11:44:17.115Z",
       "updated_at": "2022-05-17T11:44:17.201Z",
@@ -3830,9 +3644,6 @@
       "name": "XL",
       "product": 157,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T11:50:09.662Z",
       "updated_at": "2022-05-17T11:50:09.694Z",
@@ -3851,9 +3662,6 @@
       "name": "XXL",
       "product": 157,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "created_at": "2022-05-17T11:50:09.704Z",
       "updated_at": "2022-05-17T11:50:09.730Z",
@@ -3869,8 +3677,7 @@
       "currency": "PLN",
       "price_amount": "40.000",
       "discounted_price_amount": "40.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3882,8 +3689,7 @@
       "currency": "USD",
       "price_amount": "10.000",
       "discounted_price_amount": "10.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3895,8 +3701,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3908,8 +3713,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3921,8 +3725,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3934,8 +3737,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3947,8 +3749,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3960,8 +3761,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3973,8 +3773,7 @@
       "currency": "PLN",
       "price_amount": "420.000",
       "discounted_price_amount": "420.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3986,8 +3785,7 @@
       "currency": "USD",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -3999,8 +3797,7 @@
       "currency": "PLN",
       "price_amount": "420.000",
       "discounted_price_amount": "420.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4012,8 +3809,7 @@
       "currency": "USD",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4025,8 +3821,7 @@
       "currency": "PLN",
       "price_amount": "420.000",
       "discounted_price_amount": "420.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4038,8 +3833,7 @@
       "currency": "USD",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4051,8 +3845,7 @@
       "currency": "PLN",
       "price_amount": "420.000",
       "discounted_price_amount": "420.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4064,8 +3857,7 @@
       "currency": "USD",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4077,8 +3869,7 @@
       "currency": "PLN",
       "price_amount": "420.000",
       "discounted_price_amount": "420.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4090,8 +3881,7 @@
       "currency": "USD",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4103,8 +3893,7 @@
       "currency": "PLN",
       "price_amount": "209.960",
       "discounted_price_amount": "209.960",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4116,8 +3905,7 @@
       "currency": "USD",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4129,8 +3917,7 @@
       "currency": "PLN",
       "price_amount": "209.960",
       "discounted_price_amount": "209.960",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4142,8 +3929,7 @@
       "currency": "USD",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4155,8 +3941,7 @@
       "currency": "PLN",
       "price_amount": "209.960",
       "discounted_price_amount": "209.960",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4168,8 +3953,7 @@
       "currency": "USD",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4181,8 +3965,7 @@
       "currency": "PLN",
       "price_amount": "209.960",
       "discounted_price_amount": "209.960",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4194,8 +3977,7 @@
       "currency": "USD",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4207,8 +3989,7 @@
       "currency": "PLN",
       "price_amount": "209.960",
       "discounted_price_amount": "209.960",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4220,8 +4001,7 @@
       "currency": "USD",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4233,8 +4013,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4246,8 +4025,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4259,8 +4037,7 @@
       "currency": "PLN",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4272,8 +4049,7 @@
       "currency": "USD",
       "price_amount": "20.000",
       "discounted_price_amount": "20.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4285,8 +4061,7 @@
       "currency": "PLN",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4298,8 +4073,7 @@
       "currency": "USD",
       "price_amount": "20.000",
       "discounted_price_amount": "20.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4311,8 +4085,7 @@
       "currency": "PLN",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4324,8 +4097,7 @@
       "currency": "USD",
       "price_amount": "20.000",
       "discounted_price_amount": "20.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4337,8 +4109,7 @@
       "currency": "PLN",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4350,8 +4121,7 @@
       "currency": "USD",
       "price_amount": "20.000",
       "discounted_price_amount": "20.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4363,8 +4133,7 @@
       "currency": "PLN",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4376,8 +4145,7 @@
       "currency": "USD",
       "price_amount": "20.000",
       "discounted_price_amount": "20.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4389,8 +4157,7 @@
       "currency": "PLN",
       "price_amount": "200.000",
       "discounted_price_amount": "200.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4402,8 +4169,7 @@
       "currency": "USD",
       "price_amount": "40.000",
       "discounted_price_amount": "40.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4415,8 +4181,7 @@
       "currency": "PLN",
       "price_amount": "200.000",
       "discounted_price_amount": "200.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4428,8 +4193,7 @@
       "currency": "USD",
       "price_amount": "40.000",
       "discounted_price_amount": "40.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4441,8 +4205,7 @@
       "currency": "PLN",
       "price_amount": "200.000",
       "discounted_price_amount": "200.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4454,8 +4217,7 @@
       "currency": "USD",
       "price_amount": "40.000",
       "discounted_price_amount": "40.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4467,8 +4229,7 @@
       "currency": "PLN",
       "price_amount": "200.000",
       "discounted_price_amount": "200.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4480,8 +4241,7 @@
       "currency": "USD",
       "price_amount": "40.000",
       "discounted_price_amount": "40.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4493,8 +4253,7 @@
       "currency": "PLN",
       "price_amount": "200.000",
       "discounted_price_amount": "200.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4506,8 +4265,7 @@
       "currency": "USD",
       "price_amount": "40.000",
       "discounted_price_amount": "40.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4519,8 +4277,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4532,8 +4289,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4545,8 +4301,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4558,8 +4313,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4571,8 +4325,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4584,8 +4337,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4597,8 +4349,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4610,8 +4361,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4623,8 +4373,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4636,8 +4385,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4649,8 +4397,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4662,8 +4409,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4675,8 +4421,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4688,8 +4433,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4701,8 +4445,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4714,8 +4457,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4727,8 +4469,7 @@
       "currency": "PLN",
       "price_amount": "150.000",
       "discounted_price_amount": "150.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4740,8 +4481,7 @@
       "currency": "USD",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4753,8 +4493,7 @@
       "currency": "PLN",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4766,8 +4505,7 @@
       "currency": "USD",
       "price_amount": "10.000",
       "discounted_price_amount": "10.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4779,8 +4517,7 @@
       "currency": "PLN",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4792,8 +4529,7 @@
       "currency": "USD",
       "price_amount": "20.000",
       "discounted_price_amount": "20.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4805,8 +4541,7 @@
       "currency": "PLN",
       "price_amount": "60.000",
       "discounted_price_amount": "60.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4818,8 +4553,7 @@
       "currency": "USD",
       "price_amount": "15.000",
       "discounted_price_amount": "15.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4831,8 +4565,7 @@
       "currency": "PLN",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4844,8 +4577,7 @@
       "currency": "USD",
       "price_amount": "10.000",
       "discounted_price_amount": "10.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4857,8 +4589,7 @@
       "currency": "PLN",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4870,8 +4601,7 @@
       "currency": "USD",
       "price_amount": "10.000",
       "discounted_price_amount": "10.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4883,8 +4613,7 @@
       "currency": "PLN",
       "price_amount": "45.000",
       "discounted_price_amount": "45.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4896,8 +4625,7 @@
       "currency": "USD",
       "price_amount": "10.000",
       "discounted_price_amount": "10.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4909,8 +4637,7 @@
       "currency": "PLN",
       "price_amount": "29.990",
       "discounted_price_amount": "29.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4922,8 +4649,7 @@
       "currency": "USD",
       "price_amount": "8.990",
       "discounted_price_amount": "8.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4935,8 +4661,7 @@
       "currency": "PLN",
       "price_amount": "29.990",
       "discounted_price_amount": "29.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4948,8 +4673,7 @@
       "currency": "USD",
       "price_amount": "8.990",
       "discounted_price_amount": "8.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4961,8 +4685,7 @@
       "currency": "PLN",
       "price_amount": "29.990",
       "discounted_price_amount": "29.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4974,8 +4697,7 @@
       "currency": "USD",
       "price_amount": "8.990",
       "discounted_price_amount": "8.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -4987,8 +4709,7 @@
       "currency": "PLN",
       "price_amount": "29.990",
       "discounted_price_amount": "29.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5000,8 +4721,7 @@
       "currency": "USD",
       "price_amount": "8.990",
       "discounted_price_amount": "8.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5013,8 +4733,7 @@
       "currency": "PLN",
       "price_amount": "9.990",
       "discounted_price_amount": "9.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5026,8 +4745,7 @@
       "currency": "USD",
       "price_amount": "2.000",
       "discounted_price_amount": "2.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5039,8 +4757,7 @@
       "currency": "PLN",
       "price_amount": "9.990",
       "discounted_price_amount": "9.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5052,8 +4769,7 @@
       "currency": "USD",
       "price_amount": "2.000",
       "discounted_price_amount": "2.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5065,8 +4781,7 @@
       "currency": "PLN",
       "price_amount": "29.990",
       "discounted_price_amount": "29.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5078,8 +4793,7 @@
       "currency": "USD",
       "price_amount": "11.990",
       "discounted_price_amount": "11.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5091,8 +4805,7 @@
       "currency": "PLN",
       "price_amount": "70.000",
       "discounted_price_amount": "70.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5104,8 +4817,7 @@
       "currency": "USD",
       "price_amount": "18.000",
       "discounted_price_amount": "18.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5117,8 +4829,7 @@
       "currency": "PLN",
       "price_amount": "5.990",
       "discounted_price_amount": "5.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5130,8 +4841,7 @@
       "currency": "USD",
       "price_amount": "1.990",
       "discounted_price_amount": "1.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5143,8 +4853,7 @@
       "currency": "PLN",
       "price_amount": "5.990",
       "discounted_price_amount": "5.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5156,8 +4865,7 @@
       "currency": "USD",
       "price_amount": "1.990",
       "discounted_price_amount": "1.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5169,8 +4877,7 @@
       "currency": "PLN",
       "price_amount": "5.990",
       "discounted_price_amount": "5.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5182,8 +4889,7 @@
       "currency": "USD",
       "price_amount": "1.990",
       "discounted_price_amount": "1.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5195,8 +4901,7 @@
       "currency": "PLN",
       "price_amount": "5.990",
       "discounted_price_amount": "5.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5208,8 +4913,7 @@
       "currency": "USD",
       "price_amount": "1.990",
       "discounted_price_amount": "1.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5221,8 +4925,7 @@
       "currency": "PLN",
       "price_amount": "90.000",
       "discounted_price_amount": "90.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5234,8 +4937,7 @@
       "currency": "USD",
       "price_amount": "17.000",
       "discounted_price_amount": "17.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5247,8 +4949,7 @@
       "currency": "PLN",
       "price_amount": "120.000",
       "discounted_price_amount": "120.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5260,8 +4961,7 @@
       "currency": "USD",
       "price_amount": "25.000",
       "discounted_price_amount": "25.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5273,8 +4973,7 @@
       "currency": "PLN",
       "price_amount": "120.000",
       "discounted_price_amount": "120.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5286,8 +4985,7 @@
       "currency": "USD",
       "price_amount": "25.000",
       "discounted_price_amount": "25.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5299,8 +4997,7 @@
       "currency": "PLN",
       "price_amount": "450.000",
       "discounted_price_amount": "450.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5312,8 +5009,7 @@
       "currency": "USD",
       "price_amount": "100.000",
       "discounted_price_amount": "100.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5325,8 +5021,7 @@
       "currency": "PLN",
       "price_amount": "130.000",
       "discounted_price_amount": "130.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5338,8 +5033,7 @@
       "currency": "USD",
       "price_amount": "30.000",
       "discounted_price_amount": "30.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5351,8 +5045,7 @@
       "currency": "PLN",
       "price_amount": "130.000",
       "discounted_price_amount": "130.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5364,8 +5057,7 @@
       "currency": "USD",
       "price_amount": "30.000",
       "discounted_price_amount": "30.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5377,8 +5069,7 @@
       "currency": "PLN",
       "price_amount": "130.000",
       "discounted_price_amount": "130.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5390,8 +5081,7 @@
       "currency": "USD",
       "price_amount": "30.000",
       "discounted_price_amount": "30.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5403,8 +5093,7 @@
       "currency": "PLN",
       "price_amount": "130.000",
       "discounted_price_amount": "130.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5416,8 +5105,7 @@
       "currency": "USD",
       "price_amount": "30.000",
       "discounted_price_amount": "30.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5429,8 +5117,7 @@
       "currency": "PLN",
       "price_amount": "130.000",
       "discounted_price_amount": "130.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5442,8 +5129,7 @@
       "currency": "USD",
       "price_amount": "30.000",
       "discounted_price_amount": "30.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5455,8 +5141,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5468,8 +5153,7 @@
       "currency": "USD",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5481,8 +5165,7 @@
       "currency": "PLN",
       "price_amount": "2300.000",
       "discounted_price_amount": "2300.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5494,8 +5177,7 @@
       "currency": "USD",
       "price_amount": "500.000",
       "discounted_price_amount": "500.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5507,8 +5189,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -5520,8 +5201,7 @@
       "currency": "USD",
       "price_amount": "50.000",
       "discounted_price_amount": "50.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15188,9 +14868,6 @@
       "name": "39 Ghost White",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15207,9 +14884,6 @@
       "name": "40 Ghost White",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15226,9 +14900,6 @@
       "name": "41 Ghost White",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15245,9 +14916,6 @@
       "name": "42 Ghost White",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15264,9 +14932,6 @@
       "name": "43 Ghost White",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15283,9 +14948,6 @@
       "name": "44 Ghost White",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15302,9 +14964,6 @@
       "name": "45 Ghost White",
       "product": 128,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15321,9 +14980,6 @@
       "name": "HD-GR-M",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15340,9 +14996,6 @@
       "name": "HD-WH-M",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15359,9 +15012,6 @@
       "name": "HD-GR-XL",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15378,9 +15028,6 @@
       "name": "HD-GR-L",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15397,9 +15044,6 @@
       "name": "HD-WH-L",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15416,9 +15060,6 @@
       "name": "HD-WH-XL",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15435,9 +15076,6 @@
       "name": "HD-BL-S",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15454,9 +15092,6 @@
       "name": "HD-BL-M",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15473,9 +15108,6 @@
       "name": "HD-BL-L",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15492,9 +15124,6 @@
       "name": "HD-BL-XL",
       "product": 131,
       "track_inventory": true,
-      "is_preorder": false,
-      "preorder_end_date": null,
-      "preorder_global_threshold": null,
       "quantity_limit_per_customer": null,
       "weight": null,
       "default": false
@@ -15509,8 +15138,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15522,8 +15150,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15535,8 +15162,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15548,8 +15174,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15561,8 +15186,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15574,8 +15198,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15587,8 +15210,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15600,8 +15222,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15613,8 +15234,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15626,8 +15246,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15639,8 +15258,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15652,8 +15270,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15665,8 +15282,7 @@
       "currency": "PLN",
       "price_amount": "230.000",
       "discounted_price_amount": "230.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15678,8 +15294,7 @@
       "currency": "USD",
       "price_amount": "75.000",
       "discounted_price_amount": "75.000",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15691,8 +15306,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15704,8 +15318,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15717,8 +15330,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15730,8 +15342,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15743,8 +15354,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15756,8 +15366,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15769,8 +15378,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15782,8 +15390,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15795,8 +15402,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15808,8 +15414,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15821,8 +15426,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15834,8 +15438,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15847,8 +15450,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15860,8 +15462,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15873,8 +15474,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15886,8 +15486,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15899,8 +15498,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15912,8 +15510,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15925,8 +15522,7 @@
       "currency": "PLN",
       "price_amount": "149.990",
       "discounted_price_amount": "149.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {
@@ -15938,8 +15534,7 @@
       "currency": "USD",
       "price_amount": "44.990",
       "discounted_price_amount": "44.990",
-      "cost_price_amount": null,
-      "preorder_quantity_threshold": null
+      "cost_price_amount": null
     }
   },
   {

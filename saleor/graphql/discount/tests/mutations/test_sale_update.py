@@ -653,7 +653,7 @@ def test_update_sale_variants(
     catalogue_predicate,
     permission_manage_discounts,
     product_list,
-    preorder_variant_global_threshold,
+    variant,
 ):
     # given
     query = SALE_UPDATE_MUTATION
@@ -662,9 +662,7 @@ def test_update_sale_variants(
     previous_catalogue = convert_migrated_sale_predicate_to_catalogue_info(
         catalogue_predicate
     )
-    new_variant_id = graphene.Node.to_global_id(
-        "ProductVariant", preorder_variant_global_threshold.id
-    )
+    new_variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     variables = {
         "id": graphene.Node.to_global_id("Sale", promotion.old_sale_id),

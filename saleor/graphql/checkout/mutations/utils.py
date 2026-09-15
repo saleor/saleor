@@ -30,7 +30,7 @@ from ....discount.utils.promotion import (
 from ....permission.enums import CheckoutPermissions
 from ....product import models as product_models
 from ....product.models import ProductChannelListing, ProductVariant
-from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
+from ....warehouse.availability import check_stock_quantity_bulk
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_323
 from ...core.validators import validate_one_of_args_is_in_mutation
@@ -134,7 +134,7 @@ def check_lines_quantity(
                 }
             )
     try:
-        check_stock_and_preorder_quantity_bulk(
+        check_stock_quantity_bulk(
             variants,
             country,
             quantities,

@@ -4,7 +4,6 @@ from ...checkout.fetch import fetch_checkout_lines
 from ...core.exceptions import InsufficientStock
 from ..availability import (
     _get_available_quantity,
-    check_stock_and_preorder_quantity,
     check_stock_quantity,
     check_stock_quantity_bulk,
     get_available_quantity,
@@ -512,44 +511,6 @@ def test_check_stock_quantity_country_not_in_zone_shipping_zones_excluded_from_s
         check_stock_quantity(
             variant_with_many_stocks,
             non_matching_country,
-            channel_USD.slug,
-            7,
-            include_shipping_zones=include_shipping_zones,
-        )
-        is None
-    )
-
-
-def test_check_stock_and_preorder_quantity_no_shipping_zones_included(
-    variant_with_many_stocks, channel_USD
-):
-    # given
-    include_shipping_zones = True
-    channel_USD.shipping_zones.clear()
-
-    # when / then - legacy: no shipping zones means no stock
-    with pytest.raises(InsufficientStock):
-        check_stock_and_preorder_quantity(
-            variant_with_many_stocks,
-            COUNTRY_CODE,
-            channel_USD.slug,
-            1,
-            include_shipping_zones=include_shipping_zones,
-        )
-
-
-def test_check_stock_and_preorder_quantity_no_shipping_zones_excluded_from_stock_calculations(
-    variant_with_many_stocks, channel_USD
-):
-    # given
-    include_shipping_zones = False
-    channel_USD.shipping_zones.clear()
-
-    # when / then - flag disabled: shipping zones ignored, stock found
-    assert (
-        check_stock_and_preorder_quantity(
-            variant_with_many_stocks,
-            COUNTRY_CODE,
             channel_USD.slug,
             7,
             include_shipping_zones=include_shipping_zones,
