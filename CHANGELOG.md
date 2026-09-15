@@ -60,7 +60,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Removed the deprecated `note` field from the `Checkout` type. Use `customerNote` instead.
 - Removed the deprecated `isDigital` field from the `ProductType` type, the `isDigital` input from `ProductTypeInput`, the `DIGITAL` value from the `ProductTypeEnum` filter, and the `DIGITAL` value from `ProductTypeSortField`. These had no effect; use metadata or attributes instead (or `SHIPPING_REQUIRED` for sorting).
 - Fixed `productVariantBulkUpdate` returning a 500 error when `channelListings.create` targeted a channel the variant was already listed in. The mutation now returns a `DUPLICATED_INPUT_ITEM` error recommending the `update` field, and respects the selected `errorPolicy` - #19355 by @ayesha-waris
-- Added `externalReference` support to `Collection`: the `collection` query now accepts an `externalReference` argument (alongside `id`/`slug`), and `collectionCreate`/`collectionUpdate`/`collectionDelete` accept it too — `collectionUpdate`/`collectionDelete` can target an existing collection by `externalReference` instead of `id`, mirroring the existing `Warehouse`/`Product` pattern.
+- Added `externalReference` support to `Collection`. Collections can now be created with an external reference, looked up using `collection(externalReference: ...)`, and updated or deleted by external reference instead of ID. The reference can also be changed or cleared through `collectionUpdate`.
 
 ### Webhooks
 
