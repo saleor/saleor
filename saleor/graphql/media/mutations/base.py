@@ -3,14 +3,15 @@ from typing import Any
 from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
 
-from ....permission.enums import BasePermissionEnum
-from ....product import models
-from ....product.media import (
+from ....media.models import BaseMedia
+from ....media.utils import (
     GRAPHQL_TYPE_TO_OWNER_TYPE,
     MEDIA_GRAPHQL_TYPE_TO_OWNER_TYPE,
     MEDIA_OWNER_PERMISSION_MAP,
+    OWNER_TYPE_TO_MEDIA_MODEL,
     OWNER_TYPE_TO_MODEL,
 )
+from ....permission.enums import BasePermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.utils import from_global_id_or_error
 
@@ -128,14 +129,16 @@ class BaseMediaMutation(BaseMutation):
         return owner_type, media_pk
 
     @classmethod
-    def get_media(
-        cls, media_id: str, error_code_enum
-    ) -> tuple[str, models.ProductMedia]:
+    def get_media(cls, media_id: str, error_code_enum) -> tuple[str, BaseMedia]:
         """Resolve a media row and its owner type from an owner-typed global ID."""
         owner_type, media_pk = cls.split_media_id(media_id, error_code_enum)
+        media_model = OWNER_TYPE_TO_MEDIA_MODEL[owner_type]
         media = (
-            models.ProductMedia.objects.filter(pk=media_pk)
-            .filter(**{f"{owner_type}__isnull": False})
+            media_model.objects.filter(pk=media_pk)
+            # Only `ProductMedia.product` is nullable, for legacy reasons, and
+            # such owner-less rows are not addressable through the API. On every
+            # other model the database already guarantees this.
+            .filter(**{f"{media_model.owner_field}__isnull": False})
             .first()
         )
         if media is None:

@@ -3,6 +3,7 @@ from django.db import models
 
 from ..account.models import User
 from ..app.models import App, AppInstallation
+from ..media.models import CategoryMedia, CollectionMedia, PageMedia
 from ..product.models import Category, Collection, ProductMedia
 from . import THUMBNAIL_SIZES, ThumbnailFormat
 
@@ -42,6 +43,30 @@ class Thumbnail(models.Model):
         on_delete=models.CASCADE,
         related_name="thumbnails",
     )
+    category_media = models.ForeignKey(
+        CategoryMedia,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="thumbnails",
+        db_index=False,
+    )
+    collection_media = models.ForeignKey(
+        CollectionMedia,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="thumbnails",
+        db_index=False,
+    )
+    page_media = models.ForeignKey(
+        PageMedia,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="thumbnails",
+        db_index=False,
+    )
     user = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.CASCADE, related_name="thumbnails"
     )
@@ -55,3 +80,12 @@ class Thumbnail(models.Model):
         on_delete=models.CASCADE,
         related_name="thumbnails",
     )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["category_media"], name="thumbnail_categorymedia_idx"),
+            models.Index(
+                fields=["collection_media"], name="thumbnail_collectionmedia_idx"
+            ),
+            models.Index(fields=["page_media"], name="thumbnail_pagemedia_idx"),
+        ]

@@ -1,10 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from .....media.utils import update_media_order
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.media import update_media_order
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS

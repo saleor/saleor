@@ -21,6 +21,7 @@ from ...csv import error_codes as csv_error_codes
 from ...discount import error_codes as discount_error_codes
 from ...giftcard import error_codes as giftcard_error_codes
 from ...invoice import error_codes as invoice_error_codes
+from ...media import error_codes as media_error_codes
 from ...menu import error_codes as menu_error_codes
 from ...order import error_codes as order_error_codes
 from ...page import error_codes as page_error_codes
@@ -327,22 +328,22 @@ InvoiceErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 InvoiceErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 MediaCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    product_error_codes.MediaCreateErrorCode
+    media_error_codes.MediaCreateErrorCode
 )
 MediaCreateErrorCode.doc_category = DOC_CATEGORY_MEDIA
 
 MediaUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    product_error_codes.MediaUpdateErrorCode
+    media_error_codes.MediaUpdateErrorCode
 )
 MediaUpdateErrorCode.doc_category = DOC_CATEGORY_MEDIA
 
 MediaDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    product_error_codes.MediaDeleteErrorCode
+    media_error_codes.MediaDeleteErrorCode
 )
 MediaDeleteErrorCode.doc_category = DOC_CATEGORY_MEDIA
 
 MediaReorderErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    product_error_codes.MediaReorderErrorCode
+    media_error_codes.MediaReorderErrorCode
 )
 MediaReorderErrorCode.doc_category = DOC_CATEGORY_MEDIA
 

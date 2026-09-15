@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
 
 from ..app.models import App
-from ..product.media import MEDIA_OWNER_PERMISSION_MAP
+from ..media.utils import MEDIA_OWNER_PERMISSION_MAP
 from .event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .models import Webhook, WebhookEvent
 

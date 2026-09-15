@@ -1,7 +1,7 @@
 """Media helpers specific to the GraphQL layer.
 
 Media validation, remote-URL probing and gallery ordering live in
-`saleor.product.media`; only presentation concerns belong here.
+`saleor.media.utils`; only presentation concerns belong here.
 """
 
 

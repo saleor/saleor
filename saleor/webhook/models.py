@@ -5,7 +5,7 @@ from django.db import models
 from ..app.models import App
 from ..app.validators import AppURLValidator
 from ..core.utils.json_serializer import CustomJsonEncoder
-from ..product import MediaOwnerTypes
+from ..media import MediaOwnerTypes
 from .const import MAX_FILTERABLE_CHANNEL_SLUGS_LIMIT
 from .validators import custom_headers_validator
 

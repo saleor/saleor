@@ -1,10 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from .....media import ALT_CHAR_LIMIT
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
-from .....product.media import ALT_CHAR_LIMIT
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS

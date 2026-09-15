@@ -8,12 +8,11 @@ from .....graphql.tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from .....product import MediaOwnerTypes
-from .....product.error_codes import MediaDeleteErrorCode
-from .....product.media import (
+from .....media import MediaOwnerTypes
+from .....media.error_codes import MediaDeleteErrorCode
+from .....media.utils import (
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
 )
-from .....product.models import ProductMedia
 from ..utils import (
     MEDIA_AUTH_CASES,
     MEDIA_AUTH_PARAMS,
@@ -66,7 +65,7 @@ def test_delete(
     assert data["errors"] == []
     assert data["media"]["id"] == media_id
     assert data["media"]["__typename"] == OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type]
-    assert ProductMedia.objects.filter(pk=media.pk).exists() is False
+    assert type(media).objects.filter(pk=media.pk).exists() is False
     mock_media_deleted.assert_called_once()
 
 
@@ -115,13 +114,13 @@ def test_delete_authorization(
     if is_allowed:
         content = get_graphql_content(response)
         assert content["data"]["mediaDelete"]["errors"] == []
-        assert ProductMedia.objects.filter(pk=media.pk).exists() is False
+        assert type(media).objects.filter(pk=media.pk).exists() is False
         assert mock_media_deleted.call_count == 1
     else:
         assert_no_permission(response)
         content = get_graphql_content_from_response(response)
         assert content["data"]["mediaDelete"] is None
-        assert ProductMedia.objects.filter(pk=media.pk).exists() is True
+        assert type(media).objects.filter(pk=media.pk).exists() is True
         mock_media_deleted.assert_not_called()
 
 

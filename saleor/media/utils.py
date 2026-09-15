@@ -1,7 +1,7 @@
 """Entity-agnostic media domain logic.
 
-Media rows live on one table but are exposed as one GraphQL type per owner, and
-their global IDs are owner-typed. The lookup tables below are the single source of
+Each owner kind has its own media model and its own GraphQL type, and a media
+global ID is typed by its owner. The lookup tables below are the single source of
 truth for that correspondence; they live in the domain layer because the webhook
 payload and dispatch paths need them as much as the GraphQL layer does. The same
 goes for media validation, remote-URL probing and gallery ordering: the GraphQL
@@ -26,17 +26,24 @@ from ..core.utils.validators import (
 )
 from ..page import models as page_models
 from ..permission.enums import BasePermissionEnum, PagePermissions, ProductPermissions
-from . import MEDIA_URL_CHAR_LIMIT, MediaOwnerTypes, ProductMediaTypes
-from . import models as product_models
-from .lock_objects import product_media_qs_select_for_update
-
-ALT_CHAR_LIMIT = 250
+from ..product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
+from ..product import models as product_models
+from . import ALT_CHAR_LIMIT, MediaOwnerTypes
+from .lock_objects import media_qs_select_for_update
+from .models import BaseMedia, CategoryMedia, CollectionMedia, PageMedia
 
 OWNER_TYPE_TO_MODEL: dict[str, type] = {
     MediaOwnerTypes.PRODUCT: product_models.Product,
     MediaOwnerTypes.CATEGORY: product_models.Category,
     MediaOwnerTypes.COLLECTION: product_models.Collection,
     MediaOwnerTypes.PAGE: page_models.Page,
+}
+
+OWNER_TYPE_TO_MEDIA_MODEL: dict[str, type[BaseMedia]] = {
+    MediaOwnerTypes.PRODUCT: product_models.ProductMedia,
+    MediaOwnerTypes.CATEGORY: CategoryMedia,
+    MediaOwnerTypes.COLLECTION: CollectionMedia,
+    MediaOwnerTypes.PAGE: PageMedia,
 }
 
 # GraphQL enum member name (`PRODUCT`) -> stored owner type (`product`).
@@ -188,7 +195,7 @@ def probe_media_url(media_url: str, error_code_enum) -> MediaUrlProbeResult:
 
 def create_owned_media(
     owner, error_code_enum, error_field: str, **media_data
-) -> product_models.ProductMedia:
+) -> BaseMedia:
     """Attach a media row to `owner`.
 
     The owner can be deleted concurrently while the image is uploaded or the
@@ -218,11 +225,11 @@ def create_media_from_url(
     probe_result: MediaUrlProbeResult,
     error_code_enum,
     error_field: str,
-) -> product_models.ProductMedia:
+) -> BaseMedia:
     """Attach a media row for an already-probed remote URL to `owner`.
 
     An image URL is only recorded here; the file itself is downloaded by
-    `fetch_product_media_image_task`, which the caller schedules.
+    `fetch_media_image_task`, which the caller schedules.
     """
     if probe_result.is_image:
         return create_owned_media(
@@ -245,19 +252,23 @@ def create_media_from_url(
     )
 
 
-def update_media_order(
-    ordered_media: list[product_models.ProductMedia], error_code_enum
-) -> None:
+def update_media_order(ordered_media: list[BaseMedia], error_code_enum) -> None:
     """Renumber `sort_order` to match the given order, in a single write.
+
+    Every item belongs to one gallery and therefore to one media model, which is
+    the model locked and written here.
 
     The rows are locked first so two concurrent reorders of the same gallery
     serialize instead of interleaving into an order neither request asked for.
     Locking also settles whether every row still exists: one deleted concurrently
     aborts the whole reorder rather than leaving a partially renumbered gallery.
     """
+    if not ordered_media:
+        return
+    media_model = type(ordered_media[0])
     with transaction.atomic():
         locked_pks = set(
-            product_media_qs_select_for_update()
+            media_qs_select_for_update(media_model)
             .filter(pk__in=[media.pk for media in ordered_media])
             .values_list("pk", flat=True)
         )
@@ -275,4 +286,4 @@ def update_media_order(
             )
         for order, media in enumerate(ordered_media):
             media.sort_order = order
-        product_models.ProductMedia.objects.bulk_update(ordered_media, ["sort_order"])
+        media_model.objects.bulk_update(ordered_media, ["sort_order"])

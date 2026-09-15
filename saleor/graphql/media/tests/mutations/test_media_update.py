@@ -7,9 +7,9 @@ from .....graphql.tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from .....product import MediaOwnerTypes
-from .....product.error_codes import MediaUpdateErrorCode
-from .....product.media import (
+from .....media import MediaOwnerTypes
+from .....media.error_codes import MediaUpdateErrorCode
+from .....media.utils import (
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
 )
 from ..utils import (

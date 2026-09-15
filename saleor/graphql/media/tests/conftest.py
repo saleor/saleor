@@ -1,8 +1,8 @@
 import pytest
 
 from ....app.models import App
-from ....product import MediaOwnerTypes
-from ....product.media import MEDIA_OWNER_PERMISSION_MAP
+from ....media import MediaOwnerTypes
+from ....media.utils import MEDIA_OWNER_PERMISSION_MAP
 
 OWNER_TYPE_TO_FIXTURE = {
     MediaOwnerTypes.PRODUCT: "product",

@@ -1002,7 +1002,7 @@ class MediaBase(AbstractType):
     def resolve_owner(root, _info: ResolveInfo):
         _, media = root
         owner = media.owner
-        if owner is None or isinstance(owner, product_models.Category):
+        if isinstance(owner, product_models.Category):
             return owner
         return ChannelContext(node=owner, channel_slug=None)
 

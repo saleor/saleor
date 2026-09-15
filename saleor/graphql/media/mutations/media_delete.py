@@ -1,8 +1,8 @@
 import graphene
 
-from ....product import MediaOwnerTypes
-from ....product.error_codes import MediaDeleteErrorCode
-from ....product.media import (
+from ....media import MediaOwnerTypes
+from ....media.error_codes import MediaDeleteErrorCode
+from ....media.utils import (
     MEDIA_GRAPHQL_TYPE_TO_OWNER_TYPE,
     OWNER_TYPE_TO_UPDATED_EVENT,
 )

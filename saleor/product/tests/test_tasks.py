@@ -60,7 +60,7 @@ def mock_http_response_for_product_task(
         content_chunks = [content] if content is not None else []
     mock_response.iter_content.return_value = content_chunks
 
-    with patch("saleor.product.tasks.HTTPClient") as mock_client:
+    with patch("saleor.media.tasks.HTTPClient") as mock_client:
         mock_client.send_request.return_value.__enter__ = MagicMock(
             return_value=mock_response
         )
@@ -70,16 +70,17 @@ def mock_http_response_for_product_task(
 def assert_product_media_fetch_rejected(caplog, product_media, expected_error):
     """Assert the media fetch rejection using captured logs."""
     records = [
-        record for record in caplog.records if record.name == "saleor.product.tasks"
+        record
+        for record in caplog.records
+        if record.name in ("saleor.media.tasks", "saleor.product.tasks")
     ]
     assert len(records) == 2
     rejection_record, failure_record = records
 
-    # Rejection log
+    # Rejection log, emitted by the shared implementation.
     assert rejection_record.levelno == logging.WARNING
     assert rejection_record.getMessage() == (
-        f"Image fetched for product media {product_media.pk} was rejected: "
-        f"{expected_error}"
+        f"Image fetched for media {product_media.pk} was rejected: {expected_error}"
     )
 
     # Clean-up log
@@ -515,7 +516,7 @@ def test_fetch_product_media_image_pixel_count_exceeds_limit_sanitizes_url(
             status_code=200, content_type="image/jpeg", content=IMAGE_1PX
         ),
         patch(
-            "saleor.product.tasks.validate_image_exif",
+            "saleor.media.tasks.validate_image_exif",
             side_effect=ImageTooLargeError(pillow_error),
         ),
         pytest.raises(ImageTooLargeError),
@@ -526,7 +527,7 @@ def test_fetch_product_media_image_pixel_count_exceeds_limit_sanitizes_url(
     sanitized_url = "https://***:***@example.com/image.jpg"
     assert len(caplog.records) == 1
     assert caplog.records[0].getMessage() == (
-        f"Image fetched for product media {product_media.pk} exceeds the pixel "
+        f"Image fetched for media {product_media.pk} exceeds the pixel "
         f"limit: {sanitized_url}"
     )
     assert caplog.records[0].image_source == sanitized_url
@@ -709,7 +710,7 @@ def test_fetch_product_media_image_request_exception(
     assert not product_media.image
 
     # when
-    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+    with patch("saleor.media.tasks.HTTPClient") as mock_http_client:
         mock_http_client.send_request.side_effect = RequestException(
             "Connection timeout"
         )
@@ -734,7 +735,7 @@ def test_fetch_product_media_image_non_retryable_exception(
     assert not product_media.image
 
     # when
-    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+    with patch("saleor.media.tasks.HTTPClient") as mock_http_client:
         mock_http_client.send_request.side_effect = exc_class()
         with pytest.raises(exc_class):
             # this call simulates a single attempt for executing the task
@@ -755,7 +756,7 @@ def test_fetch_product_media_image_non_retryable_exception_on_failure_handler(
     assert not product_media.image
 
     # when
-    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+    with patch("saleor.media.tasks.HTTPClient") as mock_http_client:
         mock_http_client.send_request.side_effect = exc_class()
         fetch_product_media_image_task.apply(args=(product_media.pk,))
 
@@ -770,7 +771,7 @@ def test_fetch_product_media_image_deleted_after_final_retry(
     product_media = product_media_image_not_yet_fetched
 
     # when
-    with patch("saleor.product.tasks.HTTPClient") as mock_http_client:
+    with patch("saleor.media.tasks.HTTPClient") as mock_http_client:
         mock_http_client.send_request.side_effect = RequestException(
             "Connection timeout"
         )

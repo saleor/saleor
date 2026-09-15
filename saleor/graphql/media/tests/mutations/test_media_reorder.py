@@ -7,9 +7,9 @@ from .....graphql.tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from .....product import MediaOwnerTypes
-from .....product.error_codes import MediaReorderErrorCode
-from .....product.media import OWNER_TYPE_TO_UPDATED_EVENT
+from .....media import MediaOwnerTypes
+from .....media.error_codes import MediaReorderErrorCode
+from .....media.utils import OWNER_TYPE_TO_UPDATED_EVENT
 from ..utils import (
     MEDIA_AUTH_CASES,
     MEDIA_AUTH_PARAMS,

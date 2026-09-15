@@ -7,22 +7,24 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("product", "0208_productmedia_owners"),
+        ("thumbnail", "0004_thumbnail_media_owners"),
     ]
 
     operations = [
         AddIndexConcurrently(
-            model_name="productmedia",
-            index=models.Index(fields=["category"], name="productmedia_category_idx"),
-        ),
-        AddIndexConcurrently(
-            model_name="productmedia",
+            model_name="thumbnail",
             index=models.Index(
-                fields=["collection"], name="productmedia_collection_idx"
+                fields=["category_media"], name="thumbnail_categorymedia_idx"
             ),
         ),
         AddIndexConcurrently(
-            model_name="productmedia",
-            index=models.Index(fields=["page"], name="productmedia_page_idx"),
+            model_name="thumbnail",
+            index=models.Index(
+                fields=["collection_media"], name="thumbnail_collectionmedia_idx"
+            ),
+        ),
+        AddIndexConcurrently(
+            model_name="thumbnail",
+            index=models.Index(fields=["page_media"], name="thumbnail_pagemedia_idx"),
         ),
     ]

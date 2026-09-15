@@ -2,7 +2,8 @@ from typing import Final
 
 import graphene
 
-from ...product import MediaOwnerTypes, ProductMediaTypes
+from ...media import MediaOwnerTypes
+from ...product import ProductMediaTypes
 from ..core.descriptions import ADDED_IN_324
 from ..core.doc_category import DOC_CATEGORY_MEDIA
 from ..core.enums import to_enum

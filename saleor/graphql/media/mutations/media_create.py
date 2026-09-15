@@ -1,9 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....product import MediaOwnerTypes, ProductMediaTypes
-from ....product.error_codes import MediaCreateErrorCode
-from ....product.media import (
+from ....media import MediaOwnerTypes
+from ....media.error_codes import MediaCreateErrorCode
+from ....media.tasks import fetch_media_image_task
+from ....media.utils import (
     GRAPHQL_TYPE_TO_OWNER_TYPE,
     OWNER_TYPE_TO_UPDATED_EVENT,
     create_media_from_url,
@@ -11,7 +12,7 @@ from ....product.media import (
     probe_media_url,
     validate_media_input,
 )
-from ....product.tasks import fetch_product_media_image_task
+from ....product import ProductMediaTypes
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_324
@@ -121,7 +122,7 @@ class MediaCreate(BaseMediaMutation):
                 owner, media_url, alt, probe_result, MediaCreateErrorCode, "id"
             )
             if probe_result.is_image:
-                fetch_product_media_image_task.delay(media.pk)
+                fetch_media_image_task.delay(owner_type, media.pk)
 
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(getattr(manager, OWNER_TYPE_TO_UPDATED_EVENT[owner_type]), owner)

@@ -1,10 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....product import MediaOwnerTypes
-from ....product.error_codes import MediaUpdateErrorCode
-from ....product.media import (
-    ALT_CHAR_LIMIT,
+from ....media import ALT_CHAR_LIMIT, MediaOwnerTypes
+from ....media.error_codes import MediaUpdateErrorCode
+from ....media.utils import (
     MEDIA_GRAPHQL_TYPE_TO_OWNER_TYPE,
     OWNER_TYPE_TO_UPDATED_EVENT,
 )

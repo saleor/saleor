@@ -5,12 +5,12 @@ import graphene
 import pytest
 
 from ....graphql.tests.utils import get_graphql_content
-from ....plugins.manager import get_plugins_manager
-from ....product import MediaOwnerTypes
-from ....product.media import (
+from ....media import MediaOwnerTypes
+from ....media.utils import (
     MEDIA_OWNER_PERMISSION_MAP,
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
 )
+from ....plugins.manager import get_plugins_manager
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
 from ....webhook.transport.asynchronous.transport import (

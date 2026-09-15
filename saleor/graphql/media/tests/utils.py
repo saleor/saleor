@@ -1,8 +1,9 @@
 import graphene
 
-from ....product.media import (
+from ....media.utils import (
     OWNER_TYPE_TO_GRAPHQL_TYPE,
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
+    OWNER_TYPE_TO_MEDIA_MODEL,
 )
 
 # The auth matrix every media mutation is exercised against, per owner type.
@@ -41,3 +42,8 @@ def media_global_id(owner_type, media):
 def owner_global_id(owner_type, owner):
     """Return the global ID of a media owner."""
     return graphene.Node.to_global_id(OWNER_TYPE_TO_GRAPHQL_TYPE[owner_type], owner.pk)
+
+
+def media_count() -> int:
+    """Count media rows across every owner model."""
+    return sum(model.objects.count() for model in OWNER_TYPE_TO_MEDIA_MODEL.values())

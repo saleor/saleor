@@ -13,10 +13,10 @@ from ....core.editorjs import editorjs_to_text
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils import prepare_unique_slug
 from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_as_dirty
+from ....media.utils import probe_media_url, validate_media_input
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
-from ....product.media import probe_media_url, validate_media_input
 from ....product.models import CollectionProduct
 from ....product.tasks import fetch_product_media_image_task
 from ....warehouse.models import Warehouse

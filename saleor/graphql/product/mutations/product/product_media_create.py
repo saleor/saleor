@@ -1,15 +1,15 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....permission.enums import ProductPermissions
-from .....product import ProductMediaTypes, models
-from .....product.error_codes import ProductErrorCode
-from .....product.media import (
+from .....media.utils import (
     create_media_from_url,
     create_owned_media,
     probe_media_url,
     validate_media_input,
 )
+from .....permission.enums import ProductPermissions
+from .....product import ProductMediaTypes, models
+from .....product.error_codes import ProductErrorCode
 from .....product.tasks import fetch_product_media_image_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext

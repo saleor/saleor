@@ -12,6 +12,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
 from ...discount import models as discount_models
 from ...giftcard import models as giftcard_models
+from ...media import models as media_models
 from ...order import models as order_models
 from ...page import models as page_models
 from ...payment import models as payment_models
@@ -39,7 +40,7 @@ def resolve_object_with_metadata_type(instance):
     from ..discount import types as discount_types
     from ..giftcard import types as giftcard_types
     from ..invoice import types as invoice_types
-    from ..media.types import resolve_media_type_for_owner
+    from ..media import types as media_types
     from ..menu import types as menu_types
     from ..order import types as order_types
     from ..page import types as page_types
@@ -64,6 +65,9 @@ def resolve_object_with_metadata_type(instance):
         discount_models.Voucher: discount_types.Voucher,
         giftcard_models.GiftCard: giftcard_types.GiftCard,
         invoice_models.Invoice: invoice_types.Invoice,
+        media_models.CategoryMedia: media_types.CategoryMedia,
+        media_models.CollectionMedia: media_types.CollectionMedia,
+        media_models.PageMedia: media_types.PageMedia,
         menu_models.Menu: menu_types.Menu,
         menu_models.MenuItem: menu_types.MenuItem,
         order_models.Fulfillment: order_types.Fulfillment,
@@ -76,7 +80,7 @@ def resolve_object_with_metadata_type(instance):
         product_models.Category: product_types.Category,
         product_models.Collection: product_types.Collection,
         product_models.Product: product_types.Product,
-        product_models.ProductMedia: product_types.ProductMedia,
+        product_models.ProductMedia: media_types.ProductMedia,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,
         shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
@@ -92,11 +96,6 @@ def resolve_object_with_metadata_type(instance):
             instance, "old_sale_id", False
         ):
             return discount_types.Sale, instance.pk
-        if isinstance(instance, product_models.ProductMedia):
-            # One table, one GraphQL type per owner. Owner-less legacy rows keep
-            # resolving as ProductMedia.
-            media_type = resolve_media_type_for_owner(instance)
-            return media_type or product_types.ProductMedia, instance.pk
         return MODEL_TO_TYPE_MAP[instance.__class__], instance.pk
 
     if dataclasses.is_dataclass(instance):

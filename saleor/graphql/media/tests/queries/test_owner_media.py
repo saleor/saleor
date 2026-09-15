@@ -4,11 +4,12 @@ import graphene
 import pytest
 
 from .....graphql.tests.utils import get_graphql_content
-from .....product import MediaOwnerTypes, ProductMediaTypes
-from .....product.error_codes import ProductErrorCode
-from .....product.media import (
+from .....media import MediaOwnerTypes
+from .....media.utils import (
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
 )
+from .....product import ProductMediaTypes
+from .....product.error_codes import ProductErrorCode
 from ..utils import owner_global_id
 
 OWNER_MEDIA_QUERIES = {

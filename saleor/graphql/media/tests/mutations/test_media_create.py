@@ -10,18 +10,19 @@ from .....graphql.tests.utils import (
     get_graphql_content_from_response,
     get_multipart_request_body,
 )
-from .....page.models import Page
-from .....product import MediaOwnerTypes, ProductMediaTypes
-from .....product.error_codes import MediaCreateErrorCode
-from .....product.media import (
+from .....media import MediaOwnerTypes
+from .....media.error_codes import MediaCreateErrorCode
+from .....media.utils import (
     OWNER_TYPE_TO_GRAPHQL_TYPE,
     OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
 )
-from .....product.models import ProductMedia
+from .....page.models import Page
+from .....product import ProductMediaTypes
 from .....product.tests.utils import create_image
 from ..utils import (
     MEDIA_AUTH_CASES,
     MEDIA_AUTH_PARAMS,
+    media_count,
     owner_global_id,
 )
 
@@ -100,8 +101,8 @@ def test_create_with_image_upload(
 
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
-@patch("saleor.product.tasks.fetch_product_media_image_task.delay")
-@patch("saleor.product.media.HTTPClient")
+@patch("saleor.media.tasks.fetch_media_image_task.delay")
+@patch("saleor.media.utils.HTTPClient")
 def test_create_with_remote_image_url(
     mock_http_client,
     mock_fetch_task,
@@ -137,12 +138,12 @@ def test_create_with_remote_image_url(
     media = media_owner.media.get()
     assert media.external_url == media_url
     assert media.type == ProductMediaTypes.IMAGE
-    mock_fetch_task.assert_called_once_with(media.pk)
+    mock_fetch_task.assert_called_once_with(owner_type, media.pk)
 
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
-@patch("saleor.product.media.get_oembed_data")
-@patch("saleor.product.media.HTTPClient")
+@patch("saleor.media.utils.get_oembed_data")
+@patch("saleor.media.utils.HTTPClient")
 def test_create_with_oembed_url(
     mock_http_client,
     mock_get_oembed_data,
@@ -280,7 +281,7 @@ def test_create_input_validation(
     assert errors[0]["code"] == expected_code
     assert errors[0]["field"] == expected_field
     assert errors[0]["message"] == expected_message
-    assert ProductMedia.objects.exists() is False
+    assert media_count() == 0
 
 
 def test_create_rejects_unsupported_owner_type(
@@ -308,13 +309,13 @@ def test_create_rejects_unsupported_owner_type(
     assert errors[0]["message"] == (
         "Media can only be attached to a Product, Category, Collection or Page."
     )
-    assert ProductMedia.objects.exists() is False
+    assert media_count() == 0
 
 
 # The insert must really hit the database for the foreign key to be checked, so
 # this test needs actual commits instead of the usual wrapping transaction.
 @pytest.mark.django_db(transaction=True)
-@patch("saleor.product.media.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 def test_create_when_owner_deleted_while_media_url_is_probed(
     mock_http_client, staff_api_client, page, permission_manage_pages
 ):
@@ -347,7 +348,7 @@ def test_create_when_owner_deleted_while_media_url_is_probed(
     assert errors[0]["code"] == MediaCreateErrorCode.NOT_FOUND.name
     assert errors[0]["field"] == "id"
     assert errors[0]["message"] == "Page no longer exists."
-    assert ProductMedia.objects.exists() is False
+    assert media_count() == 0
 
 
 def test_create_rejects_missing_owner(
@@ -372,7 +373,7 @@ def test_create_rejects_missing_owner(
     assert errors[0]["code"] == MediaCreateErrorCode.NOT_FOUND.name
     assert errors[0]["field"] == "id"
     assert errors[0]["message"] == f"Couldn't resolve to an object: {owner_id}"
-    assert ProductMedia.objects.exists() is False
+    assert media_count() == 0
 
 
 @pytest.mark.parametrize("owner_type", ALL_OWNER_TYPES)
@@ -417,7 +418,7 @@ def test_create_authorization(
         assert_no_permission(response)
         content = get_graphql_content_from_response(response)
         assert content["data"]["mediaCreate"] is None
-        assert ProductMedia.objects.exists() is False
+        assert media_count() == 0
         mock_media_created.assert_not_called()
 
 

@@ -14,7 +14,7 @@ from graphql.language.ast import (
     OperationDefinition,
 )
 
-from ...product.media import ENUM_NAME_TO_OWNER_TYPE
+from ...media.utils import ENUM_NAME_TO_OWNER_TYPE
 from ...webhook.error_codes import WebhookErrorCode
 
 
