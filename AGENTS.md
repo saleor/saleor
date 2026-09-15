@@ -48,7 +48,31 @@ means for assertions.
 
 ###  API versioning
 
-- Check last git tag to find what version we are branched from (e.g. 3.22 tag). Based on that, add description to new fields with ADDED_IN_{VERSION} clause
+- Check last git tag to find what version we are branched from (e.g. 3.22 tag). Based on that, add
+  description to new fields with ADDED_IN_{VERSION} clause. Use the version the change actually ships
+  in — for a backport, that is the backport's version, not the one on `main`.
+- Import the constant from `saleor/graphql/core/descriptions.py` and concatenate it onto the
+  description. Add a new constant there if the target version has none yet.
+- **For a new type, annotate only the type-level `Meta.description`.** Its fields are covered by the
+  type's own annotation, so leave them unstamped:
+
+  ```python
+  class TransactionEventFilterInput(BaseInputObjectType):
+      created_at = DateTimeRangeInput(
+          description="Filter transaction events by created at date.",
+      )
+
+      class Meta:
+          doc_category = DOC_CATEGORY_PAYMENTS
+          description = "Filter input for transaction events data." + ADDED_IN_323
+  ```
+
+- Annotate an individual field only when it is added to a type that already exists. That is the case
+  where the field's version genuinely differs from its type's.
+- Do not stamp a pre-existing field just because you changed its behavior. ADDED_IN marks new schema
+  surface, not modifications.
+- Regenerate `saleor/graphql/schema.graphql` afterwards and commit it — the annotation is part of the
+  public schema's description text, and a stale schema file fails CI.
 
 
 ### GraphQL permissions
