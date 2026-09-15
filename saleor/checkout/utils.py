@@ -32,7 +32,12 @@ from ..core.utils.promo_code import (
 )
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
-from ..discount import DiscountType, VoucherType
+from ..discount import (
+    DiscountType,
+    VoucherRejection,
+    VoucherRejectionReason,
+    VoucherType,
+)
 from ..discount.interface import fetch_voucher_info
 from ..discount.models import CheckoutDiscount, NotApplicable, Voucher, VoucherCode
 from ..discount.utils.checkout import (
@@ -443,17 +448,21 @@ def _get_shipping_voucher_discount_for_checkout(
     """Calculate discount value for a voucher of shipping type."""
     if not is_shipping_required(lines):
         msg = "Your order does not require shipping."
-        raise NotApplicable(msg)
+        raise NotApplicable(msg, reason=VoucherRejectionReason.SHIPPING_NOT_REQUIRED)
     shipping_method = checkout_info.get_delivery_method_info().delivery_method
     if not shipping_method:
         msg = "Please select a delivery method first."
-        raise NotApplicable(msg)
+        raise NotApplicable(msg, reason=VoucherRejectionReason.DELIVERY_METHOD_NOT_SET)
 
     # check if voucher is limited to specified countries
     if address:
         if voucher.countries and address.country.code not in voucher.countries:
             msg = "This offer is not valid in your country."
-            raise NotApplicable(msg)
+            raise NotApplicable(
+                msg,
+                reason=VoucherRejectionReason.COUNTRY_NOT_ELIGIBLE,
+                countries=[country.code for country in voucher.countries],
+            )
 
     shipping_price = base_calculations.base_checkout_undiscounted_delivery_price(
         checkout_info=checkout_info, lines=lines
@@ -534,7 +543,7 @@ def _get_products_voucher_discount(
         prices = get_prices_of_discounted_specific_product(lines, voucher)
     if not prices:
         msg = "This offer is only valid for selected items."
-        raise NotApplicable(msg)
+        raise NotApplicable(msg, reason=VoucherRejectionReason.NO_ELIGIBLE_LINES)
     return get_products_voucher_discount(voucher, prices, checkout_info.channel)
 
 
@@ -722,7 +731,9 @@ def add_promo_code_to_checkout(
             checkout_info.channel.currency_code,
         )
     else:
-        raise InvalidPromoCode()
+        raise InvalidPromoCode(
+            voucher_rejection=VoucherRejection(reason=VoucherRejectionReason.NOT_FOUND)
+        )
 
 
 def add_voucher_code_to_checkout(
@@ -746,6 +757,7 @@ def add_voucher_code_to_checkout(
                 "promo_code": ValidationError(
                     "Voucher is not applicable to this checkout.",
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                    params={"voucher_details": e.rejection},
                 )
             }
         ) from e

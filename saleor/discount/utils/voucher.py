@@ -4,7 +4,16 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, Union, cast
 from uuid import UUID
 
-from django.db.models import Case, Exists, F, IntegerField, OuterRef, Value, When
+from django.db.models import (
+    Case,
+    Exists,
+    F,
+    IntegerField,
+    OuterRef,
+    Sum,
+    Value,
+    When,
+)
 from django.utils import timezone
 from prices import Money
 
@@ -14,13 +23,19 @@ from ...core.db.connection import allow_writer
 from ...core.taxes import zero_money
 from ...core.utils.promo_code import InvalidPromoCode
 from ...order.models import Order, OrderLine
-from .. import DiscountType, VoucherType
+from .. import (
+    DiscountType,
+    VoucherRejection,
+    VoucherRejectionReason,
+    VoucherType,
+)
 from ..interface import DiscountInfo, VoucherInfo
 from ..models import (
     DiscountValueType,
     NotApplicable,
     OrderLineDiscount,
     Voucher,
+    VoucherChannelListing,
     VoucherCode,
     VoucherCustomer,
 )
@@ -113,13 +128,19 @@ def add_voucher_usage_by_customer(
     code: "VoucherCode", customer_email: str | None
 ) -> None:
     if not customer_email:
-        raise NotApplicable("Unable to apply voucher as customer details are missing.")
+        raise NotApplicable(
+            "Unable to apply voucher as customer details are missing.",
+            reason=VoucherRejectionReason.CUSTOMER_EMAIL_REQUIRED,
+        )
 
     _, created = VoucherCustomer.objects.get_or_create(
         voucher_code=code, customer_email=customer_email
     )
     if not created:
-        raise NotApplicable("This offer is only valid once per customer.")
+        raise NotApplicable(
+            "This offer is only valid once per customer.",
+            reason=VoucherRejectionReason.ALREADY_USED_BY_CUSTOMER,
+        )
 
 
 def remove_voucher_usage_by_customer(code: "VoucherCode", customer_email: str) -> None:
@@ -170,8 +191,56 @@ def get_voucher_code_instance(
     ):
         code_instance = VoucherCode.objects.get(code=voucher_code)
     else:
-        raise InvalidPromoCode()
+        raise InvalidPromoCode(
+            voucher_rejection=VoucherRejection(
+                reason=diagnose_invalid_voucher_code(
+                    voucher_code, channel_slug, validate_usage_limit
+                )
+            )
+        )
     return code_instance
+
+
+def diagnose_invalid_voucher_code(
+    voucher_code: str,
+    channel_slug: str,
+    validate_usage_limit: bool,
+) -> VoucherRejectionReason:
+    """Return the `VoucherRejectionReason` explaining why a code was rejected.
+
+    Only called once a code has already been found unusable, so the extra
+    queries never run on the happy path.
+    """
+    code = (
+        VoucherCode.objects.filter(code=voucher_code).select_related("voucher").first()
+    )
+    if code is None:
+        return VoucherRejectionReason.NOT_FOUND
+    if not code.is_active:
+        return VoucherRejectionReason.CODE_DEACTIVATED
+
+    voucher = code.voucher
+    now = timezone.now()
+    if voucher.start_date > now:
+        return VoucherRejectionReason.NOT_STARTED
+    if voucher.end_date and voucher.end_date < now:
+        return VoucherRejectionReason.EXPIRED
+    if validate_usage_limit and voucher.usage_limit is not None:
+        used = (
+            VoucherCode.objects.filter(voucher_id=voucher.pk).aggregate(
+                total_used=Sum("used")
+            )["total_used"]
+            or 0
+        )
+        if used >= voucher.usage_limit:
+            return VoucherRejectionReason.USAGE_LIMIT_REACHED
+    if not VoucherChannelListing.objects.filter(
+        voucher_id=voucher.pk,
+        channel__slug=channel_slug,
+        channel__is_active=True,
+    ).exists():
+        return VoucherRejectionReason.NOT_AVAILABLE_IN_CHANNEL
+    return VoucherRejectionReason.NOT_FOUND
 
 
 def get_active_voucher_code(voucher, channel_slug, validate_usage_limit=True):

@@ -5,7 +5,7 @@ import graphene
 from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
-from ...account.enums import AddressTypeEnum
+from ...account.enums import AddressTypeEnum, CountryCodeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
@@ -89,6 +89,7 @@ from ..enums import (
     TranslationErrorCode,
     UploadErrorCode,
     VoucherCodeBulkDeleteErrorCode,
+    VoucherRejectionReason,
     WarehouseErrorCode,
     WebhookDryRunErrorCode,
     WebhookErrorCode,
@@ -98,7 +99,7 @@ from ..enums import (
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
 from .base import BaseObjectType
-from .money import VAT
+from .money import VAT, Money
 from .upload import Upload
 
 if TYPE_CHECKING:
@@ -263,6 +264,42 @@ class ChannelError(Error):
         doc_category = DOC_CATEGORY_CHANNELS
 
 
+class VoucherRejectionDetails(BaseObjectType):
+    reason = VoucherRejectionReason(
+        description="The specific reason why the voucher cannot be applied.",
+        required=True,
+    )
+    min_spent = graphene.Field(
+        Money,
+        description=(
+            "The minimum order value required by the voucher. "
+            "Set only when `reason` is `MIN_SPENT_NOT_REACHED`."
+        ),
+        required=False,
+    )
+    min_checkout_items_quantity = graphene.Int(
+        description=(
+            "The minimum number of items required by the voucher. "
+            "Set only when `reason` is `MIN_QUANTITY_NOT_REACHED`."
+        ),
+        required=False,
+    )
+    countries = NonNullList(
+        CountryCodeEnum,
+        description=(
+            "The countries the voucher is valid in. "
+            "Set only when `reason` is `COUNTRY_NOT_ELIGIBLE`."
+        ),
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
+        description = (
+            "Details explaining why a voucher code cannot be applied." + ADDED_IN_323
+        )
+
+
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
     variants = NonNullList(
@@ -277,6 +314,14 @@ class CheckoutError(Error):
     )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
+    )
+    voucher_details = graphene.Field(
+        VoucherRejectionDetails,
+        description=(
+            "Details of the voucher that caused the error. "
+            "Null when the error is not related to a voucher." + ADDED_IN_323
+        ),
+        required=False,
     )
 
     class Meta:
