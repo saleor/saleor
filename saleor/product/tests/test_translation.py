@@ -74,6 +74,14 @@ def test_product_variant_translation(settings, variant):
     assert get_translation(variant).name == french_name
 
 
+def test_product_media_translation(settings, product_media_image):
+    settings.LANGUAGE_CODE = "fr"
+    translated_alt = "French alt text"
+    product_media_image.translations.create(language_code="fr", alt=translated_alt)
+
+    assert get_translation(product_media_image).alt == translated_alt
+
+
 def test_attribute_value_translation(settings, product, attribute_value_translation_fr):
     attribute = product.product_type.product_attributes.first().values.first()
     assert not get_translation(attribute).name == "French name"

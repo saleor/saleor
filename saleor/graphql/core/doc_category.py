@@ -78,6 +78,7 @@ DOC_CATEGORY_MAP = {
     "product.ProductTranslation": DOC_CATEGORY_PRODUCTS,
     "product.ProductChannelListing": DOC_CATEGORY_PRODUCTS,
     "product.ProductMedia": DOC_CATEGORY_PRODUCTS,
+    "product.ProductMediaTranslation": DOC_CATEGORY_PRODUCTS,
     "product.ProductType": DOC_CATEGORY_PRODUCTS,
     "product.ProductVariant": DOC_CATEGORY_PRODUCTS,
     "product.ProductVariantTranslation": DOC_CATEGORY_PRODUCTS,
