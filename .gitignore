@@ -35,3 +35,6 @@ Pipfile
 
 # Exported results file
 django-queries-results.html
+
+# 3.21 uses poetry; uv.lock is a stray artifact of running uv here
+uv.lock
