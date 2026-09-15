@@ -227,7 +227,8 @@ class ProductOrderField(BaseEnum):
             min_variants_price_amount=Min(
                 "variants__channel_listings__price_amount",
                 filter=Q(variants__channel_listings__channel__slug=str(channel_slug))
-                & Q(variants__channel_listings__price_amount__isnull=False),
+                & Q(variants__channel_listings__price_amount__isnull=False)
+                & Q(variants__channel_listings__is_available_for_purchase=True),
             )
         )
 

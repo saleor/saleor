@@ -60,10 +60,8 @@ class ProductsQueryset(models.QuerySet):
             return self.none()
         variant_channel_listings = (
             ProductVariantChannelListing.objects.using(self.db)
-            .filter(
-                channel_id=channel.id,
-                price_amount__isnull=False,
-            )
+            .sellable()
+            .filter(channel_id=channel.id)
             .values("id")
         )
         variants = ProductVariant.objects.using(self.db).filter(
@@ -314,7 +312,8 @@ class ProductVariantQueryset(models.QuerySet):
             return self.none()
         channel_listings = (
             ProductVariantChannelListing.objects.using(self.db)
-            .filter(price_amount__isnull=False, channel_id=channel.id)
+            .sellable()
+            .filter(channel_id=channel.id)
             .values("id")
         )
         return self.filter(Exists(channel_listings.filter(variant_id=OuterRef("pk"))))
@@ -356,6 +355,7 @@ class ProductVariantQueryset(models.QuerySet):
         variants = self.filter(
             channel_listings__channel_id=channel.id,
             channel_listings__price_amount__isnull=False,
+            channel_listings__is_available_for_purchase=True,
         )
 
         today = datetime.datetime.now(tz=datetime.UTC)
@@ -372,7 +372,17 @@ class ProductVariantQueryset(models.QuerySet):
 ProductVariantManager = models.Manager.from_queryset(ProductVariantQueryset)
 
 
+SELLABLE_LISTING = Q(price_amount__isnull=False, is_available_for_purchase=True)
+"""A variant channel listing that a customer can actually buy.
+
+Mirrored by `ProductVariantChannelListing.is_sellable` for fetched instances.
+"""
+
+
 class ProductVariantChannelListingQuerySet(models.QuerySet):
+    def sellable(self):
+        return self.filter(SELLABLE_LISTING)
+
     def annotate_preorder_quantity_allocated(self):
         return self.annotate(
             preorder_quantity_allocated=Coalesce(

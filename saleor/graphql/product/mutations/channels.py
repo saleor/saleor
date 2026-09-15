@@ -10,6 +10,9 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.date_time import convert_to_utc_date_time
 from ....permission.enums import ProductPermissions
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
+from ....product.lock_objects import (
+    product_variant_channel_listing_qs_select_for_update,
+)
 from ....product.models import (
     CollectionChannelListing,
     ProductChannelListing,
@@ -24,6 +27,7 @@ from ...core import ResolveInfo
 from ...core.context import ChannelContext
 from ...core.descriptions import (
     ADDED_IN_321,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_PREORDER_INPUT,
 )
@@ -35,6 +39,7 @@ from ...core.types import (
     CollectionChannelListingError,
     NonNullList,
     ProductChannelListingError,
+    ProductVariantChannelListingAvailabilityUpdateError,
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import (
@@ -51,6 +56,8 @@ if TYPE_CHECKING:
     from ....product.models import Collection as CollectionModel
 
 ErrorType = defaultdict[str, list[ValidationError]]
+
+AVAILABILITY_UPDATE_MAX_ITEMS = 100
 
 
 class PublishableChannelListingInput(BaseInputObjectType):
@@ -386,6 +393,16 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         )
 
 
+def get_listing_availability(listing_data: dict) -> bool:
+    """Resolve the availability flag of a listing input.
+
+    Both an omitted field and an explicit `null` mean "leave it to the default",
+    since the column is not nullable.
+    """
+    is_available_for_purchase = listing_data.get("is_available_for_purchase")
+    return True if is_available_for_purchase is None else is_available_for_purchase
+
+
 class ProductVariantChannelListingAddInput(BaseInputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     price = PositiveDecimal(
@@ -402,12 +419,42 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
             f"The threshold for preorder variant in channel.{DEPRECATED_PREORDER_INPUT}"
         )
     )
+    is_available_for_purchase = graphene.Boolean(
+        description="Determines whether the variant can be bought in this channel. "
+        "When omitted on an existing listing, the current value is kept." + ADDED_IN_323
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class ProductVariantChannelListingUpdate(BaseMutation):
+class VariantByIdOrSkuMixin:
+    """Resolve the product variant a channel listing mutation operates on."""
+
+    @classmethod
+    def get_variant_by_id_or_sku(
+        cls, info: ResolveInfo, id: str | None, sku: str | None
+    ) -> "ProductVariantModel":
+        validate_one_of_args_is_in_mutation("sku", sku, "id", id)
+
+        qs = ProductVariantModel.objects.all()
+        if id:
+            return cls.get_node_or_error(  # type: ignore[attr-defined]
+                info, id, only_type=ProductVariant, field="id", qs=qs
+            )
+        variant = qs.filter(sku=sku).first()
+        if not variant:
+            raise ValidationError(
+                {
+                    "sku": ValidationError(
+                        f"Couldn't resolve to a node: {sku}", code="not_found"
+                    )
+                }
+            )
+        return variant
+
+
+class ProductVariantChannelListingUpdate(VariantByIdOrSkuMixin, BaseMutation):
     variant = graphene.Field(
         ProductVariant, description="An updated product variant instance."
     )
@@ -546,6 +593,10 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                     defaults["preorder_quantity_threshold"] = channel_listing_data.get(
                         "preorder_threshold", None
                     )
+                if channel_listing_data.get("is_available_for_purchase") is not None:
+                    defaults["is_available_for_purchase"] = channel_listing_data[
+                        "is_available_for_purchase"
+                    ]
                 ProductVariantChannelListing.objects.update_or_create(
                     variant=variant,
                     channel=channel,
@@ -570,23 +621,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id=None, input, sku=None
     ):
-        validate_one_of_args_is_in_mutation("sku", sku, "id", id)
-
-        qs = ProductVariantModel.objects.all()
-        if id:
-            variant = cls.get_node_or_error(
-                info, id, only_type=ProductVariant, field="id", qs=qs
-            )
-        else:
-            variant = qs.filter(sku=sku).first()
-            if not variant:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            f"Couldn't resolve to a node: {sku}", code="not_found"
-                        )
-                    }
-                )
+        variant = cls.get_variant_by_id_or_sku(info, id, sku)
 
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
@@ -602,6 +637,168 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         return ProductVariantChannelListingUpdate(
             variant=ChannelContext(node=variant, channel_slug=None)
         )
+
+
+class ProductVariantChannelListingAvailabilityInput(BaseInputObjectType):
+    channel_id = graphene.ID(required=True, description="ID of a channel.")
+    is_available_for_purchase = graphene.Boolean(
+        required=True,
+        description=("Determines whether the variant can be bought in this channel."),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        description = (
+            "Fields required to toggle a product variant's availability "
+            "in a channel." + ADDED_IN_323
+        )
+
+
+class ProductVariantChannelListingAvailabilityUpdate(
+    VariantByIdOrSkuMixin, BaseMutation
+):
+    variant = graphene.Field(
+        ProductVariant, description="An updated product variant instance."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            required=False, description="ID of a product variant to update."
+        )
+        sku = graphene.String(
+            required=False, description="SKU of a product variant to update."
+        )
+        input = NonNullList(
+            ProductVariantChannelListingAvailabilityInput,
+            required=True,
+            description=(
+                "List of channels to toggle the variant's availability in. "
+                f"Max {AVAILABILITY_UPDATE_MAX_ITEMS} items."
+            ),
+        )
+
+    class Meta:
+        description = (
+            "Toggle whether a product variant can be bought in the given channels, "
+            "without touching its prices. An unavailable variant is hidden from "
+            "customers and cannot be added to a checkout or an order." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = ProductVariantChannelListingAvailabilityUpdateError
+
+    @classmethod
+    def clean_channels(cls, input) -> dict[int, dict]:
+        """Map channel pk to its input, rejecting oversized and duplicated input."""
+        channel_ids = [channel_data["channel_id"] for channel_data in input]
+
+        if len(channel_ids) > AVAILABILITY_UPDATE_MAX_ITEMS:
+            raise ValidationError(
+                {
+                    "input": ValidationError(
+                        f"Cannot specify more than "
+                        f"{AVAILABILITY_UPDATE_MAX_ITEMS} items.",
+                        code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
+
+        duplicates = get_duplicated_values(channel_ids)
+        if duplicates:
+            raise ValidationError(
+                {
+                    "channel_id": ValidationError(
+                        "Duplicated channel ID.",
+                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
+                        params={"channels": list(duplicates)},
+                    )
+                }
+            )
+
+        channels = cls.get_nodes_or_error(channel_ids, "channel_id", Channel)
+        return {
+            channel.pk: channel_data
+            for channel, channel_data in zip(channels, input, strict=True)
+        }
+
+    @classmethod
+    def get_listings_to_update(
+        cls, variant: "ProductVariantModel", channel_id_to_input: dict[int, dict]
+    ) -> list[ProductVariantChannelListing]:
+        """Return the listings whose flag actually changes.
+
+        Must run inside a transaction: the rows are locked so a concurrent toggle
+        of the same listing cannot be silently lost.
+
+        Raises when the variant has no listing in one of the requested channels —
+        this mutation updates listings, it must not create price-less ones.
+        """
+        listings = list(
+            product_variant_channel_listing_qs_select_for_update().filter(
+                variant_id=variant.pk, channel_id__in=channel_id_to_input
+            )
+        )
+        missing_channel_ids = set(channel_id_to_input) - {
+            listing.channel_id for listing in listings
+        }
+        if missing_channel_ids:
+            raise ValidationError(
+                {
+                    "channel_id": ValidationError(
+                        "Variant has no channel listing in the given channels.",
+                        code=ProductErrorCode.NOT_FOUND.value,
+                        params={
+                            "channels": [
+                                channel_id_to_input[channel_id]["channel_id"]
+                                for channel_id in missing_channel_ids
+                            ]
+                        },
+                    )
+                }
+            )
+
+        listings_to_update = []
+        for listing in listings:
+            is_available = channel_id_to_input[listing.channel_id][
+                "is_available_for_purchase"
+            ]
+            if listing.is_available_for_purchase != is_available:
+                listing.is_available_for_purchase = is_available
+                listings_to_update.append(listing)
+        return listings_to_update
+
+    @classmethod
+    def post_save_actions(
+        cls,
+        info: ResolveInfo,
+        variant: "ProductVariantModel",
+        updated_listings: list[ProductVariantChannelListing],
+    ):
+        cls.call_event(
+            mark_products_in_channels_as_dirty,
+            {listing.channel_id: {variant.product_id} for listing in updated_listings},
+        )
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.product_variant_updated, variant)
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id=None, input, sku=None
+    ):
+        variant = cls.get_variant_by_id_or_sku(info, id, sku)
+        channel_id_to_input = cls.clean_channels(input)
+
+        with traced_atomic_transaction():
+            listings_to_update = cls.get_listings_to_update(
+                variant, channel_id_to_input
+            )
+            if listings_to_update:
+                ProductVariantChannelListing.objects.bulk_update(
+                    listings_to_update, ["is_available_for_purchase"]
+                )
+                cls.post_save_actions(info, variant, listings_to_update)
+
+        return cls(variant=ChannelContext(node=variant, channel_slug=None))
 
 
 class CollectionChannelListingUpdateInput(BaseInputObjectType):

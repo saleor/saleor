@@ -302,7 +302,7 @@ def update_undiscounted_unit_price_for_lines(lines: Iterable["CheckoutLineInfo"]
     Undiscounted unit price stores the denormalized price of the variant.
     """
     for line_info in lines:
-        if not line_info.channel_listing or line_info.channel_listing.price is None:
+        if not line_info.channel_listing or not line_info.channel_listing.is_sellable:
             continue
 
         line_info.line.undiscounted_unit_price = line_info.undiscounted_unit_price

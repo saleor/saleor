@@ -7574,6 +7574,13 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   priorPrice: Money
 
   """
+  Determines whether the variant can be bought in this channel. When set to `false`, the variant behaves as if it had no listing in this channel: it is hidden from customers and cannot be added to a checkout or an order. Its prices are preserved.
+  
+  Added in Saleor 3.23.
+  """
+  isAvailableForPurchase: Boolean!
+
+  """
   Gross margin percentage value.
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -19276,6 +19283,26 @@ type Mutation {
   ): ProductVariantChannelListingUpdate @doc(category: "Products")
 
   """
+  Toggle whether a product variant can be bought in the given channels, without touching its prices. An unavailable variant is hidden from customers and cannot be added to a checkout or an order.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  productVariantChannelListingAvailabilityUpdate(
+    """ID of a product variant to update."""
+    id: ID
+
+    """
+    List of channels to toggle the variant's availability in. Max 100 items.
+    """
+    input: [ProductVariantChannelListingAvailabilityInput!]!
+
+    """SKU of a product variant to update."""
+    sku: String
+  ): ProductVariantChannelListingAvailabilityUpdate @doc(category: "Products")
+
+  """
   Reorder product variant attribute values. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -25593,6 +25620,13 @@ input ProductVariantChannelListingAddInput @doc(category: "Products") {
 
   """The threshold for preorder variant in channel."""
   preorderThreshold: Int @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
+
+  """
+  Determines whether the variant can be bought in this channel. When omitted on an existing listing, the current value is kept.
+  
+  Added in Saleor 3.23.
+  """
+  isAvailableForPurchase: Boolean
 }
 
 """
@@ -26338,6 +26372,13 @@ input ChannelListingUpdateInput @doc(category: "Products") {
 
   """The threshold for preorder variant in channel."""
   preorderThreshold: Int @deprecated(reason: "Preorder is deprecated and will be removed. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit.")
+
+  """
+  Determines whether the variant can be bought in this channel. When omitted, the current value is kept.
+  
+  Added in Saleor 3.23.
+  """
+  isAvailableForPurchase: Boolean
 }
 
 """
@@ -26618,6 +26659,53 @@ type ProductVariantChannelListingUpdate @doc(category: "Products") {
   variant: ProductVariant
   productChannelListingErrors: [ProductChannelListingError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ProductChannelListingError!]!
+}
+
+"""
+Toggle whether a product variant can be bought in the given channels, without touching its prices. An unavailable variant is hidden from customers and cannot be added to a checkout or an order.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type ProductVariantChannelListingAvailabilityUpdate @doc(category: "Products") {
+  """An updated product variant instance."""
+  variant: ProductVariant
+  errors: [ProductVariantChannelListingAvailabilityUpdateError!]!
+}
+
+"""
+Error of the `productVariantChannelListingAvailabilityUpdate` mutation.
+
+Added in Saleor 3.23.
+"""
+type ProductVariantChannelListingAvailabilityUpdateError @doc(category: "Products") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductErrorCode!
+
+  """List of channels IDs which causes the error."""
+  channels: [ID!]
+}
+
+"""
+Fields required to toggle a product variant's availability in a channel.
+
+Added in Saleor 3.23.
+"""
+input ProductVariantChannelListingAvailabilityInput @doc(category: "Products") {
+  """ID of a channel."""
+  channelId: ID!
+
+  """Determines whether the variant can be bought in this channel."""
+  isAvailableForPurchase: Boolean!
 }
 
 """
