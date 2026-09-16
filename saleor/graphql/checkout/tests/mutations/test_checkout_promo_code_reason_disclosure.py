@@ -176,11 +176,39 @@ def _make_out_of_channel(voucher):
     voucher.channel_listings.all().delete()
 
 
+def _make_out_of_channel_and_expired(voucher):
+    _make_out_of_channel(voucher)
+    voucher.end_date = timezone.now() - datetime.timedelta(days=1)
+    voucher.save(update_fields=["end_date"])
+
+
+def _make_out_of_channel_and_exhausted(voucher):
+    _make_out_of_channel(voucher)
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.get()
+    code.used = 1
+    code.save(update_fields=["used"])
+
+
+def _make_out_of_channel_with_redeemed_single_use_code(voucher):
+    _make_out_of_channel(voucher)
+    code = voucher.codes.get()
+    code.is_active = False
+    code.save(update_fields=["is_active"])
+
+
 @pytest.mark.parametrize(
     ("_case", "setup"),
     [
         ("unlaunched_campaign", _make_not_started),
         ("other_channel_campaign", _make_out_of_channel),
+        ("other_channel_campaign_expired", _make_out_of_channel_and_expired),
+        ("other_channel_campaign_exhausted", _make_out_of_channel_and_exhausted),
+        (
+            "other_channel_campaign_redeemed_single_use_code",
+            _make_out_of_channel_with_redeemed_single_use_code,
+        ),
     ],
 )
 @pytest.mark.parametrize(

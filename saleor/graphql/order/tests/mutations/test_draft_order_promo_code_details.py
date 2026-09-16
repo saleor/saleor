@@ -4,6 +4,8 @@ import graphene
 import pytest
 from django.utils import timezone
 
+from .....discount.models import VoucherCustomer
+from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from ....core.enums import PromoCodeRejectionReason
 from ....tests.utils import get_graphql_content
@@ -63,6 +65,57 @@ def _deactivate_code(voucher):
     code.save(update_fields=["is_active"])
 
 
+def _exhaust(voucher):
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.get()
+    code.used = 1
+    code.save(update_fields=["used"])
+
+
+def _remove_from_channel(voucher):
+    voucher.channel_listings.all().delete()
+
+
+def _remove_from_channel_and_expire(voucher):
+    _remove_from_channel(voucher)
+    _expire(voucher)
+
+
+def _remove_from_channel_and_exhaust(voucher):
+    _remove_from_channel(voucher)
+    _exhaust(voucher)
+
+
+def _remove_from_channel_and_deactivate_code(voucher):
+    _remove_from_channel(voucher)
+    _deactivate_code(voucher)
+
+
+def _delete_all_codes(voucher):
+    voucher.codes.all().delete()
+
+
+HIDDEN_VOUCHER_CASES = [
+    ("other_channel", _remove_from_channel, PromoCodeRejectionReason.NOT_FOUND),
+    (
+        "other_channel_and_expired",
+        _remove_from_channel_and_expire,
+        PromoCodeRejectionReason.NOT_FOUND,
+    ),
+    (
+        "other_channel_and_exhausted",
+        _remove_from_channel_and_exhaust,
+        PromoCodeRejectionReason.NOT_FOUND,
+    ),
+    (
+        "other_channel_and_redeemed_single_use_code",
+        _remove_from_channel_and_deactivate_code,
+        PromoCodeRejectionReason.NOT_FOUND,
+    ),
+]
+
+
 def _assert_single_error(data, expected_code, expected_field, expected_reason):
     assert len(data["errors"]) == 1
     error = data["errors"][0]
@@ -80,6 +133,7 @@ def _assert_single_error(data, expected_code, expected_field, expected_reason):
             _deactivate_code,
             PromoCodeRejectionReason.USAGE_LIMIT_REACHED,
         ),
+        *HIDDEN_VOUCHER_CASES,
     ],
 )
 def test_draft_order_update_voucher_code(
@@ -145,6 +199,8 @@ def test_draft_order_update_unknown_voucher_code(
             _deactivate_code,
             PromoCodeRejectionReason.USAGE_LIMIT_REACHED,
         ),
+        ("no_codes_left", _delete_all_codes, PromoCodeRejectionReason.NOT_FOUND),
+        *HIDDEN_VOUCHER_CASES,
     ],
 )
 def test_draft_order_update_voucher(
@@ -199,3 +255,35 @@ def test_draft_order_complete_voucher_not_in_channel(
         PromoCodeRejectionReason.NOT_APPLICABLE,
     )
     assert data["order"] is None
+
+
+def test_draft_order_complete_once_per_customer_voucher_without_email(
+    staff_api_client, permission_group_manage_orders, draft_order_with_voucher
+):
+    """Report the missing email instead of failing while recording the usage."""
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order_with_voucher
+    assert order.channel.include_draft_order_in_voucher_usage is True
+    order.voucher.apply_once_per_customer = True
+    order.voucher.save(update_fields=["apply_once_per_customer"])
+    order.user = None
+    order.user_email = ""
+    order.save(update_fields=["user", "user_email"])
+    variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(DRAFT_ORDER_COMPLETE_MUTATION, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["draftOrderComplete"]
+    _assert_single_error(
+        data,
+        OrderErrorCode.INVALID_VOUCHER,
+        "voucher",
+        PromoCodeRejectionReason.CUSTOMER_EMAIL_REQUIRED,
+    )
+    assert data["order"] is None
+    order.refresh_from_db(fields=("status",))
+    assert order.status == OrderStatus.DRAFT
+    assert VoucherCustomer.objects.exists() is False
