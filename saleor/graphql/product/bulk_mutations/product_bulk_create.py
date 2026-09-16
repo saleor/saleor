@@ -24,7 +24,7 @@ from ....webhook.utils import get_webhooks_for_event
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
 from ...core.context import ChannelContext
-from ...core.descriptions import RICH_CONTENT
+from ...core.descriptions import DEPRECATED_PRODUCT_RATING_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
@@ -134,7 +134,11 @@ class ProductBulkCreateInput(ProductCreateInput):
     )
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
-    rating = graphene.Float(description="Defines the product rating value.")
+    rating = graphene.Float(
+        description=(
+            f"Defines the product rating value.{DEPRECATED_PRODUCT_RATING_INPUT}"
+        )
+    )
     metadata = NonNullList(
         MetadataInput,
         description="Fields required to update the product metadata. "
