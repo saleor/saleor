@@ -1201,15 +1201,15 @@ class DraftOrderWhereInput(WhereInputObjectType):
 class OrderDiscountedObjectWhere(DiscountedObjectWhere):
     class Meta:
         model = Order
-        fields = ["subtotal_net_amount", "total_net_amount"]
+        fields = ["base_subtotal_amount", "base_total_amount"]
 
     def filter_base_subtotal_price(self, queryset, name, value):
         currency = get_currency_from_filter_data(self.data)
-        return _filter_price(queryset, name, "subtotal_net_amount", value, currency)
+        return _filter_price(queryset, name, "base_subtotal_amount", value, currency)
 
     def filter_base_total_price(self, queryset, name, value):
         currency = get_currency_from_filter_data(self.data)
-        return _filter_price(queryset, name, "total_net_amount", value, currency)
+        return _filter_price(queryset, name, "base_total_amount", value, currency)
 
 
 def _filter_price(qs, _, field_name, value, currency):
