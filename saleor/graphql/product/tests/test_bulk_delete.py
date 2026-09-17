@@ -13,6 +13,7 @@ from ....checkout.tests.utils import add_variant_to_checkout
 from ....checkout.utils import calculate_checkout_quantity
 from ....core.db.locks import AdvisoryLock
 from ....discount.utils.promotion import get_active_catalogue_promotion_rules
+from ....media.models import ProductMedia
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import get_plugins_manager
@@ -22,7 +23,6 @@ from ....product.models import (
     Collection,
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,
@@ -834,36 +834,6 @@ def test_delete_products_variants_in_draft_order(
     ]
     for param in expected_params:
         assert param in event.parameters
-
-
-def test_delete_product_media(
-    staff_api_client, product_with_images, permission_manage_products
-):
-    media = product_with_images.media.all()
-
-    query = """
-    mutation productMediaBulkDelete($ids: [ID!]!) {
-        productMediaBulkDelete(ids: $ids) {
-            count
-        }
-    }
-    """
-
-    variables = {
-        "ids": [
-            graphene.Node.to_global_id("ProductMedia", media_obj.id)
-            for media_obj in media
-        ]
-    }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-
-    assert content["data"]["productMediaBulkDelete"]["count"] == 2
-    assert not ProductMedia.objects.filter(
-        id__in=[media_obj.id for media_obj in media]
-    ).exists()
 
 
 PRODUCT_TYPE_BULK_DELETE_MUTATION = """

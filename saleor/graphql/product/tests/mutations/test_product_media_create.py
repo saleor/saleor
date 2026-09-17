@@ -11,9 +11,10 @@ from requests.exceptions import InvalidSchema
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
+from .....media.models import ProductMedia
 from .....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
-from .....product.models import Product, ProductMedia
+from .....product.models import Product
 from .....product.tests.utils import create_image, create_zip_file_with_image_ext
 
 PRODUCT_MEDIA_CREATE_QUERY = """
@@ -175,7 +176,7 @@ def test_product_media_create_mutation_without_file(
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 @pytest.mark.vcr
 def test_product_media_create_mutation_with_media_url(
     mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
@@ -270,7 +271,7 @@ def test_product_media_create_mutation_with_both_url_and_image(
     assert errors[0]["field"] == "input"
 
 
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 def test_product_media_create_mutation_with_unknown_url(
     mock_HTTPClient, staff_api_client, product, permission_manage_products, media_root
 ):
@@ -340,7 +341,7 @@ def test_invalid_product_media_create_mutation(
     assert product.media.count() == 0
 
 
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 def test_product_media_create_mutation_invalid_image_file_fetch_only_header(
     mock_HTTPClient, staff_api_client, product, permission_manage_products
 ):
@@ -436,7 +437,7 @@ def test_product_media_create_mutation_valid_image_file_is_fetched_once(
 @patch(
     "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
 )
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 def test_product_media_create_mutation_with_no_extension_media_url(
     mock_HTTPClient,
     mock_fetch_product_media_image_task,
@@ -560,7 +561,7 @@ def test_product_media_create_when_alt_is_null(
 @patch(
     "saleor.graphql.product.mutations.product.product_media_create.fetch_product_media_image_task.delay"
 )
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 def test_product_media_create_with_media_url_when_alt_is_null(
     mock_HTTPClient,
     mock_fetch_product_media_image_task,
@@ -606,7 +607,7 @@ def test_product_media_create_with_media_url_when_alt_is_null(
         InvalidSchema("No adapters found for url"),
     ],
 )
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 def test_product_media_create_mutation_request_exception(
     mock_HTTPClient,
     exception,
@@ -665,7 +666,7 @@ def test_product_media_create_mutation_with_empty_product_id(
 # The insert must really hit the database for the foreign key to be checked, so
 # this test needs actual commits instead of the usual wrapping transaction.
 @pytest.mark.django_db(transaction=True)
-@patch("saleor.graphql.product.utils.HTTPClient")
+@patch("saleor.media.utils.HTTPClient")
 def test_product_media_create_when_product_deleted_while_media_url_is_probed(
     mock_HTTPClient, staff_api_client, product, permission_manage_products
 ):

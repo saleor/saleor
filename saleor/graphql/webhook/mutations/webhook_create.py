@@ -155,6 +155,9 @@ class WebhookCreate(DeprecatedModelMutation, NotifyUserEventValidationMixin):
                     code=WebhookErrorCode.INVALID,
                 )
             cleaned_data["filterable_channel_slugs"] = filterable_channel_slugs
+            cleaned_data["filterable_media_owner_types"] = (
+                subscription_query.get_filterable_media_owner_types()
+            )
 
         if headers := cleaned_data.get("custom_headers"):
             try:

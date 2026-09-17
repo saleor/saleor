@@ -5,6 +5,7 @@ DOC_CATEGORY_CHANNELS = "Channels"
 DOC_CATEGORY_CHECKOUT = "Checkout"
 DOC_CATEGORY_DISCOUNTS = "Discounts"
 DOC_CATEGORY_GIFT_CARDS = "Gift cards"
+DOC_CATEGORY_MEDIA = "Media"
 DOC_CATEGORY_MENU = "Menu"
 DOC_CATEGORY_MISC = "Miscellaneous"
 DOC_CATEGORY_ORDERS = "Orders"
@@ -53,6 +54,7 @@ DOC_CATEGORY_MAP = {
     "giftcard.GiftCard": DOC_CATEGORY_GIFT_CARDS,
     "giftcard.GiftCardTag": DOC_CATEGORY_GIFT_CARDS,
     "giftcard.GiftCardEvent": DOC_CATEGORY_GIFT_CARDS,
+    "media.ProductMedia": DOC_CATEGORY_PRODUCTS,
     "menu.Menu": DOC_CATEGORY_MENU,
     "menu.MenuItem": DOC_CATEGORY_MENU,
     "menu.MenuItemTranslation": DOC_CATEGORY_MENU,
@@ -77,7 +79,6 @@ DOC_CATEGORY_MAP = {
     "product.Product": DOC_CATEGORY_PRODUCTS,
     "product.ProductTranslation": DOC_CATEGORY_PRODUCTS,
     "product.ProductChannelListing": DOC_CATEGORY_PRODUCTS,
-    "product.ProductMedia": DOC_CATEGORY_PRODUCTS,
     "product.ProductType": DOC_CATEGORY_PRODUCTS,
     "product.ProductVariant": DOC_CATEGORY_PRODUCTS,
     "product.ProductVariantTranslation": DOC_CATEGORY_PRODUCTS,

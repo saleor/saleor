@@ -6,7 +6,8 @@ from django.utils import timezone
 from .....attribute.models import Attribute, AttributeValue
 from .....attribute.tests.model_helpers import get_product_attributes
 from .....attribute.utils import associate_attribute_values_to_instance
-from .....product.models import Product, ProductMedia, ProductVariant, VariantMedia
+from .....media.models import ProductMedia
+from .....product.models import Product, ProductVariant, VariantMedia
 from .....tests.utils import dummy_editorjs
 from .....warehouse.models import Warehouse
 from ....utils import ProductExportFields

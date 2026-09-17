@@ -2,8 +2,12 @@ import logging
 from unittest.mock import patch
 
 import graphene
+import pytest
 from PIL import Image
 
+from ...graphql.media.tests.utils import create_colliding_media
+from ...media import MediaOwnerTypes
+from ...media.utils import OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE
 from ...product import ProductMediaTypes
 from .. import IconThumbnailFormat, ThumbnailFormat
 from ..models import Thumbnail
@@ -201,20 +205,32 @@ def test_handle_thumbnail_view_no_image(client, category):
     assert response.status_code == 404
 
 
-def test_handle_thumbnail_view_for_product_media_image_type_with_external_url_but_no_image(
-    client, product
+@pytest.mark.parametrize(
+    ("_case", "owner_fixture", "owner_type"),
+    [
+        ("product media", "product", MediaOwnerTypes.PRODUCT),
+        ("category media", "category", MediaOwnerTypes.CATEGORY),
+        ("collection media", "collection", MediaOwnerTypes.COLLECTION),
+        ("page media", "page", MediaOwnerTypes.PAGE),
+    ],
+)
+def test_handle_thumbnail_view_for_media_image_type_with_external_url_but_no_image(
+    _case, owner_fixture, owner_type, client, request
 ):
     # given
     size = 500
-    product_media = product.media.create(
+    owner = request.getfixturevalue(owner_fixture)
+    media = owner.media.create(
         image=None,
         type=ProductMediaTypes.IMAGE,
         external_url="https://example.com/image.jpg",
     )
-    product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+    media_id = graphene.Node.to_global_id(
+        OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type], media.pk
+    )
 
     # when
-    response = client.get(f"/thumbnail/{product_media_id}/{size}/")
+    response = client.get(f"/thumbnail/{media_id}/{size}/")
 
     # then
     assert response.status_code == 503
@@ -584,19 +600,31 @@ def test_handle_original_image_for_product_media_without_image(client, product):
     assert response.status_code == 404
 
 
-def test_handle_original_image_for_product_media_image_type_with_external_url_but_no_image(
-    client, product
+@pytest.mark.parametrize(
+    ("_case", "owner_fixture", "owner_type"),
+    [
+        ("product media", "product", MediaOwnerTypes.PRODUCT),
+        ("category media", "category", MediaOwnerTypes.CATEGORY),
+        ("collection media", "collection", MediaOwnerTypes.COLLECTION),
+        ("page media", "page", MediaOwnerTypes.PAGE),
+    ],
+)
+def test_handle_original_image_for_media_image_type_with_external_url_but_no_image(
+    _case, owner_fixture, owner_type, client, request
 ):
     # given
-    product_media = product.media.create(
+    owner = request.getfixturevalue(owner_fixture)
+    media = owner.media.create(
         image=None,
         type=ProductMediaTypes.IMAGE,
         external_url="https://example.com/image.jpg",
     )
-    product_media_id = graphene.Node.to_global_id("ProductMedia", product_media.id)
+    media_id = graphene.Node.to_global_id(
+        OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type], media.pk
+    )
 
     # when
-    response = client.get(f"/image/{product_media_id}/")
+    response = client.get(f"/image/{media_id}/")
 
     # then
     assert response.status_code == 503
@@ -642,3 +670,56 @@ def test_handle_thumbnail_view_image_exceeds_pixel_limit(
     assert view_record.image_source == image_name
     assert view_record.object_type == "Category"
     assert view_record.object_pk == str(category_with_image.pk)
+
+
+@pytest.mark.parametrize(
+    ("_case", "owner_type"),
+    [
+        ("category media", MediaOwnerTypes.CATEGORY),
+        ("collection media", MediaOwnerTypes.COLLECTION),
+        ("page media", MediaOwnerTypes.PAGE),
+    ],
+)
+def test_handle_thumbnail_view_reads_the_table_named_by_the_type(
+    _case,
+    owner_type,
+    request,
+    client,
+    product,
+    image,
+    media_root,
+    settings,
+):
+    """The type name in the proxy URL must select the media table to read.
+
+    Every media model has its own table and its own primary key sequence, so one
+    pk names a different real row in each. All four type names used to map to
+    `ProductMedia`, which made a `CategoryMedia` URL serve a product's image.
+    """
+    # given
+    owner = request.getfixturevalue(
+        {
+            MediaOwnerTypes.CATEGORY: "category",
+            MediaOwnerTypes.COLLECTION: "published_collection",
+            MediaOwnerTypes.PAGE: "page",
+        }[owner_type]
+    )
+    product_media, other_media = create_colliding_media(owner_type, owner, product)
+    product_media.image = image
+    product_media.save(update_fields=("image",))
+    other_media.image = image
+    other_media.save(update_fields=("image",))
+
+    size = 128
+    media_id = graphene.Node.to_global_id(
+        OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type], other_media.pk
+    )
+
+    # when
+    response = client.get(f"/thumbnail/{media_id}/{size}/")
+
+    # then
+    assert response.status_code == 302
+    thumbnail = Thumbnail.objects.get(size=size)
+    assert getattr(thumbnail, f"{owner_type}_media_id") == other_media.pk
+    assert thumbnail.product_media_id is None

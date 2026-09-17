@@ -111,7 +111,7 @@ def test_reorder_not_existing_media(
 
     with race_condition.RunBefore(
         "saleor.graphql.product.mutations.product.product_media_reorder"
-        ".update_ordered_media",
+        ".update_media_order",
         delete_media,
     ):
         variables = {"product_id": product_id, "media_ids": [media_1_id, media_0_id]}

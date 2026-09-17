@@ -23,6 +23,11 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..media.models import BaseMedia, ProductMedia
+from ..media.utils import (
+    OWNER_TYPE_TO_GRAPHQL_TYPE,
+    OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE,
+)
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -30,7 +35,7 @@ from ..page.models import Page
 from ..payment import ChargeStatus
 from ..payment.models import Payment, TransactionItem
 from ..product import ProductMediaTypes
-from ..product.models import Collection, Product, ProductMedia, ProductVariant
+from ..product.models import Collection, Product, ProductVariant
 from ..shipping.models import ShippingMethod
 from ..tax.models import TaxClassCountryRate
 from ..thumbnail.models import Thumbnail
@@ -1297,5 +1302,26 @@ def generate_thumbnail_payload(thumbnail: Thumbnail):
 @allow_writer()
 @traced_payload_generator
 def generate_product_media_payload(media: ProductMedia):
-    product_media_id = graphene.Node.to_global_id("ProductMedia", media.id)
+    product_media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
     return json.dumps({"id": product_media_id})
+
+
+@allow_writer()
+@traced_payload_generator
+def generate_media_payload(media: BaseMedia):
+    """Build the legacy payload for the entity-agnostic `MEDIA_*` events.
+
+    The global ID is owner-typed, so it round-trips through the same
+    `node`/thumbnail lookups as the GraphQL response.
+    """
+    owner_type = media.owner_type
+    payload = {
+        "id": graphene.Node.to_global_id(
+            OWNER_TYPE_TO_MEDIA_GRAPHQL_TYPE[owner_type], media.pk
+        ),
+        "owner_type": owner_type,
+        "owner_id": graphene.Node.to_global_id(
+            OWNER_TYPE_TO_GRAPHQL_TYPE[owner_type], media.owner_pk
+        ),
+    }
+    return json.dumps(payload)

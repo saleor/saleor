@@ -8,8 +8,8 @@ from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
-from django.db import models, transaction
-from django.db.models import JSONField, TextField
+from django.db import models
+from django.db.models import TextField
 from django.utils import timezone
 from django_measurement.models import MeasurementField
 from measurement.measures import Weight
@@ -38,12 +38,7 @@ from ..permission.enums import (
 )
 from ..seo.models import SeoModel, SeoModelTranslationWithSlug
 from ..tax.models import TaxClass
-from . import (
-    MEDIA_URL_CHAR_LIMIT,
-    ProductMediaTypes,
-    ProductTypeKind,
-    managers,
-)
+from . import ProductMediaTypes, ProductTypeKind, managers
 
 ALL_PRODUCTS_PERMISSIONS = [
     # List of permissions, where each of them allows viewing all products
@@ -358,9 +353,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
     )
-    media = models.ManyToManyField(
-        "product.ProductMedia", through="product.VariantMedia"
-    )
+    media = models.ManyToManyField("media.ProductMedia", through="product.VariantMedia")
     track_inventory = models.BooleanField(default=True)
     # TODO remove after 3.24: preorder API was removed in 3.24
     is_preorder = models.BooleanField(default=False)
@@ -578,49 +571,12 @@ class VariantChannelListingPromotionRule(models.Model):
         unique_together = [["variant_channel_listing", "promotion_rule"]]
 
 
-class ProductMedia(SortableModel, ModelWithMetadata):
-    product = models.ForeignKey(
-        Product,
-        related_name="media",
-        on_delete=models.CASCADE,
-        # DEPRECATED
-        null=True,
-        blank=True,
-    )
-    image = models.ImageField(upload_to="products", blank=True, null=True)
-    alt = models.CharField(max_length=250, blank=True)
-    type = models.CharField(
-        max_length=32,
-        choices=ProductMediaTypes.CHOICES,
-        default=ProductMediaTypes.IMAGE,
-    )
-    external_url = models.CharField(
-        max_length=MEDIA_URL_CHAR_LIMIT, blank=True, null=True
-    )
-    oembed_data = JSONField(blank=True, default=dict)
-    # DEPRECATED
-    to_remove = models.BooleanField(default=False)
-
-    class Meta(ModelWithMetadata.Meta):
-        ordering = ("sort_order", "pk")
-        app_label = "product"
-
-    def get_ordering_queryset(self):
-        if not self.product:
-            return ProductMedia.objects.none()
-        return self.product.media.all()
-
-    @transaction.atomic
-    def delete(self, *args, **kwargs):
-        super(SortableModel, self).delete(*args, **kwargs)
-
-
 class VariantMedia(models.Model):
     variant = models.ForeignKey(
         "ProductVariant", related_name="variant_media", on_delete=models.CASCADE
     )
     media = models.ForeignKey(
-        ProductMedia, related_name="variant_media", on_delete=models.CASCADE
+        "media.ProductMedia", related_name="variant_media", on_delete=models.CASCADE
     )
 
     class Meta:
