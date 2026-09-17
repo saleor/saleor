@@ -170,7 +170,7 @@ class GiftCardBulkCreate(BaseMutation):
             [models.GiftCardTag(name=tag) for tag in tags_to_create]
         )
         for tag_instance in tags_instances.iterator(chunk_size=1000):
-            tag_instance.gift_cards.set(instances)
+            tag_instance.gift_cards.add(*instances)
 
     @classmethod
     def call_gift_card_created_on_plugins(cls, instances, manager):
