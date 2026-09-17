@@ -13,6 +13,7 @@ from ...core.telemetry import (
     meter,
     saleor_attributes,
 )
+from ..const import WebhookPayloadErrorReason
 from .utils import WebhookResponse
 
 # Initialize metrics
@@ -57,6 +58,16 @@ METRIC_EXTERNAL_REQUEST_BODY_SIZE = meter.create_metric(
     unit=Unit.BYTE,
     description="Size of webhook event payloads.",
     bucket_boundaries=BODY_SIZE_BUCKETS,
+)
+
+METRIC_WEBHOOK_PAYLOAD_ERROR_COUNT = meter.create_metric(
+    "saleor.webhook.payload.error.count",
+    scope=Scope.SERVICE,
+    type=MetricType.COUNTER,
+    unit=Unit.COUNT,
+    description=(
+        "Number of webhook events dropped because their payload could not be generated."
+    ),
 )
 
 METRIC_EXTERNAL_REQUEST_FIRST_ATTEMPT_DELAY = meter.create_metric(
@@ -112,4 +123,28 @@ def record_first_delivery_attempt_delay(
         delay,
         unit=Unit.SECOND,
         attributes=attributes,
+    )
+
+
+def record_webhook_payload_error(
+    app_id: str,
+    webhook_id: str,
+    event_type: str,
+    reason: WebhookPayloadErrorReason,
+) -> None:
+    """Record a webhook event that was dropped because no payload could be built.
+
+    The ids are global (GraphQL) ids, as this metric is exposed to customers who
+    address apps and webhooks through the API rather than by database primary key.
+    """
+    meter.record(
+        METRIC_WEBHOOK_PAYLOAD_ERROR_COUNT,
+        1,
+        Unit.COUNT,
+        attributes={
+            saleor_attributes.SALEOR_APP_ID: app_id,
+            saleor_attributes.SALEOR_WEBHOOK_ID: webhook_id,
+            saleor_attributes.SALEOR_WEBHOOK_EVENT_TYPE: event_type,
+            error_attributes.ERROR_TYPE: reason.value,
+        },
     )
