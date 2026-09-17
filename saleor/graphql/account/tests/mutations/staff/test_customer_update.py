@@ -33,6 +33,7 @@ CUSTOMER_UPDATE_MUTATION = """
                 lastName
                 defaultBillingAddress {
                     id
+                    postalCode
                     metadata {
                         key
                         value
@@ -40,6 +41,7 @@ CUSTOMER_UPDATE_MUTATION = """
                 }
                 defaultShippingAddress {
                     id
+                    postalCode
                     metadata {
                         key
                         value
@@ -1169,3 +1171,63 @@ def test_update_with_attributes_replaces_existing_value(
     assert assigned_value.value == new_value
     # the old value remains a choice of the attribute
     assert loyalty_customer_attribute.values.filter(pk=old_value.pk).exists()
+
+
+@pytest.mark.parametrize(
+    ("_case", "skip_validation", "expected_error_field"),
+    [
+        ("validation skipped", True, None),
+        ("validation enforced", False, "postalCode"),
+    ],
+)
+def test_update_address_skip_validation(
+    _case,
+    skip_validation,
+    expected_error_field,
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data,
+):
+    # given
+    invalid_postal_code = "invalid_postal_code"
+    address_data = {
+        **graphql_address_data,
+        "postalCode": invalid_postal_code,
+        "skipValidation": skip_validation,
+    }
+    previous_postal_code = customer_user.default_billing_address.postal_code
+    assert previous_postal_code != invalid_postal_code
+
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer_user.pk),
+        "input": {"defaultBillingAddress": address_data},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_UPDATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerUpdate"]
+    customer_user.refresh_from_db()
+    if expected_error_field:
+        assert len(data["errors"]) == 1
+        assert data["errors"][0]["field"] == expected_error_field
+        assert (
+            data["errors"][0]["message"] == "This value is not valid for the address."
+        )
+        assert data["user"] is None
+        assert customer_user.default_billing_address.postal_code == (
+            previous_postal_code
+        )
+    else:
+        assert data["errors"] == []
+        assert data["user"]["defaultBillingAddress"]["postalCode"] == (
+            invalid_postal_code
+        )
+        address = customer_user.default_billing_address
+        assert address.postal_code == invalid_postal_code
+        assert address.validation_skipped is True

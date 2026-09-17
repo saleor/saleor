@@ -1,5 +1,8 @@
+from typing import Any
+
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
@@ -94,33 +97,57 @@ class ProductMediaCreate(BaseMutation):
             qs=models.Product.objects.all(),
         )
 
-        media = None
+        media_data: dict[str, Any] | None = None
+        fetch_image = False
         if image:
             input["image"] = info.context.FILES.get(image)
             image_data = clean_image_file(input, "image", ProductErrorCode)
-            media = product.media.create(
-                image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
-            )
+            media_data = {
+                "image": image_data,
+                "alt": alt,
+                "type": ProductMediaTypes.IMAGE,
+            }
         elif media_url:
             # Remote URLs can point to the images or oembed data.
             # In case of images, the image is fetched asynchronously by a task.
             # Otherwise we keep only URL to remote media.
             probe_result = probe_media_url(media_url, ProductErrorCode)
             if probe_result.is_image:
-                media = product.media.create(
-                    external_url=media_url,
-                    alt=alt,
-                    type=ProductMediaTypes.IMAGE,
-                )
-                fetch_product_media_image_task.delay(media.pk)
+                media_data = {
+                    "external_url": media_url,
+                    "alt": alt,
+                    "type": ProductMediaTypes.IMAGE,
+                }
+                fetch_image = True
             else:
                 oembed_data = probe_result.oembed_data
-                media = product.media.create(
-                    external_url=oembed_data["url"],
-                    alt=oembed_data.get("title", alt),
-                    type=probe_result.media_type,
-                    oembed_data=oembed_data,
-                )
+                media_data = {
+                    "external_url": oembed_data["url"],
+                    "alt": oembed_data.get("title", alt),
+                    "type": probe_result.media_type,
+                    "oembed_data": oembed_data,
+                }
+
+        media = None
+        if media_data:
+            # The product can be deleted concurrently while the image is uploaded or
+            # the remote URL is probed, so the insert may fail on the foreign key.
+            try:
+                media = product.media.create(**media_data)
+            except IntegrityError as e:
+                if not models.Product.objects.filter(pk=product.pk).exists():
+                    raise ValidationError(
+                        {
+                            "product": ValidationError(
+                                "Product no longer exists.",
+                                code=ProductErrorCode.NOT_FOUND.value,
+                            )
+                        }
+                    ) from e
+                # Any other constraint violation is a bug, not a lost race.
+                raise
+            if fetch_image:
+                fetch_product_media_image_task.delay(media.pk)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         cls.call_event(manager.product_media_created, media)

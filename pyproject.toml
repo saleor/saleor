@@ -19,7 +19,7 @@ dependencies = [
     "babel>=2.18.0,<2.19",
     "boto3~=1.43",
     "botocore~=1.43",
-    "cryptography>=49.0.0",
+    "cryptography>=50.0.1",
     "dj-database-url>=3.1.2,<4",
     "dj-email-url>=1,<2",
     "django[bcrypt]~=5.2.17",
@@ -39,7 +39,6 @@ dependencies = [
     "graphql-core>=2.3.2,<3",
     "graphql-relay>=2.0.1,<3",
     "lxml>=6.1.1,<7",
-    "markdown>=3.10.2,<4",
     "measurement>=3.2.2,<4",
     "micawber>=0.6.2,<0.7",
     "oauthlib~=3.1",
@@ -49,9 +48,8 @@ dependencies = [
     "prices~=1.0",
     "promise~=2.3",
     "pybars3>=0.9.7,<0.10",
-    "pyjwt>=2.13.0,<3",
+    "pyjwt>=2.14.0,<3",
     "python-dateutil>=2.8.2,<3",
-    "python-http-client>=3.3.7,<4",
     "python-json-logger>=0.1.11,<3.3.0",
     "pytimeparse>=1.1.8,<2",
     "redis>=5.0.1,<6",
@@ -59,7 +57,6 @@ dependencies = [
     "requests-hardened>=1.3.0,<2.0.0",
     "Rx>=1.6.3,<2",
     "semantic-version>=2.10.0,<3",
-    "sendgrid>=6.12.5,<7",
     "sentry-sdk~=2.58",
     "stripe>=3.0.0,<4",
     "text-unidecode~=1.2",
@@ -150,7 +147,8 @@ exclude-newer = "3 weeks"
 #       window).
 # Note: if you remove a package from this list and 'uv lock' does not update the
 #       lockfile, run 'uv lock --refresh' to force a refresh.
-django = "2026-08-04T15:05:00Z" # https://www.djangoproject.com/weblog/2026/aug/04/security-releases/
+cryptography = "2026-08-25T19:45:45.499357Z" # https://pypi.org/pypi/cryptography/50.0.1/json
+pyjwt = "2026-09-11T13:11:54.638995Z" # https://pypi.org/pypi/pyjwt/2.14.0/json
 
 [tool.pytest]
 addopts = [

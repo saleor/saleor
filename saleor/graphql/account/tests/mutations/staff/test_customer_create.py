@@ -2,6 +2,7 @@ from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
 import graphene
+import pytest
 
 from ......account import events as account_events
 from ......account.error_codes import AccountErrorCode
@@ -48,6 +49,7 @@ CUSTOMER_CREATE_MUTATION = """
                 id
                 defaultBillingAddress {
                     id
+                    postalCode
                     metadata {
                         key
                         value
@@ -873,3 +875,54 @@ def test_create_with_invalid_customer_type_id(
     assert error["field"] == "customerType"
     assert error["code"] == AccountErrorCode.GRAPHQL_ERROR.name
     assert not User.objects.filter(email=email).exists()
+
+
+@pytest.mark.parametrize(
+    ("_case", "skip_validation", "expected_error_field"),
+    [
+        ("validation skipped", True, None),
+        ("validation enforced", False, "postalCode"),
+    ],
+)
+def test_create_address_skip_validation(
+    _case,
+    skip_validation,
+    expected_error_field,
+    staff_api_client,
+    permission_manage_users,
+    graphql_address_data,
+):
+    # given
+    email = "api.user@example.com"
+    invalid_postal_code = "invalid_postal_code"
+    address_data = {
+        **graphql_address_data,
+        "postalCode": invalid_postal_code,
+        "skipValidation": skip_validation,
+    }
+    variables = {"email": email, "billing": address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["customerCreate"]
+    if expected_error_field:
+        assert len(data["errors"]) == 1
+        assert data["errors"][0]["field"] == expected_error_field
+        assert (
+            data["errors"][0]["message"] == "This value is not valid for the address."
+        )
+        assert data["user"] is None
+        assert User.objects.filter(email=email).exists() is False
+    else:
+        assert data["errors"] == []
+        assert data["user"]["defaultBillingAddress"]["postalCode"] == (
+            invalid_postal_code
+        )
+        address = User.objects.get(email=email).default_billing_address
+        assert address.postal_code == invalid_postal_code
+        assert address.validation_skipped is True

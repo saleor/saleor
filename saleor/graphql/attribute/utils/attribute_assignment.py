@@ -3,12 +3,14 @@ from typing import TYPE_CHECKING, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.db.models.expressions import Exists, OuterRef
 from graphql.error import GraphQLError
 
 from ....attribute import AttributeInputType
 from ....attribute import models as attribute_models
+from ....attribute.lock_objects import attribute_value_qs_select_for_update
 from ....attribute.models import AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....page import models as page_models
@@ -22,6 +24,7 @@ from .shared import (
     T_INSTANCE,
     AttrValuesInput,
     get_assigned_attribute_values_map,
+    get_assigned_attribute_values_qs,
     get_assignment_model_and_fk,
 )
 from .type_handlers import (
@@ -46,6 +49,12 @@ T_INPUT_MAP = list[tuple["attribute_models.Attribute", "AttrValuesInput"]]
 T_PRE_SAVE_BULK = dict[
     AttributeValueBulkActionEnum, dict[attribute_models.Attribute, list]
 ]
+
+# Input types whose values are created per assigned instance and owned by it,
+# so the instance's save owns their lifecycle and reclaims rows it detaches.
+# REFERENCE and SINGLE_REFERENCE values have the same per-instance lifecycle
+# and may be added here once their cleanup is desired.
+INPUT_TYPES_WITH_INSTANCE_OWNED_VALUES = (AttributeInputType.FILE,)
 
 
 class AttributeAssignmentMixin:
@@ -407,6 +416,15 @@ class AttributeAssignmentMixin:
             pre_save_bulk = cls.pre_save_values(instance, cleaned_input)
         attribute_and_values = cls._bulk_create_pre_save_values(pre_save_bulk)
 
+        owned_value_attribute_pks = [
+            attribute.pk
+            for attribute in attribute_and_values
+            if attribute.input_type in INPUT_TYPES_WITH_INSTANCE_OWNED_VALUES
+        ]
+        previous_owned_value_pks = cls._get_assigned_value_pks(
+            instance, owned_value_attribute_pks
+        )
+
         attr_val_map = defaultdict(list)
         clean_assignment_pks = []
         for attribute, values in attribute_and_values.items():
@@ -418,6 +436,10 @@ class AttributeAssignmentMixin:
         associate_attribute_values_to_instance(instance, attr_val_map)
 
         cls._clean_assignments(instance, clean_assignment_pks)
+
+        cls._delete_orphaned_owned_values(
+            instance, previous_owned_value_pks, owned_value_attribute_pks
+        )
 
     @classmethod
     def _clean_assignments(cls, instance: T_INSTANCE, clean_assignment_pks: list[int]):
@@ -451,6 +473,87 @@ class AttributeAssignmentMixin:
         ).filter(
             variant_id=instance.id,
         ).delete()
+
+    @classmethod
+    def _get_assigned_value_pks(
+        cls, instance: T_INSTANCE, attribute_pks: list[int]
+    ) -> list[int]:
+        """Capture the pks of the values assigned to the instance.
+
+        Uses the assignment queryset rather than
+        `get_assigned_attribute_values_map`, which keeps a single value per
+        attribute and would miss extra assigned rows legacy data may hold.
+        """
+        if not attribute_pks:
+            return []
+        return list(
+            get_assigned_attribute_values_qs(instance, attribute_pks).values_list(
+                "pk", flat=True
+            )
+        )
+
+    @classmethod
+    def _delete_orphaned_owned_values(
+        cls,
+        instance: T_INSTANCE,
+        previous_value_pks: list[int],
+        attribute_pks: list[int],
+    ):
+        """Delete instance-owned values this save detached from the instance.
+
+        The file handler creates a new value row for every new URL instead
+        of updating the assigned row in place, so a replace or clear leaves
+        the previous row behind. Reclaimed are the rows that were assigned
+        to the instance before this save and are assigned to nothing after
+        it. `_exclude_values_assigned_to_any_entity` keeps the legacy rows
+        that another entity still uses.
+        """
+        if not previous_value_pks:
+            return
+
+        candidates = attribute_models.AttributeValue.objects.filter(
+            pk__in=previous_value_pks
+        ).exclude(
+            # The same-URL reuse path keeps the previously assigned row attached,
+            # so a row still assigned to the instance must survive. Redundant with
+            # the broad guard below today — kept so that guard stays droppable
+            # without taking this correctness case down with it.
+            pk__in=get_assigned_attribute_values_qs(instance, attribute_pks)
+        )
+        candidates = cls._exclude_values_assigned_to_any_entity(candidates)
+
+        with transaction.atomic():
+            locked_pks = (
+                attribute_value_qs_select_for_update()
+                .filter(pk__in=candidates)
+                .values_list("pk", flat=True)
+            )
+            attribute_models.AttributeValue.objects.filter(pk__in=locked_pks).delete()
+
+    @classmethod
+    def _exclude_values_assigned_to_any_entity(
+        cls, qs: "QuerySet[AttributeValue]"
+    ) -> "QuerySet[AttributeValue]":
+        """Exclude values still referenced by any attribute assignment.
+
+        The instance's own assignments are already removed at this point, so
+        a remaining reference means the row is shared with another entity.
+        Current write paths cannot produce such a row, but the schema permits
+        it and legacy rows may exist. The sibling cleanups on entity deletion
+        (e.g. `ProductDelete.delete_assigned_attribute_values`) delete
+        unconditionally, so this guard may be dropped if it proves not worth
+        its cost.
+        """
+        for assignment_model in (
+            attribute_models.AssignedProductAttributeValue,
+            attribute_models.AssignedPageAttributeValue,
+            attribute_models.AssignedUserAttributeValue,
+            attribute_models.AssignedVariantAttributeValue,
+        ):
+            qs = qs.exclude(
+                Exists(assignment_model.objects.filter(value_id=OuterRef("pk")))
+            )
+        return qs
 
     @classmethod
     def _bulk_create_pre_save_values(cls, pre_save_bulk):
