@@ -140,6 +140,16 @@ class DraftOrderComplete(BaseMutation):
                 "Configured Tax App returned invalid response.",
                 code=OrderErrorCode.TAX_ERROR.value,
             )
+        if order.should_refresh_prices:
+            # The recalculation above did not store its result - the order was modified
+            # by another process while the taxes were being calculated. Completing now
+            # would finalize an order whose stored prices carry no tax, and a completed
+            # order is no longer recalculated, so it could not be corrected afterwards.
+            # Leaving it as a draft keeps it recalculable on the next read.
+            raise ValidationError(
+                "Order prices could not be recalculated. Please try again.",
+                code=OrderErrorCode.TAX_ERROR.value,
+            )
         cls.validate_order(order)
 
         country = get_order_country(order)

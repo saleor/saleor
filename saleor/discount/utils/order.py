@@ -236,6 +236,15 @@ def _set_order_base_prices(order: Order, lines_info: list["EditableOrderLineInfo
         update_fields.extend(["total_net_amount", "total_gross_amount"])
 
     if update_fields:
+        # The prices written here are *untaxed* - they are stored before the taxes are
+        # known, because order promotion predicates are evaluated in SQL against the
+        # stored values. Flag the order in the same write, so those untaxed prices can
+        # never be left behind unnoticed: the taxed save in `process_order_prices`
+        # clears the flag, and if that save is skipped by its concurrency guard - or
+        # this process dies before reaching it - the order stays flagged and the next
+        # read recalculates it.
+        order.should_refresh_prices = True
+        update_fields.append("should_refresh_prices")
         with allow_writer():
             order.save(update_fields=update_fields)
 

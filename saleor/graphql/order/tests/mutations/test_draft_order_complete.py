@@ -26,7 +26,7 @@ from .....order.actions import order_created
 from .....order.calculations import fetch_order_prices_if_expired
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
-from .....order.models import OrderEvent, OrderLine
+from .....order.models import Order, OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
 from .....plugins import PLUGIN_IDENTIFIER_PREFIX
 from .....plugins.tests.sample_plugins import PluginSample
@@ -2089,3 +2089,82 @@ def test_draft_order_complete_with_single_use_voucher(
 
     code_instance.refresh_from_db()
     assert not code_instance.is_active
+
+
+@patch(
+    "saleor.graphql.order.mutations.draft_order_complete.fetch_order_prices_if_expired"
+)
+def test_draft_order_complete_prices_could_not_be_recalculated(
+    mocked_fetch_order_prices,
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+):
+    # given
+    # The recalculation did not store its result because a concurrent modification
+    # intervened, so the order is still flagged when the mutation checks it.
+    order = draft_order
+    order.should_refresh_prices = True
+    mocked_fetch_order_prices.return_value = Promise.resolve((order, order.lines.all()))
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_COMPLETE_MUTATION, {"id": order_id}
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["draftOrderComplete"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert errors[0]["message"] == (
+        "Order prices could not be recalculated. Please try again."
+    )
+    # The order must stay a draft so it can still be recalculated and completed later.
+    order.refresh_from_db()
+    assert order.status == OrderStatus.DRAFT
+
+
+def test_draft_order_complete_is_rejected_when_recalculation_collides(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+):
+    # given
+    # This is the reported bug end to end: another process touches the order between
+    # the untaxed base prices being written and the taxed prices being saved, so the
+    # taxed save is skipped and the stored total carries no tax.
+    order = draft_order
+    order.should_refresh_prices = True
+    order.save(update_fields=["should_refresh_prices"])
+
+    def touch_order_from_another_process(*args, **kwargs):
+        Order.objects.filter(pk=order.pk).update(updated_at=timezone.now())
+
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.order.calculations.calculate_taxes", touch_order_from_another_process
+    ):
+        response = staff_api_client.post_graphql(
+            DRAFT_ORDER_COMPLETE_MUTATION, {"id": order_id}
+        )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["draftOrderComplete"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderErrorCode.TAX_ERROR.name
+    assert errors[0]["message"] == (
+        "Order prices could not be recalculated. Please try again."
+    )
+    # The order was not completed, so it stays recalculable instead of being frozen
+    # with prices that carry no tax.
+    order.refresh_from_db()
+    assert order.status == OrderStatus.DRAFT
+    assert order.should_refresh_prices is True

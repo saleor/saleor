@@ -131,7 +131,8 @@ def process_order_prices(
                         order_qs_select_for_update().only("updated_at").get(id=order.id)
                     )
                 except Order.DoesNotExist:
-                    # Order was removed. Return data without saving.
+                    # Order was removed. Return data without saving. There is no stored
+                    # order left to be inconsistent, so the in-memory flag stays cleared.
                     return order, lines
 
                 # Check whether the order has been modified during the recalculation process by another process.
@@ -183,6 +184,12 @@ def process_order_prices(
                             "tax_rate",
                         ],
                     )
+                else:
+                    # The taxed prices were not stored, so the order keeps the untaxed
+                    # base prices together with the flag set before the tax calculation
+                    # started. Mirror that into the instance the caller holds, so it can
+                    # tell that the stored prices are not the ones calculated here.
+                    order.should_refresh_prices = True
             return order, lines
 
     with allow_writer_for_default_connection(database_connection_name):
