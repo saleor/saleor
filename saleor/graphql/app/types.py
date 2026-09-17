@@ -526,6 +526,21 @@ class AppToken(BaseObjectType):
     id = graphene.GlobalID(required=True, description="The ID of the app token.")
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
+    created_at = DateTime(
+        description=(
+            "The date and time when the token was created. "
+            "Null for tokens created before this was tracked." + ADDED_IN_323
+        )
+    )
+    created_by = PermissionsField(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The user who created this token. "
+            "Null for tokens created before this was tracked, "
+            "or if the user has been deleted." + ADDED_IN_323
+        ),
+        permissions=[AccountPermissions.MANAGE_STAFF],
+    )
 
     class Meta:
         description = "Represents token data."
@@ -545,6 +560,12 @@ class AppToken(BaseObjectType):
     @staticmethod
     def resolve_auth_token(root: models.AppToken, _info: ResolveInfo):
         return root.token_last_4
+
+    @staticmethod
+    def resolve_created_by(root: models.AppToken, info: ResolveInfo):
+        if not root.created_by_id:
+            return None
+        return UserByUserIdLoader(info.context).load(root.created_by_id)
 
 
 class AppProblemDismissed(graphene.ObjectType):
@@ -847,11 +868,26 @@ class AppInstallation(ModelObjectType[models.AppInstallation]):
         description="The URL address of manifest for the app installation.",
     )
     brand = graphene.Field(AppBrand, description="App's brand data.")
+    installed_by = PermissionsField(
+        "saleor.graphql.account.types.User",
+        description=(
+            "The staff user who requested this installation. "
+            "Null for installations created before this was tracked, "
+            "or if the user has been deleted." + ADDED_IN_323
+        ),
+        permissions=[AccountPermissions.MANAGE_STAFF],
+    )
 
     class Meta:
         model = models.AppInstallation
         description = "Represents ongoing installation of app."
         interfaces = [graphene.relay.Node, Job]
+
+    @staticmethod
+    def resolve_installed_by(root: models.AppInstallation, info: ResolveInfo):
+        if not root.installed_by_id:
+            return None
+        return UserByUserIdLoader(info.context).load(root.installed_by_id)
 
     @staticmethod
     def resolve_brand(root: models.AppInstallation, _info: ResolveInfo):
