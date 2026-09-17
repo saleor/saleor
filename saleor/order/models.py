@@ -342,6 +342,31 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         net_amount_field="subtotal_net_amount",
         gross_amount_field="subtotal_gross_amount",
     )
+    # base prices contain only catalogue discounts (do not contain voucher discount).
+    # They are kept apart from `subtotal`/`total` so that the pre-tax values needed to
+    # qualify order promotions never overwrite the prices that carry the taxes.
+    #
+    # These are internal to the price recalculation: `_set_order_base_prices` writes
+    # them right before the order promotion predicates read them, in the same pass,
+    # and nothing else reads them. That is why existing orders were not backfilled -
+    # orders that never recalculate keep the default 0. Exposing these fields anywhere
+    # else (API, webhook payloads, filters) requires backfilling them first.
+    base_subtotal_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+        db_default=Decimal(0),
+    )
+    base_subtotal = MoneyField(
+        amount_field="base_subtotal_amount", currency_field="currency"
+    )
+    base_total_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+        db_default=Decimal(0),
+    )
+    base_total = MoneyField(amount_field="base_total_amount", currency_field="currency")
 
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
