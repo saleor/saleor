@@ -134,10 +134,10 @@ def get_not_available_variants_in_channel(
 ) -> tuple[set[int], set[str]]:
     available_variants = (
         ProductVariantChannelListing.objects.using(database_connection_name)
+        .sellable()
         .filter(
             variant__id__in=variants_id,
             channel_id=channel_id,
-            price_amount__isnull=False,
         )
         .values_list("variant_id", flat=True)
     )

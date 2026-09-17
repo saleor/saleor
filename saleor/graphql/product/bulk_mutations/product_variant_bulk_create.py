@@ -44,7 +44,10 @@ from ...core.validators import validate_price_precision
 from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shop.utils import get_track_inventory_by_default
-from ..mutations.channels import ProductVariantChannelListingAddInput
+from ..mutations.channels import (
+    ProductVariantChannelListingAddInput,
+    get_listing_availability,
+)
 from ..mutations.product.product_create import StockInput
 from ..mutations.product_variant.product_variant_create import ProductVariantInput
 from ..types import ProductVariant
@@ -820,6 +823,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 prior_price_amount=listing_data.get("prior_price"),
                 currency=listing_data["channel"].currency_code,
                 preorder_quantity_threshold=listing_data.get("preorder_threshold"),
+                is_available_for_purchase=get_listing_availability(listing_data),
             )
             for listing_data in listings_input
         ]
