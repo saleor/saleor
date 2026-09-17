@@ -1,10 +1,13 @@
 import datetime
 from unittest import mock
 
+import graphene
 import pytest
+from prices import Money
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.error_codes import GiftCardErrorCode
+from .....giftcard.models import GiftCard, GiftCardTag
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 GIFT_CARD_BULK_CREATE_MUTATION = """
@@ -302,6 +305,148 @@ def test_create_gift_cards_with_expiry_date_by_app(
         )
         assert not card_data["events"][0]["balance"]["oldInitialBalance"]
         assert not card_data["events"][0]["balance"]["oldCurrentBalance"]
+
+
+GIFT_CARD_BULK_CREATE_TAGS_MUTATION = """
+    mutation GiftCardBulkCreate($input: GiftCardBulkCreateInput!) {
+        giftCardBulkCreate(input: $input) {
+            count
+            giftCards {
+                id
+                tags {
+                    name
+                }
+            }
+            errors {
+                code
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_create_gift_cards_normalizes_tag_names(
+    staff_api_client,
+    gift_card,
+    permission_manage_gift_card,
+):
+    # given
+    existing_tag = gift_card.tags.first().name
+    new_tag = "new-tag"
+    tags_count = GiftCardTag.objects.count()
+    count = 3
+    variables = {
+        "input": {
+            "count": count,
+            "balance": {
+                "amount": 100,
+                "currency": "USD",
+            },
+            "tags": [existing_tag.upper(), existing_tag, new_tag.upper(), new_tag],
+            "isActive": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GIFT_CARD_BULK_CREATE_TAGS_MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardBulkCreate"]["errors"]
+    data = content["data"]["giftCardBulkCreate"]
+
+    assert not errors
+    assert data["count"] == count
+    for card_data in data["giftCards"]:
+        assert {tag["name"] for tag in card_data["tags"]} == {existing_tag, new_tag}
+    # only one lower-cased tag is created, the existing one is reused
+    assert GiftCardTag.objects.count() == tags_count + 1
+
+
+@pytest.mark.parametrize(
+    ("first_batch_tags", "second_batch_tags"),
+    [
+        (["tag-1"], ["tag-1"]),
+        (["tag-1", "tag-2"], ["tag-1", "tag-2"]),
+        (["tag-1", "tag-2", "tag-3"], ["tag-2", "tag-3", "tag-4"]),
+        (["tag-1", "tag-2"], ["tag-3"]),
+    ],
+)
+def test_create_gift_cards_with_tags_keeps_tags_of_previously_created_gift_cards_intact(
+    first_batch_tags,
+    second_batch_tags,
+    staff_api_client,
+    permission_manage_gift_card,
+):
+    # given
+    first_batch = GiftCard.objects.bulk_create(
+        [
+            GiftCard(
+                code=f"first-batch-{index}",
+                initial_balance=Money(10, "USD"),
+                current_balance=Money(10, "USD"),
+            )
+            for index in range(10)
+        ]
+    )
+    first_batch_ids = {gift_card.id for gift_card in first_batch}
+    first_batch_tag_instances = GiftCardTag.objects.bulk_create(
+        [GiftCardTag(name=tag) for tag in first_batch_tags]
+    )
+    for gift_card in first_batch:
+        gift_card.tags.add(*first_batch_tag_instances)
+    second_count = 3
+    variables = {
+        "input": {
+            "count": second_count,
+            "balance": {
+                "amount": 100,
+                "currency": "USD",
+            },
+            "tags": second_batch_tags,
+            "isActive": True,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GIFT_CARD_BULK_CREATE_TAGS_MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardBulkCreate"]["errors"]
+    data = content["data"]["giftCardBulkCreate"]
+
+    assert not errors
+    assert data["count"] == second_count
+    second_batch_ids = {
+        int(graphene.Node.from_global_id(card_data["id"])[1])
+        for card_data in data["giftCards"]
+    }
+    for card_data in data["giftCards"]:
+        assert {tag["name"] for tag in card_data["tags"]} == set(second_batch_tags)
+    all_tags = set(first_batch_tags) | set(second_batch_tags)
+    for tag in all_tags:
+        expected_ids = set()
+        if tag in first_batch_tags:
+            expected_ids.update(first_batch_ids)
+        if tag in second_batch_tags:
+            expected_ids.update(second_batch_ids)
+        tagged_ids = set(
+            GiftCardTag.objects.get(name=tag).gift_cards.values_list("id", flat=True)
+        )
+        assert tagged_ids == expected_ids, (
+            f"gift cards assigned to tag {tag} do not match"
+        )
 
 
 def test_create_gift_cards_by_cutomer(api_client):
