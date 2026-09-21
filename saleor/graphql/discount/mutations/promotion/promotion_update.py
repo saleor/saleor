@@ -11,8 +11,9 @@ from .....plugins.manager import PluginsManager
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_324
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ....core.mutations import DeprecatedModelMutation
+from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import Error
 from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
@@ -36,9 +37,13 @@ class PromotionUpdateInput(PromotionInput):
     name = graphene.String(description="Promotion name.")
 
 
-class PromotionUpdate(DeprecatedModelMutation):
+class PromotionUpdate(ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of the promotion to update.")
+        id = graphene.ID(required=False, description="ID of the promotion to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a promotion to update.{ADDED_IN_324}",
+        )
         input = PromotionUpdateInput(
             description="Fields required to update a promotion.", required=True
         )

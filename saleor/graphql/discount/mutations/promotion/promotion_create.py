@@ -16,7 +16,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import JSON, DateTime
@@ -72,6 +72,10 @@ class PromotionInput(BaseInputObjectType):
         description="The start date of the promotion in ISO 8601 format."
     )
     end_date = DateTime(description="The end date of the promotion in ISO 8601 format.")
+    external_reference = graphene.String(
+        description=f"External ID of this promotion.{ADDED_IN_324}",
+        required=False,
+    )
 
 
 class PromotionCreateInput(PromotionInput):
