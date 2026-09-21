@@ -6,6 +6,129 @@ from ....tests.utils import (
     get_graphql_content_from_response,
 )
 
+QUERY_VOUCHER_BY_EXTERNAL_REFERENCE = """
+    query ($id: ID, $externalReference: String) {
+        voucher(
+            id: $id,
+            externalReference: $externalReference,
+        ) {
+            id
+            name
+            externalReference
+        }
+    }
+    """
+
+
+def test_voucher_query_by_external_reference(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    # given
+    external_reference = "test-ext-ref"
+    voucher.external_reference = external_reference
+    voucher.save(update_fields=("external_reference",))
+    variables = {"externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"] == {
+        "voucher": {
+            "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+            "name": voucher.name,
+            "externalReference": external_reference,
+        }
+    }
+
+
+def test_voucher_query_by_external_reference_not_found(
+    staff_api_client, permission_manage_discounts
+):
+    # given
+    variables = {"externalReference": "non-existing-ext-ref"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"] == {"voucher": None}
+
+
+def test_voucher_query_by_empty_string_external_reference(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    """An empty string is treated as a missing argument, so it can't be looked up."""
+    # given
+    external_reference = ""
+    voucher.external_reference = external_reference
+    voucher.save(update_fields=("external_reference",))
+    variables = {"externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert content["data"] == {"voucher": None}
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        "At least one of arguments is required: 'id', 'external_reference'."
+    )
+    assert content["errors"][0]["path"] == ["voucher"]
+
+
+def test_voucher_query_by_external_reference_no_permission(api_client, voucher):
+    # given
+    variables = {"externalReference": "non-existing-ext-ref"}
+
+    # when
+    response = api_client.post_graphql(QUERY_VOUCHER_BY_EXTERNAL_REFERENCE, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_external_reference_conflicting_identifiers(
+    staff_api_client, voucher, permission_manage_discounts
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "externalReference": "voucher-reference",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert content["data"] == {"voucher": None}
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        "Argument 'id' cannot be combined with 'external_reference'"
+    )
+    assert content["errors"][0]["path"] == ["voucher"]
+
+
 QUERY_VOUCHER_BY_ID = """
     query Voucher($id: ID!) {
         voucher(id: $id) {
