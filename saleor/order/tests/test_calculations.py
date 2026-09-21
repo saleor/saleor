@@ -19,7 +19,8 @@ from ...core.taxes import (
 )
 from ...discount import DiscountValueType
 from ...graphql.core.utils import to_global_id_or_none
-from ...order.utils import get_order_country
+from ...order.utils import get_order_country, updates_amounts_for_order
+from ...payment.models import TransactionItem
 from ...plugins import PLUGIN_IDENTIFIER_PREFIX
 from ...plugins.avatax.plugin import DeprecatedAvataxPlugin
 from ...plugins.avatax.tests.conftest import plugin_configuration  # noqa: F401
@@ -29,7 +30,7 @@ from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from ...tax.utils import get_tax_calculation_strategy_for_order
 from ...tests import race_condition
-from .. import OrderStatus, calculations
+from .. import OrderChargeStatus, OrderStatus, calculations
 from ..calculations import logger
 from ..interface import OrderTaxedPricesData
 from ..models import Order
@@ -1995,3 +1996,78 @@ def test_fetch_order_prices_if_expired_order_updated_during_price_recalculation(
     assert order.should_refresh_prices is True
     assert order.updated_at > updated_at_before_recalculation
     assert order.customer_note == expected_note
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "stale_total_offset",
+        "charged_offset",
+        "initial_charge_status",
+        "expected_charge_status",
+    ),
+    [
+        (
+            "charged_more_than_the_stale_total_and_the_order_grows_to_match",
+            Decimal(-10),
+            Decimal(0),
+            OrderChargeStatus.OVERCHARGED,
+            OrderChargeStatus.FULL,
+        ),
+        (
+            "charged_the_stale_total_and_the_order_grows",
+            Decimal(-10),
+            Decimal(-10),
+            OrderChargeStatus.FULL,
+            OrderChargeStatus.PARTIAL,
+        ),
+        (
+            "charged_the_stale_total_and_the_order_shrinks",
+            Decimal(10),
+            Decimal(10),
+            OrderChargeStatus.FULL,
+            OrderChargeStatus.OVERCHARGED,
+        ),
+    ],
+)
+def test_fetch_order_prices_if_expired_refreshes_charge_status(
+    _case,
+    stale_total_offset,
+    charged_offset,
+    initial_charge_status,
+    expected_charge_status,
+    order_with_lines,
+    fetch_kwargs,
+):
+    """Charge status calculated against a stale total is refreshed with the prices."""
+    # given
+    order = order_with_lines
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
+    # `order_with_lines` here is only marked as unconfirmed in memory, so the refresh
+    # has to be narrowed down not to bring the non-editable status back
+    order.refresh_from_db(fields=("total_gross_amount",))
+    recalculated_total = order.total_gross_amount
+
+    TransactionItem.objects.create(
+        order=order,
+        currency=order.currency,
+        charged_value=recalculated_total + charged_offset,
+    )
+
+    # the stored total no longer matches the prices, the charge status is calculated
+    # against the stale value
+    order.total_gross_amount = recalculated_total + stale_total_offset
+    order.save(update_fields=["total_gross_amount"])
+    updates_amounts_for_order(order)
+    assert order.charge_status == initial_charge_status
+
+    order.should_refresh_prices = True
+    order.save(update_fields=["should_refresh_prices", "updated_at"])
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs).get()
+
+    # then
+    order.refresh_from_db(fields=("total_gross_amount", "charge_status"))
+    assert order.total_gross_amount == recalculated_total
+    assert order.charge_status == expected_charge_status

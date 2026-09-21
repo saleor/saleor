@@ -156,3 +156,63 @@ def test_external_refresh_do_update_last_login_when_out_of_threshold(
     assert customer_user.updated_at == time_out_of_threshold
     assert customer_user.last_login == time_out_of_threshold
     assert mock_refresh_token_middleware.called
+
+
+MUTATION_EXTERNAL_REFRESH_ACCESSIBLE_CHANNELS = """
+    mutation externalRefresh($pluginId: String!, $input: JSONString!){
+        externalRefresh(pluginId: $pluginId, input: $input){
+            user{
+                email
+                accessibleChannels{
+                    slug
+                    isActive
+                }
+            }
+            errors{
+                field
+                message
+            }
+        }
+}
+"""
+
+
+@patch("saleor.core.middleware.jwt_decode_with_exception_handler")
+def test_external_refresh_resolves_staff_only_user_fields(
+    mock_refresh_token_middleware,
+    api_client,
+    staff_users,
+    permission_group_all_perms_channel_USD_only,
+    channel_USD,
+    monkeypatch,
+):
+    """The returned user must authenticate the request for the rest of the response.
+
+    `Channel.slug`/`isActive` are guarded by `AUTHENTICATED_STAFF_USER`, so without
+    `info.context.user` being set they raise `PermissionDenied` and fail the whole
+    mutation.
+    """
+    # given
+    user = staff_users[1]
+    assert user.is_staff is True
+    mocked_plugin_fun = Mock(
+        return_value=ExternalAccessTokens(token="token1", user=user)
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.manager.PluginsManager.external_refresh", mocked_plugin_fun
+    )
+    variables = {"pluginId": "pluginId1", "input": json.dumps({"refreshToken": "ABCD"})}
+
+    # when
+    response = api_client.post_graphql(
+        MUTATION_EXTERNAL_REFRESH_ACCESSIBLE_CHANNELS, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["externalRefresh"]
+    assert data["errors"] == []
+    assert data["user"]["email"] == user.email
+    assert data["user"]["accessibleChannels"] == [
+        {"slug": channel_USD.slug, "isActive": channel_USD.is_active}
+    ]

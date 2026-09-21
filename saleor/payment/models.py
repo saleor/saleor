@@ -184,6 +184,24 @@ class TransactionItem(ModelWithMetadata):
         on_delete=models.SET_NULL,
     )
 
+    def has_money_movement(self) -> bool:
+        """Return True if any money was moved by this transaction.
+
+        A transaction with all amounts at zero is an abandoned payment attempt.
+        """
+        return any(
+            (
+                self.authorized_value,
+                self.authorize_pending_value,
+                self.charged_value,
+                self.charge_pending_value,
+                self.refunded_value,
+                self.refund_pending_value,
+                self.canceled_value,
+                self.cancel_pending_value,
+            )
+        )
+
     class Meta:
         ordering = ("pk",)
         indexes = [
