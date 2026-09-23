@@ -22308,7 +22308,11 @@ type Mutation {
   Requires one of the following permissions: AUTHENTICATED_APP.
   """
   appSelfUpdate(
-    """Fields to update on the calling app."""
+    """
+    Fields to update on the calling app.
+    
+    Added in Saleor 3.23.
+    """
     input: AppSelfUpdateInput!
   ): AppSelfUpdate @doc(category: "Apps")
 
@@ -33770,11 +33774,20 @@ Added in Saleor 3.23.
 Requires one of the following permissions: AUTHENTICATED_APP.
 """
 type AppSelfUpdate @doc(category: "Apps") {
-  """The updated app."""
+  """
+  The updated app.
+  
+  Added in Saleor 3.23.
+  """
   app: App
   errors: [AppSelfUpdateError!]!
 }
 
+"""
+Represents errors in the appSelfUpdate mutation.
+
+Added in Saleor 3.23.
+"""
 type AppSelfUpdateError @doc(category: "Apps") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
@@ -33784,16 +33797,30 @@ type AppSelfUpdateError @doc(category: "Apps") {
   """The error message."""
   message: String
 
-  """The error code."""
+  """
+  The error code.
+  
+  Added in Saleor 3.23.
+  """
   code: AppSelfUpdateErrorCode!
 }
 
+"""
+Error codes for the appSelfUpdate mutation.
+
+Added in Saleor 3.23.
+"""
 enum AppSelfUpdateErrorCode {
   GRAPHQL_ERROR
   INVALID
   REQUIRED
 }
 
+"""
+Fields to update on the calling app.
+
+Added in Saleor 3.23.
+"""
 input AppSelfUpdateInput @doc(category: "Apps") {
   """
   Reason why the app is deprecated. Setting it marks the app as deprecated in the dashboard; the app itself keeps working as usual. Pass a blank value to clear it. Omit the field or pass `null` to leave it unchanged. Values longer than 2048 characters are truncated.

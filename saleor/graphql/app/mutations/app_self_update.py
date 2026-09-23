@@ -16,9 +16,12 @@ from ..types import App
 
 
 class AppSelfUpdateError(Error):
-    code = AppSelfUpdateErrorCode(description="The error code.", required=True)
+    code = AppSelfUpdateErrorCode(
+        description="The error code." + ADDED_IN_323, required=True
+    )
 
     class Meta:
+        description = "Represents errors in the appSelfUpdate mutation." + ADDED_IN_323
         doc_category = DOC_CATEGORY_APPS
 
 
@@ -35,15 +38,17 @@ class AppSelfUpdateInput(BaseInputObjectType):
     )
 
     class Meta:
+        description = "Fields to update on the calling app." + ADDED_IN_323
         doc_category = DOC_CATEGORY_APPS
 
 
 class AppSelfUpdate(BaseMutation):
-    app = graphene.Field(App, description="The updated app.")
+    app = graphene.Field(App, description="The updated app." + ADDED_IN_323)
 
     class Arguments:
         input = AppSelfUpdateInput(
-            required=True, description="Fields to update on the calling app."
+            required=True,
+            description="Fields to update on the calling app." + ADDED_IN_323,
         )
 
     class Meta:
