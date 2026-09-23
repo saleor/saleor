@@ -53,5 +53,5 @@ The following releases of Saleor are currently supported.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| ≥ 3.21  | :white_check_mark: |
-| < 3.21  | :x:                |
+| ≥ 3.22  | :white_check_mark: |
+| < 3.22  | :x:                |
