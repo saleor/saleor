@@ -86,3 +86,6 @@ AppProblemCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 AppProblemDismissErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     error_codes.AppProblemDismissErrorCode
 )
+AppSelfUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppSelfUpdateErrorCode
+)

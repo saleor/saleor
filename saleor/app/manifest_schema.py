@@ -9,6 +9,7 @@ from ..thumbnail import ICON_MIME_TYPES
 from ..webhook.response_schemas.utils.annotations import DefaultIfNone
 from .error_codes import AppErrorCode
 from .types import DEFAULT_APP_TARGET
+from .utils import normalize_deprecation_reason
 from .validators import AppURLValidator, image_url_validator
 
 EXTENSION_IDENTIFIER_MAX_LENGTH = 256
@@ -108,6 +109,7 @@ class ManifestSchema(BaseModel):
     audience: str | None = None
     required_saleor_version: str | None = None
     author: str | None = None
+    deprecation_reason: str | None = None
     brand: ManifestBrandSchema | None = None
     extensions: DefaultIfNone[list[ManifestExtensionSchema]] = []
     webhooks: DefaultIfNone[list[ManifestWebhookSchema]] = []
@@ -127,6 +129,12 @@ class ManifestSchema(BaseModel):
                 {"error_code": AppErrorCode.INVALID_URL_FORMAT.value},
             ) from e
         return v
+
+    @field_validator("deprecation_reason")
+    @classmethod
+    def validate_deprecation_reason(cls, v: str | None) -> str | None:
+        # Never rejects: a bad deprecation reason must not fail the install.
+        return normalize_deprecation_reason(v)
 
     @field_validator("author")
     @classmethod
