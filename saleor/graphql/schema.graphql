@@ -38806,6 +38806,13 @@ type TransactionCancelationRequested implements Event @doc(category: "Payments")
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+  
+  Added in Saleor 3.23.
+  """
+  idempotencyKey: String!
 }
 
 type TransactionAction @doc(category: "Payments") {
@@ -38838,6 +38845,13 @@ type TransactionChargeRequested implements Event @doc(category: "Payments") {
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+  
+  Added in Saleor 3.23.
+  """
+  idempotencyKey: String!
 }
 
 """Event sent when transaction refund is requested."""
@@ -38859,6 +38873,13 @@ type TransactionRefundRequested implements Event @doc(category: "Payments") {
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+  
+  Added in Saleor 3.23.
+  """
+  idempotencyKey: String!
 
   """
   Granted refund related to refund request.
