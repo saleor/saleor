@@ -111,54 +111,71 @@ def transaction_release_funds_for_checkout_task():
         for checkout_id, channel_id in checkouts_data
     }
     if transaction_pks:
-        # Select_related app as, this will be used to trigger the proper webhook.
-        transactions = TransactionItem.objects.filter(
-            pk__in=transaction_pks,
-            order_id=None,  # type: ignore[misc]
-        ).select_related("app")
         transactions_with_cancel_request_events = []
         transactions_with_charge_request_events = []
 
-        for transaction_item in transactions:
-            # If transaction is authorized we need to trigger the cancel event
-            if transaction_item.authorized_value:
-                event = TransactionEvent(
-                    amount_value=transaction_item.authorized_value,
-                    currency=transaction_item.currency,
-                    type=TransactionEventType.CANCEL_REQUEST,
-                    transaction_id=transaction_item.id,
-                    idempotency_key=str(uuid.uuid4()),
+        with transaction.atomic():
+            # Select_related app as, this will be used to trigger the proper webhook.
+            # Row locking and eligibility re-validation prevent duplicate executions and replica lag issues.
+            transactions_qs = (
+                TransactionItem.objects.select_for_update(of=("self",))
+                .filter(
+                    pk__in=transaction_pks,
+                    order_id=None,  # type: ignore[misc]
+                    last_refund_success=True,
                 )
-                transactions_with_cancel_request_events.append(
-                    (transaction_item, event)
-                )
+                .filter(Q(authorized_value__gt=0) | Q(charged_value__gt=0))
+                .select_related("app")
+                .order_by("pk")
+            )
+            transactions = list(transactions_qs)
 
-            # If transaction is charged we need to trigger the refund event
-            if transaction_item.charged_value:
-                event = TransactionEvent(
-                    amount_value=transaction_item.charged_value,
-                    currency=transaction_item.currency,
-                    type=TransactionEventType.REFUND_REQUEST,
-                    transaction_id=transaction_item.id,
-                    idempotency_key=str(uuid.uuid4()),
-                )
-                transactions_with_charge_request_events.append(
-                    (transaction_item, event)
-                )
+            for transaction_item in transactions:
+                # If transaction is authorized we need to trigger the cancel event
+                if transaction_item.authorized_value:
+                    event = TransactionEvent(
+                        amount_value=transaction_item.authorized_value,
+                        currency=transaction_item.currency,
+                        type=TransactionEventType.CANCEL_REQUEST,
+                        transaction_id=transaction_item.id,
+                        idempotency_key=str(uuid.uuid4()),
+                    )
+                    transactions_with_cancel_request_events.append(
+                        (transaction_item, event)
+                    )
 
-        if (
-            transactions_with_charge_request_events
-            or transactions_with_cancel_request_events
-        ):
-            with transaction.atomic():
+                # If transaction is charged we need to trigger the refund event
+                if transaction_item.charged_value:
+                    event = TransactionEvent(
+                        amount_value=transaction_item.charged_value,
+                        currency=transaction_item.currency,
+                        type=TransactionEventType.REFUND_REQUEST,
+                        transaction_id=transaction_item.id,
+                        idempotency_key=str(uuid.uuid4()),
+                    )
+                    transactions_with_charge_request_events.append(
+                        (transaction_item, event)
+                    )
+
+            if (
+                transactions_with_charge_request_events
+                or transactions_with_cancel_request_events
+            ):
                 TransactionEvent.objects.bulk_create(
                     [event for _tr, event in transactions_with_cancel_request_events]
                     + [event for _tr, event in transactions_with_charge_request_events]
                 )
                 # Mark transactions as not refundable to avoid multiple automatic
                 # refund requests
-                transactions.update(last_refund_success=False)
+                locked_pks = [t.pk for t in transactions]
+                TransactionItem.objects.filter(pk__in=locked_pks).update(
+                    last_refund_success=False
+                )
 
+        if (
+            transactions_with_charge_request_events
+            or transactions_with_cancel_request_events
+        ):
             manager = get_plugins_manager(allow_replica=True)
             for transaction_item, event in transactions_with_cancel_request_events:
                 channel = checkout_id_to_channel[transaction_item.checkout_id]  # type: ignore[index]

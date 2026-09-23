@@ -7,6 +7,7 @@ from freezegun import freeze_time
 from ...checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from ...checkout.actions import transaction_amounts_for_checkout_updated
 from .. import TransactionAction, TransactionEventType
+from ..models import TransactionItem
 from ..tasks import (
     transaction_release_funds_for_checkout_task,
     transactions_to_release_funds,
@@ -491,3 +492,50 @@ def test_transactions_to_release_funds_after_year(
 
     # then
     assert len(transactions) == 0
+
+
+@mock.patch("saleor.payment.tasks.request_cancelation_action")
+@mock.patch("saleor.payment.tasks.request_refund_action")
+@freeze_time("2021-03-18 12:00:00")
+def test_transaction_release_funds_rechecks_last_refund_success_on_writer(
+    mocked_refund_action,
+    mocked_cancel_action,
+    checkout,
+    settings,
+    transaction_item_generator,
+    plugins_manager,
+):
+    # given
+    ttl_time = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(hours=6)
+    time_after_ttl = ttl_time - datetime.timedelta(seconds=1)
+    with freeze_time(time_after_ttl):
+        transaction_item = transaction_item_generator(
+            checkout_id=checkout.pk,
+            charged_value=Decimal(100),
+            last_refund_success=True,
+        )
+        transaction_amounts_for_checkout_updated(
+            transaction_item, checkout, plugins_manager, user=None, app=None
+        )
+        checkout.automatically_refundable = True
+        checkout.save(update_fields=["automatically_refundable", "last_change"])
+
+    # Simulate replica lag: replica query returns this transaction, but writer
+    # has last_refund_success=False
+    TransactionItem.objects.filter(pk=transaction_item.pk).update(
+        last_refund_success=False
+    )
+
+    # when
+    with mock.patch(
+        "saleor.payment.tasks.transactions_to_release_funds",
+        return_value=TransactionItem.objects.filter(pk=transaction_item.pk),
+    ):
+        transaction_release_funds_for_checkout_task()
+
+    # then
+    assert not mocked_refund_action.called
+    assert not mocked_cancel_action.called
+    assert not transaction_item.events.filter(
+        type=TransactionEventType.REFUND_REQUEST
+    ).exists()
