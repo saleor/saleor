@@ -2060,6 +2060,15 @@ class TransactionActionBase(AbstractType):
         required=True,
         description="Requested action data.",
     )
+    idempotency_key = graphene.String(
+        required=True,
+        description=(
+            "Idempotency key assigned to this requested action. Saleor's delivery "
+            "retries of this request carry the same key, so an app can use it to "
+            "avoid performing the action twice. Requesting the action again is a new "
+            "request and gets a new key." + ADDED_IN_323
+        ),
+    )
 
     @staticmethod
     def resolve_transaction(root, _info: ResolveInfo):
@@ -2072,6 +2081,12 @@ class TransactionActionBase(AbstractType):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data
+
+    @staticmethod
+    def resolve_idempotency_key(root, _info: ResolveInfo):
+        _, transaction_action_data = root
+        transaction_action_data: TransactionActionData
+        return transaction_action_data.event.idempotency_key
 
 
 class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
