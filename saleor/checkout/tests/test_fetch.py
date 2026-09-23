@@ -1,10 +1,12 @@
 from decimal import Decimal
+from unittest import mock
 
 import pytest
 from prices import Money
 
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ..fetch import (
+    CheckoutInfo,
     CheckoutLineInfo,
     fetch_checkout_lines,
 )
@@ -357,3 +359,56 @@ def test_fetch_checkout_lines_info_when_variant_channel_listing_without_price(
     line = lines[0]
     assert line_info.line.pk == line.pk
     assert unavailable_variants == [line.variant_id]
+
+
+def test_checkout_line_info_repr(checkout_with_item_on_promotion):
+    # given
+    line = checkout_with_item_on_promotion.lines.first()
+    line_info = CheckoutLineInfo(
+        line=line,
+        variant=line.variant,
+        channel_listing=None,
+        product=line.variant.product,
+        product_type=line.variant.product.product_type,
+        collections=[],
+        tax_class=None,
+        discounts=[],
+        rules_info=[],
+        channel=checkout_with_item_on_promotion.channel,
+        voucher=None,
+        voucher_code=None,
+    )
+
+    # then
+    assert repr(line_info) == (
+        f"CheckoutLineInfo("
+        f"line_id={line.id!r}, "
+        f"variant_id={line.variant.id!r}, "
+        f"product_id={line.variant.product.id!r}, "
+        f"quantity={line.quantity!r})"
+    )
+
+
+def test_checkout_info_repr(checkout_with_item_on_promotion):
+    # given
+    checkout = checkout_with_item_on_promotion
+    checkout_info = CheckoutInfo(
+        manager=mock.Mock(),
+        checkout=checkout,
+        user=checkout.user,
+        channel=checkout.channel,
+        billing_address=checkout.billing_address,
+        shipping_address=checkout.shipping_address,
+        tax_configuration=mock.Mock(),
+        discounts=[],
+        lines=[],
+    )
+
+    # then
+    assert repr(checkout_info) == (
+        f"CheckoutInfo("
+        f"checkout_token={checkout.token!r}, "
+        f"user_email={checkout.user.email if checkout.user else None!r}, "
+        f"channel_slug={checkout.channel.slug!r}, "
+        f"lines_count=0)"
+    )

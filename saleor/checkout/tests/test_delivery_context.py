@@ -14,6 +14,7 @@ from ...shipping.utils import convert_shipping_method_data_to_checkout_delivery
 from ...webhook.transport.shipping_helpers import to_shipping_app_id
 from ..delivery_context import (
     DeliveryMethodBase,
+    ShippingMethodInfo,
     assign_delivery_method_to_checkout,
     clear_cc_delivery_method,
     fetch_shipping_methods_for_checkout,
@@ -1729,3 +1730,15 @@ def test_fetch_shipping_methods_for_checkout_preserve_invalidates_when_stale_inv
     assert len(shipping_methods) == 2
     checkout.refresh_from_db()
     assert checkout.assigned_delivery_id == assigned_delivery.id
+
+
+def test_shipping_method_info_repr():
+    shipping_method_data = mock.Mock(id="sm_1")
+    shipping_address = mock.Mock(id=123)
+    info = ShippingMethodInfo(
+        delivery_method=shipping_method_data,
+        shipping_address=shipping_address,
+    )
+
+    assert repr(info) == "ShippingMethodInfo(delivery_method_id='sm_1', shipping_address_id=123)"
+

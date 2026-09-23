@@ -62,6 +62,19 @@ class CheckoutLineInfo(LineInfo):
 
     tax_class: Optional["TaxClass"] = field(default=None, repr=False)
 
+    def __repr__(self) -> str:
+        line_id = getattr(self.line, "id", None) if self.line else None
+        variant_id = getattr(self.variant, "id", None) if self.variant else None
+        product_id = getattr(self.product, "id", None) if self.product else None
+        quantity = getattr(self.line, "quantity", None) if self.line else None
+        return (
+            f"CheckoutLineInfo("
+            f"line_id={line_id!r}, "
+            f"variant_id={variant_id!r}, "
+            f"product_id={product_id!r}, "
+            f"quantity={quantity!r})"
+        )
+
     @cached_property
     def variant_discounted_price(self) -> Money:
         """Return the discounted variant price.
@@ -114,7 +127,7 @@ class CheckoutLineInfo(LineInfo):
 
 @dataclass
 class CheckoutInfo:
-    manager: "PluginsManager" = field(compare=False)
+    manager: "PluginsManager" = field(compare=False, repr=False)
     checkout: "Checkout"
     user: Optional["User"]
     channel: "Channel"
@@ -129,6 +142,21 @@ class CheckoutInfo:
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME
 
     allow_sync_webhooks: bool = True
+
+    def __repr__(self) -> str:
+        checkout_token = (
+            getattr(self.checkout, "token", None) if self.checkout else None
+        )
+        user_email = getattr(self.user, "email", None) if self.user else None
+        channel_slug = getattr(self.channel, "slug", None) if self.channel else None
+        lines_count = len(self.lines) if self.lines is not None else 0
+        return (
+            f"CheckoutInfo("
+            f"checkout_token={checkout_token!r}, "
+            f"user_email={user_email!r}, "
+            f"channel_slug={channel_slug!r}, "
+            f"lines_count={lines_count})"
+        )
 
     @cached_property
     def valid_pick_up_points(self) -> Iterable["Warehouse"]:

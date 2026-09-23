@@ -3,6 +3,7 @@ from django_countries import countries
 from measurement.measures import Weight
 from prices import Money
 
+from ..interface import ShippingMethodData
 from ..models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -381,3 +382,22 @@ def test_applicable_shipping_methods_price_rate_use_proper_channel(
     assert price_method_3 not in result
     assert price_method_4 not in result
     assert price_method_2 in result
+
+
+def test_shipping_method_data_repr():
+    method_data = ShippingMethodData(
+        id="sm_1",
+        name="Standard",
+        price=Money(10, "USD"),
+        type="price",
+        active=True,
+    )
+
+    assert repr(method_data) == (
+        "ShippingMethodData("
+        "id='sm_1', "
+        "name='Standard', "
+        "price=Money('10', 'USD'), "
+        "type='price', "
+        "active=True)"
+    )
