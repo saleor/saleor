@@ -34,3 +34,9 @@ class AppProblemDismissErrorCode(Enum):
     REQUIRED = "required"
     NOT_FOUND = "not_found"
     OUT_OF_SCOPE_APP = "out_of_scope_app"
+
+
+class AppSelfUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    REQUIRED = "required"

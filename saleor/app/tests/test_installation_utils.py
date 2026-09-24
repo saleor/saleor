@@ -25,7 +25,7 @@ from ..installation_utils import (
     install_app,
     validate_app_install_response,
 )
-from ..models import App
+from ..models import DEPRECATION_REASON_MAX_LENGTH, App
 
 
 def test_validate_app_install_response():
@@ -1057,3 +1057,77 @@ def test_fetch_brand_data_task_saving_deleted_object(
     mock_storage_delete.assert_called_once_with(
         f"app-installation-brand-data/{file_name}"
     )
+
+
+def test_install_app_with_deprecation_reason(
+    app_manifest, app_installation, monkeypatch
+):
+    # given
+    reason = "Replaced by the new payments app."
+    app_manifest["deprecationReason"] = reason
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert App.objects.get().id == app.id
+    assert app.deprecation_reason == reason
+
+
+def test_install_app_without_deprecation_reason(
+    app_manifest, app_installation, monkeypatch
+):
+    # given
+    assert "deprecationReason" not in app_manifest
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.deprecation_reason is None
+
+
+@pytest.mark.parametrize("blank_reason", ["", "   "])
+def test_install_app_with_blank_deprecation_reason(
+    app_manifest, app_installation, monkeypatch, blank_reason
+):
+    # given
+    app_manifest["deprecationReason"] = blank_reason
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.deprecation_reason is None
+
+
+def test_install_app_with_over_long_deprecation_reason_does_not_fail_install(
+    app_manifest, app_installation, monkeypatch
+):
+    """An informational field must never be able to break an app install."""
+    # given
+    app_manifest["deprecationReason"] = "x" * (DEPRECATION_REASON_MAX_LENGTH + 100)
+    expected = "x" * (DEPRECATION_REASON_MAX_LENGTH - 3) + "..."
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.deprecation_reason == expected
+    assert len(app.deprecation_reason) == DEPRECATION_REASON_MAX_LENGTH

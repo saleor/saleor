@@ -3029,6 +3029,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """The App's author name."""
   author: String
 
+  """
+  Reason why the app is deprecated, set by the app itself. Null when the app is not deprecated. A deprecated app keeps working as usual, but usually means it should not be used anymore.
+  
+  Added in Saleor 3.23.
+  """
+  deprecationReason: String
+
   """App's dashboard extensions."""
   extensions: [AppExtension!]!
 
@@ -22294,6 +22301,22 @@ type Mutation {
   ): AppProblemDismiss @doc(category: "Apps")
 
   """
+  Updates the app that calls this mutation. Only the app itself can change these fields - staff users cannot set them via `appUpdate`.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: AUTHENTICATED_APP.
+  """
+  appSelfUpdate(
+    """
+    Fields to update on the calling app.
+    
+    Added in Saleor 3.23.
+    """
+    input: AppSelfUpdateInput!
+  ): AppSelfUpdate @doc(category: "Apps")
+
+  """
   Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends.
   
   Added in Saleor 3.21. 
@@ -33472,6 +33495,13 @@ type Manifest @doc(category: "Apps") {
   """URL to the full privacy policy."""
   dataPrivacyUrl: String
 
+  """
+  Reason why the app is deprecated, declared in the manifest. Null when the app is not deprecated. A deprecated app can still be installed and works as usual, but usually means it should not be used anymore.
+  
+  Added in Saleor 3.23.
+  """
+  deprecationReason: String
+
   """External URL to the app homepage."""
   homepageUrl: String
 
@@ -33734,6 +33764,70 @@ input AppProblemDismissByStaffWithKeysInput @doc(category: "Apps") {
 
   """ID of the app whose problems to dismiss."""
   app: ID!
+}
+
+"""
+Updates the app that calls this mutation. Only the app itself can change these fields - staff users cannot set them via `appUpdate`.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: AUTHENTICATED_APP.
+"""
+type AppSelfUpdate @doc(category: "Apps") {
+  """
+  The updated app.
+  
+  Added in Saleor 3.23.
+  """
+  app: App
+  errors: [AppSelfUpdateError!]!
+}
+
+"""
+Represents errors in the appSelfUpdate mutation.
+
+Added in Saleor 3.23.
+"""
+type AppSelfUpdateError @doc(category: "Apps") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """
+  The error code.
+  
+  Added in Saleor 3.23.
+  """
+  code: AppSelfUpdateErrorCode!
+}
+
+"""
+Error codes for the appSelfUpdate mutation.
+
+Added in Saleor 3.23.
+"""
+enum AppSelfUpdateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+}
+
+"""
+Fields to update on the calling app.
+
+Added in Saleor 3.23.
+"""
+input AppSelfUpdateInput @doc(category: "Apps") {
+  """
+  Reason why the app is deprecated. Setting it marks the app as deprecated in the dashboard; the app itself keeps working as usual. Pass a blank value to clear it. Omit the field or pass `null` to leave it unchanged. Values longer than 2048 characters are truncated.
+  
+  Added in Saleor 3.23.
+  """
+  deprecationReason: String
 }
 
 """

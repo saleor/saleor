@@ -4,6 +4,7 @@ import graphene
 
 from ...app import error_codes
 from ...app.types import AppType
+from ..core.descriptions import ADDED_IN_323
 from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
 
@@ -85,4 +86,8 @@ AppProblemCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 AppProblemDismissErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     error_codes.AppProblemDismissErrorCode
+)
+AppSelfUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    error_codes.AppSelfUpdateErrorCode,
+    description="Error codes for the appSelfUpdate mutation." + ADDED_IN_323,
 )

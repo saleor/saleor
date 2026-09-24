@@ -802,3 +802,53 @@ def test_app_query_breaker_last_change(
         content["data"]["app"]["breakerLastStateChange"]
     )
     assert retrieved_date == now
+
+
+QUERY_APP_DEPRECATION_REASON = """
+    query ($id: ID) {
+        app(id: $id) {
+            id
+            deprecationReason
+        }
+    }
+"""
+
+
+def test_app_deprecation_reason(app, staff_api_client, permission_manage_apps):
+    # given
+    reason = "Replaced by the new payments app."
+    app.deprecation_reason = reason
+    app.save(update_fields=["deprecation_reason"])
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_DEPRECATION_REASON,
+        variables,
+        permissions=(permission_manage_apps,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["app"]["deprecationReason"] == reason
+
+
+def test_app_deprecation_reason_null_when_not_deprecated(
+    app, staff_api_client, permission_manage_apps
+):
+    # given
+    assert app.deprecation_reason is None
+    variables = {"id": graphene.Node.to_global_id("App", app.id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_DEPRECATION_REASON,
+        variables,
+        permissions=(permission_manage_apps,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["app"]["deprecationReason"] is None

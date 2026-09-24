@@ -1082,3 +1082,74 @@ def test_app_fetch_manifest_extension_with_invalid_absolute_url(
     assert errors[0]["field"] == "extensions"
     assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name
     assert "url" in errors[0]["message"].lower()
+
+
+APP_FETCH_MANIFEST_DEPRECATION_MUTATION = """
+mutation AppFetchManifest($manifest_url: String!) {
+  appFetchManifest(manifestUrl: $manifest_url) {
+    manifest {
+      identifier
+      deprecationReason
+    }
+    errors {
+      field
+      code
+      message
+    }
+  }
+}
+"""
+
+
+def test_fetch_manifest_returns_deprecation_reason(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    """Lets the dashboard warn about a deprecated app before it is installed."""
+    # given
+    reason = "Replaced by the new payments app."
+    app_manifest["deprecationReason"] = reason
+    manifest_url = "http://localhost:3000/manifest"
+    mocked_response = Mock()
+    mocked_response.status_code = 200
+    mocked_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_response))
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_DEPRECATION_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_apps,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appFetchManifest"]
+    assert len(data["errors"]) == 0
+    assert data["manifest"]["deprecationReason"] == reason
+
+
+def test_fetch_manifest_without_deprecation_reason(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    assert "deprecationReason" not in app_manifest
+    manifest_url = "http://localhost:3000/manifest"
+    mocked_response = Mock()
+    mocked_response.status_code = 200
+    mocked_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_response))
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_DEPRECATION_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_apps,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appFetchManifest"]
+    assert len(data["errors"]) == 0
+    assert data["manifest"]["deprecationReason"] is None
