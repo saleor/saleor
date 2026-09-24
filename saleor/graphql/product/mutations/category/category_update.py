@@ -6,15 +6,21 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_324
+from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 from .category_create import CategoryCreate, CategoryInput
 
 
-class CategoryUpdate(CategoryCreate):
+class CategoryUpdate(CategoryCreate, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a category to update.")
+        id = graphene.ID(required=False, description="ID of a category to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a category to update.{ADDED_IN_324}",
+        )
         input = CategoryInput(
             required=True, description="Fields required to update a category."
         )

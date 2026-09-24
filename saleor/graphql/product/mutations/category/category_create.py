@@ -8,7 +8,7 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.lock_objects import acquire_category_tree_lock
 from ....core import ResolveInfo
-from ....core.descriptions import RICH_CONTENT
+from ....core.descriptions import ADDED_IN_324, RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import DeprecatedModelMutation
@@ -30,6 +30,10 @@ class CategoryInput(BaseInputObjectType):
     description = JSONString(description="Category description." + RICH_CONTENT)
     name = graphene.String(description="Category name.")
     slug = graphene.String(description="Category slug.")
+    external_reference = graphene.String(
+        description=f"External ID of this category.{ADDED_IN_324}",
+        required=False,
+    )
     seo = SeoInput(description="Search engine optimization fields.")
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for a product media.")

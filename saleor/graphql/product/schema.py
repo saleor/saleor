@@ -14,6 +14,7 @@ from ..core.connection import create_connection_slice, filter_connection_queryse
 from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
     ADDED_IN_322,
+    ADDED_IN_324,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -101,6 +102,7 @@ from .mutations.channels import (
 )
 from .resolvers import (
     resolve_categories,
+    resolve_category_by_external_reference,
     resolve_category_by_translated_slug,
     resolve_collection_by_id,
     resolve_collection_by_slug,
@@ -157,7 +159,15 @@ class ProductQueries(graphene.ObjectType):
             LanguageCodeEnum,
             description="Language code of the category slug, omit to use primary slug.",
         ),
-        description="Look up a category by ID or slug.",
+        external_reference=graphene.Argument(
+            graphene.String,
+            description=f"External ID of the category.{ADDED_IN_324}",
+        ),
+        description=(
+            "Look up a category by ID, slug or external reference. If "
+            "slugLanguageCode is provided, category will be fetched by slug "
+            "translation."
+        ),
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
     collection = BaseField(
@@ -342,15 +352,20 @@ class ProductQueries(graphene.ObjectType):
         id=None,
         slug=None,
         slug_language_code=None,
+        external_reference=None,
         **kwargs,
     ) -> Promise[Category] | None | Category:
-        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        validate_one_of_args_is_in_query(
+            "id", id, "slug", slug, "external_reference", external_reference
+        )
         if id:
             _, id = from_global_id_or_error(id, Category)
             # FIXME: we should raise an error above
             if id is not None:
                 return CategoryByIdLoader(info.context).load(int(id))
             return None
+        if external_reference:
+            return resolve_category_by_external_reference(info, external_reference)
         if slug:
             if slug_language_code:
                 return resolve_category_by_translated_slug(

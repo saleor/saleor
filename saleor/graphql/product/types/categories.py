@@ -19,7 +19,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import ChannelQsContext, get_database_connection_name
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_324, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
@@ -48,6 +48,9 @@ class Category(ModelObjectType[models.Category]):
     name = graphene.String(required=True, description="Name of category")
     description = JSONString(description="Description of the category." + RICH_CONTENT)
     slug = graphene.String(required=True, description="Slug of the category.")
+    external_reference = graphene.String(
+        description=f"External ID of this category.{ADDED_IN_324}"
+    )
     parent = graphene.Field(lambda: Category, description="Parent category.")
     level = graphene.Int(required=True, description="Level of the category.")
     description_json = JSONString(

@@ -54,7 +54,7 @@ ALL_PRODUCTS_PERMISSIONS = [
 ]
 
 
-class Category(ModelWithMetadata, MPTTModel, SeoModel):
+class Category(ModelWithMetadata, MPTTModel, SeoModel, ModelWithExternalReference):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)

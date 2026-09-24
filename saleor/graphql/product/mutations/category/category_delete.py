@@ -4,15 +4,20 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.utils import delete_categories
 from ....core import ResolveInfo
-from ....core.mutations import ModelDeleteMutation
+from ....core.descriptions import ADDED_IN_324
+from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 
 
-class CategoryDelete(ModelDeleteMutation):
+class CategoryDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a category to delete.")
+        id = graphene.ID(required=False, description="ID of a category to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a category to delete.{ADDED_IN_324}",
+        )
 
     class Meta:
         description = "Deletes a category."
@@ -24,9 +29,9 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
-        instance = cls.get_node_or_error(info, id, only_type=Category)
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
 
         db_id = instance.id
         manager = get_plugin_manager_promise(info.context).get()

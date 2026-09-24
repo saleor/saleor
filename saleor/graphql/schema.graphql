@@ -337,7 +337,9 @@ type Query {
     last: Int
   ): CategoryCountableConnection @doc(category: "Products")
 
-  """Look up a category by ID or slug."""
+  """
+  Look up a category by ID, slug or external reference. If slugLanguageCode is provided, category will be fetched by slug translation.
+  """
   category(
     """ID of the category."""
     id: ID
@@ -347,6 +349,13 @@ type Query {
 
     """Language code of the category slug, omit to use primary slug."""
     slugLanguageCode: LanguageCodeEnum
+
+    """
+    External ID of the category.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
   ): Category @doc(category: "Products")
 
   """
@@ -4297,6 +4306,13 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
 
   """Slug of the category."""
   slug: String!
+
+  """
+  External ID of this category.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
 
   """Parent category."""
   parent: Category
@@ -18315,8 +18331,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   categoryDelete(
+    """
+    External ID of a category to delete.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
+
     """ID of a category to delete."""
-    id: ID!
+    id: ID
   ): CategoryDelete @doc(category: "Products")
 
   """
@@ -18337,8 +18360,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   categoryUpdate(
+    """
+    External ID of a category to update.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
+
     """ID of a category to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a category."""
     input: CategoryInput!
@@ -24280,6 +24310,13 @@ input CategoryInput @doc(category: "Products") {
 
   """Category slug."""
   slug: String
+
+  """
+  External ID of this category.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
 
   """Search engine optimization fields."""
   seo: SeoInput
