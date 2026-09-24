@@ -2,7 +2,7 @@ import graphene
 from django.db import transaction
 
 from .....discount import models
-from .....graphql.core.mutations import ModelDeleteMutation
+from .....graphql.core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import (
     get_channel_to_products_map_from_rules,
@@ -10,6 +10,7 @@ from .....product.utils.product import (
 )
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_324
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import Error
 from ....core.utils import WebhookEventInfo
@@ -22,10 +23,14 @@ class PromotionDeleteError(Error):
     code = PromotionDeleteErrorCode(description="The error code.", required=True)
 
 
-class PromotionDelete(ModelDeleteMutation):
+class PromotionDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
         id = graphene.ID(
-            required=True, description="The ID of the promotion to remove."
+            required=False, description="The ID of the promotion to remove."
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of the promotion to remove.{ADDED_IN_324}",
         )
 
     class Meta:
@@ -44,9 +49,9 @@ class PromotionDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, root, info: ResolveInfo, /, *, id: str
+        cls, root, info: ResolveInfo, /, *, external_reference=None, id=None
     ):
-        instance = cls.get_node_or_error(info, id, only_type=Promotion)
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
         manager = get_plugin_manager_promise(info.context).get()
         rules = instance.rules.all()
         channel_to_products_map = get_channel_to_products_map_from_rules(rules)
@@ -54,7 +59,9 @@ class PromotionDelete(ModelDeleteMutation):
         promotion_id = instance.id
 
         with transaction.atomic():
-            response = super().perform_mutation(root, info, id=id)
+            response = super().perform_mutation(
+                root, info, id=id, external_reference=external_reference
+            )
             instance.id = promotion_id
             cls.call_event(manager.promotion_deleted, instance)
         if channel_to_products_map:

@@ -1200,13 +1200,20 @@ type Query {
   ): VoucherCountableConnection @doc(category: "Discounts")
 
   """
-  Look up a promotion by ID.
+  Look up a promotion by ID or external reference.
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   promotion(
     """ID of the promotion."""
-    id: ID!
+    id: ID
+
+    """
+    External ID of the promotion.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
   ): Promotion @doc(category: "Discounts")
 
   """
@@ -16756,6 +16763,13 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   name: String!
 
   """
+  External ID of this promotion.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
+
+  """
   The type of the promotion. Implicate if the discount is applied on catalogue or order level.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
@@ -20545,8 +20559,15 @@ type Mutation {
   - PROMOTION_ENDED (async): Optionally called if promotion was ended.
   """
   promotionUpdate(
+    """
+    External ID of a promotion to update.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
+
     """ID of the promotion to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a promotion."""
     input: PromotionUpdateInput!
@@ -20561,8 +20582,15 @@ type Mutation {
   - PROMOTION_DELETED (async): A promotion was deleted.
   """
   promotionDelete(
+    """
+    External ID of the promotion to remove.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
+
     """The ID of the promotion to remove."""
-    id: ID!
+    id: ID
   ): PromotionDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [PROMOTION_DELETED], syncEvents: [])
 
   """
@@ -29728,6 +29756,7 @@ enum PromotionCreateErrorCode {
   NOT_FOUND
   REQUIRED
   INVALID
+  UNIQUE
   MULTIPLE_CURRENCIES_NOT_ALLOWED
   INVALID_PRECISION
   MISSING_CHANNELS
@@ -29745,6 +29774,13 @@ input PromotionCreateInput @doc(category: "Discounts") {
 
   """The end date of the promotion in ISO 8601 format."""
   endDate: DateTime
+
+  """
+  External ID of this promotion.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
 
   """Promotion name."""
   name: String!
@@ -29883,6 +29919,7 @@ enum PromotionUpdateErrorCode {
   NOT_FOUND
   REQUIRED
   INVALID
+  UNIQUE
 }
 
 input PromotionUpdateInput {
@@ -29894,6 +29931,13 @@ input PromotionUpdateInput {
 
   """The end date of the promotion in ISO 8601 format."""
   endDate: DateTime
+
+  """
+  External ID of this promotion.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
 
   """Promotion name."""
   name: String

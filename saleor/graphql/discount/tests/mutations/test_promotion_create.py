@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
@@ -10,7 +11,11 @@ from freezegun import freeze_time
 from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionCreateErrorCode
 from .....discount.models import Promotion, PromotionEvent
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import PromotionTypeEnum, RewardTypeEnum, RewardValueTypeEnum
 
 PROMOTION_CREATE_MUTATION = """
@@ -56,6 +61,171 @@ PROMOTION_CREATE_MUTATION = """
         }
     }
 """
+
+
+CREATE_PROMOTION_WITH_EXTERNAL_REFERENCE_MUTATION = """
+    mutation createPromotion($name: String!, $externalReference: String) {
+        promotionCreate(
+            input: {
+                name: $name
+                type: CATALOGUE
+                externalReference: $externalReference
+            }
+        ) {
+            promotion {
+                name
+                externalReference
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_create_promotion_with_external_reference(
+    staff_api_client, permission_manage_discounts
+):
+    # given
+    name = "test-promotion"
+    external_reference = "test-ext-ref"
+    variables = {"name": name, "externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PROMOTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["promotionCreate"]
+    assert data["errors"] == []
+    assert data["promotion"]["externalReference"] == external_reference
+    promotion = Promotion.objects.get(name=name)
+    assert promotion.external_reference == external_reference
+
+
+def test_create_promotion_with_non_unique_external_reference(
+    staff_api_client, catalogue_promotion, permission_manage_discounts
+):
+    # given
+    external_reference = "test-ext-ref"
+    catalogue_promotion.external_reference = external_reference
+    catalogue_promotion.save(update_fields=["external_reference"])
+
+    name = "new-promotion"
+    variables = {"name": name, "externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PROMOTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["promotionCreate"]
+    assert data["promotion"] is None
+    assert Promotion.objects.filter(name=name).exists() is False
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"] == "Promotion with this External reference already exists."
+    )
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == PromotionCreateErrorCode.UNIQUE.name
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    permission_manage_discounts,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    name = "Changed promotion"
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.promotion_created")
+    variables = {"name": name, "externalReference": "new-reference"}
+
+    # when
+    response = client.post_graphql(
+        CREATE_PROMOTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["promotionCreate"]
+        assert data["errors"] == []
+        created = Promotion.objects.get(external_reference="new-reference")
+        assert created.name == name
+        assert data["promotion"] == {
+            "name": name,
+            "externalReference": created.external_reference,
+        }
+        webhook.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"promotionCreate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["promotionCreate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: MANAGE_DISCOUNTS"
+        )
+        assert Promotion.objects.filter(name=name).exists() is False
+        webhook.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "reference_input"),
+    [("omitted", {}), ("null", {"externalReference": None})],
+)
+def test_without_external_reference(
+    _case,
+    reference_input,
+    staff_api_client,
+    permission_manage_discounts,
+):
+    # given
+    name = "Promotion without reference"
+    variables = {"name": name, **reference_input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_PROMOTION_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["promotionCreate"]
+    assert data["errors"] == []
+    assert data["promotion"] == {"name": name, "externalReference": None}
+    created = Promotion.objects.get(name=name)
+    assert created.external_reference is None
 
 
 @freeze_time("2020-03-18 12:00:00")

@@ -6,7 +6,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
-from ...core.descriptions import PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, DateTime, PositiveDecimal
@@ -28,6 +28,9 @@ from .promotion_events import PromotionEvent
 class Promotion(ModelObjectType[models.Promotion]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True, description="Name of the promotion.")
+    external_reference = graphene.String(
+        description=f"External ID of this promotion.{ADDED_IN_324}"
+    )
     type = PromotionTypeEnum(
         description=(
             "The type of the promotion. Implicate if the discount is applied on "
