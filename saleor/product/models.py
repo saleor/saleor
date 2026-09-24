@@ -642,7 +642,7 @@ class CollectionProduct(SortableModel):
         return self.product.collectionproduct.all()
 
 
-class Collection(SeoModel, ModelWithMetadata):
+class Collection(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     products = models.ManyToManyField(

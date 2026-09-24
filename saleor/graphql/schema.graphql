@@ -350,7 +350,7 @@ type Query {
   ): Category @doc(category: "Products")
 
   """
-  Look up a collection by ID or slug. If slugLanguageCode is provided, category will be fetched by slug translation. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  Look up a collection by ID, slug or external reference. If slugLanguageCode is provided, category will be fetched by slug translation. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   collection(
     """ID of the collection."""
@@ -361,6 +361,13 @@ type Query {
 
     """Language code of the collection slug, omit to use primary slug."""
     slugLanguageCode: LanguageCodeEnum
+
+    """
+    External ID of the collection.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -10082,6 +10089,13 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   slug: String!
 
   """
+  External ID of this collection.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
+
+  """
   Channel given to retrieve this collection. Also used by federation gateway to resolve this object in a federated query.
   """
   channel: String
@@ -18389,8 +18403,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   collectionDelete(
+    """
+    External ID of a collection to delete.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
+
     """ID of a collection to delete."""
-    id: ID!
+    id: ID
   ): CollectionDelete @doc(category: "Products")
 
   """
@@ -18437,8 +18458,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   collectionUpdate(
+    """
+    External ID of a collection to update.
+    
+    Added in Saleor 3.24.
+    """
+    externalReference: String
+
     """ID of a collection to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a collection."""
     input: CollectionInput!
@@ -24438,6 +24466,13 @@ input CollectionCreateInput @doc(category: "Products") {
   slug: String
 
   """
+  External ID of this collection.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
+
+  """
   Description of the collection.
   
   Rich text format. For reference see https://editorjs.io/
@@ -24551,6 +24586,13 @@ input CollectionInput @doc(category: "Products") {
 
   """Slug of the collection."""
   slug: String
+
+  """
+  External ID of this collection.
+  
+  Added in Saleor 3.24.
+  """
+  externalReference: String
 
   """
   Description of the collection.
