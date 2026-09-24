@@ -48,7 +48,7 @@ dependencies = [
     "prices~=1.0",
     "promise~=2.3",
     "pybars3>=0.9.7,<0.10",
-    "pyjwt>=2.14.0,<3",
+    "pyjwt>=2.15.0,<3",
     "python-dateutil>=2.8.2,<3",
     "python-json-logger>=0.1.11,<3.3.0",
     "pytimeparse>=1.1.8,<2",
@@ -148,7 +148,7 @@ exclude-newer = "3 weeks"
 # Note: if you remove a package from this list and 'uv lock' does not update the
 #       lockfile, run 'uv lock --refresh' to force a refresh.
 cryptography = "2026-08-25T19:45:45.499357Z" # https://pypi.org/pypi/cryptography/50.0.1/json
-pyjwt = "2026-09-11T13:11:54.638995Z" # https://pypi.org/pypi/pyjwt/2.14.0/json
+pyjwt = "2026-09-23T16:57:00Z" # https://pypi.org/pypi/pyjwt/2.15.0/json
 
 [tool.pytest]
 addopts = [
