@@ -3,7 +3,6 @@ from collections.abc import Iterable
 
 from django.db.models import Exists, F, OuterRef, Q
 
-from ....core.db.connection import allow_writer_in_context
 from ....product import ProductMediaTypes
 from ....product.models import (
     Category,
@@ -611,15 +610,10 @@ class ProductTypeByProductIdLoader(DataLoader):
     context_key = "producttype_by_product_id"
 
     def batch_load(self, keys):
-        @allow_writer_in_context(self.context)
         def with_products(products):
-            product_ids = {p.id for p in products}
-            product_types_map = (
-                ProductType.objects.using(self.database_connection_name)
-                .filter(products__in=product_ids)
-                .in_bulk()
+            return ProductTypeByIdLoader(self.context).load_many(
+                [product.product_type_id for product in products]
             )
-            return [product_types_map[product.product_type_id] for product in products]
 
         return ProductByIdLoader(self.context).load_many(keys).then(with_products)
 
