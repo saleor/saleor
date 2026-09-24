@@ -29,6 +29,7 @@ from .error_codes import AppErrorCode
 from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation, AppToken
 from .types import DEFAULT_APP_TARGET, AppType
+from .utils import normalize_deprecation_reason
 
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
@@ -263,6 +264,11 @@ def install_app(
         audience=manifest_data.get("audience"),
         is_installed=False,
         author=manifest_data.get("author"),
+        # `clean_manifest_data` validates against `ManifestSchema` but discards
+        # the result, so the schema's normalization never reaches this dict.
+        deprecation_reason=normalize_deprecation_reason(
+            manifest_data.get("deprecationReason")
+        ),
     )
 
     app.permissions.set(app_installation.permissions.all())
