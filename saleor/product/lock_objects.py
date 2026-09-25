@@ -1,11 +1,19 @@
 from django.db.models import QuerySet
 
 from ..core.db.locks import AdvisoryLock, acquire_advisory_xact_lock
-from .models import Category, Product
+from .models import Category, Product, ProductVariantChannelListing
 
 
 def product_qs_select_for_update() -> QuerySet[Product]:
     return Product.objects.order_by("pk").select_for_update(of=(["self"]))
+
+
+def product_variant_channel_listing_qs_select_for_update() -> QuerySet[
+    ProductVariantChannelListing
+]:
+    return ProductVariantChannelListing.objects.order_by("pk").select_for_update(
+        of=["self"]
+    )
 
 
 def category_qs_select_for_update() -> QuerySet[Category]:

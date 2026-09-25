@@ -53,6 +53,12 @@ permissions.
 - Deprecated the `MANAGE_OBSERVABILITY` permission (`PermissionEnum`). The observability feature is no longer supported and the permission will be removed in Saleor 3.24.
 - Added `ID` sort field to `ProductVariantSortField`. Sorting by the variant primary key gives a stable order and stable cursors, unlike `LAST_MODIFIED_AT`, whose value changes when a variant is updated during pagination.
 - Sorting products by a numeric attribute (`products(sortBy: { attributeId: ... })`) now orders by the numeric value instead of its string representation, so `10` no longer sorts before `9`. The pagination cursor for attribute-sorted product lists gained a fourth field, so cursors issued before this change are rejected with `Received cursor is invalid`; a client paginating across the deploy must restart from the first page.
+- Added per-channel availability toggle for product variants that preserves pricing:
+  - New `ProductVariantChannelListing.isAvailableForPurchase` field (staff/app only).
+  - New `productVariantChannelListingAvailabilityUpdate` mutation to toggle it without resending prices.
+  - New `isAvailableForPurchase` input field on `ProductVariantChannelListingAddInput` (used by `productVariantChannelListingUpdate`, `productVariantBulkCreate` and `productVariantBulkUpdate.channelListings.create`) and on `ChannelListingUpdateInput` (`productVariantBulkUpdate.channelListings.update`). Omitting it, or passing `null`, keeps the current value.
+  - A listing with `isAvailableForPurchase: false` behaves exactly as if the variant had no listing in that channel: it is hidden from customers, excluded from the product price range, and cannot be added to a checkout or an order. Its `price`, `costPrice` and `priorPrice` are kept, so re-enabling it restores the original prices. Previously the only way to make a variant unavailable was `productChannelListingUpdate(removeVariants:)`, which deletes the listing and its prices.
+  - Existing listings and newly created ones default to `true`, so behaviour is unchanged unless the flag is set.
 
 ### Webhooks
 
