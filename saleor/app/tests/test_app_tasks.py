@@ -8,10 +8,11 @@ from requests_hardened import HTTPSession
 
 from ...core import JobStatus, private_storage
 from ...core.models import EventDelivery, EventDeliveryAttempt, EventPayload
+from ...giftcard.models import GiftCard
 from ...webhook.models import Webhook
 from ..installation_utils import AppInstallationError
 from ..models import App, AppExtension, AppInstallation, AppToken
-from ..tasks import install_app_task, remove_apps_task
+from ..tasks import _batch_set_app_null, install_app_task, remove_apps_task
 
 
 @pytest.mark.vcr
@@ -156,6 +157,61 @@ def test_remove_app_task_not_remove_not_own_payloads(
 
     # then
     assert EventPayload.objects.count() == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_remove_app_task_nulls_set_null_references(removed_app, gift_card):
+    # given
+    gift_card.app = removed_app
+    gift_card.save(update_fields=["app"])
+
+    # when
+    remove_apps_task()
+
+    # then
+    assert App.objects.count() == 0
+    gift_card.refresh_from_db()
+    assert gift_card.app_id is None
+
+
+def test_batch_set_app_null_nulls_all_rows_in_batches(removed_app, gift_card_list):
+    # given
+    batch_size = 2
+    GiftCard.objects.filter(
+        id__in=[gift_card.id for gift_card in gift_card_list]
+    ).update(app=removed_app)
+    gift_card_ids = [gift_card.id for gift_card in gift_card_list]
+
+    # when
+    _batch_set_app_null(GiftCard, removed_app.id, batch_size=batch_size)
+
+    # then
+    assert GiftCard.objects.filter(app_id=removed_app.id).count() == 0
+    assert GiftCard.objects.filter(
+        id__in=gift_card_ids, app_id__isnull=True
+    ).count() == len(gift_card_ids)
+
+
+def test_batch_set_app_null_leaves_other_apps_untouched(
+    removed_app, app, gift_card, gift_card_expiry_date
+):
+    # given
+    own_gift_card = gift_card
+    own_gift_card.app = removed_app
+    own_gift_card.save(update_fields=["app"])
+
+    other_gift_card = gift_card_expiry_date
+    other_gift_card.app = app
+    other_gift_card.save(update_fields=["app"])
+
+    # when
+    _batch_set_app_null(GiftCard, removed_app.id)
+
+    # then
+    own_gift_card.refresh_from_db()
+    other_gift_card.refresh_from_db()
+    assert own_gift_card.app_id is None
+    assert other_gift_card.app_id == app.id
 
 
 def test_remove_app_task_no_app_to_remove(app):

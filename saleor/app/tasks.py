@@ -2,20 +2,43 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Exists, Model, OuterRef, Q
 from django.utils import timezone
 from requests import HTTPError, RequestException
 
 from .. import celeryconf
+from ..account.models import CustomerEvent
 from ..core import JobStatus
 from ..core.db.connection import allow_writer
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.tasks import delete_files_from_private_storage_task
+from ..csv.models import ExportEvent
+from ..discount.models import PromotionEvent
+from ..giftcard.models import GiftCard, GiftCardEvent
+from ..invoice.models import InvoiceEvent
+from ..order.models import OrderEvent, OrderGrantedRefund
+from ..payment.models import TransactionEvent, TransactionItem
 from ..webhook.models import Webhook
 from .installation_utils import AppInstallationError, install_app
 from .models import App, AppExtension, AppInstallation, AppToken
 
 logger = logging.getLogger(__name__)
+
+# Models with a SET_NULL foreign key to App. Django's cascade nulls these in a
+# single un-batched UPDATE during ``app.delete()``, which times out on large
+# tables (e.g. payment and order events). They are nulled in batches instead.
+APP_SET_NULL_MODELS: tuple[type[Model], ...] = (
+    TransactionEvent,
+    TransactionItem,
+    OrderEvent,
+    OrderGrantedRefund,
+    GiftCard,
+    GiftCardEvent,
+    PromotionEvent,
+    ExportEvent,
+    CustomerEvent,
+    InvoiceEvent,
+)
 
 
 @celeryconf.app.task
@@ -86,6 +109,24 @@ def _raw_remove_deliveries(deliveries_ids):
     payloads._raw_delete(payloads.db)
 
 
+def _batch_set_app_null(model, app_id, batch_size=1000):
+    """Null out ``app_id`` references on ``model`` in batches.
+
+    Django's cascade SET_NULL issues a single un-batched UPDATE over the whole
+    related table when an App is deleted, which exceeds the database statement
+    timeout on large tables. Nulling in batches keeps each statement small.
+    """
+    while True:
+        ids = list(
+            model.objects.filter(app_id=app_id).values_list("pk", flat=True)[
+                :batch_size
+            ]
+        )
+        if not ids:
+            break
+        model.objects.filter(pk__in=ids).update(app_id=None)
+
+
 @celeryconf.app.task
 @allow_writer()
 def remove_apps_task():
@@ -120,4 +161,11 @@ def remove_apps_task():
         webhooks.delete()
         AppToken.objects.filter(app_id=app.id).delete()
         AppExtension.objects.filter(app_id=app.id).delete()
+
+        # Saleor nulls SET_NULL references in batches to prevent timeouts on
+        # database. Django's cascade would otherwise null each related table in
+        # a single un-batched UPDATE, which times out on large tables.
+        for model in APP_SET_NULL_MODELS:
+            _batch_set_app_null(model, app.id)
+
         app.delete()
