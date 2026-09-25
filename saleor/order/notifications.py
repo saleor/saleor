@@ -22,8 +22,9 @@ from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils.url import build_absolute_uri, prepare_url
 from ..discount import DiscountType
 from ..graphql.core.utils import to_global_id_or_none
+from ..media.models import ProductMedia
 from ..product import ProductMediaTypes
-from ..product.models import Product, ProductMedia, ProductVariant
+from ..product.models import Product, ProductVariant
 from ..thumbnail import THUMBNAIL_SIZES
 from ..thumbnail.utils import get_image_or_proxy_url
 from .models import FulfillmentLine, Order, OrderLine

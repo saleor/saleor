@@ -664,12 +664,20 @@ class ProductMutations(graphene.ObjectType):
 
     product_channel_listing_update = ProductChannelListingUpdate.Field()
 
-    product_media_create = ProductMediaCreate.Field()
+    product_media_create = ProductMediaCreate.Field(
+        deprecation_reason="Use the `mediaCreate` mutation instead."
+    )
     product_variant_reorder = ProductVariantReorder.Field()
-    product_media_delete = ProductMediaDelete.Field()
+    product_media_delete = ProductMediaDelete.Field(
+        deprecation_reason="Use the `mediaDelete` mutation instead."
+    )
     product_media_bulk_delete = ProductMediaBulkDelete.Field()
-    product_media_reorder = ProductMediaReorder.Field()
-    product_media_update = ProductMediaUpdate.Field()
+    product_media_reorder = ProductMediaReorder.Field(
+        deprecation_reason="Use the `mediaReorder` mutation instead."
+    )
+    product_media_update = ProductMediaUpdate.Field(
+        deprecation_reason="Use the `mediaUpdate` mutation instead."
+    )
 
     product_type_create = ProductTypeCreate.Field()
     product_type_delete = ProductTypeDelete.Field()

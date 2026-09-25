@@ -363,6 +363,15 @@ COST_MAP = {
     "ProductMedia": {
         "url": {"complexity": 1},
     },
+    "CategoryMedia": {
+        "url": {"complexity": 1},
+    },
+    "CollectionMedia": {
+        "url": {"complexity": 1},
+    },
+    "PageMedia": {
+        "url": {"complexity": 1},
+    },
     "ProductType": {
         "availableAttributes": {"complexity": 1, "multipliers": ["first", "last"]},
         "productAttributes": {"complexity": 1},

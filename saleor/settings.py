@@ -323,6 +323,7 @@ INSTALLED_APPS = [
     "saleor.shipping",
     "saleor.site",
     "saleor.page",
+    "saleor.media",
     "saleor.payment",
     "saleor.tax",
     "saleor.warehouse",

@@ -48,6 +48,7 @@ if TYPE_CHECKING:
     from ..discount.models import Promotion, PromotionRule, Voucher, VoucherCode
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
+    from ..media.models import BaseMedia, ProductMedia
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
@@ -57,7 +58,6 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
-        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -1324,6 +1324,33 @@ class BasePlugin:
     # Note: This method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from the plugin to core modules.
     product_media_deleted: Callable[["ProductMedia", Any], Any]
+
+    # Trigger when media of any owner type is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a media
+    # object is created.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    media_created: Callable[["BaseMedia", Any], Any]
+
+    # Trigger when media of any owner type is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a media
+    # object is updated.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    media_updated: Callable[["BaseMedia", Any], Any]
+
+    # Trigger when media of any owner type is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after a media
+    # object is deleted.
+    #
+    # Note: This method is deprecated and will be removed in a future release.
+    # Webhook-related functionality will be moved from the plugin to core modules.
+    media_deleted: Callable[["BaseMedia", Any], Any]
 
     # Trigger when product metadata is updated.
     #
