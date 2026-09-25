@@ -997,6 +997,23 @@ class ProductVariantMetadataUpdated(SubscriptionObjectType, ProductVariantBase):
         description = "Event sent when product variant metadata is updated."
 
 
+def resolve_variant_from_stock(stock, info: ResolveInfo, channel=None):
+    """Resolve the variant of a stock, tolerating a variant deleted in the meantime.
+
+    Webhook payloads are generated asynchronously, so the variant may already be
+    gone when the subscription query is executed.
+    """
+    return (
+        ProductVariantByIdLoader(info.context)
+        .load(stock.product_variant_id)
+        .then(
+            lambda variant: ChannelContext(node=variant, channel_slug=channel)
+            if variant
+            else None
+        )
+    )
+
+
 class ProductVariantOutOfStock(SubscriptionObjectType, ProductVariantBase):
     warehouse = graphene.Field(
         "saleor.graphql.warehouse.types.Warehouse", description="Look up a warehouse."
@@ -1011,8 +1028,7 @@ class ProductVariantOutOfStock(SubscriptionObjectType, ProductVariantBase):
     @staticmethod
     def resolve_product_variant(root, info: ResolveInfo, channel=None):
         _, stock = root
-        variant = stock.product_variant
-        return ChannelContext(node=variant, channel_slug=channel)
+        return resolve_variant_from_stock(stock, info, channel)
 
     @staticmethod
     def resolve_warehouse(root, _info: ResolveInfo):
@@ -1032,10 +1048,9 @@ class ProductVariantBackInStock(SubscriptionObjectType, ProductVariantBase):
         description = "Event sent when product variant is back in stock."
 
     @staticmethod
-    def resolve_product_variant(root, _info: ResolveInfo, channel=None):
+    def resolve_product_variant(root, info: ResolveInfo, channel=None):
         _, stock = root
-        variant = stock.product_variant
-        return ChannelContext(node=variant, channel_slug=channel)
+        return resolve_variant_from_stock(stock, info, channel)
 
     @staticmethod
     def resolve_warehouse(root, _info):
@@ -1058,11 +1073,7 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     @staticmethod
     def resolve_product_variant(root, info: ResolveInfo, channel=None):
         _, stock = root
-        return (
-            ProductVariantByIdLoader(info.context)
-            .load(stock.product_variant.id)
-            .then(lambda variant: ChannelContext(node=variant, channel_slug=None))
-        )
+        return resolve_variant_from_stock(stock, info, channel)
 
     @staticmethod
     def resolve_warehouse(root, info: ResolveInfo):
