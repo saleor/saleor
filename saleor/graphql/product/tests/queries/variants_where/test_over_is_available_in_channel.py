@@ -47,6 +47,7 @@ def _returned_ids(connection):
     [
         (True, [0]),
         (False, [1, 2]),
+        (None, []),
     ],
 )
 def test_variants_filter_by_is_available_in_channel(

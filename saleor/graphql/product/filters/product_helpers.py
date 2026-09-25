@@ -535,10 +535,9 @@ def where_filter_variant_is_available_in_channel(qs, _, value, channel_slug):
 
     Unlike the channel scoping of `productVariants`, which for staff only checks the
     product's channel listing, this looks at the variant's own channel listing.
+    An explicit null matches nothing, like the other `where` filters here.
     """
-    if value is None:
-        return qs
-    if not channel_slug:
+    if value is None or not channel_slug:
         return qs.none()
     channels = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
     priced_listings = ProductVariantChannelListing.objects.using(qs.db).filter(
