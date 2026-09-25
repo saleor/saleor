@@ -9977,6 +9977,13 @@ input ProductVariantWhereInput @doc(category: "Products") {
   """
   stocks: ProductStockFilterInput
 
+  """
+  Filter by variants that have a price in the given channel. Requires the `channel` argument; without it no variants are returned.
+  
+  Added in Saleor 3.24.
+  """
+  isAvailableInChannel: Boolean
+
   """List of conditions that must be met."""
   AND: [ProductVariantWhereInput!]
 
