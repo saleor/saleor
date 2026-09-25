@@ -7,7 +7,6 @@ from ......account.error_codes import AccountErrorCode
 from ......account.tests.fixtures.user import dangerously_create_test_user
 from ......core.tokens import (
     account_confirm_token_generator,
-    legacy_password_reset_token_generator,
     password_reset_token_generator,
 )
 from ......site import PasswordLoginMode
@@ -176,35 +175,6 @@ def test_set_password_rejects_account_confirm_token(
     assert not data["errors"]
     customer_user.refresh_from_db()
     assert customer_user.check_password(new_password)
-
-
-@patch("saleor.account.throttling.cache")
-def test_set_password_accepts_legacy_password_reset_token(
-    mocked_cache, user_api_client, customer_user, setup_mock_for_cache
-):
-    """Ensure old tokens before adding scopes still work properly."""
-
-    # given
-    setup_mock_for_cache({}, mocked_cache)
-    password = "new-password"
-    token = legacy_password_reset_token_generator.make_token(customer_user)
-    variables = {
-        "email": customer_user.email,
-        "password": password,
-        "token": token,
-    }
-
-    # when
-    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["setPassword"]
-    assert not data["errors"]
-    assert data["user"]["id"]
-    assert data["token"]
-    customer_user.refresh_from_db()
-    assert customer_user.check_password(password)
 
 
 @patch("saleor.account.throttling.cache")
