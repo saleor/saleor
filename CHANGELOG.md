@@ -76,5 +76,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Fixes
 
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
+- Fixed orders being completed with untaxed totals when a concurrent modification drops the tax calculation. The pre-tax prices used to qualify order promotions are now stored in dedicated `base_subtotal_amount` and `base_total_amount` columns instead of overwriting `subtotal` and `total`, and `draftOrderComplete` returns a `TAX_ERROR` instead of finalizing an order whose recalculated prices could not be stored because another process modified it in the meantime. Retrying the mutation succeeds.
 
 ### Deprecations

@@ -9,9 +9,9 @@ def test_fetch_promotion_rules_for_order(order, order_line_JPY, order_promotion_
     # given
     rule = order_promotion_rule
 
-    order.subtotal_net_amount = 100
-    order.total_net_amount = 100
-    order.save(update_fields=["subtotal_net_amount", "total_net_amount"])
+    order.base_subtotal_amount = 100
+    order.base_total_amount = 100
+    order.save(update_fields=["base_subtotal_amount", "base_total_amount"])
 
     # when
     rules_per_promotion_id = fetch_promotion_rules_for_checkout_or_order(order)
@@ -27,9 +27,9 @@ def test_fetch_promotion_rules_for_order_no_matching_rule(
     order_promotion_rule,
 ):
     # given
-    order.subtotal_net_amount = 10
-    order.total_net_amount = 10
-    order.save(update_fields=["subtotal_net_amount", "total_net_amount"])
+    order.base_subtotal_amount = 10
+    order.base_total_amount = 10
+    order.save(update_fields=["base_subtotal_amount", "base_total_amount"])
 
     # when
     rules_per_promotion_id = fetch_promotion_rules_for_checkout_or_order(order)
@@ -84,9 +84,9 @@ def test_fetch_promotion_rules_for_checkout_inner_or_operator(
     }
     rule.save(update_fields=["order_predicate"])
 
-    order.subtotal_net_amount = 100
-    order.total_net_amount = 100
-    order.save(update_fields=["subtotal_net_amount", "total_net_amount"])
+    order.base_subtotal_amount = 100
+    order.base_total_amount = 100
+    order.save(update_fields=["base_subtotal_amount", "base_total_amount"])
 
     # when
     rules_per_promotion_id = fetch_promotion_rules_for_checkout_or_order(order)
