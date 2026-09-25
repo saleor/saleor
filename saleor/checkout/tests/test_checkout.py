@@ -1961,3 +1961,30 @@ def test_get_checkout_metadata(checkout):
 
     # then
     assert metadata_container
+
+
+def test_set_country_when_checkout_deleted_concurrently(checkout):
+    # given
+    new_country_code = "DE"
+    assert checkout.country.code != new_country_code
+    Checkout.objects.filter(pk=checkout.pk).delete()
+
+    # when
+    checkout.set_country(new_country_code, commit=True)
+
+    # then
+    assert checkout.country == Country(new_country_code)
+    assert not Checkout.objects.filter(pk=checkout.pk).exists()
+
+
+def test_set_country_persists_to_database(checkout):
+    # given
+    new_country_code = "DE"
+    assert checkout.country.code != new_country_code
+
+    # when
+    checkout.set_country(new_country_code, commit=True)
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.country == Country(new_country_code)
