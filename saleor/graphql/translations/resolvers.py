@@ -26,6 +26,9 @@ TYPE_TO_TRANSLATION_LOADER_MAP: dict[type, type[DataLoader]] = {
     menu_models.MenuItem: (dataloaders.MenuItemTranslationByIdAndLanguageCodeLoader),
     page_models.Page: dataloaders.PageTranslationByIdAndLanguageCodeLoader,
     product_models.Product: (dataloaders.ProductTranslationByIdAndLanguageCodeLoader),
+    product_models.ProductMedia: (
+        dataloaders.ProductMediaTranslationByIdAndLanguageCodeLoader
+    ),
     product_models.ProductVariant: (
         dataloaders.ProductVariantTranslationByIdAndLanguageCodeLoader
     ),
@@ -78,6 +81,12 @@ def resolve_attribute_values(info):
 
 def resolve_products(info):
     return product_models.Product.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
+
+
+def resolve_product_media(info):
+    return product_models.ProductMedia.objects.using(
         get_database_connection_name(info.context)
     ).all()
 
