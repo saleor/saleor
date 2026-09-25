@@ -482,33 +482,6 @@ def test_fulfillment_approve_order_unpaid(
     assert data["errors"][0]["code"] == OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.name
 
 
-def test_fulfillment_approve_preorder(
-    staff_api_client, fulfillment, permission_group_manage_orders, site_settings
-):
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    site_settings.fulfillment_auto_approve = False
-    site_settings.save(update_fields=["fulfillment_auto_approve"])
-
-    order_line = fulfillment.order.lines.first()
-    variant = order_line.variant
-    variant.is_preorder = True
-    variant.save(update_fields=["is_preorder"])
-    fulfillment.status = FulfillmentStatus.WAITING_FOR_APPROVAL
-    fulfillment.save(update_fields=["status"])
-    query = APPROVE_FULFILLMENT_MUTATION
-
-    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
-    variables = {"id": fulfillment_id, "notifyCustomer": False}
-    response = staff_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["orderFulfillmentApprove"]
-    assert data["errors"]
-
-    error = data["errors"][0]
-    assert error["field"] == "orderLineId"
-    assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
-
-
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_fulfillment_approve_trigger_webhook_event(
     mocked_trigger_async,

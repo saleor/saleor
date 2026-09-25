@@ -62,8 +62,8 @@ from ..tax.calculations import get_taxed_undiscounted_price
 from ..tax.utils import (
     get_tax_class_kwargs_for_order_line,
 )
-from ..warehouse.availability import check_stock_and_preorder_quantity_bulk
-from ..warehouse.management import allocate_preorders, allocate_stocks
+from ..warehouse.availability import check_stock_quantity_bulk
+from ..warehouse.management import allocate_stocks
 from ..warehouse.models import Reservation, Stock
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
@@ -614,7 +614,7 @@ def _create_lines_for_order(
         checkout_info.get_delivery_method_info().get_warehouse_filter_lookup()
     )
     include_shipping_zones = site_settings.use_legacy_shipping_zone_stock_availability
-    check_stock_and_preorder_quantity_bulk(
+    check_stock_quantity_bulk(
         variants,
         country_code,
         quantities,
@@ -843,12 +843,6 @@ def _create_order(
         collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         additional_filter_lookup=additional_warehouse_lookup,
         check_reservations=True,
-        checkout_lines=[line.line for line in checkout_lines],
-    )
-    allocate_preorders(
-        order_lines_info,
-        checkout_info.channel.slug,
-        check_reservations=is_reservation_enabled(site_settings),
         checkout_lines=[line.line for line in checkout_lines],
     )
 
@@ -1286,12 +1280,6 @@ def _handle_allocations_of_order_lines(
         collection_point_pk=checkout_info.get_delivery_method_info().warehouse_pk,
         additional_filter_lookup=additional_warehouse_lookup,
         check_reservations=True,
-        checkout_lines=[line.line for line in checkout_lines],
-    )
-    allocate_preorders(
-        order_lines_info,
-        checkout_info.channel.slug,
-        check_reservations=reservation_enabled,
         checkout_lines=[line.line for line in checkout_lines],
     )
 

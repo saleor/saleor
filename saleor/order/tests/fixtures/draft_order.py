@@ -18,7 +18,7 @@ from ....discount.utils.voucher import (
     create_or_update_discount_object_from_order_level_voucher,
 )
 from ....product.models import VariantChannelListingPromotionRule
-from ....warehouse.models import Allocation, PreorderAllocation, Stock
+from ....warehouse.models import Allocation, Stock
 from ... import OrderOrigin, OrderStatus
 from ...base_calculations import base_order_subtotal
 from ...models import Order
@@ -111,17 +111,6 @@ def draft_order_without_inventory_tracking(order_with_line_without_inventory_tra
     order_with_line_without_inventory_tracking.origin = OrderStatus.DRAFT
     order_with_line_without_inventory_tracking.save(update_fields=["status", "origin"])
     return order_with_line_without_inventory_tracking
-
-
-@pytest.fixture
-def draft_order_with_preorder_lines(order_with_preorder_lines):
-    PreorderAllocation.objects.filter(
-        order_line__order=order_with_preorder_lines
-    ).delete()
-    order_with_preorder_lines.status = OrderStatus.DRAFT
-    order_with_preorder_lines.origin = OrderOrigin.DRAFT
-    order_with_preorder_lines.save(update_fields=["status", "origin"])
-    return order_with_preorder_lines
 
 
 @pytest.fixture

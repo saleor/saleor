@@ -6,7 +6,7 @@ from django.utils import timezone
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from .management import delete_allocations, stock_bulk_update
-from .models import Allocation, PreorderReservation, Reservation, Stock
+from .models import Allocation, Reservation, Stock
 
 task_logger = get_task_logger(__name__)
 
@@ -28,16 +28,9 @@ def delete_expired_reservations_task():
     stock_reservations, _ = Reservation.objects.filter(
         reserved_until__lt=timezone.now()
     ).delete()
-    preorder_reservations, _ = PreorderReservation.objects.filter(
-        reserved_until__lt=timezone.now()
-    ).delete()
 
-    if stock_reservations or preorder_reservations:
-        task_logger.debug(
-            "Removed %s stock reservations and %s preorder reservations",
-            stock_reservations,
-            preorder_reservations,
-        )
+    if stock_reservations:
+        task_logger.debug("Removed %s stock reservations", stock_reservations)
 
 
 @app.task
