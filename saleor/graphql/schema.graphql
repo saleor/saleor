@@ -350,7 +350,7 @@ type Query {
   ): Category @doc(category: "Products")
 
   """
-  Look up a collection by ID or slug. If slugLanguageCode is provided, category will be fetched by slug translation. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  Look up a collection by ID or slug. If slugLanguageCode is provided, category will be fetched by slug translation. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   collection(
     """ID of the collection."""
@@ -367,7 +367,7 @@ type Query {
   ): Collection @doc(category: "Products")
 
   """
-  List of the shop's collections. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  List of the shop's collections. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   collections(
     """Filtering options for collections."""
@@ -400,7 +400,7 @@ type Query {
   ): CollectionCountableConnection @doc(category: "Products")
 
   """
-  Look up a product by ID. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  Look up a product by ID. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   product(
     """ID of the product."""
@@ -420,7 +420,7 @@ type Query {
   ): Product @doc(category: "Products")
 
   """
-  List of the shop's products. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  List of the shop's products. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   products(
     """Filtering options for products."""
@@ -487,7 +487,7 @@ type Query {
   ): ProductTypeCountableConnection @doc(category: "Products")
 
   """
-  Look up a product variant by ID or SKU. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  Look up a product variant by ID or SKU. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   productVariant(
     """ID of the product variant."""
@@ -504,7 +504,7 @@ type Query {
   ): ProductVariant @doc(category: "Products")
 
   """
-  List of product variants. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  List of product variants. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   productVariants(
     """Filter product variants by given IDs."""
@@ -3102,7 +3102,9 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_CHANNELS
   MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES
   MANAGE_DISCOUNTS
+  READ_DISCOUNTS
   MANAGE_GIFT_CARD
+  READ_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
   MANAGE_ORDERS_IMPORT
@@ -4164,12 +4166,12 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   ): ProductImage @deprecated(reason: "Use the `mediaById` field instead.")
 
   """
-  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   variants: [ProductVariant!] @deprecated(reason: "Use `productVariants` field instead.")
 
   """
-  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   productVariants(
     """Filtering options for product variant."""
@@ -4208,7 +4210,7 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   images: [ProductImage!] @deprecated(reason: "Use the `media` field instead.")
 
   """
-  List of collections for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  List of collections for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   collections: [Collection!]
 
@@ -4341,7 +4343,7 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   ): CategoryCountableConnection
 
   """
-  List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   products(
     """Filtering options for products."""
@@ -12344,7 +12346,7 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   priceOverrideReason: String
 
   """
-  A purchased product variant. Note: this field may be null if the variant has been removed from stock at all. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  A purchased product variant. Note: this field may be null if the variant has been removed from stock at all. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   variant: ProductVariant
 
@@ -14555,7 +14557,7 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   category: Category
 
   """
-  A collection associated with this menu item. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_PRODUCTS.
+  A collection associated with this menu item. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS, READ_ORDERS, READ_DISCOUNTS, READ_PRODUCTS.
   """
   collection: Collection
 
