@@ -2100,6 +2100,41 @@ def test_draft_order_create_with_negative_quantity_line(
     assert error["field"] == "quantity"
 
 
+def test_draft_order_create_with_nonexistent_variant(
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    channel_USD,
+):
+    # given a variant id that does not resolve to an existing variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    nonexistent_variant_id = graphene.Node.to_global_id("ProductVariant", -1)
+    variant_list = [{"variantId": nonexistent_variant_id, "quantity": 1}]
+    variables = {
+        "input": {
+            "user": user_id,
+            "channelId": channel_id,
+            "lines": variant_list,
+        }
+    }
+
+    # when the draft order is created
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then a NOT_FOUND error is returned instead of an unhandled KeyError
+    content = get_graphql_content(response)
+    errors = content["data"]["draftOrderCreate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == OrderErrorCode.NOT_FOUND.name
+    assert error["field"] == "lines"
+    assert error["variants"] == [nonexistent_variant_id]
+
+
 def test_draft_order_create_with_channel_with_unpublished_product(
     staff_api_client,
     permission_group_manage_orders,
