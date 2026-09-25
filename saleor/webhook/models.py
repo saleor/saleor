@@ -20,7 +20,6 @@ class Webhook(models.Model):
     app = models.ForeignKey(App, related_name="webhooks", on_delete=models.CASCADE)
     target_url = WebhookURLField(max_length=255)
     is_active = models.BooleanField(default=True)
-    secret_key = models.CharField(max_length=255, null=True, blank=True)
     subscription_query = models.TextField(null=True, blank=True)
     custom_headers = models.JSONField(
         blank=True,
