@@ -3,6 +3,7 @@ from operator import attrgetter
 from typing import TYPE_CHECKING
 
 from ..core.taxes import zero_money, zero_taxed_money
+from . import ChargeStatus
 from .models import Payment
 
 if TYPE_CHECKING:
@@ -11,6 +12,19 @@ if TYPE_CHECKING:
 
 def get_last_payment(payments: Iterable[Payment]):
     return max(payments, default=None, key=attrgetter("pk"))
+
+
+def legacy_payment_holds_refunds(payment: Payment | None) -> bool:
+    """Return True when a legacy payment is the source of the refunded amount.
+
+    A legacy payment keeps the refunds in its refund transactions while it is active,
+    and reports them through its charge status once it is fully refunded.
+    """
+    if payment is None:
+        return False
+    return bool(
+        payment.is_active or payment.charge_status == ChargeStatus.FULLY_REFUNDED
+    )
 
 
 def get_total_authorized(payments: Iterable[Payment], fallback_currency: str):

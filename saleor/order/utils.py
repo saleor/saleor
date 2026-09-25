@@ -43,8 +43,12 @@ from ..discount.utils.voucher import (
 from ..giftcard import events as gift_card_events
 from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
-from ..payment import TransactionEventType
-from ..payment.model_helpers import get_total_authorized
+from ..payment import TransactionEventType, TransactionKind
+from ..payment.model_helpers import (
+    get_last_payment,
+    get_total_authorized,
+    legacy_payment_holds_refunds,
+)
 from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
     decrease_allocations,
@@ -58,6 +62,7 @@ from . import (
     OrderAuthorizeStatus,
     OrderChargeStatus,
     OrderGrantedRefundStatus,
+    OrderRefundStatus,
     OrderStatus,
     events,
 )
@@ -951,7 +956,11 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
         OrderLine.objects.bulk_update(lines, ["base_unit_price_amount"])
 
 
-def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
+def update_order_charge_status(
+    order: Order,
+    granted_refund_amount: Decimal,
+    order_has_refunds: bool = False,
+):
     """Update the current charge status for the order.
 
     We treat the order as overcharged when the charged amount is bigger that
@@ -961,33 +970,84 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
     We treat the order as partially charged when the charged amount covers only part of
     the order.total - order granted refund
     We treat the order as not charged when the charged amount is 0.
+
+    ``order.total_charged_amount`` holds the amount the customer paid, as the refunds
+    are already subtracted from it. A refund lowers that amount as well, so a refunded
+    order can compare as fully charged although the money was returned to the customer.
+    An order with nothing charged left is therefore reported as not charged when any
+    money was refunded, and as fully charged only when there is nothing to pay for.
     """
     total_charged = order.total_charged_amount or Decimal(0)
+    total_charged = max(total_charged, Decimal(0))
     total_charged = quantize_price(total_charged, order.currency)
 
     current_total_gross = order.total_gross_amount - granted_refund_amount
     current_total_gross = max(current_total_gross, Decimal(0))
     current_total_gross = quantize_price(current_total_gross, order.currency)
 
-    if total_charged == current_total_gross:
+    if total_charged <= Decimal(0):
+        order.charge_status = (
+            OrderChargeStatus.FULL
+            if not order_has_refunds and current_total_gross <= Decimal(0)
+            else OrderChargeStatus.NONE
+        )
+    elif total_charged == current_total_gross:
         order.charge_status = OrderChargeStatus.FULL
-    elif total_charged <= Decimal(0):
-        order.charge_status = OrderChargeStatus.NONE
     elif total_charged < current_total_gross:
         order.charge_status = OrderChargeStatus.PARTIAL
     else:
         order.charge_status = OrderChargeStatus.OVERCHARGED
 
 
-def _update_order_total_charged(
-    order: Order,
+def get_total_charged(
     order_payments: QuerySet["Payment"],
     order_transactions: Iterable["TransactionItem"],
-):
-    order.total_charged_amount = sum(
-        [p.captured_amount for p in order_payments], Decimal(0)
+) -> Decimal:
+    """Return the charged amount of the order.
+
+    A transaction keeps the refunded money in ``refunded_value`` and subtracts it from
+    ``charged_value`` (also while the refund is only pending), so ``charged_value`` is
+    the amount left after the refunds. A refunded legacy payment decreases its captured
+    amount the same way. The negative charged amount of an in flight refund is clamped
+    at zero.
+    """
+    total_charged = sum([p.captured_amount for p in order_payments], Decimal(0))
+    total_charged += sum(
+        [max(tr.charged_value, Decimal(0)) for tr in order_transactions], Decimal(0)
     )
-    order.total_charged_amount += sum([tr.charged_value for tr in order_transactions])
+    return max(total_charged, Decimal(0))
+
+
+def get_total_refunded(
+    order_payments: QuerySet["Payment"],
+    order_transactions: Iterable["TransactionItem"],
+) -> Decimal:
+    """Return the successfully refunded amount for the order.
+
+    When the order is processed with legacy payments, the refunded amount is
+    calculated based on the successful refund transactions of the last payment,
+    as the captured amount for the payment is decreased during the refund
+    process. Otherwise, the sum of the refunded values of the order's
+    transactionItems is used.
+    """
+    last_payment = get_last_payment(order_payments)
+    if last_payment is not None and legacy_payment_holds_refunds(last_payment):
+        return sum(
+            [
+                transaction.amount
+                for transaction in last_payment.transactions.all()
+                if transaction.kind == TransactionKind.REFUND and transaction.is_success
+            ],
+            Decimal(0),
+        )
+    return sum([tr.refunded_value for tr in order_transactions], Decimal(0))
+
+
+def get_total_refund_pending(
+    order_transactions: Iterable["TransactionItem"],
+) -> Decimal:
+    """Return the refunded amount of the order that is still in flight."""
+    return sum([tr.refund_pending_value for tr in order_transactions], Decimal(0))
 
 
 def update_order_charge_data(
@@ -1006,13 +1066,33 @@ def update_order_charge_data(
     granted_refund_amount = sum(
         [refund.amount.amount for refund in order_granted_refunds], Decimal(0)
     )
-    _update_order_total_charged(
-        order, order_payments=order_payments, order_transactions=order_transactions
+    total_charged = get_total_charged(order_payments, order_transactions)
+    total_refunded = get_total_refunded(order_payments, order_transactions)
+    total_refund_pending = get_total_refund_pending(order_transactions)
+
+    order.total_charged_amount = total_charged
+    refunded_amount = total_refunded + total_refund_pending
+
+    update_order_charge_status(
+        order, granted_refund_amount, order_has_refunds=refunded_amount > Decimal(0)
     )
-    update_order_charge_status(order, granted_refund_amount)
+    # The refund status is derived from the same amounts, so it is kept in sync here
+    # instead of relying on every caller to update it separately.
+    update_order_refund_status(
+        order,
+        total_refunded=refunded_amount,
+        # the charged amount holds the money left after the refunds, so the refunded
+        # part has to be added back to tell a full refund from a partial one
+        total_charged=total_charged + refunded_amount,
+    )
     if with_save:
         order.save(
-            update_fields=["total_charged_amount", "charge_status", "updated_at"]
+            update_fields=[
+                "total_charged_amount",
+                "charge_status",
+                "refund_status",
+                "updated_at",
+            ]
         )
 
 
@@ -1082,6 +1162,28 @@ def update_order_authorize_data(
         )
 
 
+def update_order_refund_status(
+    order: Order,
+    total_refunded: Decimal,
+    total_charged: Decimal,
+):
+    """Update the current refund status for the order.
+
+    The order is fully refunded when the refunded amount is equal to or bigger
+    than the charged amount. The order is partially refunded when the refunded
+    amount covers only a part of the charged amount. The order is not refunded
+    when the refunded amount is 0. A refund that is still processed by the app is
+    already taken into account, so the status does not flip back once the refund is
+    reported as successful.
+    """
+    if total_refunded <= Decimal(0):
+        order.refund_status = OrderRefundStatus.NONE
+    elif total_refunded >= total_charged:
+        order.refund_status = OrderRefundStatus.FULL
+    else:
+        order.refund_status = OrderRefundStatus.PARTIAL
+
+
 def updates_amounts_for_order(order: Order, save: bool = True):
     order_payments = order.payments.all()
     order_transactions = order.payment_transactions.all()
@@ -1108,6 +1210,7 @@ def updates_amounts_for_order(order: Order, save: bool = True):
                 "updated_at",
                 "total_authorized_amount",
                 "authorize_status",
+                "refund_status",
             ]
         )
 
