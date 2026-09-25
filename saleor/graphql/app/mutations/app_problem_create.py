@@ -1,18 +1,14 @@
-import datetime
 from typing import Annotated, Any, cast
 
 import graphene
-from django.utils import timezone
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 from pydantic import ValidationError as PydanticValidationError
 
 from ....app.error_codes import (
     AppProblemCreateErrorCode as AppProblemCreateErrorCodeEnum,
 )
-from ....app.lock_objects import app_qs_select_for_update
 from ....app.models import App as AppModel
-from ....app.models import AppProblem
-from ....core.tracing import traced_atomic_transaction
+from ....app.problems import create_or_update_problem
 from ....permission.auth_filters import AuthorizationFilters
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_322
@@ -119,84 +115,11 @@ class AppProblemCreate(BaseMutation):
                 exc, default_error_code=AppProblemCreateErrorCodeEnum.INVALID.value
             ) from exc
 
-        now = timezone.now()
-
-        with traced_atomic_transaction():
-            # Lock the App row to serialize all problem operations for this app
-            # At this point it trades performance for correctness
-            # If we need to improve performance, we can skip locking entire app row and
-            # schedule a cleanup task for > 100 items
-            app_qs_select_for_update().filter(pk=app.pk).first()
-
-            existing = (
-                AppProblem.objects.filter(app=app, key=validated.key, dismissed=False)
-                .order_by("-updated_at")
-                .first()
-            )
-
-            if not existing:
-                problem = cls._create_new_problem(app, validated, now)
-                return AppProblemCreate(app_problem=problem)
-
-            # Flow for existing / update
-            aggregation_enabled = validated.aggregation_period > 0
-            cutoff = now - datetime.timedelta(minutes=validated.aggregation_period)
-            within_aggregation_window = (
-                aggregation_enabled and existing.updated_at >= cutoff
-            )
-
-            if not within_aggregation_window:
-                problem = cls._create_new_problem(app, validated, now)
-                return AppProblemCreate(app_problem=problem)
-
-            cls._aggregate_existing(existing, validated, now)
-            return AppProblemCreate(app_problem=existing)
-
-    @classmethod
-    def _aggregate_existing(
-        cls,
-        existing: AppProblem,
-        validated: AppProblemCreateValidatedInput,
-        now: datetime.datetime,
-    ) -> None:
-        # In transaction block - we can safely modify in memory
-        existing.count += 1
-        existing.is_critical = bool(
-            validated.critical_threshold
-            and existing.count >= validated.critical_threshold
-        )
-        existing.message = validated.message
-        existing.updated_at = now
-        existing.save(update_fields=["count", "updated_at", "message", "is_critical"])
-
-    @classmethod
-    def _create_new_problem(
-        cls,
-        app: AppModel,
-        validated: AppProblemCreateValidatedInput,
-        now: datetime.datetime,
-    ) -> AppProblem:
-        total_count = AppProblem.objects.filter(app=app).count()
-        # +1 accounts for the new problem we're about to create
-        excess_count = total_count - AppProblem.MAX_PROBLEMS_PER_APP + 1
-
-        if excess_count > 0:
-            oldest_pks = list(
-                AppProblem.objects.filter(app=app)
-                .order_by("updated_at")
-                .values_list("pk", flat=True)[:excess_count]
-            )
-            if oldest_pks:
-                AppProblem.objects.filter(pk__in=oldest_pks).delete()
-
-        immediately_critical = bool(
-            validated.critical_threshold and validated.critical_threshold <= 1
-        )
-
-        return AppProblem.objects.create(
-            app=app,
+        problem = create_or_update_problem(
+            app.pk,
             message=validated.message,
             key=validated.key,
-            count=1,
-            is_critical=immediately_critical,
+            critical_threshold=validated.critical_threshold,
+            aggregation_period=validated.aggregation_period,
         )
+        return AppProblemCreate(app_problem=problem)
