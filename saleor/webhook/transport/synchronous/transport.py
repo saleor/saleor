@@ -35,7 +35,7 @@ from ....payment.utils import (
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
 )
-from ... import const, observability
+from ... import const
 from ...event_types import WebhookEventSyncType
 from ...payloads import generate_transaction_action_request_payload
 from ...utils import get_webhooks_for_event
@@ -186,7 +186,6 @@ def _send_webhook_request_sync(
 
     attempt_update(attempt, response)
     delivery_update(delivery, response.status)
-    observability.report_event_delivery_attempt(attempt)
     save_unsuccessful_delivery_attempt(attempt)
     clear_successful_delivery(delivery)
     return response, response_data
