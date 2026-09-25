@@ -530,6 +530,24 @@ def where_filter_stock_availability(qs, _, value, channel_slug):
     return qs.none()
 
 
+def where_filter_variant_is_available_in_channel(qs, _, value, channel_slug):
+    """Filter variants by whether they have a priced listing in the given channel.
+
+    Unlike the channel scoping of `productVariants`, which for staff only checks the
+    product's channel listing, this looks at the variant's own channel listing.
+    An explicit null matches nothing, like the other `where` filters here.
+    """
+    if value is None or not channel_slug:
+        return qs.none()
+    channels = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+    priced_listings = ProductVariantChannelListing.objects.using(qs.db).filter(
+        Exists(channels.filter(pk=OuterRef("channel_id"))),
+        price_amount__isnull=False,
+    )
+    lookup = Exists(priced_listings.filter(variant_id=OuterRef("pk")))
+    return qs.filter(lookup) if value else qs.exclude(lookup)
+
+
 def where_filter_variant_stock_availability(qs, _, value, channel_slug):
     if value:
         return filter_variants_by_stock_availability(qs, value, channel_slug)
