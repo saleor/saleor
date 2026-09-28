@@ -14,7 +14,7 @@ exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
 pyjwt = "2026-09-23T16:57:00Z"
-due-work-harness = "2026-09-28T17:40:15Z"
+due-work-harness = "2026-09-28T23:06:26Z"
 cryptography = "2026-08-25T19:45:45.499357Z"
 
 [[package]]
@@ -787,15 +787,15 @@ wheels = [
 
 [[package]]
 name = "due-work-harness"
-version = "0.2.0"
+version = "0.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "pytest" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/3d/d0039f6aa1d65ddce4d1198851b5a4ec45edc60f726135a4bd66ea4a7146/due_work_harness-0.2.0.tar.gz", hash = "sha256:97e1f1274c8cdaf655fd5e11d86566699dada91f9fdcb5853d6c8c70310cac9d", size = 442781, upload-time = "2026-09-28T17:40:10.517Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/54/07/71ef6528dd724977c3b19c16321e744f530b2b37e0a971977aa8a9a51d4c/due_work_harness-0.5.0.tar.gz", hash = "sha256:63670a4a995ac7e7498888c60e47435b4631252c15c63cb3b3fb76e300a7a16d", size = 469172, upload-time = "2026-09-28T23:06:25.914Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/f7/bf2144104cbad5e504cffde9c5c9827259cbde06bea14bcc480f2482438d/due_work_harness-0.2.0-py3-none-any.whl", hash = "sha256:102230cec75f2f26f203ae7242318f48a2f3200e55af826a3c78be1ce642f1d2", size = 204534, upload-time = "2026-09-28T17:40:09.19Z" },
+    { url = "https://files.pythonhosted.org/packages/46/a4/6e1fec200ebc5dfd2e94ce84d8194923241d475b7623940ef71ab0a5b323/due_work_harness-0.5.0-py3-none-any.whl", hash = "sha256:0a1a28a4a51fb68118d40567a026234a65e4a186a75b94ea7b23bf179c7952c2", size = 227098, upload-time = "2026-09-28T23:06:24.106Z" },
 ]
 
 [[package]]
