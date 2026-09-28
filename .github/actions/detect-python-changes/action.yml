@@ -1,0 +1,73 @@
+name: Detect Python changes
+description: >-
+  Reports whether a pull request touches files that require the Python test
+  suites to run.
+
+  This replaces an `on.pull_request.paths` filter. A workflow skipped by path
+  filtering never reports a check run, so it can never be made a required status
+  check without deadlocking every pull request it does not match. A job that
+  runs and exits early does report, so it can be required.
+
+inputs:
+  additional-file-patterns:
+    description: >-
+      Extra extended regular expressions, one per line, matched against the
+      paths a pull request changes. Use this to make a workflow re-run when its
+      own definition changes.
+    required: false
+    default: ""
+
+outputs:
+  changed:
+    description: >-
+      `true` when the pull request touches relevant files, or when the event is
+      not a pull request; `false` otherwise.
+    value: ${{ steps.detect.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Detect Python changes
+      id: detect
+      shell: bash
+      env:
+        BASE_COMMIT_SHA: ${{ github.event.pull_request.base.sha }}
+        EVENT_NAME: ${{ github.event_name }}
+        # Newline separated list of extended regular expressions.
+        INPUT_PATTERNS: ${{ inputs.additional-file-patterns }}
+      run: |
+        if [ "$EVENT_NAME" != "pull_request" ]; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Blank lines are dropped, as an empty pattern matches every path.
+        mapfile -t additional_patterns < <(grep -v '^[[:space:]]*$' <<<"$INPUT_PATTERNS" || true)
+
+        RELEVANT_PATHS=(
+          '\.py$'
+          '^Dockerfile$'
+          '^saleor/'
+          '^pyproject\.toml$'
+          '^uv\.lock$'
+          "${additional_patterns[@]}"
+        )
+
+        # `git config` is a workaround for https://github.com/actions/runner-images/issues/6775
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+        # The checkout is shallow, so the base commit has to be fetched before diffing.
+        git fetch --depth=1 origin "$BASE_COMMIT_SHA"
+
+        # Assigned before matching so that a git failure fails the step, instead
+        # of being read as "nothing relevant changed".
+        changed_files=$(git diff --name-only "$BASE_COMMIT_SHA" HEAD)
+
+        if grep -qEf <(printf '%s\n' "${RELEVANT_PATHS[@]}") <<<"$changed_files"; then
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        else
+          MSG="No Python, Dockerfile or dependency changes."
+          echo "$MSG"
+          echo "$MSG" >> "$GITHUB_STEP_SUMMARY"
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        fi
