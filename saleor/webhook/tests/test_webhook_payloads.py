@@ -13,6 +13,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from freezegun import freeze_time
 
 from ... import __version__
+from ...checkout.models import Checkout, CheckoutDelivery
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountType, DiscountValueType
@@ -1530,6 +1531,23 @@ def test_generate_checkout_payload(
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
         "warehouse_address": ANY,
     }
+
+
+def test_generate_checkout_payload_assigned_delivery_deleted_concurrently(
+    checkout_with_prices, customer_user
+):
+    # given
+    assigned_delivery_id = checkout_with_prices.assigned_delivery_id
+    assert assigned_delivery_id is not None
+    stale_checkout = Checkout.objects.get(pk=checkout_with_prices.pk)
+    CheckoutDelivery.objects.filter(pk=assigned_delivery_id).delete()
+
+    # when
+    payload = json.loads(generate_checkout_payload(stale_checkout, customer_user))[0]
+
+    # then
+    assert payload["shipping_method"] is None
+    assert payload["token"] == graphene.Node.to_global_id("Checkout", stale_checkout.pk)
 
 
 def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):
