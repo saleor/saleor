@@ -99,7 +99,7 @@ jobs:
           # Throw an error if test results aren't reported. This could happen
           # when bumping dependencies for example.
           if-no-files-found: error
-        if: ${{ always() && steps.changes.outputs.changed == 'true' }}
+        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
 
       # Publish detected differences as comment
       - name: Compare DB Queries Results (PR)
