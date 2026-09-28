@@ -525,11 +525,26 @@ CHECKOUT_AS_SHIPPED = DueWorkContract(
 )
 
 
+# This is where the magic happens. The class is empty on purpose: the decorator reads the
+# CHECKOUT_AS_SHIPPED contract above and generates its tests, one or more for every
+# guarantee the contract claims or declines, bound to Saleor's real checkoutComplete
+# mutation, Celery broker, webhooks and delete_expired_checkouts task. No test case is
+# written by hand.
+#
+# One of the generated cases is how #19835 was found:
+# handoff-complete checkout-assert_crash_at_every_commit_converges replays checkoutComplete
+# once per thing that can go wrong: the process dies after each commit or after the
+# gateway charges, an order_created receiver raises, or the broker refuses one of the
+# order's webhook publishes. It then compares each run with a normal checkout. A refused
+# publish, with no crash at all, ends with an order that has no confirmation email and is
+# missing its webhooks, so the case fails. The contract declares that as a gap, so it is
+# reported as a strict XFAIL; the day every history converges, it passes, and the strict
+# marker fails the run until the gap is removed.
 @due_work_contract_suite(
     CHECKOUT_AS_SHIPPED, covers=(DueWorkSource(_post_create_order_actions, sites=2),)
 )
 class TestCheckoutAsShipped:
-    pass
+    """Every case in this class is generated from CHECKOUT_AS_SHIPPED; see the comment above."""
 
 
 PLACED = Outcome(
@@ -809,6 +824,12 @@ CHECKOUT_WITH_AUTOMATIC_COMPLETION = DueWorkContract(
 )
 
 
+# The magic again, for Saleor's other checkout design: the decorator generates this
+# class's tests from CHECKOUT_WITH_AUTOMATIC_COMPLETION, bound to the real
+# trigger_automatic_checkout_completion_task beat tick, Transactions API money and
+# delete_expired_checkouts. Two generated cases are strict XFAILs: the next tick dispatches
+# a paid checkout again while its completion is still in flight, and nothing reports how
+# many paid checkouts are waiting to be completed.
 @due_work_contract_suite(CHECKOUT_WITH_AUTOMATIC_COMPLETION)
 class TestCheckoutWithAutomaticCompletion:
     """Saleor's own design: money held as a transaction, and a beat task that completes a paid checkout."""
