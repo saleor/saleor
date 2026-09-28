@@ -12,11 +12,13 @@ from .....core.tokens import (
     try_generators,
 )
 from .....order.utils import match_orders_with_new_user
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import disallow_replica_in_context
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import validation_error_to_error_type
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....site.dataloaders import get_site_promise
 from ..base import INVALID_TOKEN
@@ -40,6 +42,20 @@ class SetPassword(CreateToken):
         doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+                description="Called if the account was not previously confirmed.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="Called if a customer account was confirmed.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_UPDATED,
+                description="Called if a staff account was confirmed.",
+            ),
+        ]
 
     @classmethod
     @allow_writer()

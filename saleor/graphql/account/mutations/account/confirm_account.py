@@ -65,6 +65,14 @@ class ConfirmAccount(BaseMutation):
                 type=WebhookEventAsyncType.ACCOUNT_CONFIRMED,
                 description="Account was confirmed.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="Called if a customer account was confirmed.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_UPDATED,
+                description="Called if a staff account was confirmed.",
+            ),
         ]
 
     @staticmethod

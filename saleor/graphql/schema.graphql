@@ -21986,6 +21986,8 @@ type Mutation {
   
   Triggers the following webhook events:
   - ACCOUNT_CONFIRMED (async): Account was confirmed.
+  - CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+  - STAFF_UPDATED (async): Called if a staff account was confirmed.
   """
   confirmAccount(
     """E-mail of the user performing account confirmation."""
@@ -21998,10 +22000,15 @@ type Mutation {
 
     """A one-time token required to confirm the account."""
     token: String!
-  ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: [])
+  ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: [])
 
   """
   Sets the user's password from the token sent by email using the RequestPasswordReset mutation.
+  
+  Triggers the following webhook events:
+  - ACCOUNT_CONFIRMED (async): Called if the account was not previously confirmed.
+  - CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+  - STAFF_UPDATED (async): Called if a staff account was confirmed.
   """
   setPassword(
     """Email of a user."""
@@ -22012,7 +22019,7 @@ type Mutation {
 
     """A one-time token required to set the password."""
     token: String!
-  ): SetPassword @doc(category: "Users")
+  ): SetPassword @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: [])
 
   """
   Change the password of the logged in user. 
@@ -33097,8 +33104,10 @@ Confirm user account with token sent by email during registration.
 
 Triggers the following webhook events:
 - ACCOUNT_CONFIRMED (async): Account was confirmed.
+- CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+- STAFF_UPDATED (async): Called if a staff account was confirmed.
 """
-type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: []) {
+type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: []) {
   """An activated user account."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -33107,8 +33116,13 @@ type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACC
 
 """
 Sets the user's password from the token sent by email using the RequestPasswordReset mutation.
+
+Triggers the following webhook events:
+- ACCOUNT_CONFIRMED (async): Called if the account was not previously confirmed.
+- CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+- STAFF_UPDATED (async): Called if a staff account was confirmed.
 """
-type SetPassword @doc(category: "Users") {
+type SetPassword @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: []) {
   """JWT token, required to authenticate."""
   token: String
 
