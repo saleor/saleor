@@ -17,6 +17,7 @@ from ....core.context import disallow_replica_in_context
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import validation_error_to_error_type
 from ....core.types import AccountError
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ....site.dataloaders import get_site_promise
 from ..base import INVALID_TOKEN
 from . import CreateToken
@@ -50,10 +51,17 @@ class SetPassword(CreateToken):
         site_settings = get_site_promise(info.context).get().settings
         try:
             check_password_login_not_disabled(site_settings)
-            cls._set_password_for_user(email, password, token)
+            user, confirmed = cls._set_password_for_user(email, password, token)
         except ValidationError as e:
             errors = validation_error_to_error_type(e, AccountError)
             return cls.handle_typed_errors(errors)
+        if confirmed:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.account_confirmed, user)
+            cls.call_event(
+                manager.staff_updated if user.is_staff else manager.customer_updated,
+                user,
+            )
         return super().mutate(root, info, email=email, password=password)
 
     @classmethod
@@ -90,9 +98,11 @@ class SetPassword(CreateToken):
         # To reset the password user need to process the token sent separately by email,
         # so we can be sure that the user has access to email account and can be
         # confirmed.
-        if not user.is_confirmed:
+        confirmed = not user.is_confirmed
+        if confirmed:
             user.is_confirmed = True
             match_orders_with_new_user(user)
             fields_to_save.append("is_confirmed")
         user.save(update_fields=fields_to_save)
         account_events.customer_password_reset_event(user=user)
+        return user, confirmed

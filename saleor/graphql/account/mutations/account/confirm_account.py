@@ -191,3 +191,7 @@ class ConfirmAccount(BaseMutation):
     def post_save_action(cls, info: ResolveInfo, instance):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.account_confirmed, instance)
+        cls.call_event(
+            manager.staff_updated if instance.is_staff else manager.customer_updated,
+            instance,
+        )
