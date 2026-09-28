@@ -67,21 +67,22 @@ jobs:
           additional-file-patterns: '^\.github/workflows/tests\.yaml$'
 
       - name: Install system dependencies
+        if: steps.changes.outputs.changed == 'true'
         run: |
           apt-get install -y libpq-dev
-        if: steps.changes.outputs.changed == 'true'
 
-      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - if: steps.changes.outputs.changed == 'true'
+        uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
         with:
           enable-cache: true
-        if: steps.changes.outputs.changed == 'true'
 
       - name: Install dependencies
+        if: steps.changes.outputs.changed == 'true'
         run: |
           uv sync --locked
-        if: steps.changes.outputs.changed == 'true'
 
       - name: Run unit tests
+        if: steps.changes.outputs.changed == 'true'
         run: |
           uv run pytest \
             -m "not e2e" \
@@ -89,9 +90,9 @@ jobs:
             -o junit_family=legacy \
             --django-db-bench="$BENCH_PATH" \
             -n logical
-        if: steps.changes.outputs.changed == 'true'
 
       - name: Upload Test Results
+        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pytest-results
@@ -99,24 +100,23 @@ jobs:
           # Throw an error if test results aren't reported. This could happen
           # when bumping dependencies for example.
           if-no-files-found: error
-        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
 
       # Publish detected differences as comment
       - name: Compare DB Queries Results (PR)
+        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor' && steps.changes.outputs.changed == 'true'
         uses: NyanKiyoshi/pytest-django-queries-ci-tools@45b5ac36ff19669a88fe56429b662b0661d8f46b # v1.1.1
         with:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
           diff_endpoint: "https://dtab784j47g1o.cloudfront.net/default/saleor-db-queries-bot-diff"
           diff_results_base_url: "https://dtab784j47g1o.cloudfront.net"
-        if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor' && steps.changes.outputs.changed == 'true'
 
       - name: Upload DB Queries Results
+        if: steps.changes.outputs.changed == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pytest-django-db-queries-results
           path: ${{ env.BENCH_PATH }}
           if-no-files-found: error
-        if: steps.changes.outputs.changed == 'true'
 
   # Uploads the SQL count report for base branches
   upload-query-count-base-branch:
