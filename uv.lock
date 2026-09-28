@@ -13,8 +13,9 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
-cryptography = "2026-08-25T19:45:45.499357Z"
 pyjwt = "2026-09-23T16:57:00Z"
+due-work-harness = "2026-09-28T17:40:15Z"
+cryptography = "2026-08-25T19:45:45.499357Z"
 
 [[package]]
 name = "amqp"
@@ -782,6 +783,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/91/9b/4a2ea29aeba62471211598dac5d96825bb49348fa07e906ea930394a83ce/docker-7.1.0.tar.gz", hash = "sha256:ad8c70e6e3f8926cb8a92619b832b4ea5299e2831c14284663184e200546fa6c", size = 117834, upload-time = "2024-05-23T11:13:57.216Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/26/57c6fb270950d476074c087527a558ccb6f4436657314bfb6cdf484114c4/docker-7.1.0-py3-none-any.whl", hash = "sha256:c96b93b7f0a746f9e77d325bcfb87422a3d8bd4f03136ae8a85b37f1898d5fc0", size = 147774, upload-time = "2024-05-23T11:13:55.01Z" },
+]
+
+[[package]]
+name = "due-work-harness"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pydantic" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8d/3d/d0039f6aa1d65ddce4d1198851b5a4ec45edc60f726135a4bd66ea4a7146/due_work_harness-0.2.0.tar.gz", hash = "sha256:97e1f1274c8cdaf655fd5e11d86566699dada91f9fdcb5853d6c8c70310cac9d", size = 442781, upload-time = "2026-09-28T17:40:10.517Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b2/f7/bf2144104cbad5e504cffde9c5c9827259cbde06bea14bcc480f2482438d/due_work_harness-0.2.0-py3-none-any.whl", hash = "sha256:102230cec75f2f26f203ae7242318f48a2f3200e55af826a3c78be1ce642f1d2", size = 204534, upload-time = "2026-09-28T17:40:09.19Z" },
 ]
 
 [[package]]
@@ -2530,6 +2544,7 @@ dev = [
     { name = "deptry" },
     { name = "django-extensions" },
     { name = "django-stubs", extra = ["compatible-mypy"] },
+    { name = "due-work-harness" },
     { name = "fakeredis" },
     { name = "freezegun" },
     { name = "ipdb" },
@@ -2636,6 +2651,7 @@ dev = [
     { name = "deptry", specifier = ">=0.23.0,<0.24" },
     { name = "django-extensions", specifier = "~=4.1" },
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.1.3,<6" },
+    { name = "due-work-harness", specifier = ">=0.2.0" },
     { name = "fakeredis", specifier = "~=2.26" },
     { name = "freezegun", specifier = ">=1,<2" },
     { name = "ipdb", specifier = ">=0.13.13,<0.14" },

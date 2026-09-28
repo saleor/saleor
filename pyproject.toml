@@ -150,6 +150,7 @@ exclude-newer = "3 weeks"
 #       lockfile, run 'uv lock --refresh' to force a refresh.
 cryptography = "2026-08-25T19:45:45.499357Z" # https://pypi.org/pypi/cryptography/50.0.1/json
 pyjwt = "2026-09-23T16:57:00Z" # https://pypi.org/pypi/pyjwt/2.15.0/json
+due-work-harness = "2026-09-28T17:40:15Z" # https://pypi.org/pypi/due-work-harness/0.2.0/json
 
 [tool.pytest]
 addopts = [
