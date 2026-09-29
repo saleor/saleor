@@ -12,11 +12,14 @@ from .....core.tokens import (
     try_generators,
 )
 from .....order.utils import match_orders_with_new_user
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import disallow_replica_in_context
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import validation_error_to_error_type
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ....site.dataloaders import get_site_promise
 from ..base import INVALID_TOKEN
 from . import CreateToken
@@ -39,6 +42,20 @@ class SetPassword(CreateToken):
         doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ACCOUNT_CONFIRMED,
+                description="Called if the account was not previously confirmed.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="Called if a customer account was confirmed.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_UPDATED,
+                description="Called if a staff account was confirmed.",
+            ),
+        ]
 
     @classmethod
     @allow_writer()
@@ -50,10 +67,17 @@ class SetPassword(CreateToken):
         site_settings = get_site_promise(info.context).get().settings
         try:
             check_password_login_not_disabled(site_settings)
-            cls._set_password_for_user(email, password, token)
+            user, confirmed = cls._set_password_for_user(email, password, token)
         except ValidationError as e:
             errors = validation_error_to_error_type(e, AccountError)
             return cls.handle_typed_errors(errors)
+        if confirmed:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.account_confirmed, user)
+            cls.call_event(
+                manager.staff_updated if user.is_staff else manager.customer_updated,
+                user,
+            )
         return super().mutate(root, info, email=email, password=password)
 
     @classmethod
@@ -90,9 +114,11 @@ class SetPassword(CreateToken):
         # To reset the password user need to process the token sent separately by email,
         # so we can be sure that the user has access to email account and can be
         # confirmed.
-        if not user.is_confirmed:
+        confirmed = not user.is_confirmed
+        if confirmed:
             user.is_confirmed = True
             match_orders_with_new_user(user)
             fields_to_save.append("is_confirmed")
         user.save(update_fields=fields_to_save)
         account_events.customer_password_reset_event(user=user)
+        return user, confirmed
