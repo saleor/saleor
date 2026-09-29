@@ -65,6 +65,14 @@ class ConfirmAccount(BaseMutation):
                 type=WebhookEventAsyncType.ACCOUNT_CONFIRMED,
                 description="Account was confirmed.",
             ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="Called if a customer account was confirmed.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_UPDATED,
+                description="Called if a staff account was confirmed.",
+            ),
         ]
 
     @staticmethod
@@ -191,3 +199,7 @@ class ConfirmAccount(BaseMutation):
     def post_save_action(cls, info: ResolveInfo, instance):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.account_confirmed, instance)
+        cls.call_event(
+            manager.staff_updated if instance.is_staff else manager.customer_updated,
+            instance,
+        )

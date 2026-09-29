@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import pytest
 from freezegun import freeze_time
 
 from ......account import events as account_events
@@ -107,6 +108,60 @@ def test_set_password_confirm_user_and_match_orders(
     assert password_resent_event.user == customer_user
     assert customer_user.is_confirmed
     match_orders_with_new_user_mock.assert_called_once_with(customer_user)
+
+
+@pytest.mark.parametrize(
+    ("_case", "is_staff", "is_confirmed", "expected_updated_event"),
+    [
+        ("unconfirmed customer", False, False, "customer_updated"),
+        ("unconfirmed staff", True, False, "staff_updated"),
+        ("already confirmed customer", False, True, None),
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.staff_updated")
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
+@patch("saleor.plugins.manager.PluginsManager.account_confirmed")
+@patch("saleor.account.throttling.cache")
+def test_set_password_emits_confirmation_webhooks(
+    mocked_cache,
+    mocked_account_confirmed,
+    mocked_customer_updated,
+    mocked_staff_updated,
+    _case,
+    is_staff,
+    is_confirmed,
+    expected_updated_event,
+    user_api_client,
+    setup_mock_for_cache,
+):
+    # given
+    setup_mock_for_cache({}, mocked_cache)
+    user = dangerously_create_test_user(
+        email="testSetPasswordWebhooks@example.com",
+        password="old-password",
+        is_staff=is_staff,
+        is_confirmed=is_confirmed,
+    )
+    token = password_reset_token_generator.make_token(user)
+    variables = {"email": user.email, "password": "new-password", "token": token}
+
+    # when
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["setPassword"]["errors"] == []
+    updated_mocks = {
+        "customer_updated": mocked_customer_updated,
+        "staff_updated": mocked_staff_updated,
+    }
+    if expected_updated_event:
+        mocked_account_confirmed.assert_called_once_with(user)
+        updated_mocks.pop(expected_updated_event).assert_called_once_with(user)
+    else:
+        mocked_account_confirmed.assert_not_called()
+    for not_expected_mock in updated_mocks.values():
+        not_expected_mock.assert_not_called()
 
 
 @patch("saleor.account.throttling.cache")
