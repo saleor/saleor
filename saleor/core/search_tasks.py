@@ -33,6 +33,12 @@ BATCH_SIZE = 500
 def set_user_search_document_values(
     updated_count: int = 0, last_user_pk: int | None = None
 ) -> None:
+    """Fill in search document values for users that do not have them yet.
+
+    Users are processed in batches in descending primary key order. `last_user_pk`
+    is the cursor pointing to the last processed user, so the next batch does not
+    need to scan through already processed rows.
+    """
     lookup: dict[str, Any] = {"search_vector__isnull": True}
     if last_user_pk is not None:
         lookup["pk__lt"] = last_user_pk
