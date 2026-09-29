@@ -29,13 +29,19 @@ BATCH_SIZE = 500
 # and execution time of a single SQL statement.
 
 
-@app.task
-def set_user_search_document_values(updated_count: int = 0) -> None:
+@app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
+def set_user_search_document_values(
+    updated_count: int = 0, last_user_pk: int | None = None
+) -> None:
+    lookup: dict[str, Any] = {"search_vector__isnull": True}
+    if last_user_pk is not None:
+        lookup["pk__lt"] = last_user_pk
+
     users = list(
         User.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-        .filter(search_vector__isnull=True)
+        .filter(**lookup)
         .prefetch_related("addresses")
-        .order_by("-id")[:USER_BATCH_SIZE]
+        .order_by("-pk")[:USER_BATCH_SIZE]
     )
 
     if not users:
@@ -53,9 +59,10 @@ def set_user_search_document_values(updated_count: int = 0) -> None:
         task_logger.info("Setting user search document values finished.")
         return
 
+    last_user_pk = users[-1].pk
     del users
 
-    set_user_search_document_values.delay(updated_count)
+    set_user_search_document_values.delay(updated_count, last_user_pk=last_user_pk)
 
 
 @app.task(queue=settings.DATA_MIGRATIONS_TASKS_QUEUE_NAME)
