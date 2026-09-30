@@ -2,6 +2,7 @@ import logging
 from unittest.mock import MagicMock
 
 import graphene
+import pytest
 from django.core.files import File
 
 from .....product.models import Category, Product
@@ -13,6 +14,90 @@ from ....tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
+
+QUERY_CATEGORY_BY_EXTERNAL_REFERENCE = """
+    query ($id: ID, $slug: String, $externalReference: String) {
+        category(
+            id: $id,
+            slug: $slug,
+            externalReference: $externalReference,
+        ) {
+            id
+            name
+            externalReference
+        }
+    }
+    """
+
+
+def test_category_query_by_external_reference(user_api_client, category):
+    # given
+    external_reference = "test-ext-ref"
+    category.external_reference = external_reference
+    category.save(update_fields=("external_reference",))
+    variables = {"externalReference": external_reference}
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_CATEGORY_BY_EXTERNAL_REFERENCE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"] == {
+        "category": {
+            "id": graphene.Node.to_global_id("Category", category.pk),
+            "name": category.name,
+            "externalReference": external_reference,
+        }
+    }
+
+
+def test_category_query_by_external_reference_not_found(user_api_client):
+    # given
+    variables = {"externalReference": "non-existing-ext-ref"}
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_CATEGORY_BY_EXTERNAL_REFERENCE, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"] == {"category": None}
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifier"),
+    [("id", "id"), ("slug", "slug")],
+)
+def test_external_reference_conflicting_identifiers(
+    _case, identifier, user_api_client, category
+):
+    # given
+    variables = {
+        identifier: (
+            graphene.Node.to_global_id("Category", category.pk)
+            if identifier == "id"
+            else category.slug
+        ),
+        "externalReference": "category-reference",
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_CATEGORY_BY_EXTERNAL_REFERENCE, variables
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert content["data"] == {"category": None}
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        f"Argument '{identifier}' cannot be combined with 'external_reference'"
+    )
+    assert content["errors"][0]["path"] == ["category"]
+
 
 QUERY_CATEGORY = """
     query ($id: ID, $slug: String, $channel: String, $slugLanguageCode: LanguageCodeEnum){
