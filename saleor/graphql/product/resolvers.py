@@ -47,6 +47,14 @@ def resolve_category_by_translated_slug(info: ResolveInfo, slug, slug_language_c
     )
 
 
+def resolve_category_by_external_reference(info: ResolveInfo, external_reference):
+    return (
+        models.Category.objects.using(get_database_connection_name(info.context))
+        .filter(external_reference=external_reference)
+        .first()
+    )
+
+
 def resolve_collection_by_id(info: ResolveInfo, id, channel_slug, requestor):
     return (
         models.Collection.objects.using(get_database_connection_name(info.context))
