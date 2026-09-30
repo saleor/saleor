@@ -20,6 +20,9 @@ from .types import (
 URL_MAX_LENGTH = 2048
 """Matches Django's ``URLValidator.max_length`` and the de facto browser cap."""
 
+DEPRECATION_REASON_MAX_LENGTH = 2048
+"""Matches ``AppProblem.message``, since the Dashboard renders both in the same UI."""
+
 
 class AppQueryset(models.QuerySet["App"]):
     def for_event_type(self, event_type: str):
@@ -77,6 +80,9 @@ class App(ModelWithMetadata):
     audience = models.CharField(blank=True, null=True, max_length=256)
     is_installed = models.BooleanField(default=True)
     author = models.CharField(blank=True, null=True, max_length=60)
+    deprecation_reason = models.CharField(
+        max_length=DEPRECATION_REASON_MAX_LENGTH, blank=True, null=True
+    )
     brand_logo_default = models.ImageField(
         upload_to="app-brand-data", blank=True, null=True
     )
