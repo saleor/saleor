@@ -43,6 +43,9 @@ TRANSLATABLE_CONTENT_TO_MODEL = {
         translation_types.AttributeValueTranslatableContent
     ): attribute_models.AttributeValue._meta.object_name,
     str(
+        translation_types.ProductMediaTranslatableContent
+    ): product_models.ProductMedia._meta.object_name,
+    str(
         translation_types.ProductVariantTranslatableContent
     ): product_models.ProductVariant._meta.object_name,
     # Page Translation mutation reverses model and TranslatableContent
