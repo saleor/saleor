@@ -70,6 +70,14 @@ def resolve_promotion(info, id):
     )
 
 
+def resolve_promotion_by_external_reference(info, external_reference):
+    return (
+        models.Promotion.objects.using(get_database_connection_name(info.context))
+        .filter(external_reference=external_reference)
+        .first()
+    )
+
+
 def resolve_promotions(info) -> QuerySet:
     return models.Promotion.objects.using(
         get_database_connection_name(info.context)

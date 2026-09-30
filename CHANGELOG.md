@@ -55,6 +55,7 @@ permissions.
 - Added `ID` sort field to `ProductVariantSortField`. Sorting by the variant primary key gives a stable order and stable cursors, unlike `LAST_MODIFIED_AT`, whose value changes when a variant is updated during pagination.
 - Sorting products by a numeric attribute (`products(sortBy: { attributeId: ... })`) now orders by the numeric value instead of its string representation, so `10` no longer sorts before `9`. The pagination cursor for attribute-sorted product lists gained a fourth field, so cursors issued before this change are rejected with `Received cursor is invalid`; a client paginating across the deploy must restart from the first page.
 - Added `externalReference` support to `Category`. Categories can now be created with an external reference, looked up using `category(externalReference: ...)`, and updated or deleted by external reference instead of ID. The reference can also be changed or cleared through `categoryUpdate`.
+- Added `externalReference` support to `Promotion`. Promotions can now be created with an external reference, looked up using `promotion(externalReference: ...)`, and updated or deleted by external reference instead of ID. The reference can also be changed or cleared through `promotionUpdate`.
 
 ### Webhooks
 
