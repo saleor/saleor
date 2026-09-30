@@ -9,7 +9,7 @@ from requests_hardened import HTTPSession
 
 from ..... import schema_version
 from .....app.error_codes import AppErrorCode
-from .....app.models import App
+from .....app.models import DEPRECATION_REASON_MAX_LENGTH, App
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -1153,3 +1153,46 @@ def test_fetch_manifest_without_deprecation_reason(
     data = content["data"]["appFetchManifest"]
     assert len(data["errors"]) == 0
     assert data["manifest"]["deprecationReason"] is None
+
+
+@pytest.mark.parametrize(
+    ("manifest_reason", "expected_reason"),
+    [
+        ("", None),
+        ("   ", None),
+        ("  Replaced by the new payments app.  ", "Replaced by the new payments app."),
+        (
+            "x" * (DEPRECATION_REASON_MAX_LENGTH + 100),
+            "x" * (DEPRECATION_REASON_MAX_LENGTH - 1) + "…",
+        ),
+    ],
+)
+def test_fetch_manifest_normalizes_deprecation_reason(
+    staff_api_client,
+    app_manifest,
+    permission_manage_apps,
+    monkeypatch,
+    manifest_reason,
+    expected_reason,
+):
+    # given
+    app_manifest["deprecationReason"] = manifest_reason
+    manifest_url = "http://localhost:3000/manifest"
+    mocked_response = Mock()
+    mocked_response.status_code = 200
+    mocked_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_response))
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_DEPRECATION_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_apps,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appFetchManifest"]
+    assert len(data["errors"]) == 0
+    assert data["manifest"]["deprecationReason"] == expected_reason

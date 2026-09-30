@@ -1,3 +1,5 @@
+from django.utils.text import Truncator
+
 from ..webhook.event_types import WebhookEventSyncType
 from ..webhook.utils import get_webhooks_for_event
 from .models import DEPRECATION_REASON_MAX_LENGTH
@@ -23,13 +25,8 @@ def normalize_deprecation_reason(value: str | None) -> str | None:
     """Normalize an app's deprecation reason to what the column accepts.
 
     Blank and whitespace-only values mean "not deprecated" and are stored as
-    NULL. Over-long values are truncated rather than rejected: the reason is
+    NULL. Too long values are truncated rather than rejected: the reason is
     purely informational, so it must never be able to fail an app install or a
     mutation.
     """
-    reason = (value or "").strip()
-    if not reason:
-        return None
-    if len(reason) > DEPRECATION_REASON_MAX_LENGTH:
-        return reason[: DEPRECATION_REASON_MAX_LENGTH - 3] + "..."
-    return reason
+    return Truncator((value or "").strip()).chars(DEPRECATION_REASON_MAX_LENGTH) or None
