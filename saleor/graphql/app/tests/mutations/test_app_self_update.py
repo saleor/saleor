@@ -89,10 +89,10 @@ def test_omitted_or_null_leaves_deprecation_reason_untouched(
     assert app.deprecation_reason == reason
 
 
-def test_over_long_deprecation_reason_is_truncated_not_rejected(app_api_client, app):
+def test_too_long_deprecation_reason_is_truncated_not_rejected(app_api_client, app):
     # given
     reason = "x" * (DEPRECATION_REASON_MAX_LENGTH + 100)
-    expected = "x" * (DEPRECATION_REASON_MAX_LENGTH - 3) + "..."
+    expected = "x" * (DEPRECATION_REASON_MAX_LENGTH - 1) + "…"
     variables = {"input": {"deprecationReason": reason}}
 
     # when

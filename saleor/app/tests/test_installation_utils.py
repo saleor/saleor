@@ -1113,13 +1113,13 @@ def test_install_app_with_blank_deprecation_reason(
     assert app.deprecation_reason is None
 
 
-def test_install_app_with_over_long_deprecation_reason_does_not_fail_install(
+def test_install_app_with_too_long_deprecation_reason_does_not_fail_install(
     app_manifest, app_installation, monkeypatch
 ):
     """An informational field must never be able to break an app install."""
     # given
     app_manifest["deprecationReason"] = "x" * (DEPRECATION_REASON_MAX_LENGTH + 100)
-    expected = "x" * (DEPRECATION_REASON_MAX_LENGTH - 3) + "..."
+    expected = "x" * (DEPRECATION_REASON_MAX_LENGTH - 1) + "…"
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
     monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
