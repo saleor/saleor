@@ -4398,6 +4398,15 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   description: JSONString
 
+  """
+  Full description of the category. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
   """Slug of the category."""
   slug: String!
 
@@ -5002,6 +5011,15 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Translated full description of the category. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """
   Translated description of the category.
@@ -7394,6 +7412,15 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Category's full description to translate. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """
   Description of the category.
@@ -10334,6 +10361,15 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   """
   description: JSONString
 
+  """
+  Full description of the collection. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
   """Slug of the collection."""
   slug: String!
 
@@ -10446,6 +10482,15 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   description: JSONString
 
   """
+  Translated full description of the collection. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
+  """
   Translated description of the collection.
   
   Rich text format. For reference see https://editorjs.io/
@@ -10488,6 +10533,15 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Collection's full description to translate. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """
   Description of the collection.
@@ -25028,6 +25082,15 @@ input CategoryInput @doc(category: "Products") {
   """Search engine optimization fields."""
   seo: SeoInput
 
+  """
+  Full description of the category. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
   """Background image file."""
   backgroundImage: Upload
 
@@ -25119,6 +25182,15 @@ input TranslationInput {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Translated full description. Only supported for categories and collections; product translation mutations reject this field. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 }
 
 """
@@ -25194,6 +25266,15 @@ input CollectionCreateInput @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Full description of the collection. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """Background image file."""
   backgroundImage: Upload
@@ -25316,6 +25397,15 @@ input CollectionInput @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Full description of the collection. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """Background image file."""
   backgroundImage: Upload
