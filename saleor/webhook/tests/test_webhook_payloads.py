@@ -1548,6 +1548,7 @@ def test_generate_checkout_payload_assigned_delivery_deleted_concurrently(
     # then
     assert payload["shipping_method"] is None
     assert payload["token"] == graphene.Node.to_global_id("Checkout", stale_checkout.pk)
+    assert stale_checkout.assigned_delivery is None
 
 
 def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):
