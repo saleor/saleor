@@ -54,6 +54,13 @@ class Command(BaseCommand):
             help="Don't create product images",
         )
         parser.add_argument(
+            "--skip-orders",
+            action="store_true",
+            dest="skip_orders",
+            default=False,
+            help="Don't create orders. Use the populate_orders command to add them later.",
+        )
+        parser.add_argument(
             "--skipsequencereset",
             action="store_true",
             dest="skipsequencereset",
@@ -105,8 +112,9 @@ class Command(BaseCommand):
             self.stdout.write(msg)
         for msg in create_users(user_password, 20):
             self.stdout.write(msg)
-        for msg in create_orders(20):
-            self.stdout.write(msg)
+        if not options["skip_orders"]:
+            for msg in create_orders(20):
+                self.stdout.write(msg)
         for msg in create_gift_cards():
             self.stdout.write(msg)
         for msg in create_menus():
