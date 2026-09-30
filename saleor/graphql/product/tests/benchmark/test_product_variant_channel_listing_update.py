@@ -1,7 +1,8 @@
 import graphene
 import pytest
 
-from .....product.models import ProductChannelListing, ProductMedia, VariantMedia
+from .....media.models import ProductMedia
+from .....product.models import ProductChannelListing, VariantMedia
 from ....tests.utils import get_graphql_content
 
 

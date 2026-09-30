@@ -9,6 +9,10 @@ from .models import Permission
 
 class BasePermissionEnum(Enum):
     @property
+    def app_label(self):
+        return self.value.split(".")[0]
+
+    @property
     def codename(self):
         return self.value.split(".")[1]
 

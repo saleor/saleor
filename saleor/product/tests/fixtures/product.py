@@ -13,12 +13,12 @@ from ....attribute import AttributeInputType, AttributeType
 from ....attribute.models import Attribute, AttributeValue
 from ....attribute.utils import associate_attribute_values_to_instance
 from ....core.postgres import FlatConcatSearchVector
+from ....media.models import ProductMedia
 from ....warehouse.models import Stock
 from ... import ProductMediaTypes, ProductTypeKind
 from ...models import (
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,

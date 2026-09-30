@@ -12,6 +12,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
 from ...discount import models as discount_models
 from ...giftcard import models as giftcard_models
+from ...media import models as media_models
 from ...order import models as order_models
 from ...page import models as page_models
 from ...payment import models as payment_models
@@ -39,6 +40,7 @@ def resolve_object_with_metadata_type(instance):
     from ..discount import types as discount_types
     from ..giftcard import types as giftcard_types
     from ..invoice import types as invoice_types
+    from ..media import types as media_types
     from ..menu import types as menu_types
     from ..order import types as order_types
     from ..page import types as page_types
@@ -63,6 +65,10 @@ def resolve_object_with_metadata_type(instance):
         discount_models.Voucher: discount_types.Voucher,
         giftcard_models.GiftCard: giftcard_types.GiftCard,
         invoice_models.Invoice: invoice_types.Invoice,
+        media_models.CategoryMedia: media_types.CategoryMedia,
+        media_models.CollectionMedia: media_types.CollectionMedia,
+        media_models.PageMedia: media_types.PageMedia,
+        media_models.ProductMedia: media_types.ProductMedia,
         menu_models.Menu: menu_types.Menu,
         menu_models.MenuItem: menu_types.MenuItem,
         order_models.Fulfillment: order_types.Fulfillment,
@@ -75,7 +81,6 @@ def resolve_object_with_metadata_type(instance):
         product_models.Category: product_types.Category,
         product_models.Collection: product_types.Collection,
         product_models.Product: product_types.Product,
-        product_models.ProductMedia: product_types.ProductMedia,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,
         shipping_models.ShippingMethod: shipping_types.ShippingMethodType,

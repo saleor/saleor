@@ -32,6 +32,7 @@ from .csv.schema import CsvMutations, CsvQueries
 from .discount.schema import DiscountMutations, DiscountQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .invoice.schema import InvoiceMutations
+from .media.schema import MediaMutations
 from .menu.schema import MenuMutations, MenuQueries
 from .meta.schema import MetaMutations
 from .metrics import record_field_usage
@@ -129,6 +130,7 @@ class Mutation(
     PluginsMutations,
     GiftCardMutations,
     InvoiceMutations,
+    MediaMutations,
     MenuMutations,
     MetaMutations,
     OrderMutations,

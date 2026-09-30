@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from django.db.models import Exists, F, OuterRef, Q
 
 from ....core.db.connection import allow_writer_in_context
+from ....media.models import ProductMedia
 from ....product import ProductMediaTypes
 from ....product.models import (
     Category,
@@ -12,7 +13,6 @@ from ....product.models import (
     CollectionProduct,
     Product,
     ProductChannelListing,
-    ProductMedia,
     ProductType,
     ProductVariant,
     ProductVariantChannelListing,

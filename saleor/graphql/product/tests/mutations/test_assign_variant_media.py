@@ -1,7 +1,7 @@
 from graphql_relay import to_global_id
 
+from .....media.models import ProductMedia
 from .....product.error_codes import ProductErrorCode
-from .....product.models import ProductMedia
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,

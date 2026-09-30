@@ -11,8 +11,9 @@ from .....attribute.tests.model_helpers import (
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....channel.models import Channel
 from .....core.taxes import TaxType
+from .....media.models import ProductMedia
 from .....plugins.manager import PluginsManager
-from .....product.models import ProductChannelListing, ProductMedia, ProductTranslation
+from .....product.models import ProductChannelListing, ProductTranslation
 from ....tests.utils import get_graphql_content
 
 

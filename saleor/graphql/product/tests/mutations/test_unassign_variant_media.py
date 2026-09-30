@@ -1,7 +1,7 @@
 from graphql_relay import to_global_id
 
 from .....graphql.tests.utils import get_graphql_content
-from .....product.models import ProductMedia
+from .....media.models import ProductMedia
 
 UNASSIGN_VARIANT_IMAGE_QUERY = """
     mutation unassignVariantMediaMutation($variantId: ID!, $mediaId: ID!) {

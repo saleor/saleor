@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from .....media import ALT_CHAR_LIMIT
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
@@ -11,7 +12,6 @@ from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
-from ...utils import ALT_CHAR_LIMIT
 
 
 class ProductMediaUpdateInput(BaseInputObjectType):

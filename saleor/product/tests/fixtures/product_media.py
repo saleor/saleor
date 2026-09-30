@@ -1,7 +1,7 @@
 import pytest
 
+from ....media.models import ProductMedia
 from ... import ProductMediaTypes
-from ...models import ProductMedia
 
 
 @pytest.fixture

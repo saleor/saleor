@@ -3,7 +3,8 @@ from uuid import uuid4
 import graphene
 import pytest
 
-from .....product.models import ProductMedia, ProductVariant, VariantMedia
+from .....media.models import ProductMedia
+from .....product.models import ProductVariant, VariantMedia
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 

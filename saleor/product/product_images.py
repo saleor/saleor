@@ -8,7 +8,7 @@ from ..thumbnail.models import Thumbnail
 from ..thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 
 if TYPE_CHECKING:
-    from .models import ProductMedia
+    from ..media.models import ProductMedia
 
 
 logger = logging.getLogger(__name__)

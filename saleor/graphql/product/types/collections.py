@@ -24,7 +24,7 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_324, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -34,6 +34,9 @@ from ...core.utils import (
     from_global_id_or_error,
     validate_and_apply_search_rank_sorting,
 )
+from ...media.dataloaders import MediaByCollectionIdLoader
+from ...media.types import CollectionMedia
+from ...media.utils import sort_media
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import CollectionTranslation
@@ -43,7 +46,7 @@ from ..dataloaders import (
     ThumbnailByCollectionIdSizeAndFormatLoader,
 )
 from ..filters.product import ProductFilterInput, ProductWhereInput
-from ..sorters import ProductOrder, ProductOrderField
+from ..sorters import MediaSortingInput, ProductOrder, ProductOrderField
 from .channels import CollectionChannelListing
 from .products import ProductCountableConnection
 
@@ -82,6 +85,12 @@ class Collection(ChannelContextType[models.Collection]):
         description="List of products in this collection.",
     )
     background_image = ThumbnailField(description="Background image of the collection.")
+    media = NonNullList(
+        CollectionMedia,
+        sort_by=graphene.Argument(MediaSortingInput, description="Sort media."),
+        required=True,
+        description="List of media for the collection." + ADDED_IN_324,
+    )
     translation = TranslationField(
         CollectionTranslation,
         type_name="collection",
@@ -104,6 +113,14 @@ class Collection(ChannelContextType[models.Collection]):
     @staticmethod
     def resolve_channel(root: ChannelContext[models.Product], _info):
         return root.channel_slug
+
+    @staticmethod
+    def resolve_media(root: ChannelContext[models.Collection], info, sort_by=None):
+        return (
+            MediaByCollectionIdLoader(info.context)
+            .load(root.node.pk)
+            .then(lambda media: sort_media(media, sort_by))
+        )
 
     @staticmethod
     def resolve_background_image(

@@ -23,11 +23,12 @@ from ...discount.models import (
     VoucherCode,
 )
 from ...giftcard.models import GiftCard, GiftCardEvent
+from ...media.models import ProductMedia
 from ...order import OrderOrigin
 from ...order.models import Order
 from ...payment.models import TransactionItem
 from ...product import ProductTypeKind
-from ...product.models import Product, ProductMedia, ProductType, VariantMedia
+from ...product.models import Product, ProductType, VariantMedia
 from ...shipping.models import ShippingZone
 from ...tax.models import TaxClass, TaxClassCountryRate
 from ..storages import S3MediaStorage
