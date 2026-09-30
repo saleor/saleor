@@ -640,6 +640,7 @@ def generate_collection_payload(
         fields=[
             "name",
             "description",
+            "full_description",
             "background_image_alt",
             "private_metadata",
             "metadata",

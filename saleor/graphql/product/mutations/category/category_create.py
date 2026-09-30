@@ -8,7 +8,7 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.lock_objects import acquire_category_tree_lock
 from ....core import ResolveInfo
-from ....core.descriptions import RICH_CONTENT
+from ....core.descriptions import ADDED_IN_323, RICH_CONTENT
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import DeprecatedModelMutation
@@ -19,7 +19,11 @@ from ....core.types import (
     SeoInput,
     Upload,
 )
-from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
+from ....core.validators import (
+    clean_editorjs_field,
+    clean_seo_fields,
+    validate_slug_and_generate_if_needed,
+)
 from ....core.validators.file import clean_image_file
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -31,6 +35,10 @@ class CategoryInput(BaseInputObjectType):
     name = graphene.String(description="Category name.")
     slug = graphene.String(description="Category slug.")
     seo = SeoInput(description="Search engine optimization fields.")
+    full_description = JSONString(
+        description="Full description of the category. Pass null to clear it. "
+        "Omit to preserve the current value on update." + RICH_CONTENT + ADDED_IN_323
+    )
     background_image = Upload(description="Background image file.")
     background_image_alt = graphene.String(description="Alt text for a product media.")
     metadata = NonNullList(
@@ -76,10 +84,15 @@ class CategoryCreate(DeprecatedModelMutation):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        description = cleaned_input.get("description")
-        cleaned_input["description_plaintext"] = (
-            editorjs_to_text(description) if description else ""
-        )
+        if "full_description" in cleaned_input:
+            cleaned_input["full_description"] = clean_editorjs_field(
+                cleaned_input["full_description"], "full_description"
+            )
+        if "description" in cleaned_input:
+            description = cleaned_input["description"]
+            cleaned_input["description_plaintext"] = (
+                editorjs_to_text(description) if description else ""
+            )
         try:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input

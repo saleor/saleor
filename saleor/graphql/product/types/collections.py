@@ -24,7 +24,7 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -56,6 +56,11 @@ class Collection(ChannelContextType[models.Collection]):
     name = graphene.String(required=True, description="Name of the collection.")
     description = JSONString(
         description="Description of the collection." + RICH_CONTENT
+    )
+    full_description = JSONString(
+        description="Full description of the collection. Returns null when unset."
+        + RICH_CONTENT
+        + ADDED_IN_323
     )
     slug = graphene.String(required=True, description="Slug of the collection.")
     channel = graphene.String(
