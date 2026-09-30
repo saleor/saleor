@@ -133,10 +133,16 @@ def test_assign_default_customer_type_task_processes_all_batches(
 
 
 @pytest.mark.django_db
-def test_assign_default_customer_type_task_raises_when_default_is_missing():
-    # given
+def test_assign_default_customer_type_task_skips_when_default_is_missing(
+    customer_user,
+):
+    # given a user without a type and no customer types at all
+    User.objects.filter(pk=customer_user.pk).update(customer_type=None)
     CustomerType.objects.all().delete()
 
-    # when / then
-    with pytest.raises(NoDefaultCustomerType):
-        assign_default_customer_type_to_users_task()
+    # when
+    assign_default_customer_type_to_users_task()
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.customer_type is None
