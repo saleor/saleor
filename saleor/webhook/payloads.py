@@ -538,8 +538,8 @@ def generate_checkout_payload(
         assigned_delivery = checkout.assigned_delivery
     except CheckoutDelivery.DoesNotExist:
         # Deleted by a concurrent request after the checkout was fetched; the DB
-        # has already nulled the FK (SET_NULL), so treat it as no delivery.
-        assigned_delivery = None
+        # has already nulled the FK (SET_NULL), so drop the stale reference.
+        checkout.assigned_delivery = assigned_delivery = None
 
     shipping_method = None
     if assigned_delivery and not assigned_delivery.is_external:
