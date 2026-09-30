@@ -12,7 +12,7 @@ from django.db.models import F, QuerySet, Sum
 
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
-from ..checkout.models import Checkout
+from ..checkout.models import Checkout, CheckoutDelivery
 from ..checkout.utils import get_checkout_metadata
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price, quantize_price_fields
@@ -534,10 +534,17 @@ def generate_checkout_payload(
     else:
         warehouse = Warehouse.objects.for_channel(checkout.channel_id).first()
 
+    try:
+        assigned_delivery = checkout.assigned_delivery
+    except CheckoutDelivery.DoesNotExist:
+        # Deleted by a concurrent request after the checkout was fetched; the DB
+        # has already nulled the FK (SET_NULL), so treat it as no delivery.
+        assigned_delivery = None
+
     shipping_method = None
-    if checkout.assigned_delivery and not checkout.assigned_delivery.is_external:
+    if assigned_delivery and not assigned_delivery.is_external:
         shipping_method = ShippingMethod.objects.filter(
-            id=checkout.assigned_delivery.shipping_method_id
+            id=assigned_delivery.shipping_method_id
         ).first()
     checkout_data = serializer.serialize(
         [checkout],

@@ -451,6 +451,30 @@ class GraphQLView(View):
                     saleor_attributes.SALEOR_SOURCE_SERVICE_NAME, source_service_name
                 )
 
+            if operation_type == "subscription":
+                # The schema exposes a `Subscription` type only so apps can define
+                # webhook subscription documents. The synchronous executor used here
+                # cannot run them and raises a bare `Exception`, which surfaces as an
+                # unhandled error. Reject with a proper GraphQL error instead.
+                subscription_error = GraphQLError(
+                    "Subscriptions are supported only as webhooks. See "
+                    "https://docs.saleor.io/developer/extending/webhooks/overview"
+                )
+                span.set_status(
+                    status=StatusCode.ERROR, description=str(subscription_error)
+                )
+                error_type = subscription_error.__class__.__name__
+                record_graphql_query_count(
+                    operation_type=operation_type, error_type=error_type
+                )
+                record_graphql_query_cost(
+                    QUERY_COST_FAILED_OPERATION,
+                    operation_type=operation_type,
+                    error_type=error_type,
+                )
+                query_duration_attrs[error_attributes.ERROR_TYPE] = error_type
+                return ExecutionResult(errors=[subscription_error], invalid=True)
+
             query_cost, cost_errors = validate_query(
                 schema=schema,
                 document_ast=document.document_ast,

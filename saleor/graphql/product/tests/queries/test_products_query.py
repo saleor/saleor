@@ -1488,5 +1488,6 @@ def test_search_product_sort_by_attribute_returns_correct_cursor(
 
     # Ref saleor.product.managers.ProductsQueryset.sort_by_attribute
     # First field stores the flag to determine if product has assigned attribute values
-    # Second is the list of attribute values as string
-    assert ["0", attr_value.name, product.name] == cursor_data
+    # Second is the numeric value, set only for attributes of numeric input type
+    # Third is the list of attribute values as string
+    assert ["0", None, attr_value.name, product.name] == cursor_data

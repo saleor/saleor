@@ -3,7 +3,9 @@ import pytest
 
 from .....product.models import Product, ProductVariant
 from .....product.search import update_products_search_vector
+from ....core.enums import OrderDirection
 from ....tests.utils import get_graphql_content, get_graphql_content_from_response
+from ...sorters import ProductVariantSortField
 
 
 def _fetch_all_variants(client, variables=None, permissions=None):
@@ -428,3 +430,104 @@ def test_search_products_by_product_name(
     assert len(products) == len(expected_indexes)
     skus = {node["node"]["sku"] for node in products}
     assert skus == {variants_list[index].sku for index in expected_indexes}
+
+
+QUERY_SORTED_PRODUCT_VARIANTS = """
+    query sortVariants(
+        $first: Int!, $after: String, $sortBy: ProductVariantSortingInput
+    ) {
+        productVariants(first: $first, after: $after, sortBy: $sortBy) {
+            pageInfo {
+                endCursor
+            }
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def _fetch_sorted_variants_page(client, first, direction, after=None):
+    response = client.post_graphql(
+        QUERY_SORTED_PRODUCT_VARIANTS,
+        {
+            "first": first,
+            "after": after,
+            "sortBy": {
+                "field": ProductVariantSortField.ID.name,
+                "direction": direction,
+            },
+        },
+    )
+    data = get_graphql_content(response)["data"]["productVariants"]
+    return [edge["node"]["id"] for edge in data["edges"]], data["pageInfo"]
+
+
+@pytest.mark.parametrize(
+    ("_case", "direction", "reverse"),
+    [
+        ("ascending", OrderDirection.ASC.name, False),
+        ("descending", OrderDirection.DESC.name, True),
+    ],
+)
+def test_sorting_by_id(
+    _case,
+    direction,
+    reverse,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    product.variants.all().delete()
+    variants = ProductVariant.objects.bulk_create(
+        [ProductVariant(product=product, name=f"Variant {i}") for i in range(3)]
+    )
+    expected_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk) for variant in variants
+    ]
+    if reverse:
+        expected_ids.reverse()
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    ids, _page_info = _fetch_sorted_variants_page(staff_api_client, 10, direction)
+
+    # then
+    assert ids == expected_ids
+
+
+def test_sorting_by_id_keeps_cursor_stable_when_variant_is_updated(
+    staff_api_client, product, permission_manage_products
+):
+    # given
+    page_size = 2
+    product.variants.all().delete()
+    variants = ProductVariant.objects.bulk_create(
+        [ProductVariant(product=product, name=f"Variant {i}") for i in range(4)]
+    )
+    expected_ids = [
+        graphene.Node.to_global_id("ProductVariant", variant.pk) for variant in variants
+    ]
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    first_page_ids, first_page_info = _fetch_sorted_variants_page(
+        staff_api_client, page_size, OrderDirection.ASC.name
+    )
+    # the variant the cursor points at is modified between the two pages
+    variants[1].name = "Renamed variant"
+    variants[1].save(update_fields=("name", "updated_at"))
+    second_page_ids, _second_page_info = _fetch_sorted_variants_page(
+        staff_api_client,
+        page_size,
+        OrderDirection.ASC.name,
+        first_page_info["endCursor"],
+    )
+
+    # then
+    assert first_page_ids == expected_ids[:2]
+    assert second_page_ids == expected_ids[2:]

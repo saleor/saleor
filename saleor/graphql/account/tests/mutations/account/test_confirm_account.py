@@ -47,6 +47,7 @@ def account_merging_enabled(site_settings):
 
 
 @freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
 @patch("saleor.plugins.manager.PluginsManager.account_confirmed")
 @pytest.mark.parametrize(
     ("merge_mode", "should_merge"),
@@ -57,6 +58,7 @@ def account_merging_enabled(site_settings):
 )
 def test_account_confirmation(
     mocked_account_confirmed,
+    mocked_customer_updated,
     merge_mode: str,
     should_merge: bool,
     api_client,
@@ -93,6 +95,7 @@ def test_account_confirmation(
 
     assert customer_user.is_confirmed is True, "should have confirmed the the user"
     mocked_account_confirmed.assert_called_once_with(customer_user)
+    mocked_customer_updated.assert_called_once_with(customer_user)
 
     gift_card.refresh_from_db(fields=("created_by", "created_by_email"))
     order.refresh_from_db(fields=("user", "user_email"))
@@ -401,9 +404,11 @@ def test_account_confirmation_invalid_token(
 @patch(
     "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
 )
+@patch("saleor.plugins.manager.PluginsManager.customer_updated")
 @patch("saleor.plugins.manager.PluginsManager.account_confirmed")
 def test_account_confirmation_rejects_token_for_wrong_scope(
     mocked_account_confirmed,
+    mocked_customer_updated,
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
     user_api_client,
@@ -443,6 +448,7 @@ def test_account_confirmation_rejects_token_for_wrong_scope(
     match_orders_with_new_user_mock.assert_not_called()
     assign_gift_cards_mock.assert_not_called()
     mocked_account_confirmed.assert_not_called()
+    mocked_customer_updated.assert_not_called()
 
     # Sanity check: a valid token should work properly
     valid_token = account_confirm_token_generator.make_token(customer_user)

@@ -3000,6 +3000,13 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   """The App's author name."""
   author: String
 
+  """
+  Reason why the app is deprecated, set by the app itself. Null when the app is not deprecated. A deprecated app keeps working as usual, but usually means it should not be used anymore.
+  
+  Added in Saleor 3.23.
+  """
+  deprecationReason: String
+
   """App's dashboard extensions."""
   extensions: [AppExtension!]!
 
@@ -4078,7 +4085,7 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   defaultVariant: ProductVariant
 
   """Rating of the product."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Channel given to retrieve this product. Also used by federation gateway to resolve this object in a federated query.
@@ -4835,7 +4842,7 @@ enum ProductOrderField @doc(category: "Products") {
   COLLECTION
 
   """Sort products by rating."""
-  RATING
+  RATING @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """Sort products by creation date."""
   CREATED_AT
@@ -10005,6 +10012,13 @@ input ProductVariantSortingInput @doc(category: "Products") {
 enum ProductVariantSortField @doc(category: "Products") {
   """Sort product variants by last modification date."""
   LAST_MODIFIED_AT
+
+  """
+  Sort product variants by ID.
+  
+  Added in Saleor 3.23.
+  """
+  ID
 }
 
 input MediaSortingInput @doc(category: "Products") {
@@ -11896,6 +11910,13 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """
   transactions: [TransactionItem!]!
 
+  """
+  Payment history of the order, with one entry per payment transaction that moved any money. Unlike `transactions`, it requires no permission and exposes only the payment method and the amounts, so it can be used to display payment details to the customer without exposing internal information.
+  
+  Added in Saleor 3.23.
+  """
+  transactionSummaries: [TransactionSummary!]!
+
   """List of payments for the order."""
   payments: [Payment!]! @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
 
@@ -12813,6 +12834,49 @@ enum OrderChargeStatusEnum @doc(category: "Orders") {
 }
 
 """
+Customer-facing summary of a single payment transaction. Exposes the payment method and the amounts, without the identifiers, events and actions available on `TransactionItem`.
+
+Added in Saleor 3.23.
+"""
+type TransactionSummary @doc(category: "Payments") {
+  """Date and time at which payment transaction was created."""
+  createdAt: DateTime!
+
+  """
+  The payment method used for this transaction. As this field is public, card number digits and expiration date are stripped: `firstDigits`, `lastDigits`, `expMonth` and `expYear` of `CardPaymentMethodDetails` are always `null` here. Read them through `Order.transactions` instead, which requires MANAGE_ORDERS or HANDLE_PAYMENTS.
+  """
+  paymentMethodDetails: PaymentMethodDetails
+
+  """Total amount authorized for this payment."""
+  authorizedAmount: Money!
+
+  """Total amount of ongoing authorization requests for the transaction."""
+  authorizePendingAmount: Money!
+
+  """Total amount charged for this payment."""
+  chargedAmount: Money!
+
+  """Total amount of ongoing charge requests for the transaction."""
+  chargePendingAmount: Money!
+
+  """Total amount refunded for this payment."""
+  refundedAmount: Money!
+
+  """Total amount canceled for this payment."""
+  canceledAmount: Money!
+}
+
+"""
+Represents a payment method used for a transaction.
+
+Added in Saleor 3.22.
+"""
+interface PaymentMethodDetails {
+  """Name of the payment method."""
+  name: String!
+}
+
+"""
 Represents a payment of a given type.
 
 The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.
@@ -13453,16 +13517,6 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
 }
 
 union UserOrApp = User | App
-
-"""
-Represents a payment method used for a transaction.
-
-Added in Saleor 3.22.
-"""
-interface PaymentMethodDetails {
-  """Name of the payment method."""
-  name: String!
-}
 
 """
 Determine a current authorize status for checkout.
@@ -21800,6 +21854,22 @@ type Mutation {
   ): AppProblemDismiss @doc(category: "Apps")
 
   """
+  Updates the app that calls this mutation. Only the app itself can change these fields - staff users cannot set them via `appUpdate`.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: AUTHENTICATED_APP.
+  """
+  appSelfUpdate(
+    """
+    Fields to update on the calling app.
+    
+    Added in Saleor 3.23.
+    """
+    input: AppSelfUpdateInput!
+  ): AppSelfUpdate @doc(category: "Apps")
+
+  """
   Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
   
   Requires one of the following permissions: MANAGE_APPS.
@@ -21939,6 +22009,8 @@ type Mutation {
   
   Triggers the following webhook events:
   - ACCOUNT_CONFIRMED (async): Account was confirmed.
+  - CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+  - STAFF_UPDATED (async): Called if a staff account was confirmed.
   """
   confirmAccount(
     """E-mail of the user performing account confirmation."""
@@ -21951,10 +22023,15 @@ type Mutation {
 
     """A one-time token required to confirm the account."""
     token: String!
-  ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: [])
+  ): ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: [])
 
   """
   Sets the user's password from the token sent by email using the RequestPasswordReset mutation.
+  
+  Triggers the following webhook events:
+  - ACCOUNT_CONFIRMED (async): Called if the account was not previously confirmed.
+  - CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+  - STAFF_UPDATED (async): Called if a staff account was confirmed.
   """
   setPassword(
     """Email of a user."""
@@ -21965,7 +22042,7 @@ type Mutation {
 
     """A one-time token required to set the password."""
     token: String!
-  ): SetPassword @doc(category: "Users")
+  ): SetPassword @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: [])
 
   """
   Change the password of the logged in user. 
@@ -24658,7 +24735,7 @@ input ProductCreateInput @doc(category: "Products") {
   weight: WeightScalar
 
   """Defines the product rating value."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
@@ -24875,7 +24952,7 @@ input ProductBulkCreateInput @doc(category: "Products") {
   weight: WeightScalar
 
   """Defines the product rating value."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
@@ -25137,7 +25214,7 @@ input ProductInput @doc(category: "Products") {
   weight: WeightScalar
 
   """Defines the product rating value."""
-  rating: Float
+  rating: Float @deprecated(reason: "Product rating is deprecated and will be removed. Use a numeric attribute instead.")
 
   """
   Fields required to update the product metadata. Can be read by any API client authorized to read the object it's attached to.
@@ -32533,6 +32610,13 @@ type Manifest @doc(category: "Apps") {
   """URL to the full privacy policy."""
   dataPrivacyUrl: String
 
+  """
+  Reason why the app is deprecated, declared in the manifest. Null when the app is not deprecated. A deprecated app can still be installed and works as usual, but usually means it should not be used anymore.
+  
+  Added in Saleor 3.23.
+  """
+  deprecationReason: String
+
   """External URL to the app homepage."""
   homepageUrl: String
 
@@ -32798,6 +32882,70 @@ input AppProblemDismissByStaffWithKeysInput @doc(category: "Apps") {
 }
 
 """
+Updates the app that calls this mutation. Only the app itself can change these fields - staff users cannot set them via `appUpdate`.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: AUTHENTICATED_APP.
+"""
+type AppSelfUpdate @doc(category: "Apps") {
+  """
+  The updated app.
+  
+  Added in Saleor 3.23.
+  """
+  app: App
+  errors: [AppSelfUpdateError!]!
+}
+
+"""
+Represents errors in the appSelfUpdate mutation.
+
+Added in Saleor 3.23.
+"""
+type AppSelfUpdateError @doc(category: "Apps") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """
+  The error code.
+  
+  Added in Saleor 3.23.
+  """
+  code: AppSelfUpdateErrorCode!
+}
+
+"""
+Error codes for the appSelfUpdate mutation.
+
+Added in Saleor 3.23.
+"""
+enum AppSelfUpdateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+}
+
+"""
+Fields to update on the calling app.
+
+Added in Saleor 3.23.
+"""
+input AppSelfUpdateInput @doc(category: "Apps") {
+  """
+  Reason why the app is deprecated. Setting it marks the app as deprecated in the dashboard; the app itself keeps working as usual. Pass a blank value to clear it. Omit the field or pass `null` to leave it unchanged. Values longer than 2048 characters are truncated.
+  
+  Added in Saleor 3.23.
+  """
+  deprecationReason: String
+}
+
+"""
 Re-enable sync webhooks for provided app. Can be used to manually re-enable sync webhooks for the app before the cooldown period ends. 
 
 Requires one of the following permissions: MANAGE_APPS.
@@ -33050,8 +33198,10 @@ Confirm user account with token sent by email during registration.
 
 Triggers the following webhook events:
 - ACCOUNT_CONFIRMED (async): Account was confirmed.
+- CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+- STAFF_UPDATED (async): Called if a staff account was confirmed.
 """
-type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED], syncEvents: []) {
+type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: []) {
   """An activated user account."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "Use `errors` field instead.")
@@ -33060,8 +33210,13 @@ type ConfirmAccount @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACC
 
 """
 Sets the user's password from the token sent by email using the RequestPasswordReset mutation.
+
+Triggers the following webhook events:
+- ACCOUNT_CONFIRMED (async): Called if the account was not previously confirmed.
+- CUSTOMER_UPDATED (async): Called if a customer account was confirmed.
+- STAFF_UPDATED (async): Called if a staff account was confirmed.
 """
-type SetPassword @doc(category: "Users") {
+type SetPassword @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ACCOUNT_CONFIRMED, CUSTOMER_UPDATED, STAFF_UPDATED], syncEvents: []) {
   """JWT token, required to authenticate."""
   token: String
 
@@ -37837,6 +37992,13 @@ type TransactionCancelationRequested implements Event @doc(category: "Payments")
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+  
+  Added in Saleor 3.23.
+  """
+  idempotencyKey: String!
 }
 
 type TransactionAction @doc(category: "Payments") {
@@ -37869,6 +38031,13 @@ type TransactionChargeRequested implements Event @doc(category: "Payments") {
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+  
+  Added in Saleor 3.23.
+  """
+  idempotencyKey: String!
 }
 
 """Event sent when transaction refund is requested."""
@@ -37890,6 +38059,13 @@ type TransactionRefundRequested implements Event @doc(category: "Payments") {
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Idempotency key assigned to this requested action. Saleor's delivery retries of this request carry the same key, so an app can use it to avoid performing the action twice. Requesting the action again is a new request and gets a new key.
+  
+  Added in Saleor 3.23.
+  """
+  idempotencyKey: String!
 
   """
   Granted refund related to refund request.

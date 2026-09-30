@@ -110,7 +110,7 @@ def get_assignment_model_and_fk(instance: T_INSTANCE):
     )
 
 
-def _get_assigned_attribute_values_qs(instance: T_INSTANCE, attribute_ids: list[int]):
+def get_assigned_attribute_values_qs(instance: T_INSTANCE, attribute_ids: list[int]):
     """Build a queryset of values currently assigned to the given instance."""
     if isinstance(instance, product_models.ProductVariant):
         # variant has old attribute structure so need to handle it differently
@@ -143,7 +143,7 @@ def get_assigned_attribute_value_if_exists(
 ):
     """Unified method to find an existing assigned value."""
     return (
-        _get_assigned_attribute_values_qs(instance, [attribute.pk])
+        get_assigned_attribute_values_qs(instance, [attribute.pk])
         .filter(**{lookup_field: value})
         .first()
     )
@@ -154,7 +154,7 @@ def get_assigned_attribute_values_map(
 ) -> dict[int, attribute_models.AttributeValue]:
     """Map attribute id to the value currently assigned to the instance."""
     values_map: dict[int, attribute_models.AttributeValue] = {}
-    for value in _get_assigned_attribute_values_qs(instance, attribute_ids):
+    for value in get_assigned_attribute_values_qs(instance, attribute_ids):
         values_map.setdefault(value.attribute_id, value)
     return values_map
 

@@ -24,35 +24,30 @@ def attributes_for_pagination(collection, category, channel_USD):
                 name="Attr1",
                 slug="attr_1",
                 value_required=True,
-                storefront_search_position=4,
                 type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="AttrAttr1",
                 slug="attr_attr_1",
                 value_required=True,
-                storefront_search_position=3,
                 type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="AttrAttr2",
                 slug="attr_attr_2",
                 value_required=True,
-                storefront_search_position=2,
                 type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="Attr2",
                 slug="attr_2",
                 value_required=False,
-                storefront_search_position=5,
                 type=AttributeType.PRODUCT_TYPE,
             ),
             Attribute(
                 name="Attr3",
                 slug="attr_3",
                 value_required=False,
-                storefront_search_position=1,
                 type=AttributeType.PRODUCT_TYPE,
             ),
         ]
@@ -190,10 +185,10 @@ def test_attributes_pagination_with_sorting(
 @pytest.mark.parametrize(
     ("filter_by", "attributes_order"),
     [
-        ({"search": "AttrAttr"}, ["AttrAttr2", "AttrAttr1"]),
-        ({"search": "attr_attr"}, ["AttrAttr2", "AttrAttr1"]),
-        ({"search": "Attr1"}, ["AttrAttr1", "Attr1"]),
-        ({"valueRequired": False}, ["Attr3", "Attr2"]),
+        ({"search": "AttrAttr"}, ["AttrAttr1", "AttrAttr2"]),
+        ({"search": "attr_attr"}, ["AttrAttr1", "AttrAttr2"]),
+        ({"search": "Attr1"}, ["Attr1", "AttrAttr1"]),
+        ({"valueRequired": False}, ["Attr2", "Attr3"]),
     ],
 )
 def test_attributes_pagination_with_filtering(
@@ -217,7 +212,7 @@ def test_attributes_pagination_with_filtering_in_collection(
     staff_api_client, attributes_for_pagination, collection, channel_USD
 ):
     page_size = 2
-    attributes_order = ["Attr3", "AttrAttr2"]
+    attributes_order = ["Attr1", "Attr2"]
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     filter_by = {"inCollection": collection_id}
 
@@ -239,7 +234,7 @@ def test_attributes_pagination_with_filtering_in_category(
     staff_api_client, attributes_for_pagination, category, channel_USD
 ):
     page_size = 2
-    attributes_order = ["Attr3", "AttrAttr2"]
+    attributes_order = ["Attr1", "Attr2"]
     category_id = graphene.Node.to_global_id("Category", category.id)
     filter_by = {"inCategory": category_id}
 

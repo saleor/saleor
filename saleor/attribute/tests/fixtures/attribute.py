@@ -18,9 +18,6 @@ def attribute_generator():
         name="Attr",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.DROPDOWN,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     ):
         attribute, _ = Attribute.objects.get_or_create(
             external_reference=external_reference,
@@ -28,9 +25,6 @@ def attribute_generator():
             name=name,
             type=type,
             input_type=input_type,
-            filterable_in_storefront=filterable_in_storefront,
-            filterable_in_dashboard=filterable_in_dashboard,
-            available_in_grid=available_in_grid,
         )
 
         return attribute
@@ -114,9 +108,6 @@ def color_attribute(db, attribute_generator, attribute_values_generator):
         slug="color",
         name="Color",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     external_references = [
         "colorAttributeValue1ExternalReference",
@@ -140,9 +131,6 @@ def color_attribute_with_translations(db):
         slug="color",
         name="Color",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     value1 = AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
@@ -160,9 +148,6 @@ def second_color_attribute_with_translations(db):
         slug="second-color",
         name="Second color",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     value1 = AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
@@ -180,9 +165,6 @@ def attribute_without_values():
         slug="dropdown",
         name="Dropdown",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
         visible_in_storefront=True,
         entity_type=None,
     )
@@ -195,9 +177,6 @@ def multiselect_attribute(db, attribute_generator, attribute_values_generator):
         name="Multi",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.MULTISELECT,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     slugs = ["choice-1", "choice-2"]
     names = ["Choice 1", "Choice 2"]
@@ -217,9 +196,6 @@ def date_attribute(db):
         name="Release date",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.DATE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.bulk_create(
         [
@@ -246,9 +222,6 @@ def date_time_attribute(db):
         name="Release date time",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.DATE_TIME,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
 
     AttributeValue.objects.bulk_create(
@@ -275,9 +248,6 @@ def attribute_choices_for_sorting(db):
         slug="sorting",
         name="Sorting",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="Global", slug="summer")
     AttributeValue.objects.create(attribute=attribute, name="Apex", slug="zet")
@@ -292,9 +262,6 @@ def boolean_attribute(db):
         name="Boolean",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.BOOLEAN,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(
         attribute=attribute,
@@ -318,9 +285,6 @@ def rich_text_attribute(db):
         name="Text",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.RICH_TEXT,
-        filterable_in_storefront=False,
-        filterable_in_dashboard=False,
-        available_in_grid=False,
     )
     text = "Rich text attribute content."
     AttributeValue.objects.create(
@@ -339,9 +303,6 @@ def rich_text_attribute_page_type(db):
         name="Text",
         type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.RICH_TEXT,
-        filterable_in_storefront=False,
-        filterable_in_dashboard=False,
-        available_in_grid=False,
     )
     text = "Rich text attribute content."
     AttributeValue.objects.create(
@@ -378,9 +339,6 @@ def plain_text_attribute(db):
         name="Plain text",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.PLAIN_TEXT,
-        filterable_in_storefront=False,
-        filterable_in_dashboard=False,
-        available_in_grid=False,
     )
     text = "Plain text attribute content."
     AttributeValue.objects.create(
@@ -399,9 +357,6 @@ def plain_text_attribute_page_type(db):
         name="Plain text",
         type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.PLAIN_TEXT,
-        filterable_in_storefront=False,
-        filterable_in_dashboard=False,
-        available_in_grid=False,
     )
     text = "Plain text attribute content."
     AttributeValue.objects.create(
@@ -419,9 +374,6 @@ def color_attribute_without_values(db):  # pylint: disable=W0613
         slug="color",
         name="Color",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
 
 
@@ -440,9 +392,6 @@ def size_attribute(db, attribute_generator, attribute_values_generator):  # pyli
         slug="size",
         name="Size",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
 
     slugs = ["small", "big"]
@@ -462,9 +411,6 @@ def weight_attribute(db):
         slug="material",
         name="Material",
         type=AttributeType.PRODUCT_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="Cotton", slug="cotton")
     AttributeValue.objects.create(
@@ -481,9 +427,6 @@ def numeric_attribute(db):
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.NUMERIC,
         unit=MeasurementUnits.CM,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(
         attribute=attribute, name="9.5", slug="10_5", numeric=9.5
@@ -501,9 +444,6 @@ def numeric_attribute_without_unit(db):
         name="Count",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.NUMERIC,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="9", slug="9", numeric=9)
     AttributeValue.objects.create(attribute=attribute, name="15", slug="15", numeric=15)
@@ -552,9 +492,6 @@ def swatch_attribute(db):
         name="t-shirt-color",
         type=AttributeType.PRODUCT_TYPE,
         input_type=AttributeInputType.SWATCH,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(
         attribute=attribute, name="Red", slug="red", value="#ff0000"
@@ -798,9 +735,6 @@ def size_page_attribute(db):
         slug="page-size",
         name="Page size",
         type=AttributeType.PAGE_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="10", slug="10")
     AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
@@ -813,9 +747,6 @@ def tag_page_attribute(db):
         slug="tag",
         name="tag",
         type=AttributeType.PAGE_TYPE,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
     AttributeValue.objects.create(attribute=attribute, name="About", slug="about")
     AttributeValue.objects.create(attribute=attribute, name="Help", slug="help")

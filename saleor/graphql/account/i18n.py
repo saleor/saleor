@@ -20,6 +20,8 @@ from ..site.dataloaders import get_site_promise
 SKIP_ADDRESS_VALIDATION_PERMISSION_MAP: dict[str, list[BasePermissionEnum]] = {
     "addressCreate": [AccountPermissions.MANAGE_USERS],
     "addressUpdate": [AccountPermissions.MANAGE_USERS],
+    "customerCreate": [AccountPermissions.MANAGE_USERS],
+    "customerUpdate": [AccountPermissions.MANAGE_USERS],
     "customerBulkUpdate": [AccountPermissions.MANAGE_USERS],
     "draftOrderCreate": [OrderPermissions.MANAGE_ORDERS],
     "draftOrderUpdate": [OrderPermissions.MANAGE_ORDERS],
