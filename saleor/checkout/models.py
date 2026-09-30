@@ -417,7 +417,7 @@ class Checkout(models.Model):
             return
         self.country = Country(country_code)
         if commit:
-            self.save(update_fields=["country"])
+            Checkout.objects.filter(pk=self.pk).update(country=self.country)
 
     def get_country(self):
         address = self.shipping_address or self.billing_address
