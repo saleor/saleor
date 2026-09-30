@@ -4,6 +4,7 @@ from django.db import transaction
 
 from ....celeryconf import app
 from ....core.db.connection import allow_writer
+from ...exceptions import NoDefaultCustomerType
 from ...lock_objects import user_qs_select_for_update
 from ...models import CustomerEvent, User
 from ...utils import get_default_customer_type
@@ -70,7 +71,11 @@ ASSIGN_DEFAULT_CUSTOMER_TYPE_BATCH_SIZE = 100
 def assign_default_customer_type_to_users_task():
     """Assign the default customer type to users that don't have any type yet."""
 
-    default_customer_type = get_default_customer_type()
+    try:
+        default_customer_type = get_default_customer_type()
+    except NoDefaultCustomerType:
+        task_logger.info("No default customer type, skipping assignment")
+        return
 
     with transaction.atomic():
         batch_pks = list(

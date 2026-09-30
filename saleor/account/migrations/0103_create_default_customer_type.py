@@ -1,7 +1,10 @@
+from django.conf import settings
 from django.db import migrations
 
 
 def create_default_customer_type(apps, _schema_editor):
+    if not settings.POPULATE_DEFAULTS:
+        return
     CustomerType = apps.get_model("account", "CustomerType")
     CustomerType.objects.get_or_create(
         is_default=True,
