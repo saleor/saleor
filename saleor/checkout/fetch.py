@@ -312,7 +312,7 @@ def _is_variant_valid(
     variant_channel_listing: Optional["ProductVariantChannelListing"],
     product_channel_listing_mapping: dict,
 ):
-    if not variant_channel_listing or variant_channel_listing.price is None:
+    if not variant_channel_listing or not variant_channel_listing.is_sellable:
         return False
 
     if not _product_channel_listing_is_valid(

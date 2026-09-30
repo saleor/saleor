@@ -199,8 +199,8 @@ def _create_variant_listing_promotion_rule(variant_listing_promotion_rule_to_cre
 def _get_product_to_variant_channel_listings_per_channel_map(
     variants: ProductVariantQueryset,
 ):
-    variant_channel_listings = ProductVariantChannelListing.objects.filter(
-        Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
+    variant_channel_listings = ProductVariantChannelListing.objects.sellable().filter(
+        Exists(variants.filter(id=OuterRef("variant_id")))
     )
     variant_to_product_id = dict(
         variants.values_list("id", "product_id").iterator(chunk_size=1000)
@@ -235,8 +235,8 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(
     variant_listing_rule_data: dict[
         int, dict[UUID, VariantChannelListingPromotionRule]
     ] = defaultdict(dict)
-    variant_channel_listings = ProductVariantChannelListing.objects.filter(
-        Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
+    variant_channel_listings = ProductVariantChannelListing.objects.sellable().filter(
+        Exists(variants.filter(id=OuterRef("variant_id")))
     )
     variant_listing_promotion_rules = VariantChannelListingPromotionRule.objects.filter(
         Exists(

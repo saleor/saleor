@@ -60,10 +60,8 @@ class ProductsQueryset(models.QuerySet):
             return self.none()
         variant_channel_listings = (
             ProductVariantChannelListing.objects.using(self.db)
-            .filter(
-                channel_id=channel.id,
-                price_amount__isnull=False,
-            )
+            .sellable()
+            .filter(channel_id=channel.id)
             .values("id")
         )
         variants = ProductVariant.objects.using(self.db).filter(
@@ -268,6 +266,20 @@ class ProductsQueryset(models.QuerySet):
 ProductManager = models.Manager.from_queryset(ProductsQueryset)
 
 
+def sellable_listing_q(prefix: str = "") -> Q:
+    """Q matching a variant channel listing a customer can actually buy.
+
+    `prefix` is the lookup path to the listing, e.g. `"channel_listings__"`, so the
+    same definition can be applied from a related model.
+    """
+    return Q(
+        **{
+            f"{prefix}price_amount__isnull": False,
+            f"{prefix}is_available_for_purchase": True,
+        }
+    )
+
+
 class ProductVariantQueryset(models.QuerySet):
     def annotate_quantities(self):
         """Annotate the queryset with quantity-related fields.
@@ -314,7 +326,8 @@ class ProductVariantQueryset(models.QuerySet):
             return self.none()
         channel_listings = (
             ProductVariantChannelListing.objects.using(self.db)
-            .filter(price_amount__isnull=False, channel_id=channel.id)
+            .sellable()
+            .filter(channel_id=channel.id)
             .values("id")
         )
         return self.filter(Exists(channel_listings.filter(variant_id=OuterRef("pk"))))
@@ -354,8 +367,8 @@ class ProductVariantQueryset(models.QuerySet):
         # - have a product channel listing for this channel and the product is published
         #  and visible in listings
         variants = self.filter(
+            sellable_listing_q("channel_listings__"),
             channel_listings__channel_id=channel.id,
-            channel_listings__price_amount__isnull=False,
         )
 
         today = datetime.datetime.now(tz=datetime.UTC)
@@ -373,6 +386,9 @@ ProductVariantManager = models.Manager.from_queryset(ProductVariantQueryset)
 
 
 class ProductVariantChannelListingQuerySet(models.QuerySet):
+    def sellable(self):
+        return self.filter(sellable_listing_q())
+
     def annotate_preorder_quantity_allocated(self):
         return self.annotate(
             preorder_quantity_allocated=Coalesce(

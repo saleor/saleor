@@ -101,6 +101,7 @@ from .mutations.attributes import (
 from .mutations.channels import (
     CollectionChannelListingUpdate,
     ProductChannelListingUpdate,
+    ProductVariantChannelListingAvailabilityUpdate,
     ProductVariantChannelListingUpdate,
 )
 from .resolvers import (
@@ -699,6 +700,9 @@ class ProductMutations(graphene.ObjectType):
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_bulk_translate = ProductVariantBulkTranslate.Field()
     product_variant_channel_listing_update = ProductVariantChannelListingUpdate.Field()
+    product_variant_channel_listing_availability_update = (
+        ProductVariantChannelListingAvailabilityUpdate.Field()
+    )
     product_variant_reorder_attribute_values = (
         ProductVariantReorderAttributeValues.Field()
     )

@@ -372,12 +372,13 @@ def _get_best_gift_reward(
         return None, None
 
     # check variant channel availability
-    available_variant_listings = ProductVariantChannelListing.objects.using(
-        database_connection_name
-    ).filter(
-        variant_id__in=available_variant_ids,
-        channel_id=channel.id,
-        price_amount__isnull=False,
+    available_variant_listings = (
+        ProductVariantChannelListing.objects.using(database_connection_name)
+        .sellable()
+        .filter(
+            variant_id__in=available_variant_ids,
+            channel_id=channel.id,
+        )
     )
     if not available_variant_listings:
         return None, None

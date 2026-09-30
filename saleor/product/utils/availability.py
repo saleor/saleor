@@ -183,7 +183,7 @@ def get_variant_availability(
     tax_calculation_strategy: str,
     tax_rate: Decimal,
 ) -> VariantAvailability | None:
-    if variant_channel_listing.price is None:
+    if not variant_channel_listing.is_sellable:
         return None
     discounted_price_taxed = _calculate_product_price_with_taxes(
         variant_channel_listing.discounted_price,
