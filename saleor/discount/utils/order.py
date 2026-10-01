@@ -6,6 +6,7 @@ from uuid import UUID
 from django.conf import settings
 from django.db import transaction
 from django.db.models import prefetch_related_objects
+from prices import Money
 
 from ...channel.models import Channel
 from ...core.db.connection import allow_writer
@@ -24,7 +25,7 @@ from .promotion import (
     delete_gift_line,
     get_discount_name,
     get_discount_translated_name,
-    is_discounted_line_by_catalogue_promotion,
+    is_discounted_line_by_catalogue_promotion_for_line_info,
     prepare_promotion_discount_reason,
     update_promotion_discount,
 )
@@ -257,14 +258,19 @@ def _clear_order_discount(
 
 
 def _create_order_line_discount_for_catalogue_promotion(
-    line: OrderLine, rule_info: VariantPromotionRuleInfo, channel: Channel
+    line: OrderLine,
+    rule_info: VariantPromotionRuleInfo,
+    channel: Channel,
+    scoped_price: Money | None = None,
 ):
     rule = rule_info.rule
     if rule.reward_value_type is None or rule.reward_value is None:
         raise ValueError(
             "Reward value type and reward value cannot be NULL for catalogue promotions."
         )
-    rule_discount_amount = _get_rule_discount_amount(line, rule_info, channel)
+    rule_discount_amount = _get_rule_discount_amount(
+        line, rule_info, channel, scoped_price
+    )
     discount_name = get_discount_name(rule, rule_info.promotion)
     translated_name = get_discount_translated_name(rule_info)
     reason = prepare_promotion_discount_reason(rule_info.promotion)
@@ -287,11 +293,12 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     line: "OrderLine",
     rules_info: Iterable[VariantPromotionRuleInfo],
     channel: Channel,
+    scoped_price: Money | None = None,
 ) -> list["OrderLineDiscount"]:
     line_discounts_to_create: list[OrderLineDiscount] = []
     for rule_info in rules_info:
         line_discount = _create_order_line_discount_for_catalogue_promotion(
-            line, rule_info, channel
+            line, rule_info, channel, scoped_price
         )
         line_discounts_to_create.append(line_discount)
 
@@ -346,8 +353,8 @@ def prepare_order_line_discount_objects_for_catalogue_promotions(lines_info):
             continue
 
         # check if the line price is discounted by catalogue promotion
-        discounted_line = is_discounted_line_by_catalogue_promotion(
-            line_info.channel_listing
+        discounted_line = is_discounted_line_by_catalogue_promotion_for_line_info(
+            line_info
         )
 
         # delete all existing discounts if the line is not discounted or it is a gift
@@ -360,12 +367,12 @@ def prepare_order_line_discount_objects_for_catalogue_promotions(lines_info):
             rule = rule_info.rule
             if not discount_to_update:
                 line_discount = _create_order_line_discount_for_catalogue_promotion(
-                    line, rule_info, line_info.channel
+                    line, rule_info, line_info.channel, line_info.scoped_unit_price
                 )
                 line_discounts_to_create.append(line_discount)
             else:
                 rule_discount_amount = _get_rule_discount_amount(
-                    line, rule_info, line_info.channel
+                    line, rule_info, line_info.channel, line_info.scoped_unit_price
                 )
                 update_promotion_discount(
                     rule,

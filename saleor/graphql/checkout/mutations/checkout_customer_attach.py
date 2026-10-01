@@ -3,6 +3,7 @@ from django.forms import ValidationError
 
 from ....checkout.actions import call_checkout_event
 from ....checkout.error_codes import CheckoutErrorCode
+from ....checkout.utils import invalidate_prices_for_checkout
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
@@ -116,8 +117,10 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.user = customer
         checkout.email = customer.email
         checkout.search_index_dirty = True
+        # the customer may have their own prices, so the lines must be repriced
+        price_fields = invalidate_prices_for_checkout(checkout, save=False)
         checkout.save(
-            update_fields=["email", "user", "last_change", "search_index_dirty"]
+            update_fields=["email", "user", "search_index_dirty", *price_fields]
         )
         manager = get_plugin_manager_promise(info.context).get()
 

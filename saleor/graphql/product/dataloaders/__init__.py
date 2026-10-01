@@ -40,6 +40,7 @@ from .products import (
     VariantChannelListingPromotionRuleByListingIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
+from .scoped_prices import PricingBuyerByUserIdLoader, ScopedPriceRowsByListingIdLoader
 
 __all__ = [
     "CategoryByIdLoader",
@@ -78,6 +79,8 @@ __all__ = [
     "VariantChannelListingByVariantIdLoader",
     "VariantsChannelListingByProductIdAndChannelSlugLoader",
     "VariantChannelListingPromotionRuleByListingIdLoader",
+    "ScopedPriceRowsByListingIdLoader",
+    "PricingBuyerByUserIdLoader",
     "ProductVariantsByProductIdAndChannel",
     "AvailableProductVariantsByProductIdAndChannel",
 ]

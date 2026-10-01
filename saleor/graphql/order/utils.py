@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional, Union
 import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from prices import Money
 from promise import Promise
 
 from ...core.exceptions import InsufficientStock
@@ -43,6 +44,7 @@ class OrderLineData:
     price_override: Decimal | None = None
     quantity: int = 0
     rules_info: Iterable[VariantPromotionRuleInfo] | None = None
+    scoped_price: Money | None = None
 
 
 def validate_total_quantity(lines: Iterable["OrderLine"], errors: T_ERRORS):

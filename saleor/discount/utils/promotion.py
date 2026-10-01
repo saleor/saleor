@@ -188,11 +188,12 @@ def _get_rule_discount_amount(
     line: Union["CheckoutLine", "OrderLine"],
     rule_info: "VariantPromotionRuleInfo",
     channel: "Channel",
+    scoped_price: Money | None = None,
 ) -> Decimal:
     """Calculate the discount amount for catalogue promotion rule.
 
-    When the line has overridden price, the discount is applied on the
-    new overridden base price.
+    When the line has an overridden or a scoped price, the discount is applied on
+    that base price instead of the stored listing discount.
     """
     variant_listing_promotion_rule = rule_info.variant_listing_promotion_rule
     if not variant_listing_promotion_rule:
@@ -209,14 +210,30 @@ def _get_rule_discount_amount(
             line.undiscounted_base_unit_price if line.is_price_overridden else None
         )
 
-    if price_override is not None:
-        # calculate discount amount on overridden price
+    base_price = price_override if price_override is not None else scoped_price
+    if base_price is not None:
+        # calculate discount amount on the overridden or scoped price
         discount = rule_info.rule.get_discount(channel.currency_code)
-        discounted_price = discount(price_override)
-        discount_amount = (price_override - discounted_price).amount
+        discounted_price = discount(base_price)
+        discount_amount = (base_price - discounted_price).amount
     else:
         discount_amount = variant_listing_promotion_rule.discount_amount
     return discount_amount * line.quantity
+
+
+def is_discounted_line_by_catalogue_promotion_for_line_info(
+    line_info: Union["CheckoutLineInfo", "EditableOrderLineInfo"],
+) -> bool:
+    """Return True when the line price is discounted by catalogue promotion.
+
+    A line with a scoped price is discounted when a promotion rule applies to it,
+    because the stored listing prices do not describe a scoped price.
+    """
+    if line_info.channel_listing is None:
+        return False
+    if line_info.scoped_unit_price is not None:
+        return bool(line_info.rules_info)
+    return is_discounted_line_by_catalogue_promotion(line_info.channel_listing)
 
 
 def get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
