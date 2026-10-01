@@ -130,6 +130,33 @@ def test_query_promotion_by_external_reference_not_found(
     assert content["data"] == {"promotion": None}
 
 
+def test_query_promotion_by_empty_string_external_reference(
+    staff_api_client, catalogue_promotion, permission_manage_discounts
+):
+    """An empty string is treated as a missing argument, so it can't be looked up."""
+    # given
+    external_reference = ""
+    catalogue_promotion.external_reference = external_reference
+    catalogue_promotion.save(update_fields=("external_reference",))
+    variables = {"externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PROMOTION_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert content["data"] == {"promotion": None}
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        "At least one of arguments is required: 'id', 'external_reference'."
+    )
+    assert content["errors"][0]["path"] == ["promotion"]
+
+
 def test_query_promotion_by_external_reference_no_permission(
     api_client, catalogue_promotion
 ):

@@ -86,10 +86,18 @@ CREATE_PROMOTION_WITH_EXTERNAL_REFERENCE_MUTATION = """
 """
 
 
-def test_with_external_reference(staff_api_client, permission_manage_discounts):
+@pytest.mark.parametrize(
+    ("_case", "external_reference"),
+    [
+        ("non_empty", "test-ext-ref"),
+        ("empty_string", ""),
+    ],
+)
+def test_with_external_reference(
+    _case, external_reference, staff_api_client, permission_manage_discounts
+):
     # given
     name = "test-promotion"
-    external_reference = "test-ext-ref"
     variables = {"name": name, "externalReference": external_reference}
 
     # when
@@ -108,11 +116,21 @@ def test_with_external_reference(staff_api_client, permission_manage_discounts):
     assert promotion.external_reference == external_reference
 
 
+@pytest.mark.parametrize(
+    ("_case", "external_reference"),
+    [
+        ("non_empty", "test-ext-ref"),
+        ("empty_string", ""),
+    ],
+)
 def test_with_non_unique_external_reference(
-    staff_api_client, catalogue_promotion, permission_manage_discounts
+    _case,
+    external_reference,
+    staff_api_client,
+    catalogue_promotion,
+    permission_manage_discounts,
 ):
     # given
-    external_reference = "test-ext-ref"
     catalogue_promotion.external_reference = external_reference
     catalogue_promotion.save(update_fields=["external_reference"])
 
