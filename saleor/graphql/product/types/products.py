@@ -157,6 +157,7 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
+from ..dataloaders.scoped_prices import load_buyer_pricing_data
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
 from ..filters.product_variant import (
     ProductVariantFilterInput,
@@ -683,7 +684,11 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(data):
-                        country_rates, default_country_rate_obj = data
+                        (
+                            country_rates,
+                            default_country_rate_obj,
+                            buyer_pricing_data,
+                        ) = data
 
                         tax_config_country = next(
                             (
@@ -706,12 +711,21 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                             country_rates, default_tax_rate, country_code
                         )
 
+                        listing_id = variant_channel_listing.pk
                         availability = get_variant_availability(
                             variant_channel_listing=variant_channel_listing,
                             product_channel_listing=product_channel_listing,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
+                            scoped_price=buyer_pricing_data.scoped_prices.get(
+                                listing_id
+                            ),
+                            promotion_rules=(
+                                buyer_pricing_data.promotion_rules_by_listing_id.get(
+                                    listing_id, []
+                                )
+                            ),
                         )
                         return (
                             VariantPricingInfo(**asdict(availability))
@@ -729,9 +743,12 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
                         country_code
                     )
-                    return Promise.all([country_rates, default_rate]).then(
-                        calculate_pricing_info
+                    buyer_pricing_data = load_buyer_pricing_data(
+                        context, [variant_channel_listing.pk]
                     )
+                    return Promise.all(
+                        [country_rates, default_rate, buyer_pricing_data]
+                    ).then(calculate_pricing_info)
 
                 return (
                     TaxConfigurationPerCountryByTaxConfigurationIDLoader(context)
@@ -1198,7 +1215,11 @@ class Product(ChannelContextType[models.Product]):
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(data):
-                        country_rates, default_country_rate_obj = data
+                        (
+                            country_rates,
+                            default_country_rate_obj,
+                            buyer_pricing_data,
+                        ) = data
                         tax_config_country = next(
                             (
                                 tc
@@ -1230,6 +1251,10 @@ class Product(ChannelContextType[models.Product]):
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
+                            scoped_prices=buyer_pricing_data.scoped_prices,
+                            promotion_rules_by_listing_id=(
+                                buyer_pricing_data.promotion_rules_by_listing_id
+                            ),
                         )
 
                         pricing_info = asdict(availability)
@@ -1246,9 +1271,13 @@ class Product(ChannelContextType[models.Product]):
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
                         country_code
                     )
-                    return Promise.all([country_rates, default_rate]).then(
-                        calculate_pricing_info
+                    buyer_pricing_data = load_buyer_pricing_data(
+                        context,
+                        [listing.pk for listing in variants_channel_listing],
                     )
+                    return Promise.all(
+                        [country_rates, default_rate, buyer_pricing_data]
+                    ).then(calculate_pricing_info)
 
                 return (
                     TaxConfigurationPerCountryByTaxConfigurationIDLoader(context)

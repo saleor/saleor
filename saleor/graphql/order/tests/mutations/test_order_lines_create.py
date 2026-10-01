@@ -2246,3 +2246,32 @@ def test_order_lines_create_sets_product_type_id_for_order_line(
     order.refresh_from_db()
     assert len(order.lines.all()) == 1
     assert order.lines.first().product_type_id == expected_product_type_id
+
+
+def test_order_lines_create_uses_the_scoped_price_of_the_order_user(
+    draft_order,
+    b2b_customer_user,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant,
+    variant_channel_listing_price_for_customer_type,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.user = b2b_customer_user
+    order.save(update_fields=["user"])
+    scoped_price = variant_channel_listing_price_for_customer_type.price
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": 1}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_LINES_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["orderLinesCreate"]["errors"] == []
+    line = OrderLine.objects.get(order=order, variant=variant)
+    assert line.undiscounted_base_unit_price == scoped_price
+    assert line.base_unit_price == scoped_price

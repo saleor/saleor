@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from ...core.exceptions import ProductNotPublished
 from ...product import models as product_models
+from ...product.scoped_prices import get_scoped_prices
 from ...warehouse.availability import check_stock_and_preorder_quantity
 from ..fetch import CheckoutInfo
 from ..models import Checkout, CheckoutLine
@@ -39,8 +40,12 @@ def add_variant_to_checkout(
     variant_channel_listing = product_models.ProductVariantChannelListing.objects.get(
         channel_id=checkout.channel_id, variant_id=variant.id
     )
+    # mirror the production path, which prices the line for the checkout user
+    scoped_price = get_scoped_prices(
+        [variant_channel_listing.pk], checkout.user_id, timezone.now()
+    ).get(variant_channel_listing.pk)
     variant_price_amount = variant.get_base_price(
-        variant_channel_listing, price_override
+        variant_channel_listing, price_override, scoped_price
     ).amount
     variant_prior_price_amount = variant.get_prior_price_amount(variant_channel_listing)
 

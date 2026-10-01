@@ -6,9 +6,11 @@ from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
+from ...discount import RewardValueType
+from ...discount.models import PromotionRule
 from ...tax import TaxCalculationStrategy
 from .. import models
-from ..utils.availability import get_product_availability
+from ..utils.availability import get_product_availability, get_variant_availability
 
 
 def test_availability(stock, monkeypatch, settings, channel_USD):
@@ -501,3 +503,119 @@ def test_availability_with_negative_prior_discount(product, channel_USD, prior_p
     )
 
     assert availability.discount_prior is None
+
+
+def test_get_variant_availability_with_scoped_price_reapplies_the_rules(
+    variant, catalogue_promotion_without_rules
+):
+    # given
+    listing = variant.channel_listings.get()
+    product_channel_listing = variant.product.channel_listings.get()
+    rule = PromotionRule.objects.create(
+        promotion=catalogue_promotion_without_rules,
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal(10),
+    )
+    scoped_price = Money(Decimal(8), listing.currency)
+
+    # when
+    availability = get_variant_availability(
+        variant_channel_listing=listing,
+        product_channel_listing=product_channel_listing,
+        prices_entered_with_tax=False,
+        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        tax_rate=Decimal(0),
+        scoped_price=scoped_price,
+        promotion_rules=[rule],
+    )
+
+    # then
+    discounted = Money(Decimal("7.20"), listing.currency)
+    assert availability.price_undiscounted == TaxedMoney(scoped_price, scoped_price)
+    assert availability.price == TaxedMoney(discounted, discounted)
+    assert availability.discount == TaxedMoney(
+        scoped_price - discounted, scoped_price - discounted
+    )
+    assert availability.on_sale is True
+    assert availability.price_prior == TaxedMoney(
+        listing.prior_price, listing.prior_price
+    )
+
+
+def test_get_variant_availability_without_scoped_price_uses_the_stored_prices(
+    variant,
+):
+    # given
+    listing = variant.channel_listings.get()
+    listing.discounted_price_amount = Decimal(6)
+    listing.save(update_fields=["discounted_price_amount"])
+    product_channel_listing = variant.product.channel_listings.get()
+
+    # when
+    availability = get_variant_availability(
+        variant_channel_listing=listing,
+        product_channel_listing=product_channel_listing,
+        prices_entered_with_tax=False,
+        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        tax_rate=Decimal(0),
+    )
+
+    # then
+    assert availability.price_undiscounted == TaxedMoney(listing.price, listing.price)
+    assert availability.price == TaxedMoney(
+        listing.discounted_price, listing.discounted_price
+    )
+
+
+def test_get_product_availability_with_scoped_prices(product, variant):
+    # given
+    product_channel_listing = product.channel_listings.get()
+    listings = list(
+        models.ProductVariantChannelListing.objects.filter(variant__product=product)
+    )
+    assert [listing.price_amount for listing in listings] == [Decimal(10), Decimal(10)]
+    scoped_listing = variant.channel_listings.get()
+    scoped_price = Money(Decimal(8), scoped_listing.currency)
+    listing_price = Money(Decimal(10), scoped_listing.currency)
+
+    # when
+    availability = get_product_availability(
+        product_channel_listing=product_channel_listing,
+        variants_channel_listing=listings,
+        prices_entered_with_tax=False,
+        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        tax_rate=Decimal(0),
+        scoped_prices={scoped_listing.pk: scoped_price},
+    )
+
+    # then
+    assert availability.price_range_undiscounted == TaxedMoneyRange(
+        TaxedMoney(scoped_price, scoped_price), TaxedMoney(listing_price, listing_price)
+    )
+    assert availability.price_range == TaxedMoneyRange(
+        TaxedMoney(scoped_price, scoped_price), TaxedMoney(listing_price, listing_price)
+    )
+    assert availability.discount is None
+    assert availability.on_sale is False
+
+
+def test_get_variant_availability_keeps_a_zero_discounted_price(variant):
+    # given
+    listing = variant.channel_listings.get()
+    listing.discounted_price_amount = Decimal(0)
+    listing.save(update_fields=["discounted_price_amount"])
+    product_channel_listing = variant.product.channel_listings.get()
+    zero = Money(Decimal(0), listing.currency)
+
+    # when
+    availability = get_variant_availability(
+        variant_channel_listing=listing,
+        product_channel_listing=product_channel_listing,
+        prices_entered_with_tax=False,
+        tax_calculation_strategy=TaxCalculationStrategy.TAX_APP,
+        tax_rate=Decimal(0),
+    )
+
+    # then
+    assert availability.price == TaxedMoney(zero, zero)
+    assert availability.price_undiscounted == TaxedMoney(listing.price, listing.price)

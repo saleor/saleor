@@ -5,7 +5,9 @@ from unittest.mock import ANY, patch
 
 import graphene
 import pytest
+from django.db import connection
 from django.test import override_settings
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money
@@ -23,7 +25,11 @@ from .....order.calculations import process_order_prices
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent, OrderLine
 from .....payment.model_helpers import get_subtotal
-from .....product.models import ProductVariant
+from .....product.models import (
+    ProductVariant,
+    VariantChannelListingPrice,
+    VariantChannelListingPriceCustomerType,
+)
 from .....tax import TaxCalculationStrategy
 from .....tests.utils import round_up
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -4419,3 +4425,69 @@ def test_draft_order_create_with_inactive_voucher_code(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
     assert errors[0]["field"] == "voucherCode"
+
+
+def test_draft_order_create_resolves_the_scoped_prices_of_all_lines_in_one_batch(
+    staff_api_client,
+    permission_group_manage_orders,
+    b2b_customer_user,
+    customer_type,
+    product_without_shipping,
+    variant,
+    channel_USD,
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    other_variant = product_without_shipping.variants.first()
+    scoped_amount = Decimal(8)
+    for scoped_variant in (variant, other_variant):
+        listing = scoped_variant.channel_listings.get(channel=channel_USD)
+        listing_price = VariantChannelListingPrice.objects.create(
+            variant_channel_listing=listing,
+            currency=listing.currency,
+            price_amount=scoped_amount,
+        )
+        VariantChannelListingPriceCustomerType.objects.create(
+            listing_price=listing_price, customer_type=customer_type
+        )
+    variables = {
+        "input": {
+            "user": graphene.Node.to_global_id("User", b2b_customer_user.pk),
+            "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+            "lines": [
+                {
+                    "variantId": graphene.Node.to_global_id(
+                        "ProductVariant", variant.pk
+                    ),
+                    "quantity": 1,
+                },
+                {
+                    "variantId": graphene.Node.to_global_id(
+                        "ProductVariant", other_variant.pk
+                    ),
+                    "quantity": 2,
+                },
+            ],
+        }
+    }
+
+    # when
+    with CaptureQueriesContext(connection) as context:
+        response = staff_api_client.post_graphql(DRAFT_ORDER_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrderCreate"]["errors"] == []
+    order = Order.objects.get()
+    line, other_line = order.lines.order_by("variant_id")
+    assert {line.variant_id, other_line.variant_id} == {variant.pk, other_variant.pk}
+    assert line.undiscounted_base_unit_price_amount == scoped_amount
+    assert line.base_unit_price_amount == scoped_amount
+    assert other_line.undiscounted_base_unit_price_amount == scoped_amount
+    assert other_line.base_unit_price_amount == scoped_amount
+    rows_queries = [
+        query
+        for query in context.captured_queries
+        if '"product_variantchannellistingprice"' in query["sql"]
+    ]
+    assert len(rows_queries) == 1

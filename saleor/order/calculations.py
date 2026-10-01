@@ -773,8 +773,13 @@ def _set_channel_listing_prices(lines_info: list[EditableOrderLineInfo]):
         line = line_info.line
         channel_listing = line_info.channel_listing
         if channel_listing and channel_listing.price_amount:
-            line.undiscounted_base_unit_price_amount = channel_listing.price_amount
-            line.base_unit_price_amount = channel_listing.price_amount
+            price_amount = (
+                line_info.scoped_unit_price.amount
+                if line_info.scoped_unit_price is not None
+                else channel_listing.price_amount
+            )
+            line.undiscounted_base_unit_price_amount = price_amount
+            line.base_unit_price_amount = price_amount
 
 
 def _clear_prefetched_order_line_discounts(lines):

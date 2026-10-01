@@ -1,9 +1,11 @@
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Literal
 
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ...discount.models import PromotionRule
+from ...discount.utils.promotion import calculate_discounted_price_for_rules
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations import calculate_flat_rate_tax
@@ -27,6 +29,47 @@ class VariantAvailability:
     price_prior: TaxedMoney | None
     discount: TaxedMoney | None
     discount_prior: TaxedMoney | None
+
+
+@dataclass(frozen=True)
+class ListingPrices:
+    """The prices of a variant channel listing resolved for one buyer."""
+
+    undiscounted: Money
+    discounted: Money
+    prior: Money | None
+
+
+def get_listing_prices(
+    variant_channel_listing: ProductVariantChannelListing,
+    *,
+    scoped_price: Money | None = None,
+    promotion_rules: Iterable[PromotionRule] = (),
+) -> ListingPrices | None:
+    """Return the listing prices for a buyer, or `None` when the listing has no price.
+
+    Without a scoped price the stored discounted price is used. With one, the
+    promotion rules are re-applied on the scoped price.
+    """
+    if variant_channel_listing.price is None:
+        return None
+    if scoped_price is None:
+        undiscounted = variant_channel_listing.price
+        discounted = variant_channel_listing.discounted_price
+        if discounted is None:
+            discounted = undiscounted
+    else:
+        undiscounted = scoped_price
+        discounted = calculate_discounted_price_for_rules(
+            price=scoped_price,
+            rules=promotion_rules,
+            currency=variant_channel_listing.currency,
+        )
+    return ListingPrices(
+        undiscounted=undiscounted,
+        discounted=discounted,
+        prior=variant_channel_listing.prior_price,
+    )
 
 
 def _get_total_discount_from_range(
@@ -53,23 +96,11 @@ def _get_total_discount(
     return None
 
 
-def get_product_price_range(
-    *,
-    variants_channel_listing: list[ProductVariantChannelListing],
-    field: Literal["price", "discounted_price", "prior_price"],
-) -> MoneyRange | None:
-    """Return the range of product prices based on product variants prices.
-
-    When discounted parameter is True, the range of discounted prices is provided.
-    """
-    prices = []
-    for channel_listing in variants_channel_listing:
-        price: Money | None = channel_listing.__getattribute__(field)
-        if price is not None:
-            prices.append(price)
-    if prices:
-        return MoneyRange(min(prices), max(prices))
-
+def get_product_price_range(prices: Iterable[Money | None]) -> MoneyRange | None:
+    """Return the range of the given variant prices, ignoring missing ones."""
+    present_prices = [price for price in prices if price is not None]
+    if present_prices:
+        return MoneyRange(min(present_prices), max(present_prices))
     return None
 
 
@@ -87,16 +118,13 @@ def _calculate_product_price_with_taxes(
 
 
 def _calculate_product_price_with_taxes_range(
-    field: Literal["price", "discounted_price", "prior_price"],
-    variants_channel_listing: list[ProductVariantChannelListing],
+    prices: Iterable[Money | None],
     tax_rate: Decimal,
     tax_calculation_strategy: str,
     prices_entered_with_tax: bool,
 ) -> TaxedMoneyRange | None:
     price: TaxedMoneyRange | None = None
-    price_net_range = get_product_price_range(
-        variants_channel_listing=variants_channel_listing, field=field
-    )
+    price_net_range = get_product_price_range(prices)
     if price_net_range is not None:
         price = TaxedMoneyRange(
             start=_calculate_product_price_with_taxes(
@@ -123,10 +151,30 @@ def get_product_availability(
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal,
+    scoped_prices: Mapping[int, Money] | None = None,
+    promotion_rules_by_listing_id: Mapping[int, list[PromotionRule]] | None = None,
 ) -> ProductAvailability:
+    """Return the product price ranges for a buyer.
+
+    `scoped_prices` and `promotion_rules_by_listing_id` are keyed by the variant
+    channel listing id. A listing without a scoped price uses its stored prices.
+    """
+    scoped_prices = scoped_prices or {}
+    promotion_rules_by_listing_id = promotion_rules_by_listing_id or {}
+    listings_prices = []
+    for variant_channel_listing in variants_channel_listing:
+        listing_prices = get_listing_prices(
+            variant_channel_listing,
+            scoped_price=scoped_prices.get(variant_channel_listing.pk),
+            promotion_rules=promotion_rules_by_listing_id.get(
+                variant_channel_listing.pk, []
+            ),
+        )
+        if listing_prices is not None:
+            listings_prices.append(listing_prices)
+
     undiscounted: TaxedMoneyRange | None = _calculate_product_price_with_taxes_range(
-        "price",
-        variants_channel_listing,
+        [listing_prices.undiscounted for listing_prices in listings_prices],
         tax_rate,
         tax_calculation_strategy,
         prices_entered_with_tax,
@@ -137,16 +185,14 @@ def get_product_availability(
 
     if undiscounted is not None:
         discounted = _calculate_product_price_with_taxes_range(
-            "discounted_price",
-            variants_channel_listing,
+            [listing_prices.discounted for listing_prices in listings_prices],
             tax_rate,
             tax_calculation_strategy,
             prices_entered_with_tax,
         )
 
         prior = _calculate_product_price_with_taxes_range(
-            "prior_price",
-            variants_channel_listing,
+            [listing_prices.prior for listing_prices in listings_prices],
             tax_rate,
             tax_calculation_strategy,
             prices_entered_with_tax,
@@ -182,23 +228,34 @@ def get_variant_availability(
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal,
+    scoped_price: Money | None = None,
+    promotion_rules: Iterable[PromotionRule] = (),
 ) -> VariantAvailability | None:
-    if variant_channel_listing.price is None:
+    """Return the variant prices for a buyer, or `None` when the listing has no price.
+
+    With a scoped price the promotion rules are re-applied on it. Without one the
+    stored prices of the listing are used.
+    """
+    listing_prices = get_listing_prices(
+        variant_channel_listing,
+        scoped_price=scoped_price,
+        promotion_rules=promotion_rules,
+    )
+    if listing_prices is None:
         return None
     discounted_price_taxed = _calculate_product_price_with_taxes(
-        variant_channel_listing.discounted_price,
+        listing_prices.discounted,
         tax_rate,
         tax_calculation_strategy,
         prices_entered_with_tax,
     )
-    undiscounted_price = variant_channel_listing.price
     undiscounted_price_taxed = _calculate_product_price_with_taxes(
-        undiscounted_price,
+        listing_prices.undiscounted,
         tax_rate,
         tax_calculation_strategy,
         prices_entered_with_tax,
     )
-    prior_price = variant_channel_listing.prior_price
+    prior_price = listing_prices.prior
     prior_price_taxed = None
     if prior_price is not None:
         prior_price_taxed = _calculate_product_price_with_taxes(

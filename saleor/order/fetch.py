@@ -4,6 +4,7 @@ from typing import Optional, cast
 from uuid import UUID
 
 from django.db.models import prefetch_related_objects
+from django.utils import timezone
 
 from ..channel.models import Channel
 from ..core.db.connection import allow_writer
@@ -28,6 +29,7 @@ from ..product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ..product.scoped_prices import get_scoped_prices
 from .models import Order, OrderLine
 
 
@@ -85,6 +87,7 @@ class EditableOrderLineInfo(LineInfo):
     rules_info: list["VariantPromotionRuleInfo"] | None = None
     channel_listing: ProductVariantChannelListing | None = None
     voucher_denormalized_info: VoucherDenormalizedInfo | None = None
+    scoped_unit_price: Money | None = None
 
     @property
     def variant_discounted_price(self) -> Money:
@@ -178,9 +181,33 @@ def fetch_draft_order_lines_info(
             )
         )
 
+    if fetch_actual_prices:
+        attach_scoped_unit_prices(lines_info, order.user_id)
     attach_voucher_info(lines_info, order)
 
     return lines_info
+
+
+def attach_scoped_unit_prices(
+    lines_info: Iterable[EditableOrderLineInfo], user_id: int | None
+) -> None:
+    """Set the scoped unit price of every line for the order user.
+
+    Gift lines keep the listing price, which the gift discount cancels out.
+    """
+    listing_ids = {
+        line_info.channel_listing.pk
+        for line_info in lines_info
+        if line_info.channel_listing and not line_info.line.is_gift
+    }
+    scoped_prices = get_scoped_prices(listing_ids, user_id, timezone.now())
+    if not scoped_prices:
+        return
+    for line_info in lines_info:
+        if line_info.channel_listing and not line_info.line.is_gift:
+            line_info.scoped_unit_price = scoped_prices.get(
+                line_info.channel_listing.pk
+            )
 
 
 def attach_voucher_info(lines_info: list[EditableOrderLineInfo], order: Order):

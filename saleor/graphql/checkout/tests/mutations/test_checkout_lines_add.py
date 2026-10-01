@@ -2317,3 +2317,34 @@ def test_checkout_lines_add_checkout_removed_before_adding_variants_to_checkout(
         data["errors"][0]["message"]
         == f"{MISSING_NODE_ERROR_MESSAGE_PREFIX} {checkout_global_id}"
     )
+
+
+def test_checkout_lines_add_stores_the_scoped_price_of_the_checkout_customer(
+    user_api_client,
+    checkout,
+    b2b_customer_user,
+    variant,
+    stock,
+    variant_channel_listing_price_for_customer_type,
+):
+    # given
+    checkout.user = b2b_customer_user
+    checkout.save(update_fields=["user"])
+    scoped_price = variant_channel_listing_price_for_customer_type.price
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesAdd"]
+    assert data["errors"] == []
+    [line_data] = data["checkout"]["lines"]
+    assert Decimal(line_data["undiscountedUnitPrice"]["amount"]) == scoped_price.amount
+    line = checkout.lines.get()
+    assert line.undiscounted_unit_price == scoped_price
