@@ -18,6 +18,7 @@ class PromotionCreateErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     INVALID = "invalid"
+    UNIQUE = "unique"
     MULTIPLE_CURRENCIES_NOT_ALLOWED = "multiple_currencies_not_allowed"
     INVALID_PRECISION = "invalid_precision"
     MISSING_CHANNELS = "missing_channels"
@@ -31,6 +32,7 @@ class PromotionUpdateErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     INVALID = "invalid"
+    UNIQUE = "unique"
 
 
 class PromotionDeleteErrorCode(Enum):
