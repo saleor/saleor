@@ -760,6 +760,11 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
         "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
     },
+    "toggle-window-price-rows": {
+        "task": "saleor.product.tasks.toggle_window_price_rows_task",
+        "schedule": datetime.timedelta(seconds=BEAT_PRICE_RECALCULATION_SCHEDULE),
+        "options": {"expires": BEAT_PRICE_RECALCULATION_SCHEDULE_EXPIRE_AFTER_SEC},
+    },
     "checkout-automatic-completion": {
         # Scheduled task that runs every 60 seconds to check for checkout
         # readiness for automatic completion.

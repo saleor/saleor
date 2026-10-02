@@ -20,12 +20,14 @@ from ..models import (
     ProductChannelListing,
     ProductMedia,
     ProductVariantChannelListing,
+    VariantChannelListingPrice,
 )
 from ..tasks import (
     _get_preorder_variants_to_clean,
     fetch_product_media_image_task,
     mark_products_search_vector_as_dirty,
     recalculate_discounted_price_for_products_task,
+    toggle_window_price_rows_task,
     update_products_search_vector_task,
     update_variant_relations_for_active_promotion_rules_task,
     update_variants_names,
@@ -926,3 +928,95 @@ def test_recalculate_discounted_price_no_webhook_when_prices_unchanged(
 
     # then
     assert not call_event_mock.called
+
+
+def _create_window_rows(listing, count, *, is_applied=False):
+    now = timezone.now()
+    return VariantChannelListingPrice.objects.bulk_create(
+        [
+            VariantChannelListingPrice(
+                variant_channel_listing=listing,
+                currency=listing.currency,
+                price_amount=Decimal(5),
+                valid_from=now - datetime.timedelta(days=1),
+                valid_to=now + datetime.timedelta(days=1),
+                is_applied=is_applied,
+            )
+            for _ in range(count)
+        ]
+    )
+
+
+@patch("saleor.product.tasks.toggle_window_price_rows_task.delay")
+def test_toggle_window_price_rows_task_applies_open_windows_and_marks_dirty(
+    delay_mock, product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    listing = variant.channel_listings.get(channel=channel_USD)
+    product_listing = product.channel_listings.get(channel=channel_USD)
+    assert product_listing.discounted_price_dirty is False
+    [row] = _create_window_rows(listing, 1)
+
+    # when
+    toggle_window_price_rows_task()
+
+    # then
+    row.refresh_from_db(fields=["is_applied"])
+    assert row.is_applied is True
+    product_listing.refresh_from_db(fields=["discounted_price_dirty"])
+    assert product_listing.discounted_price_dirty is True
+    delay_mock.assert_not_called()
+
+
+@patch("saleor.product.tasks.toggle_window_price_rows_task.delay")
+@patch("saleor.product.tasks.WINDOW_PRICE_ROWS_BATCH", 1)
+def test_toggle_window_price_rows_task_chains_itself_after_a_full_batch(
+    delay_mock, product, channel_USD
+):
+    # given
+    listing = product.variants.first().channel_listings.get(channel=channel_USD)
+    first_row, second_row = _create_window_rows(listing, 2)
+
+    # when
+    toggle_window_price_rows_task()
+
+    # then
+    first_row.refresh_from_db(fields=["is_applied"])
+    second_row.refresh_from_db(fields=["is_applied"])
+    assert first_row.is_applied is True
+    assert second_row.is_applied is False
+    delay_mock.assert_called_once_with()
+
+
+@patch("saleor.product.tasks.toggle_window_price_rows_task.delay")
+def test_toggle_window_price_rows_task_does_nothing_without_edges(
+    delay_mock, product, channel_USD
+):
+    # given
+    listing = product.variants.first().channel_listings.get(channel=channel_USD)
+    product_listing = product.channel_listings.get(channel=channel_USD)
+    _create_window_rows(listing, 1, is_applied=True)
+
+    # when
+    toggle_window_price_rows_task()
+
+    # then
+    product_listing.refresh_from_db(fields=["discounted_price_dirty"])
+    assert product_listing.discounted_price_dirty is False
+    delay_mock.assert_not_called()
+
+
+def test_toggle_window_price_rows_task_is_scheduled_with_the_price_recalculation(
+    settings,
+):
+    # when
+    entry = settings.CELERY_BEAT_SCHEDULE["toggle-window-price-rows"]
+
+    # then
+    recalculation = settings.CELERY_BEAT_SCHEDULE[
+        "recalculate-discounted-price-for-products"
+    ]
+    assert entry["task"] == "saleor.product.tasks.toggle_window_price_rows_task"
+    assert entry["schedule"] == recalculation["schedule"]
+    assert entry["options"] == recalculation["options"]

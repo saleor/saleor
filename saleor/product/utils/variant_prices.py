@@ -6,6 +6,7 @@ from uuid import UUID
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Exists, OuterRef
+from django.utils import timezone
 from prices import Money
 
 from ...channel.models import Channel
@@ -24,6 +25,7 @@ from ..models import (
     ProductVariantChannelListing,
     VariantChannelListingPromotionRule,
 )
+from ..scoped_prices import get_scoped_prices
 
 
 def update_discounted_prices_for_promotion(
@@ -36,6 +38,9 @@ def update_discounted_prices_for_promotion(
     If there is no applied promotion rule, the discounted price for the product
     is equal to the cheapest variant price, in the case of the variant it's equal
     to the variant price.
+    A scoped price that applies to every buyer, which is a row with an open
+    validity window and no buyer conditions, replaces the variant price as the
+    base the promotions are applied on, so the stored price is what a guest pays.
 
     When only_dirty_products set to True, the prices will be recalculated only for the
     listings marked as dirty.
@@ -52,6 +57,12 @@ def update_discounted_prices_for_promotion(
     )
     variant_listing_to_listing_rule_per_rule_map = (
         _get_variant_listings_to_listing_rule_per_rule_id_map(variant_qs)
+    )
+    window_prices = get_scoped_prices(
+        _get_listing_ids(product_to_variant_listings_per_channel_map),
+        user_id=None,
+        now=timezone.now(),
+        database_connection_name=settings.DATABASE_CONNECTION_REPLICA_NAME,
     )
 
     changed_products_listings_to_update = []
@@ -89,6 +100,7 @@ def update_discounted_prices_for_promotion(
             rules_info_per_variant,
             product_channel_listing.channel,
             variant_listing_to_listing_rule_per_rule_map,
+            window_prices,
         )
 
         product_discounted_price = min(discounted_variants_price)
@@ -196,6 +208,19 @@ def _create_variant_listing_promotion_rule(variant_listing_promotion_rule_to_cre
         )
 
 
+def _get_listing_ids(
+    product_to_variant_listings_per_channel_map: dict[
+        int, dict[int, list[ProductVariantChannelListing]]
+    ],
+) -> list[int]:
+    return [
+        variant_listing.pk
+        for listings_per_channel in product_to_variant_listings_per_channel_map.values()
+        for variant_listings in listings_per_channel.values()
+        for variant_listing in variant_listings
+    ]
+
+
 def _get_product_to_variant_channel_listings_per_channel_map(
     variants: ProductVariantQueryset,
 ):
@@ -206,7 +231,7 @@ def _get_product_to_variant_channel_listings_per_channel_map(
         variants.values_list("id", "product_id").iterator(chunk_size=1000)
     )
 
-    price_data: dict[int, dict[int, list[Money]]] = defaultdict(
+    price_data: dict[int, dict[int, list[ProductVariantChannelListing]]] = defaultdict(
         lambda: defaultdict(list)
     )
     for variant_channel_listing in variant_channel_listings.iterator(chunk_size=1000):
@@ -256,6 +281,7 @@ def _get_discounted_variants_prices_for_promotions(
     rules_info_per_variant: dict[int, list[PromotionRuleInfo]],
     channel: Channel,
     variant_listing_to_listing_rule_per_rule_map: dict,
+    window_prices: dict[int, Money],
 ) -> tuple[
     list[Money],
     list[ProductVariantChannelListing],
@@ -274,13 +300,14 @@ def _get_discounted_variants_prices_for_promotions(
     variant_price_changes: list[VariantDiscountedPriceChange] = []
 
     for variant_listing in variant_listings:
+        base_price = window_prices.get(variant_listing.pk, variant_listing.price)
         applied_discount = calculate_discounted_price_for_promotions(
-            price=variant_listing.price,
+            price=base_price,
             rules_info_per_variant=rules_info_per_variant,
             channel=channel,
             variant_id=variant_listing.variant_id,
         )
-        discounted_variant_price = variant_listing.price
+        discounted_variant_price = base_price
 
         rule_id = None
         if applied_discount:
