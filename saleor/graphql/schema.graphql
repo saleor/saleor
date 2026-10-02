@@ -19639,11 +19639,14 @@ type Mutation {
   Completes creating an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): Optionally triggered when staff notification recipients are configured.
   """
   draftOrderComplete(
     """ID of the order that will be completed."""
     id: ID!
-  ): DraftOrderComplete @doc(category: "Orders")
+  ): DraftOrderComplete @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Creates a new draft order. 
@@ -27471,8 +27474,11 @@ type PageReorderAttributeValues @doc(category: "Pages") {
 Completes creating an order. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): Optionally triggered when staff notification recipients are configured.
 """
-type DraftOrderComplete @doc(category: "Orders") {
+type DraftOrderComplete @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
   """Completed order."""
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "Use `errors` field instead.")
