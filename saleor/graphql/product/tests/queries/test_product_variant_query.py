@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 import graphene
+import pytest
 from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
@@ -6,7 +9,11 @@ from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.units import WeightUnits
 from .....warehouse import WarehouseClickAndCollectOption
 from ....core.enums import WeightUnitsEnum
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 QUERY_VARIANT = """query ProductVariantDetails(
         $id: ID!, $address: AddressInput, $countryCode: CountryCode, $channel: String
@@ -866,3 +873,285 @@ def test_product_variant_when_assigned_attribute_is_none(
     # then
     content = get_graphql_content(response)
     assert content["data"]["productVariant"]["assignedAttribute"] is None
+
+
+CHANNEL_LISTING_PRICING_FRAGMENT = """
+    fragment ChannelListingPricing on ProductVariantChannelListing {
+        channel {
+            slug
+        }
+        price {
+            amount
+            currency
+        }
+        discountedPrice {
+            amount
+            currency
+        }
+        pricing {
+            onSale
+            price {
+                gross {
+                    amount
+                    currency
+                }
+            }
+            priceUndiscounted {
+                gross {
+                    amount
+                }
+            }
+        }
+        quantityAvailable
+    }
+"""
+
+QUERY_VARIANTS_CHANNEL_LISTING_PRICING = (
+    CHANNEL_LISTING_PRICING_FRAGMENT
+    + """
+    query VariantsChannelListingPricing($ids: [ID!]) {
+        productVariants(first: 10, ids: $ids) {
+            edges {
+                node {
+                    channelListings {
+                        ...ChannelListingPricing
+                    }
+                }
+            }
+        }
+    }
+"""
+)
+
+QUERY_VARIANT_CHANNEL_LISTING_PRICING = (
+    CHANNEL_LISTING_PRICING_FRAGMENT
+    + """
+    query VariantChannelListingPricing($id: ID!, $channel: String) {
+        productVariant(id: $id, channel: $channel) {
+            channelListings {
+                ...ChannelListingPricing
+            }
+        }
+    }
+"""
+)
+
+QUERY_VARIANT_PRICING_IN_CHANNEL = """
+    query VariantPricingInChannel($id: ID!, $channel: String!) {
+        productVariant(id: $id, channel: $channel) {
+            pricing {
+                onSale
+                price {
+                    gross {
+                        amount
+                        currency
+                    }
+                }
+                priceUndiscounted {
+                    gross {
+                        amount
+                    }
+                }
+            }
+            quantityAvailable
+        }
+    }
+"""
+
+
+def test_channel_listing_pricing_matches_channel_scoped_pricing(
+    staff_api_client,
+    product_available_in_many_channels,
+    permission_manage_products,
+):
+    """One channel-less walk returns the same pricing as one walk per channel."""
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variant = product_available_in_many_channels.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    channel_listings = list(variant.channel_listings.all())
+    assert len(channel_listings) == 2
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VARIANTS_CHANNEL_LISTING_PRICING, {"ids": [variant_id]}
+    )
+    content = get_graphql_content(response)
+
+    # then
+    edges = content["data"]["productVariants"]["edges"]
+    assert len(edges) == 1
+    listings_data = edges[0]["node"]["channelListings"]
+    assert len(listings_data) == 2
+
+    data_by_slug = {data["channel"]["slug"]: data for data in listings_data}
+    for channel_listing in channel_listings:
+        data = data_by_slug[channel_listing.channel.slug]
+        assert data["price"]["amount"] == channel_listing.price_amount
+        assert data["price"]["currency"] == channel_listing.currency
+
+        channel_scoped = get_graphql_content(
+            staff_api_client.post_graphql(
+                QUERY_VARIANT_PRICING_IN_CHANNEL,
+                {"id": variant_id, "channel": channel_listing.channel.slug},
+            )
+        )["data"]["productVariant"]
+
+        assert data["pricing"] is not None
+        assert data["pricing"] == channel_scoped["pricing"]
+        assert data["quantityAvailable"] == channel_scoped["quantityAvailable"]
+
+
+def test_channel_listing_discounted_price(
+    staff_api_client,
+    product_available_in_many_channels,
+    channel_USD,
+    permission_manage_products,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variant = product_available_in_many_channels.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    listing = variant.channel_listings.get(channel=channel_USD)
+    undiscounted_amount = Decimal("30.00")
+    discounted_amount = Decimal("12.50")
+    listing.price_amount = undiscounted_amount
+    listing.discounted_price_amount = discounted_amount
+    listing.save(update_fields=("price_amount", "discounted_price_amount"))
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_VARIANT_CHANNEL_LISTING_PRICING,
+        {"id": variant_id, "channel": channel_USD.slug},
+    )
+    content = get_graphql_content(response)
+
+    # then
+    listings_data = content["data"]["productVariant"]["channelListings"]
+    data = next(
+        data for data in listings_data if data["channel"]["slug"] == channel_USD.slug
+    )
+    assert data["discountedPrice"]["amount"] == discounted_amount
+    assert data["discountedPrice"]["currency"] == channel_USD.currency_code
+    assert data["pricing"]["priceUndiscounted"]["gross"]["amount"] == (
+        undiscounted_amount
+    )
+    assert data["pricing"]["price"]["gross"]["amount"] == discounted_amount
+    assert data["pricing"]["onSale"] is True
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("Unauthenticated user should be rejected", "api_client", False),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            False,
+        ),
+        (
+            "Staff user without any permission should be allowed",
+            "staff_api_client",
+            True,
+        ),
+        ("App should be allowed", "app_api_client", True),
+    ],
+)
+def test_channel_listing_pricing_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    product_available_in_many_channels,
+    channel_USD,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    variant = product_available_in_many_channels.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "channel": channel_USD.slug}
+
+    # when
+    response = client.post_graphql(QUERY_VARIANT_CHANNEL_LISTING_PRICING, variables)
+
+    # then
+    if is_allowed:
+        content = get_graphql_content(response)
+        listings_data = content["data"]["productVariant"]["channelListings"]
+        assert len(listings_data) == 2
+        for data in listings_data:
+            assert data["pricing"] is not None
+            assert data["discountedPrice"] is not None
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"]["productVariant"]["channelListings"] is None
+
+
+QUERY_PRODUCT_VARIANTS_CHANNEL_LISTING_PRICING = (
+    CHANNEL_LISTING_PRICING_FRAGMENT
+    + """
+    query ProductVariantsChannelListingPricing($id: ID!, $channel: String) {
+        product(id: $id, channel: $channel) {
+            variants {
+                channelListings {
+                    ...ChannelListingPricing
+                }
+            }
+        }
+    }
+"""
+)
+
+
+def _channel_listings_by_slug(api_client, query, variables, extract):
+    content = get_graphql_content(api_client.post_graphql(query, variables))
+    return sorted(
+        extract(content["data"]), key=lambda listing: listing["channel"]["slug"]
+    )
+
+
+def test_channel_listing_pricing_is_the_same_across_queries(
+    staff_api_client,
+    product_available_in_many_channels,
+    channel_USD,
+    permission_manage_products,
+):
+    """The listing fields do not depend on the channel of the root query."""
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    product = product_available_in_many_channels
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    from_variant = _channel_listings_by_slug(
+        staff_api_client,
+        QUERY_VARIANT_CHANNEL_LISTING_PRICING,
+        {"id": variant_id, "channel": channel_USD.slug},
+        lambda data: data["productVariant"]["channelListings"],
+    )
+    from_product_in_channel = _channel_listings_by_slug(
+        staff_api_client,
+        QUERY_PRODUCT_VARIANTS_CHANNEL_LISTING_PRICING,
+        {"id": product_id, "channel": channel_USD.slug},
+        lambda data: data["product"]["variants"][0]["channelListings"],
+    )
+    from_product_without_channel = _channel_listings_by_slug(
+        staff_api_client,
+        QUERY_PRODUCT_VARIANTS_CHANNEL_LISTING_PRICING,
+        {"id": product_id},
+        lambda data: data["product"]["variants"][0]["channelListings"],
+    )
+
+    # then
+    assert len(from_variant) == 2
+    for listing_data in from_variant:
+        assert listing_data["pricing"] is not None
+        assert listing_data["discountedPrice"] is not None
+
+    assert from_product_in_channel == from_variant
+    assert from_product_without_channel == from_variant
