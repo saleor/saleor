@@ -49,6 +49,10 @@ from .utils.variants import (
     fetch_variants_for_promotion_rules,
     generate_and_set_variant_name,
 )
+from .utils.window_prices import (
+    find_window_price_rows_to_toggle,
+    sync_window_price_rows,
+)
 
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(f"{__name__}.celery")
@@ -58,6 +62,7 @@ PRODUCTS_BATCH_SIZE = 300
 VARIANTS_UPDATE_BATCH = 500
 # Results in update time ~0.2s
 DISCOUNTED_PRODUCT_BATCH = 2000
+WINDOW_PRICE_ROWS_BATCH = 1000
 # Results in update time ~2s when 600 channels exist
 PROMOTION_RULE_BATCH_SIZE = 50
 
@@ -278,6 +283,23 @@ def recalculate_discounted_price_for_products_task():
                 discounted_price_dirty=False
             )
         recalculate_discounted_price_for_products_task.delay()
+
+
+@app.task
+@allow_writer()
+def toggle_window_price_rows_task():
+    """Fold in or withdraw scoped prices whose validity window opened or closed.
+
+    The products of the affected rows are marked dirty, the stored prices are
+    then refreshed by `recalculate_discounted_price_for_products_task`.
+    """
+    now = timezone.now()
+    row_ids = find_window_price_rows_to_toggle(now, WINDOW_PRICE_ROWS_BATCH)
+    if not row_ids:
+        return
+    sync_window_price_rows(row_ids, now)
+    if len(row_ids) == WINDOW_PRICE_ROWS_BATCH:
+        toggle_window_price_rows_task.delay()
 
 
 @app.task

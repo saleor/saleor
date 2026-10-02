@@ -112,6 +112,7 @@ from ...product.tasks import (
     recalculate_discounted_price_for_products_task,
     update_variant_relations_for_active_promotion_rules_task,
 )
+from ...product.utils.window_prices import sync_window_price_rows
 from ...shipping.models import (
     ShippingMethod,
     ShippingMethodChannelListing,
@@ -1664,6 +1665,10 @@ def create_customer_pricing():
     VariantChannelListingPriceAttributeValue.objects.bulk_create(
         attribute_value_conditions
     )
+    # the validity-only rows apply to everyone, so fold them into the stored prices
+    # right away instead of waiting for celery beat
+    sync_window_price_rows([listing_price.pk for listing_price in listing_prices], now)
+    recalculate_discounted_price_for_products_task()
     for listing in listings:
         yield (
             f"Scoped prices for variant: {listing.variant.sku} "

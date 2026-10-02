@@ -14,6 +14,8 @@ from ...product.models import (
     Product,
     ProductChannelListing,
     ProductVariantChannelListing,
+    VariantChannelListingPrice,
+    VariantChannelListingPriceCustomerType,
     VariantChannelListingPromotionRule,
 )
 from ...tests import race_condition
@@ -804,3 +806,172 @@ def test_update_discounted_prices_returns_changed_prices_for_multiple_channels(
     assert cp_pln.currency == channel_PLN.currency_code
     assert cp_pln.previous_price_amount == variant_price_pln
     assert cp_pln.new_price_amount == variant_price_pln - reward_value
+
+
+def _create_window_row(listing, price_amount, *, days_from_now=-1, days_to_now=1):
+    now = datetime.datetime.now(tz=datetime.UTC)
+    return VariantChannelListingPrice.objects.create(
+        variant_channel_listing=listing,
+        currency=listing.currency,
+        price_amount=price_amount,
+        valid_from=now + datetime.timedelta(days=days_from_now),
+        valid_to=now + datetime.timedelta(days=days_to_now),
+    )
+
+
+def _create_catalogue_rule(variant, reward_value_type, reward_value):
+    promotion = Promotion.objects.create(name="Promotion")
+    rule = promotion.rules.create(
+        name="Rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.pk)]
+            }
+        },
+        reward_value_type=reward_value_type,
+        reward_value=reward_value,
+    )
+    rule.channels.add(variant.channel_listings.get().channel)
+    rule.variants.add(variant)
+    return rule
+
+
+def test_update_discounted_price_stores_an_open_window_price(product, channel_USD):
+    # given
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    product_listing = product.channel_listings.get(channel=channel_USD)
+    window_price_amount = Decimal(7)
+    _create_window_row(variant_listing, window_price_amount)
+
+    # when
+    changes = update_discounted_prices_for_promotion(
+        Product.objects.filter(pk=product.pk)
+    )
+
+    # then
+    variant_listing.refresh_from_db(fields=["discounted_price_amount"])
+    product_listing.refresh_from_db(fields=["discounted_price_amount"])
+    assert variant_listing.discounted_price_amount == window_price_amount
+    assert product_listing.discounted_price_amount == window_price_amount
+    assert changes == [
+        VariantDiscountedPriceChange(
+            variant_id=variant.pk,
+            channel_slug=channel_USD.slug,
+            previous_price_amount=variant_listing.price_amount,
+            new_price_amount=window_price_amount,
+            currency=channel_USD.currency_code,
+        )
+    ]
+
+
+def test_update_discounted_price_stores_a_window_price_above_the_listing_price(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    window_price_amount = variant_listing.price_amount + Decimal(5)
+    _create_window_row(variant_listing, window_price_amount)
+
+    # when
+    update_discounted_prices_for_promotion(Product.objects.filter(pk=product.pk))
+
+    # then
+    variant_listing.refresh_from_db(fields=["discounted_price_amount"])
+    assert variant_listing.discounted_price_amount == window_price_amount
+
+
+@pytest.mark.parametrize(
+    ("_case", "reward_value_type", "reward_value", "expected_amount"),
+    [
+        ("fixed", RewardValueType.FIXED, Decimal(2), Decimal("6.00")),
+        ("percentage", RewardValueType.PERCENTAGE, Decimal(50), Decimal("4.00")),
+    ],
+)
+def test_update_discounted_price_applies_the_promotion_on_the_window_price(
+    _case, reward_value_type, reward_value, expected_amount, product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    assert variant_listing.price_amount == Decimal(10)
+    window_price_amount = Decimal(8)
+    _create_window_row(variant_listing, window_price_amount)
+    rule = _create_catalogue_rule(variant, reward_value_type, reward_value)
+
+    # when
+    update_discounted_prices_for_promotion(Product.objects.filter(pk=product.pk))
+
+    # then
+    variant_listing.refresh_from_db(fields=["discounted_price_amount"])
+    assert variant_listing.discounted_price_amount == expected_amount
+    listing_rule = variant_listing.variantlistingpromotionrule.get()
+    assert listing_rule.promotion_rule == rule
+    assert listing_rule.discount_amount == window_price_amount - expected_amount
+
+
+@pytest.mark.parametrize(
+    ("_case", "days_from_now", "days_to_now"),
+    [("future window", 1, 2), ("past window", -2, -1)],
+)
+def test_update_discounted_price_ignores_a_closed_window(
+    _case, days_from_now, days_to_now, product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    _create_window_row(
+        variant_listing,
+        Decimal(7),
+        days_from_now=days_from_now,
+        days_to_now=days_to_now,
+    )
+
+    # when
+    changes = update_discounted_prices_for_promotion(
+        Product.objects.filter(pk=product.pk)
+    )
+
+    # then
+    variant_listing.refresh_from_db(fields=["discounted_price_amount"])
+    assert variant_listing.discounted_price_amount == variant_listing.price_amount
+    assert changes == []
+
+
+def test_update_discounted_price_ignores_a_window_row_with_buyer_conditions(
+    product, channel_USD, customer_type
+):
+    # given
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    row = _create_window_row(variant_listing, Decimal(7))
+    VariantChannelListingPriceCustomerType.objects.create(
+        listing_price=row, customer_type=customer_type
+    )
+
+    # when
+    update_discounted_prices_for_promotion(Product.objects.filter(pk=product.pk))
+
+    # then
+    variant_listing.refresh_from_db(fields=["discounted_price_amount"])
+    assert variant_listing.discounted_price_amount == variant_listing.price_amount
+
+
+def test_update_discounted_price_picks_the_lowest_of_overlapping_window_prices(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_listing = variant.channel_listings.get(channel=channel_USD)
+    lowest_price_amount = Decimal(6)
+    _create_window_row(variant_listing, Decimal(9))
+    _create_window_row(variant_listing, lowest_price_amount)
+
+    # when
+    update_discounted_prices_for_promotion(Product.objects.filter(pk=product.pk))
+
+    # then
+    variant_listing.refresh_from_db(fields=["discounted_price_amount"])
+    assert variant_listing.discounted_price_amount == lowest_price_amount
