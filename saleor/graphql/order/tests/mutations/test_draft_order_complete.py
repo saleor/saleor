@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-from unittest.mock import ANY, call, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 import graphene
 import pytest
@@ -114,7 +114,12 @@ def test_draft_order_complete(
     staff_user,
     draft_order,
     customer_user,
+    mocker,
 ):
+    mocked_send_order_confirmation: MagicMock = mocker.patch(
+        "saleor.graphql.order.mutations.draft_order_complete.send_order_confirmation"
+    )
+
     # given
     order = draft_order
     order.user = customer_user
@@ -170,6 +175,14 @@ def test_draft_order_complete(
 
     customer_user.refresh_from_db()
     assert customer_user.number_of_orders == user_orders_count + 1
+
+    # Should have notified staff
+    mocked_send_order_confirmation.assert_called_once_with(
+        order_info=ANY,
+        redirect_url=order.redirect_url,
+        manager=ANY,
+        notify_customer=False,
+    )
 
 
 def test_draft_order_complete_no_automatically_confirm_all_new_orders(
