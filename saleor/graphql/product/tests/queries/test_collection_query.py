@@ -2,6 +2,7 @@ import logging
 from unittest.mock import MagicMock
 
 import graphene
+import pytest
 from django.core.files import File
 
 from .....product.tests.utils import create_image
@@ -22,6 +23,149 @@ QUERY_COLLECTION = """
         }
     }
     """
+
+
+QUERY_COLLECTION_BY_EXTERNAL_REFERENCE = """
+    query ($id: ID, $externalReference: String, $slug: String, $channel: String){
+        collection(
+            id: $id,
+            slug: $slug,
+            externalReference: $externalReference,
+            channel: $channel,
+        ) {
+            id
+            name
+            externalReference
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "has_permission"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+@pytest.mark.parametrize(
+    ("_visibility_case", "is_published", "use_other_channel"),
+    [
+        ("published", True, False),
+        ("unpublished", False, False),
+        ("not_assigned_to_channel", True, True),
+    ],
+)
+def test_external_reference_visibility(
+    _case,
+    client_fixture,
+    has_permission,
+    _visibility_case,
+    is_published,
+    use_other_channel,
+    request,
+    published_collection,
+    channel_USD,
+    channel_PLN,
+    permission_manage_products,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    collection = published_collection
+    assert collection.channel_listings.get(channel=channel_USD).is_published is True
+    assert collection.channel_listings.filter(channel=channel_PLN).exists() is False
+    collection.external_reference = "collection-reference"
+    collection.save(update_fields=("external_reference",))
+    if not is_published:
+        collection.channel_listings.filter(channel=channel_USD).update(
+            is_published=False
+        )
+    variables = {
+        "externalReference": collection.external_reference,
+        "channel": channel_PLN.slug if use_other_channel else channel_USD.slug,
+    }
+
+    # when
+    response = client.post_graphql(
+        QUERY_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_products] if has_permission else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    if not use_other_channel and (is_published or has_permission):
+        assert content["data"] == {
+            "collection": {
+                "id": graphene.Node.to_global_id("Collection", collection.pk),
+                "name": collection.name,
+                "externalReference": collection.external_reference,
+            }
+        }
+    else:
+        assert content["data"] == {"collection": None}
+
+
+def test_collection_query_by_external_reference_not_found(
+    staff_api_client, permission_manage_products, channel_USD
+):
+    # given
+    variables = {
+        "externalReference": "non-existing-ext-ref",
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_COLLECTION_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["collection"] is None
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifier"),
+    [("id", "id"), ("slug", "slug")],
+)
+def test_external_reference_conflicting_identifiers(
+    _case,
+    identifier,
+    user_api_client,
+    published_collection,
+):
+    # given
+    variables = {
+        identifier: (
+            graphene.Node.to_global_id("Collection", published_collection.pk)
+            if identifier == "id"
+            else published_collection.slug
+        ),
+        "externalReference": "collection-reference",
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        QUERY_COLLECTION_BY_EXTERNAL_REFERENCE, variables=variables
+    )
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert content["data"] == {"collection": None}
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        f"Argument '{identifier}' cannot be combined with 'external_reference'"
+    )
+    assert content["errors"][0]["path"] == ["collection"]
 
 
 def test_collection_query_by_id(user_api_client, published_collection, channel_USD):
