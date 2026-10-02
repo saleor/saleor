@@ -19639,7 +19639,7 @@ type Mutation {
   Completes creating an order. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
-
+  
   Triggers the following webhook events:
   - NOTIFY_USER (async): Optionally triggered when staff notification recipients are configured.
   """
