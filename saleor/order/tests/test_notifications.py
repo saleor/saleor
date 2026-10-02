@@ -3,6 +3,7 @@ from functools import partial
 from unittest import mock
 
 import graphene
+import pytest
 from django.core.files import File
 from measurement.measures import Weight
 from prices import Money, fixed_discount
@@ -444,6 +445,68 @@ def test_send_email_order_confirmation_with_staff_recipients(
     assert called_args[0] == NotifyEventType.STAFF_ORDER_CONFIRMATION
     assert len(called_kwargs) == 1
     assert called_kwargs["payload_func"]() == expected_payload
+
+
+@pytest.mark.parametrize(
+    ("_case", "input_kwargs", "expects_customers_notify"),
+    [
+        # When ``notify_customer`` argument is omitted, then it should notify everyone
+        ("default args should notify customers", {}, True),
+        (
+            "notify_customer=True should notify customers",
+            {"notify_customer": True},
+            True,
+        ),
+        (
+            "notify_customer=False should not notify customers",
+            {"notify_customer": False},
+            False,
+        ),
+    ],
+)
+@mock.patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_email_order_confirmation_only_to_staff(
+    mocked_notify,
+    order,
+    staff_notification_recipient,  # needed to dispatch staff notification
+    _case: str,
+    input_kwargs: dict,
+    expects_customers_notify: bool,
+):
+    """Calling with ``notify_customer=False`` shouldn't notify customers.
+
+    When calling ``send_order_confirmation()`` with ``notify_customer=False``
+    it shouldn't notify customers, and instead only notify staff users.
+    """
+
+    # given
+    manager = get_plugins_manager(allow_replica=False)
+    redirect_url = "https://www.example.com"
+    order_info = fetch_order_info(order)
+
+    # when
+    notifications.send_order_confirmation(
+        order_info,
+        redirect_url,
+        manager,
+        **input_kwargs,
+    )
+
+    # then
+    expected_calls = [
+        mock.call(NotifyEventType.STAFF_ORDER_CONFIRMATION, payload_func=mock.ANY),
+    ]
+    if expects_customers_notify is True:
+        expected_calls.insert(
+            0,
+            mock.call(
+                NotifyEventType.ORDER_CONFIRMATION,
+                payload_func=mock.ANY,
+                channel_slug=order.channel.slug,
+            ),
+        )
+
+    mocked_notify.assert_has_calls(expected_calls)
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
