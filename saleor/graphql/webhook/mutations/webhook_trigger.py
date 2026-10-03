@@ -192,7 +192,12 @@ class WebhookTrigger(BaseMutation):
                 )
             else:
                 deliveries = create_deliveries_for_subscriptions(
-                    event_type, object, [webhook]
+                    event_type,
+                    object,
+                    [webhook],
+                    # The operator triggering the webhook already gets the failure as a
+                    # mutation error, so do not raise a problem against the app.
+                    report_dropped_payloads=False,
                 )
                 if deliveries:
                     delivery = deliveries[0]

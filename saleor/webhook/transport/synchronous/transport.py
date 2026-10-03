@@ -301,6 +301,7 @@ def create_delivery_for_subscription_sync_event(
         subscribable_object=subscribable_object,
         subscription_query=webhook.subscription_query,
         request=request,
+        webhook=webhook,
     )
 
     if not data:
@@ -392,6 +393,7 @@ def create_promise_delivery_for_subscription_sync_event(
         subscribable_object=subscribable_object,
         subscription_query=webhook.subscription_query,
         request=request,
+        webhook=webhook,
     ).then(create_delivery)
 
 

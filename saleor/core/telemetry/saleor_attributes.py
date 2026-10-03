@@ -24,6 +24,7 @@ SALEOR_APP_IDENTIFIER: Final = "saleor.app.identifier"
 SALEOR_APP_NAME: Final = "saleor.app.name"
 
 # Webhooks
+SALEOR_WEBHOOK_ID: Final = "saleor.webhook.id"
 SALEOR_WEBHOOK_EXECUTION_MODE: Final = "saleor.webhook.execution_mode"
 SALEOR_WEBHOOK_EVENT_TYPE: Final = "saleor.webhook.event_type"
 SALEOR_WEBHOOK_PAYLOAD_SIZE: Final = "saleor.webhook.payload.size"
