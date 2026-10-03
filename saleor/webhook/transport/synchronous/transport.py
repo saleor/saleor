@@ -110,7 +110,7 @@ def _send_webhook_request_sync(
     domain = get_domain()
     message = data.encode("utf-8")
     payload_size = len(message)
-    signature = signature_for_payload(message, webhook.secret_key)
+    signature = signature_for_payload(message)
     response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
     response_data = None
 
