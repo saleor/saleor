@@ -14,12 +14,10 @@ from ...discount.models import (
 )
 from ...discount.utils.voucher import validate_voucher_in_order
 from ...graphql.order.utils import OrderLineData
-from ...graphql.tests.utils import get_graphql_content
 from ...payment import ChargeStatus
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
-from ...warehouse import WarehouseClickAndCollectOption
-from ...warehouse.models import Stock, Warehouse
+from ...warehouse.models import Stock
 from ...warehouse.tests.utils import get_quantity_allocated_for_stock
 from .. import FulfillmentStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from ..calculations import fetch_order_prices_if_expired
@@ -991,55 +989,6 @@ GET_ORDER_AVAILABLE_COLLECTION_POINTS = """
       }
     }
 """
-
-
-def test_available_collection_points_for_preorders_variants_in_order(
-    api_client, staff_api_client, order_with_preorder_lines
-):
-    expected_collection_points = list(
-        Warehouse.objects.for_channel(order_with_preorder_lines.channel_id)
-        .exclude(
-            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
-        )
-        .values("name")
-    )
-    response = staff_api_client.post_graphql(
-        GET_ORDER_AVAILABLE_COLLECTION_POINTS,
-        variables={
-            "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
-        },
-    )
-    response_content = get_graphql_content(response)
-    assert (
-        expected_collection_points
-        == response_content["data"]["order"]["availableCollectionPoints"]
-    )
-
-
-def test_available_collection_points_for_preorders_and_regular_variants_in_order(
-    api_client,
-    staff_api_client,
-    order_with_preorder_lines,
-):
-    expected_collection_points = list(
-        Warehouse.objects.for_channel(order_with_preorder_lines.channel_id)
-        .exclude(
-            click_and_collect_option=WarehouseClickAndCollectOption.DISABLED,
-        )
-        .values("name")
-    )
-
-    response = staff_api_client.post_graphql(
-        GET_ORDER_AVAILABLE_COLLECTION_POINTS,
-        variables={
-            "id": graphene.Node.to_global_id("Order", order_with_preorder_lines.id)
-        },
-    )
-    response_content = get_graphql_content(response)
-    assert (
-        expected_collection_points
-        == response_content["data"]["order"]["availableCollectionPoints"]
-    )
 
 
 def test_order_update_total_authorize_data_with_payment(

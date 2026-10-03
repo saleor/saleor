@@ -18,7 +18,7 @@ from ..channel.models import Channel
 from ..checkout.models import CheckoutLine
 from ..core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ..order.models import OrderLine
-from ..product.models import Product, ProductVariant, ProductVariantChannelListing
+from ..product.models import Product, ProductVariant
 from ..shipping.models import ShippingZone
 from . import WarehouseClickAndCollectOption
 
@@ -124,10 +124,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         This method should be used only if stocks quantity will be checked in further
         validation steps, for instance in checkout completion.
         """
-        if all(
-            line.variant.is_preorder_active() if line.variant else False
-            for line in lines_qs.select_related("variant").only("variant_id")
-        ):
+        if not lines_qs.exists():
             return self._for_channel_click_and_collect(channel_id)
 
         warehouses_for_channel = self.for_channel(channel_id)
@@ -179,10 +176,7 @@ class WarehouseQueryset(models.QuerySet["Warehouse"]):
         warehouses.
         """
         warehouse_cc_option_enum = WarehouseClickAndCollectOption
-        if all(
-            line.variant.is_preorder_active() if line.variant else False
-            for line in lines_qs.select_related("variant").only("variant_id")
-        ):
+        if not lines_qs.exists():
             return self._for_channel_click_and_collect(channel_id)
 
         # prepare the mapping of variant_id to total quantity of this variant
@@ -594,30 +588,6 @@ class Allocation(models.Model):
         ordering = ("pk",)
 
 
-class PreorderAllocation(models.Model):
-    """TODO remove after 3.24: preorder API was removed in 3.24."""
-
-    order_line = models.ForeignKey(
-        OrderLine,
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="preorder_allocations",
-    )
-    quantity = models.PositiveIntegerField(default=0)
-    product_variant_channel_listing = models.ForeignKey(
-        ProductVariantChannelListing,
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="preorder_allocations",
-    )
-
-    class Meta:
-        unique_together = [["order_line", "product_variant_channel_listing"]]
-        ordering = ("pk",)
-
-
 T = TypeVar("T", bound=models.Model)
 
 
@@ -633,36 +603,6 @@ class ReservationQuerySet(models.QuerySet[T]):
 
 
 ReservationManager = models.Manager.from_queryset(ReservationQuerySet)
-
-
-class PreorderReservation(models.Model):
-    """TODO remove after 3.24: preorder API was removed in 3.24."""
-
-    checkout_line = models.ForeignKey(
-        CheckoutLine,
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="preorder_reservations",
-    )
-    product_variant_channel_listing = models.ForeignKey(
-        ProductVariantChannelListing,
-        null=False,
-        blank=False,
-        on_delete=models.CASCADE,
-        related_name="preorder_reservations",
-    )
-    quantity_reserved = models.PositiveIntegerField(default=0)
-    reserved_until = models.DateTimeField()
-
-    objects = ReservationManager()
-
-    class Meta:
-        unique_together = [["checkout_line", "product_variant_channel_listing"]]
-        indexes = [
-            models.Index(fields=["checkout_line", "reserved_until"]),
-        ]
-        ordering = ("pk",)
 
 
 class Reservation(models.Model):

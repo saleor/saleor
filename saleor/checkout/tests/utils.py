@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from ...core.exceptions import ProductNotPublished
 from ...product import models as product_models
-from ...warehouse.availability import check_stock_and_preorder_quantity
+from ...warehouse.availability import check_stock_quantity
 from ..fetch import CheckoutInfo
 from ..models import Checkout, CheckoutLine
 
@@ -115,7 +115,7 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        check_stock_and_preorder_quantity(
+        check_stock_quantity(
             variant,
             checkout.get_country(),
             channel_slug,

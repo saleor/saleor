@@ -10,7 +10,7 @@ from ....core.utils.country import get_active_country
 from ....order import models as order_models
 from ....product import models as product_models
 from ....product.models import ProductVariant
-from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
+from ....warehouse.availability import check_stock_quantity_bulk
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -320,7 +320,7 @@ class CheckoutCreateFromOrder(BaseMutation):
             order.channel, order.shipping_address, order.billing_address
         )
         try:
-            check_stock_and_preorder_quantity_bulk(
+            check_stock_quantity_bulk(
                 variants,
                 country,
                 quantities,

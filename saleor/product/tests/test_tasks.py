@@ -22,7 +22,6 @@ from ..models import (
     ProductVariantChannelListing,
 )
 from ..tasks import (
-    _get_preorder_variants_to_clean,
     fetch_product_media_image_task,
     mark_products_search_vector_as_dirty,
     recalculate_discounted_price_for_products_task,
@@ -328,29 +327,6 @@ def test_update_variants_names_product_type_does_not_exist(caplog):
 
     # then
     assert f"Cannot find product type with id: {product_type_id}" in caplog.text
-
-
-def test_get_preorder_variants_to_clean(
-    variant,
-    preorder_variant_global_threshold,
-    preorder_variant_channel_threshold,
-    preorder_variant_global_and_channel_threshold,
-):
-    preorder_variant_before_end_date = preorder_variant_channel_threshold
-    preorder_variant_before_end_date.preorder_end_date = (
-        timezone.now() + datetime.timedelta(days=1)
-    )
-    preorder_variant_before_end_date.save(update_fields=["preorder_end_date"])
-
-    preorder_variant_after_end_date = preorder_variant_global_and_channel_threshold
-    preorder_variant_after_end_date.preorder_end_date = (
-        timezone.now() - datetime.timedelta(days=1)
-    )
-    preorder_variant_after_end_date.save(update_fields=["preorder_end_date"])
-
-    variants_to_clean = _get_preorder_variants_to_clean()
-    assert len(variants_to_clean) == 1
-    assert variants_to_clean[0] == preorder_variant_after_end_date
 
 
 def test_update_products_search_vector_task(product):

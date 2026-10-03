@@ -3,7 +3,7 @@ import datetime
 import pytest
 from django.utils import timezone
 
-from ..models import Allocation, PreorderReservation, Reservation
+from ..models import Allocation, Reservation
 from ..tasks import (
     delete_empty_allocations_task,
     delete_expired_reservations_task,
@@ -44,27 +44,6 @@ def test_delete_expired_reservations_task_skips_active_stock_reservations(
     )
     delete_expired_reservations_task()
     assert Reservation.objects.count() == reservations_count
-
-
-def test_delete_expired_reservations_task_deletes_expired_preorder_reservations(
-    checkout_line_with_reserved_preorder_item,
-):
-    PreorderReservation.objects.update(
-        reserved_until=timezone.now() - datetime.timedelta(seconds=1)
-    )
-    delete_expired_reservations_task()
-    assert not PreorderReservation.objects.exists()
-
-
-def test_delete_expired_reservations_task_skips_active_preorder_reservations(
-    checkout_line_with_reserved_preorder_item,
-):
-    reservations_count = PreorderReservation.objects.count()
-    PreorderReservation.objects.update(
-        reserved_until=timezone.now() + datetime.timedelta(seconds=1)
-    )
-    delete_expired_reservations_task()
-    assert PreorderReservation.objects.count() == reservations_count
 
 
 @pytest.mark.parametrize(

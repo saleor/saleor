@@ -3,41 +3,25 @@ from collections.abc import Iterable
 from typing import (
     TYPE_CHECKING,
     Any,
-    NamedTuple,
     NoReturn,
     Optional,
 )
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db.models import F, QuerySet, Sum
+from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
 from ..checkout.error_codes import CheckoutErrorCode
 from ..checkout.fetch import DeliveryMethodBase
 from ..core.exceptions import InsufficientStock, InsufficientStockData
-from ..product.models import ProductVariantChannelListing
 from .models import Reservation, Stock, StockQuerySet
-from .reservations import get_listings_reservations
 
 if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutLineInfo
     from ..checkout.models import CheckoutLine
     from ..order.models import OrderLine
     from ..product.models import Product, ProductVariant
-
-
-class ChannelListingPreorderAvailbilityInfo(NamedTuple):
-    preorder_quantity: int
-    preorder_quantity_threshold: int
-    listing_id: int
-
-
-class VariantsChannelAvailbilityInfo(NamedTuple):
-    variants_channel_availability: dict[int, ChannelListingPreorderAvailbilityInfo]
-    variants_global_allocations: dict[int, int]
-    all_variants_channel_listings: QuerySet[ProductVariantChannelListing]
-    variant_channels: dict[int, list[ProductVariantChannelListing]]
 
 
 def _get_available_quantity(
@@ -58,46 +42,6 @@ def _get_available_quantity(
         quantity_reserved = 0
 
     return max(total_quantity - quantity_allocated - quantity_reserved, 0)
-
-
-def check_stock_and_preorder_quantity(
-    variant: "ProductVariant",
-    country_code: str,
-    channel_slug: str,
-    quantity: int,
-    *,
-    include_shipping_zones: bool,
-    checkout_lines: list["CheckoutLine"] | None = None,
-    check_reservations: bool = False,
-    order_line: Optional["OrderLine"] = None,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    """Validate if there is stock/preorder available for given variant.
-
-    :raises InsufficientStock: when there is not enough items in stock for a variant
-    or there is not enough available preorder items for a variant.
-    """
-    if variant.is_preorder_active():
-        check_preorder_threshold_in_orders(
-            variant,
-            quantity,
-            channel_slug,
-            checkout_lines,
-            check_reservations,
-            database_connection_name=database_connection_name,
-        )
-    else:
-        check_stock_quantity(
-            variant,
-            country_code,
-            channel_slug,
-            quantity,
-            include_shipping_zones=include_shipping_zones,
-            checkout_lines=checkout_lines,
-            check_reservations=check_reservations,
-            order_line=order_line,
-            database_connection_name=database_connection_name,
-        )
 
 
 def check_stock_quantity(
@@ -144,81 +88,6 @@ def check_stock_quantity(
                     )
                 ]
             )
-
-
-def check_stock_and_preorder_quantity_bulk(
-    variants: Iterable["ProductVariant"],
-    country_code: str,
-    quantities: Iterable[int],
-    channel_slug: str,
-    global_quantity_limit: int | None,
-    *,
-    include_shipping_zones: bool,
-    delivery_method_info: Optional["DeliveryMethodBase"] = None,
-    additional_filter_lookup: dict[str, Any] | None = None,
-    existing_lines: list["CheckoutLineInfo"] | None = None,
-    replace: bool = False,
-    check_reservations: bool = False,
-):
-    """Validate if products are available for stocks/preorder.
-
-    :raises InsufficientStock: when there is not enough items in stock for a variant
-    or there is not enough available preorder items for a variant.
-    """
-    (
-        stock_variants,
-        stock_quantities,
-        preorder_variants,
-        preorder_quantities,
-    ) = _split_lines_for_trackable_and_preorder(variants, quantities)
-    if stock_variants:
-        check_stock_quantity_bulk(
-            stock_variants,
-            country_code,
-            stock_quantities,
-            channel_slug,
-            global_quantity_limit,
-            include_shipping_zones=include_shipping_zones,
-            delivery_method_info=delivery_method_info,
-            additional_filter_lookup=additional_filter_lookup,
-            existing_lines=existing_lines,
-            replace=replace,
-            check_reservations=check_reservations,
-        )
-    if preorder_variants:
-        check_preorder_threshold_bulk(
-            preorder_variants,
-            preorder_quantities,
-            channel_slug,
-            global_quantity_limit,
-            existing_lines,
-            replace,
-            check_reservations,
-        )
-
-
-def _split_lines_for_trackable_and_preorder(
-    variants: Iterable["ProductVariant"], quantities: Iterable[int]
-) -> tuple[
-    Iterable["ProductVariant"], Iterable[int], Iterable["ProductVariant"], Iterable[int]
-]:
-    """Return variants and quantities splitted by "is_preorder_active"."""
-    stock_variants, stock_quantities = [], []
-    preorder_variants, preorder_quantities = [], []
-
-    for variant, quantity in zip(variants, quantities, strict=False):
-        if variant.is_preorder_active():
-            preorder_variants.append(variant)
-            preorder_quantities.append(quantity)
-        else:
-            stock_variants.append(variant)
-            stock_quantities.append(quantity)
-    return (
-        stock_variants,
-        stock_quantities,
-        preorder_variants,
-        preorder_quantities,
-    )
 
 
 def _check_quantity_limits(
@@ -339,200 +208,6 @@ def check_stock_quantity_bulk(
                     InsufficientStockData(
                         variant=variant,
                         available_quantity=available_quantity,
-                    )
-                )
-
-    if insufficient_stocks:
-        raise InsufficientStock(insufficient_stocks)
-
-
-def _get_variants_channel_availability_info(
-    variants: Iterable["ProductVariant"],
-    channel_slug: str,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-) -> VariantsChannelAvailbilityInfo:
-    all_variants_channel_listings = (
-        ProductVariantChannelListing.objects.using(database_connection_name)
-        .filter(variant__in=variants)
-        .annotate_preorder_quantity_allocated()
-        .annotate(
-            available_preorder_quantity=F("preorder_quantity_threshold")
-            - Coalesce(Sum("preorder_allocations__quantity"), 0),
-        )
-        .select_related("channel")
-    )
-    variants_channel_availability = {
-        channel_listing.variant_id: ChannelListingPreorderAvailbilityInfo(
-            channel_listing.available_preorder_quantity,
-            channel_listing.preorder_quantity_threshold,
-            channel_listing.id,
-        )
-        for channel_listing in all_variants_channel_listings
-        if channel_listing.channel.slug == channel_slug
-    }
-
-    variant_channels: dict[int, list[ProductVariantChannelListing]] = defaultdict(list)
-    for channel_listing in all_variants_channel_listings:
-        variant_channels[channel_listing.variant_id].append(channel_listing)
-
-    variants_global_allocations = {
-        variant_id: sum(
-            channel_listing.preorder_quantity_allocated  # type: ignore[attr-defined]
-            for channel_listing in channel_listings
-        )
-        for variant_id, channel_listings in variant_channels.items()
-    }
-    return VariantsChannelAvailbilityInfo(
-        variants_channel_availability,
-        variants_global_allocations,
-        all_variants_channel_listings,
-        variant_channels,
-    )
-
-
-def check_preorder_threshold_in_orders(
-    variant: "ProductVariant",
-    quantity: int,
-    channel_slug: str,
-    checkout_lines: Iterable["CheckoutLine"] | None,
-    check_reservations: bool,
-    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
-):
-    """Validate if there is preorder available for given variants in given country.
-
-    It is used in orders, since it does not need additional logic related to limits.
-    :raises InsufficientStock: when there is not enough items in stock for a variant.
-    """
-    (
-        variants_channel_availability,
-        variants_global_allocations,
-        all_variants_channel_listings,
-        variant_channels,
-    ) = _get_variants_channel_availability_info(
-        [variant], channel_slug, database_connection_name=database_connection_name
-    )
-
-    if check_reservations:
-        listings_reservations = get_listings_reservations(
-            checkout_lines,
-            all_variants_channel_listings,
-            database_connection_name=database_connection_name,
-        )
-    else:
-        listings_reservations = defaultdict(int)
-
-    insufficient_stocks: list[InsufficientStockData] = []
-
-    if (
-        variants_channel_availability[variant.id].preorder_quantity_threshold
-        is not None
-    ):
-        channel_listing_id = variants_channel_availability[variant.id].listing_id
-        available_channel_quantity = variants_channel_availability[
-            variant.id
-        ].preorder_quantity
-        available_channel_quantity -= listings_reservations[channel_listing_id]
-        available_channel_quantity = max(available_channel_quantity, 0)
-
-        if quantity > available_channel_quantity:
-            insufficient_stocks.append(
-                InsufficientStockData(
-                    variant=variant, available_quantity=available_channel_quantity
-                )
-            )
-
-        if variant.preorder_global_threshold is not None:
-            global_availability = variant.preorder_global_threshold
-            global_availability -= variants_global_allocations[variant.id]
-
-            for channel_listing in variant_channels[variant.id]:
-                global_availability -= listings_reservations[channel_listing.id]
-
-            global_availability = max(global_availability, 0)
-
-            if quantity > global_availability:
-                insufficient_stocks.append(
-                    InsufficientStockData(
-                        variant=variant,
-                        available_quantity=global_availability,
-                    )
-                )
-
-    if insufficient_stocks:
-        raise InsufficientStock(insufficient_stocks)
-
-
-def check_preorder_threshold_bulk(
-    variants: Iterable["ProductVariant"],
-    quantities: Iterable[int],
-    channel_slug: str,
-    global_quantity_limit: int | None,
-    existing_lines: list["CheckoutLineInfo"] | None = None,
-    replace: bool = False,
-    check_reservations: bool = False,
-):
-    """Validate if there is enough preordered variants according to thresholds.
-
-    :raises InsufficientStock: when there is not enough available items for a variant.
-    """
-    (
-        variants_channel_availability,
-        variants_global_allocations,
-        all_variants_channel_listings,
-        variant_channels,
-    ) = _get_variants_channel_availability_info(variants, channel_slug)
-
-    if check_reservations:
-        listings_reservations = get_listings_reservations(
-            [line.line for line in existing_lines or []], all_variants_channel_listings
-        )
-    else:
-        listings_reservations = defaultdict(int)
-
-    insufficient_stocks: list[InsufficientStockData] = []
-    variants_quantities = {
-        line.variant.pk: line.line.quantity for line in existing_lines or []
-    }
-    for variant, quantity in zip(variants, quantities, strict=False):
-        cumulative_quantity = quantity
-        if not replace:
-            cumulative_quantity = quantity + variants_quantities.get(variant.pk, 0)
-
-        if quantity > 0:
-            _check_quantity_limits(variant, cumulative_quantity, global_quantity_limit)
-
-        if (
-            variants_channel_availability[variant.id].preorder_quantity_threshold
-            is not None
-        ):
-            channel_listing_id = variants_channel_availability[variant.id].listing_id
-            available_channel_quantity = variants_channel_availability[
-                variant.id
-            ].preorder_quantity
-            available_channel_quantity -= listings_reservations[channel_listing_id]
-            available_channel_quantity = max(available_channel_quantity, 0)
-            if quantity > available_channel_quantity:
-                insufficient_stocks.append(
-                    InsufficientStockData(
-                        variant=variant,
-                        available_quantity=available_channel_quantity,
-                    )
-                )
-
-        if variant.preorder_global_threshold is not None:
-            global_availability = variant.preorder_global_threshold
-            global_availability -= variants_global_allocations[variant.id]
-
-            for channel_listing in variant_channels[variant.id]:
-                global_availability -= listings_reservations[channel_listing.id]
-
-            global_availability = max(global_availability, 0)
-
-            if quantity > global_availability:
-                insufficient_stocks.append(
-                    InsufficientStockData(
-                        variant=variant,
-                        available_quantity=global_availability,
                     )
                 )
 
