@@ -12,12 +12,13 @@ from ....giftcard.models import GiftCard
 from ....graphql.webhook.subscription_query import SubscriptionQuery
 from ....menu.models import Menu, MenuItem
 from ....product.interface import VariantDiscountedPriceChange
-from ....product.models import Category
+from ....product.models import Category, ProductVariant
 from ....shipping.models import (
     ShippingMethod,
     ShippingZone,
 )
 from ....site.models import SiteSettings
+from ....warehouse.models import Stock
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...transport.asynchronous.transport import (
     create_deliveries_for_subscriptions,
@@ -1574,6 +1575,50 @@ def test_product_variant_stock_updated(
     assert deliveries[0].payload.get_payload() == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
+
+
+@pytest.mark.parametrize(
+    ("event_type", "webhook_fixture", "with_warehouse"),
+    [
+        (
+            WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK,
+            "subscription_product_variant_out_of_stock_webhook",
+            False,
+        ),
+        (
+            WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK,
+            "subscription_product_variant_back_in_stock_webhook",
+            False,
+        ),
+        (
+            WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED,
+            "subscription_product_variant_stock_updated_webhook",
+            True,
+        ),
+    ],
+)
+def test_product_variant_stock_event_with_deleted_variant(
+    event_type, webhook_fixture, with_warehouse, stock, request
+):
+    # given
+    webhooks = [request.getfixturevalue(webhook_fixture)]
+    warehouse_id = graphene.Node.to_global_id("Warehouse", stock.warehouse_id)
+    # the payload is generated asynchronously, from a stock fetched before the
+    # variant was removed
+    stock = Stock.objects.get(pk=stock.pk)
+    ProductVariant.objects.filter(pk=stock.product_variant_id).delete()
+
+    expected_payload = {"productVariant": None}
+    if with_warehouse:
+        expected_payload["warehouse"] = {"id": warehouse_id}
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, stock, webhooks)
+
+    # then
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+    assert json.loads(deliveries[0].payload.get_payload()) == expected_payload
 
 
 def test_product_variant_discounted_price_updated(
