@@ -21,6 +21,7 @@ from ...core.descriptions import (
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
+    BooleanWhereFilter,
     EnumWhereFilter,
     FilterInputObjectType,
     GlobalIDMultipleChoiceWhereFilter,
@@ -40,6 +41,7 @@ from ...utils.filters import (
 )
 from ..enums import StockAvailability
 from .product_helpers import (
+    where_filter_variant_is_available_in_channel,
     where_filter_variant_stock_availability,
     where_filter_variant_stocks,
 )
@@ -131,6 +133,14 @@ class ProductVariantWhere(MetadataWhereFilterBase):
         method="filter_stocks",
         help_text="Filter by stock of the variant." + ADDED_IN_324,
     )
+    is_available_in_channel = BooleanWhereFilter(
+        method="filter_is_available_in_channel",
+        help_text=(
+            "Filter by variants that have a price in the given channel. "
+            "Requires the `channel` argument; without it no variants are returned."
+            + ADDED_IN_324
+        ),
+    )
 
     class Meta:
         model = ProductVariant
@@ -157,6 +167,12 @@ class ProductVariantWhere(MetadataWhereFilterBase):
     @staticmethod
     def filter_stocks(qs, name, value):
         return where_filter_variant_stocks(qs, name, value)
+
+    def filter_is_available_in_channel(self, qs, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return where_filter_variant_is_available_in_channel(
+            qs, name, value, channel_slug
+        )
 
     def is_valid(self):
         if attributes := self.data.get("attributes"):
