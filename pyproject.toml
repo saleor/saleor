@@ -183,6 +183,10 @@ cmd = "pytest --reuse-db"
 help = "Run tests with db reuse to speed up testing time"
 
 [tool.uv]
+# Keep everyone (devs, CI, Dockerfile, uv-lock pre-commit hook) on the same uv
+# minor, so uv.lock doesn't churn between machines. Bump together with the uv
+# versions in Dockerfile and .pre-commit-config.yaml.
+required-version = "==0.12.*"
 environments = [ "platform_python_implementation != 'PyPy'" ]
 package = false
 exclude-newer = "3 weeks"
