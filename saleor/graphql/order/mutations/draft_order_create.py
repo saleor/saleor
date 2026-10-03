@@ -49,7 +49,12 @@ from ..utils import (
     validate_variant_channel_listings,
 )
 from . import draft_order_cleaner
-from .utils import ShippingMethodUpdateMixin, get_variant_rule_info_map, save_addresses
+from .utils import (
+    ShippingMethodUpdateMixin,
+    get_variant_rule_info_map,
+    save_addresses,
+    validate_variants_available,
+)
 
 
 class OrderLineInput(BaseInputObjectType):
@@ -328,6 +333,9 @@ class DraftOrderCreate(
             [line.get("variant_id") for line in lines], ProductVariant, "variant_id"
         )
         variants_data = get_variant_rule_info_map(variant_pks, channel.id)
+        validate_variants_available(
+            [line.get("variant_id") for line in lines], variants_data
+        )
         variants = [data.variant for data in variants_data.values()]
         validate_product_is_published_in_channel(variants, channel)
         validate_variant_channel_listings(variants, channel)

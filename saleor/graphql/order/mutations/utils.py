@@ -321,6 +321,27 @@ def get_variant_rule_info_map(
     return variant_id_to_variant_and_rules_info_map
 
 
+def validate_variants_available(variant_ids, variants_data, field="lines"):
+    """Raise NOT_FOUND for requested variant ids missing from the resolved map.
+
+    ``get_variant_rule_info_map`` only returns entries for variants that exist,
+    so a missing key means the variant does not exist (e.g. it was deleted).
+    """
+    missing_ids = [
+        variant_id for variant_id in variant_ids if variant_id not in variants_data
+    ]
+    if missing_ids:
+        raise ValidationError(
+            {
+                field: ValidationError(
+                    "Could not resolve to a variant with the provided id.",
+                    code=OrderErrorCode.NOT_FOUND.value,
+                    params={"variants": missing_ids},
+                )
+            }
+        )
+
+
 def save_addresses(instance: models.Order, cleaned_input: dict) -> list[str]:
     update_fields = []
     shipping_address = cleaned_input.get("shipping_address")
