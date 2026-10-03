@@ -28,12 +28,14 @@ class AppPermission(BasePermissionEnum):
 
 class ChannelPermissions(BasePermissionEnum):
     MANAGE_CHANNELS = "channel.manage_channels"
+    READ_CHANNELS = "channel.read_channels"
 
 
 class CustomerTypePermissions(BasePermissionEnum):
     MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES = (
         "account.manage_customer_types_and_attributes"
     )
+    READ_CUSTOMER_TYPES_AND_ATTRIBUTES = "account.read_customer_types_and_attributes"
 
 
 class DiscountPermissions(BasePermissionEnum):
@@ -52,6 +54,7 @@ class GiftcardPermissions(BasePermissionEnum):
 
 class MenuPermissions(BasePermissionEnum):
     MANAGE_MENUS = "menu.manage_menus"
+    READ_MENUS = "menu.read_menus"
 
 
 class CheckoutPermissions(BasePermissionEnum):
@@ -95,6 +98,7 @@ class ProductTypePermissions(BasePermissionEnum):
 
 class ShippingPermissions(BasePermissionEnum):
     MANAGE_SHIPPING = "shipping.manage_shipping"
+    READ_SHIPPING = "shipping.read_shipping"
 
 
 class SitePermissions(BasePermissionEnum):

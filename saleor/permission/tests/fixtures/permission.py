@@ -149,6 +149,26 @@ def permission_read_translations():
 
 
 @pytest.fixture
+def permission_read_channels():
+    return Permission.objects.get(codename="read_channels")
+
+
+@pytest.fixture
+def permission_read_menus():
+    return Permission.objects.get(codename="read_menus")
+
+
+@pytest.fixture
+def permission_read_shipping():
+    return Permission.objects.get(codename="read_shipping")
+
+
+@pytest.fixture
+def permission_read_customer_types_and_attributes():
+    return Permission.objects.get(codename="read_customer_types_and_attributes")
+
+
+@pytest.fixture
 def permission_read_users():
     return Permission.objects.get(codename="read_users")
 

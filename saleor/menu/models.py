@@ -15,7 +15,10 @@ class Menu(ModelWithMetadata):
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("pk",)
-        permissions = ((MenuPermissions.MANAGE_MENUS.codename, "Manage navigation."),)
+        permissions = (
+            (MenuPermissions.MANAGE_MENUS.codename, "Manage navigation."),
+            (MenuPermissions.READ_MENUS.codename, "Read navigation."),
+        )
 
     def __str__(self):
         return self.name
