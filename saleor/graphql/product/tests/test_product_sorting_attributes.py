@@ -296,6 +296,24 @@ def test_sort_products_cannot_sort_both_by_field_and_by_attribute(
     )
 
 
+def test_sort_products_without_field_and_attribute(api_client, channel_USD):
+    """Test that `sortBy` with only a direction is rejected, not a server error."""
+    # given
+    query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
+    variables = {"direction": "DESC", "channel": channel_USD.slug}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == (
+        "You must provide `field` or `attributeId` to sort the products."
+    )
+
+
 # Ordered by the given attribute value, then by the product name.
 #
 # If the product doesn't have a value, it will be placed at the bottom of the products
