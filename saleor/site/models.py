@@ -166,6 +166,8 @@ class SiteSettings(ModelWithMetadata):
         permissions = (
             (SitePermissions.MANAGE_SETTINGS.codename, "Manage settings."),
             (SitePermissions.MANAGE_TRANSLATIONS.codename, "Manage translations."),
+            (SitePermissions.READ_SETTINGS.codename, "Read settings."),
+            (SitePermissions.READ_TRANSLATIONS.codename, "Read translations."),
         )
 
     @property
