@@ -5,6 +5,7 @@ from ...channel.models import Channel
 from ...order import OrderStatus
 from ...order.models import Order
 from ...permission.enums import ProductPermissions
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import has_one_of_permissions
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
@@ -248,7 +249,9 @@ def requestor_has_access_to_all_attributes(context: SaleorContext) -> bool:
     if (
         requestor
         and requestor.is_active
-        and requestor.has_perm(ProductPermissions.MANAGE_PRODUCTS)
+        and has_one_of_permissions(
+            requestor, expand_read_permissions([ProductPermissions.MANAGE_PRODUCTS])
+        )
     ):
         return True
     return False

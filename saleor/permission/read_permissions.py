@@ -16,13 +16,22 @@ inherits it automatically.
 
 from collections.abc import Iterable
 
-from .enums import AccountPermissions, BasePermissionEnum
+from .enums import (
+    AccountPermissions,
+    BasePermissionEnum,
+    ProductPermissions,
+    ProductTypePermissions,
+)
 
 # Explicit MANAGE -> READ registry. Keep this the single source of truth for the
-# mirror set. POC scope: the account domain only (READ_USERS, READ_STAFF).
+# mirror set.
 MANAGE_TO_READ_PERMISSION_MAP: dict[BasePermissionEnum, BasePermissionEnum] = {
     AccountPermissions.MANAGE_USERS: AccountPermissions.READ_USERS,
     AccountPermissions.MANAGE_STAFF: AccountPermissions.READ_STAFF,
+    ProductPermissions.MANAGE_PRODUCTS: ProductPermissions.READ_PRODUCTS,
+    ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES: (
+        ProductTypePermissions.READ_PRODUCT_TYPES_AND_ATTRIBUTES
+    ),
 }
 
 

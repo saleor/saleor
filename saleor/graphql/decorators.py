@@ -17,6 +17,7 @@ from ..permission.enums import (
     ProductPermissions,
     ProductTypePermissions,
 )
+from ..permission.read_permissions import expand_read_permissions
 from ..permission.utils import (
     has_one_of_permissions,
     one_of_permissions_or_auth_filter_required,
@@ -144,7 +145,7 @@ def check_attribute_required_permissions():
             ]
         if not has_one_of_permissions(
             requestor,
-            permissions,
+            expand_read_permissions(permissions),
         ):
             raise PermissionDenied(permissions=permissions)
 
