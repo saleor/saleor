@@ -18,6 +18,7 @@ from ..core.exceptions import GiftCardNotApplicable
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
+from ..discount import PromoCodeRejection, PromoCodeRejectionReason
 from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
 from ..payment.models import Payment, TransactionItem
@@ -40,6 +41,17 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+def _undisclosed_rejection() -> PromoCodeRejection:
+    """Return the rejection reported for a gift card code that cannot be used.
+
+    Reporting `NOT_FOUND` keeps an unusable gift card indistinguishable from a
+    code that matches nothing at all. Anything else turns the response into an
+    oracle confirming that a guessed gift card code exists. It is a deliberate
+    redaction rather than the literal truth, which the schema documents.
+    """
+    return PromoCodeRejection(reason=PromoCodeRejectionReason.NOT_FOUND)
+
+
 def add_gift_card_code_to_checkout(
     checkout: Checkout, email: str | None, promo_code: str, currency: str
 ):
@@ -56,7 +68,7 @@ def add_gift_card_code_to_checkout(
             .get(code=promo_code)
         )
     except GiftCard.DoesNotExist as e:
-        raise InvalidPromoCode() from e
+        raise InvalidPromoCode(promo_code_rejection=_undisclosed_rejection()) from e
 
     if rejection_reason := gift_card.usage_restriction_reason(checkout.user_id):
         logger.info(
@@ -66,7 +78,7 @@ def add_gift_card_code_to_checkout(
             checkout.pk,
         )
         # Generic error — do not reveal the assignee.
-        raise InvalidPromoCode()
+        raise InvalidPromoCode(promo_code_rejection=_undisclosed_rejection())
 
     checkout.gift_cards.add(gift_card)
     checkout.save(update_fields=["last_change"])
