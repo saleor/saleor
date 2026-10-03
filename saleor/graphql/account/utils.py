@@ -108,11 +108,14 @@ def can_user_manage_group_channels(info, user: "User", group: Group) -> bool:
 
 
 def can_manage_app(requestor: Union["User", "App", None], app: "App") -> bool:
-    """Requestor can't manage app with wider scope of permissions."""
-    permissions = app.get_permissions()
+    """Requestor can't manage app with wider scope of permissions.
+
+    A ``READ_X`` permission is a subset of ``MANAGE_X``, so an app holding
+    ``READ_X`` is still within the scope of a requestor holding ``MANAGE_X``.
+    """
     if not requestor:
         return False
-    return requestor.has_perms(permissions)
+    return not get_out_of_scope_permissions(requestor, list(app.get_permissions()))
 
 
 def get_group_permission_codes(group: Group) -> "QuerySet":

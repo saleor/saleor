@@ -463,3 +463,201 @@ def test_app_create_manage_users_still_out_of_scope(
     error = data["errors"][0]
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert error["permissions"] == [PermissionEnum.MANAGE_USERS.name]
+
+
+# --------------------------------------------------------------------------- #
+# H. App-scope - an app holding READ_X stays manageable by a MANAGE_X holder
+#
+# can_manage_app ("is this app's scope within the requestor's?") must treat
+# READ_X as a subset of MANAGE_X. Otherwise a staff user can create an app with
+# READ_X twins (grant-scope, section G) and then never update, delete, or
+# re-token it.
+# --------------------------------------------------------------------------- #
+
+APP_UPDATE_MUTATION = """
+    mutation AppUpdate($id: ID!, $name: String) {
+        appUpdate(id: $id, input: {name: $name}) {
+            app { name }
+            errors { field code }
+        }
+    }
+"""
+
+APP_DELETE_MUTATION = """
+    mutation AppDelete($id: ID!) {
+        appDelete(id: $id) {
+            app { name }
+            errors { field code }
+        }
+    }
+"""
+
+APP_TOKEN_CREATE_MUTATION = """
+    mutation AppTokenCreate($app: ID!, $name: String) {
+        appTokenCreate(input: {app: $app, name: $name}) {
+            appToken { name }
+            errors { field code }
+        }
+    }
+"""
+
+APP_TOKEN_DELETE_MUTATION = """
+    mutation AppTokenDelete($id: ID!) {
+        appTokenDelete(id: $id) {
+            appToken { name }
+            errors { field code }
+        }
+    }
+"""
+
+
+def test_app_update_read_twin_app_in_scope_of_manage_parent(
+    staff_api_client,
+    app,
+    permission_manage_apps,
+    permission_manage_users,
+    permission_read_users,
+):
+    # given an app holding READ_USERS and a staff user holding only MANAGE_USERS
+    app.permissions.add(permission_read_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_manage_users
+    )
+    new_name = "renamed app"
+    variables = {"id": to_global_id_or_none(app), "name": new_name}
+
+    # when updating the app
+    response = staff_api_client.post_graphql(APP_UPDATE_MUTATION, variables)
+
+    # then the app is in scope - MANAGE_USERS covers the app's READ_USERS
+    content = get_graphql_content(response)
+    data = content["data"]["appUpdate"]
+    assert data["errors"] == []
+    assert data["app"]["name"] == new_name
+    app.refresh_from_db(fields=("name",))
+    assert app.name == new_name
+
+
+def test_app_update_read_twin_app_out_of_scope_without_manage_parent(
+    staff_api_client, app, permission_manage_apps, permission_read_users
+):
+    # given an app holding READ_USERS and a staff user with no users scope at all
+    app.permissions.add(permission_read_users)
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+    original_name = app.name
+    variables = {"id": to_global_id_or_none(app), "name": "renamed app"}
+
+    # when updating the app
+    response = staff_api_client.post_graphql(APP_UPDATE_MUTATION, variables)
+
+    # then the app is out of scope and left untouched
+    content = get_graphql_content(response)
+    data = content["data"]["appUpdate"]
+    assert data["app"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
+    app.refresh_from_db(fields=("name",))
+    assert app.name == original_name
+
+
+def test_app_update_read_twin_app_in_scope_when_twin_held_directly(
+    staff_api_client, app, permission_manage_apps, permission_read_users
+):
+    # given an app holding READ_USERS and a staff user holding READ_USERS directly
+    app.permissions.add(permission_read_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_read_users
+    )
+    new_name = "renamed app"
+    variables = {"id": to_global_id_or_none(app), "name": new_name}
+
+    # when updating the app
+    response = staff_api_client.post_graphql(APP_UPDATE_MUTATION, variables)
+
+    # then the app is in scope - the directly-held twin is enough
+    content = get_graphql_content(response)
+    data = content["data"]["appUpdate"]
+    assert data["errors"] == []
+    app.refresh_from_db(fields=("name",))
+    assert app.name == new_name
+
+
+def test_app_delete_read_twin_app_in_scope_of_manage_parent(
+    staff_api_client,
+    app,
+    permission_manage_apps,
+    permission_manage_users,
+    permission_read_users,
+):
+    # given an app holding READ_USERS and a staff user holding only MANAGE_USERS
+    app.permissions.add(permission_read_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_manage_users
+    )
+    variables = {"id": to_global_id_or_none(app)}
+
+    # when deleting the app
+    response = staff_api_client.post_graphql(APP_DELETE_MUTATION, variables)
+
+    # then the app is in scope and marked as removed
+    content = get_graphql_content(response)
+    data = content["data"]["appDelete"]
+    assert data["errors"] == []
+    assert data["app"]["name"] == app.name
+    app.refresh_from_db(fields=("removed_at",))
+    assert app.removed_at is not None
+
+
+def test_app_token_create_read_twin_app_in_scope_of_manage_parent(
+    staff_api_client,
+    app,
+    permission_manage_apps,
+    permission_manage_users,
+    permission_read_users,
+):
+    # given an app holding READ_USERS and a staff user holding only MANAGE_USERS
+    app.permissions.add(permission_read_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_manage_users
+    )
+    token_name = "new token"
+    variables = {"app": to_global_id_or_none(app), "name": token_name}
+
+    # when creating a token for the app
+    response = staff_api_client.post_graphql(APP_TOKEN_CREATE_MUTATION, variables)
+
+    # then the app is in scope and the token is created
+    content = get_graphql_content(response)
+    data = content["data"]["appTokenCreate"]
+    assert data["errors"] == []
+    assert data["appToken"]["name"] == token_name
+    assert app.tokens.get().name == token_name
+
+
+def test_app_token_delete_read_twin_app_in_scope_of_manage_parent(
+    staff_api_client,
+    app_with_token,
+    permission_manage_apps,
+    permission_manage_users,
+    permission_read_users,
+):
+    # given an app holding READ_USERS and a staff user holding only MANAGE_USERS
+    app = app_with_token
+    token = app.tokens.get()
+    app.permissions.add(permission_read_users)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_apps, permission_manage_users
+    )
+    variables = {"id": to_global_id_or_none(token)}
+
+    # when deleting the app token
+    response = staff_api_client.post_graphql(APP_TOKEN_DELETE_MUTATION, variables)
+
+    # then the app is in scope and the token is gone
+    content = get_graphql_content(response)
+    data = content["data"]["appTokenDelete"]
+    assert data["errors"] == []
+    assert data["appToken"]["name"] == token.name
+    assert app.tokens.exists() is False
