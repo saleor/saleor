@@ -132,6 +132,7 @@ class GiftCard(ModelWithMetadata):
         ordering = ("code",)
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
+            (GiftcardPermissions.READ_GIFT_CARD.codename, "Read gift cards."),
         )
         indexes = [
             GinIndex(name="giftcard_tsearch", fields=["search_vector"]),
