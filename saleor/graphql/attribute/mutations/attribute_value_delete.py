@@ -1,15 +1,20 @@
 from typing import cast
 
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....attribute import models as models
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
+from ....product.utils.scoped_price_rows import (
+    count_scoped_price_rows_by_attribute_value_id,
+)
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.enums import AttributeErrorCode
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...core.utils import WebhookEventInfo
@@ -22,6 +27,7 @@ from .permissions import (
 from .utils import (
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
+    get_scoped_price_reference_message,
 )
 
 
@@ -57,6 +63,19 @@ class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
                 description="An attribute was updated.",
             ),
         ]
+
+    @classmethod
+    def clean_instance(cls, _info: ResolveInfo, instance, /):
+        row_counts = count_scoped_price_rows_by_attribute_value_id([instance.pk])
+        if row_count := row_counts.get(instance.pk):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        get_scoped_price_reference_message("value", row_count),
+                        code=AttributeErrorCode.CANNOT_DELETE.value,
+                    )
+                }
+            )
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

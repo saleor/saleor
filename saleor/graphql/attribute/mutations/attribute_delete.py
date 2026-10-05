@@ -1,4 +1,5 @@
 import graphene
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef
 
@@ -7,12 +8,16 @@ from ....attribute.lock_objects import attribute_value_qs_select_for_update
 from ....page import models as page_models
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....product import models as product_models
+from ....product.utils.scoped_price_rows import (
+    count_scoped_price_rows_by_attribute_id,
+)
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.enums import AttributeErrorCode
 from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
 from ...core.utils import WebhookEventInfo
@@ -22,6 +27,7 @@ from .permissions import (
     check_any_attribute_type_permission,
     check_attribute_type_permissions,
 )
+from .utils import get_scoped_price_reference_message
 
 
 class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
@@ -58,6 +64,19 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         return response
 
     @classmethod
+    def clean_instance(cls, _info: ResolveInfo, instance, /):
+        row_counts = count_scoped_price_rows_by_attribute_id([instance.pk])
+        if row_count := row_counts.get(instance.pk):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        get_scoped_price_reference_message("attribute", row_count),
+                        code=AttributeErrorCode.CANNOT_DELETE.value,
+                    )
+                }
+            )
+
+    @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_deleted, instance)
@@ -71,6 +90,7 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
         check_any_attribute_type_permission(cls, info.context)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         check_attribute_type_permissions(cls, info.context, [instance.type])
+        cls.clean_instance(info, instance)
 
         product_ids = cls.get_product_ids_to_search_index_update(instance)
         page_ids = cls.get_page_ids_to_search_index_update(instance)

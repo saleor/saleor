@@ -26,6 +26,11 @@ from .product_variant import (
     VariantMediaAssign,
     VariantMediaUnassign,
 )
+from .variant_channel_listing_price import (
+    VariantChannelListingPriceCreate,
+    VariantChannelListingPriceDelete,
+    VariantChannelListingPriceUpdate,
+)
 
 __all__ = [
     "ProductTypeCreate",
@@ -52,6 +57,9 @@ __all__ = [
     "ProductVariantReorder",
     "ProductVariantSetDefault",
     "ProductVariantUpdate",
+    "VariantChannelListingPriceCreate",
+    "VariantChannelListingPriceDelete",
+    "VariantChannelListingPriceUpdate",
     "VariantMediaAssign",
     "VariantMediaUnassign",
 ]

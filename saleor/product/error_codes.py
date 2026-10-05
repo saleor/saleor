@@ -69,3 +69,11 @@ class ProductBulkCreateErrorCode(Enum):
     PRODUCT_NOT_ASSIGNED_TO_CHANNEL = "product_not_assigned_to_channel"
     UNSUPPORTED_MEDIA_PROVIDER = "unsupported_media_provider"
     FILE_SIZE_LIMIT_EXCEEDED = "file_size_limit_exceeded"
+
+
+class VariantChannelListingPriceErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    LIMIT_EXCEEDED = "limit_exceeded"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"

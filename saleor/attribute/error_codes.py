@@ -3,6 +3,7 @@ from enum import Enum
 
 class AttributeErrorCode(Enum):
     ALREADY_EXISTS = "already_exists"
+    CANNOT_DELETE = "cannot_delete"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
@@ -25,6 +26,7 @@ class AttributeBulkCreateErrorCode(Enum):
 class AttributeBulkUpdateErrorCode(Enum):
     ALREADY_EXISTS = "already_exists"
     BLANK = "blank"
+    CANNOT_DELETE = "cannot_delete"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"

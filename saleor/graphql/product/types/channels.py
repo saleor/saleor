@@ -5,7 +5,7 @@ import graphene
 from promise import Promise
 
 from ....core.utils.country import get_active_country
-from ....graphql.core.types import Money, MoneyRange
+from ....graphql.core.types import MoneyRange
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.utils.availability import get_product_availability
@@ -19,13 +19,17 @@ from ....tax.utils import (
     get_tax_rate_for_country,
 )
 from ...account import types as account_types
+from ...account.dataloaders import CustomerTypeByIdLoader
+from ...attribute.dataloaders.attributes import AttributeValueByIdLoader
 from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
+from ...core.context import ChannelContext
+from ...core.descriptions import ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
 from ...core.tracing import traced_resolver
-from ...core.types import BaseObjectType, ModelObjectType
+from ...core.types import BaseObjectType, ModelObjectType, Money, NonNullList
 from ...tax.dataloaders import (
     TaxClassCountryRateByTaxClassIDLoader,
     TaxClassDefaultRateByCountryLoader,
@@ -34,7 +38,23 @@ from ...tax.dataloaders import (
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
 from ..dataloaders.products import VariantChannelListingsByProductIdLoader
-from ..dataloaders.scoped_prices import load_buyer_pricing_data
+from ..dataloaders.scoped_prices import (
+    AttributeValueIdsByListingPriceIdLoader,
+    CustomerTypeIdsByListingPriceIdLoader,
+    VariantChannelListingPricesByListingIdLoader,
+    load_buyer_pricing_data,
+    load_buyer_user_id,
+)
+
+preview_customer_argument = graphene.Argument(
+    graphene.ID,
+    description=(
+        "ID of the customer to preview the prices for. The prices are resolved as "
+        "if that customer made the request, which reveals the scoped prices of "
+        "their customer type and attribute values. Requires both "
+        "MANAGE_PRODUCTS and MANAGE_USERS permissions." + ADDED_IN_324
+    ),
+)
 
 
 class Margin(BaseObjectType):
@@ -105,6 +125,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                 "`settings.DEFAULT_COUNTRY` configuration."
             ),
         ),
+        customer=preview_customer_argument,
         description=(
             "Lists the storefront product's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -187,9 +208,12 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         return root.is_available_for_purchase()
 
     @staticmethod
-    def resolve_pricing(root: models.ProductChannelListing, info, *, address=None):
+    def resolve_pricing(
+        root: models.ProductChannelListing, info, *, address=None, customer=None
+    ):
         context = info.context
 
+        buyer_user_id = load_buyer_user_id(context, customer)
         channel = ChannelByIdLoader(context).load(root.channel_id)
         tax_class_id_loader = TaxClassIdByProductIdLoader(context).load(root.product_id)
 
@@ -273,9 +297,13 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                         default_country_rate = TaxClassDefaultRateByCountryLoader(
                             context
                         ).load(country_code)
-                        buyer_pricing_data = load_buyer_pricing_data(
-                            context,
-                            [listing.pk for listing in variants_channel_listing],
+                        listing_ids = [
+                            listing.pk for listing in variants_channel_listing
+                        ]
+                        buyer_pricing_data = buyer_user_id.then(
+                            lambda user_id: load_buyer_pricing_data(
+                                context, listing_ids, user_id
+                            )
                         )
                         return Promise.all(
                             [country_rates, default_country_rate, buyer_pricing_data]
@@ -326,6 +354,14 @@ class ProductVariantChannelListing(
         description="Gross margin percentage value.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
+    prices = NonNullList(
+        "saleor.graphql.product.types.channels.VariantChannelListingPrice",
+        required=True,
+        description=(
+            "Scoped prices of the variant in the channel. Each one replaces the "
+            "listing price for the buyers it is scoped to." + ADDED_IN_324
+        ),
+    )
 
     class Meta:
         description = "Represents product variant channel listing."
@@ -339,6 +375,81 @@ class ProductVariantChannelListing(
     @staticmethod
     def resolve_margin(root: models.ProductVariantChannelListing, _info):
         return get_margin_for_variant_channel_listing(root)
+
+    @staticmethod
+    def resolve_prices(root: models.ProductVariantChannelListing, info):
+        return VariantChannelListingPricesByListingIdLoader(info.context).load(root.pk)
+
+
+class VariantChannelListingPrice(ModelObjectType[models.VariantChannelListingPrice]):
+    id = graphene.GlobalID(required=True, description="The ID of the scoped price.")
+    price = graphene.Field(
+        Money,
+        required=True,
+        description="The base price of the variant for the buyers in scope.",
+    )
+    customer_types = NonNullList(
+        "saleor.graphql.account.types.CustomerType",
+        required=True,
+        description=(
+            "Customer types the buyer must belong to. An empty list means any "
+            "customer type."
+        ),
+    )
+    attribute_values = NonNullList(
+        "saleor.graphql.attribute.types.AttributeValue",
+        required=True,
+        description=(
+            "Customer attribute values the buyer must hold. Per attribute, holding "
+            "one of its listed values is enough. An empty list means any buyer."
+        ),
+    )
+    valid_from = DateTime(
+        description="The start of the validity window, inclusive. Null means no start."
+    )
+    valid_to = DateTime(
+        description="The end of the validity window, exclusive. Null means no end."
+    )
+
+    class Meta:
+        description = (
+            "A scoped price of a variant in a channel. It replaces the listing price "
+            "for buyers matching every listed condition. Without customer type and "
+            "attribute value conditions the price applies to everyone, guests "
+            "included, inside its validity window." + ADDED_IN_324
+        )
+        doc_category = DOC_CATEGORY_PRODUCTS
+        model = models.VariantChannelListingPrice
+        interfaces = [graphene.relay.Node]
+
+    @staticmethod
+    def resolve_customer_types(root: models.VariantChannelListingPrice, info):
+        def with_customer_type_ids(customer_type_ids):
+            return CustomerTypeByIdLoader(info.context).load_many(customer_type_ids)
+
+        return (
+            CustomerTypeIdsByListingPriceIdLoader(info.context)
+            .load(root.pk)
+            .then(with_customer_type_ids)
+        )
+
+    @staticmethod
+    def resolve_attribute_values(root: models.VariantChannelListingPrice, info):
+        def with_values(values):
+            return [ChannelContext(node=value, channel_slug=None) for value in values]
+
+        def with_value_ids(value_ids):
+            return (
+                AttributeValueByIdLoader(info.context)
+                .load_many(value_ids)
+                .then(with_values)
+            )
+
+        return (
+            AttributeValueIdsByListingPriceIdLoader(info.context)
+            .load(root.pk)
+            .then(with_value_ids)
+        )
 
 
 class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing]):

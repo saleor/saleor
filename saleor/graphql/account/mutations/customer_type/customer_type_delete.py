@@ -6,6 +6,9 @@ from .....account.lock_objects import customer_type_qs_select_for_update
 from .....account.utils import get_default_customer_type
 from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import CustomerTypePermissions
+from .....product.utils.scoped_price_rows import (
+    count_scoped_price_rows_for_customer_type,
+)
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_323
@@ -57,6 +60,17 @@ class CustomerTypeDelete(ModelDeleteMutation):
                         "The default customer type cannot be deleted. Mark "
                         "another customer type as the default first.",
                         code=CustomerTypeDeleteErrorCode.CANNOT_DELETE_DEFAULT.value,
+                    )
+                }
+            )
+        if row_count := count_scoped_price_rows_for_customer_type(instance.pk):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        f"The customer type is referenced by {row_count} scoped "
+                        "variant prices. Remove the customer type from those prices "
+                        "first.",
+                        code=CustomerTypeDeleteErrorCode.CANNOT_DELETE.value,
                     )
                 }
             )

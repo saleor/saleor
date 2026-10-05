@@ -4117,6 +4117,13 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   """
   pricing(
     """
+    ID of the customer to preview the prices for. The prices are resolved as if that customer made the request, which reveals the scoped prices of their customer type and attribute values. Requires both MANAGE_PRODUCTS and MANAGE_USERS permissions.
+    
+    Added in Saleor 3.24.
+    """
+    customer: ID
+
+    """
     Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
     """
     address: AddressInput
@@ -7387,6 +7394,13 @@ type ProductVariant implements Node & ObjectWithMetadata & ObjectWithAttributes 
   """
   pricing(
     """
+    ID of the customer to preview the prices for. The prices are resolved as if that customer made the request, which reveals the scoped prices of their customer type and attribute values. Requires both MANAGE_PRODUCTS and MANAGE_USERS permissions.
+    
+    Added in Saleor 3.24.
+    """
+    customer: ID
+
+    """
     Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
     """
     address: AddressInput
@@ -7494,6 +7508,13 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   margin: Int
+
+  """
+  Scoped prices of the variant in the channel. Each one replaces the listing price for the buyers it is scoped to.
+  
+  Added in Saleor 3.24.
+  """
+  prices: [VariantChannelListingPrice!]!
 }
 
 """Represents channel."""
@@ -9386,120 +9407,233 @@ type TaxConfigurationPerCountry @doc(category: "Taxes") {
   useWeightedTaxForShipping: Boolean
 }
 
-"""Represents availability of a variant in the storefront."""
-type VariantPricingInfo @doc(category: "Products") {
-  """Whether it is in sale or not."""
-  onSale: Boolean
+"""
+A scoped price of a variant in a channel. It replaces the listing price for buyers matching every listed condition. Without customer type and attribute value conditions the price applies to everyone, guests included, inside its validity window.
 
-  """The discount amount if in sale (null otherwise)."""
-  discount: TaxedMoney
+Added in Saleor 3.24.
+"""
+type VariantChannelListingPrice implements Node @doc(category: "Products") {
+  """The ID of the scoped price."""
+  id: ID!
+
+  """The base price of the variant for the buyers in scope."""
+  price: Money!
 
   """
-  The discount amount compared to prior price. Null if product is not on sale or prior price was not provided in VariantChannelListing
+  Customer types the buyer must belong to. An empty list means any customer type.
   """
-  discountPrior: TaxedMoney
+  customerTypes: [CustomerType!]!
 
-  """The discount amount in the local currency."""
-  discountLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
+  """
+  Customer attribute values the buyer must hold. Per attribute, holding one of its listed values is enough. An empty list means any buyer.
+  """
+  attributeValues: [AttributeValue!]!
 
-  """The price, with any discount subtracted."""
-  price: TaxedMoney
+  """The start of the validity window, inclusive. Null means no start."""
+  validFrom: DateTime
 
-  """The price without any discount."""
-  priceUndiscounted: TaxedMoney
-
-  """The price prior to discount."""
-  pricePrior: TaxedMoney
-
-  """The discounted price in the local currency."""
-  priceLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
+  """The end of the validity window, exclusive. Null means no end."""
+  validTo: DateTime
 }
 
 """
-Represents a monetary value with taxes. In cases where taxes were not applied, net and gross values will be equal.
+Represents a type of customer. It allows to segment users and defines what attributes are available to users of this type.
+
+Added in Saleor 3.23.
 """
-type TaxedMoney {
-  """Currency code."""
-  currency: String!
+type CustomerType implements Node & ObjectWithMetadata @doc(category: "Users") {
+  """The ID of the customer type."""
+  id: ID!
 
-  """Amount of money including taxes."""
-  gross: Money!
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
 
-  """Amount of money without taxes."""
-  net: Money!
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  privateMetafield(key: String!): String
 
-  """Amount of taxes."""
-  tax: Money!
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the customer type."""
+  name: String!
+
+  """Slug of the customer type."""
+  slug: String!
+
+  """
+  Whether this is the default customer type. The default customer type is assigned to every newly created user and cannot be deleted.
+  """
+  isDefault: Boolean!
+
+  """
+  Customer attributes assigned to this customer type. Attributes that are not visible in the storefront require one of the following permissions to be included: MANAGE_USERS, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  """
+  attributes: [Attribute!]
+
+  """
+  Customer attributes that can be assigned to the customer type.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
+  """
+  availableAttributes(
+    """Where filtering options for attributes."""
+    where: AttributeWhereInput
+
+    """Search attributes."""
+    search: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
 }
 
-input AddressInput {
-  """Given name."""
-  firstName: String
+type AttributeCountableConnection @doc(category: "Attributes") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [AttributeCountableEdge!]!
 
-  """Family name."""
-  lastName: String
-
-  """Company or organization."""
-  companyName: String
-
-  """Address."""
-  streetAddress1: String
-
-  """Address."""
-  streetAddress2: String
-
-  """City."""
-  city: String
-
-  """District."""
-  cityArea: String
-
-  """Postal code."""
-  postalCode: String
-
-  """Country."""
-  country: CountryCode
-
-  """State or province."""
-  countryArea: String
-
-  """
-  Phone number.
-  
-  Phone numbers are validated with Google's [libphonenumber](https://github.com/google/libphonenumber) library.
-  """
-  phone: String
-
-  """
-  Address public metadata. Can be read by any API client authorized to read the object it's attached to.
-  
-  Warning: never store sensitive information, including financial data such as credit card details.
-  """
-  metadata: [MetadataInput!]
-
-  """
-  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library. Some mutations may require additional permissions to use the the field. More info about permissions can be found in relevant mutation.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  skipValidation: Boolean = false
+  """A total count of items in the collection."""
+  totalCount: Int
 }
 
-input MetadataInput {
-  """Key of a metadata item."""
-  key: String!
+type AttributeCountableEdge @doc(category: "Attributes") {
+  """The item at the end of the edge."""
+  node: Attribute!
 
-  """Value of a metadata item."""
-  value: String!
+  """A cursor for use in pagination."""
+  cursor: String!
 }
 
-"""Represents an assigned attribute to an object."""
-type SelectedAttribute @doc(category: "Attributes") {
-  """Name of an attribute displayed in the interface."""
-  attribute: Attribute!
+"""Where filtering options."""
+input AttributeWhereInput @doc(category: "Attributes") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+  withChoices: Boolean
+  inputType: AttributeInputTypeEnumFilterInput
+  entityType: AttributeEntityTypeEnumFilterInput
+  type: AttributeTypeEnumFilterInput
+  unit: MeasurementUnitsEnumFilterInput
+  inCollection: ID
+  inCategory: ID
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
 
-  """Values of an attribute."""
-  values: [AttributeValue!]!
+  """List of conditions that must be met."""
+  AND: [AttributeWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeWhereInput!]
+}
+
+input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeInputTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeInputTypeEnum!]
+}
+
+input AttributeEntityTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeEntityTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeEntityTypeEnum!]
+}
+
+input AttributeTypeEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: AttributeTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeTypeEnum!]
+}
+
+enum AttributeTypeEnum @doc(category: "Attributes") {
+  PRODUCT_TYPE
+  PAGE_TYPE
+  CUSTOMER_TYPE
+}
+
+input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
+  """The value equal to."""
+  eq: MeasurementUnitsEnum
+
+  """The value included in."""
+  oneOf: [MeasurementUnitsEnum!]
+}
+
+enum MeasurementUnitsEnum {
+  MM
+  CM
+  DM
+  M
+  KM
+  FT
+  YD
+  INCH
+  SQ_MM
+  SQ_CM
+  SQ_DM
+  SQ_M
+  SQ_KM
+  SQ_FT
+  SQ_YD
+  SQ_INCH
+  CUBIC_MILLIMETER
+  CUBIC_CENTIMETER
+  CUBIC_DECIMETER
+  CUBIC_METER
+  LITER
+  CUBIC_FOOT
+  CUBIC_INCH
+  CUBIC_YARD
+  QT
+  PINT
+  FL_OZ
+  ACRE_IN
+  ACRE_FT
+  G
+  LB
+  OZ
+  KG
+  TONNE
 }
 
 """Represents a value of an attribute."""
@@ -9663,6 +9797,122 @@ type File {
 
   """Content type of the file."""
   contentType: String
+}
+
+"""Represents availability of a variant in the storefront."""
+type VariantPricingInfo @doc(category: "Products") {
+  """Whether it is in sale or not."""
+  onSale: Boolean
+
+  """The discount amount if in sale (null otherwise)."""
+  discount: TaxedMoney
+
+  """
+  The discount amount compared to prior price. Null if product is not on sale or prior price was not provided in VariantChannelListing
+  """
+  discountPrior: TaxedMoney
+
+  """The discount amount in the local currency."""
+  discountLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
+
+  """The price, with any discount subtracted."""
+  price: TaxedMoney
+
+  """The price without any discount."""
+  priceUndiscounted: TaxedMoney
+
+  """The price prior to discount."""
+  pricePrior: TaxedMoney
+
+  """The discounted price in the local currency."""
+  priceLocalCurrency: TaxedMoney @deprecated(reason: "Always returns `null`.")
+}
+
+"""
+Represents a monetary value with taxes. In cases where taxes were not applied, net and gross values will be equal.
+"""
+type TaxedMoney {
+  """Currency code."""
+  currency: String!
+
+  """Amount of money including taxes."""
+  gross: Money!
+
+  """Amount of money without taxes."""
+  net: Money!
+
+  """Amount of taxes."""
+  tax: Money!
+}
+
+input AddressInput {
+  """Given name."""
+  firstName: String
+
+  """Family name."""
+  lastName: String
+
+  """Company or organization."""
+  companyName: String
+
+  """Address."""
+  streetAddress1: String
+
+  """Address."""
+  streetAddress2: String
+
+  """City."""
+  city: String
+
+  """District."""
+  cityArea: String
+
+  """Postal code."""
+  postalCode: String
+
+  """Country."""
+  country: CountryCode
+
+  """State or province."""
+  countryArea: String
+
+  """
+  Phone number.
+  
+  Phone numbers are validated with Google's [libphonenumber](https://github.com/google/libphonenumber) library.
+  """
+  phone: String
+
+  """
+  Address public metadata. Can be read by any API client authorized to read the object it's attached to.
+  
+  Warning: never store sensitive information, including financial data such as credit card details.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Determine if the address should be validated. By default, Saleor accepts only address inputs matching ruleset from [Google Address Data]{https://chromium-i18n.appspot.com/ssl-address), using [i18naddress](https://github.com/mirumee/google-i18n-address) library. Some mutations may require additional permissions to use the the field. More info about permissions can be found in relevant mutation.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  skipValidation: Boolean = false
+}
+
+input MetadataInput {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String!
+}
+
+"""Represents an assigned attribute to an object."""
+type SelectedAttribute @doc(category: "Attributes") {
+  """Name of an attribute displayed in the interface."""
+  attribute: Attribute!
+
+  """Values of an attribute."""
+  values: [AttributeValue!]!
 }
 
 enum VariantAttributeScope @doc(category: "Products") {
@@ -9971,6 +10221,13 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   Lists the storefront product's pricing, the current price and discounts, only meant for displaying.
   """
   pricing(
+    """
+    ID of the customer to preview the prices for. The prices are resolved as if that customer made the request, which reveals the scoped prices of their customer type and attribute values. Requires both MANAGE_PRODUCTS and MANAGE_USERS permissions.
+    
+    Added in Saleor 3.24.
+    """
+    customer: ID
+
     """
     Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
     """
@@ -10416,23 +10673,6 @@ type AssignedVariantAttribute @doc(category: "Attributes") {
   variantSelection: Boolean!
 }
 
-type AttributeCountableConnection @doc(category: "Attributes") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [AttributeCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type AttributeCountableEdge @doc(category: "Attributes") {
-  """The item at the end of the edge."""
-  node: Attribute!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
 input AttributeFilterInput @doc(category: "Attributes") {
   valueRequired: Boolean
   isVariantOnly: Boolean
@@ -10447,104 +10687,6 @@ input AttributeFilterInput @doc(category: "Attributes") {
 
   """Specifies the channel by which the data should be filtered."""
   channel: String @deprecated(reason: "Use root-level channel argument instead.")
-}
-
-enum AttributeTypeEnum @doc(category: "Attributes") {
-  PRODUCT_TYPE
-  PAGE_TYPE
-  CUSTOMER_TYPE
-}
-
-"""Where filtering options."""
-input AttributeWhereInput @doc(category: "Attributes") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
-  name: StringFilterInput
-  slug: StringFilterInput
-  withChoices: Boolean
-  inputType: AttributeInputTypeEnumFilterInput
-  entityType: AttributeEntityTypeEnumFilterInput
-  type: AttributeTypeEnumFilterInput
-  unit: MeasurementUnitsEnumFilterInput
-  inCollection: ID
-  inCategory: ID
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-
-  """List of conditions that must be met."""
-  AND: [AttributeWhereInput!]
-
-  """A list of conditions of which at least one must be met."""
-  OR: [AttributeWhereInput!]
-}
-
-input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeInputTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeInputTypeEnum!]
-}
-
-input AttributeEntityTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeEntityTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeEntityTypeEnum!]
-}
-
-input AttributeTypeEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: AttributeTypeEnum
-
-  """The value included in."""
-  oneOf: [AttributeTypeEnum!]
-}
-
-input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
-  """The value equal to."""
-  eq: MeasurementUnitsEnum
-
-  """The value included in."""
-  oneOf: [MeasurementUnitsEnum!]
-}
-
-enum MeasurementUnitsEnum {
-  MM
-  CM
-  DM
-  M
-  KM
-  FT
-  YD
-  INCH
-  SQ_MM
-  SQ_CM
-  SQ_DM
-  SQ_M
-  SQ_KM
-  SQ_FT
-  SQ_YD
-  SQ_INCH
-  CUBIC_MILLIMETER
-  CUBIC_CENTIMETER
-  CUBIC_DECIMETER
-  CUBIC_METER
-  LITER
-  CUBIC_FOOT
-  CUBIC_INCH
-  CUBIC_YARD
-  QT
-  PINT
-  FL_OZ
-  ACRE_IN
-  ACRE_FT
-  G
-  LB
-  OZ
-  KG
-  TONNE
 }
 
 """
@@ -14038,91 +14180,6 @@ type PaymentSource @doc(category: "Payments") {
   Can be accessed without permissions.
   """
   metadata: [MetadataItem!]!
-}
-
-"""
-Represents a type of customer. It allows to segment users and defines what attributes are available to users of this type.
-
-Added in Saleor 3.23.
-"""
-type CustomerType implements Node & ObjectWithMetadata @doc(category: "Users") {
-  """The ID of the customer type."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Name of the customer type."""
-  name: String!
-
-  """Slug of the customer type."""
-  slug: String!
-
-  """
-  Whether this is the default customer type. The default customer type is assigned to every newly created user and cannot be deleted.
-  """
-  isDefault: Boolean!
-
-  """
-  Customer attributes assigned to this customer type. Attributes that are not visible in the storefront require one of the following permissions to be included: MANAGE_USERS, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
-  """
-  attributes: [Attribute!]
-
-  """
-  Customer attributes that can be assigned to the customer type.
-  
-  Requires one of the following permissions: MANAGE_USERS, MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES.
-  """
-  availableAttributes(
-    """Where filtering options for attributes."""
-    where: AttributeWhereInput
-
-    """Search attributes."""
-    search: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
 }
 
 """Represents the app's brand data."""
@@ -19068,6 +19125,54 @@ type Mutation {
     """ID of a product variant."""
     variantId: ID!
   ): ProductVariantReorderAttributeValues @doc(category: "Products")
+
+  """
+  Creates a scoped price of a variant in a channel. At least one condition is required. A listing holds at most 100 scoped prices.
+  
+  Added in Saleor 3.24. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_UPDATED (async): A product variant was updated.
+  """
+  variantChannelListingPriceCreate(
+    """Fields required to create a scoped price."""
+    input: VariantChannelListingPriceCreateInput!
+  ): VariantChannelListingPriceCreate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_UPDATED], syncEvents: [])
+
+  """
+  Updates a scoped price of a variant in a channel. The resulting price must keep at least one condition.
+  
+  Added in Saleor 3.24. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_UPDATED (async): A product variant was updated.
+  """
+  variantChannelListingPriceUpdate(
+    """ID of the scoped price to update."""
+    id: ID!
+
+    """Fields to change on the scoped price."""
+    input: VariantChannelListingPriceUpdateInput!
+  ): VariantChannelListingPriceUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_UPDATED], syncEvents: [])
+
+  """
+  Deletes a scoped price of a variant in a channel.
+  
+  Added in Saleor 3.24. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - PRODUCT_VARIANT_UPDATED (async): A product variant was updated.
+  """
+  variantChannelListingPriceDelete(
+    """ID of the scoped price to delete."""
+    id: ID!
+  ): VariantChannelListingPriceDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_UPDATED], syncEvents: [])
 
   """
   Assign an media to a product variant. 
@@ -26295,6 +26400,174 @@ type ProductVariantReorderAttributeValues @doc(category: "Products") {
 }
 
 """
+Creates a scoped price of a variant in a channel. At least one condition is required. A listing holds at most 100 scoped prices.
+
+Added in Saleor 3.24. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_UPDATED (async): A product variant was updated.
+"""
+type VariantChannelListingPriceCreate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_UPDATED], syncEvents: []) {
+  """The created scoped price."""
+  variantChannelListingPrice: VariantChannelListingPrice
+  errors: [VariantChannelListingPriceCreateError!]!
+}
+
+type VariantChannelListingPriceCreateError @doc(category: "Products") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: VariantChannelListingPriceErrorCode!
+
+  """List of customer type IDs which cause the error."""
+  customerTypes: [ID!]
+
+  """List of attribute value IDs which cause the error."""
+  attributeValues: [ID!]
+}
+
+enum VariantChannelListingPriceErrorCode @doc(category: "Products") {
+  GRAPHQL_ERROR
+  INVALID
+  LIMIT_EXCEEDED
+  NOT_FOUND
+  REQUIRED
+}
+
+"""
+Fields required to create a scoped price.
+
+Added in Saleor 3.24.
+"""
+input VariantChannelListingPriceCreateInput @doc(category: "Products") {
+  """
+  Customer types the buyer must belong to. The number of items is limited to 100.
+  """
+  customerTypes: [ID!]
+
+  """
+  Values of customer attributes the buyer must hold, one per attribute is enough. Only values of customer attributes with a fixed set of choices are accepted. The number of items is limited to 100.
+  """
+  attributeValues: [ID!]
+
+  """The start of the validity window, inclusive. Null means no start."""
+  validFrom: DateTime
+
+  """
+  The end of the validity window, exclusive. Null means no end. Must be after `validFrom` when both are set.
+  """
+  validTo: DateTime
+
+  """ID of the variant channel listing the price belongs to."""
+  variantChannelListing: ID!
+
+  """The base price for the buyers in scope, in the listing currency."""
+  price: PositiveDecimal!
+}
+
+"""
+Updates a scoped price of a variant in a channel. The resulting price must keep at least one condition.
+
+Added in Saleor 3.24. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_UPDATED (async): A product variant was updated.
+"""
+type VariantChannelListingPriceUpdate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_UPDATED], syncEvents: []) {
+  """The updated scoped price."""
+  variantChannelListingPrice: VariantChannelListingPrice
+  errors: [VariantChannelListingPriceUpdateError!]!
+}
+
+type VariantChannelListingPriceUpdateError @doc(category: "Products") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: VariantChannelListingPriceErrorCode!
+
+  """List of customer type IDs which cause the error."""
+  customerTypes: [ID!]
+
+  """List of attribute value IDs which cause the error."""
+  attributeValues: [ID!]
+}
+
+"""
+Fields to change on a scoped price. A field left out keeps its value. A list given replaces the whole set, null or an empty list clears it. A null window bound clears that bound.
+
+Added in Saleor 3.24.
+"""
+input VariantChannelListingPriceUpdateInput @doc(category: "Products") {
+  """
+  Customer types the buyer must belong to. The number of items is limited to 100.
+  """
+  customerTypes: [ID!]
+
+  """
+  Values of customer attributes the buyer must hold, one per attribute is enough. Only values of customer attributes with a fixed set of choices are accepted. The number of items is limited to 100.
+  """
+  attributeValues: [ID!]
+
+  """The start of the validity window, inclusive. Null means no start."""
+  validFrom: DateTime
+
+  """
+  The end of the validity window, exclusive. Null means no end. Must be after `validFrom` when both are set.
+  """
+  validTo: DateTime
+
+  """
+  The base price for the buyers in scope, in the listing currency. Cannot be null.
+  """
+  price: PositiveDecimal
+}
+
+"""
+Deletes a scoped price of a variant in a channel.
+
+Added in Saleor 3.24. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- PRODUCT_VARIANT_UPDATED (async): A product variant was updated.
+"""
+type VariantChannelListingPriceDelete @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_UPDATED], syncEvents: []) {
+  """The deleted scoped price."""
+  variantChannelListingPrice: VariantChannelListingPrice
+  errors: [VariantChannelListingPriceDeleteError!]!
+}
+
+type VariantChannelListingPriceDeleteError @doc(category: "Products") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: VariantChannelListingPriceErrorCode!
+}
+
+"""
 Assign an media to a product variant. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -31972,6 +32245,7 @@ type AttributeError @doc(category: "Attributes") {
 
 enum AttributeErrorCode @doc(category: "Attributes") {
   ALREADY_EXISTS
+  CANNOT_DELETE
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -32243,6 +32517,7 @@ type AttributeBulkUpdateError @doc(category: "Attributes") {
 enum AttributeBulkUpdateErrorCode @doc(category: "Attributes") {
   ALREADY_EXISTS
   BLANK
+  CANNOT_DELETE
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -34035,6 +34310,7 @@ type CustomerTypeDeleteError @doc(category: "Users") {
 }
 
 enum CustomerTypeDeleteErrorCode @doc(category: "Users") {
+  CANNOT_DELETE
   CANNOT_DELETE_DEFAULT
   GRAPHQL_ERROR
   INVALID
