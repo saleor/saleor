@@ -227,7 +227,10 @@ def is_discounted_line_by_catalogue_promotion_for_line_info(
     """Return True when the line price is discounted by catalogue promotion.
 
     A line with a scoped price is discounted when a promotion rule applies to it,
-    because the stored listing prices do not describe a scoped price.
+    because the stored listing prices do not describe the price of this buyer.
+    Without a scoped price the stored prices are compared. They can lag behind
+    a validity window that just closed until the next price refresh, the same
+    way they lag behind a promotion that just ended.
     """
     if line_info.channel_listing is None:
         return False

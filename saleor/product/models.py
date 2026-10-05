@@ -593,6 +593,10 @@ class VariantChannelListingPrice(models.Model):
     and a validity window. The database does not require any condition, so a
     row with none is possible and would always override the listing price.
     Rejecting such rows is the responsibility of the write paths.
+
+    `is_applied` is true while the price of the row is folded into the stored
+    discounted price of its listing. Only rows without buyer conditions are
+    folded in, and only while their validity window is open.
     """
 
     variant_channel_listing = models.ForeignKey(
@@ -620,11 +624,25 @@ class VariantChannelListingPrice(models.Model):
         related_name="variant_listing_prices",
         blank=True,
     )
+    is_applied = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ("pk",)
+        indexes = [
+            BTreeIndex(
+                fields=["valid_to"],
+                name="listingprice_to_apply_idx",
+                condition=Q(is_applied=False)
+                & (Q(valid_from__isnull=False) | Q(valid_to__isnull=False)),
+            ),
+            BTreeIndex(
+                fields=["valid_to"],
+                name="listingprice_to_withdraw_idx",
+                condition=Q(is_applied=True),
+            ),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=Q(price_amount__gte=0),

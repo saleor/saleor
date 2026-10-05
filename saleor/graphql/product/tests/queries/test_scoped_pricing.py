@@ -1,14 +1,18 @@
+import datetime
 from decimal import Decimal
 
 import graphene
 import pytest
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 
-from .....product.models import Product
+from .....product.models import Product, VariantChannelListingPrice
 from .....product.utils.variant_prices import update_discounted_prices_for_promotion
 from .....product.utils.variants import fetch_variants_for_promotion_rules
+from ....core.enums import OrderDirection
 from ....tests.utils import get_graphql_content
+from ...sorters import ProductOrderField
 
 VARIANT_PRICING_QUERY = """
 query VariantPricing($id: ID!, $channel: String!) {
@@ -269,3 +273,113 @@ def test_variant_pricing_without_rows_queries_the_rows_table_once(
         if table in query["sql"]
     ]
     assert tables_hit == ["product_variantchannellistingprice"]
+
+
+PRODUCTS_BY_MINIMAL_PRICE_QUERY = """
+query Products($channel: String!, $where: ProductWhereInput, $sortBy: ProductOrder) {
+  products(first: 10, channel: $channel, where: $where, sortBy: $sortBy) {
+    edges {
+      node {
+        slug
+        pricing {
+          priceRange {
+            start {
+              net {
+                amount
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def _store_window_price(product, channel, price_amount):
+    """Give the product's first variant an open window price and store it."""
+    listing = product.variants.first().channel_listings.get(channel=channel)
+    now = timezone.now()
+    VariantChannelListingPrice.objects.create(
+        variant_channel_listing=listing,
+        currency=listing.currency,
+        price_amount=price_amount,
+        valid_from=now - datetime.timedelta(days=1),
+        valid_to=now + datetime.timedelta(days=1),
+    )
+    update_discounted_prices_for_promotion(Product.objects.filter(pk=product.pk))
+
+
+def test_products_sort_by_minimal_price_uses_the_stored_window_price(
+    api_client, product_list, channel_USD
+):
+    # given
+    cheapest_amount = Decimal(1)
+    product_with_window = product_list[-1]
+    _store_window_price(product_with_window, channel_USD, cheapest_amount)
+    variables = {
+        "channel": channel_USD.slug,
+        "sortBy": {
+            "field": ProductOrderField.MINIMAL_PRICE.name,
+            "direction": OrderDirection.ASC.name,
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_BY_MINIMAL_PRICE_QUERY, variables)
+
+    # then
+    edges = get_graphql_content(response)["data"]["products"]["edges"]
+    assert len(edges) == len(product_list)
+    first_node = edges[0]["node"]
+    assert first_node["slug"] == product_with_window.slug
+    assert first_node["pricing"]["priceRange"]["start"]["net"]["amount"] == (
+        cheapest_amount
+    )
+
+
+def test_products_filter_by_minimal_price_uses_the_stored_window_price(
+    api_client, product_list, channel_USD
+):
+    # given
+    cheapest_amount = Decimal(1)
+    product_with_window = product_list[-1]
+    _store_window_price(product_with_window, channel_USD, cheapest_amount)
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"minimalPrice": {"range": {"lte": cheapest_amount}}},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_BY_MINIMAL_PRICE_QUERY, variables)
+
+    # then
+    edges = get_graphql_content(response)["data"]["products"]["edges"]
+    assert [edge["node"]["slug"] for edge in edges] == [product_with_window.slug]
+
+
+def test_product_pricing_for_a_guest_agrees_with_the_stored_window_price(
+    api_client, product, variant, channel_USD, variant_channel_listing_price
+):
+    # given
+    window_price = variant_channel_listing_price.price
+    update_discounted_prices_for_promotion(Product.objects.filter(pk=product.pk))
+    listing = variant.channel_listings.get(channel=channel_USD)
+    listing.refresh_from_db(fields=["discounted_price_amount"])
+    assert listing.discounted_price == window_price
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCT_PRICING_QUERY, variables)
+
+    # then
+    pricing = get_graphql_content(response)["data"]["product"]["pricing"]
+    assert pricing["priceRange"]["start"]["net"]["amount"] == window_price.amount
+    assert (
+        pricing["priceRangeUndiscounted"]["start"]["net"]["amount"]
+        == window_price.amount
+    )
