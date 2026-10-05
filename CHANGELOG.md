@@ -59,6 +59,7 @@ permissions.
 - Added `externalReference` support to `Collection`. Collections can now be created with an external reference, looked up using `collection(externalReference: ...)`, and updated or deleted by external reference instead of ID. The reference can also be changed or cleared through `collectionUpdate`.
 - Added `promoCodeDetails` field to `CheckoutError`, `OrderError` and `OrderCreateFromCheckoutError`, explaining why a voucher or gift card code was rejected. It returns a `PromoCodeRejectionReason` (e.g. `EXPIRED`, `USAGE_LIMIT_REACHED`, `MIN_SPENT_NOT_REACHED`, `NO_ELIGIBLE_PRODUCTS`) plus `minSpent` / `minCheckoutItemsQuantity` where relevant. It is reported by `checkoutAddPromoCode`, `checkoutComplete`, `orderCreateFromCheckout`, `draftOrderCreate`, `draftOrderUpdate`, `draftOrderComplete` and `Order.errors`.
 - Added `externalReference` support to `Voucher`. Vouchers can now be created with an external reference, looked up using `voucher(externalReference: ...)`, and updated or deleted by external reference instead of ID. The reference can also be changed or cleared through `voucherUpdate`.
+- Added `externalReference` support to `ProductMedia`. Product media can now be created with an external reference, and updated or deleted by external reference instead of ID. The reference can also be changed or cleared through `productMediaUpdate`.
 
 ### Webhooks
 

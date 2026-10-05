@@ -2103,6 +2103,9 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         graphene.String, required=True, description="The URL of the media."
     )
     product_id = graphene.ID(description="Product id the media refers to.")
+    external_reference = graphene.String(
+        description=f"External ID of this product media.{ADDED_IN_323}"
+    )
 
     class Meta:
         description = "Represents a product media."

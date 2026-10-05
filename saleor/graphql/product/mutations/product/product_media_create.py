@@ -10,6 +10,7 @@ from .....product.error_codes import ProductErrorCode
 from .....product.tasks import fetch_product_media_image_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
@@ -30,9 +31,33 @@ class ProductMediaCreateInput(BaseInputObjectType):
     media_url = graphene.String(
         required=False, description="Represents an URL to an external media."
     )
+    external_reference = graphene.String(
+        description=f"External ID of this product media.{ADDED_IN_323}",
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+
+
+def clean_media_external_reference(
+    external_reference: str | None, instance_pk: int | None = None
+):
+    """Raise a validation error when the external reference is already taken."""
+    if external_reference is None:
+        return
+    lookup = models.ProductMedia.objects.filter(external_reference=external_reference)
+    if instance_pk is not None:
+        lookup = lookup.exclude(pk=instance_pk)
+    if lookup.exists():
+        raise ValidationError(
+            {
+                "external_reference": ValidationError(
+                    "Product media with this External reference already exists.",
+                    code=ProductErrorCode.UNIQUE.value,
+                )
+            }
+        )
 
 
 class ProductMediaCreate(BaseMutation):
@@ -73,6 +98,9 @@ class ProductMediaCreate(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, input
     ):
         cls.validate_input(input)
+
+        external_reference = input.get("external_reference")
+        clean_media_external_reference(external_reference)
 
         image = input.get("image")
         media_url = input.get("media_url")
@@ -130,6 +158,7 @@ class ProductMediaCreate(BaseMutation):
 
         media = None
         if media_data:
+            media_data["external_reference"] = external_reference
             # The product can be deleted concurrently while the image is uploaded or
             # the remote URL is probed, so the insert may fail on the foreign key.
             try:
