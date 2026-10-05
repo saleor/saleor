@@ -148,6 +148,64 @@ def test_get_available_quantity(variant_with_many_stocks, channel_USD):
     assert available_quantity == 7
 
 
+@pytest.mark.parametrize(
+    ("_case", "stock_quantities", "requested_quantity", "expected_total_available"),
+    [
+        ("Different in-stock quantity in both warehouses", (2, 1), 3, 3),
+        ("Same in-stock quantity in both warehouses", (2, 2), 3, 4),
+    ],
+)
+def test_get_available_quantity_with_equal_quantities_in_different_stocks(
+    _case: str,
+    stock_quantities: tuple[int, int],
+    requested_quantity: int,
+    expected_total_available: int,
+    variant_with_many_stocks,
+    channel_USD,
+):
+    """Should count properly when multiple warehouses have variants in stock.
+
+    When warehouse A has 1 quantity in stock, and warehouse B has 1 quantity in stock too,
+    then when creating an order or retrieving the available quantity for purchasing
+    2 quantities, then it should be flagged as 'in stock' as 2 quantities are in-stock
+    even though the stock is spread across 2 warehouses.
+
+    The same should be true when warehouse A has a different in-stock amount compared
+    to warehouse B.
+    """
+
+    # given
+    stocks = list(variant_with_many_stocks.stocks.only("warehouse"))
+    assert len(stocks) == 2, "should have 2 stocks"
+    assert stocks[0].warehouse != stocks[1].warehouse, (
+        "should be using 2 different warehouses"
+    )
+    for i, quantity in enumerate(stock_quantities):
+        stocks[i].quantity = quantity
+        stocks[i].save(update_fields=("quantity",))
+
+    # when
+    available_quantity = get_available_quantity(
+        variant_with_many_stocks,
+        COUNTRY_CODE,
+        channel_USD.slug,
+        calculate_stocks_with_shipping_zones=True,
+    )
+
+    # then
+    assert available_quantity == expected_total_available
+    assert (  # Shouldn't raise `InsufficientStock`
+        check_stock_quantity(
+            variant_with_many_stocks,
+            COUNTRY_CODE,
+            channel_USD.slug,
+            requested_quantity,
+            include_shipping_zones=True,
+        )
+        is None  # function never returns anything, thus we expect `None`
+    )
+
+
 def test_get_available_quantity_without_allocation(order_line, stock, channel_USD):
     assert not Allocation.objects.filter(order_line=order_line, stock=stock).exists()
     available_quantity = get_available_quantity(
