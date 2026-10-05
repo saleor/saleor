@@ -229,14 +229,14 @@ class OrderCreateFromCheckout(BaseMutation):
         app = get_app_promise(info.context).get()
         requestor = app or user
 
-        cls.validate_checkout(
-            checkout_info,
-            checkout_lines,
-            unavailable_variant_pks,
-            manager,
-            requestor=requestor,
-        )
         try:
+            cls.validate_checkout(
+                checkout_info,
+                checkout_lines,
+                unavailable_variant_pks,
+                manager,
+                requestor=requestor,
+            )
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
                 manager=manager,
@@ -265,9 +265,7 @@ class OrderCreateFromCheckout(BaseMutation):
                 {
                     "gift_cards": ValidationError(
                         e.message,
-                        # Deliberately no `code`: this path has always reported
-                        # the default `INVALID` rather than the exception's
-                        # GIFT_CARD_NOT_APPLICABLE, and clients depend on it.
+                        code=OrderCreateFromCheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value,
                         params={"promo_code_details": e.rejection},
                     )
                 }
