@@ -4,6 +4,10 @@ from django.core.exceptions import ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
+from ....product.utils.scoped_price_rows import (
+    count_scoped_price_rows_by_attribute_value_id,
+    count_scoped_price_rows_for_attribute_values,
+)
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
@@ -133,6 +137,24 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
                         )
                     }
                 )
+        row_counts = count_scoped_price_rows_by_attribute_value_id(
+            [value.pk for value in remove_values]
+        )
+        if row_counts:
+            referenced_names = ", ".join(
+                value.name for value in remove_values if value.pk in row_counts
+            )
+            row_count = count_scoped_price_rows_for_attribute_values(row_counts)
+            raise ValidationError(
+                {
+                    "remove_values": ValidationError(
+                        f"The values {referenced_names} are referenced by "
+                        f"{row_count} scoped variant prices. Remove them from "
+                        "those prices first.",
+                        code=AttributeErrorCode.CANNOT_DELETE.value,
+                    )
+                }
+            )
         return remove_values
 
     @classmethod

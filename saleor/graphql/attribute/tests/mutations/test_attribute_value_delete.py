@@ -6,6 +6,7 @@ import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.tests.model_helpers import (
     get_product_attribute_values,
     get_product_attributes,
@@ -452,3 +453,50 @@ def test_authorization(
     else:
         assert_no_permission(response)
         assert attribute.values.filter(pk=value.pk).exists() is True
+
+
+ATTRIBUTE_VALUE_DELETE_WITH_CODE_MUTATION = """
+    mutation AttributeValueDelete($id: ID!) {
+        attributeValueDelete(id: $id) {
+            attributeValue {
+                id
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_delete_refuses_a_value_referenced_by_scoped_prices(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+    variant_channel_listing_price_for_attribute_value,
+):
+    # given
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    variables = {"id": graphene.Node.to_global_id("AttributeValue", value.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_WITH_CODE_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueDelete"]
+    assert data["attributeValue"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == AttributeErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The value is referenced by 1 scoped variant prices. Remove the value "
+        "from those prices first."
+    )
+    value.refresh_from_db()

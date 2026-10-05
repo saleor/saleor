@@ -439,6 +439,11 @@ ProductErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 ProductErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
+VariantChannelListingPriceErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    product_error_codes.VariantChannelListingPriceErrorCode
+)
+VariantChannelListingPriceErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
 ProductBulkCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     product_error_codes.ProductBulkCreateErrorCode
 )

@@ -84,6 +84,9 @@ from .mutations import (
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
+    VariantChannelListingPriceCreate,
+    VariantChannelListingPriceDelete,
+    VariantChannelListingPriceUpdate,
     VariantMediaAssign,
     VariantMediaUnassign,
 )
@@ -696,5 +699,8 @@ class ProductMutations(graphene.ObjectType):
     product_variant_reorder_attribute_values = (
         ProductVariantReorderAttributeValues.Field()
     )
+    variant_channel_listing_price_create = VariantChannelListingPriceCreate.Field()
+    variant_channel_listing_price_update = VariantChannelListingPriceUpdate.Field()
+    variant_channel_listing_price_delete = VariantChannelListingPriceDelete.Field()
     variant_media_assign = VariantMediaAssign.Field()
     variant_media_unassign = VariantMediaUnassign.Field()

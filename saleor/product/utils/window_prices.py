@@ -50,14 +50,16 @@ def is_window_price_applicable(
 
 
 def find_window_price_rows_to_toggle(now: datetime.datetime, limit: int) -> list[int]:
-    """Return ids of rows whose validity window opened or closed, lowest ids first.
+    """Return ids of rows whose applied flag disagrees with now, lowest ids first.
 
     A row is returned when its window is open but it is not applied yet, or when
-    it is applied but its window has ended. Each query is served by one of the
-    partial indexes on the rows, so the check stays cheap on a large table.
-    Rows without a window and edits that add buyer conditions or move the start
-    of the window are the responsibility of the writers, which call
-    `sync_window_price_rows` themselves.
+    it is applied but no longer qualifies: its window has ended or has not
+    started, or it gained buyer conditions. Each query is served by one of the
+    partial indexes on the rows, so the check stays cheap on a large table. The
+    applied rows are a bounded set, so the extra conditions on them are filtered
+    from the partial index. Writers call `sync_window_price_rows` for their own
+    edits, and a row the sync could not flip because its product was already
+    being refreshed is caught here on the next run.
     """
     rows_to_apply = _annotate_buyer_conditions(
         VariantChannelListingPrice.objects.filter(is_applied=False)
@@ -65,8 +67,10 @@ def find_window_price_rows_to_toggle(now: datetime.datetime, limit: int) -> list
         .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=now))
         .filter(Q(valid_to__isnull=True) | Q(valid_to__gt=now))
     ).filter(has_buyer_conditions=False)
-    rows_to_withdraw = VariantChannelListingPrice.objects.filter(
-        is_applied=True, valid_to__lte=now
+    rows_to_withdraw = _annotate_buyer_conditions(
+        VariantChannelListingPrice.objects.filter(is_applied=True)
+    ).filter(
+        Q(valid_to__lte=now) | Q(valid_from__gt=now) | Q(has_buyer_conditions=True)
     )
     row_ids = set(rows_to_apply.order_by("pk").values_list("pk", flat=True)[:limit])
     row_ids.update(rows_to_withdraw.order_by("pk").values_list("pk", flat=True)[:limit])
@@ -129,8 +133,10 @@ def sync_window_price_rows(row_ids: Iterable[int], now: datetime.datetime) -> No
     change. The flag of a row is set to match the current time only when the
     mark turned its product listing from clean to dirty, because only then is
     the refresh that will store the change guaranteed to run after this call. A
-    row whose listing was already dirty keeps its flag and is picked up again by
-    the next run of the toggle task.
+    row whose listing was already dirty keeps its flag, and the toggle task
+    flips it on a later run once the flag disagrees with the row. A change that
+    does not touch the flag, such as a new price on an applied row, has no such
+    retry and reaches the stored price with the next refresh of the product.
     """
     row_ids = list(row_ids)
     if not row_ids:

@@ -3,6 +3,7 @@ from unittest import mock
 import graphene
 import pytest
 
+from .....attribute.error_codes import AttributeErrorCode
 from .....attribute.models import Attribute, AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -647,3 +648,109 @@ def test_delete_attribute_values_authorization(
     else:
         assert_no_permission(response)
         assert AttributeValue.objects.filter(pk__in=value_pks).count() == len(value_pks)
+
+
+ATTRIBUTE_BULK_DELETE_WITH_ERRORS_MUTATION = """
+    mutation attributeBulkDelete($ids: [ID!]!) {
+        attributeBulkDelete(ids: $ids) {
+            count
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+ATTRIBUTE_VALUE_BULK_DELETE_WITH_ERRORS_MUTATION = """
+    mutation attributeValueBulkDelete($ids: [ID!]!) {
+        attributeValueBulkDelete(ids: $ids) {
+            count
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_bulk_delete_keeps_an_attribute_referenced_by_scoped_prices(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+    segment_customer_attribute,
+    variant_channel_listing_price_for_attribute_value,
+):
+    # given
+    referenced_id = graphene.Node.to_global_id(
+        "Attribute", loyalty_customer_attribute.pk
+    )
+    variables = {
+        "ids": [
+            referenced_id,
+            graphene.Node.to_global_id("Attribute", segment_customer_attribute.pk),
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_DELETE_WITH_ERRORS_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeBulkDelete"]
+    assert data["count"] == 1
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == referenced_id
+    assert error["code"] == AttributeErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The attribute is referenced by 1 scoped variant prices. Remove the "
+        "attribute from those prices first."
+    )
+    assert Attribute.objects.filter(pk=loyalty_customer_attribute.pk).exists() is True
+    assert Attribute.objects.filter(pk=segment_customer_attribute.pk).exists() is False
+
+
+def test_bulk_delete_keeps_a_value_referenced_by_scoped_prices(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+    variant_channel_listing_price_for_attribute_value,
+):
+    # given
+    gold_value = loyalty_customer_attribute.values.get(slug="gold")
+    silver_value = loyalty_customer_attribute.values.get(slug="silver")
+    referenced_id = graphene.Node.to_global_id("AttributeValue", gold_value.pk)
+    variables = {
+        "ids": [
+            referenced_id,
+            graphene.Node.to_global_id("AttributeValue", silver_value.pk),
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_BULK_DELETE_WITH_ERRORS_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueBulkDelete"]
+    assert data["count"] == 1
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == referenced_id
+    assert error["code"] == AttributeErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The value is referenced by 1 scoped variant prices. Remove the value "
+        "from those prices first."
+    )
+    assert AttributeValue.objects.filter(pk=gold_value.pk).exists() is True
+    assert AttributeValue.objects.filter(pk=silver_value.pk).exists() is False

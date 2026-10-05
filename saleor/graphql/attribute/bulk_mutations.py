@@ -1,17 +1,23 @@
 import graphene
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 
 from ...attribute import models
 from ...attribute.lock_objects import attribute_value_qs_select_for_update
 from ...product import models as product_models
+from ...product.utils.scoped_price_rows import (
+    count_scoped_price_rows_by_attribute_id,
+    count_scoped_price_rows_by_attribute_value_id,
+)
 from ...product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.utils import get_webhooks_for_event
 from ..core import ResolveInfo
+from ..core.enums import AttributeErrorCode
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import AttributeError, NonNullList
 from ..core.utils import WebhookEventInfo
@@ -21,7 +27,30 @@ from .mutations.permissions import (
     check_any_attribute_type_permission,
     check_attribute_type_permissions,
 )
+from .mutations.utils import get_scoped_price_reference_message
 from .types import Attribute, AttributeValue
+
+
+def reject_referenced_by_scoped_prices(
+    instances, ids, clean_instance_ids, errors_dict, row_counts, subject
+):
+    """Drop the instances that scoped prices reference from the ids to delete.
+
+    The counts are fetched by the caller in one query for the whole input, so the
+    guard does not add a query per instance.
+    """
+    for instance, node_id in zip(instances, ids, strict=False):
+        row_count = row_counts.get(instance.pk)
+        if not row_count or instance.pk not in clean_instance_ids:
+            continue
+        clean_instance_ids.remove(instance.pk)
+        errors_dict[node_id] = [
+            ValidationError(
+                get_scoped_price_reference_message(subject, row_count),
+                code=AttributeErrorCode.CANNOT_DELETE.value,
+            )
+        ]
+    return clean_instance_ids, errors_dict
 
 
 class AttributeBulkDelete(ModelBulkDeleteMutation):
@@ -76,6 +105,14 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         response = super().perform_mutation(root, info, ids=ids)
         mark_products_search_vector_as_dirty_in_batches(product_ids)
         return response
+
+    @classmethod
+    def clean_input(cls, info: ResolveInfo, instances, ids):
+        clean_instance_ids, errors_dict = super().clean_input(info, instances, ids)
+        row_counts = count_scoped_price_rows_by_attribute_id(clean_instance_ids)
+        return reject_referenced_by_scoped_prices(
+            instances, ids, clean_instance_ids, errors_dict, row_counts, "attribute"
+        )
 
     @classmethod
     def get_product_ids_to_update(cls, attribute_pks):
@@ -167,6 +204,14 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         response = super().perform_mutation(root, info, ids=ids)
         mark_products_search_vector_as_dirty_in_batches(product_ids)
         return response
+
+    @classmethod
+    def clean_input(cls, info: ResolveInfo, instances, ids):
+        clean_instance_ids, errors_dict = super().clean_input(info, instances, ids)
+        row_counts = count_scoped_price_rows_by_attribute_value_id(clean_instance_ids)
+        return reject_referenced_by_scoped_prices(
+            instances, ids, clean_instance_ids, errors_dict, row_counts, "value"
+        )
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

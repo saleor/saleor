@@ -157,7 +157,7 @@ from ..dataloaders import (
     VariantChannelListingByVariantIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
-from ..dataloaders.scoped_prices import load_buyer_pricing_data
+from ..dataloaders.scoped_prices import load_buyer_pricing_data, load_buyer_user_id
 from ..enums import ProductMediaType, ProductTypeKindEnum, VariantAttributeScope
 from ..filters.product_variant import (
     ProductVariantFilterInput,
@@ -172,7 +172,11 @@ from ..resolvers import (
     resolve_variant_attributes,
 )
 from ..sorters import MediaSortingInput, ProductVariantSortingInput
-from .channels import ProductChannelListing, ProductVariantChannelListing
+from .channels import (
+    ProductChannelListing,
+    ProductVariantChannelListing,
+    preview_customer_argument,
+)
 
 destination_address_argument = graphene.Argument(
     account_types.AddressInput,
@@ -325,6 +329,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
     pricing = graphene.Field(
         VariantPricingInfo,
         address=destination_address_argument,
+        customer=preview_customer_argument,
         description=(
             "Lists the storefront variant's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -650,13 +655,18 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
 
     @staticmethod
     def resolve_pricing(
-        root: ChannelContext[models.ProductVariant], info, *, address=None
+        root: ChannelContext[models.ProductVariant],
+        info,
+        *,
+        address=None,
+        customer=None,
     ):
         if not root.channel_slug:
             return None
 
         channel_slug = str(root.channel_slug)
         context = info.context
+        buyer_user_id = load_buyer_user_id(context, customer)
 
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
@@ -743,8 +753,10 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
                         country_code
                     )
-                    buyer_pricing_data = load_buyer_pricing_data(
-                        context, [variant_channel_listing.pk]
+                    buyer_pricing_data = buyer_user_id.then(
+                        lambda user_id: load_buyer_pricing_data(
+                            context, [variant_channel_listing.pk], user_id
+                        )
                     )
                     return Promise.all(
                         [country_rates, default_rate, buyer_pricing_data]
@@ -921,6 +933,7 @@ class Product(ChannelContextType[models.Product]):
     pricing = graphene.Field(
         ProductPricingInfo,
         address=destination_address_argument,
+        customer=preview_customer_argument,
         description=(
             "Lists the storefront product's pricing, the current price and discounts, "
             "only meant for displaying."
@@ -1182,12 +1195,15 @@ class Product(ChannelContextType[models.Product]):
         return ""
 
     @staticmethod
-    def resolve_pricing(root: ChannelContext[models.Product], info, *, address=None):
+    def resolve_pricing(
+        root: ChannelContext[models.Product], info, *, address=None, customer=None
+    ):
         if not root.channel_slug:
             return None
 
         channel_slug = str(root.channel_slug)
         context = info.context
+        buyer_user_id = load_buyer_user_id(context, customer)
 
         channel = ChannelBySlugLoader(context).load(channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
@@ -1271,9 +1287,11 @@ class Product(ChannelContextType[models.Product]):
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
                         country_code
                     )
-                    buyer_pricing_data = load_buyer_pricing_data(
-                        context,
-                        [listing.pk for listing in variants_channel_listing],
+                    listing_ids = [listing.pk for listing in variants_channel_listing]
+                    buyer_pricing_data = buyer_user_id.then(
+                        lambda user_id: load_buyer_pricing_data(
+                            context, listing_ids, user_id
+                        )
                     )
                     return Promise.all(
                         [country_rates, default_rate, buyer_pricing_data]

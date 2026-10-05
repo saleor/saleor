@@ -19,6 +19,9 @@ from ....attribute.lock_objects import (
 )
 from ....core.tracing import traced_atomic_transaction
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
+from ....product.utils.scoped_price_rows import (
+    count_scoped_price_rows_by_attribute_value_id,
+)
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
@@ -50,6 +53,7 @@ from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
 from .utils import (
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
+    get_scoped_price_reference_message,
 )
 
 
@@ -171,6 +175,7 @@ class AttributeBulkUpdate(BaseMutation):
         ) = cls._get_values_existing_and_duplicated_external_refs(attributes_data)
 
         attributes = cls.get_attributes(attributes_data)
+        referenced_value_counts = cls._get_referenced_value_counts(attributes_data)
         for attribute_index, attribute_data in enumerate(attributes_data):
             external_ref = attribute_data.external_reference
             new_external_ref = attribute_data.fields.external_reference
@@ -255,9 +260,27 @@ class AttributeBulkUpdate(BaseMutation):
                 duplicated_values_external_ref,
                 attributes,
                 index_error_map,
+                referenced_value_counts,
             )
             cleaned_inputs_map[attribute_index] = cleaned_input
         return cleaned_inputs_map
+
+    @classmethod
+    def _get_referenced_value_counts(
+        cls, attributes_data: list[AttributeBulkUpdateInput]
+    ) -> dict[int, int]:
+        """Count the scoped prices referencing each value to remove, in one query."""
+        value_ids = []
+        for attribute_data in attributes_data:
+            for value_global_id in attribute_data.fields.remove_values or []:
+                try:
+                    _, value_db_id = from_global_id_or_error(
+                        value_global_id, only_type="AttributeValue", raise_error=True
+                    )
+                except GraphQLError:
+                    continue
+                value_ids.append(int(value_db_id))
+        return count_scoped_price_rows_by_attribute_value_id(value_ids)
 
     @classmethod
     def _get_attrs_existing_and_duplicated_external_refs(
@@ -342,6 +365,7 @@ class AttributeBulkUpdate(BaseMutation):
         duplicated_values_external_ref,
         attributes,
         index_error_map: dict[int, list[AttributeBulkUpdateError]],
+        referenced_value_counts: dict[int, int],
     ):
         remove_values = attribute_data.fields.pop("remove_values", [])
         add_values = attribute_data.fields.pop("add_values", [])
@@ -405,7 +429,11 @@ class AttributeBulkUpdate(BaseMutation):
 
         if remove_values:
             cleaned_remove_values = cls.clean_remove_values(
-                remove_values, attr, attribute_index, index_error_map
+                remove_values,
+                attr,
+                attribute_index,
+                index_error_map,
+                referenced_value_counts,
             )
             attribute_data["fields"]["remove_values"] = cleaned_remove_values
 
@@ -427,7 +455,12 @@ class AttributeBulkUpdate(BaseMutation):
 
     @classmethod
     def clean_remove_values(
-        cls, remove_values, attribute, attribute_index, index_error_map
+        cls,
+        remove_values,
+        attribute,
+        attribute_index,
+        index_error_map,
+        referenced_value_counts: dict[int, int],
     ):
         clean_remove_values = []
 
@@ -457,6 +490,14 @@ class AttributeBulkUpdate(BaseMutation):
                         path=f"removeValues.{index}",
                         message=msg,
                         code=AttributeBulkUpdateErrorCode.INVALID.value,
+                    )
+                )
+            elif row_count := referenced_value_counts.get(value.pk):
+                index_error_map[attribute_index].append(
+                    AttributeBulkUpdateError(
+                        path=f"removeValues.{index}",
+                        message=get_scoped_price_reference_message("value", row_count),
+                        code=AttributeBulkUpdateErrorCode.CANNOT_DELETE.value,
                     )
                 )
             else:

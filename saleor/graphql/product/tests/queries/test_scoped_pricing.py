@@ -11,7 +11,11 @@ from .....product.models import Product, VariantChannelListingPrice
 from .....product.utils.variant_prices import update_discounted_prices_for_promotion
 from .....product.utils.variants import fetch_variants_for_promotion_rules
 from ....core.enums import OrderDirection
-from ....tests.utils import get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...sorters import ProductOrderField
 
 VARIANT_PRICING_QUERY = """
@@ -382,4 +386,236 @@ def test_product_pricing_for_a_guest_agrees_with_the_stored_window_price(
     assert (
         pricing["priceRangeUndiscounted"]["start"]["net"]["amount"]
         == window_price.amount
+    )
+
+
+VARIANT_PRICING_PREVIEW_QUERY = """
+query VariantPricingPreview($id: ID!, $channel: String!, $customer: ID) {
+  productVariant(id: $id, channel: $channel) {
+    pricing(customer: $customer) {
+      priceUndiscounted {
+        net {
+          amount
+        }
+      }
+    }
+  }
+}
+"""
+
+PRODUCT_PRICING_PREVIEW_QUERY = """
+query ProductPricingPreview($id: ID!, $channel: String!, $customer: ID) {
+  product(id: $id, channel: $channel) {
+    pricing(customer: $customer) {
+      priceRangeUndiscounted {
+        start {
+          net {
+            amount
+          }
+        }
+      }
+    }
+    channelListings {
+      pricing(customer: $customer) {
+        priceRangeUndiscounted {
+          start {
+            net {
+              amount
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def _preview_variables(variant, channel, customer):
+    return {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel.slug,
+        "customer": graphene.Node.to_global_id("User", customer.pk),
+    }
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "permission_fixtures", "is_allowed"),
+    [
+        ("Unauthenticated user should be rejected", "api_client", [], False),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            [],
+            False,
+        ),
+        (
+            "Authenticated user w/o any permission should be rejected",
+            "staff_api_client",
+            [],
+            False,
+        ),
+        (
+            "Authenticated user w/ only the product permission should be rejected",
+            "staff_api_client",
+            ["permission_manage_products"],
+            False,
+        ),
+        (
+            "Authenticated user w/ only the user permission should be rejected",
+            "staff_api_client",
+            ["permission_manage_users"],
+            False,
+        ),
+        (
+            "Authenticated user w/ both permissions should be allowed",
+            "staff_api_client",
+            ["permission_manage_products", "permission_manage_users"],
+            True,
+        ),
+        (
+            "App w/ both permissions should be allowed",
+            "app_api_client",
+            ["permission_manage_products", "permission_manage_users"],
+            True,
+        ),
+    ],
+)
+def test_variant_pricing_preview_authorization(
+    _case,
+    client_fixture,
+    permission_fixtures,
+    is_allowed,
+    request,
+    variant,
+    channel_USD,
+    b2b_customer_user,
+    variant_channel_listing_price_for_customer_type,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    for permission_fixture in permission_fixtures:
+        permission = request.getfixturevalue(permission_fixture)
+        if client.app:
+            client.app.permissions.add(permission)
+        else:
+            client.user.user_permissions.add(permission)
+    scoped_price = variant_channel_listing_price_for_customer_type.price_amount
+    variables = _preview_variables(variant, channel_USD, b2b_customer_user)
+
+    # when
+    response = client.post_graphql(VARIANT_PRICING_PREVIEW_QUERY, variables)
+
+    # then
+    if is_allowed:
+        pricing = get_graphql_content(response)["data"]["productVariant"]["pricing"]
+        assert pricing["priceUndiscounted"]["net"]["amount"] == scoped_price
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"]["productVariant"]["pricing"] is None
+
+
+def test_variant_pricing_preview_resolves_the_price_of_the_given_customer(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_users,
+    variant,
+    channel_USD,
+    customer_user,
+    gold_customer_user,
+    variant_channel_listing_price_for_attribute_value,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_products, permission_manage_users
+    )
+    scoped_price = variant_channel_listing_price_for_attribute_value.price_amount
+    listing_price = variant.channel_listings.get().price_amount
+    assert scoped_price != listing_price
+    assert customer_user == gold_customer_user
+
+    # when
+    preview_variables = _preview_variables(variant, channel_USD, gold_customer_user)
+    preview_response = staff_api_client.post_graphql(
+        VARIANT_PRICING_PREVIEW_QUERY, preview_variables
+    )
+    own_variables = {**preview_variables, "customer": None}
+    own_response = staff_api_client.post_graphql(
+        VARIANT_PRICING_PREVIEW_QUERY, own_variables
+    )
+
+    # then
+    preview_pricing = get_graphql_content(preview_response)["data"]["productVariant"][
+        "pricing"
+    ]
+    own_pricing = get_graphql_content(own_response)["data"]["productVariant"]["pricing"]
+    assert preview_pricing["priceUndiscounted"]["net"]["amount"] == scoped_price
+    assert own_pricing["priceUndiscounted"]["net"]["amount"] == listing_price
+
+
+def test_product_pricing_preview_resolves_the_price_of_the_given_customer(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_users,
+    product,
+    variant,
+    channel_USD,
+    b2b_customer_user,
+    variant_channel_listing_price_for_customer_type,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_products, permission_manage_users
+    )
+    scoped_price = variant_channel_listing_price_for_customer_type.price_amount
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+        "customer": graphene.Node.to_global_id("User", b2b_customer_user.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_PRICING_PREVIEW_QUERY, variables)
+
+    # then
+    product_data = get_graphql_content(response)["data"]["product"]
+    assert (
+        product_data["pricing"]["priceRangeUndiscounted"]["start"]["net"]["amount"]
+        == scoped_price
+    )
+    [listing_data] = product_data["channelListings"]
+    assert (
+        listing_data["pricing"]["priceRangeUndiscounted"]["start"]["net"]["amount"]
+        == scoped_price
+    )
+
+
+def test_variant_pricing_preview_rejects_an_unknown_customer(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_users,
+    variant,
+    channel_USD,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_products, permission_manage_users
+    )
+    unknown_id = graphene.Node.to_global_id("User", -1)
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+        "customer": unknown_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(VARIANT_PRICING_PREVIEW_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response, ignore_errors=True)
+    assert content["data"]["productVariant"]["pricing"] is None
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == (
+        f"Couldn't resolve to a node: {unknown_id}"
     )

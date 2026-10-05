@@ -1375,3 +1375,47 @@ def test_update_product_attribute_with_only_customer_type_permission(
     assert_no_permission(response)
     attribute.refresh_from_db()
     assert attribute.name == original_name
+
+
+def test_update_refuses_to_remove_a_value_referenced_by_scoped_prices(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+    variant_channel_listing_price_for_attribute_value,
+):
+    # given
+    attribute = loyalty_customer_attribute
+    gold_value = attribute.values.get(slug="gold")
+    old_name = attribute.name
+    new_name = "Loyalty tier"
+    variables = {
+        "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "input": {
+            "name": new_name,
+            "removeValues": [
+                graphene.Node.to_global_id("AttributeValue", gold_value.pk)
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeUpdate"]
+    assert data["attribute"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "removeValues"
+    assert error["code"] == AttributeErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        f"The values {gold_value.name} are referenced by 1 scoped variant prices. "
+        "Remove them from those prices first."
+    )
+    attribute.refresh_from_db(fields=["name"])
+    assert attribute.name == old_name
+    assert attribute.values.filter(pk=gold_value.pk).exists() is True

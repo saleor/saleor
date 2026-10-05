@@ -88,16 +88,14 @@ def test_is_window_price_applicable(
         ("closed window not applied", NOW - 2 * DAY, NOW - DAY, False, False, False),
         ("future window not applied", NOW + DAY, None, False, False, False),
         ("open window with buyer conditions", NOW - DAY, NOW + DAY, False, True, False),
-        # edits that move the start of the window or add buyer conditions are
-        # synced by the writer, the task only follows the clock
-        ("future window still applied", NOW + DAY, None, True, False, False),
+        ("future window still applied", NOW + DAY, None, True, False, True),
         (
             "applied row that gained buyer conditions",
             NOW - DAY,
             None,
             True,
             True,
-            False,
+            True,
         ),
         ("row without a window", None, None, False, False, False),
     ],

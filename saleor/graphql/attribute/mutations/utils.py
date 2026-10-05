@@ -50,3 +50,10 @@ def get_page_ids_to_search_index_update_for_attribute_values(
         Exists(assigned_values.filter(page_id=OuterRef("id")))
     ).values_list("id", flat=True)
     return list(page_ids)
+
+
+def get_scoped_price_reference_message(subject: str, row_count: int) -> str:
+    return (
+        f"The {subject} is referenced by {row_count} scoped variant prices. "
+        f"Remove the {subject} from those prices first."
+    )

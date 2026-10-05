@@ -1236,3 +1236,49 @@ def test_attribute_bulk_update_customer_attribute_without_permission(
     assert errors[0]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
     loyalty_customer_attribute.refresh_from_db()
     assert loyalty_customer_attribute.name == old_name
+
+
+def test_attribute_bulk_update_refuses_to_remove_a_value_referenced_by_scoped_prices(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+    variant_channel_listing_price_for_attribute_value,
+):
+    # given
+    attribute = loyalty_customer_attribute
+    gold_value = attribute.values.get(slug="gold")
+    silver_value = attribute.values.get(slug="silver")
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", attribute.pk),
+            "fields": {
+                "removeValues": [
+                    graphene.Node.to_global_id("AttributeValue", gold_value.pk),
+                    graphene.Node.to_global_id("AttributeValue", silver_value.pk),
+                ]
+            },
+        }
+    ]
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_MUTATION, {"attributes": attributes}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeBulkUpdate"]
+    assert data["count"] == 0
+    [result] = data["results"]
+    assert len(result["errors"]) == 1
+    error = result["errors"][0]
+    assert error["path"] == "removeValues.0"
+    assert error["code"] == AttributeBulkUpdateErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The value is referenced by 1 scoped variant prices. Remove the value "
+        "from those prices first."
+    )
+    assert attribute.values.filter(pk=gold_value.pk).exists() is True
+    assert attribute.values.filter(pk=silver_value.pk).exists() is True

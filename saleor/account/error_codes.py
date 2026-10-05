@@ -71,6 +71,7 @@ class CustomerTypeUpdateErrorCode(Enum):
 
 
 class CustomerTypeDeleteErrorCode(Enum):
+    CANNOT_DELETE = "cannot_delete"
     CANNOT_DELETE_DEFAULT = "cannot_delete_default"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
