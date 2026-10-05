@@ -18,7 +18,10 @@ from ....order import OrderStatus, models
 from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
-from ....order.utils import invalidate_order_prices
+from ....order.utils import (
+    expire_draft_order_line_prices,
+    invalidate_order_prices,
+)
 from ....permission.enums import OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
@@ -285,6 +288,9 @@ class DraftOrderUpdate(
             if cls.should_invalidate_prices(order_modified_fields):
                 invalidate_order_prices(instance)
                 order_modified_fields.add("should_refresh_prices")
+            if "user" in order_modified_fields:
+                # the new customer may have their own prices
+                expire_draft_order_line_prices(instance)
 
             # Save instance
             cls._save_order_instance(instance, list(order_modified_fields))

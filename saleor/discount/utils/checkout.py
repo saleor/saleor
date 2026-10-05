@@ -21,7 +21,7 @@ from .promotion import (
     delete_gift_line,
     get_discount_name,
     get_discount_translated_name,
-    is_discounted_line_by_catalogue_promotion,
+    is_discounted_line_by_catalogue_promotion_for_line_info,
     prepare_promotion_discount_reason,
     update_promotion_discount,
 )
@@ -150,8 +150,8 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
             continue
 
         # check if the line price is discounted by catalogue promotion
-        discounted_line = is_discounted_line_by_catalogue_promotion(
-            line_info.channel_listing
+        discounted_line = is_discounted_line_by_catalogue_promotion_for_line_info(
+            line_info
         )
 
         # delete all existing discounts if the line is not discounted or it is a gift
@@ -166,7 +166,7 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
             if promotion.end_date:
                 applied_promotions_end_dates.append(promotion.end_date)
             rule_discount_amount = _get_rule_discount_amount(
-                line, rule_info, line_info.channel
+                line, rule_info, line_info.channel, line_info.scoped_unit_price
             )
             discount_name = get_discount_name(rule, rule_info.promotion)
             translated_name = get_discount_translated_name(rule_info)

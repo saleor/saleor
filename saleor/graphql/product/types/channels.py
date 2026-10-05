@@ -34,6 +34,7 @@ from ...tax.dataloaders import (
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
 from ..dataloaders.products import VariantChannelListingsByProductIdLoader
+from ..dataloaders.scoped_prices import load_buyer_pricing_data
 
 
 class Margin(BaseObjectType):
@@ -214,7 +215,11 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                             return None
 
                         def calculate_pricing_info(data):
-                            country_rates, default_country_rate_obj = data
+                            (
+                                country_rates,
+                                default_country_rate_obj,
+                                buyer_pricing_data,
+                            ) = data
 
                             tax_config_country = next(
                                 (
@@ -247,6 +252,10 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                                 prices_entered_with_tax=prices_entered_with_tax,
                                 tax_calculation_strategy=tax_calculation_strategy,
                                 tax_rate=tax_rate,
+                                scoped_prices=buyer_pricing_data.scoped_prices,
+                                promotion_rules_by_listing_id=(
+                                    buyer_pricing_data.promotion_rules_by_listing_id
+                                ),
                             )
                             from .products import ProductPricingInfo
 
@@ -264,9 +273,13 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                         default_country_rate = TaxClassDefaultRateByCountryLoader(
                             context
                         ).load(country_code)
-                        return Promise.all([country_rates, default_country_rate]).then(
-                            calculate_pricing_info
+                        buyer_pricing_data = load_buyer_pricing_data(
+                            context,
+                            [listing.pk for listing in variants_channel_listing],
                         )
+                        return Promise.all(
+                            [country_rates, default_country_rate, buyer_pricing_data]
+                        ).then(calculate_pricing_info)
 
                     return (
                         VariantChannelListingsByProductIdLoader(context)

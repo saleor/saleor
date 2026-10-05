@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
 from django.conf import settings
+from django.utils import timezone
 from prices import Money
 
 from ..core.prices import quantize_price
@@ -17,6 +18,7 @@ from ..discount.interface import (
     fetch_variant_rules_info,
     fetch_voucher_info,
 )
+from ..product.scoped_prices import get_scoped_prices
 from ..shipping.interface import ShippingMethodData
 from ..shipping.utils import (
     convert_checkout_delivery_to_shipping_method_data,
@@ -61,6 +63,7 @@ class CheckoutLineInfo(LineInfo):
     channel_listing: Optional["ProductVariantChannelListing"] = field(repr=False)
 
     tax_class: Optional["TaxClass"] = field(default=None, repr=False)
+    scoped_unit_price: Money | None = field(default=None, repr=False)
 
     @cached_property
     def variant_discounted_price(self) -> Money:
@@ -77,6 +80,13 @@ class CheckoutLineInfo(LineInfo):
         # further calculations
         if self.line.price_override is not None:
             return Money(self.line.price_override, self.line.currency)
+
+        if self.channel_listing and self.scoped_unit_price is not None:
+            return self.variant.get_price(
+                self.channel_listing,
+                promotion_rules=[rule_info.rule for rule_info in self.rules_info],
+                scoped_price=self.scoped_unit_price,
+            )
 
         if self.channel_listing and self.channel_listing.discounted_price is not None:
             return self.channel_listing.discounted_price
@@ -100,7 +110,7 @@ class CheckoutLineInfo(LineInfo):
         """
         if self.channel_listing and self.channel_listing.price is not None:
             return self.variant.get_base_price(
-                self.channel_listing, self.line.price_override
+                self.channel_listing, self.line.price_override, self.scoped_unit_price
             )
         return self.line.undiscounted_unit_price
 
@@ -261,6 +271,8 @@ def fetch_checkout_lines(
             )
         )
 
+    attach_scoped_unit_prices(lines_info, checkout.user_id, database_connection_name)
+
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:
             voucher, _ = get_voucher_for_checkout(
@@ -277,6 +289,32 @@ def fetch_checkout_lines(
             voucher_info = fetch_voucher_info(voucher, checkout.voucher_code)
             attach_voucher_to_line_info(voucher_info, lines_info)
     return lines_info, unavailable_variant_pks
+
+
+def attach_scoped_unit_prices(
+    lines_info: Iterable[CheckoutLineInfo],
+    user_id: int | None,
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> None:
+    """Set the scoped unit price of every line for the checkout user.
+
+    Gift lines keep the listing price, which the gift discount cancels out.
+    """
+    listing_ids = {
+        line_info.channel_listing.pk
+        for line_info in lines_info
+        if line_info.channel_listing and not line_info.line.is_gift
+    }
+    scoped_prices = get_scoped_prices(
+        listing_ids, user_id, timezone.now(), database_connection_name
+    )
+    if not scoped_prices:
+        return
+    for line_info in lines_info:
+        if line_info.channel_listing and not line_info.line.is_gift:
+            line_info.scoped_unit_price = scoped_prices.get(
+                line_info.channel_listing.pk
+            )
 
 
 def get_variant_channel_listing(

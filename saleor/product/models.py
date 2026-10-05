@@ -403,30 +403,38 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         self,
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
+        scoped_price: Optional["Money"] = None,
     ) -> "Money":
-        """Return the base variant price before applying the promotion discounts."""
-        return (
-            channel_listing.price
-            if price_override is None
-            else Money(price_override, channel_listing.currency)
-        )
+        """Return the base variant price before applying the promotion discounts.
+
+        A custom price wins over a scoped price, which wins over the listing price.
+        """
+        if price_override is not None:
+            return Money(price_override, channel_listing.currency)
+        if scoped_price is not None:
+            return scoped_price
+        return channel_listing.price
 
     def get_price(
         self,
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
         promotion_rules: Iterable["PromotionRule"] | None = None,
+        scoped_price: Optional["Money"] = None,
     ) -> "Money":
         """Return the variant discounted price with applied promotions.
 
-        If a custom price is provided, return the price with applied discounts from
-        valid promotion rules for this variant.
+        If a custom or a scoped price is provided, return that price with applied
+        discounts from the given promotion rules. Otherwise return the stored
+        discounted price of the listing.
         """
         from ..discount.utils.promotion import calculate_discounted_price_for_rules
 
-        if price_override is None:
+        if price_override is None and scoped_price is None:
             return channel_listing.discounted_price or channel_listing.price
-        price: Money = self.get_base_price(channel_listing, price_override)
+        price: Money = self.get_base_price(
+            channel_listing, price_override, scoped_price
+        )
         rules = promotion_rules or []
         return calculate_discounted_price_for_rules(
             price=price, rules=rules, currency=channel_listing.currency

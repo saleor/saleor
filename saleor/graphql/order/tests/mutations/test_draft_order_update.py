@@ -6,6 +6,7 @@ import graphene
 import pytest
 from django.test import override_settings
 from django.utils import timezone
+from freezegun import freeze_time
 from prices import TaxedMoney
 
 from .....core.models import EventDelivery
@@ -4002,3 +4003,59 @@ def test_draft_order_update_with_inactive_voucher_code(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER_CODE.name
     assert errors[0]["field"] == "voucherCode"
+
+
+@freeze_time("2026-09-15 12:00:00")
+def test_draft_order_update_user_expires_the_line_prices(
+    staff_api_client, permission_group_manage_orders, draft_order, customer_user2
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    assert order.user != customer_user2
+    line_1, line_2 = order.lines.all()
+    line_1.draft_base_price_expire_at = timezone.now() + timedelta(days=1)
+    line_1.save(update_fields=["draft_base_price_expire_at"])
+    line_2.is_price_overridden = True
+    line_2.draft_base_price_expire_at = None
+    line_2.save(update_fields=["is_price_overridden", "draft_base_price_expire_at"])
+    query = DRAFT_ORDER_UPDATE_USER_EMAIL_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "userEmail": customer_user2.email}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrderUpdate"]["errors"] == []
+    order.refresh_from_db(fields=["user"])
+    assert order.user == customer_user2
+    line_1.refresh_from_db(fields=["draft_base_price_expire_at"])
+    line_2.refresh_from_db(fields=["draft_base_price_expire_at"])
+    assert line_1.draft_base_price_expire_at == timezone.now()
+    assert line_2.draft_base_price_expire_at is None
+
+
+def test_draft_order_update_without_user_change_keeps_the_line_prices(
+    staff_api_client, permission_group_manage_orders, draft_order
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    line = order.lines.first()
+    expire_at = timezone.now() + timedelta(days=1)
+    line.draft_base_price_expire_at = expire_at
+    line.save(update_fields=["draft_base_price_expire_at"])
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "input": {"customerNote": "A note"}}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrderUpdate"]["errors"] == []
+    line.refresh_from_db(fields=["draft_base_price_expire_at"])
+    assert line.draft_base_price_expire_at == expire_at

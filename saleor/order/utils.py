@@ -45,6 +45,7 @@ from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
 from ..payment import TransactionEventType
 from ..payment.model_helpers import get_total_authorized
+from ..product.scoped_prices import get_scoped_prices
 from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
     decrease_allocations,
@@ -226,6 +227,34 @@ def determine_order_status(
     return status
 
 
+def attach_scoped_prices_to_lines_data(
+    order: Order, lines_data: Iterable["OrderLineData"]
+) -> None:
+    """Resolve the scoped unit price of every new line for the order user in one batch.
+
+    The variants of the lines are expected to have their channel listings
+    prefetched, so the listings are matched in memory.
+    """
+    listing_id_by_variant_id: dict[int, int] = {}
+    for line_data in lines_data:
+        variant = line_data.variant
+        if variant is None:
+            continue
+        for channel_listing in variant.channel_listings.all():
+            if channel_listing.channel_id == order.channel_id:
+                listing_id_by_variant_id[variant.pk] = channel_listing.pk
+    scoped_prices = get_scoped_prices(
+        set(listing_id_by_variant_id.values()), order.user_id, timezone.now()
+    )
+    for line_data in lines_data:
+        if line_data.variant is None:
+            continue
+        listing_id = listing_id_by_variant_id.get(line_data.variant.pk)
+        line_data.scoped_price = (
+            scoped_prices.get(listing_id) if listing_id is not None else None
+        )
+
+
 @traced_atomic_transaction()
 def create_order_line(
     order,
@@ -243,6 +272,7 @@ def create_order_line(
 
     product = variant.product
     channel_listing = variant.channel_listings.get(channel=channel)
+    scoped_price = line_data.scoped_price
 
     # vouchers are not applied for new lines in unconfirmed/draft orders
     untaxed_unit_price = variant.get_price(
@@ -251,10 +281,12 @@ def create_order_line(
         promotion_rules=(
             [rule_info.rule for rule_info in rules_info] if rules_info else None
         ),
+        scoped_price=scoped_price,
     )
     untaxed_undiscounted_price = variant.get_base_price(
         channel_listing,
         price_override=price_override,
+        scoped_price=scoped_price,
     )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     undiscounted_unit_price = TaxedMoney(
@@ -310,7 +342,7 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross and rules_info:
         line_discounts = create_order_line_discount_objects_for_catalogue_promotions(
-            line, rules_info, channel
+            line, rules_info, channel, scoped_price
         )
         promotion = rules_info[0].promotion
         line.sale_id = get_sale_id(promotion)
@@ -1309,6 +1341,19 @@ def store_user_addresses_from_draft_order(order, manager):
     order.draft_save_shipping_address = None
     order.save(
         update_fields=["draft_save_billing_address", "draft_save_shipping_address"]
+    )
+
+
+def expire_draft_order_line_prices(order: Order) -> None:
+    """Make the next price refresh reload the base prices of the draft order lines.
+
+    Lines with a custom price are left alone, their price never refreshes.
+    """
+    if order.status != OrderStatus.DRAFT:
+        return
+    # the flag is nullable, so lines with a NULL flag are refreshed too
+    order.lines.exclude(is_price_overridden=True).update(
+        draft_base_price_expire_at=timezone.now()
     )
 
 

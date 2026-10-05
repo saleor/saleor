@@ -1,3 +1,4 @@
+import datetime
 from unittest.mock import ANY, patch
 
 import graphene
@@ -423,3 +424,26 @@ def test_checkout_customer_attach_do_not_mark_shipping_as_stale(
     assert data["checkout"]["email"] == customer_user2.email
     checkout.refresh_from_db()
     assert checkout.delivery_methods_stale_at == expected_stale_time
+
+
+@freeze_time("2026-09-15 12:00:00")
+def test_checkout_customer_attach_expires_the_checkout_prices(
+    user_api_client, checkout_with_item, customer_user
+):
+    # given
+    checkout = checkout_with_item
+    checkout.price_expiration = timezone.now() + datetime.timedelta(hours=1)
+    checkout.save(update_fields=["price_expiration"])
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_ATTACH, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkoutCustomerAttach"]["errors"] == []
+    checkout.refresh_from_db(fields=["user", "price_expiration"])
+    assert checkout.user == customer_user
+    assert checkout.price_expiration == timezone.now()

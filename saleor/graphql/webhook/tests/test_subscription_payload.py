@@ -1,7 +1,12 @@
+from decimal import Decimal
+
 import graphene
 from django.test import override_settings
 from django.utils import timezone
 
+from ....checkout.fetch import fetch_checkout_info
+from ....checkout.tests.utils import add_variant_to_checkout
+from ....plugins.manager import get_plugins_manager
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.models import Webhook
 from ..subscription_payload import (
@@ -435,3 +440,53 @@ def test_generate_payload_promise_from_subscription_unable_to_build_payload(
     # then
     payload = payload.get()
     assert payload is None
+
+
+def test_generate_calculate_taxes_payload_uses_the_scoped_price(
+    checkout,
+    variant,
+    b2b_customer_user,
+    variant_channel_listing_price_for_customer_type,
+    subscription_webhook,
+):
+    # given
+    checkout.user = b2b_customer_user
+    checkout.save(update_fields=["user"])
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    quantity = 2
+    add_variant_to_checkout(checkout_info, variant, quantity, check_quantity=False)
+    scoped_amount = variant_channel_listing_price_for_customer_type.price_amount
+    query = """
+    subscription {
+      event {
+        ... on CalculateTaxes {
+          taxBase {
+            lines {
+              unitPrice {
+                amount
+              }
+              totalPrice {
+                amount
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    webhook = subscription_webhook(query, WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES)
+    request = initialize_request(app=webhook.app)
+
+    # when
+    payload = generate_payload_from_subscription(
+        event_type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+        subscribable_object=checkout,
+        subscription_query=webhook.subscription_query,
+        request=request,
+    )
+
+    # then
+    [line_payload] = payload["taxBase"]["lines"]
+    assert Decimal(line_payload["unitPrice"]["amount"]) == scoped_amount
+    assert Decimal(line_payload["totalPrice"]["amount"]) == scoped_amount * quantity

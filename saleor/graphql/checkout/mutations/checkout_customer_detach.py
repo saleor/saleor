@@ -1,6 +1,7 @@
 import graphene
 
 from ....checkout.actions import call_checkout_event
+from ....checkout.utils import invalidate_prices_for_checkout
 from ....core.exceptions import PermissionDenied
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
@@ -69,7 +70,9 @@ class CheckoutCustomerDetach(BaseMutation):
 
         checkout.user = None
         checkout.search_index_dirty = True
-        checkout.save(update_fields=["user", "last_change", "search_index_dirty"])
+        # the detached customer may have had their own prices
+        price_fields = invalidate_prices_for_checkout(checkout, save=False)
+        checkout.save(update_fields=["user", "search_index_dirty", *price_fields])
         manager = get_plugin_manager_promise(info.context).get()
 
         call_checkout_event(

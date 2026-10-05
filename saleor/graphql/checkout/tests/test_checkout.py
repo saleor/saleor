@@ -53,6 +53,8 @@ from ....product.models import (
     ProductChannelListing,
     ProductVariant,
     ProductVariantChannelListing,
+    VariantChannelListingPrice,
+    VariantChannelListingPriceCustomerType,
 )
 from ....shipping.models import ShippingMethod, ShippingMethodTranslation
 from ....tests import race_condition
@@ -2579,6 +2581,47 @@ def test_checkout_prices_with_gift_promotion(
     assert gift_line["variant"]["id"] == graphene.Node.to_global_id(
         "ProductVariant", variant_id
     )
+
+
+def test_checkout_prices_with_gift_promotion_keep_the_listing_price_for_the_gift(
+    user_api_client,
+    customer_user,
+    customer_type,
+    checkout_with_item_and_gift_promotion,
+):
+    # given
+    checkout = checkout_with_item_and_gift_promotion
+    customer_user.customer_type = customer_type
+    customer_user.save(update_fields=["customer_type"])
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    gift_line = checkout.lines.get(is_gift=True)
+    gift_listing = gift_line.variant.channel_listings.get(channel=checkout.channel)
+    listing_price = VariantChannelListingPrice.objects.create(
+        variant_channel_listing=gift_listing,
+        currency=gift_listing.currency,
+        price_amount=Decimal(8),
+    )
+    VariantChannelListingPriceCustomerType.objects.create(
+        listing_price=listing_price, customer_type=customer_type
+    )
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+
+    # then
+    content = get_graphql_content(response)
+    [gift_line_data] = [
+        line_data
+        for line_data in content["data"]["checkout"]["lines"]
+        if line_data["isGift"] is True
+    ]
+    assert (
+        gift_line_data["undiscountedUnitPrice"]["amount"] == gift_listing.price_amount
+    )
+    assert gift_line_data["unitPrice"]["gross"]["amount"] == 0
+    assert gift_line_data["totalPrice"]["gross"]["amount"] == 0
 
 
 @pytest.mark.parametrize(

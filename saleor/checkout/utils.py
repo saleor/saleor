@@ -54,6 +54,7 @@ from ..giftcard.utils import (
 from ..payment.models import Payment
 from ..plugins.manager import PluginsManager
 from ..product import models as product_models
+from ..product.scoped_prices import get_scoped_prices
 from ..warehouse.reservations import reserve_stocks_and_preorders
 from . import AddressType, base_calculations, calculations
 from .delivery_context import is_shipping_required
@@ -109,8 +110,11 @@ def invalidate_checkout_prices(
     save: bool,
 ) -> list[str]:
     """Mark checkout as ready for prices recalculation."""
-    checkout = checkout_info.checkout
+    return invalidate_prices_for_checkout(checkout_info.checkout, save=save)
 
+
+def invalidate_prices_for_checkout(checkout: "Checkout", *, save: bool) -> list[str]:
+    """Mark checkout as ready for prices recalculation."""
     price_expiration = timezone.now()
     checkout.price_expiration = price_expiration
     checkout.discount_expiration = price_expiration
@@ -235,6 +239,11 @@ def add_variants_to_checkout(
                 channel_id=channel.id, variant_id__in=new_variant_ids
             )
         }
+        scoped_prices = get_scoped_prices(
+            [listing.pk for listing in new_variant_listing_map.values()],
+            checkout.user_id,
+            timezone.now(),
+        )
 
         to_create: list[CheckoutLine] = []
         to_update: list[CheckoutLine] = []
@@ -248,7 +257,12 @@ def add_variants_to_checkout(
             else:
                 variant = variants_map[line_data.variant_id]
                 _append_line_to_create(
-                    to_create, checkout, variant, line_data, new_variant_listing_map
+                    to_create,
+                    checkout,
+                    variant,
+                    line_data,
+                    new_variant_listing_map,
+                    scoped_prices,
                 )
 
         if to_delete:
@@ -334,11 +348,15 @@ def _append_line_to_create(
     variant,
     line_data,
     new_variant_listing_map: dict[int, "product_models.ProductVariantChannelListing"],
+    scoped_prices: dict[int, Money],
 ):
     if line_data.quantity > 0:
         variant_listing = new_variant_listing_map.get(variant.id)
+        scoped_price = (
+            scoped_prices.get(variant_listing.pk) if variant_listing else None
+        )
         variant_price_amount = variant.get_base_price(
-            variant_listing, line_data.custom_price
+            variant_listing, line_data.custom_price, scoped_price
         ).amount
         variant_prior_price_amount = variant.get_prior_price_amount(variant_listing)
         checkout_line = CheckoutLine(
