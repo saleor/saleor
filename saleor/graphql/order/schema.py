@@ -5,6 +5,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.search import prefix_search
 from ...order import models
 from ...permission.enums import OrderPermissions
+from ...permission.read_permissions import expand_read_permissions
 from ...permission.utils import has_one_of_permissions
 from ..core import ResolveInfo
 from ..core.connection import (
@@ -221,7 +222,9 @@ class OrderQueries(graphene.ObjectType):
         if not id:
             requester = get_user_or_app_from_context(info.context)
             permissions = [OrderPermissions.MANAGE_ORDERS]
-            if not has_one_of_permissions(requester, permissions):
+            if not has_one_of_permissions(
+                requester, expand_read_permissions(permissions)
+            ):
                 raise PermissionDenied(permissions=permissions)
             try:
                 id = ext_ref_to_global_id_or_error(
