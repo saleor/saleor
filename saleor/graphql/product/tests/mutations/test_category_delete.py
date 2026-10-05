@@ -12,12 +12,15 @@ from .....attribute.utils import associate_attribute_values_to_instance
 from .....core.db.locks import AdvisoryLock
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
+from .....product.error_codes import ProductErrorCode
 from .....product.models import Category, ProductChannelListing
 from .....thumbnail.models import Thumbnail
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import (
+    assert_no_permission,
     get_graphql_content,
+    get_graphql_content_from_response,
 )
 
 MUTATION_CATEGORY_DELETE = """
@@ -33,6 +36,193 @@ MUTATION_CATEGORY_DELETE = """
         }
     }
 """
+
+DELETE_CATEGORY_BY_EXTERNAL_REFERENCE_MUTATION = """
+    mutation deleteCategory($id: ID, $externalReference: String) {
+        categoryDelete(id: $id, externalReference: $externalReference) {
+            category {
+                name
+                externalReference
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_delete_category_by_external_reference(
+    staff_api_client, category, permission_manage_products
+):
+    # given
+    external_reference = "test-ext-ref"
+    category.external_reference = external_reference
+    category.save(update_fields=["external_reference"])
+    variables = {"externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_CATEGORY_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["categoryDelete"]
+    assert data["errors"] == []
+    assert data["category"]["name"] == category.name
+    assert data["category"]["externalReference"] == external_reference
+    assert Category.objects.filter(pk=category.pk).exists() is False
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "null",
+            {"id": None, "externalReference": None},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "empty",
+            {"externalReference": ""},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "both",
+            {"externalReference": "existing-reference"},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "Argument 'id' cannot be combined with 'external_reference'",
+        ),
+        (
+            "not_found",
+            {"externalReference": "missing-reference"},
+            "externalReference",
+            ProductErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    category.external_reference = "existing-reference"
+    category.save(update_fields=("external_reference",))
+    original_name = category.name
+    original_reference = category.external_reference
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.category_deleted")
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["id"] = graphene.Node.to_global_id("Category", category.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        DELETE_CATEGORY_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["categoryDelete"]
+    assert data["category"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    category.refresh_from_db(fields=("name", "external_reference"))
+    assert category.name == original_name
+    assert category.external_reference == original_reference
+    webhook.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    category,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    category.external_reference = "existing-reference"
+    category.save(update_fields=("external_reference",))
+    original_name = category.name
+    original_reference = category.external_reference
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.category_deleted")
+    variables = {"externalReference": original_reference}
+
+    # when
+    response = client.post_graphql(
+        DELETE_CATEGORY_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["categoryDelete"]
+        assert data["errors"] == []
+        assert Category.objects.filter(pk=category.pk).exists() is False
+        assert data["category"] == {
+            "name": original_name,
+            "externalReference": original_reference,
+        }
+        webhook.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"categoryDelete": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["categoryDelete"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: MANAGE_PRODUCTS"
+        )
+        category.refresh_from_db(fields=("name", "external_reference"))
+        assert category.name == original_name
+        assert category.external_reference == original_reference
+        webhook.assert_not_called()
 
 
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
