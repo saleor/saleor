@@ -163,12 +163,15 @@ def test_get_available_quantity_with_equal_quantities_in_different_stocks(
     variant_with_many_stocks,
     channel_USD,
 ):
-    """Should count properly when multiple warehouses have the same quantity in stock.
+    """Should count properly when multiple warehouses have variants in stock.
 
     When warehouse A has 1 quantity in stock, and warehouse B has 1 quantity in stock too,
     then when creating an order or retrieving the available quantity for purchasing
     2 quantities, then it should be flagged as 'in stock' as 2 quantities are in-stock
     even though the stock is spread across 2 warehouses.
+
+    The same should be true when warehouse A has a different in-stock amount compared
+    to warehouse B.
     """
 
     # given
@@ -191,7 +194,7 @@ def test_get_available_quantity_with_equal_quantities_in_different_stocks(
 
     # then
     assert available_quantity == expected_total_available
-    assert (
+    assert (  # Shouldn't raise `InsufficientStock`
         check_stock_quantity(
             variant_with_many_stocks,
             COUNTRY_CODE,
@@ -199,7 +202,7 @@ def test_get_available_quantity_with_equal_quantities_in_different_stocks(
             requested_quantity,
             include_shipping_zones=True,
         )
-        is None
+        is None  # function never returns anything, thus we expect `None`
     )
 
 
