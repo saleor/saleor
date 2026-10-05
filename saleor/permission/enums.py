@@ -70,10 +70,12 @@ class PaymentPermissions(BasePermissionEnum):
 
 class PagePermissions(BasePermissionEnum):
     MANAGE_PAGES = "page.manage_pages"
+    READ_PAGES = "page.read_pages"
 
 
 class PageTypePermissions(BasePermissionEnum):
     MANAGE_PAGE_TYPES_AND_ATTRIBUTES = "page.manage_page_types_and_attributes"
+    READ_PAGE_TYPES_AND_ATTRIBUTES = "page.read_page_types_and_attributes"
 
 
 class ProductPermissions(BasePermissionEnum):
