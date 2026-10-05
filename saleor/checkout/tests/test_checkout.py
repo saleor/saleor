@@ -12,6 +12,7 @@ from prices import Money, TaxedMoney
 from ...account.models import Address
 from ...core.taxes import zero_money
 from ...discount import (
+    NOT_APPLICABLE_MESSAGE,
     DiscountType,
     DiscountValueType,
     RewardType,
@@ -886,7 +887,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable_in_country(
             checkout_with_items.shipping_address,
         )
     # then
-    assert str(e.value) == "This offer is not valid in your country."
+    assert str(e.value) == NOT_APPLICABLE_MESSAGE
 
 
 def test_get_discount_for_checkout_shipping_voucher_not_applicable_spent_not_enough(
