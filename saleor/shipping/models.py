@@ -97,6 +97,7 @@ class ShippingZone(ModelWithMetadata):
     class Meta(ModelWithMetadata.Meta):
         permissions = (
             (ShippingPermissions.MANAGE_SHIPPING.codename, "Manage shipping."),
+            (ShippingPermissions.READ_SHIPPING.codename, "Read shipping."),
         )
         indexes = [
             *ModelWithMetadata.Meta.indexes,
