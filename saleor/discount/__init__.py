@@ -77,7 +77,7 @@ class PromoCodeRejectionReason(Enum):
     CUSTOMER_EMAIL_REQUIRED = "customer_email_required"
     SHIPPING_NOT_REQUIRED = "shipping_not_required"
     DELIVERY_METHOD_NOT_SET = "delivery_method_not_set"
-    NO_ELIGIBLE_LINES = "no_eligible_lines"
+    NO_ELIGIBLE_PRODUCTS = "no_eligible_products"
     NO_LONGER_AVAILABLE = "no_longer_available"
 
 

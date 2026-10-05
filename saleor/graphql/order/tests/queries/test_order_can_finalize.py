@@ -2,9 +2,11 @@ import datetime
 
 import graphene
 
+from .....discount import NOT_APPLICABLE_MESSAGE
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....product.models import ProductVariant
+from ....core.enums import PromoCodeRejectionReason
 from ....tests.utils import get_graphql_content
 
 ORDER_CAN_FINALIZE_QUERY = """
@@ -188,3 +190,52 @@ def test_can_finalize_order_invalid_voucher(
     assert len(errors) == 1
     assert errors[0]["code"] == OrderErrorCode.INVALID_VOUCHER.name
     assert errors[0]["field"] == "voucher"
+
+
+ORDER_ERRORS_PROMO_CODE_DETAILS_QUERY = """
+    query OrderQuery($id: ID!){
+        order(id: $id){
+            canFinalize
+            errors {
+                code
+                field
+                message
+                promoCodeDetails {
+                    reason
+                }
+            }
+        }
+    }
+"""
+
+
+def test_errors_report_voucher_rejection_reason(
+    staff_api_client, permission_manage_orders, draft_order_with_voucher
+):
+    # given
+    order = draft_order_with_voucher
+    assert order.channel.include_draft_order_in_voucher_usage is True
+    order.voucher.channel_listings.all().delete()
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_ERRORS_PROMO_CODE_DETAILS_QUERY, variables
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["order"]
+    assert data["canFinalize"] is False
+    assert data["errors"] == [
+        {
+            "code": OrderErrorCode.INVALID_VOUCHER.name,
+            "field": "voucher",
+            "message": NOT_APPLICABLE_MESSAGE,
+            "promoCodeDetails": {
+                "reason": PromoCodeRejectionReason.NOT_APPLICABLE.name
+            },
+        }
+    ]

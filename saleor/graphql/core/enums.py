@@ -331,7 +331,7 @@ def promo_code_rejection_reason_description(enum):
             "The voucher applies to shipping, but no delivery method is selected "
             "yet. Selecting one may make the voucher applicable."
         ),
-        promo_code_rejection_reason.NO_ELIGIBLE_LINES: (
+        promo_code_rejection_reason.NO_ELIGIBLE_PRODUCTS: (
             "The voucher applies to specific products, collections or categories, "
             "and none of the ordered lines match."
         ),

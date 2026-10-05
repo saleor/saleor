@@ -13412,7 +13412,7 @@ enum PromoCodeRejectionReason @doc(category: "Discounts") {
   """
   The voucher applies to specific products, collections or categories, and none of the ordered lines match.
   """
-  NO_ELIGIBLE_LINES
+  NO_ELIGIBLE_PRODUCTS
 
   """
   The promo code was applicable when it was added to the checkout, but is no longer available.

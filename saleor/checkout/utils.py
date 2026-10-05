@@ -543,7 +543,7 @@ def _get_products_voucher_discount(
         prices = get_prices_of_discounted_specific_product(lines, voucher)
     if not prices:
         msg = "This offer is only valid for selected items."
-        raise NotApplicable(msg, reason=PromoCodeRejectionReason.NO_ELIGIBLE_LINES)
+        raise NotApplicable(msg, reason=PromoCodeRejectionReason.NO_ELIGIBLE_PRODUCTS)
     return get_products_voucher_discount(voucher, prices, checkout_info.channel)
 
 

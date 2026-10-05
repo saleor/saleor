@@ -50,10 +50,10 @@ class NotApplicable(ValueError):
 
     def __init__(
         self,
-        msg,
-        min_spent=None,
-        min_checkout_items_quantity=None,
-        reason=None,
+        msg: str,
+        min_spent: Money | None = None,
+        min_checkout_items_quantity: int | None = None,
+        reason: PromoCodeRejectionReason | None = None,
     ):
         super().__init__(msg)
         self.min_spent = min_spent

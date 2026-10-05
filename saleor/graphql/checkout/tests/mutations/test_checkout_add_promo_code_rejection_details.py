@@ -145,7 +145,7 @@ def test_already_used_by_customer_reports_not_applicable(
     )
 
 
-def test_no_eligible_lines(
+def test_no_eligible_products(
     api_client, checkout_with_item, voucher_specific_product_type, product_list
 ):
     # given
@@ -165,7 +165,7 @@ def test_no_eligible_lines(
     _assert_single_error(
         data,
         CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
-        NO_PARAMS | {"reason": PromoCodeRejectionReason.NO_ELIGIBLE_LINES.name},
+        NO_PARAMS | {"reason": PromoCodeRejectionReason.NO_ELIGIBLE_PRODUCTS.name},
     )
 
 
