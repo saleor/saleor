@@ -45,19 +45,17 @@ def _get_available_quantity(
     checkout_lines: list["CheckoutLine"] | None = None,
     check_reservations: bool = False,
 ) -> int:
-    results = stocks.aggregate(
-        total_quantity=Coalesce(Sum("quantity", distinct=True), 0),
-        quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0),
+    results = stocks.annotate_available_quantity().aggregate(
+        total_available_quantity=Coalesce(Sum("available_quantity"), 0),
     )
-    total_quantity = results["total_quantity"]
-    quantity_allocated = results["quantity_allocated"]
+    total_available_quantity = results["total_available_quantity"]
 
     if check_reservations:
         quantity_reserved = get_reserved_stock_quantity(stocks, checkout_lines)
     else:
         quantity_reserved = 0
 
-    return max(total_quantity - quantity_allocated - quantity_reserved, 0)
+    return max(total_available_quantity - quantity_reserved, 0)
 
 
 def check_stock_and_preorder_quantity(
