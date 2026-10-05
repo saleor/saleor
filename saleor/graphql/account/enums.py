@@ -30,7 +30,7 @@ def __country_code_enum_description(enum):
     return None
 
 
-CountryCodeEnum = graphene.Enum(
+CountryCodeEnum: Final[graphene.Enum] = graphene.Enum(
     "CountryCode",
     [(str_to_enum(country[0]), country[0]) for country in countries],
     description=__country_code_enum_description,
