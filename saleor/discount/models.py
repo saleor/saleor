@@ -16,7 +16,7 @@ from ..app.models import App
 from ..channel.models import Channel
 from ..core.db.fields import MoneyField, SanitizedJSONField
 from ..core.editorjs import clean_editorjs
-from ..core.models import ModelWithMetadata
+from ..core.models import ModelWithExternalReference, ModelWithMetadata
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import Translation
 from ..permission.enums import DiscountPermissions
@@ -318,7 +318,7 @@ class PromotionQueryset(models.QuerySet["Promotion"]):
 PromotionManager = models.Manager.from_queryset(PromotionQueryset)
 
 
-class Promotion(ModelWithMetadata):
+class Promotion(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
     type = models.CharField(
