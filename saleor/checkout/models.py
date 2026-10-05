@@ -324,6 +324,8 @@ class Checkout(models.Model):
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
             (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
             (CheckoutPermissions.MANAGE_TAXES.codename, "Manage taxes"),
+            (CheckoutPermissions.READ_CHECKOUTS.codename, "Read checkouts"),
+            (CheckoutPermissions.READ_TAXES.codename, "Read taxes"),
         )
         indexes = [
             BTreeIndex(
