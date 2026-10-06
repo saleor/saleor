@@ -15,9 +15,15 @@ QUERY_PROMOTION_RULES_BUYER_CONDITIONS = """
                     id
                     name
                 }
-                customerAttributeValues {
-                    id
-                    name
+                customerAttributes {
+                    attribute {
+                        id
+                        name
+                    }
+                    values {
+                        id
+                        name
+                    }
                 }
             }
         }
@@ -67,18 +73,106 @@ def test_promotion_rules_expose_their_buyer_conditions(
             "name": customer_type.name,
         }
     ]
-    assert rule_data["customerAttributeValues"] == [
+    assert rule_data["customerAttributes"] == [
         {
-            "id": graphene.Node.to_global_id("AttributeValue", gold_value.pk),
-            "name": gold_value.name,
+            "attribute": {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                ),
+                "name": loyalty_customer_attribute.name,
+            },
+            "values": [
+                {
+                    "id": graphene.Node.to_global_id("AttributeValue", gold_value.pk),
+                    "name": gold_value.name,
+                }
+            ],
         }
     ]
     for data in rules_data:
         if data is not rule_data:
             assert data["customerTypes"] == []
-            assert data["customerAttributeValues"] == []
+            assert data["customerAttributes"] == []
     for table in CONDITION_TABLES:
         condition_queries = [
             query for query in context.captured_queries if table in query["sql"]
         ]
         assert len(condition_queries) == 1
+
+
+def test_promotion_rule_groups_the_values_per_attribute(
+    staff_api_client,
+    permission_group_manage_discounts,
+    promotion_rule_for_attribute_value,
+    loyalty_customer_attribute,
+    interests_customer_attribute,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    rule = promotion_rule_for_attribute_value
+    gold_value = AttributeValue.objects.get(
+        attribute=loyalty_customer_attribute, slug="gold"
+    )
+    silver_value = AttributeValue.objects.get(
+        attribute=loyalty_customer_attribute, slug="silver"
+    )
+    music_value = AttributeValue.objects.get(
+        attribute=interests_customer_attribute, slug="music"
+    )
+    sports_value = AttributeValue.objects.get(
+        attribute=interests_customer_attribute, slug="sports"
+    )
+    PromotionRuleCustomerAttributeValue.objects.bulk_create(
+        [
+            PromotionRuleCustomerAttributeValue(rule=rule, value=value)
+            for value in (music_value, silver_value, sports_value)
+        ]
+    )
+    assert loyalty_customer_attribute.pk < interests_customer_attribute.pk
+    assert sports_value.pk < music_value.pk
+    variables = {"id": graphene.Node.to_global_id("Promotion", rule.promotion_id)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PROMOTION_RULES_BUYER_CONDITIONS, variables
+    )
+
+    # then
+    rules_data = get_graphql_content(response)["data"]["promotion"]["rules"]
+    rule_data = next(
+        data
+        for data in rules_data
+        if data["id"] == graphene.Node.to_global_id("PromotionRule", rule.pk)
+    )
+    assert rule_data["customerAttributes"] == [
+        {
+            "attribute": {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                ),
+                "name": loyalty_customer_attribute.name,
+            },
+            "values": [
+                {
+                    "id": graphene.Node.to_global_id("AttributeValue", value.pk),
+                    "name": value.name,
+                }
+                for value in (gold_value, silver_value)
+            ],
+        },
+        {
+            "attribute": {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", interests_customer_attribute.pk
+                ),
+                "name": interests_customer_attribute.name,
+            },
+            "values": [
+                {
+                    "id": graphene.Node.to_global_id("AttributeValue", value.pk),
+                    "name": value.name,
+                }
+                for value in (sports_value, music_value)
+            ],
+        },
+    ]

@@ -30,8 +30,13 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 customerTypes {
                     id
                 }
-                customerAttributeValues {
-                    id
+                customerAttributes {
+                    attribute {
+                        id
+                    }
+                    values {
+                        id
+                    }
                 }
             }
             errors {
@@ -52,8 +57,13 @@ PROMOTION_RULE_UPDATE_MUTATION = """
                 customerTypes {
                     id
                 }
-                customerAttributeValues {
-                    id
+                customerAttributes {
+                    attribute {
+                        id
+                    }
+                    values {
+                        id
+                    }
                 }
             }
             errors {
@@ -76,8 +86,13 @@ PROMOTION_CREATE_MUTATION = """
                     customerTypes {
                         id
                     }
-                    customerAttributeValues {
-                        id
+                    customerAttributes {
+                        attribute {
+                            id
+                        }
+                        values {
+                            id
+                        }
                     }
                 }
             }
@@ -152,7 +167,16 @@ def test_rule_create_stores_the_buyer_conditions(
     assert data["errors"] == []
     rule_data = data["promotionRule"]
     assert rule_data["customerTypes"] == [{"id": _customer_type_id(customer_type)}]
-    assert rule_data["customerAttributeValues"] == [{"id": _value_id(gold_value)}]
+    assert rule_data["customerAttributes"] == [
+        {
+            "attribute": {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                )
+            },
+            "values": [{"id": _value_id(gold_value)}],
+        }
+    ]
     _, rule_pk = graphene.Node.from_global_id(rule_data["id"])
     rule = PromotionRule.objects.get(pk=rule_pk)
     assert list(
@@ -369,8 +393,15 @@ def test_rule_update_replaces_a_dimension_and_keeps_the_other(
     assert data["promotionRule"]["customerTypes"] == [
         {"id": type_id} for type_id in expected_type_ids
     ]
-    assert data["promotionRule"]["customerAttributeValues"] == [
-        {"id": _value_id(gold_value)}
+    assert data["promotionRule"]["customerAttributes"] == [
+        {
+            "attribute": {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                )
+            },
+            "values": [{"id": _value_id(gold_value)}],
+        }
     ]
     assert [
         _customer_type_id(condition.customer_type)
@@ -478,7 +509,7 @@ def test_promotion_create_stores_the_buyer_conditions_of_every_rule(
         graphene.Node.to_global_id("PromotionRule", type_rule.pk)
     ]
     assert type_rule_data["customerTypes"] == [{"id": _customer_type_id(customer_type)}]
-    assert type_rule_data["customerAttributeValues"] == []
+    assert type_rule_data["customerAttributes"] == []
 
 
 def test_promotion_create_rejects_more_than_100_customer_types(

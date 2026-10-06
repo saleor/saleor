@@ -111,8 +111,8 @@ class VariantChannelListingPriceUpdate(BaseMutation):
                 else UNSET
             ),
             attribute_value_ids=(
-                clean_attribute_value_ids(input["attribute_values"] or [])
-                if "attribute_values" in input
+                clean_attribute_value_ids(input["customer_attribute_values"] or [])
+                if "customer_attribute_values" in input
                 else UNSET
             ),
             valid_from=input["valid_from"] if "valid_from" in input else UNSET,

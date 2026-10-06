@@ -36,7 +36,7 @@ def clean_attribute_value_ids(
     invalid_code: str,
     *,
     purpose: str,
-    params_field: str = "attribute_values",
+    params_field: str = "customer_attribute_values",
 ) -> frozenset[int]:
     """Resolve attribute values given as global ids or as already loaded nodes.
 

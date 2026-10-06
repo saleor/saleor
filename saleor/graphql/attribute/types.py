@@ -27,6 +27,7 @@ from ..core.context import (
 )
 from ..core.descriptions import (
     ADDED_IN_322,
+    ADDED_IN_324,
     DEPRECATED_IN_3X_INPUT,
     NESTED_QUERY_LIMIT_DESCRIPTION,
 )
@@ -68,6 +69,7 @@ from .dataloaders.assigned_attributes import (
 from .dataloaders.attributes import (
     AttributesByAttributeId,
 )
+from .dataloaders.customer_conditions import CustomerAttributeConditionData
 from .dataloaders.reference_types import (
     AttributeReferencePageTypesByAttributeIdAndLimitLoader,
     AttributeReferenceProductTypesByAttributeIdAndLimitLoader,
@@ -688,6 +690,38 @@ class SelectedAttribute(ChannelContextTypeForObjectType):
         return get_attribute_values(root, info, limit=None).then(
             _wrap_with_channel_context
         )
+
+
+class CustomerAttributeCondition(BaseObjectType):
+    attribute = graphene.Field(
+        Attribute,
+        required=True,
+        description="The customer attribute the condition is on.",
+    )
+    values = NonNullList(
+        AttributeValue,
+        required=True,
+        description="Values of the attribute. Holding one of them is enough.",
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
+        description = (
+            "A condition on a customer attribute. The buyer must hold one of the "
+            "listed values of the attribute." + ADDED_IN_324
+        )
+
+    @staticmethod
+    def resolve_attribute(
+        root: CustomerAttributeConditionData, _info: ResolveInfo
+    ) -> ChannelContext[models.Attribute]:
+        return ChannelContext(node=root.attribute, channel_slug=None)
+
+    @staticmethod
+    def resolve_values(
+        root: CustomerAttributeConditionData, _info: ResolveInfo
+    ) -> list[ChannelContext[models.AttributeValue]]:
+        return [ChannelContext(node=value, channel_slug=None) for value in root.values]
 
 
 class AssignedAttribute(BaseInterface):
