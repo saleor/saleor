@@ -1,6 +1,6 @@
 import graphene
 
-from ..core.descriptions import PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import BaseInputObjectType, NonNullList
@@ -102,4 +102,26 @@ class PromotionRuleBaseInput(BaseInputObjectType):
     )
     reward_type = RewardTypeEnum(
         description="Defines the reward type of the promotion rule." + PREVIEW_FEATURE
+    )
+    customer_types = NonNullList(
+        graphene.ID,
+        description=(
+            "Customer types the buyer must belong to for the rule to apply, one of "
+            "them is enough. Guests never match. The list replaces the current "
+            "one, null or an empty list removes the condition. A rule of an order "
+            "promotion may rely on this condition alone, with no `orderPredicate`. "
+            "The number of items is limited to 100." + ADDED_IN_324
+        ),
+    )
+    customer_attribute_values = NonNullList(
+        graphene.ID,
+        description=(
+            "Values of customer attributes the buyer must hold for the rule to "
+            "apply, one value per attribute is enough. Only values of customer "
+            "attributes with a fixed set of choices are accepted. Guests never "
+            "match. The list replaces the current one, null or an empty list "
+            "removes the condition. A rule of an order promotion may rely on this "
+            "condition alone, with no `orderPredicate`. The number of items is "
+            "limited to 100." + ADDED_IN_324
+        ),
     )

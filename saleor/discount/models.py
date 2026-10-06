@@ -452,6 +452,60 @@ class PromotionRule_Variants(models.Model):
     )
 
 
+class PromotionRuleCustomerType(models.Model):
+    """A customer type the buyer must belong to for the rule to apply.
+
+    The customer type is protected so that deleting it cannot silently widen
+    the promotion to more buyers.
+    """
+
+    rule = models.ForeignKey(
+        PromotionRule,
+        related_name="customer_type_conditions",
+        on_delete=models.CASCADE,
+    )
+    customer_type = models.ForeignKey(
+        "account.CustomerType",
+        related_name="promotion_rule_conditions",
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["rule", "customer_type"],
+                name="promotionrule_customer_type_unique",
+            )
+        ]
+
+
+class PromotionRuleCustomerAttributeValue(models.Model):
+    """A customer attribute value the buyer must hold for the rule to apply.
+
+    The value is protected so that deleting it cannot silently widen the
+    promotion to more buyers.
+    """
+
+    rule = models.ForeignKey(
+        PromotionRule,
+        related_name="customer_attribute_value_conditions",
+        on_delete=models.CASCADE,
+    )
+    value = models.ForeignKey(
+        "attribute.AttributeValue",
+        related_name="promotion_rule_conditions",
+        on_delete=models.PROTECT,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["rule", "value"],
+                name="promotionrule_customer_attribute_value_unique",
+            )
+        ]
+
+
 class PromotionRuleTranslation(Translation):
     name = models.CharField(max_length=255, null=True, blank=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)

@@ -16993,6 +16993,20 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   giftsLimit: Int
+
+  """
+  Customer types the buyer must belong to for the rule to apply, one of them is enough. Empty when the rule has no such condition.
+  
+  Added in Saleor 3.24.
+  """
+  customerTypes: [CustomerType!]!
+
+  """
+  Values of customer attributes the buyer must hold for the rule to apply, one value per attribute is enough. Empty when the rule has no such condition.
+  
+  Added in Saleor 3.24.
+  """
+  customerAttributeValues: [AttributeValue!]!
 }
 
 enum RewardValueTypeEnum @doc(category: "Discounts") {
@@ -30148,6 +30162,13 @@ type PromotionCreateError {
 
   """Number of gifts defined for this promotion rule exceeding the limit."""
   giftsLimitExceedBy: Int
+
+  """
+  List of customer attribute value IDs which cause the error.
+  
+  Added in Saleor 3.24.
+  """
+  customerAttributeValues: [ID!]
 }
 
 enum PromotionCreateErrorCode {
@@ -30220,6 +30241,20 @@ input PromotionRuleInput @doc(category: "Discounts") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   rewardType: RewardTypeEnum
+
+  """
+  Customer types the buyer must belong to for the rule to apply, one of them is enough. Guests never match. The list replaces the current one, null or an empty list removes the condition. A rule of an order promotion may rely on this condition alone, with no `orderPredicate`. The number of items is limited to 100.
+  
+  Added in Saleor 3.24.
+  """
+  customerTypes: [ID!]
+
+  """
+  Values of customer attributes the buyer must hold for the rule to apply, one value per attribute is enough. Only values of customer attributes with a fixed set of choices are accepted. Guests never match. The list replaces the current one, null or an empty list removes the condition. A rule of an order promotion may rely on this condition alone, with no `orderPredicate`. The number of items is limited to 100.
+  
+  Added in Saleor 3.24.
+  """
+  customerAttributeValues: [ID!]
 
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
@@ -30393,6 +30428,13 @@ type PromotionRuleCreateError {
 
   """Number of gifts defined for this promotion rule exceeding the limit."""
   giftsLimitExceedBy: Int
+
+  """
+  List of customer attribute value IDs which cause the error.
+  
+  Added in Saleor 3.24.
+  """
+  customerAttributeValues: [ID!]
 }
 
 enum PromotionRuleCreateErrorCode {
@@ -30444,6 +30486,20 @@ input PromotionRuleCreateInput {
   """
   rewardType: RewardTypeEnum
 
+  """
+  Customer types the buyer must belong to for the rule to apply, one of them is enough. Guests never match. The list replaces the current one, null or an empty list removes the condition. A rule of an order promotion may rely on this condition alone, with no `orderPredicate`. The number of items is limited to 100.
+  
+  Added in Saleor 3.24.
+  """
+  customerTypes: [ID!]
+
+  """
+  Values of customer attributes the buyer must hold for the rule to apply, one value per attribute is enough. Only values of customer attributes with a fixed set of choices are accepted. Guests never match. The list replaces the current one, null or an empty list removes the condition. A rule of an order promotion may rely on this condition alone, with no `orderPredicate`. The number of items is limited to 100.
+  
+  Added in Saleor 3.24.
+  """
+  customerAttributeValues: [ID!]
+
   """List of channel ids to which the rule should apply to."""
   channels: [ID!]
 
@@ -30491,6 +30547,13 @@ type PromotionRuleUpdateError {
 
   """Number of gifts defined for this promotion rule exceeding the limit."""
   giftsLimitExceedBy: Int
+
+  """
+  List of customer attribute value IDs which cause the error.
+  
+  Added in Saleor 3.24.
+  """
+  customerAttributeValues: [ID!]
 }
 
 enum PromotionRuleUpdateErrorCode {
@@ -30541,6 +30604,20 @@ input PromotionRuleUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   rewardType: RewardTypeEnum
+
+  """
+  Customer types the buyer must belong to for the rule to apply, one of them is enough. Guests never match. The list replaces the current one, null or an empty list removes the condition. A rule of an order promotion may rely on this condition alone, with no `orderPredicate`. The number of items is limited to 100.
+  
+  Added in Saleor 3.24.
+  """
+  customerTypes: [ID!]
+
+  """
+  Values of customer attributes the buyer must hold for the rule to apply, one value per attribute is enough. Only values of customer attributes with a fixed set of choices are accepted. Guests never match. The list replaces the current one, null or an empty list removes the condition. A rule of an order promotion may rely on this condition alone, with no `orderPredicate`. The number of items is limited to 100.
+  
+  Added in Saleor 3.24.
+  """
+  customerAttributeValues: [ID!]
 
   """List of channel ids to add."""
   addChannels: [ID!]

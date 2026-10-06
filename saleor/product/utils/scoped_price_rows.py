@@ -1,9 +1,7 @@
 import datetime
-import enum
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Final, Literal
 
 from django.core.exceptions import ValidationError
 from django.db.models import Count
@@ -12,6 +10,7 @@ from django.utils import timezone
 from ...attribute import AttributeInputType, AttributeType
 from ...attribute.models import AttributeValue
 from ...core.tracing import traced_atomic_transaction
+from ...core.utils.unset import UNSET, Unset
 from ..error_codes import VariantChannelListingPriceErrorCode
 from ..lock_objects import (
     product_channel_listing_qs_select_for_update,
@@ -55,14 +54,6 @@ class ScopedPriceRowData:
             or self.valid_from is not None
             or self.valid_to is not None
         )
-
-
-class _Unset(enum.Enum):
-    UNSET = "unset"
-
-
-UNSET: Final = _Unset.UNSET
-Unset = Literal[_Unset.UNSET]
 
 
 @dataclass(frozen=True)

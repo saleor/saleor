@@ -5,11 +5,15 @@ from .....account import models
 from .....account.lock_objects import customer_type_qs_select_for_update
 from .....account.utils import get_default_customer_type
 from .....core.tracing import traced_atomic_transaction
+from .....discount.utils.buyer_conditions import (
+    count_promotion_rules_for_customer_type,
+)
 from .....permission.enums import CustomerTypePermissions
 from .....product.utils.scoped_price_rows import (
     count_scoped_price_rows_for_customer_type,
 )
 from .....webhook.event_types import WebhookEventAsyncType
+from ....attribute.mutations.utils import get_buyer_pricing_reference_message
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_USERS
@@ -63,13 +67,15 @@ class CustomerTypeDelete(ModelDeleteMutation):
                     )
                 }
             )
-        if row_count := count_scoped_price_rows_for_customer_type(instance.pk):
+        row_count = count_scoped_price_rows_for_customer_type(instance.pk)
+        rule_count = count_promotion_rules_for_customer_type(instance.pk)
+        if row_count or rule_count:
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        f"The customer type is referenced by {row_count} scoped "
-                        "variant prices. Remove the customer type from those prices "
-                        "first.",
+                        get_buyer_pricing_reference_message(
+                            "customer type", row_count, rule_count
+                        ),
                         code=CustomerTypeDeleteErrorCode.CANNOT_DELETE.value,
                     )
                 }

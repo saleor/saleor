@@ -166,7 +166,11 @@ def prepare_checkout_line_discount_objects_for_catalogue_promotions(
             if promotion.end_date:
                 applied_promotions_end_dates.append(promotion.end_date)
             rule_discount_amount = _get_rule_discount_amount(
-                line, rule_info, line_info.channel, line_info.scoped_unit_price
+                line,
+                rule_info,
+                line_info.channel,
+                line_info.scoped_unit_price,
+                line_info.channel_listing.price,
             )
             discount_name = get_discount_name(rule, rule_info.promotion)
             translated_name = get_discount_translated_name(rule_info)

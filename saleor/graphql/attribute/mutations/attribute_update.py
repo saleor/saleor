@@ -3,6 +3,10 @@ from django.core.exceptions import ValidationError
 
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
+from ....discount.utils.buyer_conditions import (
+    count_promotion_rules_by_attribute_value_id,
+    count_promotion_rules_for_attribute_values,
+)
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....product.utils.scoped_price_rows import (
     count_scoped_price_rows_by_attribute_value_id,
@@ -30,6 +34,7 @@ from .permissions import (
     check_attribute_type_permissions,
 )
 from .utils import (
+    get_buyer_pricing_reference_message,
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
 )
@@ -137,20 +142,34 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
                         )
                     }
                 )
-        row_counts = count_scoped_price_rows_by_attribute_value_id(
-            [value.pk for value in remove_values]
-        )
-        if row_counts:
+        value_ids = [value.pk for value in remove_values]
+        row_counts = count_scoped_price_rows_by_attribute_value_id(value_ids)
+        rule_counts = count_promotion_rules_by_attribute_value_id(value_ids)
+        if row_counts or rule_counts:
             referenced_names = ", ".join(
-                value.name for value in remove_values if value.pk in row_counts
+                value.name
+                for value in remove_values
+                if value.pk in row_counts or value.pk in rule_counts
             )
-            row_count = count_scoped_price_rows_for_attribute_values(row_counts)
+            row_count = (
+                count_scoped_price_rows_for_attribute_values(row_counts)
+                if row_counts
+                else 0
+            )
+            rule_count = (
+                count_promotion_rules_for_attribute_values(rule_counts)
+                if rule_counts
+                else 0
+            )
             raise ValidationError(
                 {
                     "remove_values": ValidationError(
-                        f"The values {referenced_names} are referenced by "
-                        f"{row_count} scoped variant prices. Remove them from "
-                        "those prices first.",
+                        get_buyer_pricing_reference_message(
+                            f"values {referenced_names}",
+                            row_count,
+                            rule_count,
+                            plural=True,
+                        ),
                         code=AttributeErrorCode.CANNOT_DELETE.value,
                     )
                 }

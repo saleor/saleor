@@ -106,12 +106,12 @@ class VariantChannelListingPriceUpdate(BaseMutation):
         changes = ScopedPriceRowChanges(
             price_amount=cls.clean_price_change(input, listing.currency),
             customer_type_ids=(
-                clean_customer_type_ids(cls, input["customer_types"] or [])
+                clean_customer_type_ids(input["customer_types"] or [])
                 if "customer_types" in input
                 else UNSET
             ),
             attribute_value_ids=(
-                clean_attribute_value_ids(cls, input["attribute_values"] or [])
+                clean_attribute_value_ids(input["attribute_values"] or [])
                 if "attribute_values" in input
                 else UNSET
             ),

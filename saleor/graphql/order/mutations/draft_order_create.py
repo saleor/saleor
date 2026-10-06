@@ -17,7 +17,7 @@ from ....order.actions import call_order_event
 from ....order.error_codes import OrderErrorCode
 from ....order.search import update_order_search_vector
 from ....order.utils import (
-    attach_scoped_prices_to_lines_data,
+    attach_buyer_pricing_to_lines_data,
     create_order_line,
     invalidate_order_prices,
     recalculate_order_weight,
@@ -372,7 +372,7 @@ class DraftOrderCreate(
     def _save_lines(info, instance, lines_data, app, requestor, site_settings):
         lines = []
         if lines_data:
-            attach_scoped_prices_to_lines_data(instance, lines_data)
+            attach_buyer_pricing_to_lines_data(instance, lines_data)
             for line_data in lines_data:
                 new_line = create_order_line(
                     instance,

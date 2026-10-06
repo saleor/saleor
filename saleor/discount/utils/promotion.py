@@ -11,7 +11,7 @@ import graphene
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import transaction
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import Exists, OuterRef, Q, QuerySet
 from prices import Money
 
 from ...channel.models import Channel
@@ -36,6 +36,7 @@ from ...product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ...product.scoped_prices import BuyerConditions, PricingBuyer, get_pricing_buyers
 from ...warehouse.availability import check_stock_quantity_bulk
 from .. import (
     DiscountType,
@@ -54,6 +55,11 @@ from ..models import (
     Promotion,
     PromotionRule,
 )
+from .buyer_conditions import (
+    get_rule_buyer_conditions,
+    rule_has_buyer_conditions_expression,
+)
+from .buyer_promotions import get_line_price_override
 from .shared import update_discount
 
 if TYPE_CHECKING:
@@ -79,21 +85,6 @@ def get_sale_id(promotion: "Promotion"):
         if promotion.old_sale_id
         else graphene.Node.to_global_id("Promotion", promotion.id)
     )
-
-
-def calculate_discounted_price_for_rules(
-    *, price: Money, rules: Iterable["PromotionRule"], currency: str
-):
-    """Calculate the discounted price for provided rules.
-
-    The discounts from rules summed up and applied to the price.
-    """
-    total_discount = zero_money(currency)
-    for rule in rules:
-        discount = rule.get_discount(currency)
-        total_discount += price - discount(price)
-
-    return max(price - total_discount, zero_money(currency))
 
 
 def calculate_discounted_price_for_promotions(
@@ -189,35 +180,28 @@ def _get_rule_discount_amount(
     rule_info: "VariantPromotionRuleInfo",
     channel: "Channel",
     scoped_price: Money | None = None,
+    listing_price: Money | None = None,
 ) -> Decimal:
     """Calculate the discount amount for catalogue promotion rule.
 
     When the line has an overridden or a scoped price, the discount is applied on
-    that base price instead of the stored listing discount.
+    that base price instead of the stored listing discount. A rule resolved for
+    the buyer has no stored discount, so it is applied on the listing price.
     """
     variant_listing_promotion_rule = rule_info.variant_listing_promotion_rule
-    if not variant_listing_promotion_rule:
-        return Decimal("0.0")
-
-    if isinstance(line, CheckoutLine):
-        price_override = (
-            Money(line.price_override, channel.currency_code)
-            if line.price_override is not None
-            else None
-        )
-    else:
-        price_override = (
-            line.undiscounted_base_unit_price if line.is_price_overridden else None
-        )
-
+    price_override = get_line_price_override(line, channel.currency_code)
     base_price = price_override if price_override is not None else scoped_price
+    if base_price is None and variant_listing_promotion_rule is None:
+        base_price = listing_price
+
     if base_price is not None:
-        # calculate discount amount on the overridden or scoped price
         discount = rule_info.rule.get_discount(channel.currency_code)
         discounted_price = discount(base_price)
         discount_amount = (base_price - discounted_price).amount
-    else:
+    elif variant_listing_promotion_rule is not None:
         discount_amount = variant_listing_promotion_rule.discount_amount
+    else:
+        return Decimal("0.0")
     return discount_amount * line.quantity
 
 
@@ -226,16 +210,20 @@ def is_discounted_line_by_catalogue_promotion_for_line_info(
 ) -> bool:
     """Return True when the line price is discounted by catalogue promotion.
 
-    A line with a scoped price is discounted when a promotion rule applies to it,
-    because the stored listing prices do not describe the price of this buyer.
-    Without a scoped price the stored prices are compared. They can lag behind
-    a validity window that just closed until the next price refresh, the same
-    way they lag behind a promotion that just ended.
+    A line with a scoped price, or with a rule resolved for the buyer, is
+    discounted when a promotion rule applies to it, because the stored listing
+    prices do not describe the price of this buyer. Otherwise the stored prices
+    are compared. They can lag behind a validity window that just closed until
+    the next price refresh, the same way they lag behind a promotion that just
+    ended.
     """
     if line_info.channel_listing is None:
         return False
-    if line_info.scoped_unit_price is not None:
-        return bool(line_info.rules_info)
+    rules_info = line_info.rules_info or []
+    if line_info.scoped_unit_price is not None or any(
+        rule_info.resolved_for_buyer for rule_info in rules_info
+    ):
+        return bool(rules_info)
     return is_discounted_line_by_catalogue_promotion(line_info.channel_listing)
 
 
@@ -556,12 +544,16 @@ def get_variants_to_promotion_rules_map(
         settings.DATABASE_CONNECTION_REPLICA_NAME
     ).filter(Exists(variant_qs.filter(id=OuterRef("productvariant_id"))))
 
-    # fetch rules only for active promotions
-    rules = PromotionRule.objects.using(
-        settings.DATABASE_CONNECTION_REPLICA_NAME
-    ).filter(
-        Exists(promotions.filter(id=OuterRef("promotion_id"))),
-        Exists(promotion_rule_variants.filter(promotionrule_id=OuterRef("pk"))),
+    # fetch rules only for active promotions, and only the rules every buyer
+    # gets, because the stored price is the guest price
+    rules = (
+        PromotionRule.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME)
+        .annotate(has_buyer_conditions=rule_has_buyer_conditions_expression())
+        .filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id"))),
+            Exists(promotion_rule_variants.filter(promotionrule_id=OuterRef("pk"))),
+            has_buyer_conditions=False,
+        )
     )
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
     rules_in_bulk = rules.in_bulk()
@@ -595,22 +587,48 @@ def fetch_promotion_rules_for_checkout_or_order(
 
     applicable_rules = []
     promotions = Promotion.objects.active()
-    rules = (
-        PromotionRule.objects.using(database_connection_name)
+    rules_qs = (
+        get_order_promotion_rules_qs(database_connection_name)
         .filter(Exists(promotions.filter(id=OuterRef("promotion_id"))))
-        .exclude(order_predicate={})
         .prefetch_related("channels")
     )
-    rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
+    rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules_qs)
+    rules = list(rules_qs)
+
+    # `has_buyer_conditions` is the annotation of the rules queryset
+    # a guest never matches a rule with buyer conditions, so neither the
+    # conditions nor the buyer are fetched for one
+    buyer_rule_ids = [
+        rule.id
+        for rule in rules
+        if rule.has_buyer_conditions  # type: ignore[attr-defined]
+    ]
+    conditions_by_rule_id: dict[UUID, BuyerConditions] = {}
+    buyer: PricingBuyer | None = None
+    if buyer_rule_ids and instance.user_id is not None:
+        conditions_by_rule_id = get_rule_buyer_conditions(
+            buyer_rule_ids, database_connection_name
+        )
+        buyer = get_pricing_buyers([instance.user_id], database_connection_name).get(
+            instance.user_id
+        )
 
     channel_id = instance.channel_id
     qs = instance._meta.model.objects.using(database_connection_name).filter(  # type: ignore[attr-defined] # noqa: E501
         pk=instance.pk
     )
-    for rule in rules.iterator(chunk_size=1000):
+    for rule in rules:
         rule_channel_ids = rule_to_channel_ids_map.get(rule.id, [])
         if channel_id not in rule_channel_ids:
             continue
+        if rule.has_buyer_conditions:  # type: ignore[attr-defined]
+            # the buyer check costs no query, so it runs before the predicate
+            conditions = conditions_by_rule_id.get(rule.id)
+            if conditions is None or conditions.match_buyer(buyer) is None:
+                continue
+            if not rule.order_predicate:
+                applicable_rules.append(rule)
+                continue
         predicate_type = (
             PredicateObjectType.CHECKOUT
             if isinstance(instance, Checkout)
@@ -626,6 +644,25 @@ def fetch_promotion_rules_for_checkout_or_order(
             applicable_rules.append(rule)
 
     return applicable_rules
+
+
+def get_order_promotion_rules_qs(
+    database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+) -> QuerySet[PromotionRule]:
+    """Return the rules that take part in order promotions.
+
+    Those are the rules with an order predicate and the rules of order
+    promotions that have buyer conditions only. The queryset is annotated with
+    `has_buyer_conditions`.
+    """
+    return (
+        PromotionRule.objects.using(database_connection_name)
+        .annotate(has_buyer_conditions=rule_has_buyer_conditions_expression())
+        .filter(
+            ~Q(order_predicate={})
+            | Q(has_buyer_conditions=True, promotion__type=PromotionType.ORDER)
+        )
+    )
 
 
 def _get_rule_to_channel_ids_map(rules: QuerySet):

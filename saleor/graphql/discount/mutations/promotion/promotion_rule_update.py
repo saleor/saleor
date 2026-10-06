@@ -4,14 +4,16 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from .....core.utils.unset import UNSET
 from .....discount import PromotionType, events, models
+from .....discount.utils.buyer_conditions import set_rule_buyer_conditions
 from .....discount.utils.promotion import get_current_products_for_rules
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error, NonNullList
@@ -38,6 +40,12 @@ class PromotionRuleUpdateError(Error):
         description=(
             "Number of gifts defined for this promotion rule exceeding the limit."
         )
+    )
+    customer_attribute_values = NonNullList(
+        graphene.ID,
+        description="List of customer attribute value IDs which cause the error."
+        + ADDED_IN_324,
+        required=False,
     )
 
 
@@ -155,6 +163,13 @@ class PromotionRuleUpdate(DeprecatedModelMutation):
                 instance.gifts.remove(*remove_gifts)
             if add_gifts := cleaned_data.get("add_gifts"):
                 instance.gifts.add(*add_gifts)
+            set_rule_buyer_conditions(
+                instance,
+                customer_type_ids=cleaned_data.get("customer_types", UNSET),
+                attribute_value_ids=cleaned_data.get(
+                    "customer_attribute_values", UNSET
+                ),
+            )
 
     @classmethod
     def post_save_actions(

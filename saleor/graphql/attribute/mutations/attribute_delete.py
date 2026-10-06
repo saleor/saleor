@@ -5,6 +5,7 @@ from django.db.models import Exists, OuterRef
 
 from ....attribute import models as models
 from ....attribute.lock_objects import attribute_value_qs_select_for_update
+from ....discount.utils.buyer_conditions import count_promotion_rules_by_attribute_id
 from ....page import models as page_models
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....product import models as product_models
@@ -27,7 +28,7 @@ from .permissions import (
     check_any_attribute_type_permission,
     check_attribute_type_permissions,
 )
-from .utils import get_scoped_price_reference_message
+from .utils import get_buyer_pricing_reference_message
 
 
 class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
@@ -65,12 +66,19 @@ class AttributeDelete(ModelDeleteMutation, ModelWithExtRefMutation):
 
     @classmethod
     def clean_instance(cls, _info: ResolveInfo, instance, /):
-        row_counts = count_scoped_price_rows_by_attribute_id([instance.pk])
-        if row_count := row_counts.get(instance.pk):
+        row_count = count_scoped_price_rows_by_attribute_id([instance.pk]).get(
+            instance.pk, 0
+        )
+        rule_count = count_promotion_rules_by_attribute_id([instance.pk]).get(
+            instance.pk, 0
+        )
+        if row_count or rule_count:
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        get_scoped_price_reference_message("attribute", row_count),
+                        get_buyer_pricing_reference_message(
+                            "attribute", row_count, rule_count
+                        ),
                         code=AttributeErrorCode.CANNOT_DELETE.value,
                     )
                 }

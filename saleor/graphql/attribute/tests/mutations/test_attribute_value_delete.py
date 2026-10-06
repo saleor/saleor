@@ -500,3 +500,34 @@ def test_delete_refuses_a_value_referenced_by_scoped_prices(
         "from those prices first."
     )
     value.refresh_from_db()
+
+
+def test_delete_refuses_a_value_referenced_by_promotion_rules(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+    promotion_rule_for_attribute_value,
+):
+    # given
+    value = loyalty_customer_attribute.values.get(slug="gold")
+    variables = {"id": graphene.Node.to_global_id("AttributeValue", value.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_VALUE_DELETE_WITH_CODE_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeValueDelete"]
+    assert data["attributeValue"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == AttributeErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The value is referenced by 1 promotion rules. Remove the value from "
+        "those rules first."
+    )
+    value.refresh_from_db()

@@ -87,10 +87,10 @@ class VariantChannelListingPriceCreate(BaseMutation):
         data = ScopedPriceRowData(
             price_amount=clean_price(input["price"], listing.currency),
             customer_type_ids=clean_customer_type_ids(
-                cls, input.get("customer_types") or []
+                input.get("customer_types") or []
             ),
             attribute_value_ids=clean_attribute_value_ids(
-                cls, input.get("attribute_values") or []
+                input.get("attribute_values") or []
             ),
             valid_from=input.get("valid_from"),
             valid_to=input.get("valid_to"),

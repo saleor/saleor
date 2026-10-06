@@ -6,7 +6,12 @@ from graphene.utils.str_converters import to_camel_case
 
 from .....discount import PromotionType, RewardType, RewardValueType
 from .....discount.models import PromotionRule
+from .....discount.utils.promotion import get_order_promotion_rules_qs
 from ....core.validators import validate_price_precision
+from ....core.validators.buyer_conditions import (
+    clean_attribute_value_ids,
+    clean_customer_type_ids,
+)
 
 if TYPE_CHECKING:
     from decimal import Decimal
@@ -23,6 +28,9 @@ def clean_promotion_rule(
     )
     gift_ids: set[int] = _get_gift_ids(cleaned_input, instance)
     _clean_gifts(gift_ids, errors, error_class, index)
+    has_buyer_conditions = _clean_buyer_conditions(
+        cleaned_input, errors, error_class, index, instance
+    )
     invalid_predicates = _clean_predicates(
         catalogue_predicate,
         order_predicate,
@@ -30,8 +38,13 @@ def clean_promotion_rule(
         error_class,
         index,
         promotion_type,
+        has_buyer_conditions,
     )
     if not invalid_predicates:
+        # a rule of an order promotion may rely on its buyer conditions alone
+        has_order_conditions = bool(order_predicate) or (
+            has_buyer_conditions and promotion_type == PromotionType.ORDER
+        )
         channel_currencies = _get_channel_currencies(cleaned_input, instance)
         _clean_catalogue_predicate(
             cleaned_input, catalogue_predicate, errors, error_class, index, instance
@@ -45,6 +58,7 @@ def clean_promotion_rule(
             error_class,
             index,
             instance,
+            has_order_conditions=has_order_conditions,
         )
         _clean_reward(
             cleaned_input,
@@ -55,9 +69,57 @@ def clean_promotion_rule(
             error_class,
             index,
             instance,
+            has_conditions=bool(catalogue_predicate) or has_order_conditions,
         )
 
     return cleaned_input
+
+
+def _clean_buyer_conditions(cleaned_input, errors, error_class, index, instance):
+    """Resolve the buyer condition ids in place and tell whether the rule keeps any.
+
+    A dimension left out of the input keeps the conditions of the instance, a
+    given list replaces them and null or an empty list clears them.
+    """
+    has_conditions = False
+    if "customer_types" in cleaned_input:
+        cleaned_input["customer_types"] = _clean_condition_ids(
+            lambda: clean_customer_type_ids(
+                cleaned_input["customer_types"], error_class.INVALID.value
+            ),
+            "customer_types",
+            errors,
+            index,
+        )
+        has_conditions |= bool(cleaned_input["customer_types"])
+    elif instance is not None:
+        has_conditions |= instance.customer_type_conditions.exists()
+    if "customer_attribute_values" in cleaned_input:
+        cleaned_input["customer_attribute_values"] = _clean_condition_ids(
+            lambda: clean_attribute_value_ids(
+                cleaned_input["customer_attribute_values"],
+                error_class.INVALID.value,
+                purpose="scope a promotion rule",
+                params_field="customer_attribute_values",
+            ),
+            "customer_attribute_values",
+            errors,
+            index,
+        )
+        has_conditions |= bool(cleaned_input["customer_attribute_values"])
+    elif instance is not None:
+        has_conditions |= instance.customer_attribute_value_conditions.exists()
+    return has_conditions
+
+
+def _clean_condition_ids(clean, field, errors, index) -> frozenset[int]:
+    try:
+        return clean()
+    except ValidationError as error:
+        if index is not None:
+            error.params = {**(error.params or {}), "index": index}
+        errors[field].append(error)
+        return frozenset()
 
 
 def _get_gift_ids(cleaned_input, instance) -> set[int]:
@@ -106,10 +168,12 @@ def _clean_predicates(
     error_class,
     index,
     promotion_type,
+    has_buyer_conditions=False,
 ):
     """Validate if predicates are provided and if they aren't mixed.
 
-    - At least one predicate is required - `catalogue` or `order` predicate.
+    - At least one predicate is required - `catalogue` or `order` predicate. An
+      `order` rule with buyer conditions may leave the order predicate out.
     - Promotion can have only one predicate type, raise error if there are mixed.
     """
     invalid_predicates = False
@@ -139,7 +203,7 @@ def _clean_predicates(
             )
             invalid_predicates = True
     if promotion_type == PromotionType.ORDER:
-        if order_predicate is None:
+        if not order_predicate and not has_buyer_conditions:
             errors["order_predicate"].append(
                 ValidationError(
                     message=(
@@ -210,28 +274,37 @@ def _clean_order_predicate(
     error_class,
     index,
     instance,
+    has_order_conditions=None,
 ):
     """Clean and validate order predicate.
 
-    - Reward type is required for rule with order predicate.
+    - Reward type is required for a rule with order conditions, which are an
+      order predicate or buyer conditions on a rule of an order promotion.
     - Price based predicates are allowed only for rules with one currency.
-    - Rules number with order predicate doesn't exceed the limit.
+    - Rules number taking part in order promotions doesn't exceed the limit.
     """
-    if not order_predicate:
+    if has_order_conditions is None:
+        has_order_conditions = bool(order_predicate)
+    if not has_order_conditions:
         return
 
     reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if not reward_type:
         errors["reward_type"].append(
             ValidationError(
-                message="The rewardType is required when orderPredicate is provided.",
+                message=(
+                    "The rewardType is required when orderPredicate is provided."
+                    if order_predicate
+                    else "The rewardType is required when customerTypes or "
+                    "customerAttributeValues are provided for an order promotion."
+                ),
                 code=error_class.REQUIRED.value,
                 params={"index": index} if index is not None else {},
             )
         )
         return
 
-    price_based_predicate = any(
+    price_based_predicate = bool(order_predicate) and any(
         field in str(order_predicate)
         for field in [
             "base_subtotal_price",
@@ -258,7 +331,7 @@ def _clean_order_predicate(
         )
         return
 
-    order_rules_count = PromotionRule.objects.exclude(order_predicate={}).count()
+    order_rules_count = get_order_promotion_rules_qs().count()
     rules_limit = settings.ORDER_RULES_LIMIT
     if order_rules_count >= int(rules_limit):
         errors["order_predicate"].append(
@@ -273,15 +346,16 @@ def _clean_order_predicate(
         )
         return
 
-    try:
-        cleaned_input["order_predicate"] = clean_predicate(
-            order_predicate,
-            error_class,
-            index,
-        )
-    except ValidationError as error:
-        errors["order_predicate"].append(error)
-        return
+    if order_predicate:
+        try:
+            cleaned_input["order_predicate"] = clean_predicate(
+                order_predicate,
+                error_class,
+                index,
+            )
+        except ValidationError as error:
+            errors["order_predicate"].append(error)
+            return
 
     if reward_type == RewardType.GIFT:
         _clean_gift_rule(cleaned_input, gift_ids, errors, error_class, index, instance)
@@ -352,14 +426,19 @@ def _clean_reward(
     error_class,
     index,
     instance,
+    has_conditions=None,
 ):
     """Validate reward value and reward value type.
 
+    - Both are required once the rule has any condition: a catalogue predicate,
+    an order predicate or buyer conditions on a rule of an order promotion.
     - Fixed reward value type requires channels with the same currency code
     to be specified.
     - Validate price precision for fixed reward value.
     - Check if percentage reward value is not above 100.
     """
+    if has_conditions is None:
+        has_conditions = bool(catalogue_predicate or order_predicate)
     reward_type = get_from_input_or_instance("reward_type", cleaned_input, instance)
     if (
         instance
@@ -373,7 +452,7 @@ def _clean_reward(
         "reward_value_type", cleaned_input, instance
     )
 
-    if reward_value_type is None and (catalogue_predicate or order_predicate):
+    if reward_value_type is None and has_conditions:
         errors["reward_value_type"].append(
             ValidationError(
                 message=(
@@ -384,7 +463,7 @@ def _clean_reward(
                 params={"index": index} if index is not None else {},
             )
         )
-    if reward_value is None and (catalogue_predicate or order_predicate):
+    if reward_value is None and has_conditions:
         errors["reward_value"].append(
             ValidationError(
                 message=(

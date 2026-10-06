@@ -25,6 +25,10 @@ from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType, DiscountValueType
 from ..discount.models import OrderDiscount, OrderLineDiscount, VoucherType
+from ..discount.utils.buyer_promotions import (
+    get_buyer_promotion_rules,
+    resolve_buyer_rules_info,
+)
 from ..discount.utils.manual_discount import apply_discount_to_value
 from ..discount.utils.order import (
     create_order_line_discount_objects_for_catalogue_promotions,
@@ -45,6 +49,7 @@ from ..giftcard.models import GiftCard
 from ..giftcard.search import mark_gift_cards_search_index_as_dirty
 from ..payment import TransactionEventType
 from ..payment.model_helpers import get_total_authorized
+from ..product.models import ProductVariantChannelListing
 from ..product.scoped_prices import get_scoped_prices
 from ..tax.utils import get_display_gross_prices, get_tax_class_kwargs_for_order_line
 from ..warehouse.management import (
@@ -227,32 +232,58 @@ def determine_order_status(
     return status
 
 
-def attach_scoped_prices_to_lines_data(
+def attach_buyer_pricing_to_lines_data(
     order: Order, lines_data: Iterable["OrderLineData"]
 ) -> None:
-    """Resolve the scoped unit price of every new line for the order user in one batch.
+    """Resolve the buyer pricing of every new line for the order user in one batch.
 
-    The variants of the lines are expected to have their channel listings
-    prefetched, so the listings are matched in memory.
+    That is the scoped unit price and, when a buyer-conditioned promotion rule
+    beats the stored rule of the listing, that rule. The variants of the lines
+    are expected to have their channel listings prefetched, so the listings
+    are matched in memory.
     """
-    listing_id_by_variant_id: dict[int, int] = {}
+    lines_data = list(lines_data)
+    listing_by_variant_id: dict[int, ProductVariantChannelListing] = {}
     for line_data in lines_data:
         variant = line_data.variant
         if variant is None:
             continue
         for channel_listing in variant.channel_listings.all():
             if channel_listing.channel_id == order.channel_id:
-                listing_id_by_variant_id[variant.pk] = channel_listing.pk
+                listing_by_variant_id[variant.pk] = channel_listing
     scoped_prices = get_scoped_prices(
-        set(listing_id_by_variant_id.values()), order.user_id, timezone.now()
+        {listing.pk for listing in listing_by_variant_id.values()},
+        order.user_id,
+        timezone.now(),
+    )
+    buyer_rules_by_variant_id = get_buyer_promotion_rules(
+        listing_by_variant_id, order.channel_id, order.user_id
     )
     for line_data in lines_data:
         if line_data.variant is None:
             continue
-        listing_id = listing_id_by_variant_id.get(line_data.variant.pk)
-        line_data.scoped_price = (
-            scoped_prices.get(listing_id) if listing_id is not None else None
+        listing = listing_by_variant_id.get(line_data.variant.pk)
+        if listing is None:
+            continue
+        line_data.scoped_price = scoped_prices.get(listing.pk)
+        buyer_rules = buyer_rules_by_variant_id.get(line_data.variant.pk)
+        if not buyer_rules or listing.price is None:
+            continue
+        if line_data.price_override is not None:
+            base_price = Money(line_data.price_override, listing.currency)
+        elif line_data.scoped_price is not None:
+            base_price = line_data.scoped_price
+        else:
+            base_price = listing.price
+        rules_info = resolve_buyer_rules_info(
+            base_price,
+            line_data.rules_info or [],
+            buyer_rules,
+            listing.currency,
+            order.language_code,
         )
+        if rules_info is not None:
+            line_data.rules_info = rules_info
 
 
 @traced_atomic_transaction()
@@ -274,12 +305,21 @@ def create_order_line(
     channel_listing = variant.channel_listings.get(channel=channel)
     scoped_price = line_data.scoped_price
 
-    # vouchers are not applied for new lines in unconfirmed/draft orders
+    # vouchers are not applied for new lines in unconfirmed/draft orders. The
+    # rules are passed only when the price must be computed for this line,
+    # otherwise the stored discounted price of the listing is used as before
+    has_buyer_pricing = (
+        price_override is not None
+        or scoped_price is not None
+        or any(rule_info.resolved_for_buyer for rule_info in rules_info or [])
+    )
     untaxed_unit_price = variant.get_price(
         channel_listing,
         price_override=price_override,
         promotion_rules=(
-            [rule_info.rule for rule_info in rules_info] if rules_info else None
+            [rule_info.rule for rule_info in rules_info]
+            if rules_info and has_buyer_pricing
+            else None
         ),
         scoped_price=scoped_price,
     )
@@ -342,7 +382,7 @@ def create_order_line(
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross and rules_info:
         line_discounts = create_order_line_discount_objects_for_catalogue_promotions(
-            line, rules_info, channel, scoped_price
+            line, rules_info, channel, scoped_price, channel_listing.price
         )
         promotion = rules_info[0].promotion
         line.sale_id = get_sale_id(promotion)

@@ -262,6 +262,7 @@ def _create_order_line_discount_for_catalogue_promotion(
     rule_info: VariantPromotionRuleInfo,
     channel: Channel,
     scoped_price: Money | None = None,
+    listing_price: Money | None = None,
 ):
     rule = rule_info.rule
     if rule.reward_value_type is None or rule.reward_value is None:
@@ -269,7 +270,7 @@ def _create_order_line_discount_for_catalogue_promotion(
             "Reward value type and reward value cannot be NULL for catalogue promotions."
         )
     rule_discount_amount = _get_rule_discount_amount(
-        line, rule_info, channel, scoped_price
+        line, rule_info, channel, scoped_price, listing_price
     )
     discount_name = get_discount_name(rule, rule_info.promotion)
     translated_name = get_discount_translated_name(rule_info)
@@ -294,11 +295,12 @@ def create_order_line_discount_objects_for_catalogue_promotions(
     rules_info: Iterable[VariantPromotionRuleInfo],
     channel: Channel,
     scoped_price: Money | None = None,
+    listing_price: Money | None = None,
 ) -> list["OrderLineDiscount"]:
     line_discounts_to_create: list[OrderLineDiscount] = []
     for rule_info in rules_info:
         line_discount = _create_order_line_discount_for_catalogue_promotion(
-            line, rule_info, channel, scoped_price
+            line, rule_info, channel, scoped_price, listing_price
         )
         line_discounts_to_create.append(line_discount)
 
@@ -365,14 +367,25 @@ def prepare_order_line_discount_objects_for_catalogue_promotions(lines_info):
         if line_info.rules_info:
             rule_info = line_info.rules_info[0]
             rule = rule_info.rule
+            listing_price = (
+                line_info.channel_listing.price if line_info.channel_listing else None
+            )
             if not discount_to_update:
                 line_discount = _create_order_line_discount_for_catalogue_promotion(
-                    line, rule_info, line_info.channel, line_info.scoped_unit_price
+                    line,
+                    rule_info,
+                    line_info.channel,
+                    line_info.scoped_unit_price,
+                    listing_price,
                 )
                 line_discounts_to_create.append(line_discount)
             else:
                 rule_discount_amount = _get_rule_discount_amount(
-                    line, rule_info, line_info.channel, line_info.scoped_unit_price
+                    line,
+                    rule_info,
+                    line_info.channel,
+                    line_info.scoped_unit_price,
+                    listing_price,
                 )
                 update_promotion_discount(
                     rule,

@@ -18,6 +18,9 @@ from ....attribute.lock_objects import (
     attribute_value_qs_select_for_update,
 )
 from ....core.tracing import traced_atomic_transaction
+from ....discount.utils.buyer_conditions import (
+    count_promotion_rules_by_attribute_value_id,
+)
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
 from ....product.utils.scoped_price_rows import (
     count_scoped_price_rows_by_attribute_value_id,
@@ -51,9 +54,9 @@ from .attribute_update import AttributeUpdateInput
 from .mixins import AttributeMixin
 from .permissions import ATTRIBUTE_TYPE_PERMISSION_MAP
 from .utils import (
+    get_buyer_pricing_reference_message,
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
-    get_scoped_price_reference_message,
 )
 
 
@@ -268,8 +271,12 @@ class AttributeBulkUpdate(BaseMutation):
     @classmethod
     def _get_referenced_value_counts(
         cls, attributes_data: list[AttributeBulkUpdateInput]
-    ) -> dict[int, int]:
-        """Count the scoped prices referencing each value to remove, in one query."""
+    ) -> dict[int, tuple[int, int]]:
+        """Count the scoped prices and rules referencing each value to remove.
+
+        One query per kind for the whole input. Only referenced values are
+        present, as `(row_count, rule_count)`.
+        """
         value_ids = []
         for attribute_data in attributes_data:
             for value_global_id in attribute_data.fields.remove_values or []:
@@ -280,7 +287,12 @@ class AttributeBulkUpdate(BaseMutation):
                 except GraphQLError:
                     continue
                 value_ids.append(int(value_db_id))
-        return count_scoped_price_rows_by_attribute_value_id(value_ids)
+        row_counts = count_scoped_price_rows_by_attribute_value_id(value_ids)
+        rule_counts = count_promotion_rules_by_attribute_value_id(value_ids)
+        return {
+            value_id: (row_counts.get(value_id, 0), rule_counts.get(value_id, 0))
+            for value_id in set(row_counts) | set(rule_counts)
+        }
 
     @classmethod
     def _get_attrs_existing_and_duplicated_external_refs(
@@ -365,7 +377,7 @@ class AttributeBulkUpdate(BaseMutation):
         duplicated_values_external_ref,
         attributes,
         index_error_map: dict[int, list[AttributeBulkUpdateError]],
-        referenced_value_counts: dict[int, int],
+        referenced_value_counts: dict[int, tuple[int, int]],
     ):
         remove_values = attribute_data.fields.pop("remove_values", [])
         add_values = attribute_data.fields.pop("add_values", [])
@@ -460,7 +472,7 @@ class AttributeBulkUpdate(BaseMutation):
         attribute,
         attribute_index,
         index_error_map,
-        referenced_value_counts: dict[int, int],
+        referenced_value_counts: dict[int, tuple[int, int]],
     ):
         clean_remove_values = []
 
@@ -492,11 +504,14 @@ class AttributeBulkUpdate(BaseMutation):
                         code=AttributeBulkUpdateErrorCode.INVALID.value,
                     )
                 )
-            elif row_count := referenced_value_counts.get(value.pk):
+            elif counts := referenced_value_counts.get(value.pk):
+                row_count, rule_count = counts
                 index_error_map[attribute_index].append(
                     AttributeBulkUpdateError(
                         path=f"removeValues.{index}",
-                        message=get_scoped_price_reference_message("value", row_count),
+                        message=get_buyer_pricing_reference_message(
+                            "value", row_count, rule_count
+                        ),
                         code=AttributeBulkUpdateErrorCode.CANNOT_DELETE.value,
                     )
                 )

@@ -3,10 +3,16 @@ from decimal import Decimal
 import graphene
 import pytest
 
+from ....attribute.models import AttributeValue
+from ....product.utils.variants import fetch_variants_for_promotion_rules
 from ....tests.utils import dummy_editorjs
 from ... import RewardType, RewardValueType
 from ...interface import VariantPromotionRuleInfo
-from ...models import PromotionRule
+from ...models import (
+    PromotionRule,
+    PromotionRuleCustomerAttributeValue,
+    PromotionRuleCustomerType,
+)
 
 
 @pytest.fixture
@@ -95,3 +101,39 @@ def catalogue_predicate(product, category, collection, variant):
             {"variantPredicate": {"ids": [variant_id]}},
         ]
     }
+
+
+def _materialize_rule_variants(rule):
+    fetch_variants_for_promotion_rules(PromotionRule.objects.filter(pk=rule.pk))
+
+
+@pytest.fixture
+def promotion_rule_for_customer_type(promotion_rule, customer_type):
+    """Scope the 25% catalogue rule on the product to the B2B customer type."""
+    PromotionRuleCustomerType.objects.create(
+        rule=promotion_rule, customer_type=customer_type
+    )
+    _materialize_rule_variants(promotion_rule)
+    return promotion_rule
+
+
+@pytest.fixture
+def promotion_rule_for_attribute_value(promotion_rule, loyalty_customer_attribute):
+    """Scope the 25% catalogue rule on the product to the gold loyalty level."""
+    gold_value = AttributeValue.objects.get(
+        attribute=loyalty_customer_attribute, slug="gold"
+    )
+    PromotionRuleCustomerAttributeValue.objects.create(
+        rule=promotion_rule, value=gold_value
+    )
+    _materialize_rule_variants(promotion_rule)
+    return promotion_rule
+
+
+@pytest.fixture
+def order_promotion_rule_for_customer_type(order_promotion_rule, customer_type):
+    """Scope the 25% order rule to the B2B customer type."""
+    PromotionRuleCustomerType.objects.create(
+        rule=order_promotion_rule, customer_type=customer_type
+    )
+    return order_promotion_rule

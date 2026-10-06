@@ -18,6 +18,7 @@ from ..discount.interface import (
     fetch_variant_rules_info,
     fetch_voucher_info,
 )
+from ..discount.utils.buyer_promotions import attach_buyer_promotion_rules
 from ..product.scoped_prices import get_scoped_prices
 from ..shipping.interface import ShippingMethodData
 from ..shipping.utils import (
@@ -81,7 +82,9 @@ class CheckoutLineInfo(LineInfo):
         if self.line.price_override is not None:
             return Money(self.line.price_override, self.line.currency)
 
-        if self.channel_listing and self.scoped_unit_price is not None:
+        if self.channel_listing and (
+            self.scoped_unit_price is not None or self.has_buyer_promotion_rule
+        ):
             return self.variant.get_price(
                 self.channel_listing,
                 promotion_rules=[rule_info.rule for rule_info in self.rules_info],
@@ -100,6 +103,11 @@ class CheckoutLineInfo(LineInfo):
             total_price / self.line.quantity, zero_money(self.line.currency)
         )
         return quantize_price(unit_price, self.line.currency)
+
+    @property
+    def has_buyer_promotion_rule(self) -> bool:
+        """Tell whether the catalogue rule of the line was resolved for the buyer."""
+        return any(rule_info.resolved_for_buyer for rule_info in self.rules_info)
 
     @cached_property
     def undiscounted_unit_price(self) -> Money:
@@ -272,6 +280,13 @@ def fetch_checkout_lines(
         )
 
     attach_scoped_unit_prices(lines_info, checkout.user_id, database_connection_name)
+    attach_buyer_promotion_rules(
+        lines_info,
+        checkout.user_id,
+        channel,
+        checkout.language_code,
+        database_connection_name,
+    )
 
     if not skip_recalculation and checkout.voucher_code and lines_info:
         if not voucher:

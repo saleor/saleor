@@ -755,7 +755,7 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                     )
                     buyer_pricing_data = buyer_user_id.then(
                         lambda user_id: load_buyer_pricing_data(
-                            context, [variant_channel_listing.pk], user_id
+                            context, [variant_channel_listing], user_id
                         )
                     )
                     return Promise.all(
@@ -1287,10 +1287,9 @@ class Product(ChannelContextType[models.Product]):
                     default_rate = TaxClassDefaultRateByCountryLoader(context).load(
                         country_code
                     )
-                    listing_ids = [listing.pk for listing in variants_channel_listing]
                     buyer_pricing_data = buyer_user_id.then(
                         lambda user_id: load_buyer_pricing_data(
-                            context, listing_ids, user_id
+                            context, variants_channel_listing, user_id
                         )
                     )
                     return Promise.all(

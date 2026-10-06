@@ -188,11 +188,14 @@ def test_clean_predicates_mixed_promotion_predicates_invalid_catalogue_predicate
     )
 
     # then
-    assert len(errors) == 1
+    # an empty order predicate counts as missing on a rule without buyer conditions
+    assert len(errors) == 2
     assert len(errors["catalogue_predicate"]) == 1
     assert (
         errors["catalogue_predicate"][0].code == PromotionCreateErrorCode.INVALID.value
     )
+    assert len(errors["order_predicate"]) == 1
+    assert errors["order_predicate"][0].code == PromotionCreateErrorCode.REQUIRED.value
 
 
 def test_clean_predicates_mixed_promotion_predicates_invalid_order(

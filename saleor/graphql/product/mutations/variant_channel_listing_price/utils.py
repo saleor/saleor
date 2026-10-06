@@ -3,16 +3,19 @@ from decimal import Decimal
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....product.utils.scoped_price_rows import get_ineligible_attribute_value_ids
-from ....account.types import CustomerType
-from ....attribute.types import AttributeValue
 from ....core.enums import VariantChannelListingPriceErrorCode
-from ....core.mutations import BaseMutation
 from ....core.scalars import DateTime
 from ....core.types import BaseInputObjectType, Error, NonNullList
 from ....core.validators import validate_price_precision
-
-MAX_CONDITIONS_PER_DIMENSION = 100
+from ....core.validators.buyer_conditions import (
+    MAX_CONDITIONS_PER_DIMENSION,
+)
+from ....core.validators.buyer_conditions import (
+    clean_attribute_value_ids as clean_attribute_value_ids_or_error,
+)
+from ....core.validators.buyer_conditions import (
+    clean_customer_type_ids as clean_customer_type_ids_or_error,
+)
 
 
 class VariantChannelListingPriceScopeInput(BaseInputObjectType):
@@ -80,50 +83,21 @@ def clean_price(price: Decimal, currency: str) -> Decimal:
     return price
 
 
-def clean_customer_type_ids(
-    mutation: type[BaseMutation], ids: list[str]
-) -> frozenset[int]:
-    if not ids:
-        return frozenset()
-    _validate_list_size(ids, "customer_types")
-    customer_types = mutation.get_nodes_or_error(ids, "customer_types", CustomerType)
-    return frozenset(customer_type.pk for customer_type in customer_types)
-
-
-def clean_attribute_value_ids(
-    mutation: type[BaseMutation], ids: list[str]
-) -> frozenset[int]:
-    if not ids:
-        return frozenset()
-    _validate_list_size(ids, "attribute_values")
-    values = mutation.get_nodes_or_error(ids, "attribute_values", AttributeValue)
-    value_ids = frozenset(value.pk for value in values)
-    if ineligible_ids := get_ineligible_attribute_value_ids(value_ids):
-        raise ValidationError(
-            {
-                "attribute_values": ValidationError(
-                    "Only values of customer attributes with a fixed set of choices "
-                    "can scope a price.",
-                    code=VariantChannelListingPriceErrorCode.INVALID.value,
-                    params={
-                        "attribute_values": [
-                            graphene.Node.to_global_id("AttributeValue", value_id)
-                            for value_id in sorted(ineligible_ids)
-                        ]
-                    },
-                )
-            }
+def clean_customer_type_ids(ids: list[str]) -> frozenset[int]:
+    try:
+        return clean_customer_type_ids_or_error(
+            ids, VariantChannelListingPriceErrorCode.INVALID.value
         )
-    return value_ids
+    except ValidationError as error:
+        raise ValidationError({"customer_types": error}) from error
 
 
-def _validate_list_size(ids: list[str], field: str) -> None:
-    if len(ids) > MAX_CONDITIONS_PER_DIMENSION:
-        raise ValidationError(
-            {
-                field: ValidationError(
-                    f"Provide at most {MAX_CONDITIONS_PER_DIMENSION} items.",
-                    code=VariantChannelListingPriceErrorCode.INVALID.value,
-                )
-            }
+def clean_attribute_value_ids(ids: list[str]) -> frozenset[int]:
+    try:
+        return clean_attribute_value_ids_or_error(
+            ids,
+            VariantChannelListingPriceErrorCode.INVALID.value,
+            purpose="scope a price",
         )
+    except ValidationError as error:
+        raise ValidationError({"attribute_values": error}) from error
