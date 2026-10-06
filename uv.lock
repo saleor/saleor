@@ -2580,7 +2580,7 @@ wheels = [
 
 [[package]]
 name = "saleor"
-version = "3.22.72"
+version = "3.22.73"
 source = { virtual = "." }
 dependencies = [
     { name = "adyen" },
