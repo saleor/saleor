@@ -10,6 +10,7 @@ from ...attribute.models import AssignedUserAttributeValue, AttributeValue
 from ...discount import RewardValueType
 from ...discount.models import PromotionRule
 from ..scoped_prices import (
+    BuyerConditions,
     PricingBuyer,
     ScopedPriceRow,
     get_pricing_buyers,
@@ -525,3 +526,70 @@ def test_get_price_with_scoped_price_and_no_rules_returns_the_scoped_price(varia
 
     # then
     assert price == scoped_price
+
+
+@pytest.mark.parametrize(
+    ("_case", "conditions", "buyer", "expected_score"),
+    [
+        (
+            "no_conditions_match_everyone_with_no_score",
+            BuyerConditions(frozenset(), {}),
+            GUEST,
+            0,
+        ),
+        (
+            "type_in_the_set_scores_one",
+            BuyerConditions(frozenset({B2B_TYPE_ID, DEFAULT_TYPE_ID}), {}),
+            B2B_BUYER,
+            1,
+        ),
+        (
+            "type_outside_the_set_mismatches",
+            BuyerConditions(frozenset({B2B_TYPE_ID}), {}),
+            DEFAULT_BUYER,
+            None,
+        ),
+        (
+            "guest_never_matches_a_type_condition",
+            BuyerConditions(frozenset({DEFAULT_TYPE_ID}), {}),
+            GUEST,
+            None,
+        ),
+        (
+            "one_value_per_attribute_is_enough",
+            BuyerConditions(
+                frozenset(),
+                {LOYALTY_ATTRIBUTE_ID: frozenset({GOLD_VALUE_ID, SILVER_VALUE_ID})},
+            ),
+            GOLD_B2B_BUYER,
+            1,
+        ),
+        (
+            "every_attribute_must_match",
+            BuyerConditions(
+                frozenset(),
+                {
+                    LOYALTY_ATTRIBUTE_ID: frozenset({GOLD_VALUE_ID}),
+                    REGION_ATTRIBUTE_ID: frozenset({EU_VALUE_ID}),
+                },
+            ),
+            GOLD_B2B_BUYER,
+            None,
+        ),
+        (
+            "type_and_value_score_two",
+            BuyerConditions(
+                frozenset({B2B_TYPE_ID}),
+                {LOYALTY_ATTRIBUTE_ID: frozenset({GOLD_VALUE_ID})},
+            ),
+            GOLD_B2B_BUYER,
+            2,
+        ),
+    ],
+)
+def test_buyer_conditions_match_buyer(_case, conditions, buyer, expected_score):
+    # when
+    score = conditions.match_buyer(buyer)
+
+    # then
+    assert score == expected_score

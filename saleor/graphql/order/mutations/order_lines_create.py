@@ -14,7 +14,7 @@ from ....order.fetch import OrderLineInfo, fetch_order_lines
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     add_variant_to_order,
-    attach_scoped_prices_to_lines_data,
+    attach_buyer_pricing_to_lines_data,
     invalidate_order_prices,
     recalculate_order_weight,
 )
@@ -157,7 +157,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         site_settings: SiteSettings,
     ):
         added_lines: list[order_models.OrderLine] = []
-        attach_scoped_prices_to_lines_data(order, lines_data)
+        attach_buyer_pricing_to_lines_data(order, lines_data)
         try:
             for line_data in lines_data:
                 line = add_variant_to_order(

@@ -161,3 +161,60 @@ def test_delete_refuses_a_type_referenced_by_scoped_prices(
         "customer type from those prices first."
     )
     assert CustomerType.objects.filter(pk=customer_type.pk).exists() is True
+
+
+def test_delete_refuses_a_type_referenced_by_promotion_rules(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+    promotion_rule_for_customer_type,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    variables = {"id": graphene.Node.to_global_id("CustomerType", customer_type.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(CUSTOMER_TYPE_DELETE_MUTATION, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["customerTypeDelete"]
+    assert data["customerType"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == CustomerTypeDeleteErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The customer type is referenced by 1 promotion rules. Remove the "
+        "customer type from those rules first."
+    )
+    assert CustomerType.objects.filter(pk=customer_type.pk).exists() is True
+
+
+def test_delete_refuses_a_type_referenced_by_prices_and_promotion_rules(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    customer_type,
+    variant_channel_listing_price_for_customer_type,
+    promotion_rule_for_customer_type,
+):
+    # given
+    staff_api_client.user.user_permissions.add(
+        permission_manage_customer_types_and_attributes
+    )
+    variables = {"id": graphene.Node.to_global_id("CustomerType", customer_type.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(CUSTOMER_TYPE_DELETE_MUTATION, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]["customerTypeDelete"]
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["code"] == CustomerTypeDeleteErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The customer type is referenced by 1 scoped variant prices and 1 promotion "
+        "rules. Remove the customer type from those first."
+    )
+    assert CustomerType.objects.filter(pk=customer_type.pk).exists() is True

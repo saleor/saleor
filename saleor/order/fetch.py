@@ -18,6 +18,7 @@ from ..discount.interface import (
     fetch_voucher_info,
 )
 from ..discount.models import OrderLineDiscount, Voucher
+from ..discount.utils.buyer_promotions import attach_buyer_promotion_rules
 from ..discount.utils.voucher import (
     VoucherDenormalizedInfo,
     attach_voucher_to_line_info,
@@ -183,6 +184,9 @@ def fetch_draft_order_lines_info(
 
     if fetch_actual_prices:
         attach_scoped_unit_prices(lines_info, order.user_id)
+        attach_buyer_promotion_rules(
+            lines_info, order.user_id, channel, order.language_code
+        )
     attach_voucher_info(lines_info, order)
 
     return lines_info

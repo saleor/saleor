@@ -387,9 +387,8 @@ def test_get_price_overridden_price_with_discount(
     )
 
     # then
-    assert price.amount == price_override - reward_value_2 - (
-        reward_value_1 / 100 * price_override
-    )
+    # the best of the rules applies, as in the stored price: 5 off beats 10% of 20
+    assert price.amount == price_override - reward_value_2
 
 
 @pytest.mark.parametrize(

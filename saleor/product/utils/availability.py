@@ -5,7 +5,9 @@ from decimal import Decimal
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...discount.models import PromotionRule
-from ...discount.utils.promotion import calculate_discounted_price_for_rules
+from ...discount.utils.buyer_promotions import (
+    calculate_best_discounted_price_for_rules,
+)
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations import calculate_flat_rate_tax
@@ -48,21 +50,25 @@ def get_listing_prices(
 ) -> ListingPrices | None:
     """Return the listing prices for a buyer, or `None` when the listing has no price.
 
-    Without a scoped price the stored discounted price is used. With one, the
-    promotion rules are re-applied on the scoped price.
+    Without a scoped price and without promotion rules the stored discounted
+    price is used. Otherwise the best of the rules is applied on the scoped
+    price, or on the listing price when there is none.
     """
     if variant_channel_listing.price is None:
         return None
-    if scoped_price is None:
+    rules = list(promotion_rules)
+    if scoped_price is None and not rules:
         undiscounted = variant_channel_listing.price
         discounted = variant_channel_listing.discounted_price
         if discounted is None:
             discounted = undiscounted
     else:
-        undiscounted = scoped_price
-        discounted = calculate_discounted_price_for_rules(
-            price=scoped_price,
-            rules=promotion_rules,
+        undiscounted = (
+            scoped_price if scoped_price is not None else variant_channel_listing.price
+        )
+        discounted = calculate_best_discounted_price_for_rules(
+            price=undiscounted,
+            rules=rules,
             currency=variant_channel_listing.currency,
         )
     return ListingPrices(

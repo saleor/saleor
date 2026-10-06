@@ -424,19 +424,22 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     ) -> "Money":
         """Return the variant discounted price with applied promotions.
 
-        If a custom or a scoped price is provided, return that price with applied
-        discounts from the given promotion rules. Otherwise return the stored
-        discounted price of the listing.
+        If a custom or a scoped price is provided, or promotion rules are given,
+        return the base price with the best of the given rules applied, the way
+        the stored price is computed. Otherwise return the stored discounted
+        price of the listing.
         """
-        from ..discount.utils.promotion import calculate_discounted_price_for_rules
+        from ..discount.utils.buyer_promotions import (
+            calculate_best_discounted_price_for_rules,
+        )
 
-        if price_override is None and scoped_price is None:
+        rules = list(promotion_rules or [])
+        if price_override is None and scoped_price is None and not rules:
             return channel_listing.discounted_price or channel_listing.price
         price: Money = self.get_base_price(
             channel_listing, price_override, scoped_price
         )
-        rules = promotion_rules or []
-        return calculate_discounted_price_for_rules(
+        return calculate_best_discounted_price_for_rules(
             price=price, rules=rules, currency=channel_listing.currency
         )
 

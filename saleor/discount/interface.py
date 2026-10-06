@@ -74,6 +74,11 @@ class VariantPromotionRuleInfo(NamedTuple):
     promotion: "Promotion"
     promotion_translation: Optional["PromotionTranslation"]
     rule_translation: Optional["PromotionRuleTranslation"]
+    resolved_for_buyer: bool = False
+    """Set when the rule was resolved for the buyer rather than read from the
+    listing. Such a rule is never folded into the stored price, so its discount
+    is computed on the base price of the line. A gift reward also has no stored
+    listing rule, which is why the flag is explicit."""
 
 
 def fetch_variant_rules_info(

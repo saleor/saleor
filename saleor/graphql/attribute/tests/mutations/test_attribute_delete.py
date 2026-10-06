@@ -477,3 +477,35 @@ def test_delete_refuses_an_attribute_referenced_by_scoped_prices(
     )
     attribute.refresh_from_db()
     assert attribute.values.count() == 2
+
+
+def test_delete_refuses_an_attribute_referenced_by_promotion_rules(
+    staff_api_client,
+    permission_manage_customer_types_and_attributes,
+    loyalty_customer_attribute,
+    promotion_rule_for_attribute_value,
+):
+    # given
+    attribute = loyalty_customer_attribute
+    variables = {"id": graphene.Node.to_global_id("Attribute", attribute.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_DELETE_WITH_CODE_MUTATION,
+        variables,
+        permissions=[permission_manage_customer_types_and_attributes],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["attributeDelete"]
+    assert data["attribute"] is None
+    assert len(data["errors"]) == 1
+    error = data["errors"][0]
+    assert error["field"] == "id"
+    assert error["code"] == AttributeErrorCode.CANNOT_DELETE.name
+    assert error["message"] == (
+        "The attribute is referenced by 1 promotion rules. Remove the attribute "
+        "from those rules first."
+    )
+    attribute.refresh_from_db()
+    assert attribute.values.count() == 2

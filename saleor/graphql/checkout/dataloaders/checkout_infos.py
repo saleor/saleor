@@ -7,6 +7,9 @@ from promise import Promise
 from ....checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ....core.db.connection import allow_writer_in_context
 from ....discount import VoucherType
+from ....discount.interface import VariantPromotionRuleInfo
+from ....discount.models import PromotionRule
+from ....discount.utils.buyer_promotions import resolve_buyer_rules_info
 from ....discount.utils.voucher import attach_voucher_to_line_info
 from ....product.models import ProductVariantChannelListing
 from ...account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -26,7 +29,10 @@ from ...product.dataloaders import (
     ProductVariantByIdLoader,
     VariantChannelListingByVariantIdAndChannelIdLoader,
 )
-from ...product.dataloaders.scoped_prices import load_scoped_prices
+from ...product.dataloaders.scoped_prices import (
+    BuyerPromotionRulesByVariantIdLoader,
+    load_scoped_prices,
+)
 from ...tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChannelId
 from ...warehouse.dataloaders import WarehouseByIdLoader
 from .models import CheckoutByTokenLoader, CheckoutLinesByCheckoutTokenLoader
@@ -42,6 +48,39 @@ def _get_scoped_unit_price(
     if channel_listing is None or is_gift:
         return None
     return scoped_prices.get(channel_listing.pk)
+
+
+def _get_rules_info(
+    stored_rules_info: list[VariantPromotionRuleInfo] | None,
+    buyer_rules: list[PromotionRule],
+    line,
+    channel_listing: ProductVariantChannelListing | None,
+    scoped_unit_price: Money | None,
+    language_code: str,
+) -> list[VariantPromotionRuleInfo]:
+    """Let the buyer rules of the line compete with its stored rule."""
+    stored_rules_info = stored_rules_info or []
+    if (
+        not buyer_rules
+        or line.is_gift
+        or channel_listing is None
+        or channel_listing.price is None
+    ):
+        return stored_rules_info
+    if line.price_override is not None:
+        base_price = Money(line.price_override, channel_listing.currency)
+    elif scoped_unit_price is not None:
+        base_price = scoped_unit_price
+    else:
+        base_price = channel_listing.price
+    rules_info = resolve_buyer_rules_info(
+        base_price,
+        stored_rules_info,
+        buyer_rules,
+        channel_listing.currency,
+        language_code,
+    )
+    return rules_info if rules_info is not None else stored_rules_info
 
 
 class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
@@ -254,27 +293,35 @@ class CheckoutLinesInfoByCheckoutTokenLoader(
                 )
 
                 @allow_writer_in_context(self.context)
-                def with_scoped_prices(scoped_prices_per_checkout):
+                def with_buyer_pricing(results):
+                    scoped_prices_per_checkout, buyer_rules_per_checkout = results
                     lines_info_map = defaultdict(list)
                     voucher_infos_map = {
                         voucher_info.voucher_code: voucher_info
                         for voucher_info in voucher_infos
                         if voucher_info is not None and voucher_info.voucher_code
                     }
-                    for checkout, lines, scoped_prices in zip(
+                    for checkout, lines, scoped_prices, buyer_rules_per_line in zip(
                         checkouts,
                         checkout_lines,
                         scoped_prices_per_checkout,
+                        buyer_rules_per_checkout,
                         strict=True,
                     ):
-                        lines_info_map[checkout.pk].extend(
-                            [
+                        for line, buyer_rules in zip(
+                            lines, buyer_rules_per_line, strict=True
+                        ):
+                            channel_listing = channel_listings_map[
+                                (line.variant_id, checkout.channel_id)
+                            ]
+                            scoped_unit_price = _get_scoped_unit_price(
+                                scoped_prices, channel_listing, line.is_gift
+                            )
+                            lines_info_map[checkout.pk].append(
                                 CheckoutLineInfo(
                                     line=line,
                                     variant=variants_map[line.variant_id],
-                                    channel_listing=channel_listings_map[
-                                        (line.variant_id, checkout.channel_id)
-                                    ],
+                                    channel_listing=channel_listing,
                                     product=products_map[line.variant_id],
                                     product_type=product_types_map[line.variant_id],
                                     collections=sorted(
@@ -288,20 +335,19 @@ class CheckoutLinesInfoByCheckoutTokenLoader(
                                     discounts=checkout_lines_discounts[line.id],
                                     tax_class=tax_class_map[line.variant_id],
                                     channel=channels[checkout.channel_id],
-                                    rules_info=rules_info_map[line.id],
+                                    rules_info=_get_rules_info(
+                                        rules_info_map[line.id],
+                                        buyer_rules,
+                                        line,
+                                        channel_listing,
+                                        scoped_unit_price,
+                                        checkout.language_code,
+                                    ),
                                     voucher=None,
                                     voucher_code=None,
-                                    scoped_unit_price=_get_scoped_unit_price(
-                                        scoped_prices,
-                                        channel_listings_map[
-                                            (line.variant_id, checkout.channel_id)
-                                        ],
-                                        line.is_gift,
-                                    ),
+                                    scoped_unit_price=scoped_unit_price,
                                 )
-                                for line in lines
-                            ]
-                        )
+                            )
 
                     for checkout in checkouts:
                         if not checkout.voucher_code:
@@ -321,6 +367,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(
                     return [lines_info_map[key] for key in keys]
 
                 scoped_prices_promises = []
+                buyer_rules_promises: list[Promise[list[list[PromotionRule]]]] = []
                 for checkout, lines in zip(checkouts, checkout_lines, strict=True):
                     listings = [
                         channel_listings_map[(line.variant_id, checkout.channel_id)]
@@ -333,7 +380,32 @@ class CheckoutLinesInfoByCheckoutTokenLoader(
                             checkout.user_id,
                         )
                     )
-                return Promise.all(scoped_prices_promises).then(with_scoped_prices)
+                    if checkout.user_id is None:
+                        # a guest never matches a buyer-conditioned rule
+                        buyer_rules_promises.append(
+                            Promise.resolve([[] for _ in lines])
+                        )
+                    else:
+                        buyer_rules_promises.append(
+                            BuyerPromotionRulesByVariantIdLoader(
+                                self.context
+                            ).load_many(
+                                [
+                                    (
+                                        line.variant_id,
+                                        checkout.channel_id,
+                                        checkout.user_id,
+                                    )
+                                    for line in lines
+                                ]
+                            )
+                        )
+                return Promise.all(
+                    [
+                        Promise.all(scoped_prices_promises),
+                        Promise.all(buyer_rules_promises),
+                    ]
+                ).then(with_buyer_pricing)
 
             checkout_lines_discounts = CheckoutLineDiscountsByCheckoutLineIdLoader(
                 self.context

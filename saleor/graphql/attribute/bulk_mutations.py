@@ -6,6 +6,10 @@ from django.db.models import Exists, OuterRef, Q
 
 from ...attribute import models
 from ...attribute.lock_objects import attribute_value_qs_select_for_update
+from ...discount.utils.buyer_conditions import (
+    count_promotion_rules_by_attribute_id,
+    count_promotion_rules_by_attribute_value_id,
+)
 from ...product import models as product_models
 from ...product.utils.scoped_price_rows import (
     count_scoped_price_rows_by_attribute_id,
@@ -27,26 +31,27 @@ from .mutations.permissions import (
     check_any_attribute_type_permission,
     check_attribute_type_permissions,
 )
-from .mutations.utils import get_scoped_price_reference_message
+from .mutations.utils import get_buyer_pricing_reference_message
 from .types import Attribute, AttributeValue
 
 
-def reject_referenced_by_scoped_prices(
-    instances, ids, clean_instance_ids, errors_dict, row_counts, subject
+def reject_referenced_by_buyer_pricing(
+    instances, ids, clean_instance_ids, errors_dict, row_counts, rule_counts, subject
 ):
-    """Drop the instances that scoped prices reference from the ids to delete.
+    """Drop the instances that scoped prices or promotion rules reference.
 
-    The counts are fetched by the caller in one query for the whole input, so the
-    guard does not add a query per instance.
+    The counts are fetched by the caller in one query each for the whole input,
+    so the guard does not add a query per instance.
     """
     for instance, node_id in zip(instances, ids, strict=False):
-        row_count = row_counts.get(instance.pk)
-        if not row_count or instance.pk not in clean_instance_ids:
+        row_count = row_counts.get(instance.pk, 0)
+        rule_count = rule_counts.get(instance.pk, 0)
+        if not (row_count or rule_count) or instance.pk not in clean_instance_ids:
             continue
         clean_instance_ids.remove(instance.pk)
         errors_dict[node_id] = [
             ValidationError(
-                get_scoped_price_reference_message(subject, row_count),
+                get_buyer_pricing_reference_message(subject, row_count, rule_count),
                 code=AttributeErrorCode.CANNOT_DELETE.value,
             )
         ]
@@ -110,8 +115,15 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
     def clean_input(cls, info: ResolveInfo, instances, ids):
         clean_instance_ids, errors_dict = super().clean_input(info, instances, ids)
         row_counts = count_scoped_price_rows_by_attribute_id(clean_instance_ids)
-        return reject_referenced_by_scoped_prices(
-            instances, ids, clean_instance_ids, errors_dict, row_counts, "attribute"
+        rule_counts = count_promotion_rules_by_attribute_id(clean_instance_ids)
+        return reject_referenced_by_buyer_pricing(
+            instances,
+            ids,
+            clean_instance_ids,
+            errors_dict,
+            row_counts,
+            rule_counts,
+            "attribute",
         )
 
     @classmethod
@@ -209,8 +221,15 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
     def clean_input(cls, info: ResolveInfo, instances, ids):
         clean_instance_ids, errors_dict = super().clean_input(info, instances, ids)
         row_counts = count_scoped_price_rows_by_attribute_value_id(clean_instance_ids)
-        return reject_referenced_by_scoped_prices(
-            instances, ids, clean_instance_ids, errors_dict, row_counts, "value"
+        rule_counts = count_promotion_rules_by_attribute_value_id(clean_instance_ids)
+        return reject_referenced_by_buyer_pricing(
+            instances,
+            ids,
+            clean_instance_ids,
+            errors_dict,
+            row_counts,
+            rule_counts,
+            "value",
         )
 
     @classmethod

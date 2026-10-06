@@ -19,7 +19,7 @@ from .. import OrderStatus
 from ..calculations import refresh_order_base_prices_and_discounts
 from ..fetch import fetch_draft_order_lines_info
 from ..utils import (
-    attach_scoped_prices_to_lines_data,
+    attach_buyer_pricing_to_lines_data,
     create_order_line,
     expire_draft_order_line_prices,
 )
@@ -40,7 +40,7 @@ def _scope_listing_to_type(listing, customer_type, amount=SCOPED_AMOUNT):
     return listing_price
 
 
-def test_attach_scoped_prices_to_lines_data_resolves_every_line_in_one_batch(
+def test_attach_buyer_pricing_to_lines_data_resolves_every_line_in_one_batch(
     draft_order, variant, product_without_shipping, b2b_customer_user, customer_type
 ):
     # given
@@ -57,7 +57,7 @@ def test_attach_scoped_prices_to_lines_data_resolves_every_line_in_one_batch(
 
     # when
     with CaptureQueriesContext(connection) as context:
-        attach_scoped_prices_to_lines_data(order, lines_data)
+        attach_buyer_pricing_to_lines_data(order, lines_data)
 
     # then
     [line_data, other_line_data] = lines_data
@@ -71,7 +71,7 @@ def test_attach_scoped_prices_to_lines_data_resolves_every_line_in_one_batch(
     assert len(rows_queries) == 1
 
 
-def test_attach_scoped_prices_to_lines_data_ignores_rows_for_an_order_without_user(
+def test_attach_buyer_pricing_to_lines_data_ignores_rows_for_an_order_without_user(
     draft_order, variant, customer_type
 ):
     # given
@@ -83,7 +83,7 @@ def test_attach_scoped_prices_to_lines_data_ignores_rows_for_an_order_without_us
     line_data = OrderLineData(variant=variant, quantity=1)
 
     # when
-    attach_scoped_prices_to_lines_data(order, [line_data])
+    attach_buyer_pricing_to_lines_data(order, [line_data])
 
     # then
     assert line_data.scoped_price is None

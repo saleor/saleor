@@ -2,16 +2,19 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from .....discount import events, models
+from .....discount.utils.buyer_conditions import create_rule_buyer_conditions
 from .....permission.enums import DiscountPermissions
 from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_324
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
-from ....core.types import Error
+from ....core.types import Error, NonNullList
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionRuleCreateErrorCode
@@ -45,6 +48,12 @@ class PromotionRuleCreateError(Error):
         description=(
             "Number of gifts defined for this promotion rule exceeding the limit."
         )
+    )
+    customer_attribute_values = NonNullList(
+        graphene.ID,
+        description="List of customer attribute value IDs which cause the error."
+        + ADDED_IN_324,
+        required=False,
     )
 
 
@@ -91,6 +100,22 @@ class PromotionRuleCreate(DeprecatedModelMutation):
         if errors:
             raise ValidationError(errors)
         return cleaned_input
+
+    @classmethod
+    def save(cls, info: ResolveInfo, instance, cleaned_input, /, instance_tracker=None):
+        with transaction.atomic():
+            super().save(
+                info, instance, cleaned_input, instance_tracker=instance_tracker
+            )
+            create_rule_buyer_conditions(
+                [
+                    (
+                        instance,
+                        cleaned_input.get("customer_types", frozenset()),
+                        cleaned_input.get("customer_attribute_values", frozenset()),
+                    )
+                ]
+            )
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

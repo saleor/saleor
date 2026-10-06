@@ -5,18 +5,19 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
 from graphql.error import GraphQLError
 
 from .....channel import models as channel_models
 from .....discount import PromotionType, events, models
+from .....discount.utils.buyer_conditions import create_rule_buyer_conditions
+from .....discount.utils.promotion import get_order_promotion_rules_qs
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import JSON, DateTime
@@ -48,6 +49,12 @@ class PromotionCreateError(Error):
         description=(
             "Number of gifts defined for this promotion rule exceeding the limit."
         )
+    )
+    customer_attribute_values = NonNullList(
+        graphene.ID,
+        description="List of customer attribute value IDs which cause the error."
+        + ADDED_IN_324,
+        required=False,
     )
 
 
@@ -150,9 +157,7 @@ class PromotionCreate(DeprecatedModelMutation):
         cleaned_rules = []
         if promotion_type == PromotionType.ORDER:
             rules_limit = settings.ORDER_RULES_LIMIT
-            order_rules_count = models.PromotionRule.objects.filter(
-                ~Q(order_predicate={})
-            ).count()
+            order_rules_count = get_order_promotion_rules_qs().count()
             exceed_by = order_rules_count + len(rules_data) - int(rules_limit)
             if exceed_by > 0:
                 raise ValidationError(
@@ -227,11 +232,19 @@ class PromotionCreate(DeprecatedModelMutation):
         super()._save_m2m(info, instance, cleaned_data)
         rules_with_channels_to_add = []
         rules = []
+        buyer_conditions_per_rule = []
         if rules_data := cleaned_data.get("rules"):
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
                 gifts = rule_data.pop("gifts", None)
+                customer_type_ids = rule_data.pop("customer_types", frozenset())
+                attribute_value_ids = rule_data.pop(
+                    "customer_attribute_values", frozenset()
+                )
                 rule = models.PromotionRule(promotion=instance, **rule_data)
+                buyer_conditions_per_rule.append(
+                    (rule, customer_type_ids, attribute_value_ids)
+                )
                 if promotion_rule_should_be_marked_with_dirty_variants(
                     rule, instance.type, channels
                 ):
@@ -242,6 +255,7 @@ class PromotionCreate(DeprecatedModelMutation):
                     rules_with_channels_to_add.append((rule, channels))
                 rules.append(rule)
             models.PromotionRule.objects.bulk_create(rules)
+            create_rule_buyer_conditions(buyer_conditions_per_rule)
 
         for rule, channels in rules_with_channels_to_add:
             rule.channels.set(channels)

@@ -55,12 +55,18 @@ from ...checkout.fetch import fetch_checkout_info
 from ...checkout.models import Checkout
 from ...checkout.tests.utils import add_variant_to_checkout
 from ...core.weight import zero_weight
-from ...discount import DiscountValueType, RewardValueType, VoucherType
+from ...discount import (
+    DiscountValueType,
+    PromotionType,
+    RewardType,
+    RewardValueType,
+    VoucherType,
+)
 from ...discount.models import (
     Promotion,
     PromotionRule,
-    PromotionType,
-    RewardType,
+    PromotionRuleCustomerAttributeValue,
+    PromotionRuleCustomerType,
     Voucher,
     VoucherChannelListing,
     VoucherCode,
@@ -1597,15 +1603,80 @@ def _create_customer_segmentation() -> tuple[CustomerType, AttributeValue]:
     return wholesale_type, vip_value
 
 
+CUSTOMER_PROMOTION_PRODUCTS_COUNT = 5
+
+
+def _create_customer_promotions(
+    wholesale_type: CustomerType, vip_value: AttributeValue
+):
+    """Seed a promotion for Wholesale buyers and one for VIP buyers.
+
+    The catalogue promotion gives Wholesale buyers 15% off the first products,
+    the order promotion gives VIP buyers 5% off every order with no other
+    condition. Both are keyed by stable ids, so rerunning updates them in
+    place.
+    """
+    channels = Channel.objects.all()
+    product_ids = [
+        graphene.Node.to_global_id("Product", product_pk)
+        for product_pk in Product.objects.order_by("pk").values_list("pk", flat=True)[
+            :CUSTOMER_PROMOTION_PRODUCTS_COUNT
+        ]
+    ]
+    catalogue_promotion, _ = Promotion.objects.update_or_create(
+        pk=get_populatedb_uuid("promotion", "customer", "wholesale"),
+        defaults={"name": "Wholesale deal", "type": PromotionType.CATALOGUE},
+    )
+    catalogue_rule, _ = PromotionRule.objects.update_or_create(
+        pk=get_populatedb_uuid("promotion-rule", "customer", "wholesale"),
+        defaults={
+            "promotion": catalogue_promotion,
+            "name": "15% off for Wholesale buyers",
+            "reward_value_type": RewardValueType.PERCENTAGE,
+            "reward_value": Decimal(15),
+            "variants_dirty": True,
+            "catalogue_predicate": {"productPredicate": {"ids": product_ids}},
+        },
+    )
+    catalogue_rule.channels.set(channels)
+    PromotionRuleCustomerType.objects.get_or_create(
+        rule=catalogue_rule, customer_type=wholesale_type
+    )
+    order_promotion, _ = Promotion.objects.update_or_create(
+        pk=get_populatedb_uuid("promotion", "customer", "vip"),
+        defaults={"name": "VIP perk", "type": PromotionType.ORDER},
+    )
+    order_rule, _ = PromotionRule.objects.update_or_create(
+        pk=get_populatedb_uuid("promotion-rule", "customer", "vip"),
+        defaults={
+            "promotion": order_promotion,
+            "name": "5% off every order for VIP buyers",
+            "reward_type": RewardType.SUBTOTAL_DISCOUNT,
+            "reward_value_type": RewardValueType.PERCENTAGE,
+            "reward_value": Decimal(5),
+            "order_predicate": {},
+        },
+    )
+    order_rule.channels.set(channels)
+    PromotionRuleCustomerAttributeValue.objects.get_or_create(
+        rule=order_rule, value=vip_value
+    )
+    update_variant_relations_for_active_promotion_rules_task()
+    yield f"Promotion: {catalogue_promotion}"
+    yield f"Promotion: {order_promotion}"
+
+
 def create_customer_pricing():
-    """Seed scoped variant prices so buyer-aware pricing can be demoed.
+    """Seed scoped variant prices and promotions so buyer-aware pricing can be demoed.
 
     The first priced listings get three rows each: a Wholesale-only price, a
     VIP-tier price and a validity-only price for the next 30 days. Listings
-    that already have rows are skipped, so rerunning adds nothing.
+    that already have rows are skipped, so rerunning adds nothing. A Wholesale
+    catalogue promotion and a VIP order promotion come on top.
     """
     wholesale_type, vip_value = _create_customer_segmentation()
     yield f"Customer type: {wholesale_type.name}"
+    yield from _create_customer_promotions(wholesale_type, vip_value)
 
     candidate_listings = list(
         ProductVariantChannelListing.objects.filter(price_amount__isnull=False)

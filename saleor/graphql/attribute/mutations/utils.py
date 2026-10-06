@@ -52,8 +52,29 @@ def get_page_ids_to_search_index_update_for_attribute_values(
     return list(page_ids)
 
 
-def get_scoped_price_reference_message(subject: str, row_count: int) -> str:
+def get_buyer_pricing_reference_message(
+    subject: str, row_count: int, rule_count: int, *, plural: bool = False
+) -> str:
+    """Explain why a customer type, attribute or value cannot be deleted.
+
+    `row_count` scoped variant prices and `rule_count` promotion rules reference
+    it, and they have to be edited first. `plural` fits a subject naming
+    several values.
+    """
+    if row_count and rule_count:
+        references = (
+            f"{row_count} scoped variant prices and {rule_count} promotion rules"
+        )
+        target = "those"
+    elif rule_count:
+        references = f"{rule_count} promotion rules"
+        target = "those rules"
+    else:
+        references = f"{row_count} scoped variant prices"
+        target = "those prices"
+    verb = "are" if plural else "is"
+    them = "them" if plural else f"the {subject}"
     return (
-        f"The {subject} is referenced by {row_count} scoped variant prices. "
-        f"Remove the {subject} from those prices first."
+        f"The {subject} {verb} referenced by {references}. "
+        f"Remove {them} from {target} first."
     )

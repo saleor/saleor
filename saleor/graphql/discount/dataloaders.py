@@ -16,6 +16,8 @@ from ...discount.models import (
     Promotion,
     PromotionEvent,
     PromotionRule,
+    PromotionRuleCustomerAttributeValue,
+    PromotionRuleCustomerType,
     Voucher,
     VoucherChannelListing,
     VoucherCode,
@@ -502,3 +504,37 @@ class GiftsByPromotionRuleIDLoader(DataLoader[int, list[ProductVariant]]):
         ):
             rule_to_gifts_map[rule_id].append(gifts.get(variant_id))
         return [rule_to_gifts_map.get(rule_id, []) for rule_id in keys]
+
+
+class CustomerTypeIdsByPromotionRuleIdLoader(DataLoader[UUID, list[int]]):
+    context_key = "customer_type_ids_by_promotion_rule_id"
+
+    def batch_load(self, keys):
+        conditions = (
+            PromotionRuleCustomerType.objects.using(self.database_connection_name)
+            .filter(rule_id__in=keys)
+            .order_by("customer_type_id")
+            .values_list("rule_id", "customer_type_id")
+        )
+        type_ids_by_rule_id = defaultdict(list)
+        for rule_id, customer_type_id in conditions:
+            type_ids_by_rule_id[rule_id].append(customer_type_id)
+        return [type_ids_by_rule_id[rule_id] for rule_id in keys]
+
+
+class AttributeValueIdsByPromotionRuleIdLoader(DataLoader[UUID, list[int]]):
+    context_key = "attribute_value_ids_by_promotion_rule_id"
+
+    def batch_load(self, keys):
+        conditions = (
+            PromotionRuleCustomerAttributeValue.objects.using(
+                self.database_connection_name
+            )
+            .filter(rule_id__in=keys)
+            .order_by("value_id")
+            .values_list("rule_id", "value_id")
+        )
+        value_ids_by_rule_id = defaultdict(list)
+        for rule_id, value_id in conditions:
+            value_ids_by_rule_id[rule_id].append(value_id)
+        return [value_ids_by_rule_id[rule_id] for rule_id in keys]

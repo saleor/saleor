@@ -31,18 +31,41 @@ class PricingBuyer:
 
 
 @dataclass(frozen=True)
-class ScopedPriceRow:
-    """A scoped price row with its conditions, detached from the ORM."""
+class BuyerConditions:
+    """The buyer conditions of a scoped price row or a promotion rule.
 
-    price: Money
+    Within a dimension one listed value is enough, across dimensions every
+    declared one must match. A guest never matches a declared dimension.
+    """
+
     customer_type_ids: frozenset[int]
     value_ids_by_attribute_id: Mapping[int, frozenset[int]]
-    valid_from: datetime.datetime | None
-    valid_to: datetime.datetime | None
 
     @property
     def has_buyer_conditions(self) -> bool:
         return bool(self.customer_type_ids or self.value_ids_by_attribute_id)
+
+    def match_buyer(self, buyer: PricingBuyer | None) -> int | None:
+        """Return how many buyer dimensions matched, or `None` on a mismatch."""
+        score = 0
+        if self.customer_type_ids:
+            if buyer is None or buyer.customer_type_id not in self.customer_type_ids:
+                return None
+            score += 1
+        for value_ids in self.value_ids_by_attribute_id.values():
+            if buyer is None or not (value_ids & buyer.attribute_value_ids):
+                return None
+            score += 1
+        return score
+
+
+@dataclass(frozen=True)
+class ScopedPriceRow(BuyerConditions):
+    """A scoped price row with its conditions, detached from the ORM."""
+
+    price: Money
+    valid_from: datetime.datetime | None
+    valid_to: datetime.datetime | None
 
 
 def get_pricing_buyers(
@@ -187,18 +210,12 @@ def _get_match_score(
 ) -> int | None:
     """Return how many dimensions of the row matched, or `None` on a mismatch.
 
-    Every dimension the row declares must match. Within a dimension one listed
-    value is enough. A guest never matches a buyer dimension.
+    Every dimension the row declares must match. The buyer dimensions follow
+    `BuyerConditions.match_buyer`, the validity window counts as one more.
     """
-    score = 0
-    if row.customer_type_ids:
-        if buyer is None or buyer.customer_type_id not in row.customer_type_ids:
-            return None
-        score += 1
-    for value_ids in row.value_ids_by_attribute_id.values():
-        if buyer is None or not (value_ids & buyer.attribute_value_ids):
-            return None
-        score += 1
+    score = row.match_buyer(buyer)
+    if score is None:
+        return None
     if row.valid_from is not None or row.valid_to is not None:
         if row.valid_from is not None and now < row.valid_from:
             return None
