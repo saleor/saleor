@@ -69,13 +69,17 @@ def sort_queryset(
 
     sorting_field = sort_by.field
     sorting_attribute = getattr(sort_by, "attribute_id", None)
-    if sorting_field is not None and sorting_attribute is not None:
-        raise GraphQLError(
-            "You must provide either `field` or `attributeId` to sort the products."
-        )
     if sorting_attribute is not None:  # empty string as sorting_attribute is valid
+        if sorting_field is not None:
+            raise GraphQLError(
+                "You must provide either `field` or `attributeId` to sort the products."
+            )
         return _sort_queryset_by_attribute(
             queryset, sorting_attribute, sorting_direction
+        )
+    if sorting_field is None:
+        raise GraphQLError(
+            "You must provide `field` or `attributeId` to sort the products."
         )
 
     sort_enum = sort_by._meta.sort_enum
