@@ -675,10 +675,6 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.warehouse.tasks.delete_empty_allocations_task",
         "schedule": datetime.timedelta(days=1),
     },
-    "deactivate-preorder-for-variants": {
-        "task": "saleor.product.tasks.deactivate_preorder_for_variants_task",
-        "schedule": datetime.timedelta(hours=1),
-    },
     "delete-expired-reservations": {
         "task": "saleor.warehouse.tasks.delete_expired_reservations_task",
         "schedule": datetime.timedelta(days=1),

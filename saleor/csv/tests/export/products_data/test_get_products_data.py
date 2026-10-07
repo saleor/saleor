@@ -117,11 +117,6 @@ def test_get_products_data(product, product_with_image, collection, image, chann
                 "variant_weight": (
                     f"{int(variant.weight.value)} g" if variant.weight else ""
                 ),
-                "variants__is_preorder": variant.is_preorder,
-                "variants__preorder_global_threshold": (
-                    variant.preorder_global_threshold
-                ),
-                "variants__preorder_end_date": variant.preorder_end_date,
             }
             data.update(product_data)
 

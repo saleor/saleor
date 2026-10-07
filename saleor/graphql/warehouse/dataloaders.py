@@ -6,18 +6,13 @@ from uuid import UUID
 
 from django.contrib.sites.models import Site
 from django.db.models import Exists, OuterRef, Q, QuerySet
-from django.db.models.aggregates import Sum
-from django.db.models.functions import Coalesce
-from django.utils import timezone
 from django_stubs_ext import WithAnnotations
 from promise import Promise
 
 from ...channel.models import Channel
-from ...product.models import ProductVariantChannelListing
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import (
     ChannelWarehouse,
-    PreorderReservation,
     Reservation,
     ShippingZone,
     Stock,
@@ -760,40 +755,7 @@ class ActiveReservationsByCheckoutLineIdLoader(DataLoader):
             reservations_by_checkout_line[reservation.checkout_line_id].append(
                 reservation
             )
-        queryset = (
-            PreorderReservation.objects.using(self.database_connection_name)
-            .filter(checkout_line_id__in=keys)
-            .not_expired()
-        )
-        for reservation in queryset:
-            reservations_by_checkout_line[reservation.checkout_line_id].append(
-                reservation
-            )
         return [reservations_by_checkout_line[key] for key in keys]
-
-
-class PreorderQuantityReservedByVariantChannelListingIdLoader(DataLoader[int, int]):
-    context_key = "preorder_quantity_reserved_by_variant_channel_listing_id"
-
-    def batch_load(self, keys: Iterable[int]):
-        queryset = (
-            ProductVariantChannelListing.objects.using(self.database_connection_name)
-            .filter(id__in=keys)
-            .annotate(
-                quantity_reserved=Coalesce(
-                    Sum("preorder_reservations__quantity_reserved"),
-                    0,
-                ),
-                where=Q(preorder_reservations__reserved_until__gt=timezone.now()),
-            )
-            .order_by("pk")
-            .values("id", "quantity_reserved")
-        )
-
-        reservations_by_listing_id: defaultdict[int, int] = defaultdict(int)
-        for listing in queryset:
-            reservations_by_listing_id[listing["id"]] += listing["quantity_reserved"]
-        return [reservations_by_listing_id[key] for key in keys]
 
 
 class WarehouseByIdLoader(DataLoader):

@@ -7,12 +7,10 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, QuerySet
-from django.utils import timezone
 
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.db.connection import allow_writer
-from ..core.exceptions import PreorderAllocationError
 from ..core.http_client import HTTPClient
 from ..core.utils.events import call_event
 from ..core.utils.url import sanitize_url_for_logging
@@ -22,7 +20,6 @@ from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
 from ..product import ProductMediaTypes
 from ..thumbnail.exceptions import ImageTooLargeError
-from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
 from .interface import VariantDiscountedPriceChange
@@ -278,24 +275,6 @@ def recalculate_discounted_price_for_products_task():
                 discounted_price_dirty=False
             )
         recalculate_discounted_price_for_products_task.delay()
-
-
-@app.task
-@allow_writer()
-def deactivate_preorder_for_variants_task():
-    variants_to_clean = _get_preorder_variants_to_clean()
-
-    for variant in variants_to_clean:
-        try:
-            deactivate_preorder_for_variant(variant)
-        except PreorderAllocationError as e:
-            task_logger.warning(str(e))
-
-
-def _get_preorder_variants_to_clean():
-    return ProductVariant.objects.filter(
-        is_preorder=True, preorder_end_date__lt=timezone.now()
-    )
 
 
 @app.task

@@ -2,7 +2,6 @@ import datetime
 from decimal import Decimal
 
 import pytest
-from django.utils import timezone
 
 from ....warehouse.models import Stock
 from ... import ProductTypeKind
@@ -131,87 +130,6 @@ def variant_on_promotion(
         currency=channel_USD.currency_code,
     )
 
-    return product_variant
-
-
-@pytest.fixture
-def preorder_variant_global_threshold(product, channel_USD):
-    product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_A_P", is_preorder=True, preorder_global_threshold=10
-    )
-    ProductVariantChannelListing.objects.create(
-        variant=product_variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        discounted_price_amount=Decimal(10),
-        cost_price_amount=Decimal(1),
-        currency=channel_USD.currency_code,
-    )
-    return product_variant
-
-
-@pytest.fixture
-def preorder_variant_channel_threshold(product, channel_USD):
-    product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_B_P", is_preorder=True, preorder_global_threshold=None
-    )
-    ProductVariantChannelListing.objects.create(
-        variant=product_variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        discounted_price_amount=Decimal(10),
-        cost_price_amount=Decimal(1),
-        currency=channel_USD.currency_code,
-        preorder_quantity_threshold=10,
-    )
-    return product_variant
-
-
-@pytest.fixture
-def preorder_variant_global_and_channel_threshold(product, channel_USD, channel_PLN):
-    product_variant = ProductVariant.objects.create(
-        product=product, sku="SKU_C_P", is_preorder=True, preorder_global_threshold=10
-    )
-    ProductVariantChannelListing.objects.bulk_create(
-        [
-            ProductVariantChannelListing(
-                variant=product_variant,
-                channel=channel_USD,
-                cost_price_amount=Decimal(1),
-                price_amount=Decimal(10),
-                currency=channel_USD.currency_code,
-                preorder_quantity_threshold=8,
-            ),
-            ProductVariantChannelListing(
-                variant=product_variant,
-                channel=channel_PLN,
-                cost_price_amount=Decimal(1),
-                price_amount=Decimal(10),
-                currency=channel_PLN.currency_code,
-                preorder_quantity_threshold=4,
-            ),
-        ]
-    )
-    return product_variant
-
-
-@pytest.fixture
-def preorder_variant_with_end_date(product, channel_USD):
-    product_variant = ProductVariant.objects.create(
-        product=product,
-        sku="SKU_D_P",
-        is_preorder=True,
-        preorder_global_threshold=10,
-        preorder_end_date=timezone.now() + datetime.timedelta(days=10),
-    )
-    ProductVariantChannelListing.objects.create(
-        variant=product_variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        discounted_price_amount=Decimal(10),
-        cost_price_amount=Decimal(1),
-        currency=channel_USD.currency_code,
-    )
     return product_variant
 
 
