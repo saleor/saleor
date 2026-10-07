@@ -5,10 +5,7 @@ import graphene
 from graphql import GraphQLError
 
 from ...app import models
-from ...app.types import (
-    DEFAULT_APP_TARGET,
-    DeprecatedAppExtensionHttpMethod,
-)
+from ...app.types import DEFAULT_APP_TARGET
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
@@ -38,7 +35,6 @@ from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import PermissionsField
 from ..core.scalars import JSON, DateTime, PositiveInt
 from ..core.types import (
-    BaseEnum,
     BaseObjectType,
     IconThumbnailField,
     Job,
@@ -171,11 +167,6 @@ class AppManifestExtension(BaseObjectType):
         return root.get("options") or {}
 
 
-class HttpMethod(BaseEnum):
-    POST = DeprecatedAppExtensionHttpMethod.POST
-    GET = DeprecatedAppExtensionHttpMethod.GET
-
-
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     id = graphene.GlobalID(required=True, description="The ID of the app extension.")
     app = graphene.Field(
@@ -254,30 +245,7 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     @staticmethod
     def resolve_settings(root: models.AppExtension, _info: ResolveInfo):
         """Return app extension settings as plain JSON with same structure as options."""
-        http_method = root.http_target_method
-
-        # New data model contains settings, migration will fill the old ones
-        if root.settings:
-            return root.settings
-
-        # Fallback if settings not propagated in DB yet
-        # Make it case-insensitive due to migration logic - enum will become uppercased in DB
-        # TODO Remove after 3.23 when migrations are complete
-        if root.target.upper() == "WIDGET":
-            return {
-                "widgetTarget": {
-                    "method": http_method,
-                }
-            }
-
-        if root.target.upper() == "NEW_TAB":
-            return {
-                "newTabTarget": {
-                    "method": http_method,
-                }
-            }
-
-        return {}
+        return root.settings
 
 
 class AppExtensionCountableConnection(CountableConnection):
