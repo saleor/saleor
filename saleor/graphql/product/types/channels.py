@@ -66,9 +66,6 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         required=True,
         description="Indicates product visibility in the channel listings.",
     )
-    available_for_purchase = Date(
-        deprecation_reason="Use the `availableForPurchaseAt` field to fetch the available for purchase date.",
-    )
     available_for_purchase_at = DateTime(
         description="The product available for purchase date time."
     )
@@ -118,10 +115,6 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
     @staticmethod
     def resolve_publication_date(root: models.ProductChannelListing, _info):
         return root.published_at
-
-    @staticmethod
-    def resolve_available_for_purchase(root: models.ProductChannelListing, _info):
-        return root.available_for_purchase_at
 
     @staticmethod
     def resolve_channel(root: models.ProductChannelListing, info):
