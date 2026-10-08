@@ -10,6 +10,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.descriptions import (
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -33,6 +34,10 @@ class VoucherInput(BaseInputObjectType):
         description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
     )
     name = graphene.String(description="Voucher name.")
+    external_reference = graphene.String(
+        description=f"External ID of this voucher.{ADDED_IN_323}",
+        required=False,
+    )
     code = graphene.String(
         required=False,
         description="Code to use the voucher. "

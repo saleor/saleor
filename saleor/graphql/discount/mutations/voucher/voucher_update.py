@@ -10,6 +10,8 @@ from .....order import models as order_models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_323
+from ....core.mutations import ModelWithExtRefMutation
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -17,9 +19,13 @@ from ...types import Voucher
 from .voucher_create import VoucherCreate, VoucherInput
 
 
-class VoucherUpdate(VoucherCreate):
+class VoucherUpdate(VoucherCreate, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a voucher to update.")
+        id = graphene.ID(required=False, description="ID of a voucher to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a voucher to update.{ADDED_IN_323}",
+        )
         input = VoucherInput(
             required=True, description="Fields required to update a voucher."
         )

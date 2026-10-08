@@ -19,6 +19,15 @@ def resolve_voucher(info, id, channel):
     return ChannelContext(node=sale, channel_slug=channel) if sale else None
 
 
+def resolve_voucher_by_external_reference(info, external_reference, channel):
+    voucher = (
+        models.Voucher.objects.using(get_database_connection_name(info.context))
+        .filter(external_reference=external_reference)
+        .first()
+    )
+    return ChannelContext(node=voucher, channel_slug=channel) if voucher else None
+
+
 def resolve_vouchers(info, channel_slug, **kwargs) -> ChannelQsContext:
     qs = models.Voucher.objects.using(get_database_connection_name(info.context)).all()
     if channel_slug:

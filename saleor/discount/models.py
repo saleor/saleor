@@ -119,7 +119,7 @@ class VoucherQueryset(models.QuerySet["Voucher"]):
 VoucherManager = models.Manager.from_queryset(VoucherQueryset)
 
 
-class Voucher(ModelWithMetadata):
+class Voucher(ModelWithMetadata, ModelWithExternalReference):
     type = models.CharField(
         max_length=20, choices=VoucherType.CHOICES, default=VoucherType.ENTIRE_ORDER
     )
