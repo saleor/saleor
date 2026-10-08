@@ -1710,3 +1710,195 @@ def test_deallocate_stock_for_orders_skips_channel_event_when_legacy_flag_enable
 
     # then
     mocked_trigger.assert_not_called()
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_stocks_updated")
+def test_decrease_stock_triggers_stock_updated_webhook(
+    stocks_updated_webhook_mock,
+    allocation,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    allocation.quantity_allocated = 80
+    allocation.save(update_fields=["quantity_allocated"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        decrease_stock(
+            [
+                OrderLineInfo(
+                    line=allocation.order_line,
+                    quantity=50,
+                    variant=stock.product_variant,
+                    warehouse_pk=allocation.stock.warehouse.pk,
+                )
+            ],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then
+    stocks_updated_webhook_mock.assert_called_once_with([stock], None)
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_stocks_updated")
+def test_decrease_stock_with_track_inventory_off_does_not_trigger_stock_updated(
+    stocks_updated_webhook_mock,
+    allocation,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    stock = allocation.stock
+    variant = stock.product_variant
+    variant.track_inventory = False
+    variant.save(update_fields=["track_inventory"])
+    allocation.quantity_allocated = 0
+    allocation.save(update_fields=["quantity_allocated"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        decrease_stock(
+            [
+                OrderLineInfo(
+                    line=allocation.order_line,
+                    quantity=50,
+                    variant=variant,
+                    warehouse_pk=allocation.stock.warehouse.pk,
+                )
+            ],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then
+    stocks_updated_webhook_mock.assert_not_called()
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_stocks_updated")
+def test_increase_stock_triggers_stock_updated_webhook(
+    stocks_updated_webhook_mock,
+    allocation,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    stock = allocation.stock
+    stock.quantity = 10
+    stock.save(update_fields=["quantity"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        increase_stock(allocation.order_line, stock.warehouse, 50, allocate=False)
+
+    # then
+    stock.refresh_from_db()
+    assert stock.quantity == 60
+    stocks_updated_webhook_mock.assert_called_once_with([stock], None)
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_stocks_updated")
+def test_allocate_stocks_triggers_stock_updated_webhook(
+    stocks_updated_webhook_mock,
+    order_line,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    stock.quantity = 100
+    stock.save(update_fields=["quantity"])
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    stocks_updated_webhook_mock.assert_called_once_with([stock], None)
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_stocks_updated")
+def test_deallocate_stock_triggers_stock_updated_webhook_with_deduplicated_stocks(
+    stocks_updated_webhook_mock,
+    allocations,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given - two allocations of two order lines on the same stock
+    first_allocation = allocations[0]
+    second_allocation = allocations[1]
+    Allocation.objects.exclude(
+        pk__in=[first_allocation.pk, second_allocation.pk]
+    ).delete()
+    second_allocation.stock = first_allocation.stock
+    second_allocation.quantity_allocated = 10
+    second_allocation.save(update_fields=["stock", "quantity_allocated"])
+    first_allocation.quantity_allocated = 20
+    first_allocation.save(update_fields=["quantity_allocated"])
+    stock = first_allocation.stock
+    stock.quantity = 100
+    stock.quantity_allocated = 30
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock(
+            [
+                OrderLineInfo(
+                    line=first_allocation.order_line,
+                    quantity=20,
+                    variant=first_allocation.order_line.variant,
+                ),
+                OrderLineInfo(
+                    line=second_allocation.order_line,
+                    quantity=10,
+                    variant=second_allocation.order_line.variant,
+                ),
+            ],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then - one call with the stock listed once despite two updated allocations
+    stocks_updated_webhook_mock.assert_called_once_with([stock], None)
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_stocks_updated")
+def test_deallocate_stock_for_orders_triggers_stock_updated_webhook(
+    stocks_updated_webhook_mock,
+    allocation,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    stock = allocation.stock
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    allocation.quantity_allocated = 80
+    allocation.save(update_fields=["quantity_allocated"])
+    order = allocation.order_line.order
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock_for_orders(
+            [order.id],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then
+    stocks_updated_webhook_mock.assert_called_once_with([stock], None)
