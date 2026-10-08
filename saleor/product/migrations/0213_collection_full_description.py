@@ -8,12 +8,12 @@ import saleor.core.editorjs.converters
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("product", "0206_product_media_translation"),
+        ("product", "0212_category_translation_full_description"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="category",
+            model_name="collection",
             name="full_description",
             field=saleor.core.db.fields.SanitizedJSONField(
                 blank=True,

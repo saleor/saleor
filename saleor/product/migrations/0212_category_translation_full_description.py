@@ -8,7 +8,7 @@ import saleor.core.editorjs.converters
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("product", "0207_category_full_description"),
+        ("product", "0211_category_full_description"),
     ]
 
     operations = [
