@@ -54,6 +54,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
+- Added `isAvailableInChannel` filter to `ProductVariantWhereInput`, returning only variants that have a price in the given channel. It works on both the top-level `productVariants` query and `Product.productVariants`, where staff requests are otherwise scoped by the product's channel listing only.
 - `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
 - Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
 - Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.
