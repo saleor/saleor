@@ -64,6 +64,12 @@ type_schema = {
         ("1:1:1", "127.0.0.1"),
         ("invalid,8.8.8.8", "8.8.8.8"),
         (None, "127.0.0.1"),
+        # A proxy appends the real client IP to the right, so the rightmost
+        # valid entry wins; the client-supplied left-hand values are ignored
+        # and cannot be used to spoof the address.
+        ("1.1.1.0, 8.8.8.0", "8.8.8.0"),
+        ("1.1.1.0, 8.8.8.0, not-an-ip", "8.8.8.0"),
+        ("2001:db8::1, 2001:db8::2", "2001:db8::2"),
     ],
 )
 def test_get_client_ip(ip_address, expected_ip):
