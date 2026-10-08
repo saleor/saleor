@@ -20,10 +20,11 @@ from ....tax.utils import (
 )
 from ...account import types as account_types
 from ...account.dataloaders import CustomerTypeByIdLoader
-from ...attribute.dataloaders.attributes import AttributeValueByIdLoader
+from ...attribute.dataloaders.customer_conditions import (
+    load_customer_attribute_conditions,
+)
 from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.context import ChannelContext
 from ...core.descriptions import ADDED_IN_324
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
@@ -393,12 +394,12 @@ class VariantChannelListingPrice(ModelObjectType[models.VariantChannelListingPri
             "customer type."
         ),
     )
-    attribute_values = NonNullList(
-        "saleor.graphql.attribute.types.AttributeValue",
+    customer_attributes = NonNullList(
+        "saleor.graphql.attribute.types.CustomerAttributeCondition",
         required=True,
         description=(
-            "Customer attribute values the buyer must hold. Per attribute, holding "
-            "one of its listed values is enough. An empty list means any buyer."
+            "Conditions on customer attributes the buyer must meet, one per "
+            "attribute. An empty list means any buyer."
         ),
     )
     valid_from = DateTime(
@@ -431,16 +432,9 @@ class VariantChannelListingPrice(ModelObjectType[models.VariantChannelListingPri
         )
 
     @staticmethod
-    def resolve_attribute_values(root: models.VariantChannelListingPrice, info):
-        def with_values(values):
-            return [ChannelContext(node=value, channel_slug=None) for value in values]
-
+    def resolve_customer_attributes(root: models.VariantChannelListingPrice, info):
         def with_value_ids(value_ids):
-            return (
-                AttributeValueByIdLoader(info.context)
-                .load_many(value_ids)
-                .then(with_values)
-            )
+            return load_customer_attribute_conditions(info.context, value_ids)
 
         return (
             AttributeValueIdsByListingPriceIdLoader(info.context)

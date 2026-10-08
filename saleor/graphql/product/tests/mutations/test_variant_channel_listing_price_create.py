@@ -29,8 +29,13 @@ VARIANT_CHANNEL_LISTING_PRICE_CREATE_MUTATION = """
                 customerTypes {
                     id
                 }
-                attributeValues {
-                    id
+                customerAttributes {
+                    attribute {
+                        id
+                    }
+                    values {
+                        id
+                    }
                 }
                 validFrom
                 validTo
@@ -40,7 +45,7 @@ VARIANT_CHANNEL_LISTING_PRICE_CREATE_MUTATION = """
                 code
                 message
                 customerTypes
-                attributeValues
+                customerAttributeValues
             }
         }
     }
@@ -159,7 +164,7 @@ def test_with_every_condition(
             "variantChannelListing": _listing_id(variant),
             "price": PRICE,
             "customerTypes": [customer_type_id],
-            "attributeValues": [value_id],
+            "customerAttributeValues": [value_id],
             "validFrom": valid_from.isoformat(),
             "validTo": valid_to.isoformat(),
         }
@@ -191,7 +196,16 @@ def test_with_every_condition(
         "currency": row.currency,
     }
     assert price_data["customerTypes"] == [{"id": customer_type_id}]
-    assert price_data["attributeValues"] == [{"id": value_id}]
+    assert price_data["customerAttributes"] == [
+        {
+            "attribute": {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                )
+            },
+            "values": [{"id": value_id}],
+        }
+    ]
     assert price_data["validFrom"] == valid_from.isoformat()
     assert price_data["validTo"] == valid_to.isoformat()
     product_variant_updated_mock.assert_called_once()
@@ -232,8 +246,8 @@ def test_a_window_row_folds_it_into_the_stored_price(
     ("_case", "scope"),
     [
         ("no_condition_field", {}),
-        ("null_conditions", {"customerTypes": None, "attributeValues": None}),
-        ("empty_lists", {"customerTypes": [], "attributeValues": []}),
+        ("null_conditions", {"customerTypes": None, "customerAttributeValues": None}),
+        ("empty_lists", {"customerTypes": [], "customerAttributeValues": []}),
     ],
 )
 def test_rejects_a_row_without_conditions(
@@ -330,7 +344,7 @@ def test_rejects_values_of_non_customer_attributes(
         "input": {
             "variantChannelListing": _listing_id(variant),
             "price": PRICE,
-            "attributeValues": [gold_value_id, color_value_id],
+            "customerAttributeValues": [gold_value_id, color_value_id],
         }
     }
 
@@ -343,13 +357,13 @@ def test_rejects_values_of_non_customer_attributes(
     data = get_graphql_content(response)["data"]["variantChannelListingPriceCreate"]
     assert len(data["errors"]) == 1
     error = data["errors"][0]
-    assert error["field"] == "attributeValues"
+    assert error["field"] == "customerAttributeValues"
     assert error["code"] == VariantChannelListingPriceErrorCode.INVALID.name
     assert error["message"] == (
         "Only values of customer attributes with a fixed set of choices can scope "
         "a price."
     )
-    assert error["attributeValues"] == [color_value_id]
+    assert error["customerAttributeValues"] == [color_value_id]
     assert VariantChannelListingPrice.objects.exists() is False
 
 
@@ -357,7 +371,7 @@ def test_rejects_values_of_non_customer_attributes(
     ("_case", "field", "type_name"),
     [
         ("unknown_customer_type", "customerTypes", "CustomerType"),
-        ("unknown_attribute_value", "attributeValues", "AttributeValue"),
+        ("unknown_attribute_value", "customerAttributeValues", "AttributeValue"),
     ],
 )
 def test_rejects_unknown_condition_ids(

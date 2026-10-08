@@ -24,6 +24,10 @@ from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent
 from .....order.utils import update_discount_for_order_line
 from .....payment.model_helpers import get_subtotal
+from .....product.models import (
+    VariantChannelListingPrice,
+    VariantChannelListingPriceCustomerType,
+)
 from .....shipping.models import ShippingMethod
 from .....tests import race_condition
 from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -4059,3 +4063,170 @@ def test_draft_order_update_without_user_change_keeps_the_line_prices(
     assert content["data"]["draftOrderUpdate"]["errors"] == []
     line.refresh_from_db(fields=["draft_base_price_expire_at"])
     assert line.draft_base_price_expire_at == expire_at
+
+
+DRAFT_ORDER_UPDATE_LINE_PRICES_MUTATION = """
+    mutation draftUpdate($id: ID!, $input: DraftOrderInput!) {
+        draftOrderUpdate(id: $id, input: $input) {
+            errors {
+                field
+                code
+                message
+            }
+            order {
+                lines {
+                    id
+                    undiscountedUnitPrice {
+                        net {
+                            amount
+                        }
+                    }
+                    unitPrice {
+                        net {
+                            amount
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_update_user_recalculates_the_scoped_line_prices(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    b2b_customer_user,
+    customer_type,
+    customer_user2,
+    tax_configuration_flat_rates,
+):
+    """Switching the customer refreshes the taxed line prices, not only the base ones."""
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    assert order.user == b2b_customer_user
+    assert customer_user2.customer_type != customer_type
+    line = order.lines.first()
+    listing = line.variant.channel_listings.get(channel=order.channel)
+    listing_price = listing.price_amount
+    scoped_amount = Decimal(8)
+    assert scoped_amount != listing_price
+    scoped_price = VariantChannelListingPrice.objects.create(
+        variant_channel_listing=listing,
+        currency=listing.currency,
+        price_amount=scoped_amount,
+    )
+    VariantChannelListingPriceCustomerType.objects.create(
+        listing_price=scoped_price, customer_type=customer_type
+    )
+    line.undiscounted_base_unit_price_amount = scoped_amount
+    line.base_unit_price_amount = scoped_amount
+    line.undiscounted_unit_price_net_amount = scoped_amount
+    line.undiscounted_unit_price_gross_amount = scoped_amount
+    line.unit_price_net_amount = scoped_amount
+    line.unit_price_gross_amount = scoped_amount
+    line.draft_base_price_expire_at = timezone.now() + timedelta(days=1)
+    line.save(
+        update_fields=[
+            "undiscounted_base_unit_price_amount",
+            "base_unit_price_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_unit_price_gross_amount",
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "draft_base_price_expire_at",
+        ]
+    )
+    order.should_refresh_prices = False
+    order.save(update_fields=["should_refresh_prices"])
+    line_id = graphene.Node.to_global_id("OrderLine", line.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+        "input": {"user": graphene.Node.to_global_id("User", customer_user2.pk)},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_LINE_PRICES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert data["errors"] == []
+    line_data = next(
+        line_data for line_data in data["order"]["lines"] if line_data["id"] == line_id
+    )
+    assert line_data["undiscountedUnitPrice"]["net"]["amount"] == listing_price
+    assert line_data["unitPrice"]["net"]["amount"] == listing_price
+    line.refresh_from_db(
+        fields=[
+            "undiscounted_base_unit_price_amount",
+            "undiscounted_unit_price_net_amount",
+            "unit_price_net_amount",
+        ]
+    )
+    assert line.undiscounted_base_unit_price_amount == listing_price
+    assert line.undiscounted_unit_price_net_amount == listing_price
+    assert line.unit_price_net_amount == listing_price
+    order.refresh_from_db(fields=["should_refresh_prices"])
+    assert order.should_refresh_prices is False
+
+
+def test_draft_order_update_recalculates_the_expired_line_prices(
+    staff_api_client,
+    permission_group_manage_orders,
+    draft_order,
+    tax_configuration_flat_rates,
+):
+    """An expired line gets the current listing price and taxed prices to match."""
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.should_refresh_prices = False
+    order.save(update_fields=["should_refresh_prices"])
+    line = order.lines.first()
+    listing = line.variant.channel_listings.get(channel=order.channel)
+    new_price = listing.price_amount + Decimal(5)
+    listing.price_amount = new_price
+    listing.discounted_price_amount = new_price
+    listing.save(update_fields=["price_amount", "discounted_price_amount"])
+    line.draft_base_price_expire_at = timezone.now() - timedelta(minutes=1)
+    line.save(update_fields=["draft_base_price_expire_at"])
+    assert line.undiscounted_unit_price_net_amount != new_price
+    line_id = graphene.Node.to_global_id("OrderLine", line.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order.pk),
+        "input": {"customerNote": "A note"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        DRAFT_ORDER_UPDATE_LINE_PRICES_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert data["errors"] == []
+    line_data = next(
+        line_data for line_data in data["order"]["lines"] if line_data["id"] == line_id
+    )
+    assert line_data["undiscountedUnitPrice"]["net"]["amount"] == new_price
+    assert line_data["unitPrice"]["net"]["amount"] == new_price
+    line.refresh_from_db(
+        fields=[
+            "undiscounted_base_unit_price_amount",
+            "undiscounted_unit_price_net_amount",
+            "unit_price_net_amount",
+            "draft_base_price_expire_at",
+        ]
+    )
+    assert line.undiscounted_base_unit_price_amount == new_price
+    assert line.undiscounted_unit_price_net_amount == new_price
+    assert line.unit_price_net_amount == new_price
+    assert line.draft_base_price_expire_at > timezone.now()
+    order.refresh_from_db(fields=["should_refresh_prices"])
+    assert order.should_refresh_prices is False

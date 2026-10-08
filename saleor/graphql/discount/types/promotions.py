@@ -4,11 +4,12 @@ from graphene import relay
 from ....discount import models
 from ....permission.auth_filters import AuthorizationFilters
 from ...account.dataloaders import CustomerTypeByIdLoader
-from ...attribute.dataloaders.attributes import AttributeValueByIdLoader
+from ...attribute.dataloaders.customer_conditions import (
+    load_customer_attribute_conditions,
+)
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
-from ...core.context import ChannelContext
 from ...core.descriptions import ADDED_IN_324, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
@@ -136,13 +137,13 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             "them is enough. Empty when the rule has no such condition." + ADDED_IN_324
         ),
     )
-    customer_attribute_values = NonNullList(
-        "saleor.graphql.attribute.types.AttributeValue",
+    customer_attributes = NonNullList(
+        "saleor.graphql.attribute.types.CustomerAttributeCondition",
         required=True,
         description=(
-            "Values of customer attributes the buyer must hold for the rule to "
-            "apply, one value per attribute is enough. Empty when the rule has no "
-            "such condition." + ADDED_IN_324
+            "Conditions on customer attributes the buyer must meet for the rule to "
+            "apply, one per attribute. Empty when the rule has no such condition."
+            + ADDED_IN_324
         ),
     )
 
@@ -186,18 +187,9 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
         )
 
     @staticmethod
-    def resolve_customer_attribute_values(
-        root: models.PromotionRule, info: ResolveInfo
-    ):
-        def with_values(values):
-            return [ChannelContext(node=value, channel_slug=None) for value in values]
-
+    def resolve_customer_attributes(root: models.PromotionRule, info: ResolveInfo):
         def with_ids(value_ids):
-            return (
-                AttributeValueByIdLoader(info.context)
-                .load_many(value_ids)
-                .then(with_values)
-            )
+            return load_customer_attribute_conditions(info.context, value_ids)
 
         return (
             AttributeValueIdsByPromotionRuleIdLoader(info.context)

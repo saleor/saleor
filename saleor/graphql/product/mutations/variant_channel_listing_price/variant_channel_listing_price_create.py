@@ -90,7 +90,7 @@ class VariantChannelListingPriceCreate(BaseMutation):
                 input.get("customer_types") or []
             ),
             attribute_value_ids=clean_attribute_value_ids(
-                input.get("attribute_values") or []
+                input.get("customer_attribute_values") or []
             ),
             valid_from=input.get("valid_from"),
             valid_to=input.get("valid_to"),

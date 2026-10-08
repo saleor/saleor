@@ -26,7 +26,7 @@ class VariantChannelListingPriceScopeInput(BaseInputObjectType):
             f"limited to {MAX_CONDITIONS_PER_DIMENSION}."
         ),
     )
-    attribute_values = NonNullList(
+    customer_attribute_values = NonNullList(
         graphene.ID,
         description=(
             "Values of customer attributes the buyer must hold, one per attribute "
@@ -58,9 +58,9 @@ class VariantChannelListingPriceErrorBase(Error):
         description="List of customer type IDs which cause the error.",
         required=False,
     )
-    attribute_values = NonNullList(
+    customer_attribute_values = NonNullList(
         graphene.ID,
-        description="List of attribute value IDs which cause the error.",
+        description="List of customer attribute value IDs which cause the error.",
         required=False,
     )
 
@@ -100,4 +100,4 @@ def clean_attribute_value_ids(ids: list[str]) -> frozenset[int]:
             purpose="scope a price",
         )
     except ValidationError as error:
-        raise ValidationError({"attribute_values": error}) from error
+        raise ValidationError({"customer_attribute_values": error}) from error

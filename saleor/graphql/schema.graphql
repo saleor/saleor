@@ -9425,9 +9425,9 @@ type VariantChannelListingPrice implements Node @doc(category: "Products") {
   customerTypes: [CustomerType!]!
 
   """
-  Customer attribute values the buyer must hold. Per attribute, holding one of its listed values is enough. An empty list means any buyer.
+  Conditions on customer attributes the buyer must meet, one per attribute. An empty list means any buyer.
   """
-  attributeValues: [AttributeValue!]!
+  customerAttributes: [CustomerAttributeCondition!]!
 
   """The start of the validity window, inclusive. Null means no start."""
   validFrom: DateTime
@@ -9634,6 +9634,19 @@ enum MeasurementUnitsEnum {
   OZ
   KG
   TONNE
+}
+
+"""
+A condition on a customer attribute. The buyer must hold one of the listed values of the attribute.
+
+Added in Saleor 3.24.
+"""
+type CustomerAttributeCondition @doc(category: "Attributes") {
+  """The customer attribute the condition is on."""
+  attribute: Attribute!
+
+  """Values of the attribute. Holding one of them is enough."""
+  values: [AttributeValue!]!
 }
 
 """Represents a value of an attribute."""
@@ -17002,11 +17015,11 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   customerTypes: [CustomerType!]!
 
   """
-  Values of customer attributes the buyer must hold for the rule to apply, one value per attribute is enough. Empty when the rule has no such condition.
+  Conditions on customer attributes the buyer must meet for the rule to apply, one per attribute. Empty when the rule has no such condition.
   
   Added in Saleor 3.24.
   """
-  customerAttributeValues: [AttributeValue!]!
+  customerAttributes: [CustomerAttributeCondition!]!
 }
 
 enum RewardValueTypeEnum @doc(category: "Discounts") {
@@ -26444,8 +26457,8 @@ type VariantChannelListingPriceCreateError @doc(category: "Products") {
   """List of customer type IDs which cause the error."""
   customerTypes: [ID!]
 
-  """List of attribute value IDs which cause the error."""
-  attributeValues: [ID!]
+  """List of customer attribute value IDs which cause the error."""
+  customerAttributeValues: [ID!]
 }
 
 enum VariantChannelListingPriceErrorCode @doc(category: "Products") {
@@ -26470,7 +26483,7 @@ input VariantChannelListingPriceCreateInput @doc(category: "Products") {
   """
   Values of customer attributes the buyer must hold, one per attribute is enough. Only values of customer attributes with a fixed set of choices are accepted. The number of items is limited to 100.
   """
-  attributeValues: [ID!]
+  customerAttributeValues: [ID!]
 
   """The start of the validity window, inclusive. Null means no start."""
   validFrom: DateTime
@@ -26518,8 +26531,8 @@ type VariantChannelListingPriceUpdateError @doc(category: "Products") {
   """List of customer type IDs which cause the error."""
   customerTypes: [ID!]
 
-  """List of attribute value IDs which cause the error."""
-  attributeValues: [ID!]
+  """List of customer attribute value IDs which cause the error."""
+  customerAttributeValues: [ID!]
 }
 
 """
@@ -26536,7 +26549,7 @@ input VariantChannelListingPriceUpdateInput @doc(category: "Products") {
   """
   Values of customer attributes the buyer must hold, one per attribute is enough. Only values of customer attributes with a fixed set of choices are accepted. The number of items is limited to 100.
   """
-  attributeValues: [ID!]
+  customerAttributeValues: [ID!]
 
   """The start of the validity window, inclusive. Null means no start."""
   validFrom: DateTime

@@ -368,6 +368,13 @@ class OrderPromotionCalculateByOrderIdLoaderAndWebhookSyncLoader(
                     lines_info,
                     database_connection_name=self.database_connection_name,
                 )
+                # The refresh above replaced the base prices and the discounts
+                # and renewed the expiry of the expired lines, so the stored
+                # taxed prices and totals no longer match them. Flag the order
+                # so the price calculation loader, which checks the expiry
+                # again, recalculates them instead of skipping the order whose
+                # only reason to refresh was the expired lines.
+                order.should_refresh_prices = True
                 refreshed_lines = [line_info.line for line_info in lines_info]
                 current_lines_ids_per_order[order.id] = {
                     line.id for line in refreshed_lines

@@ -28,8 +28,13 @@ VARIANT_CHANNEL_LISTING_PRICE_UPDATE_MUTATION = """
                 customerTypes {
                     id
                 }
-                attributeValues {
-                    id
+                customerAttributes {
+                    attribute {
+                        id
+                    }
+                    values {
+                        id
+                    }
                 }
                 validFrom
                 validTo
@@ -38,7 +43,7 @@ VARIANT_CHANNEL_LISTING_PRICE_UPDATE_MUTATION = """
                 field
                 code
                 message
-                attributeValues
+                customerAttributeValues
             }
         }
     }
@@ -159,7 +164,7 @@ def test_replaces_the_given_dimensions_and_keeps_the_others(
         row,
         {
             "price": str(new_price),
-            "attributeValues": [gold_value_id],
+            "customerAttributeValues": [gold_value_id],
             "validTo": valid_to.isoformat(),
         },
     )
@@ -175,7 +180,16 @@ def test_replaces_the_given_dimensions_and_keeps_the_others(
     price_data = data["variantChannelListingPrice"]
     assert price_data["price"]["amount"] == float(new_price)
     assert price_data["customerTypes"] == [{"id": customer_type_id}]
-    assert price_data["attributeValues"] == [{"id": gold_value_id}]
+    assert price_data["customerAttributes"] == [
+        {
+            "attribute": {
+                "id": graphene.Node.to_global_id(
+                    "Attribute", loyalty_customer_attribute.pk
+                )
+            },
+            "values": [{"id": gold_value_id}],
+        }
+    ]
     assert price_data["validFrom"] is None
     assert price_data["validTo"] == valid_to.isoformat()
     product_variant_updated_mock.assert_called_once()
@@ -279,18 +293,18 @@ def test_rejects_values_of_non_customer_attributes(
     )
 
     # when
-    data = _post(staff_api_client, row, {"attributeValues": [color_value_id]})
+    data = _post(staff_api_client, row, {"customerAttributeValues": [color_value_id]})
 
     # then
     assert len(data["errors"]) == 1
     error = data["errors"][0]
-    assert error["field"] == "attributeValues"
+    assert error["field"] == "customerAttributeValues"
     assert error["code"] == VariantChannelListingPriceErrorCode.INVALID.name
     assert error["message"] == (
         "Only values of customer attributes with a fixed set of choices can scope "
         "a price."
     )
-    assert error["attributeValues"] == [color_value_id]
+    assert error["customerAttributeValues"] == [color_value_id]
     assert row.attribute_values.exists() is False
 
 
