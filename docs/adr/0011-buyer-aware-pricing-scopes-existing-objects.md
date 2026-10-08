@@ -46,6 +46,36 @@ manage them are reused as well.
 - A price with only a validity window applies to everyone, guests included, and is folded into the
   stored price while the window is open, with up to about a minute of lag after it closes.
 
+## Behaviour changes for a store without scoped prices
+
+The feature was built to be additive, and the pricing math is untouched while no scoped price and
+no buyer condition exists. These changes still apply to every store, and were kept on purpose.
+
+- Changing the `user` of a draft order with `draftOrderUpdate` expires its line prices, so the next
+  read reloads the listing price and the current catalogue promotion and recalculates the taxes,
+  even inside the channel's price freeze period. Before, the frozen prices survived the switch.
+- `checkoutCustomerAttach` and `checkoutCustomerDetach` invalidate the checkout prices, so the next
+  read recomputes line prices, promotions, voucher and taxes right away, with a sync tax webhook
+  call when a tax app is configured. Before, the prices lived until the checkout price TTL.
+- An expired draft order line read through the GraphQL API gets its taxed prices and the order
+  totals recomputed. Before, only the base prices were reloaded and the taxed prices stayed stale
+  until something else marked the order for a refresh.
+- A rule of an order promotion with an empty `orderPredicate` and no buyer conditions is rejected
+  with `REQUIRED` on `promotionRuleCreate`, on the nested rules of `promotionCreate` and on an
+  update that empties the predicate. Before, such a rule was accepted and never applied.
+- A variant listing whose stored discounted price is null, which happens between the creation of
+  the listing and its first recalculation, resolves its discounted price as the listing price.
+  Before, the product price range skipped the variant in its discounted range and the variant
+  `pricing` field passed the null into the tax calculation.
+
+The cost paid by every store: one extra query for scoped price rows on every pricing read,
+checkout fetch, draft order fetch, draft order create and order lines create, a second one for
+buyer-conditioned rules when the buyer is logged in, two indexed queries every 30 seconds from the
+window price beat task, one replica query per batch of the discounted price recalculation, and
+count queries before a customer type, attribute or value is deleted. The custom-price order line
+path moved from summing the rule discounts to applying the best rule, which changes nothing in
+practice because a listing stores a single rule.
+
 ## Known gaps accepted at the freeze
 
 - The API does not list which products or promotions reference a customer type or a value. The
