@@ -49,6 +49,7 @@ from .resolvers import (
     resolve_sale,
     resolve_sales,
     resolve_voucher,
+    resolve_voucher_by_external_reference,
     resolve_vouchers,
 )
 from .sorters import PromotionSortingInput, SaleSortingInput, VoucherSortingInput
@@ -111,12 +112,16 @@ class DiscountQueries(graphene.ObjectType):
     voucher = PermissionsField(
         Voucher,
         id=graphene.Argument(
-            graphene.ID, description="ID of the voucher.", required=True
+            graphene.ID, description="ID of the voucher.", required=False
+        ),
+        external_reference=graphene.Argument(
+            graphene.String,
+            description=f"External ID of the voucher.{ADDED_IN_323}",
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a voucher by ID.",
+        description="Look up a voucher by ID or external reference.",
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -182,9 +187,21 @@ class DiscountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
     @staticmethod
-    def resolve_voucher(_root, info: ResolveInfo, *, id, channel=None):
-        _, id = from_global_id_or_error(id, Voucher)
-        return resolve_voucher(info, id, channel)
+    def resolve_voucher(
+        _root,
+        info: ResolveInfo,
+        *,
+        id=None,
+        external_reference=None,
+        channel=None,
+    ):
+        validate_one_of_args_is_in_query(
+            "id", id, "external_reference", external_reference
+        )
+        if id:
+            _, id = from_global_id_or_error(id, Voucher)
+            return resolve_voucher(info, id, channel)
+        return resolve_voucher_by_external_reference(info, external_reference, channel)
 
     @staticmethod
     def resolve_vouchers(_root, info: ResolveInfo, *, channel=None, **kwargs):

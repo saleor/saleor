@@ -1168,13 +1168,20 @@ type Query {
   ): SaleCountableConnection @doc(category: "Discounts") @deprecated(reason: "Use the `promotions` query instead.")
 
   """
-  Look up a voucher by ID.
+  Look up a voucher by ID or external reference.
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   voucher(
     """ID of the voucher."""
-    id: ID!
+    id: ID
+
+    """
+    External ID of the voucher.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -11013,6 +11020,13 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
 
   """The name of the voucher."""
   name: String
+
+  """
+  External ID of this voucher.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: String
 
   """List of codes available for this voucher."""
   codes(
@@ -21056,8 +21070,15 @@ type Mutation {
   - VOUCHER_DELETED (async): A voucher was deleted.
   """
   voucherDelete(
+    """
+    External ID of a voucher to delete.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a voucher to delete."""
-    id: ID!
+    id: ID
   ): VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: [])
 
   """
@@ -21085,8 +21106,15 @@ type Mutation {
   - VOUCHER_CODES_CREATED (async): A voucher code was created.
   """
   voucherUpdate(
+    """
+    External ID of a voucher to update.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a voucher to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a voucher."""
     input: VoucherInput!
@@ -30816,6 +30844,13 @@ input VoucherInput @doc(category: "Discounts") {
 
   """Voucher name."""
   name: String
+
+  """
+  External ID of this voucher.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: String
 
   """Code to use the voucher."""
   code: String @deprecated(reason: "Use `addCodes` instead.")
