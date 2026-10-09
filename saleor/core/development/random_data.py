@@ -3,7 +3,6 @@ import itertools
 import json
 import os
 import random
-import unicodedata
 import uuid
 from collections import defaultdict
 from decimal import Decimal
@@ -17,7 +16,7 @@ from django.conf import settings
 from django.contrib.auth import password_validation
 from django.core.files import File
 from django.core.files.storage import default_storage
-from django.db import connection, transaction
+from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 from django.utils.text import slugify
@@ -26,7 +25,7 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...account.models import Address, Group, User
+from ...account.models import Group, User
 from ...account.search import (
     update_user_search_vector,
 )
@@ -119,6 +118,15 @@ from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
 from ..postgres import FlatConcatSearchVector
+from ..utils.anonymization import (
+    generate_fake_address as base_generate_fake_address,
+)
+from ..utils.anonymization import (
+    generate_fake_user as base_generate_fake_user,
+)
+from ..utils.anonymization import (
+    get_email,
+)
 
 fake = cast(Any, Factory.create())
 fake.seed(0)
@@ -870,14 +878,6 @@ class SaleorProvider(BaseProvider):
 fake.add_provider(SaleorProvider)
 
 
-def get_email(first_name, last_name):
-    _first = unicodedata.normalize("NFD", first_name).encode("ascii", "ignore")
-    _last = unicodedata.normalize("NFD", last_name).encode("ascii", "ignore")
-    decoded_first = _first.lower().decode("utf-8")
-    decoded_last = _last.lower().decode("utf-8")
-    return f"{decoded_first}.{decoded_last}@example.com"
-
-
 def create_product_image(product, placeholder_dir, image_name):
     image = get_image(placeholder_dir, image_name)
     product_image = ProductMedia(product=product, image=image)
@@ -885,70 +885,29 @@ def create_product_image(product, placeholder_dir, image_name):
     return product_image
 
 
-def create_address(save=True, **kwargs):
-    address = Address(
-        first_name=fake.first_name(),
-        last_name=fake.last_name(),
-        street_address_1=fake.street_address(),
-        city=fake.city(),
-        country=settings.DEFAULT_COUNTRY,
-        **kwargs,
-    )
-
-    if address.country == "US":
-        state = fake.state_abbr(include_territories=False)
-        address.country_area = state
-        address.postal_code = fake.postalcode_in_state(state)
-    else:
-        address.postal_code = fake.postalcode()
-
-    if save:
-        address.save()
-    return address
-
-
 def create_fake_user(user_password, save=True, generate_id=False, customer_type=None):
-    address = create_address(save=save)
-    email = get_email(address.first_name, address.last_name)
+    fake_user, fake_address = base_generate_fake_user(
+        generate_id=generate_id, with_fake_save=False
+    )
 
     # Skip the email if it already exists
     try:
-        return User.objects.get(email=email)
+        return User.objects.get(email=fake_user.email)
     except User.DoesNotExist:
         pass
 
-    user_params = {
-        "first_name": address.first_name,
-        "last_name": address.last_name,
-        "email": email,
-        "default_billing_address": address,
-        "default_shipping_address": address,
-        "is_active": True,
-        "note": fake.paragraph(),
-        "date_joined": fake.date_time(tzinfo=datetime.UTC),
-    }
-
-    if generate_id:
-        _, max_user_id = connection.ops.integer_field_range(
-            User.id.field.get_internal_type()
-        )
-        user_params["id"] = fake.random_int(min=1, max=max_user_id)
-
-    user = User(
-        **user_params,
-    )
-
     if save:
-        user.customer_type = customer_type or get_default_customer_type()
-        password_validation.validate_password(user_password, user)
-        user.set_password(user_password)
-        user.save()
-        user.addresses.add(address)
-        update_user_search_vector(user)
+        fake_address.save()
+        fake_user.customer_type = customer_type or get_default_customer_type()
+        password_validation.validate_password(user_password, fake_user)
+        fake_user.set_password(user_password)
+        fake_user.save()
+        fake_user.addresses.add(fake_address)
+        update_user_search_vector(fake_user)
     else:
-        update_user_search_vector(user, attach_addresses_data=False, save=False)
+        update_user_search_vector(fake_user, attach_addresses_data=False, save=False)
 
-    return user
+    return fake_user
 
 
 # We don't want to spam the console with payment confirmations sent to
@@ -1337,7 +1296,8 @@ def create_fake_order(max_order_lines=5, create_preorder_lines=False):
     if customer and customer.default_shipping_address:
         address = customer.default_shipping_address
     else:
-        address = create_address()
+        address = base_generate_fake_address(with_fake_save=False)
+        address.save()
     if customer and customer.default_billing_address:
         billing_address = customer.default_billing_address
     else:
@@ -1589,7 +1549,7 @@ def create_group(name, permissions, users):
 
 
 def _create_staff_user(staff_password, email=None, superuser=False, customer_type=None):
-    address = create_address()
+    address = base_generate_fake_address(with_fake_save=False)
     first_name = address.first_name
     last_name = address.last_name
     if not email:
@@ -1599,6 +1559,7 @@ def _create_staff_user(staff_password, email=None, superuser=False, customer_typ
     if staff_user:
         return staff_user
 
+    address.save()
     staff_user = dangerously_create_test_user(
         first_name=first_name,
         last_name=last_name,
@@ -2028,12 +1989,14 @@ def create_additional_cc_warehouse():
     shipping_zone = ShippingZone.objects.first()
     if not shipping_zone:
         raise Exception("No shipping zones found")
+    address = base_generate_fake_address(with_fake_save=False)
+    address.save()
     warehouse_name = f"{shipping_zone.name} for click and collect"
     warehouse, _ = Warehouse.objects.update_or_create(
         name=warehouse_name,
         slug=slugify(warehouse_name),
         defaults={
-            "address": create_address(),
+            "address": address,
             "is_private": False,
             "click_and_collect_option": WarehouseClickAndCollectOption.LOCAL_STOCK,
         },
@@ -2056,11 +2019,15 @@ def create_warehouses():
                 )
             ]
         )
+        address = base_generate_fake_address(
+            with_fake_save=False, company_name=fake.company()
+        )
+        address.save()
         warehouse, _ = Warehouse.objects.update_or_create(
             name=shipping_zone_name,
             slug=slugify(shipping_zone_name),
             defaults={
-                "address": create_address(company_name=fake.company()),
+                "address": address,
                 "is_private": is_private,
                 "click_and_collect_option": cc_option,
             },
@@ -2224,7 +2191,8 @@ def create_gift_cards(how_many=5):
 
 
 def add_address_to_admin(email):
-    address = create_address()
+    address = base_generate_fake_address(with_fake_save=False)
+    address.save()
     user = User.objects.get(email=email)
     manager = get_plugins_manager(allow_replica=False)
     store_user_address(user, address, AddressType.BILLING, manager)
