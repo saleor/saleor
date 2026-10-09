@@ -2023,17 +2023,26 @@ def invalidate_cache_for_stored_payment_methods_if_needed(
         )
 
 
-def get_transaction_event_amount(event_type: str, psp_reference: str):
+def get_transaction_event_amount(
+    event_type: str,
+    psp_reference: str,
+    transaction: TransactionItem | None = None,
+):
     """Deduce the transaction event amount if possible.
 
     - In case of missing amount for event INFO, use 0
     - In case of missing amount for *_FAILURE the amount is taken from *_SUCCESS or
     *_REQUEST event with the same pspReference.
+    - In case of CANCEL_REQUEST, the amount is taken from the transaction's current
+    `authorized_value` - the remaining cancelable balance.
+    - In case of CANCEL_SUCCESS, the amount is taken from the CANCEL_REQUEST event with
+    the same pspReference (the requested cancel). When there is no such request, the
+    transaction's current `authorized_value` is used.
     - In case of REFUND_REVERSE, the amount is taken from REFUND_SUCCESS with the same
     pspReference.
     - In case of CHARGEBACK the amount is taken from CHARGE_SUCCESS with the same
     pspReference.
-    - If the specific event for the pspReference doesn't exist, the exception is raised.
+    - If the amount cannot be deduced, the exception is raised.
     """
     if event_type == TransactionEventType.INFO:
         return Decimal(0)
@@ -2052,6 +2061,9 @@ def get_transaction_event_amount(event_type: str, psp_reference: str):
             TransactionEventType.CHARGE_SUCCESS,
             TransactionEventType.CHARGE_REQUEST,
             TransactionEventType.CHARGE_FAILURE,
+        ],
+        TransactionEventType.CANCEL_SUCCESS: [
+            TransactionEventType.CANCEL_REQUEST,
         ],
         TransactionEventType.CANCEL_FAILURE: [
             TransactionEventType.CANCEL_SUCCESS,
@@ -2075,6 +2087,18 @@ def get_transaction_event_amount(event_type: str, psp_reference: str):
         .order_by("-created_at")
         .first()
     )
-    if matched_event is None:
-        raise ValueError(f"Unable to deduce the amount for {event_type} event.")
-    return matched_event.amount_value
+    if matched_event is not None:
+        return matched_event.amount_value
+
+    cancel_events = (
+        TransactionEventType.CANCEL_REQUEST,
+        TransactionEventType.CANCEL_SUCCESS,
+    )
+    if (
+        event_type in cancel_events
+        and transaction is not None
+        and transaction.authorized_value > Decimal(0)
+    ):
+        return transaction.authorized_value
+
+    raise ValueError(f"Unable to deduce the amount for {event_type} event.")
