@@ -4790,6 +4790,13 @@ input ProductWhereInput @doc(category: "Products") {
   """Filter by product slug."""
   slug: StringFilterInput
 
+  """
+  Filter by external reference.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: StringFilterInput
+
   """Filter by product type."""
   productType: GlobalIDFilterInput
 
