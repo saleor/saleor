@@ -4,10 +4,12 @@ from django.db import IntegrityError
 from django.db.models import Exists, OuterRef
 
 from ....app.models import App
+from ....app.problems import dismiss_problems_by_keys
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
 from ....webhook.error_codes import WebhookErrorCode
+from ....webhook.payload_errors import get_invalid_subscription_query_problem_key
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_323
@@ -90,5 +92,12 @@ class WebhookDelete(ModelDeleteMutation):
                 "Webhook deactivated. Try deleting Webhook later",
                 code=WebhookErrorCode.DELETE_FAILED.value,
             ) from e
+
+        # Problems Saleor raised about this webhook can never be resolved once the
+        # webhook is gone, so dismiss them. They are kept rather than deleted so the
+        # app's history of problems is preserved.
+        dismiss_problems_by_keys(
+            webhook.app_id, [get_invalid_subscription_query_problem_key(webhook.pk)]
+        )
 
         return response

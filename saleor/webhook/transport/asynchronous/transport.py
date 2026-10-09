@@ -90,6 +90,7 @@ def create_deliveries_for_multiple_subscription_objects(
     allow_replica=False,
     pre_save_payloads: dict | None = None,
     request_time: datetime.datetime | None = None,
+    report_dropped_payloads: bool = True,
 ) -> Promise[list[EventDelivery]]:
     """Create event deliveries with payloads based on multiple subscription objects.
 
@@ -105,6 +106,9 @@ def create_deliveries_for_multiple_subscription_objects(
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     :param allow_replica: use replica database.
+    :param report_dropped_payloads: report events dropped because their payload could
+        not be generated. Disable it when the caller is not a real delivery, e.g. a
+        manually triggered webhook, where the operator already sees the failure.
     """
     from ....graphql.webhook.subscription_types import WEBHOOK_TYPES_MAP
 
@@ -143,6 +147,7 @@ def create_deliveries_for_multiple_subscription_objects(
                 subscribable_object=subscribable_object,
                 subscription_query=webhook.subscription_query,
                 request=request,
+                webhook=webhook if report_dropped_payloads else None,
             )
             subscribable_object_with_webhook.append((subscribable_object, webhook))
             promises.append(promise)
@@ -228,6 +233,7 @@ def create_deliveries_for_subscriptions(
     allow_replica=False,
     pre_save_payloads: dict | None = None,
     request_time: datetime.datetime | None = None,
+    report_dropped_payloads: bool = True,
 ) -> list[EventDelivery]:
     """Create a list of event deliveries with payloads based on subscription query.
 
@@ -249,6 +255,7 @@ def create_deliveries_for_subscriptions(
         allow_replica,
         pre_save_payloads,
         request_time,
+        report_dropped_payloads,
     ).get()
 
 
@@ -682,6 +689,7 @@ def _generate_deferred_payloads(
                 subscribable_object=subscribable_object,
                 subscription_query=webhook.subscription_query,
                 request=request,
+                webhook=webhook,
             )
         )
 
