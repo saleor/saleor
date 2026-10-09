@@ -101,15 +101,16 @@ jobs:
           head=${head#refs/heads/}
 
           is_release=
-          if [[ "$head" =~ ^[0-9]\.[0-9]+$ ]]; then
-            is_release=1
-          elif [[ "$head" == "main" ]]; then
-            is_release=1
-          elif [[ "$head" == "feat/build/cache-db" ]]; then
+          if [[ "$head" =~ ^[0-9]\.[0-9]+$ ]] || [[ "$head" == "main" ]]; then
+            echo "Will save cache to $head (if relevant)" >&2
             is_release=1
           else
             echo "Will skip caching: $base is not a main/release branch" >&2
           fi
+
+          # For now force it
+          is_release=1
+          base=feat/build/cache-db
 
           {
             echo "base=$base"
@@ -125,6 +126,7 @@ jobs:
 
       - name: Restore DB
         if: steps.changes.outputs.changed == 'true'
+        shell: bash
         run: |
           set -u
           dump=$HOME/.cache/saleor-pgql/dump.sql
@@ -167,10 +169,12 @@ jobs:
           pg_dump --format=p -f ~/.cache/saleor-pgql/dump.sql "$DB_URL_XDIST_WORKER_0"
 
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        # TODO: re-add `&& github.event_name == 'push'`
+        # u
         if: >-
           ${{ steps.get-base.outputs.is-release == '1'
               && steps.changes.outputs.changed == 'true'
-              && github.event_name == 'push' }}
+          }}
         with:
           path: ~/.cache/saleor-pgql/
           key: pytest-pgsql-db-${{ steps.get-base.outputs.base }}
