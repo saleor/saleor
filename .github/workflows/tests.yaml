@@ -74,7 +74,9 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         run: |
           apt-get update
-          apt-get install -y libpq-dev postgresql-client
+          apt-get install -y libpq-dev postgresql-common
+          /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          apt-get install postgresql-client-15
 
       - if: steps.changes.outputs.changed == 'true'
         uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
@@ -109,6 +111,7 @@ jobs:
           fi
 
           base=feat/build/cache-db
+          is_release=1
 
           {
             echo "base=$base"
@@ -171,10 +174,10 @@ jobs:
           pg_dump --format=p -f ~/.cache/saleor-pgql/dump.sql "$DB_URL_XDIST_WORKER_0"
 
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        # TODO: re-add && github.event_name == 'push'
         if: >-
           ${{ steps.get-base.outputs.is-release == '1'
               && steps.changes.outputs.changed == 'true'
-              && github.event_name == 'push'
           }}
         with:
           path: ~/.cache/saleor-pgql/
