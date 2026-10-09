@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - 3.*
     paths:
       - "**.py"
       - Dockerfile
@@ -87,18 +88,24 @@ jobs:
 
       - id: get-base
         name: Extract base branch name
+        shell: bash
         run: |
           # Falls back to `GITHUB_REF_NAME` when base is undefined which
           # means we merged into `main` or 3.x
           base=${GITHUB_BASE_REF:-$GITHUB_REF_NAME}
           base=${base#refs/heads/}
 
+          # Fall back the head to `GITHUB_REF_NAME` when head is not defined.
+          # That means we merged onto main/3.x
+          head=${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}
+          head=${head#refs/heads/}
+
           is_release=
-          if [[ "$base" =~ ^[0-9]\.[0-9]+$ ]]; then
+          if [[ "$head" =~ ^[0-9]\.[0-9]+$ ]]; then
             is_release=1
-          elif [[ "$base" == "main" ]]; then
+          elif [[ "$head" == "main" ]]; then
             is_release=1
-          elif [[ "$base" == "feat/build/cache-db" ]]; then
+          elif [[ "$head" == "feat/build/cache-db" ]]; then
             is_release=1
           else
             echo "Will skip caching: $base is not a main/release branch" >&2
@@ -106,6 +113,7 @@ jobs:
 
           {
             echo "base=$base"
+            echo "head=$head"
             echo "is-release=$is_release"
           } >> "$GITHUB_OUTPUT"
 
@@ -161,7 +169,8 @@ jobs:
       - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         if: >-
           ${{ steps.get-base.outputs.is-release == '1'
-              && steps.changes.outputs.changed == 'true' }}
+              && steps.changes.outputs.changed == 'true'
+              && github.event_name == 'push' }}
         with:
           path: ~/.cache/saleor-pgql/
           key: pytest-pgsql-db-${{ steps.get-base.outputs.base }}
