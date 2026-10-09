@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 from unittest.mock import Mock, patch
 from urllib.parse import urljoin
@@ -9,6 +10,7 @@ from django.db.models import Count
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from ...account.models import Address, User
@@ -152,6 +154,7 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
         pass
     random_data.create_products_by_schema("/", False)
     how_many_orders = 2
+    now = timezone.now()
     for _ in random_data.create_orders(how_many_orders):
         pass
     assert Order.objects.all().count() == how_many_orders
@@ -159,6 +162,15 @@ def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
         list(Order.objects.values_list("origin", flat=True))
         == [OrderOrigin.CHECKOUT] * how_many_orders
     )
+    for order in Order.objects.all():
+        assert now - datetime.timedelta(days=30) <= order.created_at <= now
+        assert all(line.created_at == order.created_at for line in order.lines.all())
+        transaction = order.payment_transactions.get()
+        assert order.created_at < transaction.created_at <= now
+        assert all(
+            transaction.created_at <= fulfillment.created_at <= now
+            for fulfillment in order.fulfillments.all()
+        )
 
 
 def test_create_products_deletes_retired_products(product_type, category):
@@ -492,6 +504,24 @@ def test_create_gift_card(
         pass
     assert GiftCard.objects.count() == amount * 2
     assert GiftCardEvent.objects.count() == amount * 2
+
+
+def test_create_gift_cards_without_orders(
+    db, shippable_gift_card_product, customer_user, staff_user
+):
+    # given - populatedb --skip-orders creates no orders
+    product = shippable_gift_card_product
+    product.name = "Gift card 100"
+    product.save(update_fields=["name"])
+    amount = 2
+
+    # when
+    for _ in random_data.create_gift_cards(amount):
+        pass
+
+    # then - only the issued events, no bought events
+    assert GiftCard.objects.count() == amount * 2
+    assert GiftCardEvent.objects.count() == amount
 
 
 @patch("storages.backends.s3boto3.S3Boto3Storage")
