@@ -70,6 +70,7 @@ class CheckoutLineData:
     custom_price: Decimal | None = None
     custom_price_to_update: bool = False
     metadata_list: list = field(default_factory=list)
+    force_new_line: bool = False
 
 
 def clean_delivery_method(
@@ -386,7 +387,9 @@ def group_lines_input_on_add(
 
         if force_new_line:
             line_data = CheckoutLineData(
-                variant_id=variant_db_id, metadata_list=metadata_list_from_input
+                variant_id=variant_db_id,
+                metadata_list=metadata_list_from_input,
+                force_new_line=True,
             )
             grouped_checkout_lines_data.append(line_data)
         else:

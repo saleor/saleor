@@ -103,6 +103,7 @@ def test_group_on_add_when_same_variants_in_multiple_lines_and_force_new_line():
             quantity_to_update=True,
             custom_price=None,
             custom_price_to_update=False,
+            force_new_line=True,
         ),
         CheckoutLineData(
             variant_id="1",

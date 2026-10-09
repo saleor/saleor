@@ -2294,3 +2294,39 @@ def test_checkout_lines_add_checkout_removed_before_adding_variants_to_checkout(
         data["errors"][0]["message"]
         == f"{MISSING_NODE_ERROR_MESSAGE_PREFIX} {checkout_global_id}"
     )
+
+
+def test_concurrent_add_of_same_variant_merges_into_single_line(
+    user_api_client, checkout, stock
+):
+    # given
+    variant = stock.product_variant
+    quantity = 2
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {
+                "variantId": graphene.Node.to_global_id("ProductVariant", variant.pk),
+                "quantity": quantity,
+            }
+        ],
+    }
+    assert checkout.lines.exists() is False
+
+    def add_same_variant_in_parallel_request(*args, **kwargs):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+        assert get_graphql_content(response)["data"]["checkoutLinesAdd"]["errors"] == []
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.checkout.mutations.checkout_lines_add.add_variants_to_checkout",
+        add_same_variant_in_parallel_request,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkoutLinesAdd"]["errors"] == []
+    line = checkout.lines.get()
+    assert line.variant_id == variant.pk
+    assert line.quantity == quantity * 2
