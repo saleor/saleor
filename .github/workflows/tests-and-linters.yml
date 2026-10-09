@@ -48,6 +48,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
       cache:
         image: valkey/valkey:8.1-alpine
         options: >-
@@ -75,6 +76,22 @@ jobs:
         uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
         with:
           enable-cache: true
+
+      # Ensure Saleor & uvicorn can run without development dependencies
+      - if: steps.changes.outputs.changed == 'true'
+        name: Run Unicorn (with --no-dev)
+        timeout-minutes: 2
+        run: |
+          uv sync --locked --no-dev
+          uv run --no-dev -m saleor.asgi.tests.checks.check_uvicorn_starts-cache
+
+      # Ensure Celery and Beat boot properly without dev dependencies
+      - if: steps.changes.outputs.changed == 'true'
+        name: Run Celery & Beat (with --no-dev)
+        env:
+          CELERY_BROKER_URL: redis://cache:6379/1
+        run: |
+          uv run --no-dev -m saleor.tests.checks.check_celery_starts
 
       - name: Install dependencies
         if: steps.changes.outputs.changed == 'true'
