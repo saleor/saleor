@@ -534,6 +534,10 @@ class CollectionTranslation(BaseTranslationType[product_models.CollectionTransla
     description = JSONString(
         description="Translated description of the collection." + RICH_CONTENT
     )
+    full_description = JSONString(
+        description="Translated full description of the collection. "
+        "Returns null when unset." + RICH_CONTENT + ADDED_IN_323
+    )
     description_json = JSONString(
         description="Translated description of the collection." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
@@ -571,6 +575,10 @@ class CollectionTranslatableContent(ModelObjectType[product_models.Collection]):
     name = graphene.String(required=True, description="Collection's name to translate.")
     description = JSONString(
         description="Collection's description to translate." + RICH_CONTENT
+    )
+    full_description = JSONString(
+        description="Collection's full description to translate. "
+        "Returns null when unset." + RICH_CONTENT + ADDED_IN_323
     )
     description_json = JSONString(
         description="Description of the collection." + RICH_CONTENT,
@@ -626,6 +634,10 @@ class CategoryTranslation(BaseTranslationType[product_models.CategoryTranslation
     description = JSONString(
         description="Translated description of the category." + RICH_CONTENT
     )
+    full_description = JSONString(
+        description="Translated full description of the category. "
+        "Returns null when unset." + RICH_CONTENT + ADDED_IN_323
+    )
     description_json = JSONString(
         description="Translated description of the category." + RICH_CONTENT,
         deprecation_reason="Use the `description` field instead.",
@@ -666,6 +678,10 @@ class CategoryTranslatableContent(ModelObjectType[product_models.Category]):
     )
     description = JSONString(
         description="Category description to translate." + RICH_CONTENT
+    )
+    full_description = JSONString(
+        description="Category's full description to translate. "
+        "Returns null when unset." + RICH_CONTENT + ADDED_IN_323
     )
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,

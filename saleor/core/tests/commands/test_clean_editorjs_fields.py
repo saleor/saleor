@@ -11,7 +11,12 @@ from django.core.management.base import CommandError
 
 from ....attribute.models.base import AttributeValue
 from ....page.models import Page
-from ....product.models import Category, Collection
+from ....product.models import (
+    Category,
+    CategoryTranslation,
+    Collection,
+    CollectionTranslation,
+)
 from ...management.commands.clean_editorjs_fields import MODELS
 
 MODELS_NAMES = [model_cls.__name__ for [model_cls, _field] in MODELS]
@@ -155,13 +160,13 @@ def test_track_progress():
             # Given
             ("--only", "Category", "Collection"),
             # Then, only the following should be scanned
-            ("Category", "Collection"),
+            ("Category", "Category", "Collection", "Collection"),
         ),
         (
             # Given
             ("--exclude", "Category", "Collection"),
             # Then, only the following should be scanned
-            list({*MODELS_NAMES} - {"Category", "Collection"}),
+            [name for name in MODELS_NAMES if name not in {"Category", "Collection"}],
         ),
     ],
 )
@@ -190,10 +195,6 @@ def test_filter_models(cmd_args: tuple[str, ...], expected_models: list[str]):
 
 @pytest.mark.parametrize(
     ("model_cls", "editorjs_field", "create_entry"),
-    # This test takes a sample of 3 models:
-    # - Page - uses '.content'
-    # - Collection - uses '.description'
-    # - AttributeValue - uses '.rich_text'
     [
         (
             Page,
@@ -209,6 +210,34 @@ def test_filter_models(cmd_args: tuple[str, ...], expected_models: list[str]):
             Collection,
             "description",  # => collection.description - the EditorJS DB field
             lambda _request: Collection(slug="x", name="x", description=dirty()),
+        ),
+        (
+            Category,
+            "full_description",
+            lambda _request: Category(slug="x", name="x", full_description=dirty()),
+        ),
+        (
+            CategoryTranslation,
+            "full_description",
+            lambda request: CategoryTranslation(
+                category=request.getfixturevalue("category"),
+                language_code="pl",
+                full_description=dirty(),
+            ),
+        ),
+        (
+            Collection,
+            "full_description",
+            lambda _request: Collection(slug="x", name="x", full_description=dirty()),
+        ),
+        (
+            CollectionTranslation,
+            "full_description",
+            lambda request: CollectionTranslation(
+                collection=request.getfixturevalue("collection"),
+                language_code="pl",
+                full_description=dirty(),
+            ),
         ),
         (
             AttributeValue,
