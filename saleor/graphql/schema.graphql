@@ -9958,6 +9958,13 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
 
   """Product id the media refers to."""
   productId: ID
+
+  """
+  External ID of this product media.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: String
 }
 
 """
@@ -19165,8 +19172,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productMediaDelete(
+    """
+    External ID of a product media to delete.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a product media to delete."""
-    id: ID!
+    id: ID
   ): ProductMediaDelete @doc(category: "Products")
 
   """
@@ -19216,8 +19230,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productMediaUpdate(
+    """
+    External ID of a product media to update.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a product media to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a product media."""
     input: ProductMediaUpdateInput!
@@ -26191,6 +26212,13 @@ input ProductMediaCreateInput @doc(category: "Products") {
 
   """Represents an URL to an external media."""
   mediaUrl: String
+
+  """
+  External ID of this product media.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: String
 }
 
 """
@@ -26312,6 +26340,13 @@ type ProductMediaUpdate @doc(category: "Products") {
 input ProductMediaUpdateInput @doc(category: "Products") {
   """Alt text for a product media."""
   alt: String
+
+  """
+  External ID of this product media.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: String
 }
 
 """

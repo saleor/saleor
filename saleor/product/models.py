@@ -579,7 +579,7 @@ class VariantChannelListingPromotionRule(models.Model):
         unique_together = [["variant_channel_listing", "promotion_rule"]]
 
 
-class ProductMedia(SortableModel, ModelWithMetadata):
+class ProductMedia(SortableModel, ModelWithMetadata, ModelWithExternalReference):
     product = models.ForeignKey(
         Product,
         related_name="media",
