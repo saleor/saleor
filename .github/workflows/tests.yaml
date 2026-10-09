@@ -72,6 +72,7 @@ jobs:
       - name: Install system dependencies
         if: steps.changes.outputs.changed == 'true'
         run: |
+          apt-get update
           apt-get install -y libpq-dev postgresql-client
 
       - if: steps.changes.outputs.changed == 'true'
