@@ -68,7 +68,6 @@ def generate_fake_user(
     The instance cannot be saved
     """
 
-    # def create_fake_user(user_password, save=True, generate_id=False, customer_type=None):
     address = generate_fake_address(with_fake_save=with_fake_save)
     email = get_email(address.first_name, address.last_name)
 
