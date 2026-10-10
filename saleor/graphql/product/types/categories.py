@@ -47,6 +47,11 @@ class Category(ModelObjectType[models.Category]):
     seo_description = graphene.String(description="SEO description of category.")
     name = graphene.String(required=True, description="Name of category")
     description = JSONString(description="Description of the category." + RICH_CONTENT)
+    full_description = JSONString(
+        description="Full description of the category. Returns null when unset."
+        + RICH_CONTENT
+        + ADDED_IN_323
+    )
     slug = graphene.String(required=True, description="Slug of the category.")
     external_reference = graphene.String(
         description=f"External ID of this category.{ADDED_IN_323}"
