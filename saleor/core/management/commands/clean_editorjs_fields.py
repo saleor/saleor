@@ -31,9 +31,13 @@ MODELS: tuple[tuple[type[models.Model], str], ...] = (
     (Product, "description"),
     (ProductTranslation, "description"),
     (Collection, "description"),
+    (Collection, "full_description"),
     (CollectionTranslation, "description"),
+    (CollectionTranslation, "full_description"),
     (Category, "description"),
+    (Category, "full_description"),
     (CategoryTranslation, "description"),
+    (CategoryTranslation, "full_description"),
     # Page module
     (Page, "content"),
     (PageTranslation, "content"),
