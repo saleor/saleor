@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("product", "0205_merge_20260615_1308"),
+        ("product", "0214_collection_translation_full_description"),
     ]
 
     operations = [

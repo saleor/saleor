@@ -31,7 +31,7 @@ from ...utils import get_user_or_app_from_context
 from ...webhook.subscription_payload import generate_pre_save_payloads
 from ..mutations.channels import (
     ProductVariantChannelListingAddInput,
-    get_listing_availability,
+    get_new_listing_availability,
 )
 from ..mutations.product.product_create import StockInput, StockUpdateInput
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
@@ -651,7 +651,9 @@ class ProductVariantBulkUpdate(BaseMutation):
                     prior_price_amount=listing_data.get("prior_price"),
                     currency=listing_data["channel"].currency_code,
                     preorder_quantity_threshold=listing_data.get("preorder_threshold"),
-                    is_available_for_purchase=get_listing_availability(listing_data),
+                    is_available_for_purchase=get_new_listing_availability(
+                        listing_data
+                    ),
                 )
                 for listing_data in listings_data
             ]

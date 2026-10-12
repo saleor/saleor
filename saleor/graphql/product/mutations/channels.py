@@ -393,13 +393,19 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         )
 
 
-def get_listing_availability(listing_data: dict) -> bool:
-    """Resolve the availability flag of a listing input.
+def get_new_listing_availability(listing_data: dict) -> bool:
+    """Resolve the availability flag for a listing that is about to be created.
 
-    An omitted field and an explicit `null` both mean "keep the default", since the
-    column is not nullable.
+    The column is not nullable, so there is no way to store "unspecified". A listing
+    created without the flag — or with an explicit `null` — falls back to the model
+    default, which is available; that keeps `addVariants` and every pre-flag client
+    creating purchasable listings. Updates are the other case: they read the input
+    directly and leave the stored value alone when the field is omitted.
     """
-    return listing_data.get("is_available_for_purchase") is not False
+    is_available_for_purchase = listing_data.get("is_available_for_purchase")
+    if is_available_for_purchase is None:
+        return True
+    return is_available_for_purchase
 
 
 class ProductVariantChannelListingAddInput(BaseInputObjectType):
