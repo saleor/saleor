@@ -49,11 +49,6 @@ def permission_handle_taxes():
 
 
 @pytest.fixture
-def permission_manage_observability():
-    return Permission.objects.get(codename="manage_observability")
-
-
-@pytest.fixture
 def permission_manage_taxes():
     return Permission.objects.get(codename="manage_taxes")
 

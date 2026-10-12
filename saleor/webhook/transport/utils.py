@@ -17,7 +17,7 @@ import botocore.exceptions
 import google.api_core.exceptions
 from botocore.config import Config as BotoConfig
 from celery import Task
-from celery.exceptions import MaxRetriesExceededError, Retry
+from celery.exceptions import MaxRetriesExceededError
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Count
@@ -46,7 +46,6 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...core.utils.url import sanitize_url_for_logging
 from ...product.interface import VariantDiscountedPriceChange
 from ...warehouse.interface import VariantChannelStockInfo
-from .. import observability
 from ..const import APP_ID_PREFIX
 from ..event_types import WebhookEventAsyncType
 from ..models import Webhook
@@ -421,10 +420,6 @@ def handle_webhook_retry(
     try:
         countdown = celery_task.retry_backoff * (2**celery_task.request.retries)
         celery_task.retry(countdown=countdown, **celery_task.retry_kwargs)
-    except Retry as retry_error:
-        next_retry = observability.task_next_retry_date(retry_error)
-        observability.report_event_delivery_attempt(delivery_attempt, next_retry)
-        raise retry_error
     except MaxRetriesExceededError:
         is_success = False
         task_logger.info(
