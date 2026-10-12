@@ -16,6 +16,7 @@ from .....product.models import (
     Product,
     ProductChannelListing,
     ProductTranslation,
+    ProductVariant,
     ProductVariantChannelListing,
 )
 from .....tests.utils import dummy_editorjs
@@ -3170,6 +3171,40 @@ def test_query_product_variants_with_where(
 
     assert len(variants) == 1
     assert variants[0]["node"]["sku"] == sku_value
+
+
+def test_query_product_variants_with_where_external_reference(
+    user_api_client, product_variant_list, channel_USD
+):
+    # given
+    product = product_variant_list[0].product
+    first_external_reference = "external-reference-a"
+    second_external_reference = "external-reference-b"
+    product_variant_list[0].external_reference = first_external_reference
+    product_variant_list[1].external_reference = second_external_reference
+    ProductVariant.objects.bulk_update(product_variant_list[:2], ["external_reference"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channel": channel_USD.slug,
+        "where": {
+            "externalReference": {
+                "oneOf": [first_external_reference, second_external_reference]
+            }
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(QUERY_FETCH_PRODUCT_VARIANTS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variants = content["data"]["product"]["productVariants"]["edges"]
+    assert len(variants) == 2
+    assert {node["node"]["id"] for node in variants} == {
+        graphene.Node.to_global_id("ProductVariant", variant.pk)
+        for variant in product_variant_list[:2]
+    }
 
 
 def test_applies_limit_on_product_assigned_attributes(
