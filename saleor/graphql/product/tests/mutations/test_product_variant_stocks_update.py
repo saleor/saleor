@@ -38,11 +38,10 @@ VARIANT_STOCKS_UPDATE_MUTATIONS = """
 
 def test_product_variant_stocks_update(
     staff_api_client,
-    preorder_variant_global_threshold,
+    variant,
     warehouse,
     permission_manage_products,
 ):
-    variant = preorder_variant_global_threshold
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
     second_warehouse.slug = "second warehouse"

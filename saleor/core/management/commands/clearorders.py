@@ -33,12 +33,7 @@ from ....order.models import (
     OrderLine,
 )
 from ....payment.models import Payment, Transaction, TransactionEvent, TransactionItem
-from ....warehouse.models import (
-    Allocation,
-    PreorderAllocation,
-    PreorderReservation,
-    Reservation,
-)
+from ....warehouse.models import Allocation, Reservation
 
 
 class Command(BaseCommand):
@@ -69,17 +64,11 @@ class Command(BaseCommand):
         allocations = Allocation.objects.all()
         allocations._raw_delete(allocations.db)
 
-        preorder_allocations = PreorderAllocation.objects.all()
-        preorder_allocations._raw_delete(preorder_allocations.db)
-
         self.stdout.write("Removed allocations")
 
     def delete_reservations(self):
         reservations = Reservation.objects.all()
         reservations._raw_delete(reservations.db)
-
-        preorder_reservations = PreorderReservation.objects.all()
-        preorder_reservations._raw_delete(preorder_reservations.db)
 
         self.stdout.write("Removed reservations")
 

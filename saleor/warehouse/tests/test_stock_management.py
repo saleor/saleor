@@ -10,7 +10,6 @@ from ...order.fetch import OrderLineInfo
 from ...order.models import OrderLine
 from ...warehouse.models import Stock
 from ..management import (
-    allocate_preorders,
     allocate_stocks,
     deallocate_stock,
     deallocate_stock_for_orders,
@@ -19,7 +18,7 @@ from ..management import (
     increase_allocations,
     increase_stock,
 )
-from ..models import Allocation, ChannelWarehouse, PreorderAllocation
+from ..models import Allocation, ChannelWarehouse
 
 COUNTRY_CODE = "US"
 
@@ -1316,156 +1315,6 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
         )
 
     product_variant_out_of_stock_webhook_mock.assert_called_once()
-
-
-def test_allocate_preorders(
-    order_line, preorder_variant_channel_threshold, channel_USD
-):
-    variant = preorder_variant_channel_threshold
-    channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
-    channel_listing.preorder_quantity_threshold = 100
-    channel_listing.save(update_fields=["preorder_quantity_threshold"])
-
-    line_data = OrderLineInfo(line=order_line, variant=variant, quantity=50)
-
-    allocate_preorders([line_data], channel_USD.slug)
-
-    channel_listing.refresh_from_db()
-    assert channel_listing.preorder_quantity_threshold == 100
-    allocation = PreorderAllocation.objects.get(
-        order_line=order_line,
-        product_variant_channel_listing=channel_listing,
-    )
-    assert allocation.quantity == 50
-
-
-def test_allocate_preorders_with_allocation(
-    order_line,
-    preorder_variant_global_and_channel_threshold,
-    preorder_allocation,
-    channel_USD,
-):
-    variant = preorder_variant_global_and_channel_threshold
-    channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
-    channel_listing.preorder_quantity_threshold = 10
-    channel_listing.save(update_fields=["preorder_quantity_threshold"])
-
-    quantity_to_allocate = 2
-    line_data = OrderLineInfo(
-        line=order_line, variant=variant, quantity=quantity_to_allocate
-    )
-
-    allocate_preorders([line_data], channel_USD.slug)
-
-    channel_listing.refresh_from_db()
-    assert channel_listing.preorder_quantity_threshold == 10
-    allocation = PreorderAllocation.objects.get(
-        order_line=order_line,
-        product_variant_channel_listing=channel_listing,
-    )
-    assert allocation.quantity == quantity_to_allocate
-
-
-def test_allocate_preorders_insufficient_stocks_channel_threshold(
-    order_line, preorder_variant_channel_threshold, channel_USD
-):
-    variant = preorder_variant_channel_threshold
-    channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
-    channel_listings = variant.channel_listings.all()
-
-    line_data = OrderLineInfo(
-        line=order_line,
-        variant=variant,
-        quantity=channel_listing.preorder_quantity_threshold + 1,
-    )
-    with pytest.raises(InsufficientStock):
-        allocate_preorders([line_data], channel_USD.slug)
-
-    assert not PreorderAllocation.objects.filter(
-        order_line=order_line,
-        product_variant_channel_listing__in=channel_listings,
-    ).exists()
-
-
-def test_allocate_preorders_insufficient_stocks_global_threshold(
-    order_line, preorder_variant_global_threshold, channel_USD
-):
-    variant = preorder_variant_global_threshold
-    channel_listings = variant.channel_listings.all()
-    global_allocation = sum(
-        channel_listings.annotate(
-            allocated_preorder_quantity=Coalesce(
-                Sum("preorder_allocations__quantity"), 0
-            )
-        ).values_list("allocated_preorder_quantity", flat=True)
-    )
-    available_preorder_quantity = variant.preorder_global_threshold - global_allocation
-
-    line_data = OrderLineInfo(
-        line=order_line,
-        variant=variant,
-        quantity=available_preorder_quantity + 1,
-    )
-    with pytest.raises(InsufficientStock):
-        allocate_preorders([line_data], channel_USD.slug)
-
-    assert not PreorderAllocation.objects.filter(
-        order_line=order_line,
-        product_variant_channel_listing__in=channel_listings,
-    ).exists()
-
-
-def test_allocate_preorders_with_channel_reservations(
-    order_line, checkout_line_with_reserved_preorder_item, channel_USD
-):
-    variant = checkout_line_with_reserved_preorder_item.variant
-    channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
-    channel_listing.preorder_quantity_threshold = 5
-    channel_listing.save(update_fields=["preorder_quantity_threshold"])
-
-    line_data = OrderLineInfo(line=order_line, variant=variant, quantity=5)
-
-    with pytest.raises(InsufficientStock):
-        allocate_preorders(
-            [line_data],
-            channel_USD.slug,
-            check_reservations=True,
-            checkout_lines=[],
-        )
-
-    # Allocation passes when checkout line is passed
-    allocate_preorders(
-        [line_data],
-        channel_USD.slug,
-        check_reservations=True,
-        checkout_lines=[checkout_line_with_reserved_preorder_item],
-    )
-
-
-def test_allocate_preorders_with_global_reservations(
-    order_line, checkout_line_with_reserved_preorder_item, channel_USD
-):
-    variant = checkout_line_with_reserved_preorder_item.variant
-    variant.preorder_global_threshold = 5
-    variant.save()
-
-    line_data = OrderLineInfo(line=order_line, variant=variant, quantity=5)
-
-    with pytest.raises(InsufficientStock):
-        allocate_preorders(
-            [line_data],
-            channel_USD.slug,
-            check_reservations=True,
-            checkout_lines=[],
-        )
-
-    # Allocation passes when checkout line is passed
-    allocate_preorders(
-        [line_data],
-        channel_USD.slug,
-        check_reservations=True,
-        checkout_lines=[checkout_line_with_reserved_preorder_item],
-    )
 
 
 @mock.patch(

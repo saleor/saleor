@@ -5,7 +5,6 @@ from ....payment.models import Payment
 from ....plugins.manager import get_plugins_manager
 from ... import calculations
 from ...fetch import fetch_checkout_info, fetch_checkout_lines
-from ..utils import add_variant_to_checkout
 
 
 @pytest.fixture
@@ -62,48 +61,6 @@ def checkout_with_charged_payment_for_cc(checkout_with_billing_address_for_cc):
     manager = get_plugins_manager(allow_replica=False)
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
-    manager = get_plugins_manager(allow_replica=False)
-    taxed_total = calculations.calculate_checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-    )
-    payment = Payment.objects.create(
-        gateway="mirumee.payments.dummy",
-        is_active=True,
-        total=taxed_total.gross.amount,
-        currency="USD",
-    )
-
-    payment.charge_status = ChargeStatus.FULLY_CHARGED
-    payment.captured_amount = payment.total
-    payment.checkout = checkout
-    payment.save()
-
-    payment.transactions.create(
-        amount=payment.total,
-        kind=TransactionKind.CAPTURE,
-        gateway_response={},
-        is_success=True,
-    )
-
-    return checkout
-
-
-@pytest.fixture
-def checkout_preorder_with_charged_payment(
-    checkout_with_billing_address,
-    preorder_variant_channel_threshold,
-    preorder_variant_global_threshold,
-):
-    checkout = checkout_with_billing_address
-    manager = get_plugins_manager(allow_replica=False)
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    add_variant_to_checkout(checkout_info, preorder_variant_channel_threshold, 1)
-    add_variant_to_checkout(checkout_info, preorder_variant_global_threshold, 1)
-
-    lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager(allow_replica=False)
     taxed_total = calculations.calculate_checkout_total(
         manager=manager,

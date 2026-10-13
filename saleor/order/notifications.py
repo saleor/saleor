@@ -173,9 +173,6 @@ def get_product_variant_payload(variant: ProductVariant):
     return {
         "id": to_global_id_or_none(variant),
         "weight": str(variant.weight or ""),
-        "is_preorder": variant.is_preorder_active(),
-        "preorder_global_threshold": variant.preorder_global_threshold,
-        "preorder_end_date": variant.preorder_end_date,
         **get_default_images_payload(images),
     }
 
