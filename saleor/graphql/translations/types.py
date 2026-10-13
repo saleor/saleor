@@ -4,6 +4,7 @@ from typing import TypeVar
 import graphene
 from django.conf import settings
 from django.db.models import Model
+from graphene.types.resolver import get_default_resolver
 
 from ...attribute import AttributeInputType
 from ...attribute import models as attribute_models
@@ -81,6 +82,12 @@ def get_translatable_attribute_values(
 T = TypeVar("T", bound=Model)
 
 
+def resolve_empty_string_as_none(attname, default_value, root, info, **args):
+    """Resolve an empty translated string as null, as if it was never translated."""
+    value = get_default_resolver()(attname, default_value, root, info, **args)
+    return None if value == "" else value
+
+
 class BaseTranslationType(ModelObjectType[T]):
     language = graphene.Field(
         LanguageDisplay, description="Translation language.", required=True
@@ -88,6 +95,13 @@ class BaseTranslationType(ModelObjectType[T]):
 
     class Meta:
         abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, default_resolver=None, **options):  # type: ignore[override]
+        super().__init_subclass_with_meta__(
+            default_resolver=default_resolver or resolve_empty_string_as_none,
+            **options,
+        )
 
     @staticmethod
     @traced_resolver
@@ -111,9 +125,7 @@ class AttributeValueTranslation(
     id = graphene.GlobalID(
         required=True, description="The ID of the attribute value translation."
     )
-    name = graphene.String(
-        required=True, description="Translated attribute value name."
-    )
+    name = graphene.String(description="Translated attribute value name.")
     rich_text = JSONString(
         description="Translated rich-text attribute value." + RICH_CONTENT
     )
@@ -139,7 +151,7 @@ class AttributeTranslation(BaseTranslationType[attribute_models.AttributeTransla
     id = graphene.GlobalID(
         required=True, description="The ID of the attribute translation."
     )
-    name = graphene.String(required=True, description="Translated attribute name.")
+    name = graphene.String(description="Translated attribute name.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.AttributeTranslatableContent",
         description="Represents the attribute fields to translate.",
@@ -245,9 +257,7 @@ class ProductVariantTranslation(
     id = graphene.GlobalID(
         required=True, description="The ID of the product variant translation."
     )
-    name = graphene.String(
-        required=True, description="Translated product variant name."
-    )
+    name = graphene.String(description="Translated product variant name.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.ProductVariantTranslatableContent",
         description="Represents the product variant fields to translate.",
@@ -348,10 +358,7 @@ class ProductMediaTranslation(
         required=True,
         description="The ID of the product media translation.",
     )
-    alt = graphene.String(
-        required=True,
-        description="Translated product media alt text.",
-    )
+    alt = graphene.String(description="Translated product media alt text.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.ProductMediaTranslatableContent",
         description="Represents the product media fields to translate.",
@@ -925,12 +932,8 @@ class SaleTranslatableContent(ModelObjectType[discount_models.Promotion]):
 
 class ShopTranslation(BaseTranslationType[site_models.SiteSettingsTranslation]):
     id = graphene.GlobalID(required=True, description="The ID of the shop translation.")
-    header_text = graphene.String(
-        required=True, description="Translated header text of sale."
-    )
-    description = graphene.String(
-        required=True, description="Translated description of sale."
-    )
+    header_text = graphene.String(description="Translated header text of sale.")
+    description = graphene.String(description="Translated description of sale.")
 
     class Meta:
         model = site_models.SiteSettingsTranslation
@@ -942,7 +945,7 @@ class MenuItemTranslation(BaseTranslationType[menu_models.MenuItemTranslation]):
     id = graphene.GlobalID(
         required=True, description="The ID of the menu item translation."
     )
-    name = graphene.String(required=True, description="Translated menu item name.")
+    name = graphene.String(description="Translated menu item name.")
     translatable_content = graphene.Field(
         "saleor.graphql.translations.types.MenuItemTranslatableContent",
         description="Represents the menu item fields to translate.",
