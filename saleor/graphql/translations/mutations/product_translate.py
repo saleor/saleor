@@ -1,11 +1,14 @@
+from typing import Any
+
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import SitePermissions
 from ....product import models as product_models
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.enums import LanguageCodeEnum
+from ...core.enums import LanguageCodeEnum, TranslationErrorCode
 from ...core.types import TranslationError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import Product
@@ -32,6 +35,20 @@ class ProductTranslate(BaseTranslateMutationWithSlug):
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
+
+    @classmethod
+    def validate_input(cls, input_data: dict[str, Any]) -> None:
+        if "full_description" in input_data:
+            raise ValidationError(
+                {
+                    "full_description": ValidationError(
+                        "Full descriptions are only supported for categories and "
+                        "collections.",
+                        code=TranslationErrorCode.INVALID.value,
+                    )
+                }
+            )
+        super().validate_input(input_data)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

@@ -17,12 +17,13 @@ from ....shipping import models as shipping_models
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
-from ...core.descriptions import RICH_CONTENT
+from ...core.descriptions import ADDED_IN_323, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_MAP
 from ...core.enums import ErrorPolicyEnum, TranslationErrorCode
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
 from ...core.utils import from_global_id_or_error
+from ...core.validators import clean_editorjs_field
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import types as translation_types
 
@@ -171,6 +172,10 @@ class BaseTranslateMutationWithSlug(BaseTranslateMutation):
 
     @classmethod
     def pre_update_or_create(cls, instance, input_data, language_code):
+        if "full_description" in input_data:
+            input_data["full_description"] = clean_editorjs_field(
+                input_data["full_description"], "full_description"
+            )
         if input_data.get("slug") is not None:
             translation_instance = instance.translations.filter(
                 language_code=language_code
@@ -198,6 +203,13 @@ class SeoTranslationInput(graphene.InputObjectType):
 
 class TranslationInput(NameTranslationInput, SeoTranslationInput):
     description = JSONString(description="Translated description." + RICH_CONTENT)
+    full_description = JSONString(
+        description="Translated full description. Only supported for categories and "
+        "collections; product translation mutations reject this field. Pass null to "
+        "clear it. Omit to preserve the current value on update."
+        + RICH_CONTENT
+        + ADDED_IN_323
+    )
 
 
 class BaseBulkTranslateMutation(BaseMutation):
@@ -283,6 +295,9 @@ class BaseBulkTranslateMutation(BaseMutation):
                 pks_to_get.add(pk)
             else:
                 external_reference_to_get.add(data.get("external_reference"))
+
+        if not pks_to_get and not external_reference_to_get:
+            return []
 
         if pks_to_get:
             lookup |= Q(pk__in=pks_to_get)
