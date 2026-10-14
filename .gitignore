@@ -40,3 +40,4 @@ Pipfile
 # Exported results file
 django-queries-results.html
 !.claude/skills
+.hypothesis/
