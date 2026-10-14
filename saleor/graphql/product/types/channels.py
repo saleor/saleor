@@ -21,11 +21,13 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
 from ...core.tracing import traced_resolver
 from ...core.types import BaseObjectType, ModelObjectType
+from ...site.dataloaders import load_site_callback
 from ...tax.dataloaders import (
     TaxClassCountryRateByTaxClassIDLoader,
     TaxClassDefaultRateByCountryLoader,
@@ -33,7 +35,17 @@ from ...tax.dataloaders import (
     TaxConfigurationByChannelId,
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
-from ..dataloaders.products import VariantChannelListingsByProductIdLoader
+from ..dataloaders.products import (
+    ProductChannelListingByProductIdAndChannelSlugLoader,
+    ProductVariantByIdLoader,
+    VariantChannelListingsByProductIdLoader,
+)
+from .availability import (
+    ProductPricingInfo,
+    VariantPricingInfo,
+    get_variant_pricing_info,
+    get_variant_quantity_available,
+)
 
 
 class Margin(BaseObjectType):
@@ -94,7 +106,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         )
     )
     pricing = graphene.Field(
-        "saleor.graphql.product.types.products.ProductPricingInfo",
+        ProductPricingInfo,
         address=graphene.Argument(
             account_types.AddressInput,
             description=(
@@ -248,8 +260,6 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                                 tax_calculation_strategy=tax_calculation_strategy,
                                 tax_rate=tax_rate,
                             )
-                            from .products import ProductPricingInfo
-
                             pricing_info = asdict(availability)
                             pricing_info["display_gross_prices"] = display_gross_prices
                             return ProductPricingInfo(**pricing_info)
@@ -308,10 +318,50 @@ class ProductVariantChannelListing(
         "promotion information required by customer protection laws such as EU Omnibus "
         "directive.\n\n Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually.",
     )
+    discounted_price = graphene.Field(
+        Money,
+        description="The price of the variant with promotions applied." + ADDED_IN_323,
+    )
     margin = PermissionsField(
         graphene.Int,
         description="Gross margin percentage value.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
+    )
+    pricing = graphene.Field(
+        VariantPricingInfo,
+        address=graphene.Argument(
+            account_types.AddressInput,
+            description=(
+                "Destination address used to determine the country the taxes are "
+                "calculated for. If address is empty, the channel's default country "
+                "is used."
+            ),
+        ),
+        description=(
+            "Lists the storefront variant's pricing in this channel, the current "
+            "price and discounts, only meant for displaying."
+        )
+        + ADDED_IN_323,
+    )
+    quantity_available = graphene.Int(
+        address=graphene.Argument(
+            account_types.AddressInput,
+            description=(
+                "Destination address used to find warehouses where stock availability "
+                "for this variant is checked. If address is empty, uses "
+                "`Shop.companyAddress` or fallbacks to server's "
+                "`settings.DEFAULT_COUNTRY` configuration. "
+                "When `Shop.useLegacyShippingZoneStockAvailability` is disabled, "
+                "this argument is ignored - stock availability is determined by the "
+                "direct warehouse-channel link instead of shipping zones."
+            ),
+        ),
+        description=(
+            "Quantity of a variant available for sale in one checkout in this "
+            "channel. Field value will be `null` when no `limitQuantityPerCheckout` "
+            "in global settings has been set, and the variant stocks are not tracked."
+        )
+        + ADDED_IN_323,
     )
 
     class Meta:
@@ -326,6 +376,53 @@ class ProductVariantChannelListing(
     @staticmethod
     def resolve_margin(root: models.ProductVariantChannelListing, _info):
         return get_margin_for_variant_channel_listing(root)
+
+    @staticmethod
+    def resolve_pricing(
+        root: models.ProductVariantChannelListing, info, *, address=None
+    ):
+        context = info.context
+
+        def load_pricing(data):
+            variant, channel = data
+            product_channel_listing = (
+                ProductChannelListingByProductIdAndChannelSlugLoader(context).load(
+                    (variant.product_id, channel.slug)
+                )
+            )
+            tax_class_id = TaxClassIdByProductIdLoader(context).load(variant.product_id)
+            return Promise.all([product_channel_listing, tax_class_id]).then(
+                lambda loaded: get_variant_pricing_info(
+                    context, (loaded[0], root, channel, loaded[1]), address
+                )
+            )
+
+        return Promise.all(
+            [
+                ProductVariantByIdLoader(context).load(root.variant_id),
+                ChannelByIdLoader(context).load(root.channel_id),
+            ]
+        ).then(load_pricing)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_quantity_available(
+        root: models.ProductVariantChannelListing, info, site, address=None
+    ):
+        country_code = address.country if address is not None else None
+
+        def load_quantity_available(data):
+            variant, channel = data
+            return get_variant_quantity_available(
+                info, variant, channel.slug, site, country_code
+            )
+
+        return Promise.all(
+            [
+                ProductVariantByIdLoader(info.context).load(root.variant_id),
+                ChannelByIdLoader(info.context).load(root.channel_id),
+            ]
+        ).then(load_quantity_available)
 
 
 class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing]):
