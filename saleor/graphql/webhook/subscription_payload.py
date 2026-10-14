@@ -15,7 +15,13 @@ from ...account.models import User
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
 from ...core.utils import get_domain
+from ...webhook.const import WebhookPayloadErrorReason
 from ...webhook.models import Webhook
+from ...webhook.payload_errors import (
+    get_app_global_id,
+    get_webhook_global_id,
+    report_payload_generation_error,
+)
 from ..core import SaleorContext
 from ..core.dataloaders import DataLoader
 from ..utils import format_error
@@ -99,11 +105,29 @@ def _process_payload_instance(payload_instance):
     return event_payload
 
 
+def _report_dropped_payload(
+    webhook: Webhook | None,
+    event_type: str,
+    reason: WebhookPayloadErrorReason,
+    error: str = "",
+) -> None:
+    """Surface an event that was dropped because no payload could be built.
+
+    The webhook is absent when a payload is generated for something other than a real
+    delivery - a dry run, a manual trigger or a pre-save comparison - in which case
+    there is nothing to report to the app and no delivery was lost.
+    """
+    if webhook is None:
+        return
+    report_payload_generation_error(webhook, event_type, reason, error)
+
+
 def generate_payload_promise_from_subscription(
     event_type: str,
     subscribable_object,
     subscription_query: str,
     request: SaleorContext,
+    webhook: Webhook | None = None,
 ) -> Promise[dict[str, Any] | None]:
     """Generate webhook payload from subscription query.
 
@@ -116,6 +140,9 @@ def generate_payload_promise_from_subscription(
     subscription_query: query used to prepare a payload via graphql engine.
     request: A dummy request used to provide context such as .dataloaders between apps
     in order to use dataloaders benefits. The request is app specific.
+    webhook: the webhook the payload is generated for. Pass it when a failure means a
+    delivery was lost, so the drop is reported to the app and to telemetry. Leave it
+    out for dry runs, manual triggers and pre-save comparisons.
     return: A payload ready to send via webhook. None if the function was not able to
     generate a payload
     """
@@ -129,7 +156,7 @@ def generate_payload_promise_from_subscription(
         schema,
         ast,
     )
-    app_id = request.app.pk if request.app else None
+    app_id = get_app_global_id(request.app.pk) if request.app else None
 
     results_promise = document.execute(
         allow_subscriptions=True,
@@ -138,14 +165,25 @@ def generate_payload_promise_from_subscription(
         return_promise=True,
     )
 
-    def return_payload_promise(
-        results, app_id=app_id, subscription_query=subscription_query
-    ):
+    def return_payload_promise(results, app_id=app_id, webhook=webhook):
         if hasattr(results, "errors"):
+            error = str(results.errors)
             logger.warning(
                 "Unable to build a payload for subscription.\nerror: %s",
-                str(results.errors),
-                extra={"query": subscription_query, "app": app_id},
+                error,
+                extra={
+                    "app": app_id,
+                    "webhook_id": get_webhook_global_id(webhook.pk)
+                    if webhook
+                    else None,
+                    "event_type": event_type,
+                },
+            )
+            _report_dropped_payload(
+                webhook,
+                event_type,
+                WebhookPayloadErrorReason.INVALID_SUBSCRIPTION_QUERY,
+                error,
             )
             return None
 
@@ -156,10 +194,15 @@ def generate_payload_promise_from_subscription(
             logger.warning(
                 "Subscription did not return a payload.",
                 extra={
-                    "query": subscription_query,
                     "app": app_id,
+                    "webhook_id": get_webhook_global_id(webhook.pk)
+                    if webhook
+                    else None,
                     "event_type": event_type,
                 },
+            )
+            _report_dropped_payload(
+                webhook, event_type, WebhookPayloadErrorReason.EMPTY_PAYLOAD
             )
             return None
 
@@ -191,6 +234,7 @@ def generate_payload_from_subscription(
     subscribable_object,
     subscription_query: str,
     request: SaleorContext,
+    webhook: Webhook | None = None,
 ) -> dict[str, Any] | None:
     """Generate webhook payload from subscription query.
 
@@ -203,6 +247,9 @@ def generate_payload_from_subscription(
     subscription_query: query used to prepare a payload via graphql engine.
     request: A dummy request used to provide context such as .dataloaders between apps
     in order to use dataloaders benefits. The request is app specific.
+    webhook: the webhook the payload is generated for. Pass it when a failure means a
+    delivery was lost, so the drop is reported to the app and to telemetry. Leave it
+    out for dry runs, manual triggers and pre-save comparisons.
     return: A payload ready to send via webhook. None if the function was not able to
     generate a payload
     """
@@ -215,7 +262,7 @@ def generate_payload_from_subscription(
         schema,
         ast,
     )
-    app_id = request.app.pk if request.app else None
+    app_id = get_app_global_id(request.app.pk) if request.app else None
 
     results = document.execute(
         allow_subscriptions=True,
@@ -224,10 +271,21 @@ def generate_payload_from_subscription(
     )
 
     if hasattr(results, "errors"):
+        error = str(results.errors)
         logger.warning(
             "Unable to build a payload for subscription. Error: %s",
-            str(results.errors),
-            extra={"query": subscription_query, "app": app_id},
+            error,
+            extra={
+                "app": app_id,
+                "webhook_id": get_webhook_global_id(webhook.pk) if webhook else None,
+                "event_type": event_type,
+            },
+        )
+        _report_dropped_payload(
+            webhook,
+            event_type,
+            WebhookPayloadErrorReason.INVALID_SUBSCRIPTION_QUERY,
+            error,
         )
         return None
 
@@ -238,10 +296,13 @@ def generate_payload_from_subscription(
         logger.warning(
             "Subscription did not return a payload.",
             extra={
-                "query": subscription_query,
                 "app": app_id,
+                "webhook_id": get_webhook_global_id(webhook.pk) if webhook else None,
                 "event_type": event_type,
             },
+        )
+        _report_dropped_payload(
+            webhook, event_type, WebhookPayloadErrorReason.EMPTY_PAYLOAD
         )
         return None
 
@@ -297,6 +358,9 @@ def generate_pre_save_payloads(
             continue
 
         for instance in instances:
+            # The webhook is deliberately not passed: this payload is only compared
+            # against the one built for the real delivery, which reports the drop
+            # itself. Reporting here as well would double count every dropped event.
             instance_payload = generate_payload_from_subscription(
                 event_type=event_type,
                 subscribable_object=instance,

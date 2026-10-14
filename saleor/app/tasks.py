@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from requests import HTTPError, RequestException
@@ -14,6 +15,7 @@ from ..core.tasks import delete_files_from_private_storage_task
 from ..webhook.models import Webhook
 from .installation_utils import AppInstallationError, install_app
 from .models import App, AppExtension, AppInstallation, AppToken
+from .problems import DEFAULT_AGGREGATION_PERIOD, create_or_update_problem
 
 logger = logging.getLogger(__name__)
 
@@ -121,3 +123,32 @@ def remove_apps_task():
         AppToken.objects.filter(app_id=app.id).delete()
         AppExtension.objects.filter(app_id=app.id).delete()
         app.delete()
+
+
+@celeryconf.app.task
+@allow_writer()
+def create_app_problem_task(
+    app_id: int,
+    key: str,
+    message: str,
+    critical_threshold: int | None = None,
+    aggregation_period: int = DEFAULT_AGGREGATION_PERIOD,
+) -> None:
+    """Report a problem for an app from Saleor itself, outside of a request.
+
+    Callers throttle themselves, so this task is only scheduled once per reporting
+    window. It is safe to retry: a redelivered task only bumps the problem's count.
+    """
+    try:
+        create_or_update_problem(
+            app_id,
+            message=message,
+            key=key,
+            critical_threshold=critical_threshold,
+            aggregation_period=aggregation_period,
+        )
+    except IntegrityError:
+        # The app was removed between scheduling and running this task.
+        logger.warning(
+            "Cannot create app problem, app not found for app_id: %s.", app_id
+        )

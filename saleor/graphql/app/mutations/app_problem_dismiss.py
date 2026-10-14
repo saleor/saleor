@@ -10,6 +10,7 @@ from ....app.error_codes import (
 from ....app.lock_objects import app_problem_qs_select_for_update
 from ....app.models import App as AppModel
 from ....app.models import AppProblem
+from ....app.problems import dismiss_problems_by_keys
 from ....core.tracing import traced_atomic_transaction
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
@@ -241,13 +242,8 @@ class AppProblemDismiss(BaseMutation):
                 )
                 AppProblem.objects.filter(pk__in=pks).update(dismissed=True)
         else:
-            with traced_atomic_transaction():
-                pks = (
-                    app_problem_qs_select_for_update()
-                    .filter(key__in=keys, app=caller_app, dismissed=False)
-                    .values_list("pk", flat=True)
-                )
-                AppProblem.objects.filter(pk__in=pks).update(dismissed=True)
+            assert keys is not None
+            dismiss_problems_by_keys(caller_app.pk, keys)
 
     @classmethod
     def _validate_items_limit(cls, items: list[str], field_name: str) -> None:

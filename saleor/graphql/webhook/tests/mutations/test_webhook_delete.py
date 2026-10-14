@@ -4,9 +4,10 @@ import graphene
 import pytest
 from django.db import IntegrityError
 
-from .....app.models import App
+from .....app.models import App, AppProblem
 from .....webhook.error_codes import WebhookErrorCode
 from .....webhook.models import Webhook
+from .....webhook.payload_errors import get_invalid_subscription_query_problem_key
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 WEBHOOK_DELETE_BY_APP = """
@@ -394,3 +395,37 @@ def test_webhook_delete_null_identifier_never_matches_webhook_without_identifier
         }
     ]
     assert Webhook.objects.filter(pk=webhook.pk).exists() is True
+
+
+def test_webhook_delete_dismisses_problems_raised_for_the_webhook(
+    app_api_client, webhook
+):
+    """Saleor's own problems outlive the webhook, so deleting it must dismiss them."""
+    # given
+    other_key = "app-reported-problem"
+    problem = AppProblem.objects.create(
+        app=webhook.app,
+        key=get_invalid_subscription_query_problem_key(webhook.pk),
+        message="Webhook is not delivering any of its events.",
+        is_critical=True,
+    )
+    unrelated_problem = AppProblem.objects.create(
+        app=webhook.app, key=other_key, message="Something the app reported itself."
+    )
+    variables = {"id": graphene.Node.to_global_id("Webhook", webhook.pk)}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_DELETE_BY_APP, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["webhookDelete"]["errors"] == []
+    assert Webhook.objects.exists() is False
+
+    problem.refresh_from_db(fields=("dismissed", "dismissed_by_user_email"))
+    assert problem.dismissed is True
+    # Dismissed by Saleor, so no staff user is attributed.
+    assert problem.dismissed_by_user_email is None
+
+    unrelated_problem.refresh_from_db(fields=("dismissed",))
+    assert unrelated_problem.dismissed is False
