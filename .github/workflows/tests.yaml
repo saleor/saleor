@@ -76,7 +76,7 @@ jobs:
           apt-get update
           apt-get install -y libpq-dev postgresql-common
           /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
-          apt-get install postgresql-client-15
+          apt-get install -y postgresql-client-15
 
       - if: steps.changes.outputs.changed == 'true'
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -107,7 +107,7 @@ jobs:
             echo "Will save cache to $head (if relevant)" >&2
             is_release=1
           else
-            echo "Will skip caching: $base is not a main/release branch" >&2
+            echo "Will skip caching: $head is not a main/release branch" >&2
           fi
 
           {
