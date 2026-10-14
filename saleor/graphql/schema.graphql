@@ -4332,6 +4332,15 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   """
   description: JSONString
 
+  """
+  Full description of the category. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
   """Slug of the category."""
   slug: String!
 
@@ -4926,6 +4935,15 @@ type CategoryTranslation implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Translated full description of the category. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """
   Translated description of the category.
@@ -7316,6 +7334,15 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
   description: JSONString
 
   """
+  Category's full description to translate. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
+  """
   Description of the category.
   
   Rich text format. For reference see https://editorjs.io/
@@ -7524,6 +7551,13 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
    Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually.
   """
   priorPrice: Money
+
+  """
+  Determines whether the variant can be bought in this channel. When set to `false`, the variant behaves as if it had no listing in this channel: it is hidden from customers and cannot be added to a checkout or an order. Its prices are preserved.
+  
+  Added in Saleor 3.23.
+  """
+  isAvailableForPurchase: Boolean!
 
   """
   Gross margin percentage value.
@@ -10180,6 +10214,15 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   """
   description: JSONString
 
+  """
+  Full description of the collection. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
   """Slug of the collection."""
   slug: String!
 
@@ -10288,6 +10331,15 @@ type CollectionTranslation implements Node @doc(category: "Products") {
   description: JSONString
 
   """
+  Translated full description of the collection. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
+  """
   Translated description of the collection.
   
   Rich text format. For reference see https://editorjs.io/
@@ -10326,6 +10378,15 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Collection's full description to translate. Returns null when unset.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """
   Description of the collection.
@@ -19227,6 +19288,26 @@ type Mutation {
   ): ProductVariantChannelListingUpdate @doc(category: "Products")
 
   """
+  Toggle whether a product variant can be bought in the given channels, without touching its prices. An unavailable variant is hidden from customers and cannot be added to a checkout or an order.
+  
+  Added in Saleor 3.23. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  productVariantChannelListingAvailabilityUpdate(
+    """ID of a product variant to update."""
+    id: ID
+
+    """
+    List of channels to toggle the variant's availability in. Max 100 items.
+    """
+    input: [ProductVariantChannelListingAvailabilityInput!]!
+
+    """SKU of a product variant to update."""
+    sku: String
+  ): ProductVariantChannelListingAvailabilityUpdate @doc(category: "Products")
+
+  """
   Reorder product variant attribute values. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -24602,6 +24683,15 @@ input CategoryInput @doc(category: "Products") {
   """Search engine optimization fields."""
   seo: SeoInput
 
+  """
+  Full description of the category. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
+
   """Background image file."""
   backgroundImage: Upload
 
@@ -24693,6 +24783,15 @@ input TranslationInput {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Translated full description. Only supported for categories and collections; product translation mutations reject this field. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 }
 
 """
@@ -24768,6 +24867,15 @@ input CollectionCreateInput @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Full description of the collection. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """Background image file."""
   backgroundImage: Upload
@@ -24890,6 +24998,15 @@ input CollectionInput @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """
+  Full description of the collection. Pass null to clear it. Omit to preserve the current value on update.
+  
+  Rich text format. For reference see https://editorjs.io/
+  
+  Added in Saleor 3.23.
+  """
+  fullDescription: JSONString
 
   """Background image file."""
   backgroundImage: Upload
@@ -25450,6 +25567,13 @@ input ProductVariantChannelListingAddInput @doc(category: "Products") {
   Previous price of the variant in channel. Useful for providing promotion information required by customer protection laws such as EU Omnibus directive.
   """
   priorPrice: PositiveDecimal
+
+  """
+  Determines whether the variant can be bought in this channel. When omitted on an existing listing, the current value is kept.
+  
+  Added in Saleor 3.23.
+  """
+  isAvailableForPurchase: Boolean
 }
 
 """
@@ -26228,6 +26352,13 @@ input ChannelListingUpdateInput @doc(category: "Products") {
 
   """Price of the variant before discount."""
   priorPrice: PositiveDecimal
+
+  """
+  Determines whether the variant can be bought in this channel. When omitted, the current value is kept.
+  
+  Added in Saleor 3.23.
+  """
+  isAvailableForPurchase: Boolean
 }
 
 """
@@ -26505,6 +26636,53 @@ type ProductVariantChannelListingUpdate @doc(category: "Products") {
   variant: ProductVariant
   productChannelListingErrors: [ProductChannelListingError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [ProductChannelListingError!]!
+}
+
+"""
+Toggle whether a product variant can be bought in the given channels, without touching its prices. An unavailable variant is hidden from customers and cannot be added to a checkout or an order.
+
+Added in Saleor 3.23. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type ProductVariantChannelListingAvailabilityUpdate @doc(category: "Products") {
+  """An updated product variant instance."""
+  variant: ProductVariant
+  errors: [ProductVariantChannelListingAvailabilityUpdateError!]!
+}
+
+"""
+Error of the `productVariantChannelListingAvailabilityUpdate` mutation.
+
+Added in Saleor 3.23.
+"""
+type ProductVariantChannelListingAvailabilityUpdateError @doc(category: "Products") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductErrorCode!
+
+  """List of channels IDs which causes the error."""
+  channels: [ID!]
+}
+
+"""
+Fields required to toggle a product variant's availability in a channel.
+
+Added in Saleor 3.23.
+"""
+input ProductVariantChannelListingAvailabilityInput @doc(category: "Products") {
+  """ID of a channel."""
+  channelId: ID!
+
+  """Determines whether the variant can be bought in this channel."""
+  isAvailableForPurchase: Boolean!
 }
 
 """

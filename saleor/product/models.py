@@ -58,6 +58,9 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel, ModelWithExternalReferenc
     name = models.CharField(max_length=250)
     slug = models.SlugField(max_length=255, unique=True, allow_unicode=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
+    full_description = SanitizedJSONField(
+        blank=True, null=True, sanitizer=clean_editorjs
+    )
     description_plaintext = TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
     parent = models.ForeignKey(
@@ -93,6 +96,9 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
     )
     name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
+    full_description = SanitizedJSONField(
+        blank=True, null=True, sanitizer=clean_editorjs
+    )
 
     class Meta:
         constraints = [
@@ -119,6 +125,7 @@ class CategoryTranslation(SeoModelTranslationWithSlug):
             {
                 "name": self.name,
                 "description": self.description,
+                "full_description": self.full_description,
             }
         )
         return translated_keys
@@ -543,6 +550,8 @@ class ProductVariantChannelListing(models.Model):
     # TODO remove after 3.24: preorder API was removed in 3.24
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 
+    is_available_for_purchase = models.BooleanField(default=True, db_default=True)
+
     objects = managers.ProductVariantChannelListingManager()
 
     class Meta:
@@ -551,6 +560,14 @@ class ProductVariantChannelListing(models.Model):
         indexes = [
             GinIndex(fields=["price_amount", "channel_id"]),
         ]
+
+    @property
+    def is_sellable(self) -> bool:
+        """Whether the variant can be bought in this channel.
+
+        In-Python twin of `managers.sellable_listing_q`; keep the two in sync.
+        """
+        return self.price_amount is not None and self.is_available_for_purchase
 
 
 class VariantChannelListingPromotionRule(models.Model):
@@ -684,6 +701,9 @@ class Collection(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     background_image_alt = models.CharField(max_length=128, blank=True)
 
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
+    full_description = SanitizedJSONField(
+        blank=True, null=True, sanitizer=clean_editorjs
+    )
 
     objects = managers.CollectionManager()
 
@@ -730,6 +750,9 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
     )
     name = models.CharField(max_length=128, blank=True, null=True)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editorjs)
+    full_description = SanitizedJSONField(
+        blank=True, null=True, sanitizer=clean_editorjs
+    )
 
     class Meta:
         constraints = [
@@ -756,6 +779,7 @@ class CollectionTranslation(SeoModelTranslationWithSlug):
             {
                 "name": self.name,
                 "description": self.description,
+                "full_description": self.full_description,
             }
         )
         return translated_keys

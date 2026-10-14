@@ -11,6 +11,7 @@ from graphql.error import GraphQLError
 from graphql.language.ast import Document
 from graphql.type import GraphQLSchema
 
+from ....core.editorjs import clean_editorjs
 from ....core.utils import generate_unique_slug
 from ....product.models import ProductVariantChannelListing
 from .alias_count_limit_rule import AliasCountLimitRule
@@ -21,6 +22,15 @@ if TYPE_CHECKING:
     from decimal import Decimal
 
     from django.db.models import Model
+
+
+def clean_editorjs_field(
+    value: dict[str, Any] | None, field_name: str
+) -> dict[str, Any] | None:
+    try:
+        return clean_editorjs(value)
+    except ValidationError as exc:
+        raise ValidationError({field_name: exc}) from exc
 
 
 def validate_query(
@@ -134,10 +144,10 @@ def get_not_available_variants_in_channel(
 ) -> tuple[set[int], set[str]]:
     available_variants = (
         ProductVariantChannelListing.objects.using(database_connection_name)
+        .sellable()
         .filter(
             variant__id__in=variants_id,
             channel_id=channel_id,
-            price_amount__isnull=False,
         )
         .values_list("variant_id", flat=True)
     )

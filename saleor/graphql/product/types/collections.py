@@ -57,6 +57,11 @@ class Collection(ChannelContextType[models.Collection]):
     description = JSONString(
         description="Description of the collection." + RICH_CONTENT
     )
+    full_description = JSONString(
+        description="Full description of the collection. Returns null when unset."
+        + RICH_CONTENT
+        + ADDED_IN_323
+    )
     slug = graphene.String(required=True, description="Slug of the collection.")
     external_reference = graphene.String(
         description=f"External ID of this collection.{ADDED_IN_323}"

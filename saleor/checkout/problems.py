@@ -114,7 +114,7 @@ def line_is_not_available(
     if not line.channel_listing:
         return True
 
-    if line.channel_listing.price_amount is None:
+    if not line.channel_listing.is_sellable:
         return True
 
     return False

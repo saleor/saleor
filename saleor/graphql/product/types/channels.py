@@ -21,6 +21,7 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
@@ -307,6 +308,13 @@ class ProductVariantChannelListing(
         description="Previous price of the variant in channel. Useful for providing "
         "promotion information required by customer protection laws such as EU Omnibus "
         "directive.\n\n Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually.",
+    )
+    is_available_for_purchase = graphene.Boolean(
+        required=True,
+        description="Determines whether the variant can be bought in this channel. "
+        "When set to `false`, the variant behaves as if it had no listing in this "
+        "channel: it is hidden from customers and cannot be added to a checkout or "
+        "an order. Its prices are preserved." + ADDED_IN_323,
     )
     margin = PermissionsField(
         graphene.Int,
