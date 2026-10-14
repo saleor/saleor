@@ -60,6 +60,12 @@ permissions.
 - Added `promoCodeDetails` field to `CheckoutError`, `OrderError` and `OrderCreateFromCheckoutError`, explaining why a voucher or gift card code was rejected. It returns a `PromoCodeRejectionReason` (e.g. `EXPIRED`, `USAGE_LIMIT_REACHED`, `MIN_SPENT_NOT_REACHED`, `NO_ELIGIBLE_PRODUCTS`) plus `minSpent` / `minCheckoutItemsQuantity` where relevant. It is reported by `checkoutAddPromoCode`, `checkoutComplete`, `orderCreateFromCheckout`, `draftOrderCreate`, `draftOrderUpdate`, `draftOrderComplete` and `Order.errors`.
 - Added `externalReference` support to `Voucher`. Vouchers can now be created with an external reference, looked up using `voucher(externalReference: ...)`, and updated or deleted by external reference instead of ID. The reference can also be changed or cleared through `voucherUpdate`.
 - Added `externalReference` filter to `products(where: ...)`. Supports `eq` and `oneOf`, allowing products to be fetched in batch by their external references.
+- Added per-channel availability toggle for product variants that preserves pricing:
+  - New `ProductVariantChannelListing.isAvailableForPurchase` field (staff/app only).
+  - New `productVariantChannelListingAvailabilityUpdate` mutation to toggle it without resending prices.
+  - New `isAvailableForPurchase` input field on `ProductVariantChannelListingAddInput` (used by `productVariantChannelListingUpdate`, `productVariantBulkCreate` and `productVariantBulkUpdate.channelListings.create`) and on `ChannelListingUpdateInput` (`productVariantBulkUpdate.channelListings.update`). Omitting it, or passing `null`, keeps the current value.
+  - A listing with `isAvailableForPurchase: false` behaves exactly as if the variant had no listing in that channel: it is hidden from customers, excluded from the product price range, and cannot be added to a checkout or an order. Its `price`, `costPrice` and `priorPrice` are kept, so re-enabling it restores the original prices. Previously the only way to make a variant unavailable was `productChannelListingUpdate(removeVariants:)`, which deletes the listing and its prices.
+  - Existing listings and newly created ones default to `true`, so behaviour is unchanged unless the flag is set.
 
 ### Webhooks
 
