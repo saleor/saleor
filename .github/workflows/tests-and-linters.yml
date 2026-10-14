@@ -48,6 +48,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
       cache:
         image: valkey/valkey:8.1-alpine
         options: >-
@@ -85,6 +86,7 @@ jobs:
         if: steps.changes.outputs.changed == 'true'
         run: |
           uv run pytest \
+            --reuse-db `# retains the DB after tests` \
             -m "not e2e" \
             --junitxml=junit/test-results.xml \
             -o junit_family=legacy \
@@ -117,6 +119,32 @@ jobs:
           name: pytest-django-db-queries-results
           path: ${{ env.BENCH_PATH }}
           if-no-files-found: error
+
+      - if: steps.changes.outputs.changed == 'true'
+        name: Prepare `--no-dev` tests
+        timeout-minutes: 5
+        run: |
+          # Reuse DB generated during `pytest` run in order to avoid having
+          # to run `./manage.py migrate` (slow)
+          echo "DATABASE_URL=postgres://saleor:saleor@postgres:5432/test_saleor_gw0" >> "$GITHUB_ENV"
+          # Uninstall dev dependencies
+          uv sync --locked --no-dev
+
+      # Ensure Saleor & uvicorn can run without development dependencies
+      - if: steps.changes.outputs.changed == 'true'
+        name: Run Unicorn (with --no-dev)
+        timeout-minutes: 2
+        run: |
+          DEBUG=true uv run --no-dev -m saleor.asgi.tests.checks.check_uvicorn_starts
+
+      # Ensure Celery and Beat boot properly without dev dependencies
+      - if: steps.changes.outputs.changed == 'true'
+        name: Run Celery & Beat (with --no-dev)
+        timeout-minutes: 2
+        env:
+          CELERY_BROKER_URL: redis://cache:6379/1
+        run: |
+          DEBUG=true uv run --no-dev -m saleor.core.tests.checks.check_celery_starts
 
   # Uploads the SQL count report for base branches
   upload-query-count-base-branch:
