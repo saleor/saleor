@@ -26,6 +26,7 @@ from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...product.models import ProductVariant
+from ...tests.utils import dummy_editorjs
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     PRODUCT_VARIANT_FIELDS,
@@ -571,14 +572,25 @@ def test_generate_order_metadata_updated_payload(
     }
 
 
-def test_generate_collection_payload(collection):
+@pytest.mark.parametrize(
+    "full_description", [None, dummy_editorjs("Detailed collection description.")]
+)
+def test_generate_collection_payload(collection, full_description):
+    # given
+    collection.full_description = full_description
+    collection.save(update_fields=["full_description"])
+
+    # when
     payload = json.loads(generate_collection_payload(collection))
+
+    # then
     expected_payload = [
         {
             "type": "Collection",
             "id": graphene.Node.to_global_id("Collection", collection.id),
             "name": collection.name,
             "description": collection.description,
+            "full_description": collection.full_description,
             "background_image": None,
             "background_image_alt": "",
             "private_metadata": {},
