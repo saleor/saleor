@@ -27,6 +27,7 @@ from ....core.telemetry import (
 )
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
+from ....core.utils.events import get_is_deferred_payload
 from ....core.utils.url import sanitize_url_for_logging
 from ....graphql.webhook.subscription_payload import (
     generate_payload_promise_from_subscription,
@@ -381,9 +382,7 @@ def trigger_webhooks_async_for_multiple_objects(
 
     legacy_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
 
-    is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(event_type, {}).get(
-        "is_deferred_payload", False
-    )
+    is_deferrable_event = get_is_deferred_payload(event_type)
 
     # List of deliveries with payloads.
     deliveries: list[EventDelivery] = []
@@ -428,7 +427,7 @@ def trigger_webhooks_async_for_multiple_objects(
         # later change of the setting.
         deferred_webhooks: list[Webhook] = []
         immediate_webhooks = subscription_webhooks
-        if is_deferred_payload:
+        if is_deferrable_event:
             deferred_webhooks, immediate_webhooks = (
                 group_subscription_webhooks_by_payload_generation(subscription_webhooks)
             )
@@ -444,12 +443,19 @@ def trigger_webhooks_async_for_multiple_objects(
                 )
             )
         if immediate_webhooks:
+            # A deferrable event can be fired by a task right after it wrote the
+            # object on the writer, with a manager that allows the replica. The
+            # deferred task waits for the replica to catch up before it resolves
+            # the payload, but this path resolves it now, so the fields it loads
+            # through dataloaders are read from the writer instead. Fields taken
+            # from the subscribable object itself still reflect wherever the
+            # caller loaded that object from.
             delivery_promise = create_deliveries_for_multiple_subscription_objects(
                 event_type=event_type,
                 subscribable_objects=subscribable_objects,
                 webhooks=immediate_webhooks,
                 requestor=requestor,
-                allow_replica=allow_replica,
+                allow_replica=allow_replica and not is_deferrable_event,
                 pre_save_payloads=pre_save_payloads,
                 request_time=request_time,
             )

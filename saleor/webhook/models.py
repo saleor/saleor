@@ -54,10 +54,10 @@ class Webhook(models.Model):
     # How the subscription payload is built for async events that defer payload
     # generation (`is_deferred_payload` in the event map). The value is read once,
     # when a delivery is created by whatever triggered the event, a request or a
-    # background task. Changing
-    # it never affects deliveries already created or tasks already queued: those
-    # finish the way they started. It is ignored for webhooks without a
-    # subscription query, for sync events and for events that are not deferred.
+    # background task. Changing it never affects deliveries already created or
+    # tasks already queued: those finish the way they started. It is ignored for
+    # webhooks without a subscription query, for sync events and for events that
+    # do not defer payload generation.
     payload_generation = models.CharField(
         max_length=32,
         choices=WebhookPayloadGeneration.CHOICES,

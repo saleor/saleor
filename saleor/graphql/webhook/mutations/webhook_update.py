@@ -78,7 +78,8 @@ class WebhookUpdateInput(BaseInputObjectType):
         description=(
             "Determines when the subscription payload is built for asynchronous "
             "events that defer payload generation. Omit to keep the current "
-            "value. Ignored for webhooks without a subscription query, for "
+            "value, `null` resets it to `DEFERRED`. Ignored for webhooks without "
+            "a subscription query, for "
             "synchronous events and for events that do not defer their payload. "
             "A change applies to events triggered after the update. Deliveries "
             "already created finish the way they started, so around a change a "

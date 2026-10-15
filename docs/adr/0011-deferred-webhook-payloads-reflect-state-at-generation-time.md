@@ -47,7 +47,10 @@ its payload built by whatever triggered the event, as every webhook did before d
 that webhook pays the cost. For events fired from a request that is the mutation's latency. For
 events fired from a background task, such as the variant price and stock events, it is that task's
 run time, which is why those events were deferred from the start. An app that sets `IMMEDIATE` on
-such an event takes that cost knowingly. The choice is ignored where it cannot apply: legacy
+such an event takes that cost knowingly. Because such a task may fire the event with a replica-allowed
+manager right after its own write, an `IMMEDIATE` payload on a deferrable event is resolved against the
+writer, so the dataloader-resolved fields cannot predate the write. Fields read from the subscribable
+object itself still reflect where the caller loaded it from. The choice is ignored where it cannot apply: legacy
 webhooks without a subscription query, sync events, and events that are not deferred.
 
 ## When each event became deferred
