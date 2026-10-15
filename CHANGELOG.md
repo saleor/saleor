@@ -6,6 +6,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Thumbnail sizes are now rounded up by default. A requested `size` that is not one of the available thumbnail sizes (32, 64, 128, 256, 512, 1024, 2048, 4096) now resolves to the smallest available size not smaller than requested (e.g. `1500` returns `2048`), instead of the nearest one (`1024`), which made images look blurry when displayed at the requested size. Pass `sizeRounding: NEAREST` to restore the previous behavior. This applies to all thumbnail fields: `User.avatar`, `Product.thumbnail`, `ProductMedia.url`, `ProductImage.url`, `OrderLine.thumbnail`, `Category.backgroundImage`, `Collection.backgroundImage`, `AppBrandLogo.default` and `AppManifestBrandLogo.default`, as well as product thumbnails in email notifications.
 - Removed the deprecated Authorize.Net payment gateway plugin (`mirumee.payments.authorize_net`).
 - Removed the deprecated Razorpay payment gateway plugin (`mirumee.payments.razorpay`).
 - Removed the deprecated Braintree payment gateway plugin (`mirumee.payments.braintree`).

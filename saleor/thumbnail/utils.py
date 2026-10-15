@@ -16,11 +16,13 @@ from PIL import Image
 from ..product import ProductMediaTypes
 from . import (
     DEFAULT_THUMBNAIL_SIZE,
+    DEFAULT_THUMBNAIL_SIZE_ROUNDING,
     FILE_NAME_MAX_LENGTH,
     MIME_TYPE_TO_PIL_IDENTIFIER,
     THUMBNAIL_SIZES,
     IconThumbnailFormat,
     ThumbnailFormat,
+    ThumbnailSizeRounding,
 )
 from .exceptions import ImageTooLargeError
 
@@ -65,8 +67,16 @@ def get_original_image_proxy_url(
     return reverse("original-image", kwargs=kwargs)
 
 
-def get_thumbnail_size(size: int | None) -> int:
-    """Return the closest size to the given one of the available sizes."""
+def get_thumbnail_size(
+    size: int | None, rounding: ThumbnailSizeRounding | None = None
+) -> int:
+    """Return the available size matching the given one.
+
+    With `NEAREST` rounding the closest available size is returned, with `UP`
+    rounding the smallest available size not smaller than the given one. Sizes
+    above the largest available size resolve to the largest one. When `rounding`
+    is not given, `DEFAULT_THUMBNAIL_SIZE_ROUNDING` is used.
+    """
     if size is None:
         requested_size = DEFAULT_THUMBNAIL_SIZE
     else:
@@ -74,6 +84,10 @@ def get_thumbnail_size(size: int | None) -> int:
     if requested_size in THUMBNAIL_SIZES:
         return requested_size
 
+    if (rounding or DEFAULT_THUMBNAIL_SIZE_ROUNDING) == ThumbnailSizeRounding.UP:
+        return next(
+            (s for s in THUMBNAIL_SIZES if s >= requested_size), THUMBNAIL_SIZES[-1]
+        )
     return min(THUMBNAIL_SIZES, key=lambda x: abs(x - requested_size))
 
 

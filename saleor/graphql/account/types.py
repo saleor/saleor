@@ -22,6 +22,7 @@ from ...permission.enums import (
 )
 from ...permission.utils import one_of_permissions_or_auth_filter_required
 from ...plugins.manager import PluginsManager
+from ...thumbnail import ThumbnailSizeRounding
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -901,6 +902,7 @@ class User(ModelObjectType[models.User]):
         root: models.User,
         info: ResolveInfo,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> None | Image | Promise[Image]:
         if not root.avatar:
@@ -910,7 +912,7 @@ class User(ModelObjectType[models.User]):
             return Image(url=root.avatar.url, alt=None)
 
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_avatar(thumbnail):
             url = get_image_or_proxy_url(

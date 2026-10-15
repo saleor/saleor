@@ -6,6 +6,7 @@ from ....core.search import prefix_search
 from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
+from ....thumbnail import ThumbnailSizeRounding
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -121,6 +122,7 @@ class Category(ModelObjectType[models.Category]):
         root: models.Category,
         info,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> None | Image | Promise[Image]:
         if not root.background_image:
@@ -131,7 +133,7 @@ class Category(ModelObjectType[models.Category]):
             return Image(url=root.background_image.url, alt=alt)
 
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_background_image(thumbnail):
             url = get_image_or_proxy_url(
