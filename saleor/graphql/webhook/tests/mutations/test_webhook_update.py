@@ -5,10 +5,10 @@ import graphene
 import pytest
 
 from .....app.models import App
-from .....webhook.models import Webhook
+from .....webhook.models import Webhook, WebhookPayloadGeneration
 from ....core.enums import WebhookErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import WebhookEventTypeAsyncEnum
+from ...enums import WebhookEventTypeAsyncEnum, WebhookPayloadGenerationEnum
 
 WEBHOOK_UPDATE = """
     mutation webhookUpdate ($id: ID!, $input: WebhookUpdateInput!) {
@@ -20,6 +20,7 @@ WEBHOOK_UPDATE = """
         }
         webhook {
           identifier
+          payloadGeneration
           syncEvents {
             eventType
           }
@@ -812,3 +813,55 @@ def test_webhook_update_null_identifier_never_matches_webhook_without_identifier
     ]
     webhook.refresh_from_db(fields=("is_active",))
     assert webhook.is_active is True
+
+
+def test_webhook_update_payload_generation(app_api_client, webhook):
+    # given
+    assert webhook.payload_generation == WebhookPayloadGeneration.DEFERRED
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {
+        "id": webhook_id,
+        "input": {
+            "payloadGeneration": WebhookPayloadGenerationEnum.IMMEDIATE.name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["errors"] == []
+    assert (
+        data["webhook"]["payloadGeneration"]
+        == WebhookPayloadGenerationEnum.IMMEDIATE.name
+    )
+    webhook.refresh_from_db(fields=("payload_generation",))
+    assert webhook.payload_generation == WebhookPayloadGeneration.IMMEDIATE
+
+
+def test_webhook_update_without_payload_generation_keeps_current_value(
+    app_api_client, webhook
+):
+    # given
+    webhook.payload_generation = WebhookPayloadGeneration.IMMEDIATE
+    webhook.save(update_fields=["payload_generation"])
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    new_name = "Renamed webhook"
+    variables = {"id": webhook_id, "input": {"name": new_name}}
+
+    # when
+    response = app_api_client.post_graphql(WEBHOOK_UPDATE, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookUpdate"]
+    assert data["errors"] == []
+    assert (
+        data["webhook"]["payloadGeneration"]
+        == WebhookPayloadGenerationEnum.IMMEDIATE.name
+    )
+    webhook.refresh_from_db(fields=("name", "payload_generation"))
+    assert webhook.name == new_name
+    assert webhook.payload_generation == WebhookPayloadGeneration.IMMEDIATE

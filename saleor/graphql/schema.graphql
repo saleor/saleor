@@ -1815,6 +1815,13 @@ type Webhook implements Node @doc(category: "Webhooks") {
 
   """Custom headers, which will be added to HTTP request."""
   customHeaders: JSONString
+
+  """
+  Determines when the subscription payload is built for asynchronous events that defer payload generation. Ignored for webhooks without a subscription query, for synchronous events and for events that do not defer their payload.
+  
+  Added in Saleor 3.23.
+  """
+  payloadGeneration: WebhookPayloadGenerationEnum!
 }
 
 """An object with an ID"""
@@ -14844,6 +14851,20 @@ input EventDeliveryFilterInput {
   eventType: WebhookEventTypeEnum
 }
 
+"""
+Determines when the subscription payload of an asynchronous webhook is built for events that defer payload generation.
+
+`DEFERRED`: the payload is built in a background task and reflects the object's state at the time the task runs.
+
+`IMMEDIATE`: the payload is built by whatever triggered the event, a request or a background task, and reflects the object's state at that moment, at the cost of slowing that request or task.
+
+Added in Saleor 3.23.
+"""
+enum WebhookPayloadGenerationEnum @doc(category: "Webhooks") {
+  DEFERRED
+  IMMEDIATE
+}
+
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ACCOUNT_CONFIRMATION_REQUESTED
   ACCOUNT_CHANGE_EMAIL_REQUESTED
@@ -23509,6 +23530,13 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
   """
   customHeaders: JSONString
+
+  """
+  Determines when the subscription payload is built for asynchronous events that defer payload generation. Defaults to `DEFERRED`. Ignored for webhooks without a subscription query, for synchronous events and for events that do not defer their payload.
+  
+  Added in Saleor 3.23.
+  """
+  payloadGeneration: WebhookPayloadGenerationEnum
 }
 
 """
@@ -23572,6 +23600,13 @@ input WebhookUpdateInput @doc(category: "Webhooks") {
   Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
   """
   customHeaders: JSONString
+
+  """
+  Determines when the subscription payload is built for asynchronous events that defer payload generation. Omit to keep the current value. Ignored for webhooks without a subscription query, for synchronous events and for events that do not defer their payload. A change applies to events triggered after the update. Deliveries already created finish the way they started, so around a change a newer delivery can be sent before an older one.
+  
+  Added in Saleor 3.23.
+  """
+  payloadGeneration: WebhookPayloadGenerationEnum
 }
 
 """

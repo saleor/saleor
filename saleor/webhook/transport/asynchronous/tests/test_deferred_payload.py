@@ -21,6 +21,7 @@ from .....warehouse.tests.webhooks.subscriptions.test_channel_stock_events impor
     PRODUCT_VARIANT_OUT_OF_STOCK_IN_CHANNEL,
 )
 from ....event_types import WebhookEventAsyncType
+from ....models import WebhookPayloadGeneration
 from ....tests.subscription_webhooks.subscription_queries import (
     PRODUCT_VARIANT_DISCOUNTED_PRICE_UPDATED,
 )
@@ -84,6 +85,232 @@ def test_call_trigger_webhook_async_deferred_payload(
     assert delivery.event_type == event_type
     assert delivery.payload is None
     assert delivery.webhook == checkout_updated_webhook
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
+def test_call_trigger_webhook_async_immediate_webhook_builds_payload_in_request(
+    mocked_generate_deferred_payloads,
+    mocked_send_webhook_request_async,
+    mocked_send_sync_webhook,
+    checkout_with_item,
+    setup_checkout_webhooks,
+    staff_user,
+):
+    # given
+    checkout = checkout_with_item
+    event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
+    assert WebhookEventAsyncType.EVENT_MAP[event_type]["is_deferred_payload"] is True
+    _, _, _, checkout_updated_webhook = setup_checkout_webhooks(event_type)
+    checkout_updated_webhook.payload_generation = WebhookPayloadGeneration.IMMEDIATE
+    checkout_updated_webhook.save(update_fields=["payload_generation"])
+    webhooks = get_webhooks_for_event(event_type)
+    mocked_send_sync_webhook.return_value = []
+
+    # when
+    trigger_webhooks_async(
+        data=None,
+        event_type=event_type,
+        webhooks=webhooks,
+        subscribable_object=checkout,
+        requestor=staff_user,
+    )
+
+    # then
+    mocked_generate_deferred_payloads.assert_not_called()
+
+    delivery = EventDelivery.objects.get(webhook=checkout_updated_webhook)
+    assert delivery.event_type == event_type
+    payload = json.loads(delivery.payload.get_payload())
+    assert payload["issuingPrincipal"]["id"] == graphene.Node.to_global_id(
+        "User", staff_user.pk
+    )
+    assert set(payload["checkout"]) == {
+        "shippingMethods",
+        "shippingPrice",
+        "totalPrice",
+    }
+
+    mocked_send_webhook_request_async.assert_called_once()
+    call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
+    assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
+def test_call_trigger_webhook_async_splits_deferred_and_immediate_webhooks(
+    mocked_generate_deferred_payloads,
+    mocked_send_webhook_request_async,
+    mocked_send_sync_webhook,
+    checkout_with_item,
+    setup_checkout_webhooks,
+    subscription_webhook,
+    staff_user,
+):
+    # given
+    checkout = checkout_with_item
+    event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
+    _, _, _, deferred_webhook = setup_checkout_webhooks(event_type)
+    immediate_webhook = subscription_webhook(
+        deferred_webhook.subscription_query, event_type, name="Immediate"
+    )
+    immediate_webhook.payload_generation = WebhookPayloadGeneration.IMMEDIATE
+    immediate_webhook.save(update_fields=["payload_generation"])
+    webhooks = get_webhooks_for_event(event_type)
+    assert {webhook.pk for webhook in webhooks} == {
+        deferred_webhook.pk,
+        immediate_webhook.pk,
+    }
+    mocked_send_sync_webhook.return_value = []
+
+    # when
+    trigger_webhooks_async(
+        data=None,
+        event_type=event_type,
+        webhooks=webhooks,
+        subscribable_object=checkout,
+        requestor=staff_user,
+    )
+
+    # then
+    deferred_delivery = EventDelivery.objects.get(webhook=deferred_webhook)
+    assert deferred_delivery.payload is None
+    mocked_generate_deferred_payloads.assert_called_once()
+    deferred_call_kwargs = mocked_generate_deferred_payloads.call_args.kwargs
+    assert deferred_call_kwargs["kwargs"]["event_delivery_ids"] == [
+        deferred_delivery.pk
+    ]
+
+    immediate_delivery = EventDelivery.objects.get(webhook=immediate_webhook)
+    immediate_payload = json.loads(immediate_delivery.payload.get_payload())
+    assert immediate_payload["issuingPrincipal"]["id"] == graphene.Node.to_global_id(
+        "User", staff_user.pk
+    )
+    assert set(immediate_payload["checkout"]) == {
+        "shippingMethods",
+        "shippingPrice",
+        "totalPrice",
+    }
+    mocked_send_webhook_request_async.assert_called_once()
+    send_call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
+    assert send_call_kwargs["kwargs"]["event_delivery_id"] == immediate_delivery.pk
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
+def test_call_trigger_webhook_async_immediate_webhook_on_non_deferred_event(
+    mocked_generate_deferred_payloads,
+    mocked_send_webhook_request_async,
+    mocked_send_sync_webhook,
+    checkout_with_item,
+    setup_checkout_webhooks,
+    staff_user,
+):
+    # given
+    checkout = checkout_with_item
+    event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
+    assert "is_deferred_payload" not in WebhookEventAsyncType.EVENT_MAP[event_type]
+    _, _, _, webhook = setup_checkout_webhooks(event_type)
+    webhook.payload_generation = WebhookPayloadGeneration.IMMEDIATE
+    webhook.save(update_fields=["payload_generation"])
+    webhooks = get_webhooks_for_event(event_type)
+    mocked_send_sync_webhook.return_value = []
+
+    # when
+    trigger_webhooks_async(
+        data=None,
+        event_type=event_type,
+        webhooks=webhooks,
+        subscribable_object=checkout,
+        requestor=staff_user,
+    )
+
+    # then
+    mocked_generate_deferred_payloads.assert_not_called()
+    delivery = EventDelivery.objects.get(webhook=webhook)
+    payload = json.loads(delivery.payload.get_payload())
+    assert payload["issuingPrincipal"]["id"] == graphene.Node.to_global_id(
+        "User", staff_user.pk
+    )
+    assert set(payload["checkout"]) == {
+        "shippingMethods",
+        "shippingPrice",
+        "totalPrice",
+    }
+    mocked_send_webhook_request_async.assert_called_once()
+    call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
+    assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
+
+
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_request_async.apply_async"
+)
+def test_generate_deferred_payload_ignores_payload_generation_changed_after_trigger(
+    mocked_send_webhook_request_async,
+    mocked_send_sync_webhook,
+    checkout_with_item,
+    setup_checkout_webhooks,
+    staff_user,
+    fetch_kwargs,
+):
+    # given - a delivery created while the webhook was DEFERRED
+    checkout = checkout_with_item
+    fetch_checkout_data(**fetch_kwargs).get()
+    deferred_request_time = datetime.datetime(2020, 10, 5, tzinfo=datetime.UTC)
+    event_type = WebhookEventAsyncType.CHECKOUT_UPDATED
+    _, _, _, checkout_updated_webhook = setup_checkout_webhooks(event_type)
+    assert (
+        checkout_updated_webhook.payload_generation == WebhookPayloadGeneration.DEFERRED
+    )
+    deferred_payload_data = DeferredPayloadData(
+        model_name="checkout.checkout",
+        object_id=checkout.pk,
+        requestor_model_name="account.user",
+        requestor_object_id=staff_user.pk,
+        request_time=deferred_request_time,
+    )
+    delivery = EventDelivery.objects.create(
+        event_type=event_type,
+        webhook=checkout_updated_webhook,
+        status=EventDeliveryStatus.PENDING,
+    )
+    mocked_send_sync_webhook.return_value = []
+
+    # given - the webhook is switched to IMMEDIATE before the task runs
+    checkout_updated_webhook.payload_generation = WebhookPayloadGeneration.IMMEDIATE
+    checkout_updated_webhook.save(update_fields=["payload_generation"])
+
+    # when
+    generate_deferred_payloads.delay(
+        event_delivery_ids=[delivery.pk],
+        deferred_payload_data=asdict(deferred_payload_data),
+    )
+
+    # then - the delivery completes the way it started
+    delivery.refresh_from_db()
+    payload = json.loads(delivery.payload.get_payload())
+    assert payload["issuedAt"] == deferred_request_time.isoformat()
+    assert payload["issuingPrincipal"]["email"] == staff_user.email
+
+    mocked_send_webhook_request_async.assert_called_once()
+    call_kwargs = mocked_send_webhook_request_async.call_args.kwargs
+    assert call_kwargs["kwargs"]["event_delivery_id"] == delivery.pk
 
 
 @mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")

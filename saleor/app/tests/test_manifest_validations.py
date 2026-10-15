@@ -2,6 +2,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from pydantic import ValidationError as PydanticValidationError
 
+from ...webhook.models import WebhookPayloadGeneration
 from ..error_codes import AppErrorCode
 from ..manifest_schema import (
     EXTENSION_IDENTIFIER_MAX_LENGTH,
@@ -321,7 +322,7 @@ def _extension(label, identifier=None):
     return extension
 
 
-def _webhook(name, identifier=None):
+def _webhook(name, identifier=None, payload_generation=None):
     webhook = {
         "name": name,
         "targetUrl": "https://example.com/webhook",
@@ -329,6 +330,8 @@ def _webhook(name, identifier=None):
     }
     if identifier is not None:
         webhook["identifier"] = identifier
+    if payload_generation is not None:
+        webhook["payloadGeneration"] = payload_generation
     return webhook
 
 
@@ -655,3 +658,60 @@ def test_manifest_schema_deprecated_fields_accepted():
     # then — original dict is untouched; downstream readers can still access the values
     assert manifest_data["dataPrivacy"] == data_privacy
     assert manifest_data["configurationUrl"] == configuration_url
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_maps_webhook_payload_generation_to_stored_value():
+    # given
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", payload_generation="IMMEDIATE")],
+    }
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert (
+        manifest_data["webhooks"][0]["payloadGeneration"]
+        == WebhookPayloadGeneration.IMMEDIATE
+    )
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_defaults_webhook_payload_generation_to_deferred():
+    # given
+    manifest_data = {**MINIMAL_MANIFEST, "webhooks": [_webhook("First")]}
+
+    # when
+    clean_manifest_data(manifest_data)
+
+    # then
+    assert (
+        manifest_data["webhooks"][0]["payloadGeneration"]
+        == WebhookPayloadGeneration.DEFERRED
+    )
+
+
+@pytest.mark.django_db
+def test_clean_manifest_data_rejects_unknown_webhook_payload_generation():
+    # given
+    invalid_value = "immediate"
+    manifest_data = {
+        **MINIMAL_MANIFEST,
+        "webhooks": [_webhook("First", payload_generation=invalid_value)],
+    }
+
+    # when
+    with pytest.raises(ValidationError) as exc_info:
+        clean_manifest_data(manifest_data)
+
+    # then
+    webhook_errors = exc_info.value.error_dict["webhooks"]
+    assert len(webhook_errors) == 1
+    error = webhook_errors[0]
+    assert error.code == AppErrorCode.INVALID.value
+    assert error.message == (
+        f"Invalid payload generation: {invalid_value}. "
+        "Allowed values: DEFERRED, IMMEDIATE."
+    )

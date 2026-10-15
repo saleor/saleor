@@ -16,7 +16,7 @@ from ....graphql.utils import get_user_or_app_from_context
 from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
-from ....webhook.models import Webhook
+from ....webhook.models import Webhook, WebhookPayloadGeneration
 from ....webhook.transport.asynchronous.transport import (
     create_deliveries_for_subscriptions,
     generate_deferred_payloads,
@@ -168,7 +168,12 @@ class WebhookTrigger(BaseMutation):
             ]:
                 object = [object]
 
-            is_deferred_payload = get_is_deferred_payload(event_type)
+            # The webhook's `payload_generation` is read here, once, when the
+            # delivery is created. See `Webhook.payload_generation`.
+            is_deferred_payload = (
+                get_is_deferred_payload(event_type)
+                and webhook.payload_generation == WebhookPayloadGeneration.DEFERRED
+            )
             if is_deferred_payload:
                 delivery = core_models.EventDelivery(
                     status=EventDeliveryStatus.PENDING,
@@ -192,7 +197,11 @@ class WebhookTrigger(BaseMutation):
                 )
             else:
                 deliveries = create_deliveries_for_subscriptions(
-                    event_type, object, [webhook]
+                    event_type,
+                    object,
+                    [webhook],
+                    requestor=requestor,
+                    request_time=info.context.request_time,
                 )
                 if deliveries:
                     delivery = deliveries[0]

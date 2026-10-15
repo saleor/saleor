@@ -21,6 +21,7 @@ from ..permission.enums import (
 )
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.models import WebhookPayloadGeneration
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .manifest_schema import (
@@ -278,6 +279,31 @@ def _clean_webhook_identifier(webhook, seen_identifiers, errors):
     seen_identifiers.add(identifier)
 
 
+def _clean_webhook_payload_generation(webhook, errors):
+    """Map the manifest's `payloadGeneration` enum name to its stored value.
+
+    Accepts the GraphQL enum names (`DEFERRED`, `IMMEDIATE`), like event names
+    do. A missing value means `DEFERRED`.
+    """
+    payload_generation_values = {
+        str_to_enum(value): value for value, _ in WebhookPayloadGeneration.CHOICES
+    }
+    raw_value = webhook.get("payloadGeneration")
+    if raw_value is None:
+        webhook["payloadGeneration"] = WebhookPayloadGeneration.DEFERRED
+        return
+    try:
+        webhook["payloadGeneration"] = payload_generation_values[raw_value]
+    except KeyError:
+        allowed = ", ".join(payload_generation_values)
+        errors["webhooks"].append(
+            ValidationError(
+                f"Invalid payload generation: {raw_value}. Allowed values: {allowed}.",
+                code=AppErrorCode.INVALID.value,
+            )
+        )
+
+
 def _clean_webhooks(manifest_data, errors):
     webhooks = manifest_data.get("webhooks", [])
 
@@ -291,6 +317,7 @@ def _clean_webhooks(manifest_data, errors):
     seen_identifiers: set[str] = set()
     for webhook in webhooks:
         _clean_webhook_identifier(webhook, seen_identifiers, errors)
+        _clean_webhook_payload_generation(webhook, errors)
 
         webhook["isActive"] = webhook.get("isActive", True)
 

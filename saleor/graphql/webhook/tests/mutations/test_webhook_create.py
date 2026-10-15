@@ -6,9 +6,13 @@ import pytest
 
 from .....app.error_codes import AppErrorCode
 from .....webhook.error_codes import WebhookErrorCode
-from .....webhook.models import Webhook
+from .....webhook.models import Webhook, WebhookPayloadGeneration
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
+from ...enums import (
+    WebhookEventTypeAsyncEnum,
+    WebhookEventTypeSyncEnum,
+    WebhookPayloadGenerationEnum,
+)
 
 WEBHOOK_CREATE = """
     mutation webhookCreate($input: WebhookCreateInput!){
@@ -21,6 +25,7 @@ WEBHOOK_CREATE = """
         webhook {
           id
           identifier
+          payloadGeneration
           asyncEvents {
             eventType
           }
@@ -604,3 +609,70 @@ def test_webhook_create_assigns_filterable_channel_slugs_above_max_limit(
     error = content["data"]["webhookCreate"]["errors"][0]
     assert error["field"] == "query"
     assert error["code"] == WebhookErrorCode.INVALID.name
+
+
+def test_webhook_create_with_immediate_payload_generation(
+    app_api_client, permission_manage_orders
+):
+    # given
+    variables = {
+        "input": {
+            "name": "New integration",
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_METADATA_UPDATED.name],
+            "payloadGeneration": WebhookPayloadGenerationEnum.IMMEDIATE.name,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_CREATE,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookCreate"]
+    assert data["errors"] == []
+    assert (
+        data["webhook"]["payloadGeneration"]
+        == WebhookPayloadGenerationEnum.IMMEDIATE.name
+    )
+    assert Webhook.objects.get().payload_generation == (
+        WebhookPayloadGeneration.IMMEDIATE
+    )
+
+
+def test_webhook_create_without_payload_generation_defaults_to_deferred(
+    app_api_client, permission_manage_orders
+):
+    # given
+    variables = {
+        "input": {
+            "name": "New integration",
+            "targetUrl": "https://www.example.com",
+            "asyncEvents": [WebhookEventTypeAsyncEnum.ORDER_METADATA_UPDATED.name],
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_CREATE,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookCreate"]
+    assert data["errors"] == []
+    assert (
+        data["webhook"]["payloadGeneration"]
+        == WebhookPayloadGenerationEnum.DEFERRED.name
+    )
+    assert Webhook.objects.get().payload_generation == (
+        WebhookPayloadGeneration.DEFERRED
+    )
