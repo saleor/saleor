@@ -6,7 +6,7 @@ import pytest
 from django.core.files import File
 from PIL.JpegImagePlugin import JpegImageFile
 
-from .. import FILE_NAME_MAX_LENGTH, ThumbnailFormat
+from .. import FILE_NAME_MAX_LENGTH, ThumbnailFormat, ThumbnailSizeRounding
 from ..models import Thumbnail
 from ..utils import (
     ProcessedImage,
@@ -20,14 +20,54 @@ from ..utils import (
 
 @pytest.mark.parametrize(
     ("size", "expected_value"),
-    [(1, 32), (16, 32), (60, 64), (80, 64), (256, 256), (8000, 4096), (15000, 4096)],
+    [
+        (None, 4096),
+        (1, 32),
+        (32, 32),
+        (33, 64),
+        (60, 64),
+        (1024, 1024),
+        (1025, 2048),
+        (1500, 2048),
+        (8000, 4096),
+    ],
 )
-def test_get_thumbnail_size(size, expected_value):
+def test_get_thumbnail_size_with_up_rounding(size, expected_value):
     # when
-    returned_size = get_thumbnail_size(size)
+    returned_size = get_thumbnail_size(size, ThumbnailSizeRounding.UP)
 
     # then
     assert returned_size == expected_value
+
+
+@pytest.mark.parametrize(
+    ("size", "expected_value"),
+    [
+        (None, 4096),
+        (1, 32),
+        (48, 32),
+        (49, 64),
+        (80, 64),
+        (768, 512),
+        (769, 1024),
+        (1500, 1024),
+        (8000, 4096),
+    ],
+)
+def test_get_thumbnail_size_with_nearest_rounding(size, expected_value):
+    # when
+    returned_size = get_thumbnail_size(size, ThumbnailSizeRounding.NEAREST)
+
+    # then
+    assert returned_size == expected_value
+
+
+def test_get_thumbnail_size_defaults_to_nearest_rounding():
+    # when
+    returned_size = get_thumbnail_size(1500)
+
+    # then
+    assert returned_size == 1024
 
 
 @pytest.mark.parametrize(

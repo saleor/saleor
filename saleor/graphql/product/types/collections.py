@@ -7,6 +7,7 @@ from promise import Promise
 from ....core.search import prefix_search
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....thumbnail import ThumbnailSizeRounding
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -118,6 +119,7 @@ class Collection(ChannelContextType[models.Collection]):
         root: ChannelContext[models.Collection],
         info: ResolveInfo,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> None | Image | Promise[Image]:
         node = root.node
@@ -129,7 +131,7 @@ class Collection(ChannelContextType[models.Collection]):
             return Image(url=node.background_image.url, alt=alt)
 
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_background_image(thumbnail):
             url = get_image_or_proxy_url(

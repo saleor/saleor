@@ -31,12 +31,12 @@ from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...site import error_codes as site_error_codes
-from ...thumbnail import IconThumbnailFormat, ThumbnailFormat
+from ...thumbnail import IconThumbnailFormat, ThumbnailFormat, ThumbnailSizeRounding
 from ...translations import error_codes as translatable_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
-from .descriptions import DEPRECATED_PREORDER
+from .descriptions import ADDED_IN_323, DEPRECATED_PREORDER
 from .doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
@@ -143,6 +143,21 @@ IconThumbnailFormatEnum: Final[graphene.Enum] = to_enum(
     type_name="IconThumbnailFormatEnum",
     description=IconThumbnailFormat.__doc__,
 )
+
+
+class ThumbnailSizeRoundingEnum(graphene.Enum):
+    class Meta:
+        enum = ThumbnailSizeRounding
+        description = (
+            "Determines how a requested size is matched to an available thumbnail "
+            "size: 32, 64, 128, 256, 512, 1024, 2048, 4096.\n\n"
+            "NEAREST - the closest available size; it may be smaller than "
+            "requested.\n"
+            "UP - the smallest available size not smaller than requested, so the "
+            "image is never smaller than requested unless the original is smaller "
+            "or the requested size exceeds 4096." + ADDED_IN_323
+        )
+
 
 # unit enums
 MeasurementUnitsEnum: Final[graphene.Enum] = to_enum(MeasurementUnits)
