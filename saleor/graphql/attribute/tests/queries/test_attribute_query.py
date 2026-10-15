@@ -1293,3 +1293,63 @@ def test_get_reference_product_attribute_with_reference_types_and_different_limi
 
     reference_types = limit2_data["referenceTypes"]
     assert len(reference_types) == limit2
+
+
+QUERY_ATTRIBUTE_INTERNAL_DESCRIPTION = """
+    query($id: ID!) {
+        attribute(id: $id) {
+            id
+            internalDescription
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("Unauthenticated user should be rejected", "api_client", False),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            False,
+        ),
+        (
+            "Staff user without any permission should be allowed",
+            "staff_api_client",
+            True,
+        ),
+        ("App without any permission should be allowed", "app_api_client", True),
+    ],
+)
+def test_attribute_internal_description_authorization(
+    _case, client_fixture, is_allowed, request, color_attribute
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    internal_description = "Use the color from the supplier's catalog."
+    color_attribute.internal_description = internal_description
+    color_attribute.save(update_fields=["internal_description"])
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+
+    # when
+    response = client.post_graphql(
+        QUERY_ATTRIBUTE_INTERNAL_DESCRIPTION, {"id": attribute_id}
+    )
+
+    # then
+    if is_allowed:
+        content = get_graphql_content(response)
+        assert content["data"]["attribute"] == {
+            "id": attribute_id,
+            "internalDescription": internal_description,
+        }
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["attribute", "internalDescription"]
+        assert content["data"]["attribute"] == {
+            "id": attribute_id,
+            "internalDescription": None,
+        }

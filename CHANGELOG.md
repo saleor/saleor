@@ -66,6 +66,7 @@ permissions.
   - New `isAvailableForPurchase` input field on `ProductVariantChannelListingAddInput` (used by `productVariantChannelListingUpdate`, `productVariantBulkCreate` and `productVariantBulkUpdate.channelListings.create`) and on `ChannelListingUpdateInput` (`productVariantBulkUpdate.channelListings.update`). Omitting it, or passing `null`, keeps the current value.
   - A listing with `isAvailableForPurchase: false` behaves exactly as if the variant had no listing in that channel: it is hidden from customers, excluded from the product price range, and cannot be added to a checkout or an order. Its `price`, `costPrice` and `priorPrice` are kept, so re-enabling it restores the original prices. Previously the only way to make a variant unavailable was `productChannelListingUpdate(removeVariants:)`, which deletes the listing and its prices.
   - Existing listings and newly created ones default to `true`, so behaviour is unchanged unless the flag is set.
+- Added `Attribute.internalDescription`, a plain-text description of an attribute for staff users and apps. It is readable only by authenticated staff users and apps, is not translatable, and can be set through `attributeCreate`, `attributeUpdate`, `attributeBulkCreate` and `attributeBulkUpdate`.
 
 ### Webhooks
 
