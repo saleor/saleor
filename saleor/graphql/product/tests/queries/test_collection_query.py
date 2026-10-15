@@ -5,6 +5,7 @@ import graphene
 import pytest
 from django.core.files import File
 
+from .....product.models import Product
 from .....product.tests.utils import create_image
 from .....thumbnail.models import Thumbnail
 from ....core.enums import LanguageCodeEnum, ThumbnailFormatEnum
@@ -508,6 +509,44 @@ def test_filter_where_collection_products(
     assert products[0]["node"]["id"] == graphene.Node.to_global_id(
         "Product", product_list[1].pk
     )
+
+
+def test_filter_where_collection_products_by_external_reference(
+    user_api_client, product_list, published_collection, channel_USD
+):
+    # given
+    query = GET_FILTERED_PRODUCTS_COLLECTION_QUERY
+
+    for product in product_list:
+        published_collection.products.add(product)
+
+    first_external_reference = "external-reference-a"
+    second_external_reference = "external-reference-b"
+    product_list[0].external_reference = first_external_reference
+    product_list[1].external_reference = second_external_reference
+    Product.objects.bulk_update(product_list[:2], ["external_reference"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "channel": channel_USD.slug,
+        "where": {
+            "externalReference": {
+                "oneOf": [first_external_reference, second_external_reference]
+            }
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["collection"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", product.pk)
+        for product in product_list[:2]
+    }
 
 
 def test_search_collection_products(

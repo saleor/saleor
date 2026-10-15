@@ -134,6 +134,97 @@ def test_product_filter_by_slug(where, indexes, api_client, product_list, channe
     assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
+PRODUCT_A_EXTERNAL_REFERENCE = "external-reference-a"
+PRODUCT_B_EXTERNAL_REFERENCE = "external-reference-b"
+
+
+@pytest.mark.parametrize(
+    ("_case", "where", "indexes"),
+    [
+        ("eq_match", {"eq": PRODUCT_A_EXTERNAL_REFERENCE}, [0]),
+        ("eq_no_match", {"eq": "non-existing"}, []),
+        ("eq_empty_string", {"eq": ""}, []),
+        ("eq_null_matches_products_without_reference", {"eq": None}, [2]),
+        (
+            "one_of_multiple_matches",
+            {"oneOf": [PRODUCT_A_EXTERNAL_REFERENCE, PRODUCT_B_EXTERNAL_REFERENCE]},
+            [0, 1],
+        ),
+        (
+            "one_of_mixed_existing_and_non_existing",
+            {"oneOf": [PRODUCT_B_EXTERNAL_REFERENCE, "non-existing"]},
+            [1],
+        ),
+        ("one_of_no_match", {"oneOf": ["non-existing-1", "non-existing-2"]}, []),
+        ("one_of_empty_list", {"oneOf": []}, []),
+        ("one_of_null", {"oneOf": None}, []),
+        ("empty_input", {}, []),
+        ("null_input", None, []),
+    ],
+)
+def test_product_filter_by_external_reference(
+    _case, where, indexes, api_client, product_list, channel_USD
+):
+    # given
+    product_list[0].external_reference = PRODUCT_A_EXTERNAL_REFERENCE
+    product_list[1].external_reference = PRODUCT_B_EXTERNAL_REFERENCE
+    Product.objects.bulk_update(product_list[:2], ["external_reference"])
+    assert product_list[2].external_reference is None
+
+    variables = {"channel": channel_USD.slug, "where": {"externalReference": where}}
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_ids = {node["node"]["id"] for node in nodes}
+    assert returned_ids == {
+        graphene.Node.to_global_id("Product", product_list[index].pk)
+        for index in indexes
+    }
+
+
+def test_product_filter_by_external_reference_and_name(
+    api_client, product_list, channel_USD
+):
+    # given
+    product_list[0].external_reference = PRODUCT_A_EXTERNAL_REFERENCE
+    product_list[1].external_reference = PRODUCT_B_EXTERNAL_REFERENCE
+    Product.objects.bulk_update(product_list[:2], ["external_reference"])
+    expected_product = product_list[1]
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "AND": [
+                {
+                    "externalReference": {
+                        "oneOf": [
+                            PRODUCT_A_EXTERNAL_REFERENCE,
+                            PRODUCT_B_EXTERNAL_REFERENCE,
+                        ]
+                    }
+                },
+                {"name": {"eq": expected_product.name}},
+            ]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == 1
+    assert nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", expected_product.pk
+    )
+
+
 def test_product_filter_by_product_types(
     api_client, product_list, channel_USD, product_type_list
 ):

@@ -11,6 +11,7 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ...channel.filters import get_channel_slug_from_filter_data
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     BooleanWhereFilter,
@@ -229,6 +230,11 @@ class ProductWhere(MetadataWhereFilterBase):
         method="filter_product_slug",
         help_text="Filter by product slug.",
     )
+    external_reference = OperationObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_product_external_reference",
+        help_text="Filter by external reference." + ADDED_IN_323,
+    )
     product_type = OperationObjectTypeWhereFilter(
         input_class=GlobalIDFilterInput,
         method="filter_product_type",
@@ -314,6 +320,10 @@ class ProductWhere(MetadataWhereFilterBase):
     @staticmethod
     def filter_product_slug(qs, _, value):
         return filter_where_by_value_field(qs, "slug", value)
+
+    @staticmethod
+    def filter_product_external_reference(qs, _, value):
+        return filter_where_by_value_field(qs, "external_reference", value)
 
     @staticmethod
     def filter_product_type(qs, _, value):
