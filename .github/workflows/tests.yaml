@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - main
+      - "[0-9]+.[0-9]+"
     paths:
       - "**.py"
       - Dockerfile
@@ -17,6 +18,7 @@ on:
 env:
   BENCH_PATH: ./queries-results.json
   CACHE_URL: "redis://cache:6379/0"
+  DB_URL_XDIST_WORKER_0: "postgres://saleor:saleor@postgres:5432/test_saleor_gw0"
   DATABASE_URL: "postgres://saleor:saleor@postgres:5432/saleor"
   SECRET_KEY: ci-test
 
@@ -58,6 +60,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check for changes requiring tests
         id: changes
@@ -69,7 +73,10 @@ jobs:
       - name: Install system dependencies
         if: steps.changes.outputs.changed == 'true'
         run: |
-          apt-get install -y libpq-dev
+          apt-get update
+          apt-get install -y libpq-dev postgresql-common
+          /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          apt-get install -y postgresql-client-15
 
       - if: steps.changes.outputs.changed == 'true'
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
@@ -81,15 +88,116 @@ jobs:
         run: |
           uv sync --locked
 
+      - id: get-base
+        name: Extract base branch name
+        shell: bash
+        run: |
+          # Falls back to `GITHUB_REF_NAME` when base is undefined which
+          # means we merged into `main` or 3.x
+          base=${GITHUB_BASE_REF:-$GITHUB_REF_NAME}
+          base=${base#refs/heads/}
+
+          # Fall back the head to `GITHUB_REF_NAME` when head is not defined.
+          # That means we merged onto main/3.x
+          head=${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}
+          head=${head#refs/heads/}
+
+          is_release=
+          if [[ "$head" =~ ^[0-9]\.[0-9]+$ ]] || [[ "$head" == "main" ]]; then
+            echo "Will save cache to $head (if relevant)" >&2
+            is_release=1
+          else
+            echo "Will skip caching: $head is not a main/release branch" >&2
+          fi
+
+          {
+            echo "base=$base"
+            echo "head=$head"
+            echo "is-release=$is_release"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        if: ${{ steps.changes.outputs.changed == 'true' }}
+        name: Download Cached DB
+        with:
+          path: ~/.cache/saleor-pgql/
+          key: pytest-pgsql-db-${{ steps.get-base.outputs.base }}-${{ github.event.pull_request.base.sha || github.sha }}
+          restore-keys: |
+            pytest-pgsql-db-${{ steps.get-base.outputs.base }}-
+
+      - name: Restore DB
+        if: steps.changes.outputs.changed == 'true'
+        shell: bash
+        run: |
+          set -u
+          dump=$HOME/.cache/saleor-pgql/dump.sql
+
+          if ! [[ -f "$dump" ]]; then
+            echo "Skipping re-creating DB from cache: no cache found." >&2
+            exit 0
+          fi
+
+          psql_args=("--variable=ON_ERROR_STOP=1")
+
+          # Recreate gw0 (will serve as the template)
+          echo "Creating gw0 from $dump..." >&2
+          psql "${psql_args[@]}" "$DATABASE_URL" <<< 'CREATE DATABASE test_saleor_gw0;'
+
+          # Reduce logging to the minimum when debug mode isn't enabled
+          psql_restore_args=()
+          if [[ -z "${RUNNER_DEBUG:-}" ]]; then
+            psql_restore_args+=(
+              "--quiet" # hide actions performed (such as `CREATE TABLE`)
+              "--output=/dev/null" # hide results (such as `setval`)
+            )
+          fi
+
+          # Restore from dump into gw0
+          psql \
+            "${psql_args[@]}" \
+            "${psql_restore_args[@]}" \
+            -f ~/.cache/saleor-pgql/dump.sql \
+            "$DB_URL_XDIST_WORKER_0"
+
+          # Populate remaining xdist workers using gw0 as the template
+          cpu_count=$(uv run python -c 'import psutil; print(psutil.cpu_count(logical=True))')
+          for i in $(seq 1 "$(( cpu_count - 1 ))"); do
+            db_name="test_saleor_gw$i"
+            echo "Creating DB: $db_name..." >&2
+            psql "${psql_args[@]}" -v db_name="$db_name" "$DATABASE_URL" <<'EOSQL'
+              CREATE DATABASE :"db_name" TEMPLATE test_saleor_gw0;
+          EOSQL
+          done
+
       - name: Run unit tests
         if: steps.changes.outputs.changed == 'true'
         run: |
           uv run pytest \
+            --reuse-db \
             -m "not e2e" \
             --junitxml=junit/test-results.xml \
             -o junit_family=legacy \
             --django-db-bench="$BENCH_PATH" \
             -n logical
+
+      - name: Dump DB into Cache
+        if: >-
+          ${{ steps.get-base.outputs.is-release == '1'
+              && steps.changes.outputs.changed == 'true'
+              && github.event_name == 'push' }}
+        run: |
+          mkdir -p ~/.cache/saleor-pgql/
+          pg_dump --format=p -f ~/.cache/saleor-pgql/dump.sql "$DB_URL_XDIST_WORKER_0"
+
+      - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        name: Upload DB into Cache
+        if: >-
+          ${{ steps.get-base.outputs.is-release == '1'
+              && steps.changes.outputs.changed == 'true'
+              && github.event_name == 'push' }}
+        with:
+          path: ~/.cache/saleor-pgql/
+          key: pytest-pgsql-db-${{ steps.get-base.outputs.head }}-${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Upload Test Results
         if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
