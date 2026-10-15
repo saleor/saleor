@@ -3528,9 +3528,16 @@ type User implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(categ
   """The avatar of the user."""
   avatar(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -4132,9 +4139,16 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   """Thumbnail of the product."""
   thumbnail(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -4444,9 +4458,16 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   """Background image of the category."""
   backgroundImage(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -4901,6 +4922,19 @@ type Image {
 
   """Alt text for an image."""
   alt: String
+}
+
+"""
+Determines how a requested size is matched to an available thumbnail size: 32, 64, 128, 256, 512, 1024, 2048, 4096.
+
+NEAREST - the closest available size; it may be smaller than requested.
+UP - the smallest available size not smaller than requested, so the image is never smaller than requested unless the original is smaller or the requested size exceeds 4096.
+
+Added in Saleor 3.23.
+"""
+enum ThumbnailSizeRoundingEnum {
+  NEAREST
+  UP
 }
 
 enum ThumbnailFormatEnum {
@@ -9763,9 +9797,16 @@ type ProductImage @doc(category: "Products") {
   """The URL of the image."""
   url(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -9838,9 +9879,16 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   """The URL of the media."""
   url(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -10279,9 +10327,16 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   """Background image of the collection."""
   backgroundImage(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -12455,9 +12510,16 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   taxRate: Float!
   thumbnail(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -14335,9 +14397,16 @@ type AppBrandLogo @doc(category: "Apps") {
   """URL to the default logo image."""
   default(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -33286,9 +33355,16 @@ type AppManifestBrandLogo @doc(category: "Apps") {
   """Data URL with a base64 encoded logo image."""
   default(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = UP
 
     """
     The format of the image. When not provided, format of the original image will be used.
