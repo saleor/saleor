@@ -164,7 +164,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         promo_code_pk: int,
     ) -> None:
         """Detach promo code from the checkout based on the id or raise an error."""
-        if object_type == str(Voucher) and checkout.voucher_code is not None:
+        if object_type == str(Voucher):
             node = cls._get_node_by_pk(info, graphene_type=Voucher, pk=promo_code_pk)
             if node is None:
                 raise ValidationError(

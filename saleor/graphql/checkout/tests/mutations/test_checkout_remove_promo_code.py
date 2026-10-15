@@ -474,6 +474,71 @@ def test_checkout_remove_voucher_code_by_id_wrong_voucher(
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_by_id_no_voucher_attached(
+    checkout_updated_webhook_mock,
+    api_client,
+    checkout_with_gift_card,
+    gift_card,
+    voucher,
+):
+    # given
+    checkout = checkout_with_gift_card
+    assert checkout.voucher_code is None
+    previous_checkout_last_change = checkout.last_change
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCodeId": graphene.Node.to_global_id("Voucher", voucher.id),
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCodeId"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["message"] == (
+        "Couldn't remove a promo code from a checkout."
+    )
+
+    checkout.refresh_from_db()
+    assert list(checkout.gift_cards.all()) == [gift_card]
+    assert checkout.last_change == previous_checkout_last_change
+    checkout_updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
+def test_checkout_remove_voucher_by_id_no_voucher_attached_same_pk_as_gift_card(
+    checkout_updated_webhook_mock,
+    api_client,
+    checkout_with_gift_card,
+    gift_card,
+):
+    # given
+    checkout = checkout_with_gift_card
+    assert checkout.voucher_code is None
+    Voucher.objects.filter(pk=gift_card.pk).delete()
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCodeId": graphene.Node.to_global_id("Voucher", gift_card.pk),
+    }
+
+    # when
+    data = _mutate_checkout_remove_promo_code(api_client, variables)
+
+    # then
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "promoCodeId"
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+
+    checkout.refresh_from_db()
+    assert list(checkout.gift_cards.all()) == [gift_card]
+    checkout_updated_webhook_mock.assert_not_called()
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_updated")
 def test_checkout_remove_voucher_with_multiple_codes_by_id(
     checkout_updated_webhook_mock,
     api_client,
