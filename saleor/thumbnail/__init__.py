@@ -1,3 +1,5 @@
+from enum import Enum
+
 # defines the available thumbnail resolutions
 THUMBNAIL_SIZES = [32, 64, 128, 256, 512, 1024, 2048, 4096]
 
@@ -17,6 +19,19 @@ class ThumbnailFormat:
         (WEBP, "WebP"),
     ]
 
+
+class ThumbnailSizeRounding(str, Enum):
+    """Determine how a requested size is matched to an available thumbnail size.
+
+    NEAREST - use the closest available size; it may be smaller than requested.
+    UP - use the smallest available size that is not smaller than requested.
+    """
+
+    NEAREST = "NEAREST"
+    UP = "UP"
+
+
+DEFAULT_THUMBNAIL_SIZE_ROUNDING = ThumbnailSizeRounding.NEAREST
 
 ALLOWED_THUMBNAIL_FORMATS = {ThumbnailFormat.AVIF, ThumbnailFormat.WEBP}
 

@@ -5,6 +5,7 @@ import graphene
 from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
+from ....thumbnail import DEFAULT_THUMBNAIL_SIZE_ROUNDING
 from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
@@ -79,6 +80,7 @@ from ..enums import (
     StockErrorCode,
     StoredPaymentMethodRequestDeleteErrorCode,
     ThumbnailFormatEnum,
+    ThumbnailSizeRoundingEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
     TransactionEventReportErrorCode,
@@ -1079,7 +1081,17 @@ class ThumbnailField(graphene.Field):
         description=(
             "Desired longest side the image in pixels. Defaults to 4096. "
             "Images are never cropped. "
-            "Pass 0 to retrieve the original size (not recommended)."
+            "Pass 0 to retrieve the original size (not recommended). "
+            "Thumbnails are generated only in the available sizes: "
+            "32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines "
+            "which one is used."
+        ),
+    )
+    size_rounding = ThumbnailSizeRoundingEnum(
+        default_value=DEFAULT_THUMBNAIL_SIZE_ROUNDING.value,
+        description=(
+            "Determines how the requested size is matched to an available "
+            "thumbnail size." + ADDED_IN_323
         ),
     )
     format = ThumbnailFormatEnum(
@@ -1092,6 +1104,7 @@ class ThumbnailField(graphene.Field):
 
     def __init__(self, of_type=Image, *args, **kwargs):
         kwargs["size"] = self.size
+        kwargs["size_rounding"] = self.size_rounding
         kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
 

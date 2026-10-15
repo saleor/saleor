@@ -55,6 +55,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMedia, ProductMed
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
+from ...thumbnail import ThumbnailSizeRounding
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -1281,6 +1282,7 @@ class OrderLine(
         info,
         *,
         size: int = 256,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ):
         variant_id = root.node.variant_id
@@ -1288,7 +1290,7 @@ class OrderLine(
             return None
 
         format = get_thumbnail_format(format)
-        size = get_thumbnail_size(size)
+        size = get_thumbnail_size(size, size_rounding)
 
         def _get_image_from_media(image):
             def _resolve_url(thumbnail):
