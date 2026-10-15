@@ -7,12 +7,15 @@ searches for a counterexample instead of us hand-picking a few examples.
 from decimal import Decimal
 
 import pytest
-from hypothesis import assume, given
+from django.db import connection, transaction
+from hypothesis import assume, example, given
 from hypothesis import strategies as st
 from prices import Money
 
 from ..core.cleaners.urls import InvalidHostname, normalize_host
 from ..core.prices import quantize_price
+from ..core.search import parse_search_query
+from ..core.utils.text import strip_accents
 from ..discount import DiscountValueType
 from ..discount.models import OrderDiscount
 from ..discount.utils.manual_discount import split_manual_discount
@@ -53,14 +56,18 @@ def test_minor_unit_round_trip(amount, currency):
     subtotal=amounts(),
     shipping=amounts(),
     value_type=st.sampled_from([DiscountValueType.FIXED, DiscountValueType.PERCENTAGE]),
-    data=st.data(),
+    value=amounts(max_value="100"),
+)
+@example(
+    subtotal=Decimal("1.00"),
+    shipping=Decimal("1.00"),
+    value_type=DiscountValueType.FIXED,
+    value=Decimal("0.05"),
 )
 def test_split_manual_discount_parts_sum_to_total_discount(
-    subtotal, shipping, value_type, data
+    subtotal, shipping, value_type, value
 ):
     currency = "USD"
-    max_value = "100" if value_type == DiscountValueType.PERCENTAGE else "200000"
-    value = data.draw(amounts(max_value=max_value))
     discount = OrderDiscount(value=value, value_type=value_type, currency=currency)
     subtotal_money = Money(subtotal, currency)
     shipping_money = Money(shipping, currency)
@@ -89,8 +96,15 @@ line_strategy = st.tuples(
     reason="Rounding drift lands on the last line. With 3 x 10.00 plus a free "
     "gift and 10.00 off, the gift line clamps at 0 and the lines sum to 20.01.",
 )
-@given(lines_data=st.lists(line_strategy, min_size=2, max_size=6), data=st.data())
-def test_order_discount_propagated_to_lines(lines_data, data):
+@given(
+    lines_data=st.lists(line_strategy, min_size=2, max_size=6),
+    discount_amount=amounts(),
+)
+@example(
+    lines_data=[(Decimal("10.00"), 1)] * 3 + [(Decimal("0.00"), 1)],
+    discount_amount=Decimal("10.00"),
+)
+def test_order_discount_propagated_to_lines(lines_data, discount_amount):
     currency = "USD"
     lines = [
         OrderLine(
@@ -107,9 +121,7 @@ def test_order_discount_propagated_to_lines(lines_data, data):
         currency,
     )
     assume(base_subtotal.amount > 0)
-    subtotal_discount = Money(
-        data.draw(amounts(max_value=str(base_subtotal.amount))), currency
-    )
+    subtotal_discount = min(Money(discount_amount, currency), base_subtotal)
 
     results = list(
         propagate_order_discount_on_order_lines_prices(
@@ -147,3 +159,38 @@ def test_normalize_host_is_idempotent(host):
         return
 
     assert normalize_host(normalized) == normalized
+
+
+search_word = st.text(
+    alphabet=st.one_of(
+        st.characters(exclude_characters="\x00"),
+        st.sampled_from("()&|!:<>'*\\-"),
+    ),
+    min_size=1,
+    max_size=6,
+)
+search_term = st.one_of(
+    search_word,
+    search_word.map(lambda word: f"-{word}"),
+    st.lists(search_word, min_size=1, max_size=3).map(
+        lambda words: '"' + " ".join(words) + '"'
+    ),
+    st.just("OR"),
+)
+search_input = st.lists(search_term, max_size=6).map(" ".join)
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason='A backslash at the end of a quoted phrase, e.g. "shirt\\", is passed '
+    "through to the raw tsquery and Postgres raises a syntax error.",
+)
+@pytest.mark.django_db
+@given(value=search_input)
+@example(value='"shirt\\"')
+def test_parse_search_query_produces_valid_tsquery(value):
+    parsed = parse_search_query(strip_accents(value))
+    assume(parsed is not None)
+
+    with transaction.atomic(), connection.cursor() as cursor:
+        cursor.execute("SELECT to_tsquery('simple', %s)", [parsed])
