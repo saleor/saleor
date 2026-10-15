@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from .....attribute.error_codes import AttributeBulkUpdateErrorCode
 from .....attribute.models import Attribute
@@ -1304,3 +1305,66 @@ def test_attribute_bulk_update_customer_attribute_without_permission(
     assert errors[0]["code"] == AttributeBulkUpdateErrorCode.REQUIRED.name
     loyalty_customer_attribute.refresh_from_db()
     assert loyalty_customer_attribute.name == old_name
+
+
+ATTRIBUTE_BULK_UPDATE_INTERNAL_DESCRIPTION_MUTATION = """
+    mutation AttributeBulkUpdate($attributes: [AttributeBulkUpdateInput!]!) {
+        attributeBulkUpdate(attributes: $attributes) {
+            results {
+                errors {
+                    path
+                    message
+                    code
+                }
+                attribute {
+                    internalDescription
+                }
+            }
+            count
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    ("_case", "internal_description"),
+    [
+        ("new_value", "Use the color from the supplier's catalog."),
+        ("explicit_null_clears", None),
+    ],
+)
+def test_attribute_bulk_update_internal_description(
+    _case,
+    internal_description,
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    color_attribute.internal_description = "Old internal description."
+    color_attribute.save(update_fields=["internal_description"])
+    attributes = [
+        {
+            "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+            "fields": {"internalDescription": internal_description},
+        }
+    ]
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_UPDATE_INTERNAL_DESCRIPTION_MUTATION,
+        {"attributes": attributes},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkUpdate"]
+    assert data["count"] == 1
+    assert data["results"] == [
+        {"errors": [], "attribute": {"internalDescription": internal_description}}
+    ]
+    color_attribute.refresh_from_db(fields=["internal_description"])
+    assert color_attribute.internal_description == internal_description
