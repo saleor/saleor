@@ -1,7 +1,7 @@
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import requests
 from authlib.jose import JWTClaims, jwt
@@ -12,6 +12,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from jwt import PyJWTError
@@ -21,6 +22,7 @@ from ...account.search import update_user_search_vector
 from ...account.utils import (
     get_default_customer_type,
     get_user_groups_permissions,
+    retrieve_user_by_email,
     send_user_event,
 )
 from ...core.http_client import HTTPClient
@@ -432,13 +434,28 @@ def _invalidate_password_for_new_oidc_account(
         user.save(update_fields=["password"])
 
 
+def _get_or_create_user(email: str, defaults: dict[str, Any]) -> tuple[User, bool]:
+    user = retrieve_user_by_email(email)
+    if user:
+        return user, False
+
+    try:
+        with transaction.atomic():
+            return User.objects.create(**defaults), True
+    except IntegrityError:
+        user = retrieve_user_by_email(email)
+        if user:
+            return user, False
+        raise
+
+
 def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
     last_login: int | None = None,
 ) -> tuple[User, bool, bool]:
     oidc_metadata_key = f"oidc:{oauth_url}"
-    user_email = payload.get("email")
+    user_email = payload.get("email", "").lower()
     if not user_email:
         raise AuthenticationError("Missing user's email.")
 
@@ -469,7 +486,7 @@ def get_or_create_user_from_payload(
         )
     except User.DoesNotExist:
         defaults_create["customer_type"] = get_default_customer_type()
-        user, created = User.objects.get_or_create(
+        user, created = _get_or_create_user(
             email=user_email,
             defaults=defaults_create,
         )
@@ -480,7 +497,7 @@ def get_or_create_user_from_payload(
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
         defaults_create["customer_type"] = get_default_customer_type()
-        user, created = User.objects.get_or_create(
+        user, created = _get_or_create_user(
             email=user_email,
             defaults=defaults_create,
         )

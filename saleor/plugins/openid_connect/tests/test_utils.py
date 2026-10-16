@@ -11,6 +11,7 @@ import requests
 from authlib.jose import JWTClaims
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from freezegun import freeze_time
 from requests import Response
 from requests_hardened import HTTPSession
@@ -32,6 +33,7 @@ from ..utils import (
     JWKS_CACHE_TIME,
     JWKS_KEY,
     OIDC_DEFAULT_CACHE_TIME,
+    _get_or_create_user,
     _update_user_details,
     assign_staff_to_default_group_and_update_permissions,
     create_jwt_refresh_token,
@@ -612,27 +614,39 @@ def test_get_or_create_user_from_payload_match_orders_when_changing_email(
     assert order.user == user_from_payload
 
 
-def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user):
+def test_get_or_create_user_from_payload_multiple_subs(
+    mocker, customer_user, admin_user
+):
     # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    oidc_metadata_key = f"oidc:{oauth_url}"
+    cache_key = f"{oidc_metadata_key}:{sub_id}"
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
 
-    customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
-    customer_user.save()
+    customer_user.private_metadata = {oidc_metadata_key: sub_id}
+    customer_user.save(update_fields=("private_metadata",))
 
-    admin_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
-    admin_user.save()
+    admin_user.private_metadata = {oidc_metadata_key: sub_id}
+    admin_user.save(update_fields=("private_metadata",))
+    mocked_cache_get.return_value = None
 
     # when
     with warnings.catch_warnings(record=True):
-        user_from_payload, _, _ = get_or_create_user_from_payload(
+        user_from_payload, created, _ = get_or_create_user_from_payload(
             payload={"sub": sub_id, "email": customer_user.email},
             oauth_url=oauth_url,
         )
 
     # then
-    assert user_from_payload.email == customer_user.email
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.pk, OIDC_CACHE_TIMEOUT
+    )
+    assert created is False
+    assert user_from_payload.pk == customer_user.pk
+    assert user_from_payload.private_metadata[oidc_metadata_key] == sub_id
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
@@ -666,6 +680,123 @@ def test_get_or_create_user_from_payload_different_email(
     assert user_from_payload.id == customer_user.id
     assert customer_user.email == new_customer_email
     assert customer_user.private_metadata[f"oidc:{oauth_url}"] == sub_id
+
+
+def test_get_or_create_user_from_payload_with_email_capitalization_change(
+    mocker, customer_user
+):
+    """Email address changing capitalization shouldn't create a new user.
+
+    When a given email address already exists and capitalization changed, then it
+    shouldn't create a new user.
+    """
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "member-live-1234"
+    initial_email = "john.doe@example.com"
+    capitalized_email = "John.doe@example.com"
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    customer_user.email = initial_email
+    customer_user.external_reference = sub_id
+    customer_user.save(update_fields=("email", "external_reference"))
+    mocked_cache_get.return_value = None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": capitalized_email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    cache_key = f"oidc:{oauth_url}:{sub_id}"
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.pk, OIDC_CACHE_TIMEOUT
+    )
+    assert created is False
+    assert user_from_payload.pk == customer_user.pk
+    customer_user.refresh_from_db(fields=("email", "private_metadata"))
+    assert customer_user.email == initial_email, "shouldn't have changed"
+    assert customer_user.private_metadata[f"oidc:{oauth_url}"] == sub_id
+    assert User.objects.filter(email__iexact=initial_email).count() == 1
+
+
+def test_get_or_create_user_recovers_from_integrity_error(mocker, customer_user):
+    """Should handle raced-user creation.
+
+    When user didn't exist but got created before our code could create it (race),
+    then it should properly return the user created by the other process.
+    """
+    # given
+    email = customer_user.email
+    defaults = {"email": email}
+    mocked_create = mocker.patch(
+        "saleor.plugins.openid_connect.utils.User.objects.create",
+        side_effect=IntegrityError("duplicate key value"),
+    )
+    mocked_retrieve_user_by_email = mocker.patch(
+        "saleor.plugins.openid_connect.utils.retrieve_user_by_email",
+        side_effect=[None, customer_user],
+    )
+
+    # when
+    user, created = _get_or_create_user(email, defaults)
+
+    # then
+    mocked_create.assert_called_once_with(**defaults)
+    assert mocked_retrieve_user_by_email.call_count == 2
+    assert created is False
+    assert user.pk == customer_user.pk
+
+
+def test_get_or_create_user_reraises_unrecoverable_integrity_error(mocker):
+    """Should properly handle a race where newly crated user is not retrievable.
+
+    When user didn't exist and then got created in the meantime and then got deleted
+    or we couldn't fetch it successfully, then Saleor should raise an error
+    due to not being recoverable.
+    """
+    # given
+    email = "john.doe@example.com"
+    defaults = {"email": email}
+    error_message = "duplicate key value"
+    mocked_create = mocker.patch(
+        "saleor.plugins.openid_connect.utils.User.objects.create",
+        side_effect=IntegrityError(error_message),
+    )
+    mocked_retrieve_user_by_email = mocker.patch(
+        "saleor.plugins.openid_connect.utils.retrieve_user_by_email",
+        return_value=None,
+    )
+
+    # when
+    with pytest.raises(IntegrityError, match=error_message):
+        _get_or_create_user(email, defaults)
+
+    # then
+    mocked_create.assert_called_once_with(**defaults)
+    assert mocked_retrieve_user_by_email.call_count == 2
+
+
+def test_get_or_create_user_selects_lowercase_email_from_case_variants(
+    customer_user, customer_user2
+):
+    """Saleor should be case-insensitive when selecting an OIDC user."""
+    # given
+    capitalized_email = "John.doe@example.com"
+    lowercase_email = capitalized_email.lower()
+    customer_user.email = capitalized_email
+    customer_user.save(update_fields=("email",))
+    customer_user2.email = lowercase_email
+    customer_user2.save(update_fields=("email",))
+
+    # when
+    user, created = _get_or_create_user("JOHN.DOE@example.com", {})
+
+    # then
+    assert created is False
+    assert user.pk == customer_user2.pk
 
 
 @freeze_time("2019-03-18 12:00:00")
