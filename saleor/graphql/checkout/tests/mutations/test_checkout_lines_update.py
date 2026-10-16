@@ -2105,3 +2105,58 @@ def test_checkout_lines_update_checkout_removed_before_adding_variants_to_checko
         data["errors"][0]["message"]
         == f"{MISSING_NODE_ERROR_MESSAGE_PREFIX} {checkout_global_id}"
     )
+
+
+def test_checkout_lines_update_checkout_removed_before_clean_input_with_country_mismatch(
+    user_api_client,
+    checkout_with_item,
+    address,
+):
+    # Regression test for SALEOR-CORE-84G (ENG-1566): when a checkout is
+    # deleted concurrently between `get_checkout` and `clean_input`,
+    # `checkout.get_country()` used to call `self.save(update_fields=["country"])`
+    # on a now-missing row and raise `DatabaseError: Save with update_fields
+    # did not affect any rows.` The mutation should instead surface a
+    # NOT_FOUND error, the same way it does when the checkout is removed
+    # before the mutation starts.
+
+    # given
+    checkout = checkout_with_item
+    # Force `get_country()` to take the branch that calls
+    # `set_country(..., commit=True)` by making the shipping address country
+    # differ from the checkout's persisted country.
+    shipping_address = address.get_copy()
+    assert shipping_address.country.code == "PL"
+    checkout.shipping_address = shipping_address
+    checkout.set_country("US", commit=True)
+    checkout.save(update_fields=["shipping_address"])
+    assert checkout.country.code != shipping_address.country.code
+
+    line = checkout.lines.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", line.variant_id)
+    checkout_global_id = to_global_id_or_none(checkout)
+    variables = {
+        "id": checkout_global_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+
+    def delete_checkout(*args, **kwargs):
+        Checkout.objects.filter(pk=checkout.pk).delete()
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.graphql.checkout.mutations.checkout_lines_update."
+        "CheckoutLinesUpdate.clean_input",
+        delete_checkout,
+    ):
+        response = user_api_client.post_graphql(
+            MUTATION_CHECKOUT_LINES_UPDATE, variables
+        )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["checkout"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.NOT_FOUND.name
+    assert not Checkout.objects.filter(pk=checkout.pk).exists()
