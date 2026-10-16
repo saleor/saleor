@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 from django.db.models import Model
 
 from .....checkout import models as checkout_models
 from .....core.prices import quantize_price
+from .....core.utils.url import ensure_http_url_or_rooted_path
 from .....order import models as order_models
 from .....order.events import transaction_event as order_transaction_event
 from .....payment import TransactionEventType
@@ -124,10 +124,9 @@ class TransactionCreate(BaseMutation):
     def validate_external_url(cls, external_url: str | None, error_code: str):
         if external_url is None:
             return
-        validator = URLValidator()
         try:
-            validator(external_url)
-        except ValidationError as e:
+            ensure_http_url_or_rooted_path(external_url)
+        except ValueError as e:
             raise ValidationError(
                 {
                     "transaction": ValidationError(
