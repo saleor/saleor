@@ -284,6 +284,12 @@ def test_authorization(
   comments. Run short-circuit / global checks first, before fetching data.
 - Remove code a refactor made dead (unused validators, unreachable guards added only to satisfy mypy).
   Fix the type at its source instead of adding a `cast()` around a wrong upstream annotation.
+- Never import `saleor.core.development.*` module(s) outside tests, or outside non-development-only logics.
+
+  This can only be used in such locations:
+  - `./manage.py populatedb` (development only command, requires `uv sync --group dev`)
+  - pytest (`test_*.py`, `conftest.py`, `tests/**`)
+  - Any other development-only helpers or locations
 
 # Naming
 

@@ -914,18 +914,22 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
                 )
             ),
             "total_price_net_amount": (
-                lambda fl: quantize_price(
-                    fl.order_line.undiscounted_unit_price.net.amount,
-                    fl.order_line.currency,
+                lambda fl: (
+                    quantize_price(
+                        fl.order_line.undiscounted_unit_price.net.amount,
+                        fl.order_line.currency,
+                    )
+                    * fl.quantity
                 )
-                * fl.quantity
             ),
             "total_price_gross_amount": (
-                lambda fl: quantize_price(
-                    fl.order_line.undiscounted_unit_price.gross.amount,
-                    fl.order_line.currency,
+                lambda fl: (
+                    quantize_price(
+                        fl.order_line.undiscounted_unit_price.gross.amount,
+                        fl.order_line.currency,
+                    )
+                    * fl.quantity
                 )
-                * fl.quantity
             ),
             "currency": lambda fl: fl.order_line.currency,
             "warehouse_id": lambda fl: (
@@ -1137,7 +1141,7 @@ def generate_sample_payload(event_name: str) -> dict | None:
     ]
 
     if event_name in user_events:
-        user = generate_fake_user()
+        user, _fake_address = generate_fake_user()
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(Product.objects.all())
