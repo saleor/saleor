@@ -76,6 +76,7 @@ class ManifestWebhookSchema(BaseModel):
     sync_events: list[str] = []
     custom_headers: dict | None = None
     identifier: str | None = None
+    payload_generation: str | None = None
 
     @field_validator("target_url")
     @classmethod

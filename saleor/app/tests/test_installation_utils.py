@@ -15,6 +15,7 @@ from requests_hardened import HTTPSession
 from ... import __version__, schema_version
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventAsyncType
+from ...webhook.models import WebhookPayloadGeneration
 from ...webhook.payloads import generate_meta, generate_requestor
 from ..error_codes import AppErrorCode
 from ..installation_utils import (
@@ -1131,3 +1132,43 @@ def test_install_app_with_too_long_deprecation_reason_does_not_fail_install(
     # then
     assert app.deprecation_reason == expected
     assert len(app.deprecation_reason) == DEPRECATION_REASON_MAX_LENGTH
+
+
+def test_install_app_with_webhook_payload_generation(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest_webhook["payloadGeneration"] = "IMMEDIATE"
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    webhook = app.webhooks.get()
+    assert webhook.payload_generation == WebhookPayloadGeneration.IMMEDIATE
+
+
+def test_install_app_without_webhook_payload_generation_defaults_to_deferred(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    assert "payloadGeneration" not in app_manifest_webhook
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    webhook = app.webhooks.get()
+    assert webhook.payload_generation == WebhookPayloadGeneration.DEFERRED

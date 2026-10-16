@@ -74,6 +74,19 @@ class WebhookUpdateInput(BaseInputObjectType):
         f"Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.",
         required=False,
     )
+    payload_generation = enums.WebhookPayloadGenerationEnum(
+        description=(
+            "Determines when the subscription payload is built for asynchronous "
+            "events that defer payload generation. Omit to keep the current "
+            "value, `null` resets it to `DEFERRED`. Ignored for webhooks without "
+            "a subscription query, for "
+            "synchronous events and for events that do not defer their payload. "
+            "A change applies to events triggered after the update. Deliveries "
+            "already created finish the way they started, so around a change a "
+            "newer delivery can be sent before an older one." + ADDED_IN_323
+        ),
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_WEBHOOKS
