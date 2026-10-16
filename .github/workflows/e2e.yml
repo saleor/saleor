@@ -14,8 +14,31 @@ env:
   SECRET_KEY: ci-test
 
 jobs:
+  # Runs on a bare runner, so a PR without relevant changes skips the test job
+  # before its service containers are started. A job skipped by `if` reports as
+  # "Skipped", which satisfies a required status check.
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check for changes requiring E2E tests
+        id: changes
+        uses: ./.github/actions/detect-python-changes
+        with:
+          # Re-run whenever this workflow itself changes.
+          additional-file-patterns: '^\.github/workflows/e2e\.yml$'
+
   e2e-tests:
-    if: ${{ github.event_name != 'schedule' || github.repository == 'saleor/saleor' }}
+    needs: [changes]
+    # Compared against 'false' so that a failed change check runs the tests.
+    if: >-
+      ${{ !cancelled() && needs.changes.outputs.changed != 'false'
+      && (github.event_name != 'schedule' || github.repository == 'saleor/saleor') }}
     runs-on: ubuntu-22.04
     container: python:3.12
     name: Run E2E tests
@@ -38,35 +61,24 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Check for changes requiring E2E tests
-        id: changes
-        uses: ./.github/actions/detect-python-changes
-        with:
-          # Re-run whenever this workflow itself changes.
-          additional-file-patterns: '^\.github/workflows/e2e\.yml$'
-
       - name: Install system dependencies
-        if: steps.changes.outputs.changed == 'true'
         run: |
           apt-get install -y libpq-dev
 
-      - if: steps.changes.outputs.changed == 'true'
-        uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
         with:
           enable-cache: true
 
       - name: Install dependencies
-        if: steps.changes.outputs.changed == 'true'
         run: |
           uv sync --locked
 
       - name: Run E2E tests
-        if: steps.changes.outputs.changed == 'true'
         run: |
           uv run pytest -m "e2e" --junit-xml=e2e-test-results.xml
 
       - name: Surface failing tests
-        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
+        if: ${{ !cancelled() }}
         uses: pmeier/pytest-results-action@20b595761ba9bf89e115e875f8bc863f913bc8ad # v0.7.2
         with:
           path: e2e-test-results.xml
