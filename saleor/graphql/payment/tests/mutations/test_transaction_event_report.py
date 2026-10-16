@@ -2597,7 +2597,14 @@ def test_transaction_event_report_missing_amount(
     [
         event_type
         for event_type in OPTIONAL_AMOUNT_EVENTS
-        if event_type != TransactionEventType.INFO
+        if event_type
+        not in (
+            TransactionEventType.INFO,
+            # Cancel events deduce the amount from the transaction's authorized
+            # value, which is non-zero here, so they don't raise.
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.CANCEL_SUCCESS,
+        )
     ],
 )
 def test_transaction_event_report_missing_amount_not_deduced_error_raised(
