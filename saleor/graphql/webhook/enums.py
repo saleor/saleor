@@ -1,6 +1,7 @@
 import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...webhook.models import WebhookPayloadGeneration
 from ..core.descriptions import (
     ADDED_IN_318,
     ADDED_IN_323,
@@ -359,4 +360,22 @@ class EventDeliveryStatusEnum(BaseEnum):
     FAILED = "failed"
 
     class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
+
+
+class WebhookPayloadGenerationEnum(BaseEnum):
+    DEFERRED = WebhookPayloadGeneration.DEFERRED
+    IMMEDIATE = WebhookPayloadGeneration.IMMEDIATE
+
+    class Meta:
+        description = (
+            "Determines when the subscription payload of an asynchronous webhook "
+            "is built for events that defer payload generation."
+            "\n\n`DEFERRED`: the payload is built in a background task and "
+            "reflects the object's state at the time the task runs."
+            "\n\n`IMMEDIATE`: the payload is built by whatever triggered the "
+            "event, a request or a background task, and reflects the object's "
+            "state at that moment, at the cost of slowing that request or task."
+            + ADDED_IN_323
+        )
         doc_category = DOC_CATEGORY_WEBHOOKS

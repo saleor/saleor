@@ -15,6 +15,16 @@ class WebhookURLField(models.URLField):
     ]
 
 
+class WebhookPayloadGeneration:
+    DEFERRED = "deferred"
+    IMMEDIATE = "immediate"
+
+    CHOICES = [
+        (DEFERRED, "Deferred"),
+        (IMMEDIATE, "Immediate"),
+    ]
+
+
 class Webhook(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     app = models.ForeignKey(App, related_name="webhooks", on_delete=models.CASCADE)
@@ -41,6 +51,19 @@ class Webhook(models.Model):
     # that doesn't set an identifier. Empty string stays blocked by the
     # identifier_not_blank CheckConstraint below.
     identifier = models.CharField(max_length=256, null=True, blank=True)
+    # How the subscription payload is built for async events that defer payload
+    # generation (`is_deferred_payload` in the event map). The value is read once,
+    # when a delivery is created by whatever triggered the event, a request or a
+    # background task. Changing it never affects deliveries already created or
+    # tasks already queued: those finish the way they started. It is ignored for
+    # webhooks without a subscription query, for sync events and for events that
+    # do not defer payload generation.
+    payload_generation = models.CharField(
+        max_length=32,
+        choices=WebhookPayloadGeneration.CHOICES,
+        default=WebhookPayloadGeneration.DEFERRED,
+        db_default=WebhookPayloadGeneration.DEFERRED,
+    )
 
     class Meta:
         ordering = ("pk",)
