@@ -1,7 +1,7 @@
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import requests
 from authlib.jose import JWTClaims, jwt
@@ -12,6 +12,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from jwt import PyJWTError
@@ -432,15 +433,58 @@ def _invalidate_password_for_new_oidc_account(
         user.save(update_fields=["password"])
 
 
+def _retrieve_oidc_user_by_email(claimed_email: str) -> User | None:
+    """Use the original claim to resolve case mismatching accounts.
+
+    If we suppose Saleor has two accounts: John.doe@example.com and john.doe@example.com,
+    and a valid OIDC claim arrives for ``John.doe@example.com`` but its subject (``sub``
+    claim) is not yet linked to either account, then it should match the account exactly
+    to avoid selecting and linking another account.
+
+    We want to reject issuing tokens when the email address mismatches in this situation.
+    """
+
+    # Attempt to find an exact match
+    user = User.objects.filter(email=claimed_email).first()
+    if user:
+        return user
+
+    # If no match, then attempt to find an account using case-insensitivity
+    users = list(User.objects.filter(email__iexact=claimed_email)[:2])
+    if len(users) == 1:
+        return users[0]
+    if len(users) == 2:
+        raise AuthenticationError("Unable to identify an account for this email.")
+    return None
+
+
+def _get_or_create_user(
+    claimed_email: str, defaults: dict[str, Any]
+) -> tuple[User, bool]:
+    user = _retrieve_oidc_user_by_email(claimed_email)
+    if user:
+        return user, False
+
+    try:
+        with transaction.atomic():
+            return User.objects.create(**defaults), True
+    except IntegrityError:
+        user = _retrieve_oidc_user_by_email(claimed_email)
+        if user:
+            return user, False
+        raise
+
+
 def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
     last_login: int | None = None,
 ) -> tuple[User, bool, bool]:
     oidc_metadata_key = f"oidc:{oauth_url}"
-    user_email = payload.get("email")
-    if not user_email:
+    claimed_email = payload.get("email", "")
+    if not claimed_email:
         raise AuthenticationError("Missing user's email.")
+    user_email = claimed_email.lower()
 
     sub: str | None = payload.get("sub")
     get_kwargs = {"private_metadata__contains": {oidc_metadata_key: sub}}
@@ -469,8 +513,8 @@ def get_or_create_user_from_payload(
         )
     except User.DoesNotExist:
         defaults_create["customer_type"] = get_default_customer_type()
-        user, created = User.objects.get_or_create(
-            email=user_email,
+        user, created = _get_or_create_user(
+            claimed_email=claimed_email,
             defaults=defaults_create,
         )
         if not created:
@@ -480,8 +524,8 @@ def get_or_create_user_from_payload(
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
         defaults_create["customer_type"] = get_default_customer_type()
-        user, created = User.objects.get_or_create(
-            email=user_email,
+        user, created = _get_or_create_user(
+            claimed_email=claimed_email,
             defaults=defaults_create,
         )
         if not created:
@@ -533,10 +577,10 @@ def _update_user_details(
                 "Unable to update user email as the new one already exists in DB",
                 extra={"oidc_key": oidc_key},
             )
-            return False
-        user.email = user_email
-        match_orders_with_new_user(user)
-        fields_to_save.update({"email", "search_vector"})
+        else:
+            user.email = user_email
+            match_orders_with_new_user(user)
+            fields_to_save.update({"email", "search_vector"})
 
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:

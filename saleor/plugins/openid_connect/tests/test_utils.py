@@ -11,6 +11,7 @@ import requests
 from authlib.jose import JWTClaims
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from freezegun import freeze_time
 from requests import Response
 from requests_hardened import HTTPSession
@@ -32,6 +33,7 @@ from ..utils import (
     JWKS_CACHE_TIME,
     JWKS_KEY,
     OIDC_DEFAULT_CACHE_TIME,
+    _get_or_create_user,
     _update_user_details,
     assign_staff_to_default_group_and_update_permissions,
     create_jwt_refresh_token,
@@ -51,6 +53,13 @@ from ..utils import (
 )
 
 OIDC_CACHE_TIMEOUT = min(JWKS_CACHE_TIME, OIDC_DEFAULT_CACHE_TIME)
+EXTRA_CASE_VARIANT_EMAILS = (
+    "jOhn.doe@example.com",
+    "joHn.doe@example.com",
+    "johN.doe@example.com",
+    "john.Doe@example.com",
+    "john.dOe@example.com",
+)
 
 
 @pytest.mark.parametrize(
@@ -612,27 +621,39 @@ def test_get_or_create_user_from_payload_match_orders_when_changing_email(
     assert order.user == user_from_payload
 
 
-def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user):
+def test_get_or_create_user_from_payload_multiple_subs(
+    mocker, customer_user, admin_user
+):
     # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    oidc_metadata_key = f"oidc:{oauth_url}"
+    cache_key = f"{oidc_metadata_key}:{sub_id}"
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
 
-    customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
-    customer_user.save()
+    customer_user.private_metadata = {oidc_metadata_key: sub_id}
+    customer_user.save(update_fields=("private_metadata",))
 
-    admin_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
-    admin_user.save()
+    admin_user.private_metadata = {oidc_metadata_key: sub_id}
+    admin_user.save(update_fields=("private_metadata",))
+    mocked_cache_get.return_value = None
 
     # when
     with warnings.catch_warnings(record=True):
-        user_from_payload, _, _ = get_or_create_user_from_payload(
+        user_from_payload, created, _ = get_or_create_user_from_payload(
             payload={"sub": sub_id, "email": customer_user.email},
             oauth_url=oauth_url,
         )
 
     # then
-    assert user_from_payload.email == customer_user.email
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.pk, OIDC_CACHE_TIMEOUT
+    )
+    assert created is False
+    assert user_from_payload.pk == customer_user.pk
+    assert user_from_payload.private_metadata[oidc_metadata_key] == sub_id
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
@@ -666,6 +687,262 @@ def test_get_or_create_user_from_payload_different_email(
     assert user_from_payload.id == customer_user.id
     assert customer_user.email == new_customer_email
     assert customer_user.private_metadata[f"oidc:{oauth_url}"] == sub_id
+
+
+def test_get_or_create_user_from_payload_with_email_capitalization_change(
+    mocker, customer_user
+):
+    """Email address changing capitalization shouldn't create a new user.
+
+    When a given email address already exists and capitalization changed, then it
+    shouldn't create a new user.
+    """
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "member-live-1234"
+    initial_email = "john.doe@example.com"
+    capitalized_email = "John.doe@example.com"
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    customer_user.email = initial_email
+    customer_user.external_reference = sub_id
+    customer_user.save(update_fields=("email", "external_reference"))
+    mocked_cache_get.return_value = None
+
+    # when
+    user_from_payload, created, _ = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": capitalized_email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    cache_key = f"oidc:{oauth_url}:{sub_id}"
+    mocked_cache_get.assert_called_once_with(cache_key)
+    mocked_cache_set.assert_called_once_with(
+        cache_key, customer_user.pk, OIDC_CACHE_TIMEOUT
+    )
+    assert created is False
+    assert user_from_payload.pk == customer_user.pk
+    customer_user.refresh_from_db(fields=("email", "private_metadata"))
+    assert customer_user.email == initial_email, "shouldn't have changed"
+    assert customer_user.private_metadata[f"oidc:{oauth_url}"] == sub_id
+    assert User.objects.filter(email__iexact=initial_email).count() == 1
+
+
+@pytest.mark.parametrize(
+    ("_case", "additional_emails"),
+    [
+        ("two_case_variants", ()),
+        ("seven_case_variants", EXTRA_CASE_VARIANT_EMAILS),
+    ],
+)
+def test_get_or_create_user_from_payload_preserves_exact_case_account(
+    _case, additional_emails, mocker, customer_user, customer_user2
+):
+    """An OIDC claim should select the account with the exact email spelling.
+
+    When users have emails that differ only by case, the incoming subject should
+    be linked to the exact-case user without changing the other accounts.
+    """
+    # given
+    oauth_url = "https://idp.example.com/oauth"
+    claimed_email = "John.doe@example.com"
+    lowercase_email = claimed_email.lower()
+    sub_id = "member-live-1234"
+    oidc_metadata_key = f"oidc:{oauth_url}"
+    exact_match_user = customer_user
+    other_case_user = customer_user2
+    exact_match_user.email = claimed_email
+    exact_match_user.save(update_fields=("email",))
+    other_case_user.email = lowercase_email
+    other_case_user.save(update_fields=("email",))
+    User.objects.bulk_create([User(email=email) for email in additional_emails])
+    assert User.objects.filter(email__iexact=claimed_email).count() == (
+        2 + len(additional_emails)
+    )
+    assert oidc_metadata_key not in exact_match_user.private_metadata
+    assert oidc_metadata_key not in other_case_user.private_metadata
+    mocked_cache_get = mocker.patch(
+        "saleor.plugins.openid_connect.utils.cache.get", return_value=None
+    )
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+
+    # when
+    user, created, updated = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": claimed_email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    assert created is False
+    assert updated is True
+    assert user.pk == exact_match_user.pk
+    mocked_cache_get.assert_called_once_with(f"{oidc_metadata_key}:{sub_id}")
+    mocked_cache_set.assert_called_once_with(
+        f"{oidc_metadata_key}:{sub_id}", exact_match_user.pk, OIDC_CACHE_TIMEOUT
+    )
+    exact_match_user.refresh_from_db(fields=("email", "private_metadata"))
+    other_case_user.refresh_from_db(fields=("email", "private_metadata"))
+    assert exact_match_user.email == claimed_email
+    assert exact_match_user.private_metadata[oidc_metadata_key] == sub_id
+    assert other_case_user.email == lowercase_email
+    assert oidc_metadata_key not in other_case_user.private_metadata
+    # Across all case variants, only the exact-match account should be linked.
+    assert list(
+        User.objects.filter(
+            email__iexact=claimed_email,
+            private_metadata__has_key=oidc_metadata_key,
+        ).values_list("pk", flat=True)
+    ) == [exact_match_user.pk]
+
+
+@pytest.mark.parametrize(
+    ("_case", "additional_emails"),
+    [
+        ("two_case_variants", ()),
+        ("seven_case_variants", EXTRA_CASE_VARIANT_EMAILS),
+    ],
+)
+def test_get_or_create_user_from_payload_rejects_ambiguous_case_variants(
+    _case, additional_emails, mocker, customer_user, customer_user2
+):
+    """An ambiguous email claim should not link any case-variant account.
+
+    When the claim matches multiple users case-insensitively but neither exactly,
+    authentication should fail without changing their passwords or OIDC metadata.
+    """
+    # given
+    oauth_url = "https://idp.example.com/oauth"
+    claimed_email = "JOHN.DOE@example.com"
+    capitalized_email = "John.doe@example.com"
+    lowercase_email = claimed_email.lower()
+    sub_id = "member-live-1234"
+    oidc_metadata_key = f"oidc:{oauth_url}"
+    capitalized_user = customer_user
+    lowercase_user = customer_user2
+    capitalized_user.email = capitalized_email
+    capitalized_user.save(update_fields=("email",))
+    lowercase_user.email = lowercase_email
+    lowercase_user.save(update_fields=("email",))
+    User.objects.bulk_create([User(email=email) for email in additional_emails])
+    assert User.objects.filter(email=claimed_email).exists() is False
+    assert User.objects.filter(email__iexact=claimed_email).count() == (
+        2 + len(additional_emails)
+    )
+    capitalized_user_password = capitalized_user.password
+    lowercase_user_password = lowercase_user.password
+    mocked_cache_get = mocker.patch(
+        "saleor.plugins.openid_connect.utils.cache.get", return_value=None
+    )
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+
+    # when
+    with pytest.raises(
+        AuthenticationError, match="Unable to identify an account for this email."
+    ):
+        get_or_create_user_from_payload(
+            payload={"sub": sub_id, "email": claimed_email},
+            oauth_url=oauth_url,
+        )
+
+    # then
+    mocked_cache_get.assert_called_once_with(f"{oidc_metadata_key}:{sub_id}")
+    mocked_cache_set.assert_not_called()
+    capitalized_user.refresh_from_db(fields=("password", "private_metadata"))
+    lowercase_user.refresh_from_db(fields=("password", "private_metadata"))
+    assert capitalized_user.password == capitalized_user_password
+    assert oidc_metadata_key not in capitalized_user.private_metadata
+    assert lowercase_user.password == lowercase_user_password
+    assert oidc_metadata_key not in lowercase_user.private_metadata
+    # All case-variant accounts, including the extra five, must remain unlinked.
+    assert (
+        User.objects.filter(
+            email__iexact=claimed_email,
+            private_metadata__has_key=oidc_metadata_key,
+        ).exists()
+        is False
+    )
+
+
+def test_get_or_create_user_recovers_from_integrity_error(mocker, customer_user):
+    """Should handle raced-user creation.
+
+    When user didn't exist but got created before our code could create it (race),
+    then it should properly return the user created by the other process.
+    """
+    # given
+    email = customer_user.email
+    defaults = {"email": email}
+    mocked_create = mocker.patch(
+        "saleor.plugins.openid_connect.utils.User.objects.create",
+        side_effect=IntegrityError("duplicate key value"),
+    )
+    mocked_retrieve_user_by_email = mocker.patch(
+        "saleor.plugins.openid_connect.utils._retrieve_oidc_user_by_email",
+        side_effect=[None, customer_user],
+    )
+
+    # when
+    user, created = _get_or_create_user(email, defaults)
+
+    # then
+    mocked_create.assert_called_once_with(**defaults)
+    assert mocked_retrieve_user_by_email.call_count == 2
+    assert created is False
+    assert user.pk == customer_user.pk
+
+
+def test_get_or_create_user_reraises_unrecoverable_integrity_error(mocker):
+    """Should properly handle a race where newly crated user is not retrievable.
+
+    When user didn't exist and then got created in the meantime and then got deleted
+    or we couldn't fetch it successfully, then Saleor should raise an error
+    due to not being recoverable.
+    """
+    # given
+    email = "john.doe@example.com"
+    defaults = {"email": email}
+    error_message = "duplicate key value"
+    mocked_create = mocker.patch(
+        "saleor.plugins.openid_connect.utils.User.objects.create",
+        side_effect=IntegrityError(error_message),
+    )
+    mocked_retrieve_user_by_email = mocker.patch(
+        "saleor.plugins.openid_connect.utils._retrieve_oidc_user_by_email",
+        return_value=None,
+    )
+
+    # when
+    with pytest.raises(IntegrityError, match=error_message):
+        _get_or_create_user(email, defaults)
+
+    # then
+    mocked_create.assert_called_once_with(**defaults)
+    assert mocked_retrieve_user_by_email.call_count == 2
+
+
+def test_get_or_create_user_selects_exact_email_from_case_variants(
+    customer_user, customer_user2
+):
+    """An exact claim identifies one account among case-variant users.
+
+    When both email spellings exist, the email lookup should return the user
+    whose stored email matches the claim exactly.
+    """
+    # given
+    capitalized_email = "John.doe@example.com"
+    lowercase_email = capitalized_email.lower()
+    customer_user.email = capitalized_email
+    customer_user.save(update_fields=("email",))
+    customer_user2.email = lowercase_email
+    customer_user2.save(update_fields=("email",))
+
+    # when
+    user, created = _get_or_create_user(capitalized_email, {})
+
+    # then
+    assert created is False
+    assert user.pk == customer_user.pk
 
 
 @freeze_time("2019-03-18 12:00:00")
