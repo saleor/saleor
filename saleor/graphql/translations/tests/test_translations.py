@@ -2400,7 +2400,7 @@ def test_rich_text_attribute_value_update_translation_only_rich_text_empty_name(
     # then
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
-    assert data["attributeValue"]["translation"]["name"] == ""
+    assert data["attributeValue"]["translation"]["name"] is None
     assert data["attributeValue"]["translation"]["richText"] == expected_rich_text
 
 
@@ -2600,7 +2600,7 @@ def test_plain_text_attribute_value_update_translation_empty_name(
     # then
     data = get_graphql_content(response)["data"]["attributeValueTranslate"]
     assert data["attributeValue"]["translation"]["language"]["code"] == "PL"
-    assert data["attributeValue"]["translation"]["name"] == ""
+    assert data["attributeValue"]["translation"]["name"] is None
     assert data["attributeValue"]["translation"]["plainText"] == expected_text
 
 
@@ -4640,3 +4640,182 @@ def test_translation_query_promotion_rule(
         promotion_rule_translation_fr.description,
         sort_keys=True,
     )
+
+
+def test_product_translation_with_empty_strings(user_api_client, product, channel_USD):
+    # given
+    product.translations.create(
+        language_code="pl", name="", seo_title="", seo_description=""
+    )
+
+    query = """
+    query productById($productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            translation(languageCode: PL) {
+                name
+                seoTitle
+                seoDescription
+            }
+        }
+    }
+    """
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    # when
+    response = user_api_client.post_graphql(
+        query, {"productId": product_id, "channel": channel_USD.slug}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["product"]["translation"] == {
+        "name": None,
+        "seoTitle": None,
+        "seoDescription": None,
+    }
+
+
+def test_shop_translation_with_empty_strings(user_api_client, site_settings):
+    # given
+    site_settings.translations.create(
+        language_code="pl", header_text="", description=""
+    )
+
+    query = """
+    query {
+        shop {
+            translation(languageCode: PL) {
+                headerText
+                description
+            }
+        }
+    }
+    """
+
+    # when
+    response = user_api_client.post_graphql(query)
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["shop"]["translation"] == {"headerText": None, "description": None}
+
+
+def test_product_variant_translation_with_empty_name(
+    user_api_client, variant, channel_USD
+):
+    # given
+    variant.translations.create(language_code="pl", name="")
+
+    query = """
+    query productVariantById($productVariantId: ID!, $channel: String) {
+        productVariant(id: $productVariantId, channel: $channel) {
+            translation(languageCode: PL) {
+                name
+            }
+        }
+    }
+    """
+    product_variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    # when
+    response = user_api_client.post_graphql(
+        query, {"productVariantId": product_variant_id, "channel": channel_USD.slug}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["productVariant"]["translation"] == {"name": None}
+
+
+def test_product_media_translation_with_empty_alt(
+    user_api_client, product_media_image, channel_USD
+):
+    # given
+    product_media_image.translations.create(language_code="pl", alt="")
+
+    query = """
+    query productById($productId: ID!, $channel: String) {
+        product(id: $productId, channel: $channel) {
+            media {
+                translation(languageCode: PL) {
+                    alt
+                }
+            }
+        }
+    }
+    """
+    product_id = graphene.Node.to_global_id("Product", product_media_image.product_id)
+
+    # when
+    response = user_api_client.post_graphql(
+        query, {"productId": product_id, "channel": channel_USD.slug}
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["product"]["media"] == [{"translation": {"alt": None}}]
+
+
+def test_menu_item_translation_with_empty_name(user_api_client, menu_item):
+    # given
+    menu_item.translations.create(language_code="pl", name="")
+
+    query = """
+    query menuItemById($menuItemId: ID!) {
+        menuItem(id: $menuItemId) {
+            translation(languageCode: PL) {
+                name
+            }
+        }
+    }
+    """
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.id)
+
+    # when
+    response = user_api_client.post_graphql(query, {"menuItemId": menu_item_id})
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["menuItem"]["translation"] == {"name": None}
+
+
+def test_attribute_and_value_translation_with_empty_name(
+    user_api_client, color_attribute
+):
+    # given
+    color_attribute.translations.create(language_code="pl", name="")
+    attribute_value = color_attribute.values.first()
+    attribute_value.translations.create(language_code="pl", name="")
+
+    query = """
+    query attributeById($attributeId: ID!, $valueId: ID!) {
+        attribute(id: $attributeId) {
+            translation(languageCode: PL) {
+                name
+            }
+            choices(first: 1, filter: {ids: [$valueId]}) {
+                edges {
+                    node {
+                        translation(languageCode: PL) {
+                            name
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    variables = {
+        "attributeId": graphene.Node.to_global_id("Attribute", color_attribute.id),
+        "valueId": graphene.Node.to_global_id("AttributeValue", attribute_value.id),
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    data = get_graphql_content(response)["data"]
+    assert data["attribute"]["translation"] == {"name": None}
+    assert data["attribute"]["choices"]["edges"] == [
+        {"node": {"translation": {"name": None}}}
+    ]

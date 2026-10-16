@@ -319,6 +319,33 @@ def test_assigned_plain_text_attribute_translation(
     )
 
 
+def test_assigned_plain_text_attribute_empty_translation(
+    staff_api_client, page, plain_text_attribute_page_type
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([plain_text_attribute_page_type])
+
+    attr_value = plain_text_attribute_page_type.values.first()
+    AttributeValueTranslation.objects.create(
+        language_code="fr", attribute_value=attr_value, plain_text=""
+    )
+    associate_attribute_values_to_instance(
+        page, {plain_text_attribute_page_type.pk: [attr_value]}
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_PLAIN_TEXT_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert content["data"]["page"]["assignedAttributes"][0]["translation"] is None
+
+
 def test_assigned_plain_text_attribute(staff_api_client, page, plain_text_attribute):
     # given
     page_type = page.page_type
@@ -1280,6 +1307,33 @@ def test_assigned_single_choice_attribute_translation(
     assert (
         content["data"]["page"]["assignedAttributes"][0]["value"]["translation"]
         == translation.name
+    )
+
+
+def test_assigned_single_choice_attribute_empty_translation(
+    staff_api_client, page, size_page_attribute
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([size_page_attribute])
+
+    attr_value = size_page_attribute.values.first()
+    AttributeValueTranslation.objects.create(
+        language_code="fr", attribute_value=attr_value, name=""
+    )
+    associate_attribute_values_to_instance(page, {size_page_attribute.pk: [attr_value]})
+
+    # when
+    response = staff_api_client.post_graphql(
+        ASSIGNED_SINGLE_CHOICE_ATTRIBUTE_QUERY,
+        variables={"id": graphene.Node.to_global_id("Page", page.pk)},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert len(content["data"]["page"]["assignedAttributes"]) == 1
+    assert (
+        content["data"]["page"]["assignedAttributes"][0]["value"]["translation"] is None
     )
 
 

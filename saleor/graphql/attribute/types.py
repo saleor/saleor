@@ -841,7 +841,7 @@ class AssignedPlainTextAttribute(BaseObjectType):
         ) -> str | None:
             if translation is None:
                 return None
-            return translation.plain_text
+            return translation.plain_text or None
 
         def with_attribute_value(
             attribute_values: list[models.AttributeValue],
@@ -1348,7 +1348,9 @@ class AssignedChoiceAttributeValue(BaseObjectType):
         return (
             AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
             .load((root.id, language_code))
-            .then(lambda translation: translation.name if translation else None)
+            .then(
+                lambda translation: (translation.name or None) if translation else None
+            )
         )
 
 
@@ -1459,7 +1461,9 @@ class AssignedSwatchAttributeValue(BaseObjectType):
         return (
             AttributeValueTranslationByIdAndLanguageCodeLoader(info.context)
             .load((root.id, language_code))
-            .then(lambda translation: translation.name if translation else None)
+            .then(
+                lambda translation: (translation.name or None) if translation else None
+            )
         )
 
     class Meta:

@@ -9686,7 +9686,7 @@ type AttributeValueTranslation implements Node @doc(category: "Attributes") {
   language: LanguageDisplay!
 
   """Translated attribute value name."""
-  name: String!
+  name: String
 
   """
   Translated rich-text attribute value.
@@ -9770,7 +9770,7 @@ type AttributeTranslation implements Node @doc(category: "Attributes") {
   language: LanguageDisplay!
 
   """Translated attribute name."""
-  name: String!
+  name: String
 
   """Represents the attribute fields to translate."""
   translatableContent: AttributeTranslatableContent
@@ -9927,7 +9927,7 @@ type ProductMediaTranslation implements Node @doc(category: "Products") {
   language: LanguageDisplay!
 
   """Translated product media alt text."""
-  alt: String!
+  alt: String
 
   """Represents the product media fields to translate."""
   translatableContent: ProductMediaTranslatableContent
@@ -9972,7 +9972,7 @@ type ProductVariantTranslation implements Node @doc(category: "Products") {
   language: LanguageDisplay!
 
   """Translated product variant name."""
-  name: String!
+  name: String
 
   """Represents the product variant fields to translate."""
   translatableContent: ProductVariantTranslatableContent
@@ -14853,7 +14853,7 @@ type MenuItemTranslation implements Node @doc(category: "Menu") {
   language: LanguageDisplay!
 
   """Translated menu item name."""
-  name: String!
+  name: String
 
   """Represents the menu item fields to translate."""
   translatableContent: MenuItemTranslatableContent
@@ -15707,10 +15707,10 @@ type ShopTranslation implements Node @doc(category: "Shop") {
   language: LanguageDisplay!
 
   """Translated header text of sale."""
-  headerText: String!
+  headerText: String
 
   """Translated description of sale."""
-  description: String!
+  description: String
 }
 
 """
