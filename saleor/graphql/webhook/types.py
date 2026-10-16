@@ -204,6 +204,15 @@ class Webhook(ModelObjectType[models.Webhook]):
     custom_headers = JSONString(
         description="Custom headers, which will be added to HTTP request."
     )
+    payload_generation = enums.WebhookPayloadGenerationEnum(
+        required=True,
+        description=(
+            "Determines when the subscription payload is built for asynchronous "
+            "events that defer payload generation. Ignored for webhooks without a "
+            "subscription query, for synchronous events and for events that do "
+            "not defer their payload." + ADDED_IN_323
+        ),
+    )
 
     class Meta:
         description = "Webhook."
