@@ -121,6 +121,7 @@ dev = [
     "vcrpy>=8.1.1,<9",
     "poethepoet>=0.45.0,<0.46",
     "ipdb>=0.13.13,<0.14",
+    "hypothesis>=6,<7",
 ]
 
 [tool.poe]
