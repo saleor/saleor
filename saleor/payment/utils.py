@@ -1284,6 +1284,7 @@ def update_order_with_transaction_details(order: Order):
             "updated_at",
             "total_authorized_amount",
             "authorize_status",
+            "refund_status",
             "search_vector",
         ]
     )
@@ -1355,6 +1356,7 @@ def process_order_with_transaction(
             [
                 "total_charged_amount",
                 "charge_status",
+                "refund_status",
                 "total_authorized_amount",
                 "authorize_status",
             ]
