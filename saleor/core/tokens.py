@@ -1,14 +1,7 @@
 from django.conf import settings
-
-# nosemgrep: django-no-default-token-generator # _DjangoGenerator is used safely
-from django.contrib.auth.tokens import PasswordResetTokenGenerator as _DjangoGenerator
 from django.utils.module_loading import import_string
 
-from saleor.account.models import User
-
 _base_token_generator_cls = import_string(settings.TOKEN_GENERATOR_CLASS)
-
-LEGACY_SALT = _base_token_generator_cls.key_salt
 
 
 class BaseTokenGenerator(_base_token_generator_cls):  # type: ignore[valid-type,misc]
@@ -41,44 +34,17 @@ class AccountDeleteTokenGenerator(BaseTokenGenerator):
         return f"{user.pk}{user.password}{timestamp}{email}"
 
 
-def try_generators(
-    *,
-    current_generator: _DjangoGenerator,
-    fallback_generator: _DjangoGenerator,
-    user: User,
-    token: str,
-) -> bool:
-    """Try generators with different salts to ensure old tokens work.
-
-    Args:
-        current_generator: the generator with the current salt, will be tried first.
-        fallback_generator:
-            the legacy/old generator to try if `current_generator` rejects the token.
-        user: the user who is attempting to use the token.
-        token: the token to compare against.
-
-    """
-    if current_generator.check_token(user, token) is True:
-        return True
-    return fallback_generator.check_token(user, token)
-
-
 # Account delete
 account_delete_token_generator = AccountDeleteTokenGenerator(
     key_salt=f"{__name__}.account_delete_token_generator"
-)
-legacy_account_delete_token_generator = AccountDeleteTokenGenerator(
-    key_salt=LEGACY_SALT
 )
 
 # Password reset
 password_reset_token_generator = BaseTokenGenerator(
     key_salt=f"{__name__}.password_reset_token_generator"
 )
-legacy_password_reset_token_generator = BaseTokenGenerator(key_salt=LEGACY_SALT)
 
 # Account confirmation
 account_confirm_token_generator = BaseTokenGenerator(
     key_salt=f"{__name__}.account_confirm_token_generator"
 )
-legacy_account_confirm_token_generator = BaseTokenGenerator(key_salt=LEGACY_SALT)
