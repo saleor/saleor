@@ -225,8 +225,10 @@ def allocate_stocks(
             )
             if not max(allocation.stock.quantity - allocated_stock, 0):
                 transaction.on_commit(
-                    lambda: trigger_product_variant_out_of_stock(
-                        allocation.stock, requestor=requestor
+                    partial(
+                        trigger_product_variant_out_of_stock,
+                        allocation.stock,
+                        requestor=requestor,
                     )
                 )
                 out_of_stock_stocks.append(allocation.stock)
@@ -432,8 +434,10 @@ def deallocate_stock(
             and available_stock_now > 0
         ):
             transaction.on_commit(
-                lambda: trigger_product_variant_back_in_stock(
-                    allocation_before_update.stock, requestor=requestor
+                partial(
+                    trigger_product_variant_back_in_stock,
+                    allocation_before_update.stock,
+                    requestor=requestor,
                 )
             )
             back_in_stock_stocks.append(allocation_before_update.stock)
@@ -644,7 +648,11 @@ def decrease_stock(
     for stock in Stock.objects.filter(id__in=stock_ids).annotate_available_quantity():
         if stock.available_quantity <= 0:
             transaction.on_commit(
-                lambda: trigger_product_variant_out_of_stock(stock, requestor=requestor)
+                partial(
+                    trigger_product_variant_out_of_stock,
+                    stock,
+                    requestor=requestor,
+                )
             )
 
 
@@ -789,8 +797,10 @@ def deallocate_stock_for_orders(
     for allocation in allocations_for_back_in_stock.annotate_stock_available_quantity():
         if allocation.stock_available_quantity <= 0:
             transaction.on_commit(
-                lambda: trigger_product_variant_back_in_stock(
-                    allocation.stock, requestor=requestor
+                partial(
+                    trigger_product_variant_back_in_stock,
+                    allocation.stock,
+                    requestor=requestor,
                 )
             )
             back_in_stock_stocks.append(allocation.stock)

@@ -1318,6 +1318,183 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
     product_variant_out_of_stock_webhook_mock.assert_called_once()
 
 
+def _second_stock(order_line, product, quantity, quantity_allocated=0):
+    variant = product.variants.first()
+    copied = OrderLine.objects.get(pk=order_line.pk)
+    copied.pk = None
+    copied.product_name = product.name
+    copied.variant_name = variant.name
+    copied.product_sku = variant.sku
+    copied.variant = variant
+    copied.save()
+    other_stock = Stock.objects.get(product_variant=variant)
+    other_stock.quantity = quantity
+    other_stock.quantity_allocated = quantity_allocated
+    other_stock.save(update_fields=["quantity", "quantity_allocated"])
+    return copied, other_stock
+
+
+def _webhook_stock_ids(webhook_mock):
+    return sorted(
+        webhook_call.args[0].id for webhook_call in webhook_mock.call_args_list
+    )
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
+def test_allocate_stocks_out_of_stock_webhook_uses_each_stock(
+    product_variant_out_of_stock_webhook_mock,
+    order_line,
+    product,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    stock.quantity = 50
+    stock.save(update_fields=["quantity"])
+    order_line_2, stock_2 = _second_stock(order_line, product, 5)
+
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [
+                OrderLineInfo(line=order_line, variant=order_line.variant, quantity=50),
+                OrderLineInfo(
+                    line=order_line_2, variant=order_line_2.variant, quantity=5
+                ),
+            ],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    assert _webhook_stock_ids(product_variant_out_of_stock_webhook_mock) == sorted(
+        [stock.id, stock_2.id]
+    )
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
+def test_decrease_stock_out_of_stock_webhook_uses_each_stock(
+    product_variant_out_of_stock_webhook_mock,
+    allocation,
+    product,
+    django_capture_on_commit_callbacks,
+    site_settings,
+):
+    stock = allocation.stock
+    stock.quantity = 50
+    stock.quantity_allocated = 50
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    allocation.quantity_allocated = 50
+    allocation.save(update_fields=["quantity_allocated"])
+    order_line_2, stock_2 = _second_stock(
+        allocation.order_line, product, 5, quantity_allocated=5
+    )
+    Allocation.objects.create(
+        order_line=order_line_2, stock=stock_2, quantity_allocated=5
+    )
+
+    with django_capture_on_commit_callbacks(execute=True):
+        decrease_stock(
+            [
+                OrderLineInfo(
+                    line=allocation.order_line,
+                    quantity=50,
+                    variant=stock.product_variant,
+                    warehouse_pk=stock.warehouse.pk,
+                ),
+                OrderLineInfo(
+                    line=order_line_2,
+                    quantity=5,
+                    variant=order_line_2.variant,
+                    warehouse_pk=stock_2.warehouse.pk,
+                ),
+            ],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    assert _webhook_stock_ids(product_variant_out_of_stock_webhook_mock) == sorted(
+        [stock.id, stock_2.id]
+    )
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
+def test_deallocate_stock_back_in_stock_webhook_uses_each_stock(
+    product_variant_back_in_stock_webhook_mock,
+    allocation,
+    product,
+    django_capture_on_commit_callbacks,
+    site_settings,
+):
+    stock = allocation.stock
+    stock.quantity = 50
+    stock.quantity_allocated = 50
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    allocation.quantity_allocated = 50
+    allocation.save(update_fields=["quantity_allocated"])
+    order_line_2, stock_2 = _second_stock(
+        allocation.order_line, product, 5, quantity_allocated=5
+    )
+    Allocation.objects.create(
+        order_line=order_line_2, stock=stock_2, quantity_allocated=5
+    )
+
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock(
+            [
+                OrderLineInfo(
+                    line=allocation.order_line,
+                    quantity=50,
+                    variant=stock.product_variant,
+                ),
+                OrderLineInfo(
+                    line=order_line_2, quantity=5, variant=order_line_2.variant
+                ),
+            ],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    assert _webhook_stock_ids(product_variant_back_in_stock_webhook_mock) == sorted(
+        [stock.id, stock_2.id]
+    )
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_back_in_stock")
+def test_deallocate_stock_for_orders_back_in_stock_webhook_uses_each_stock(
+    product_variant_back_in_stock_webhook_mock,
+    allocation,
+    product,
+    django_capture_on_commit_callbacks,
+    site_settings,
+):
+    stock = allocation.stock
+    stock.quantity = 50
+    stock.quantity_allocated = 50
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    allocation.quantity_allocated = 50
+    allocation.save(update_fields=["quantity_allocated"])
+    order_line_2, stock_2 = _second_stock(
+        allocation.order_line, product, 5, quantity_allocated=5
+    )
+    Allocation.objects.create(
+        order_line=order_line_2, stock=stock_2, quantity_allocated=5
+    )
+
+    with django_capture_on_commit_callbacks(execute=True):
+        deallocate_stock_for_orders(
+            [allocation.order_line.order_id],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    assert _webhook_stock_ids(product_variant_back_in_stock_webhook_mock) == sorted(
+        [stock.id, stock_2.id]
+    )
+
+
 def test_allocate_preorders(
     order_line, preorder_variant_channel_threshold, channel_USD
 ):
