@@ -3,7 +3,7 @@ from django.db import IntegrityError
 from django.db.transaction import atomic
 
 from ...app.models import App
-from ..models import Webhook
+from ..models import Webhook, WebhookPayloadGeneration
 
 TARGET_URL = "http://www.example.com/test"
 
@@ -47,3 +47,12 @@ def test_webhook_identifier_cannot_be_blank(app):
     # given / when / then - a blank identifier is rejected at the database level
     with pytest.raises(IntegrityError, match="webhook_identifier_not_blank"), atomic():
         Webhook.objects.create(app=app, target_url=TARGET_URL, identifier="")
+
+
+def test_webhook_payload_generation_defaults_to_deferred(app):
+    # when
+    webhook = Webhook.objects.create(app=app, target_url="http://www.example.com")
+
+    # then
+    webhook.refresh_from_db(fields=("payload_generation",))
+    assert webhook.payload_generation == WebhookPayloadGeneration.DEFERRED

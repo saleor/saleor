@@ -1815,6 +1815,13 @@ type Webhook implements Node @doc(category: "Webhooks") {
 
   """Custom headers, which will be added to HTTP request."""
   customHeaders: JSONString
+
+  """
+  Determines when the subscription payload is built for asynchronous events that defer payload generation. Ignored for webhooks without a subscription query, for synchronous events and for events that do not defer their payload.
+  
+  Added in Saleor 3.23.
+  """
+  payloadGeneration: WebhookPayloadGenerationEnum!
 }
 
 """An object with an ID"""
@@ -3565,9 +3572,16 @@ type User implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(categ
   """The avatar of the user."""
   avatar(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -4203,9 +4217,16 @@ type Product implements Node & ObjectWithMetadata & ObjectWithAttributes @doc(ca
   """Thumbnail of the product."""
   thumbnail(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -4526,9 +4547,16 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   """Background image of the category."""
   backgroundImage(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -4996,6 +5024,19 @@ type Image {
 
   """Alt text for an image."""
   alt: String
+}
+
+"""
+Determines how a requested size is matched to an available thumbnail size: 32, 64, 128, 256, 512, 1024, 2048, 4096.
+
+NEAREST - the closest available size; it may be smaller than requested.
+UP - the smallest available size not smaller than requested, so the image is never smaller than requested unless the original is smaller or the requested size exceeds 4096.
+
+Added in Saleor 3.23.
+"""
+enum ThumbnailSizeRoundingEnum {
+  NEAREST
+  UP
 }
 
 enum ThumbnailFormatEnum {
@@ -9921,9 +9962,16 @@ type ProductImage @doc(category: "Products") {
   """The URL of the image."""
   url(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -9996,9 +10044,16 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   """The URL of the media."""
   url(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -10456,9 +10511,16 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   """Background image of the collection."""
   backgroundImage(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -12698,9 +12760,16 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   taxRate: Float!
   thumbnail(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -14610,9 +14679,16 @@ type AppBrandLogo @doc(category: "Apps") {
   """URL to the default logo image."""
   default(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.
@@ -14782,6 +14858,20 @@ enum EventDeliverySortField @doc(category: "Webhooks") {
 input EventDeliveryFilterInput {
   status: EventDeliveryStatusEnum
   eventType: WebhookEventTypeEnum
+}
+
+"""
+Determines when the subscription payload of an asynchronous webhook is built for events that defer payload generation.
+
+`DEFERRED`: the payload is built in a background task and reflects the object's state at the time the task runs.
+
+`IMMEDIATE`: the payload is built by whatever triggered the event, a request or a background task, and reflects the object's state at that moment, at the cost of slowing that request or task.
+
+Added in Saleor 3.23.
+"""
+enum WebhookPayloadGenerationEnum @doc(category: "Webhooks") {
+  DEFERRED
+  IMMEDIATE
 }
 
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
@@ -23449,6 +23539,13 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
   """
   customHeaders: JSONString
+
+  """
+  Determines when the subscription payload is built for asynchronous events that defer payload generation. Defaults to `DEFERRED`. Ignored for webhooks without a subscription query, for synchronous events and for events that do not defer their payload.
+  
+  Added in Saleor 3.23.
+  """
+  payloadGeneration: WebhookPayloadGenerationEnum
 }
 
 """
@@ -23512,6 +23609,13 @@ input WebhookUpdateInput @doc(category: "Webhooks") {
   Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only `X-*`, `Authorization*`, and `BrokerProperties` keys are allowed.
   """
   customHeaders: JSONString
+
+  """
+  Determines when the subscription payload is built for asynchronous events that defer payload generation. Omit to keep the current value, `null` resets it to `DEFERRED`. Ignored for webhooks without a subscription query, for synchronous events and for events that do not defer their payload. A change applies to events triggered after the update. Deliveries already created finish the way they started, so around a change a newer delivery can be sent before an older one.
+  
+  Added in Saleor 3.23.
+  """
+  payloadGeneration: WebhookPayloadGenerationEnum
 }
 
 """
@@ -34084,9 +34188,16 @@ type AppManifestBrandLogo @doc(category: "Apps") {
   """Data URL with a base64 encoded logo image."""
   default(
     """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended). Thumbnails are generated only in the available sizes: 32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines which one is used.
     """
     size: Int
+
+    """
+    Determines how the requested size is matched to an available thumbnail size.
+    
+    Added in Saleor 3.23.
+    """
+    sizeRounding: ThumbnailSizeRoundingEnum = NEAREST
 
     """
     The format of the image. When not provided, format of the original image will be used.

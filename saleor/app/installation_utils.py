@@ -316,6 +316,7 @@ def install_app(
             subscription_query=webhook["query"],
             custom_headers=webhook.get("customHeaders", None),
             identifier=webhook.get("identifier"),
+            payload_generation=webhook["payloadGeneration"],
         )
         for webhook in manifest_data.get("webhooks", [])
     )

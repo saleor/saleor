@@ -10,7 +10,7 @@ from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import get_graphql_content
 from .....webhook.error_codes import WebhookTriggerErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
-from .....webhook.models import Webhook
+from .....webhook.models import Webhook, WebhookPayloadGeneration
 from .....webhook.transport.asynchronous.transport import generate_deferred_payloads
 from ....tests.utils import assert_no_permission
 from ...subscription_types import WEBHOOK_TYPES_MAP
@@ -32,6 +32,23 @@ WEBHOOK_TRIGGER_MUTATION = """
         }
     }
     """
+
+CHECKOUT_UPDATED_WITH_ISSUING_PRINCIPAL_SUBSCRIPTION = """
+subscription {
+  event {
+    ... on CheckoutUpdated {
+      issuingPrincipal {
+        ... on User {
+          id
+        }
+      }
+      checkout {
+        id
+      }
+    }
+  }
+}
+"""
 
 DRAFT_ORDER_DELETE_SUBSCRIPTION = """
 subscription {
@@ -435,3 +452,53 @@ def test_webhook_trigger_for_deferred_payload(
     assert mocked_send_webhook_request_async.called
     send_webhook_kwargs = mocked_send_webhook_request_async.call_args.kwargs["kwargs"]
     assert send_webhook_kwargs["event_delivery_id"] == delivery_pk
+
+
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
+@mock.patch("saleor.webhook.transport.synchronous.transport.send_webhook_request_sync")
+@mock.patch(
+    "saleor.webhook.transport.asynchronous.transport.generate_deferred_payloads.apply_async"
+)
+def test_webhook_trigger_immediate_webhook_on_deferred_event(
+    mocked_generate_deferred_payloads,
+    mocked_send_sync_webhook,
+    mocked_send_webhook_using_scheme_method,
+    staff_api_client,
+    checkout,
+    subscription_webhook,
+    permission_manage_checkouts,
+    webhook_response,
+):
+    # given
+    mocked_send_webhook_using_scheme_method.return_value = webhook_response
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
+    webhook = subscription_webhook(
+        CHECKOUT_UPDATED_WITH_ISSUING_PRINCIPAL_SUBSCRIPTION,
+        WebhookEventAsyncType.CHECKOUT_UPDATED,
+    )
+    webhook.payload_generation = WebhookPayloadGeneration.IMMEDIATE
+    webhook.save(update_fields=["payload_generation"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.id)
+    variables = {"webhookId": webhook_id, "objectId": checkout_id}
+    mocked_send_sync_webhook.return_value = []
+
+    # when
+    response = staff_api_client.post_graphql(WEBHOOK_TRIGGER_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["webhookTrigger"]
+    assert data["errors"] == []
+    mocked_generate_deferred_payloads.assert_not_called()
+
+    # the payload was built in the request and sent right away
+    mocked_send_webhook_using_scheme_method.assert_called_once()
+    sent_data = json.loads(mocked_send_webhook_using_scheme_method.call_args.args[4])
+    assert sent_data["checkout"]["id"] == checkout_id
+    # the requestor is carried into the payload, as on the deferred path
+    assert sent_data["issuingPrincipal"]["id"] == graphene.Node.to_global_id(
+        "User", staff_api_client.user.pk
+    )

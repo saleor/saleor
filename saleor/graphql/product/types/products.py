@@ -29,6 +29,7 @@ from ....tax.utils import (
     get_tax_calculation_strategy,
     get_tax_rate_for_country,
 )
+from ....thumbnail import ThumbnailSizeRounding
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_original_image_proxy_url,
@@ -1212,10 +1213,11 @@ class Product(ChannelContextType[models.Product]):
         info,
         *,
         size: int = 256,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ):
         format = get_thumbnail_format(format)
-        size = get_thumbnail_size(size)
+        size = get_thumbnail_size(size, size_rounding)
 
         def return_first_thumbnail(product_media):
             if not product_media:
@@ -2115,6 +2117,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         info,
         *,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> str | None | Promise[str]:
         if root.external_url and root.type != ProductMediaTypes.IMAGE:
@@ -2134,7 +2137,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
 
         # Else, return proxy URL for thumbnail.
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_url(thumbnail) -> str:
             url = get_image_or_proxy_url(
@@ -2191,6 +2194,7 @@ class ProductImage(BaseObjectType):
         info,
         *,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> None | str | Promise[str]:
         if not root.image:
@@ -2200,7 +2204,7 @@ class ProductImage(BaseObjectType):
             return build_absolute_uri(root.image.url)
 
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_url(thumbnail):
             url = get_image_or_proxy_url(
