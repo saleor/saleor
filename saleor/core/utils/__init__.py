@@ -60,12 +60,18 @@ def get_client_ip(request):
     Tries to get a valid IP address from X-Forwarded-For, if the user is hiding behind
     a transparent proxy or if the server is behind a proxy.
 
+    A proxy or load balancer appends the address it received the request from to the
+    right of X-Forwarded-For, so the rightmost entry is the one it added and the
+    left-hand entries are supplied by the client and can be spoofed. The header is
+    therefore scanned from right to left and the first valid address is returned.
+
     If no forwarded IP was provided or all of them are invalid,
     it fallback to the requester IP.
     """
     ip = request.META.get("HTTP_X_FORWARDED_FOR", "")
     ips = ip.split(",")
-    for ip in ips:
+    for ip in reversed(ips):
+        ip = ip.strip()
         if is_valid_ipv4(ip) or is_valid_ipv6(ip):
             return ip
     return request.META.get("REMOTE_ADDR", None)
