@@ -1617,31 +1617,31 @@ def create_order_from_checkout(
                 return order
             code = _increase_voucher_code_usage_value(checkout_info=checkout_info)
 
-    with transaction.atomic():
-        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
-        if not checkout:
-            order = Order.objects.get_by_checkout_token(checkout_pk)
-            return order
+    try:
+        with transaction.atomic():
+            checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            if not checkout:
+                order = Order.objects.get_by_checkout_token(checkout_pk)
+                return order
 
-        # Fetching checkout info inside the transaction block with select_for_update
-        # ensure that we are processing checkout on the current data.
-        force_update = checkout.tax_error is not None
-        checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
-        checkout_info = fetch_checkout_info(
-            checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
-        )
-        if not checkout_lines:
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Cannot complete checkout without lines.",
-                        code=CheckoutErrorCode.NO_LINES.value,
-                    )
-                }
+            # Fetching checkout info inside the transaction block with select_for_update
+            # ensure that we are processing checkout on the current data.
+            force_update = checkout.tax_error is not None
+            checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
+            checkout_info = fetch_checkout_info(
+                checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
             )
-        assign_checkout_user(user, checkout_info)
+            if not checkout_lines:
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            "Cannot complete checkout without lines.",
+                            code=CheckoutErrorCode.NO_LINES.value,
+                        )
+                    }
+                )
+            assign_checkout_user(user, checkout_info)
 
-        try:
             order = _create_order_from_checkout(
                 checkout_info=checkout_info,
                 checkout_lines_info=list(checkout_lines),
@@ -1683,22 +1683,20 @@ def create_order_from_checkout(
                 if update_fields:
                     checkout.save(update_fields=update_fields)
             return order
-        except InsufficientStock:
-            _complete_checkout_fail_handler(
-                checkout_info,
-                manager,
-                voucher_code=code,
-                voucher=voucher,
-            )
-            raise
-        except GiftCardNotApplicable:
-            _complete_checkout_fail_handler(
-                checkout_info,
-                manager,
-                voucher_code=code,
-                voucher=voucher,
-            )
-            raise
+    except Exception:
+        if voucher:
+            with transaction.atomic():
+                checkout = (
+                    Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+                )
+                if checkout and not Order.objects.filter(checkout_token=checkout_pk).exists():
+                    _complete_checkout_fail_handler(
+                        checkout_info,
+                        manager,
+                        voucher_code=code,
+                        voucher=voucher,
+                    )
+        raise
 
 
 def assign_checkout_user(
