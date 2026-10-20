@@ -1,7 +1,6 @@
 import graphene
 import pytest
 
-from .....discount import VoucherType
 from ....tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -253,21 +252,6 @@ def _connection(type_name, instance):
     }
 
 
-@pytest.fixture
-def voucher_with_exclusions(
-    voucher, product, variant, collection, category, product_type_list
-):
-    voucher.type = VoucherType.SPECIFIC_PRODUCT
-    voucher.save(update_fields=["type"])
-    voucher.product_types.add(product_type_list[0])
-    voucher.excluded_products.add(product)
-    voucher.excluded_variants.add(variant)
-    voucher.excluded_collections.add(collection)
-    voucher.excluded_categories.add(category)
-    voucher.excluded_product_types.add(product_type_list[1])
-    return voucher
-
-
 @pytest.mark.parametrize(
     ("_case", "client_fixture", "permission_fixture", "is_allowed"),
     [
@@ -292,7 +276,7 @@ def voucher_with_exclusions(
         ),
     ],
 )
-def test_voucher_catalogue_fields_authorization(
+def test_catalogue_fields_authorization(
     _case,
     client_fixture,
     permission_fixture,
@@ -350,7 +334,7 @@ QUERY_ORDER_VOUCHER_CATALOGUE = """
 """
 
 
-def test_voucher_excluded_categories_public_like_categories(
+def test_excluded_categories_public_like_categories(
     staff_api_client,
     permission_manage_orders,
     order,

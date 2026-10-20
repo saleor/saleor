@@ -3,6 +3,8 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -333,16 +335,16 @@ def test_add_exclusions_to_entire_order_voucher(
 
 
 @pytest.mark.parametrize(
-    ("_case", "stored_field", "added_field"),
+    ("stored_field", "added_field", "stored_field_name"),
     [
-        ("exclude_already_included", "products", "excludedProducts"),
-        ("include_already_excluded", "excluded_products", "products"),
+        ("products", "excludedProducts", "products"),
+        ("excluded_products", "products", "excludedProducts"),
     ],
 )
 def test_add_item_conflicting_with_stored_catalogue(
-    _case,
     stored_field,
     added_field,
+    stored_field_name,
     staff_api_client,
     voucher,
     permission_manage_discounts,
@@ -369,11 +371,11 @@ def test_add_item_conflicting_with_stored_catalogue(
     content = get_graphql_content(response)
     errors = content["data"]["voucherCataloguesAdd"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "excludedProducts"
+    assert errors[0]["field"] == added_field
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["message"] == (
         f"Cannot both include and exclude the same items: {product_id}. "
-        "Remove them from `products` or `excludedProducts` first."
+        f"Remove them from `{stored_field_name}` first."
     )
     assert list(voucher.products.all()) == (
         [product] if stored_field == "products" else []
@@ -383,8 +385,20 @@ def test_add_item_conflicting_with_stored_catalogue(
     )
 
 
-def test_add_exclusions_over_limit(
-    staff_api_client, voucher, permission_manage_discounts
+@pytest.mark.parametrize(
+    ("field", "type_name", "model_field"),
+    [
+        ("excludedProductTypes", "ProductType", "excluded_product_types"),
+        ("products", "Product", "products"),
+    ],
+)
+def test_add_over_limit(
+    field,
+    type_name,
+    model_field,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
 ):
     # given
     voucher.type = VoucherType.SPECIFIC_PRODUCT
@@ -392,8 +406,8 @@ def test_add_exclusions_over_limit(
     variables = {
         "id": graphene.Node.to_global_id("Voucher", voucher.pk),
         "catalogue": {
-            "excludedProductTypes": [
-                graphene.Node.to_global_id("ProductType", -pk)
+            field: [
+                graphene.Node.to_global_id(type_name, -pk)
                 for pk in range(1, VOUCHER_CATALOGUE_ITEMS_LIMIT + 2)
             ]
         },
@@ -410,12 +424,47 @@ def test_add_exclusions_over_limit(
     content = get_graphql_content(response)
     errors = content["data"]["voucherCataloguesAdd"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "excludedProductTypes"
+    assert errors[0]["field"] == field
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["message"] == (
         f"Cannot provide more than {VOUCHER_CATALOGUE_ITEMS_LIMIT} items."
     )
-    assert voucher.excluded_product_types.exists() is False
+    assert getattr(voucher, model_field).exists() is False
+
+
+def test_add_locks_voucher(
+    staff_api_client, voucher, permission_manage_discounts, product_type
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "catalogue": {
+            "excludedProductTypes": [
+                graphene.Node.to_global_id("ProductType", product_type.pk)
+            ]
+        },
+    }
+
+    # when
+    with CaptureQueriesContext(connection) as ctx:
+        response = staff_api_client.post_graphql(
+            VOUCHER_CATALOGUES_ADD_WITH_CATALOGUE_MUTATION,
+            variables,
+            permissions=[permission_manage_discounts],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["voucherCataloguesAdd"]["errors"] == []
+    assert list(voucher.excluded_product_types.all()) == [product_type]
+    lock_queries = [
+        query
+        for query in ctx.captured_queries
+        if 'FROM "discount_voucher"' in query["sql"] and "FOR UPDATE" in query["sql"]
+    ]
+    assert len(lock_queries) == 1
 
 
 @pytest.mark.parametrize(

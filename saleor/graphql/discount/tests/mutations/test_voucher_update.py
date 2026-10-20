@@ -3,6 +3,8 @@ from unittest.mock import call, patch
 
 import graphene
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -1024,6 +1026,76 @@ def test_exclusion_conflicting_with_stored_include(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["message"] == (
         f"Cannot both include and exclude the same items: {product_id}. "
-        "Remove them from `products` or `excludedProducts` first."
+        "Remove them from `products` first."
     )
     assert voucher.excluded_products.exists() is False
+
+
+def test_include_conflicting_with_stored_exclusion(
+    staff_api_client, voucher, permission_manage_discounts, product
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.excluded_products.add(product)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {"products": [product_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    assert data["voucher"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "products"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        f"Cannot both include and exclude the same items: {product_id}. "
+        "Remove them from `excludedProducts` first."
+    )
+    assert voucher.products.exists() is False
+
+
+def test_update_locks_voucher(
+    staff_api_client, voucher, permission_manage_discounts, product_type
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {
+            "excludedProductTypes": [
+                graphene.Node.to_global_id("ProductType", product_type.pk)
+            ]
+        },
+    }
+
+    # when
+    with CaptureQueriesContext(connection) as ctx:
+        response = staff_api_client.post_graphql(
+            UPDATE_VOUCHER_CATALOGUE_MUTATION,
+            variables,
+            permissions=[permission_manage_discounts],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["voucherUpdate"]["errors"] == []
+    assert list(voucher.excluded_product_types.all()) == [product_type]
+    lock_queries = [
+        query
+        for query in ctx.captured_queries
+        if 'FROM "discount_voucher"' in query["sql"] and "FOR UPDATE" in query["sql"]
+    ]
+    assert len(lock_queries) == 1

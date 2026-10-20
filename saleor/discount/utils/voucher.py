@@ -325,6 +325,8 @@ def get_discounted_lines(
     """Return lines matching the voucher's includes and none of its exclusions.
 
     A voucher with no includes applies to every line that is not excluded.
+    Gift lines are skipped whenever the voucher has includes or exclusions;
+    only a voucher with neither returns every line as is.
     """
     included = voucher_info.included
     excluded = voucher_info.excluded

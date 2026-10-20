@@ -903,7 +903,7 @@ def test_same_item_included_and_excluded(
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["message"] == (
         f"Cannot both include and exclude the same items: {item_id}. "
-        f"Remove them from `{included_field}` or `{excluded_field}` first."
+        f"Remove them from `{included_field}` first."
     )
     assert Voucher.objects.filter(name=name).exists() is False
 
@@ -941,4 +941,39 @@ def test_exclusions_over_limit(staff_api_client, permission_manage_discounts):
     assert errors[0]["message"] == (
         f"Cannot provide more than {VOUCHER_CATALOGUE_ITEMS_LIMIT} items."
     )
+    assert Voucher.objects.filter(name=name).exists() is False
+
+
+@pytest.mark.parametrize("field", ["products", "excludedProducts"])
+def test_catalogue_id_of_wrong_type(
+    field, staff_api_client, permission_manage_discounts, product_type
+):
+    # given
+    name = "Wrong type voucher"
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "input": {
+            "name": name,
+            "addCodes": ["WRONG-TYPE"],
+            "type": VoucherTypeEnum.SPECIFIC_PRODUCT.name,
+            field: [product_type_id],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_WITH_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherCreate"]
+    assert data["voucher"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == field
+    assert errors[0]["code"] == DiscountErrorCode.GRAPHQL_ERROR.name
+    assert errors[0]["message"] == f"Must receive Product id: {product_type_id}."
     assert Voucher.objects.filter(name=name).exists() is False

@@ -87,6 +87,24 @@ class VoucherCodeCountableConnection(CountableConnection):
         node = VoucherCode
 
 
+def _resolve_catalogue(
+    field_name: str,
+    connection_type: type[CountableConnection],
+    with_channel_context: bool = False,
+):
+    def resolver(root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs):
+        qs = (
+            getattr(root.node, field_name)
+            .using(get_database_connection_name(info.context))
+            .all()
+        )
+        if with_channel_context:
+            qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, connection_type)
+
+    return resolver
+
+
 class Voucher(ChannelContextType[models.Voucher]):
     id = graphene.GlobalID(required=True, description="The ID of the voucher.")
     name = graphene.String(description="The name of the voucher.")
@@ -306,64 +324,34 @@ class Voucher(ChannelContextType[models.Voucher]):
             qs, info, kwargs, ProductVariantCountableConnection
         )
 
-    @staticmethod
-    def resolve_product_types(
-        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
-    ):
-        qs = root.node.product_types.using(
-            get_database_connection_name(info.context)
-        ).all()
-        return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
-
-    @staticmethod
-    def resolve_excluded_categories(
-        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
-    ):
-        qs = root.node.excluded_categories.using(
-            get_database_connection_name(info.context)
-        ).all()
-        return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
-
-    @staticmethod
-    def resolve_excluded_collections(
-        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
-    ):
-        qs = root.node.excluded_collections.using(
-            get_database_connection_name(info.context)
-        ).all()
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
-        return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
-
-    @staticmethod
-    def resolve_excluded_products(
-        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
-    ):
-        qs = root.node.excluded_products.using(
-            get_database_connection_name(info.context)
-        ).all()
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
-        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
-
-    @staticmethod
-    def resolve_excluded_variants(
-        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
-    ):
-        qs = root.node.excluded_variants.using(
-            get_database_connection_name(info.context)
-        ).all()
-        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
-        return create_connection_slice(
-            qs, info, kwargs, ProductVariantCountableConnection
+    resolve_product_types = staticmethod(
+        _resolve_catalogue("product_types", ProductTypeCountableConnection)
+    )
+    resolve_excluded_categories = staticmethod(
+        _resolve_catalogue("excluded_categories", CategoryCountableConnection)
+    )
+    resolve_excluded_collections = staticmethod(
+        _resolve_catalogue(
+            "excluded_collections",
+            CollectionCountableConnection,
+            with_channel_context=True,
         )
-
-    @staticmethod
-    def resolve_excluded_product_types(
-        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
-    ):
-        qs = root.node.excluded_product_types.using(
-            get_database_connection_name(info.context)
-        ).all()
-        return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
+    )
+    resolve_excluded_products = staticmethod(
+        _resolve_catalogue(
+            "excluded_products", ProductCountableConnection, with_channel_context=True
+        )
+    )
+    resolve_excluded_variants = staticmethod(
+        _resolve_catalogue(
+            "excluded_variants",
+            ProductVariantCountableConnection,
+            with_channel_context=True,
+        )
+    )
+    resolve_excluded_product_types = staticmethod(
+        _resolve_catalogue("excluded_product_types", ProductTypeCountableConnection)
+    )
 
     @staticmethod
     def resolve_countries(root: ChannelContext[models.Voucher], _info: ResolveInfo):

@@ -117,12 +117,14 @@ def fetch_voucher_relation_pks(
     querysets = []
     for relation in VOUCHER_CATALOGUE_RELATIONS:
         for field_name in (relation.included_field, relation.excluded_field):
-            field = Voucher._meta.get_field(field_name)
+            descriptor = getattr(Voucher, field_name)
             querysets.append(
-                field.remote_field.through.objects.using(database_connection_name)  # type: ignore[union-attr]
+                descriptor.through.objects.using(database_connection_name)
                 .filter(voucher_id__in=voucher_pks)
                 .annotate(relation=Value(field_name, output_field=CharField()))
-                .values_list("voucher_id", field.m2m_reverse_field_name(), "relation")  # type: ignore[union-attr]
+                .values_list(
+                    "voucher_id", descriptor.field.m2m_reverse_field_name(), "relation"
+                )
             )
     pks_by_voucher: dict[int, dict[str, set[int]]] = defaultdict(
         lambda: defaultdict(set)
@@ -161,13 +163,19 @@ def build_voucher_info(
     )
 
 
+def fetch_voucher_catalogue_pks(voucher: Voucher) -> Mapping[str, set[int]]:
+    """Return the voucher's related PKs per Voucher catalogue M2M field name."""
+    return fetch_voucher_relation_pks(
+        [voucher.pk], voucher._state.db or DEFAULT_DB_ALIAS
+    ).get(voucher.pk, {})
+
+
 def fetch_voucher_info(
     voucher: Voucher, voucher_code: str | None = None
 ) -> VoucherInfo:
-    related_pks = fetch_voucher_relation_pks(
-        [voucher.pk], voucher._state.db or DEFAULT_DB_ALIAS
+    return build_voucher_info(
+        voucher, voucher_code, fetch_voucher_catalogue_pks(voucher)
     )
-    return build_voucher_info(voucher, voucher_code, related_pks.get(voucher.pk, {}))
 
 
 class VariantPromotionRuleInfo(NamedTuple):

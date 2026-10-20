@@ -2,10 +2,12 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from .....core.tracing import traced_atomic_transaction
 from .....core.utils.promo_code import generate_promo_code, is_available_promo_code
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.interface import fetch_voucher_relation_pks
+from .....discount.interface import fetch_voucher_catalogue_pks
+from .....discount.lock_objects import voucher_qs_select_for_update
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
@@ -31,9 +33,11 @@ from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
 from .catalogue_validation import (
     EXCLUSION_DESCRIPTION,
+    LIMITED_VOUCHER_INPUT_FIELDS,
     VOUCHER_CATALOGUE_ITEMS_LIMIT,
     VOUCHER_CATALOGUE_NODE_TYPES,
     clean_voucher_catalogue,
+    resolve_voucher_catalogue_nodes,
     validate_voucher_catalogue_items_limit,
 )
 
@@ -85,7 +89,7 @@ class VoucherInput(BaseInputObjectType):
         graphene.ID,
         description=(
             "Product types discounted by the voucher. "
-            f"Max {VOUCHER_CATALOGUE_ITEMS_LIMIT} items." + ADDED_IN_323
+            f"Max {VOUCHER_CATALOGUE_ITEMS_LIMIT} items per call." + ADDED_IN_323
         ),
     )
     excluded_products = NonNullList(
@@ -168,30 +172,39 @@ class VoucherCreate(DeprecatedModelMutation):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cls.clean_codes(data)
-        validate_voucher_catalogue_items_limit(data)
+        validate_voucher_catalogue_items_limit(data, LIMITED_VOUCHER_INPUT_FIELDS)
+        # Resolved here instead of the base `clean_input`, which doesn't check
+        # that an ID is of the field's type.
+        catalogue_ids = {
+            field: data.pop(field)
+            for field in VOUCHER_CATALOGUE_NODE_TYPES
+            if field in data
+        }
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        cls.clean_catalogue(instance, cleaned_input)
+        catalogue_nodes = resolve_voucher_catalogue_nodes(catalogue_ids)
+        for field, ids in catalogue_ids.items():
+            if ids is not None:
+                cleaned_input[field] = catalogue_nodes.get(field, [])
 
         return cleaned_input
 
     @classmethod
     def clean_catalogue(cls, instance, cleaned_input):
-        stored_pks = (
-            fetch_voucher_relation_pks([instance.pk], instance._state.db).get(
-                instance.pk, {}
-            )
-            if instance.pk
-            else {}
+        """Validate the catalogue against the stored one; call under the voucher lock."""
+        stored_pks = fetch_voucher_catalogue_pks(instance) if instance.pk else {}
+        input_pks = {
+            field: {node.pk for node in cleaned_input[field]}
+            for field in VOUCHER_CATALOGUE_NODE_TYPES
+            if field in cleaned_input
+        }
+        clean_voucher_catalogue(
+            instance.type,
+            {
+                field: input_pks.get(field, stored_pks.get(field, set()))
+                for field in VOUCHER_CATALOGUE_NODE_TYPES
+            },
+            input_pks,
         )
-        catalogue = {}
-        for field in VOUCHER_CATALOGUE_NODE_TYPES:
-            nodes = cleaned_input.get(field)
-            catalogue[field] = (
-                {node.pk for node in nodes}
-                if nodes is not None
-                else stored_pks.get(field, set())
-            )
-        clean_voucher_catalogue(cleaned_input.get("type") or instance.type, catalogue)
 
     @classmethod
     def _clean_old_code(cls, data):
@@ -372,8 +385,14 @@ class VoucherCreate(DeprecatedModelMutation):
             cls.clean_codes_instance(code_instances)
 
         has_multiple_codes = bool(codes_data)
-        cls.save(info, voucher_instance, code_instances, has_multiple_codes)
-        cls._save_m2m(info, voucher_instance, cleaned_input)
+        with traced_atomic_transaction():
+            if voucher_instance.pk:
+                # Lock so a concurrent catalogue edit can't slip past the
+                # validation below.
+                list(voucher_qs_select_for_update().filter(pk=voucher_instance.pk))
+            cls.clean_catalogue(voucher_instance, cleaned_input)
+            cls.save(info, voucher_instance, code_instances, has_multiple_codes)
+            cls._save_m2m(info, voucher_instance, cleaned_input)
 
         cls.post_save_action(info, voucher_instance, code_instances, cleaned_input)
         return cls.success_response(voucher_instance)

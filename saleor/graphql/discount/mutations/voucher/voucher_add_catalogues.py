@@ -1,8 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from .....core.tracing import traced_atomic_transaction
 from .....discount.error_codes import DiscountErrorCode
-from .....discount.interface import fetch_voucher_relation_pks
+from .....discount.interface import fetch_voucher_catalogue_pks
+from .....discount.lock_objects import voucher_qs_select_for_update
 from .....permission.enums import DiscountPermissions
 from .....product.utils import get_products_ids_without_variants
 from .....webhook.event_types import WebhookEventAsyncType
@@ -21,7 +23,13 @@ from .catalogue_validation import (
     VOUCHER_CATALOGUE_ITEMS_LIMIT,
     VOUCHER_CATALOGUE_NODE_TYPES,
     clean_voucher_catalogue,
+    resolve_voucher_catalogue_nodes,
     validate_voucher_catalogue_items_limit,
+)
+
+INCLUDE_DESCRIPTION = (
+    "{entity} related to the voucher. "
+    f"Max {VOUCHER_CATALOGUE_ITEMS_LIMIT} items per call."
 )
 
 
@@ -50,22 +58,20 @@ class CatalogueInput(BaseInputObjectType):
 
 
 class VoucherCatalogueInput(BaseInputObjectType):
-    products = NonNullList(graphene.ID, description="Products related to the voucher.")
+    products = NonNullList(
+        graphene.ID, description=INCLUDE_DESCRIPTION.format(entity="Products")
+    )
     categories = NonNullList(
-        graphene.ID, description="Categories related to the voucher."
+        graphene.ID, description=INCLUDE_DESCRIPTION.format(entity="Categories")
     )
     collections = NonNullList(
-        graphene.ID, description="Collections related to the voucher."
+        graphene.ID, description=INCLUDE_DESCRIPTION.format(entity="Collections")
     )
     variants = NonNullList(
-        graphene.ID, description="Product variants related to the voucher."
+        graphene.ID, description=INCLUDE_DESCRIPTION.format(entity="Product variants")
     )
     product_types = NonNullList(
-        graphene.ID,
-        description=(
-            "Product types related to the voucher. "
-            f"Max {VOUCHER_CATALOGUE_ITEMS_LIMIT} items."
-        ),
+        graphene.ID, description=INCLUDE_DESCRIPTION.format(entity="Product types")
     )
     excluded_products = NonNullList(
         graphene.ID,
@@ -137,15 +143,15 @@ class VoucherBaseCatalogueMutation(BaseMutation):
             "catalogue",
             data.get("catalogue") is not None,
         )
-        catalogue_input = (
-            data["catalogue"] if data.get("catalogue") is not None else data["input"]
-        )
-        validate_voucher_catalogue_items_limit(catalogue_input)
-        return {
-            field: cls.get_nodes_or_error(ids, field, node_type)
-            for field, node_type in VOUCHER_CATALOGUE_NODE_TYPES.items()
-            if (ids := catalogue_input.get(field))
-        }
+        if data.get("catalogue") is not None:
+            catalogue_input = data["catalogue"]
+            validate_voucher_catalogue_items_limit(
+                catalogue_input, VOUCHER_CATALOGUE_NODE_TYPES
+            )
+        else:
+            # The deprecated input keeps its include lists uncapped.
+            catalogue_input = data["input"]
+        return resolve_voucher_catalogue_nodes(catalogue_input)
 
     @classmethod
     def clean_product(cls, products):
@@ -185,22 +191,28 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         nodes_by_field = cls.get_catalogue_nodes(data)
         if products := nodes_by_field.get("products"):
             cls.clean_product(products)
-        stored_pks = fetch_voucher_relation_pks([voucher.pk], voucher._state.db).get(
-            voucher.pk, {}
-        )
-        clean_voucher_catalogue(
-            voucher.type,
-            {
-                field: stored_pks.get(field, set())
-                | {node.pk for node in nodes_by_field.get(field, [])}
-                for field in VOUCHER_CATALOGUE_NODE_TYPES
-            },
-        )
-        for field, nodes in nodes_by_field.items():
-            getattr(voucher, field).add(*nodes)
+        input_pks = {
+            field: {node.pk for node in nodes}
+            for field, nodes in nodes_by_field.items()
+        }
+        with traced_atomic_transaction():
+            # Lock so a concurrent type change or catalogue edit can't slip past
+            # the validation below.
+            voucher = voucher_qs_select_for_update().get(pk=voucher.pk)
+            stored_pks = fetch_voucher_catalogue_pks(voucher)
+            clean_voucher_catalogue(
+                voucher.type,
+                {
+                    field: stored_pks.get(field, set()) | input_pks.get(field, set())
+                    for field in VOUCHER_CATALOGUE_NODE_TYPES
+                },
+                input_pks,
+            )
+            for field, nodes in nodes_by_field.items():
+                getattr(voucher, field).add(*nodes)
 
-        if nodes_by_field:
-            manager = get_plugin_manager_promise(info.context).get()
-            cls.call_event(manager.voucher_updated, voucher, voucher.code)
+            if nodes_by_field:
+                manager = get_plugin_manager_promise(info.context).get()
+                cls.call_event(manager.voucher_updated, voucher, voucher.code)
 
         return VoucherAddCatalogues(voucher=voucher)

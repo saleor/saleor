@@ -31964,42 +31964,42 @@ input VoucherInput @doc(category: "Discounts") {
   categories: [ID!]
 
   """
-  Product types discounted by the voucher. Max 100 items.
+  Product types discounted by the voucher. Max 100 items per call.
   
   Added in Saleor 3.23.
   """
   productTypes: [ID!]
 
   """
-  Products excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Products excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   
   Added in Saleor 3.23.
   """
   excludedProducts: [ID!]
 
   """
-  Product variants excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Product variants excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   
   Added in Saleor 3.23.
   """
   excludedVariants: [ID!]
 
   """
-  Collections excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Collections excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   
   Added in Saleor 3.23.
   """
   excludedCollections: [ID!]
 
   """
-  Categories excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Categories excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   
   Added in Saleor 3.23.
   """
   excludedCategories: [ID!]
 
   """
-  Product types excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Product types excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   
   Added in Saleor 3.23.
   """
@@ -32100,43 +32100,43 @@ Catalogue items a voucher includes or excludes. An item matched by any exclusion
 Added in Saleor 3.23.
 """
 input VoucherCatalogueInput @doc(category: "Discounts") {
-  """Products related to the voucher."""
+  """Products related to the voucher. Max 100 items per call."""
   products: [ID!]
 
-  """Categories related to the voucher."""
+  """Categories related to the voucher. Max 100 items per call."""
   categories: [ID!]
 
-  """Collections related to the voucher."""
+  """Collections related to the voucher. Max 100 items per call."""
   collections: [ID!]
 
-  """Product variants related to the voucher."""
+  """Product variants related to the voucher. Max 100 items per call."""
   variants: [ID!]
 
-  """Product types related to the voucher. Max 100 items."""
+  """Product types related to the voucher. Max 100 items per call."""
   productTypes: [ID!]
 
   """
-  Products excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Products excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   """
   excludedProducts: [ID!]
 
   """
-  Categories excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Categories excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   """
   excludedCategories: [ID!]
 
   """
-  Collections excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Collections excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   """
   excludedCollections: [ID!]
 
   """
-  Product variants excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Product variants excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   """
   excludedVariants: [ID!]
 
   """
-  Product types excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  Product types excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items per call.
   """
   excludedProductTypes: [ID!]
 }
