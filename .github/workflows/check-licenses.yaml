@@ -40,6 +40,10 @@ jobs:
           name: "deny-gpl"
           mode: "deny"
           reason: "GPL licenses are not compatible with BSD-3-Clause"
+          exceptions:
+            # Under a dual license (GPL-2.0 OR Artistic License)
+            # https://github.com/kmike/text-unidecode/blob/a0005d7a0b43a6aa21ce8a63f1da48c6c44f03e1/LICENSE
+            - text-unidecode
         - pattern: "*proprietary*"
           name: "deny-proprietary"
           mode: "deny"
