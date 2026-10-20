@@ -147,7 +147,7 @@ exclude-newer = "3 weeks"
 #       window).
 # Note: if you remove a package from this list and 'uv lock' does not update the
 #       lockfile, run 'uv lock --refresh' to force a refresh.
-certifi = "2026-10-18T16:21:08Z" # https://pypi.org/pypi/certifi/2026.10.18/json
+certifi = "2026-10-20T02:24:16" # https://pypi.org/pypi/certifi/2026.10.19/json
 cryptography = "2026-09-30T15:31:00Z" # https://pypi.org/pypi/cryptography/50.0.2/json
 django = "2026-10-06T13:02:00Z" # https://pypi.org/pypi/django/5.2.18/json
 pillow = "2026-10-16T22:20:00Z" # https://pypi.org/pypi/pillow/13.0.0/json
