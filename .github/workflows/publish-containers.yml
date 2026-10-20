@@ -106,7 +106,7 @@ jobs:
 
   build-push:
     needs: prepare-variables
-    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
+    uses: saleor/saleor-internal-actions/.github/workflows/build-push-image-multi-platform.yaml@d8bc107b3eb1c48111e47e1e2fc192232086f534 # v1.13.0
     permissions:
       contents: read
       id-token: write # needed for AWS/ECR login (not used, but required permission)
@@ -126,7 +126,7 @@ jobs:
   notify:
     if: ${{ failure() }}
     needs: [prepare-variables, build-push]
-    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
+    uses: saleor/saleor-internal-actions/.github/workflows/notify-slack.yaml@d8bc107b3eb1c48111e47e1e2fc192232086f534 # v1.13.0
     with:
       type: build
       ref: ${{ needs.prepare-variables.outputs.version || inputs.ref || github.ref_name }}
