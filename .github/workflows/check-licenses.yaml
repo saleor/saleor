@@ -25,7 +25,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: saleor/saleor-internal-actions/.github/workflows/run-license-check.yaml@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
+    uses: saleor/saleor-internal-actions/.github/workflows/run-license-check.yaml@692d3282b8edb0d64aecacb110b3732af71e9f6e # v1.13.1
     with:
       # List of ecosystems to scan.
       ecosystems: >-
