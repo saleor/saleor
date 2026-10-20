@@ -11507,6 +11507,154 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     last: Int
   ): ProductVariantCountableConnection
 
+  """
+  List of product types this voucher applies to.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  productTypes(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductTypeCountableConnection
+
+  """
+  List of categories excluded from this voucher. Exclusions take precedence over the voucher's includes.
+  
+  Added in Saleor 3.23.
+  """
+  excludedCategories(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CategoryCountableConnection
+
+  """
+  List of collections excluded from this voucher. Exclusions take precedence over the voucher's includes.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  excludedCollections(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CollectionCountableConnection
+
+  """
+  List of products excluded from this voucher. Exclusions take precedence over the voucher's includes.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  excludedProducts(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection
+
+  """
+  List of product variants excluded from this voucher. Exclusions take precedence over the voucher's includes.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  excludedVariants(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductVariantCountableConnection
+
+  """
+  List of product types excluded from this voucher. Exclusions take precedence over the voucher's includes.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  excludedProductTypes(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductTypeCountableConnection
+
   """List of countries available for the shipping voucher."""
   countries: [CountryDisplay!]
 
@@ -21618,11 +21766,20 @@ type Mutation {
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesAdd(
+    """
+    Catalogue IDs of the voucher to modify. Cannot be combined with `input`.
+    
+    Added in Saleor 3.23.
+    """
+    catalogue: VoucherCatalogueInput
+
     """ID of a voucher."""
     id: ID!
 
-    """Fields required to modify catalogue IDs of voucher."""
-    input: CatalogueInput!
+    """
+    Fields required to modify catalogue IDs of voucher. Cannot be combined with `catalogue`.
+    """
+    input: CatalogueInput @deprecated(reason: "Use `catalogue` instead.")
   ): VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
@@ -21634,11 +21791,20 @@ type Mutation {
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesRemove(
+    """
+    Catalogue IDs of the voucher to modify. Cannot be combined with `input`.
+    
+    Added in Saleor 3.23.
+    """
+    catalogue: VoucherCatalogueInput
+
     """ID of a voucher."""
     id: ID!
 
-    """Fields required to modify catalogue IDs of voucher."""
-    input: CatalogueInput!
+    """
+    Fields required to modify catalogue IDs of voucher. Cannot be combined with `catalogue`.
+    """
+    input: CatalogueInput @deprecated(reason: "Use `catalogue` instead.")
   ): VoucherRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
@@ -31797,6 +31963,48 @@ input VoucherInput @doc(category: "Discounts") {
   """Categories discounted by the voucher."""
   categories: [ID!]
 
+  """
+  Product types discounted by the voucher. Max 100 items.
+  
+  Added in Saleor 3.23.
+  """
+  productTypes: [ID!]
+
+  """
+  Products excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  
+  Added in Saleor 3.23.
+  """
+  excludedProducts: [ID!]
+
+  """
+  Product variants excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  
+  Added in Saleor 3.23.
+  """
+  excludedVariants: [ID!]
+
+  """
+  Collections excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  
+  Added in Saleor 3.23.
+  """
+  excludedCollections: [ID!]
+
+  """
+  Categories excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  
+  Added in Saleor 3.23.
+  """
+  excludedCategories: [ID!]
+
+  """
+  Product types excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  
+  Added in Saleor 3.23.
+  """
+  excludedProductTypes: [ID!]
+
   """Minimal quantity of checkout items required to apply the voucher."""
   minCheckoutItemsQuantity: Int
 
@@ -31884,6 +32092,53 @@ type VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEv
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "Use `errors` field instead.")
   errors: [DiscountError!]!
+}
+
+"""
+Catalogue items a voucher includes or excludes. An item matched by any exclusion is never discounted by the voucher.
+
+Added in Saleor 3.23.
+"""
+input VoucherCatalogueInput @doc(category: "Discounts") {
+  """Products related to the voucher."""
+  products: [ID!]
+
+  """Categories related to the voucher."""
+  categories: [ID!]
+
+  """Collections related to the voucher."""
+  collections: [ID!]
+
+  """Product variants related to the voucher."""
+  variants: [ID!]
+
+  """Product types related to the voucher. Max 100 items."""
+  productTypes: [ID!]
+
+  """
+  Products excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  """
+  excludedProducts: [ID!]
+
+  """
+  Categories excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  """
+  excludedCategories: [ID!]
+
+  """
+  Collections excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  """
+  excludedCollections: [ID!]
+
+  """
+  Product variants excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  """
+  excludedVariants: [ID!]
+
+  """
+  Product types excluded from the voucher discount, even when matched by the voucher's includes. Only allowed for vouchers of type SPECIFIC_PRODUCT. Max 100 items.
+  """
+  excludedProductTypes: [ID!]
 }
 
 """

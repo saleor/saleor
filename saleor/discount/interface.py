@@ -1,12 +1,19 @@
+from collections import defaultdict
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal
 from typing import TYPE_CHECKING, NamedTuple, Optional
+
+from django.db import DEFAULT_DB_ALIAS
+from django.db.models import CharField, Value
 
 from . import DiscountType, DiscountValueType
 from .models import PromotionRule, Voucher
 
 if TYPE_CHECKING:
     from ..product.models import (
+        Product,
+        ProductVariant,
         ProductVariantChannelListing,
         VariantChannelListingPromotionRule,
     )
@@ -38,34 +45,129 @@ class DiscountInfo:
     voucher_code: str | None = None
 
 
+@dataclass(frozen=True)
+class VoucherCatalogue:
+    """PKs of catalogue entities a voucher includes or excludes."""
+
+    product_pks: frozenset[int] = frozenset()
+    variant_pks: frozenset[int] = frozenset()
+    collection_pks: frozenset[int] = frozenset()
+    category_pks: frozenset[int] = frozenset()
+    product_type_pks: frozenset[int] = frozenset()
+
+    def is_empty(self) -> bool:
+        return not (
+            self.product_pks
+            or self.variant_pks
+            or self.collection_pks
+            or self.category_pks
+            or self.product_type_pks
+        )
+
+    def matches(
+        self,
+        variant: "ProductVariant",
+        product: "Product",
+        collection_pks: set[int],
+    ) -> bool:
+        """Category matching is exact; descendants of a category do not match."""
+        return (
+            variant.pk in self.variant_pks
+            or product.pk in self.product_pks
+            or product.category_id in self.category_pks
+            or product.product_type_id in self.product_type_pks
+            or not self.collection_pks.isdisjoint(collection_pks)
+        )
+
+
+class VoucherCatalogueRelation(NamedTuple):
+    catalogue_field: str
+    included_field: str
+    excluded_field: str
+
+
+VOUCHER_CATALOGUE_RELATIONS = (
+    VoucherCatalogueRelation("product_pks", "products", "excluded_products"),
+    VoucherCatalogueRelation("variant_pks", "variants", "excluded_variants"),
+    VoucherCatalogueRelation("collection_pks", "collections", "excluded_collections"),
+    VoucherCatalogueRelation("category_pks", "categories", "excluded_categories"),
+    VoucherCatalogueRelation(
+        "product_type_pks", "product_types", "excluded_product_types"
+    ),
+)
+
+
 @dataclass
 class VoucherInfo:
     """It contains the voucher's details and PKs of all applicable objects."""
 
     voucher: Voucher
     voucher_code: str | None
-    product_pks: list[int]
-    variant_pks: list[int]
-    collection_pks: list[int]
-    category_pks: list[int]
+    included: VoucherCatalogue
+    excluded: VoucherCatalogue
+
+
+def fetch_voucher_relation_pks(
+    voucher_pks: Iterable[int], database_connection_name: str
+) -> dict[int, dict[str, set[int]]]:
+    """Return related PKs per voucher PK and Voucher M2M field name.
+
+    All catalogue relations are read in a single UNION ALL query.
+    """
+    querysets = []
+    for relation in VOUCHER_CATALOGUE_RELATIONS:
+        for field_name in (relation.included_field, relation.excluded_field):
+            field = Voucher._meta.get_field(field_name)
+            querysets.append(
+                field.remote_field.through.objects.using(database_connection_name)  # type: ignore[union-attr]
+                .filter(voucher_id__in=voucher_pks)
+                .annotate(relation=Value(field_name, output_field=CharField()))
+                .values_list("voucher_id", field.m2m_reverse_field_name(), "relation")  # type: ignore[union-attr]
+            )
+    pks_by_voucher: dict[int, dict[str, set[int]]] = defaultdict(
+        lambda: defaultdict(set)
+    )
+    for voucher_pk, related_pk, field_name in querysets[0].union(
+        *querysets[1:], all=True
+    ):
+        pks_by_voucher[voucher_pk][field_name].add(related_pk)
+    return pks_by_voucher
+
+
+def build_voucher_info(
+    voucher: Voucher,
+    voucher_code: str | None,
+    related_pks: Mapping[str, set[int]],
+) -> VoucherInfo:
+    return VoucherInfo(
+        voucher=voucher,
+        voucher_code=voucher_code,
+        included=VoucherCatalogue(
+            **{
+                relation.catalogue_field: frozenset(
+                    related_pks.get(relation.included_field, ())
+                )
+                for relation in VOUCHER_CATALOGUE_RELATIONS
+            }
+        ),
+        excluded=VoucherCatalogue(
+            **{
+                relation.catalogue_field: frozenset(
+                    related_pks.get(relation.excluded_field, ())
+                )
+                for relation in VOUCHER_CATALOGUE_RELATIONS
+            }
+        ),
+    )
 
 
 def fetch_voucher_info(
     voucher: Voucher, voucher_code: str | None = None
 ) -> VoucherInfo:
-    variant_pks = [variant.id for variant in voucher.variants.all()]
-    product_pks = [product.id for product in voucher.products.all()]
-    category_pks = [category.id for category in voucher.categories.all()]
-    collection_pks = [collection.id for collection in voucher.collections.all()]
-
-    return VoucherInfo(
-        voucher=voucher,
-        voucher_code=voucher_code,
-        product_pks=product_pks,
-        variant_pks=variant_pks,
-        collection_pks=collection_pks,
-        category_pks=category_pks,
+    related_pks = fetch_voucher_relation_pks(
+        [voucher.pk], voucher._state.db or DEFAULT_DB_ALIAS
     )
+    return build_voucher_info(voucher, voucher_code, related_pks.get(voucher.pk, {}))
 
 
 class VariantPromotionRuleInfo(NamedTuple):

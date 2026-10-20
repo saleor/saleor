@@ -28,6 +28,7 @@ from ...product.types import (
     CategoryCountableConnection,
     CollectionCountableConnection,
     ProductCountableConnection,
+    ProductTypeCountableConnection,
     ProductVariantCountableConnection,
 )
 from ...translations.fields import TranslationField
@@ -159,6 +160,60 @@ class Voucher(ChannelContextType[models.Voucher]):
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
     )
+    product_types = ConnectionField(
+        ProductTypeCountableConnection,
+        description="List of product types this voucher applies to." + ADDED_IN_323,
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_categories = ConnectionField(
+        CategoryCountableConnection,
+        description=(
+            "List of categories excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+    )
+    excluded_collections = ConnectionField(
+        CollectionCountableConnection,
+        description=(
+            "List of collections excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_products = ConnectionField(
+        ProductCountableConnection,
+        description=(
+            "List of products excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_variants = ConnectionField(
+        ProductVariantCountableConnection,
+        description=(
+            "List of product variants excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_product_types = ConnectionField(
+        ProductTypeCountableConnection,
+        description=(
+            "List of product types excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
     countries = NonNullList(
         types.CountryDisplay,
         description="List of countries available for the shipping voucher.",
@@ -250,6 +305,65 @@ class Voucher(ChannelContextType[models.Voucher]):
         return create_connection_slice(
             qs, info, kwargs, ProductVariantCountableConnection
         )
+
+    @staticmethod
+    def resolve_product_types(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        qs = root.node.product_types.using(
+            get_database_connection_name(info.context)
+        ).all()
+        return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
+
+    @staticmethod
+    def resolve_excluded_categories(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        qs = root.node.excluded_categories.using(
+            get_database_connection_name(info.context)
+        ).all()
+        return create_connection_slice(qs, info, kwargs, CategoryCountableConnection)
+
+    @staticmethod
+    def resolve_excluded_collections(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        qs = root.node.excluded_collections.using(
+            get_database_connection_name(info.context)
+        ).all()
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, CollectionCountableConnection)
+
+    @staticmethod
+    def resolve_excluded_products(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        qs = root.node.excluded_products.using(
+            get_database_connection_name(info.context)
+        ).all()
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+
+    @staticmethod
+    def resolve_excluded_variants(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        qs = root.node.excluded_variants.using(
+            get_database_connection_name(info.context)
+        ).all()
+        qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(
+            qs, info, kwargs, ProductVariantCountableConnection
+        )
+
+    @staticmethod
+    def resolve_excluded_product_types(
+        root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs
+    ):
+        qs = root.node.excluded_product_types.using(
+            get_database_connection_name(info.context)
+        ).all()
+        return create_connection_slice(qs, info, kwargs, ProductTypeCountableConnection)
 
     @staticmethod
     def resolve_countries(root: ChannelContext[models.Voucher], _info: ResolveInfo):

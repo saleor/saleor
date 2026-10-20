@@ -5,6 +5,7 @@ from django.db import transaction
 from .....core.utils.promo_code import generate_promo_code, is_available_promo_code
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.interface import fetch_voucher_relation_pks
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
@@ -28,6 +29,13 @@ from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
+from .catalogue_validation import (
+    EXCLUSION_DESCRIPTION,
+    VOUCHER_CATALOGUE_ITEMS_LIMIT,
+    VOUCHER_CATALOGUE_NODE_TYPES,
+    clean_voucher_catalogue,
+    validate_voucher_catalogue_items_limit,
+)
 
 
 class VoucherInput(BaseInputObjectType):
@@ -72,6 +80,34 @@ class VoucherInput(BaseInputObjectType):
         graphene.ID,
         description="Categories discounted by the voucher.",
         name="categories",
+    )
+    product_types = NonNullList(
+        graphene.ID,
+        description=(
+            "Product types discounted by the voucher. "
+            f"Max {VOUCHER_CATALOGUE_ITEMS_LIMIT} items." + ADDED_IN_323
+        ),
+    )
+    excluded_products = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Products") + ADDED_IN_323,
+    )
+    excluded_variants = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Product variants")
+        + ADDED_IN_323,
+    )
+    excluded_collections = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Collections") + ADDED_IN_323,
+    )
+    excluded_categories = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Categories") + ADDED_IN_323,
+    )
+    excluded_product_types = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Product types") + ADDED_IN_323,
     )
     min_checkout_items_quantity = graphene.Int(
         description="Minimal quantity of checkout items required to apply the voucher."
@@ -132,9 +168,30 @@ class VoucherCreate(DeprecatedModelMutation):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cls.clean_codes(data)
+        validate_voucher_catalogue_items_limit(data)
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        cls.clean_catalogue(instance, cleaned_input)
 
         return cleaned_input
+
+    @classmethod
+    def clean_catalogue(cls, instance, cleaned_input):
+        stored_pks = (
+            fetch_voucher_relation_pks([instance.pk], instance._state.db).get(
+                instance.pk, {}
+            )
+            if instance.pk
+            else {}
+        )
+        catalogue = {}
+        for field in VOUCHER_CATALOGUE_NODE_TYPES:
+            nodes = cleaned_input.get(field)
+            catalogue[field] = (
+                {node.pk for node in nodes}
+                if nodes is not None
+                else stored_pks.get(field, set())
+            )
+        clean_voucher_catalogue(cleaned_input.get("type") or instance.type, catalogue)
 
     @classmethod
     def _clean_old_code(cls, data):
