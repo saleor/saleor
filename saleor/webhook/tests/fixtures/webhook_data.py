@@ -9,5 +9,4 @@ def observability_webhook_data(observability_webhook):
         id=observability_webhook.id,
         saleor_domain="example.com",
         target_url=observability_webhook.target_url,
-        secret_key=observability_webhook.secret_key,
     )
