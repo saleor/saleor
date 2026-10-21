@@ -5,8 +5,10 @@ description: >-
 
   This replaces an `on.pull_request.paths` filter. A workflow skipped by path
   filtering never reports a check run, so it can never be made a required status
-  check without deadlocking every pull request it does not match. A job that
-  runs and exits early does report, so it can be required.
+  check without deadlocking every pull request it does not match. Run it in a
+  separate job and gate the test job on its output with a job-level `if`: a
+  job skipped that way reports as "Skipped", which satisfies a required check,
+  and it skips before its service containers are started.
 
 inputs:
   additional-file-patterns:
