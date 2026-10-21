@@ -37,7 +37,7 @@ from .....permission.enums import PaymentPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_322
+from ....core.descriptions import ADDED_IN_322, ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import TransactionEventReportErrorCode
 from ....core.mutations import DeprecatedModelMutation
@@ -105,6 +105,13 @@ class TransactionEventReport(DeprecatedModelMutation):
                 "the amount will be calculated based on the previous events with "
                 "the same pspReference. "
                 "If not possible to calculate, the mutation will return an error."
+                "\n\n`CANCEL_REQUEST` and `CANCEL_SUCCESS` events are an exception - "
+                "when the amount is not provided it is deduced automatically. "
+                "`CANCEL_REQUEST` defaults to the transaction's current authorized "
+                "(remaining cancelable) amount. `CANCEL_SUCCESS` defaults to the amount "
+                "of the matching `CANCEL_REQUEST` (same pspReference), or to the current "
+                "authorized amount when there is no matching request. If the amount "
+                "cannot be deduced, the mutation will return an error." + ADDED_IN_323
             ),
             required=False,
         )
@@ -270,7 +277,11 @@ class TransactionEventReport(DeprecatedModelMutation):
 
     @classmethod
     def clean_amount_value(
-        cls, amount: float | None, event_type: str, psp_reference: str, currency: str
+        cls,
+        amount: float | None,
+        event_type: str,
+        psp_reference: str,
+        transaction: payment_models.TransactionItem,
     ):
         if amount is None:
             if event_type not in OPTIONAL_AMOUNT_EVENTS:
@@ -283,7 +294,9 @@ class TransactionEventReport(DeprecatedModelMutation):
                     }
                 )
             try:
-                amount = get_transaction_event_amount(event_type, psp_reference)
+                amount = get_transaction_event_amount(
+                    event_type, psp_reference, transaction
+                )
             except ValueError as e:
                 raise ValidationError(
                     {
@@ -293,7 +306,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                         )
                     },
                 ) from e
-        return quantize_price(amount, currency)
+        return quantize_price(amount, transaction.currency)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -331,9 +344,7 @@ class TransactionEventReport(DeprecatedModelMutation):
                 ]
             )
 
-        amount = cls.clean_amount_value(
-            amount, type, psp_reference, transaction.currency
-        )
+        amount = cls.clean_amount_value(amount, type, psp_reference, transaction)
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
