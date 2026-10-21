@@ -1228,6 +1228,12 @@ TELEMETRY_SLOW_GRAPHQL_OPERATION_THRESHOLD = float(
 # For development envs, where schema may change often, it may be convenient to set it to e.g. commit hash value.
 GRAPHQL_CACHE_SUFFIX = os.environ.get("GRAPHQL_CACHE_SUFFIX", "")
 
+# How long `totalCount` is cached for connections that opt in, in seconds.
+# Set to 0 to disable.
+GRAPHQL_TOTAL_COUNT_CACHE_TIMEOUT = parse(
+    os.environ.get("GRAPHQL_TOTAL_COUNT_CACHE_TIMEOUT", "5 minutes")
+)
+
 # Maximum depth for EditorJS nested lists. This value shouldn't be set too high to
 # prevent abuses. It's not recommended to increase it further than 10, if strictly
 # necessary (not recommended), it could be increase up to 100.

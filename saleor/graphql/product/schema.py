@@ -528,7 +528,13 @@ class ProductQueries(graphene.ObjectType):
             qs = filter_connection_queryset(
                 qs, kwargs, allow_replica=info.context.allow_replica
             )
-            return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
+            return create_connection_slice(
+                qs,
+                info,
+                kwargs,
+                ProductCountableConnection,
+                cache_total_count=True,
+            )
 
         if channel:
             return (

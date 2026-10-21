@@ -8,6 +8,7 @@ import graphene
 import pytest
 from django.conf import settings
 from django.core.cache import cache
+from django.core.cache.backends.locmem import LocMemCache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -1774,6 +1775,19 @@ def tax_configuration_avatax_plugin(channel_USD):
     tc.tax_app_id = "plugin:avatax"
     tc.save()
     return tc
+
+
+@pytest.fixture
+def total_count_cache(settings, monkeypatch):
+    """Enable the connection `totalCount` cache backed by a private cache.
+
+    Redis `cache.clear()` flushes the whole database, so another xdist worker
+    could wipe a shared-cache entry between two requests of the same test.
+    """
+    settings.GRAPHQL_TOTAL_COUNT_CACHE_TIMEOUT = 300
+    private_cache = LocMemCache("total-count", {})
+    monkeypatch.setattr("saleor.graphql.core.connection.cache", private_cache)
+    return private_cache
 
 
 @pytest.fixture

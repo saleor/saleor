@@ -28,6 +28,9 @@ if xdist_worker := os.environ.get("PYTEST_XDIST_WORKER"):  # noqa: F405
 
 CELERY_TASK_ALWAYS_EAGER = True
 
+# Tests share one cache and assert exact counts right after writing rows.
+GRAPHQL_TOTAL_COUNT_CACHE_TIMEOUT = 0
+
 PUBLIC_URL = "https://example.com"
 SECRET_KEY = "NOTREALLY"
 
