@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Get Token
         id: get-token
-        uses: saleor/saleor-internal-actions/request-vault-token@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
+        uses: saleor/saleor-internal-actions/request-vault-token@d8bc107b3eb1c48111e47e1e2fc192232086f534 # v1.13.0
         with:
           vault-url: ${{ secrets.VAULT_URL }}
           vault-jwt: ${{ secrets.VAULT_JWT }}
