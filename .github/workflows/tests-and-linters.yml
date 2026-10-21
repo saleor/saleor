@@ -28,7 +28,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Runs on a bare runner, so a PR without relevant changes skips the test job
+  # before its service containers are started. A job skipped by `if` reports as
+  # "Skipped", which satisfies a required status check.
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.changes.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check for changes requiring tests
+        id: changes
+        uses: ./.github/actions/detect-python-changes
+        with:
+          # Re-run whenever this workflow itself changes.
+          additional-file-patterns: '^\.github/workflows/tests-and-linters\.yml$'
+
   unit_tests:
+    needs: [changes]
+    # Compared against 'false' so that a failed change check runs the tests.
+    if: ${{ !cancelled() && needs.changes.outputs.changed != 'false' }}
     runs-on: ubuntu-latest
     container: python:3.12
     name: Run unit tests
@@ -55,30 +77,19 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Check for changes requiring tests
-        id: changes
-        uses: ./.github/actions/detect-python-changes
-        with:
-          # Re-run whenever this workflow itself changes.
-          additional-file-patterns: '^\.github/workflows/tests-and-linters\.yml$'
-
       - name: Install system dependencies
-        if: steps.changes.outputs.changed == 'true'
         run: |
           apt-get install -y libpq-dev
 
-      - if: steps.changes.outputs.changed == 'true'
-        uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
+      - uses: astral-sh/setup-uv@b75a909f75acd358c2196fb9a5f1299a9a8868a4 # v6.0.0
         with:
           enable-cache: true
 
       - name: Install dependencies
-        if: steps.changes.outputs.changed == 'true'
         run: |
           uv sync --locked
 
       - name: Run unit tests
-        if: steps.changes.outputs.changed == 'true'
         env:
           COVERAGE_CORE: sysmon
         run: |
@@ -93,25 +104,24 @@ jobs:
 
       - name: Upload test results to Codecov
         # Run even if tests fail
-        if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
+        if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       # Publish coverage and test results
-      - if: steps.changes.outputs.changed == 'true'
-        uses: codecov/codecov-action@v5
+      - uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - if: ${{ !cancelled() && steps.changes.outputs.changed == 'true' }}
+      - if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: pytest-results
           path: junit/test-results.xml
 
       # Publish detected differences as comment
-      - if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor' && steps.changes.outputs.changed == 'true'
+      - if: github.event_name == 'pull_request' && github.repository == 'saleor/saleor'
         uses: NyanKiyoshi/pytest-django-queries-ci-tools@v1
         with:
           query_raw_dump_path: ${{ env.BENCH_PATH }}
