@@ -900,7 +900,7 @@ def test_product_channel_listing_update_update_is_available_for_purchase_false_a
     # then
     data = content["data"]["productChannelListingUpdate"]
     errors = data["errors"]
-    assert errors[0]["field"] == "availableForPurchaseDate"
+    assert errors[0]["field"] == "availableForPurchaseAt"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
     assert errors[0]["channels"] == [channel_id]
     assert len(errors) == 1

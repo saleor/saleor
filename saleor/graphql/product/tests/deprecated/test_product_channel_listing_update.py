@@ -44,7 +44,7 @@ mutation UpdateProductChannelListing(
                     stop
                 }
                 isAvailableForPurchase
-                availableForPurchase
+                availableForPurchaseAt
             }
             variants {
                 channelListings {
@@ -71,7 +71,7 @@ def test_product_channel_listing_update_as_staff_user(
     publication_date = datetime.datetime.now(tz=datetime.UTC).date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_at = datetime.datetime(2007, 1, 1, tzinfo=datetime.UTC)
     variables = {
         "id": product_id,
         "input": {
@@ -82,7 +82,7 @@ def test_product_channel_listing_update_as_staff_user(
                     "publicationDate": publication_date,
                     "visibleInListings": True,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_at,
                 }
             ]
         },
@@ -100,6 +100,7 @@ def test_product_channel_listing_update_as_staff_user(
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
 
+    usd_listing = product.channel_listings.get(channel=channel_USD)
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.filter(channel_id=channel_USD.id)
     purchase_cost, margin = get_product_costs_data(
@@ -113,8 +114,8 @@ def test_product_channel_listing_update_as_staff_user(
     assert product_data["channelListings"][0]["visibleInListings"] is True
     assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListings"][0]["availableForPurchase"]
-        == datetime.date(1999, 1, 1).isoformat()
+        product_data["channelListings"][0]["availableForPurchaseAt"]
+        == usd_listing.available_for_purchase_at.isoformat()
     )
     cost_start = product_data["channelListings"][0]["purchaseCost"]["start"]["amount"]
     cost_stop = product_data["channelListings"][0]["purchaseCost"]["stop"]["amount"]
@@ -132,8 +133,8 @@ def test_product_channel_listing_update_as_staff_user(
     assert product_data["channelListings"][1]["channel"]["slug"] == channel_PLN.slug
     assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListings"][1]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
+        product_data["channelListings"][1]["availableForPurchaseAt"]
+        == available_for_purchase_at.isoformat()
     )
     assert ProductChannelListing.objects.get(
         product=product, channel=channel_PLN
@@ -154,7 +155,7 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
     publication_date = datetime.datetime.now(tz=datetime.UTC).date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_at = datetime.datetime(2007, 1, 1, tzinfo=datetime.UTC)
     variables = {
         "id": product_id,
         "input": {
@@ -165,7 +166,7 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
                     "publicationDate": publication_date,
                     "visibleInListings": True,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_at,
                 }
             ]
         },
@@ -191,7 +192,7 @@ def test_product_channel_listing_update_add_channel(
     publication_date = datetime.datetime.now(tz=datetime.UTC).date()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
+    available_for_purchase_at = datetime.datetime(2007, 1, 1, tzinfo=datetime.UTC)
     variables = {
         "id": product_id,
         "input": {
@@ -202,7 +203,7 @@ def test_product_channel_listing_update_add_channel(
                     "publicationDate": publication_date,
                     "visibleInListings": True,
                     "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
+                    "availableForPurchaseAt": available_for_purchase_at,
                 }
             ]
         },
@@ -233,8 +234,8 @@ def test_product_channel_listing_update_add_channel(
     assert product_data["channelListings"][1]["visibleInListings"] is True
     assert product_data["channelListings"][1]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListings"][1]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
+        product_data["channelListings"][1]["availableForPurchaseAt"]
+        == available_for_purchase_at.isoformat()
     )
 
 
@@ -270,6 +271,7 @@ def test_product_channel_listing_update_update_publication_data(
     # then
     data = content["data"]["productChannelListingUpdate"]
     product_data = data["product"]
+    usd_listing = product.channel_listings.get(channel=channel_USD)
     assert not data["errors"]
     assert product_data["slug"] == product.slug
     assert product_data["channelListings"][0]["isPublished"] is False
@@ -281,8 +283,8 @@ def test_product_channel_listing_update_update_publication_data(
     assert product_data["channelListings"][0]["visibleInListings"] is True
     assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
     assert (
-        product_data["channelListings"][0]["availableForPurchase"]
-        == datetime.date(1999, 1, 1).isoformat()
+        product_data["channelListings"][0]["availableForPurchaseAt"]
+        == usd_listing.available_for_purchase_at.isoformat()
     )
 
 
@@ -323,177 +325,5 @@ def test_product_channel_listing_update_update_publication_date_and_published_at
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "publicationDate"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
-    assert errors[0]["channels"] == [channel_id]
-
-
-def test_product_channel_listing_update_update_is_available_for_purchase_past_date(
-    staff_api_client, product, permission_manage_products, channel_USD
-):
-    # given
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.date(2007, 1, 1)
-    variables = {
-        "id": product_id,
-        "input": {
-            "updateChannels": [
-                {
-                    "channelId": channel_id,
-                    "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
-                }
-            ]
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_products,),
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["productChannelListingUpdate"]
-    product_data = data["product"]
-    assert not data["errors"]
-    assert product_data["slug"] == product.slug
-    assert product_data["channelListings"][0]["isPublished"] is True
-    assert not product_data["channelListings"][0]["publicationDate"]
-    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListings"][0]["visibleInListings"] is True
-    assert product_data["channelListings"][0]["isAvailableForPurchase"] is True
-    assert (
-        product_data["channelListings"][0]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
-    )
-
-
-@freeze_time("2023-11-13T14:53:59.655366")
-def test_product_channel_listing_update_update_is_available_for_purchase_future_date(
-    staff_api_client, product, permission_manage_products, channel_USD
-):
-    # given
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.datetime.now(
-        tz=datetime.UTC
-    ).date() + datetime.timedelta(days=1)
-    variables = {
-        "id": product_id,
-        "input": {
-            "updateChannels": [
-                {
-                    "channelId": channel_id,
-                    "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
-                }
-            ]
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_products,),
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["productChannelListingUpdate"]
-    product_data = data["product"]
-    assert not data["errors"]
-    assert product_data["slug"] == product.slug
-    assert product_data["channelListings"][0]["isPublished"] is True
-    assert not product_data["channelListings"][0]["publicationDate"]
-    assert product_data["channelListings"][0]["channel"]["slug"] == channel_USD.slug
-    assert product_data["channelListings"][0]["visibleInListings"] is True
-    assert product_data["channelListings"][0]["isAvailableForPurchase"] is False
-    assert (
-        product_data["channelListings"][0]["availableForPurchase"]
-        == available_for_purchase_date.isoformat()
-    )
-
-
-@freeze_time("2023-11-13T14:53:59.655366")
-def test_product_channel_listing_update_update_is_available_for_purchase_false_and_date(
-    staff_api_client, product, permission_manage_products, channel_USD
-):
-    # given
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    available_for_purchase_date = datetime.datetime.now(
-        tz=datetime.UTC
-    ).date() + datetime.timedelta(days=1)
-    variables = {
-        "id": product_id,
-        "input": {
-            "updateChannels": [
-                {
-                    "channelId": channel_id,
-                    "isAvailableForPurchase": False,
-                    "availableForPurchaseDate": available_for_purchase_date,
-                }
-            ]
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_products,),
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["productChannelListingUpdate"]
-    errors = data["errors"]
-    assert errors[0]["field"] == "availableForPurchaseDate"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
-    assert errors[0]["channels"] == [channel_id]
-    assert len(errors) == 1
-
-
-@freeze_time("2023-11-13T14:53:59.655366")
-def test_product_channel_listing_update_available_for_purchase_both_date_value_given(
-    staff_api_client, product, permission_manage_products, channel_USD
-):
-    """Test that filtering by availability time and date are mutually exclusive."""
-    # given
-    available_for_purchase_date = datetime.datetime.now(tz=datetime.UTC).date()
-    available_for_purchase_at = datetime.datetime.now(tz=datetime.UTC)
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    variables = {
-        "id": product_id,
-        "input": {
-            "updateChannels": [
-                {
-                    "channelId": channel_id,
-                    "isAvailableForPurchase": True,
-                    "availableForPurchaseDate": available_for_purchase_date,
-                    "availableForPurchaseAt": available_for_purchase_at,
-                }
-            ]
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_products,),
-    )
-
-    # then
-    content = get_graphql_content(response)
-    data = content["data"]["productChannelListingUpdate"]
-    errors = data["errors"]
-    assert len(errors) == 1
-    assert errors[0]["field"] == "availableForPurchaseDate"
     assert errors[0]["code"] == ProductErrorCode.INVALID.name
     assert errors[0]["channels"] == [channel_id]

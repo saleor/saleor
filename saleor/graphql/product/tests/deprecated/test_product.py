@@ -28,8 +28,8 @@ QUERY_FETCH_ALL_PRODUCTS = """
                 node {
                     name
                     isAvailable
-                    availableForPurchase
                     isAvailableForPurchase
+                    availableForPurchaseAt
                     variants{
                         id
                     }
@@ -106,8 +106,9 @@ def test_fetch_all_products(user_api_client, product):
     assert data["totalCount"] == num_products
     assert product_data["isAvailable"] is True
     assert product_data["isAvailableForPurchase"] is True
-    assert product_data["availableForPurchase"] == str(
-        product_channel_listing.available_for_purchase_at.date()
+    assert (
+        product_data["availableForPurchaseAt"]
+        == product_channel_listing.available_for_purchase_at.isoformat()
     )
     assert len(content["data"]["products"]["edges"]) == num_products
     assert any(str(warning.message) == DEPRECATION_WARNING_MESSAGE for warning in warns)
