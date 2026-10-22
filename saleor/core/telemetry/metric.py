@@ -71,9 +71,9 @@ class Meter:
         - SERVICE: For business logic and service-level operations
 
     Note:
-        The Meter internally uses the global OpenTelemetry MeterProvider, which should
-        be initialized following OpenTelemetry's standard process, for example using
-        the `opentelemetry-instrument` tool.
+        The Meter internally uses the global OpenTelemetry MeterProvider, which is
+        configured by `saleor.core.telemetry.initialize_telemetry()` from the standard
+        OTEL_* environment variables.
 
     """
 

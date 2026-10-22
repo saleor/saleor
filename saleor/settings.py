@@ -1215,6 +1215,14 @@ BREAKER_BOARD_DRY_RUN_SYNC_EVENTS = get_list(
 
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.trace.Tracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
+# OpenTelemetry library instrumentors enabled when telemetry is initialized, by
+# entry point name in the `opentelemetry_instrumentor` group (registered by the
+# opentelemetry-instrumentation-* packages). They produce spans for database
+# queries, cache and broker calls, outgoing HTTP requests and Celery tasks.
+# Set to an empty string to disable library instrumentation.
+TELEMETRY_INSTRUMENTORS = get_list(
+    os.environ.get("TELEMETRY_INSTRUMENTORS", "psycopg,celery,redis,requests,botocore")
+)
 # Whether to raise or log exceptions for telemetry unit conversion errors
 # Disabled by default to prevent disruptions caused by unexpected unit conversion issues
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = False

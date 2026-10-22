@@ -65,10 +65,15 @@ dependencies = [
     "psycopg[binary]>=3.3.4,<4",
     "pydantic>=2.13.4,<3",
     "pydantic-core>=2.33.0,<3",
-    "opentelemetry-api>=1.32.1,<2",
-    "opentelemetry-sdk>=1.32.1,<2",
-    "opentelemetry-semantic-conventions>=0.53b1,<0.54",
-    "opentelemetry-distro[otlp]>=0.53b1,<0.54",
+    "opentelemetry-api>=1.37.0,<2",
+    "opentelemetry-sdk>=1.37.0,<2",
+    "opentelemetry-semantic-conventions>=0.58b0,<0.59",
+    "opentelemetry-distro[otlp]>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-botocore>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-celery>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-psycopg>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-redis>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-requests>=0.58b0,<0.59",
     "celery[redis, sqs]>=5.6.3,<6.0.0",
     "kombu[sqs]>=4.6.11,<6.0.0",
     "django-storages[google]~=1.11",
@@ -226,7 +231,7 @@ pillow = "PIL"
 python-magic-bin = "magic"
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb"]
+DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb", "opentelemetry-instrumentation-botocore", "opentelemetry-instrumentation-celery", "opentelemetry-instrumentation-psycopg", "opentelemetry-instrumentation-redis", "opentelemetry-instrumentation-requests"]
 
 [tool.django-stubs]
 django_settings_module = "saleor.settings"
