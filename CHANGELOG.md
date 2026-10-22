@@ -122,6 +122,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Removed support for custom `User` DB models in `./manage.py createsuperuser` command. - #18890 by @NyanKiyoshi
 - OIDC: When an existing user is claimed by an OIDC provider for the first time, their password is now invalidated to prevent login with stale credentials. This covers the case where a previously deleted staff account is recreated via OIDC.
 - Fixed migration `account.0103_create_default_customer_type` to respect `POPULATE_DEFAULTS`; the default customer type is no longer created when defaults are disabled, and the post-migration assignment task skips when none exists.
+- Added OpenTelemetry instrumentation for psycopg, Celery, Redis, requests and botocore. Spans for database queries, cache and broker commands, Celery tasks, outgoing HTTP requests and AWS calls are now emitted alongside Saleor's own spans, with Celery task spans linked to the request that scheduled them. Library instrumentors emit spans only, their metrics are not exported. The set of enabled instrumentors is controlled by the new `TELEMETRY_INSTRUMENTORS` environment variable, which takes a comma-separated list of OpenTelemetry instrumentor entry point names and defaults to `psycopg,celery,redis,requests,botocore`. Set it to an empty string to disable library instrumentation. The OpenTelemetry packages were upgraded to SDK 1.37.0 and instrumentation 0.58b0.
 
 #### Search improvements
 
