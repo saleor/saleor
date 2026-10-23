@@ -378,6 +378,28 @@ def test_disconnect_voucher_codes_from_draft_orders(
         order_discount.refresh_from_db()
 
 
+def test_disconnect_voucher_codes_from_draft_orders_keeps_other_orders_line_discounts(
+    draft_order_list_with_multiple_use_voucher, order_with_lines
+):
+    # given
+    draft_order = draft_order_list_with_multiple_use_voucher[0]
+    draft_order_line, other_order_line = order_with_lines.lines.all()
+    draft_order.lines.add(draft_order_line)
+    draft_line_discount = OrderLineDiscount.objects.create(
+        line=draft_order_line, type=DiscountType.VOUCHER
+    )
+    other_line_discount = OrderLineDiscount.objects.create(
+        line=other_order_line, type=DiscountType.VOUCHER
+    )
+
+    # when
+    disconnect_voucher_codes_from_draft_orders_task([draft_order.pk])
+
+    # then
+    assert OrderLineDiscount.objects.filter(pk=draft_line_discount.pk).exists() is False
+    assert OrderLineDiscount.objects.filter(pk=other_line_discount.pk).exists() is True
+
+
 def test_release_voucher_code_usage_of_draft_orders_single_use(voucher_single_use):
     # given
     single_use_code_1 = voucher_single_use.codes.first()
