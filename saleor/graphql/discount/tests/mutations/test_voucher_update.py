@@ -3,11 +3,13 @@ from unittest.mock import call, patch
 
 import graphene
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....core.utils.json_serializer import CustomJsonEncoder
-from .....discount import DiscountValueType
+from .....discount import DiscountValueType, VoucherType
 from .....discount.error_codes import DiscountErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
@@ -16,7 +18,7 @@ from ....tests.utils import (
     get_graphql_content,
     get_graphql_content_from_response,
 )
-from ...enums import DiscountValueTypeEnum
+from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 MUTATION_UPDATE_VOUCHER_BY_EXTERNAL_REFERENCE = """
     mutation updateVoucher(
@@ -834,3 +836,266 @@ def test_update_voucher_usage_limit_order_with_given_voucher_code_exists(
     errors = content["data"]["voucherUpdate"]["errors"]
     assert not errors
     assert content["data"]["voucherUpdate"]["voucher"]["usageLimit"] == usage_limit
+
+
+UPDATE_VOUCHER_CATALOGUE_MUTATION = """
+    mutation voucherUpdate($id: ID!, $input: VoucherInput!) {
+        voucherUpdate(id: $id, input: $input) {
+            voucher {
+                type
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_replaces_catalogue_exclusions(
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    product_list,
+    product_type_list,
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.excluded_products.add(product_list[0])
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {
+            "productTypes": [
+                graphene.Node.to_global_id("ProductType", product_type_list[0].pk)
+            ],
+            "excludedProducts": [
+                graphene.Node.to_global_id("Product", product_list[1].pk)
+            ],
+            "excludedProductTypes": [
+                graphene.Node.to_global_id("ProductType", product_type_list[1].pk)
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["voucherUpdate"]["errors"] == []
+    assert list(voucher.product_types.all()) == [product_type_list[0]]
+    assert list(voucher.excluded_products.all()) == [product_list[1]]
+    assert list(voucher.excluded_product_types.all()) == [product_type_list[1]]
+
+
+def test_null_exclusions_keep_stored_exclusions(
+    staff_api_client, voucher, permission_manage_discounts, product
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.excluded_products.add(product)
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {"excludedProducts": None},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["voucherUpdate"]["errors"] == []
+    assert list(voucher.excluded_products.all()) == [product]
+
+
+@pytest.mark.parametrize(
+    ("_case", "voucher_type"),
+    [
+        ("entire_order", VoucherTypeEnum.ENTIRE_ORDER),
+        ("shipping", VoucherTypeEnum.SHIPPING),
+    ],
+)
+def test_type_change_rejected_while_exclusions_stored(
+    _case,
+    voucher_type,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    product_type,
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.excluded_product_types.add(product_type)
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {"type": voucher_type.name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    assert data["voucher"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "excludedProductTypes"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        "Exclusions are supported only by vouchers of type SPECIFIC_PRODUCT."
+    )
+    voucher.refresh_from_db(fields=["type"])
+    assert voucher.type == VoucherType.SPECIFIC_PRODUCT
+
+
+def test_type_change_allowed_when_exclusions_cleared_in_same_input(
+    staff_api_client, voucher, permission_manage_discounts, product_type
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.excluded_product_types.add(product_type)
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {
+            "type": VoucherTypeEnum.ENTIRE_ORDER.name,
+            "excludedProductTypes": [],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    assert data["errors"] == []
+    assert data["voucher"]["type"] == VoucherTypeEnum.ENTIRE_ORDER.name
+    assert voucher.excluded_product_types.exists() is False
+
+
+def test_exclusion_conflicting_with_stored_include(
+    staff_api_client, voucher, permission_manage_discounts, product
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.products.add(product)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {"excludedProducts": [product_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    assert data["voucher"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "excludedProducts"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        f"Cannot both include and exclude the same items: {product_id}. "
+        "Remove them from `products` first."
+    )
+    assert voucher.excluded_products.exists() is False
+
+
+def test_include_conflicting_with_stored_exclusion(
+    staff_api_client, voucher, permission_manage_discounts, product
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.excluded_products.add(product)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {"products": [product_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_VOUCHER_CATALOGUE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["voucherUpdate"]
+    assert data["voucher"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "products"
+    assert errors[0]["code"] == DiscountErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        f"Cannot both include and exclude the same items: {product_id}. "
+        "Remove them from `excludedProducts` first."
+    )
+    assert voucher.products.exists() is False
+
+
+def test_update_locks_voucher(
+    staff_api_client, voucher, permission_manage_discounts, product_type
+):
+    # given
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {
+            "excludedProductTypes": [
+                graphene.Node.to_global_id("ProductType", product_type.pk)
+            ]
+        },
+    }
+
+    # when
+    with CaptureQueriesContext(connection) as ctx:
+        response = staff_api_client.post_graphql(
+            UPDATE_VOUCHER_CATALOGUE_MUTATION,
+            variables,
+            permissions=[permission_manage_discounts],
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["voucherUpdate"]["errors"] == []
+    assert list(voucher.excluded_product_types.all()) == [product_type]
+    lock_queries = [
+        query
+        for query in ctx.captured_queries
+        if 'FROM "discount_voucher"' in query["sql"] and "FOR UPDATE" in query["sql"]
+    ]
+    assert len(lock_queries) == 1
