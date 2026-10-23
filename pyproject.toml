@@ -78,6 +78,7 @@ dependencies = [
   "opentelemetry-instrumentation-psycopg>=0.58b0,<0.59",
   "opentelemetry-instrumentation-redis>=0.58b0,<0.59",
   "opentelemetry-instrumentation-requests>=0.58b0,<0.59",
+  "opentelemetry-instrumentation-threading>=0.58b0,<0.59",
   "celery[redis, sqs]>=4.4.5,<6.0.0",
   "kombu[sqs]>=4.6.11,<6.0.0",
   "django-storages[google]~=1.11",
@@ -229,6 +230,7 @@ extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
   "opentelemetry-instrumentation-psycopg",
   "opentelemetry-instrumentation-redis",
   "opentelemetry-instrumentation-requests",
+  "opentelemetry-instrumentation-threading",
   "setuptools" # needed by Razorpay (see dependency list of details)
 ]
 
