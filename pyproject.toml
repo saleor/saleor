@@ -74,6 +74,7 @@ dependencies = [
     "opentelemetry-instrumentation-psycopg>=0.58b0,<0.59",
     "opentelemetry-instrumentation-redis>=0.58b0,<0.59",
     "opentelemetry-instrumentation-requests>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-threading>=0.58b0,<0.59",
     "celery[redis, sqs]>=5.6.3,<6.0.0",
     "kombu[sqs]>=4.6.11,<6.0.0",
     "django-storages[google]~=1.11",
@@ -231,7 +232,7 @@ pillow = "PIL"
 python-magic-bin = "magic"
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb", "opentelemetry-instrumentation-botocore", "opentelemetry-instrumentation-celery", "opentelemetry-instrumentation-psycopg", "opentelemetry-instrumentation-redis", "opentelemetry-instrumentation-requests"]
+DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb", "opentelemetry-instrumentation-botocore", "opentelemetry-instrumentation-celery", "opentelemetry-instrumentation-psycopg", "opentelemetry-instrumentation-redis", "opentelemetry-instrumentation-requests", "opentelemetry-instrumentation-threading"]
 
 [tool.django-stubs]
 django_settings_module = "saleor.settings"

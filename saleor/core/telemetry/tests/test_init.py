@@ -7,7 +7,14 @@ from opentelemetry.metrics import NoOpMeterProvider
 
 from .. import initialize_telemetry, instrument_libraries
 
-DEFAULT_INSTRUMENTORS = ["psycopg", "celery", "redis", "requests", "botocore"]
+DEFAULT_INSTRUMENTORS = [
+    "psycopg",
+    "celery",
+    "redis",
+    "requests",
+    "botocore",
+    "threading",
+]
 
 
 class Invalid:
