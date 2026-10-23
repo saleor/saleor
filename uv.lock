@@ -1718,6 +1718,20 @@ wheels = [
 ]
 
 [[package]]
+name = "opentelemetry-instrumentation-threading"
+version = "0.58b0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/70/a9/3888cb0470e6eb48ea17b6802275ae71df411edd6382b9a8e8f391936fda/opentelemetry_instrumentation_threading-0.58b0.tar.gz", hash = "sha256:f68c61f77841f9ff6270176f4d496c10addbceacd782af434d705f83e4504862", size = 8770, upload-time = "2025-09-11T11:42:56.308Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/54/add1076cb37980e617723a96e29c84006983e8ad6fc589dde7f69ddc57d4/opentelemetry_instrumentation_threading-0.58b0-py3-none-any.whl", hash = "sha256:eacc072881006aceb5b9b6831bcdce718c67ef6f31ac0b32bd6a23a94d979b4a", size = 9312, upload-time = "2025-09-11T11:41:58.603Z" },
+]
+
+[[package]]
 name = "opentelemetry-propagator-aws-xray"
 version = "1.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2628,6 +2642,7 @@ dependencies = [
     { name = "opentelemetry-instrumentation-psycopg" },
     { name = "opentelemetry-instrumentation-redis" },
     { name = "opentelemetry-instrumentation-requests" },
+    { name = "opentelemetry-instrumentation-threading" },
     { name = "opentelemetry-sdk" },
     { name = "opentelemetry-semantic-conventions" },
     { name = "orjson" },
@@ -2739,6 +2754,7 @@ requires-dist = [
     { name = "opentelemetry-instrumentation-psycopg", specifier = ">=0.58b0,<0.59" },
     { name = "opentelemetry-instrumentation-redis", specifier = ">=0.58b0,<0.59" },
     { name = "opentelemetry-instrumentation-requests", specifier = ">=0.58b0,<0.59" },
+    { name = "opentelemetry-instrumentation-threading", specifier = ">=0.58b0,<0.59" },
     { name = "opentelemetry-sdk", specifier = ">=1.37.0,<2" },
     { name = "opentelemetry-semantic-conventions", specifier = ">=0.58b0,<0.59" },
     { name = "orjson", specifier = ">=3.11.9" },
