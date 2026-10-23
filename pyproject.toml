@@ -186,6 +186,10 @@ cmd = "pytest --reuse-db"
 help = "Run tests with db reuse to speed up testing time"
 
 [tool.uv]
+# 0.13.5 fixes bundled `pip` version containing a compromised certificate
+# (https://github.com/astral-sh/uv/releases/tag/0.13.5)
+required-version = ">=0.13.5"
+
 environments = [ "platform_python_implementation != 'PyPy'" ]
 package = false
 exclude-newer = "3 weeks"
@@ -197,6 +201,7 @@ certifi = "2026-10-20T02:24:16" # https://pypi.org/pypi/certifi/2026.10.19/json
 cryptography = "2026-09-30T15:31:00Z" # https://pypi.org/pypi/cryptography/50.0.2/json
 django = "2026-10-06T13:02:00Z" # https://pypi.org/pypi/django/5.2.18/json
 pillow = "2026-10-16T22:20:00Z" # https://pypi.org/pypi/pillow/13.0.0/json
+virtualenv = "2026-10-22T20:11:00Z" # https://pypi.org/pypi/virtualenv/21.14.13/json
 
 [tool.deptry]
 extend_exclude = [ "conftest\\.py", ".*/conftest\\.py", ".*/tests/.*" ]
