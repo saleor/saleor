@@ -4,9 +4,14 @@ import math
 import graphene
 import orjson
 import pytest
+from django.db import connections
 
 from ....tests.models import Book
-from ..connection import CountableConnection, create_connection_slice
+from ..connection import (
+    CountableConnection,
+    _get_total_count_cache_key,
+    create_connection_slice,
+)
 from ..fields import ConnectionField
 
 
@@ -21,11 +26,19 @@ class BookTypeCountableConnection(CountableConnection):
 
 class Query(graphene.ObjectType):
     books = ConnectionField(BookTypeCountableConnection)
+    books_with_cached_total_count = ConnectionField(BookTypeCountableConnection)
 
     @staticmethod
     def resolve_books(_root, info, **kwargs):
         qs = Book.objects.all()
         return create_connection_slice(qs, info, kwargs, BookTypeCountableConnection)
+
+    @staticmethod
+    def resolve_books_with_cached_total_count(_root, info, **kwargs):
+        qs = Book.objects.all()
+        return create_connection_slice(
+            qs, info, kwargs, BookTypeCountableConnection, cache_total_count=True
+        )
 
 
 schema = graphene.Schema(query=Query)
@@ -487,3 +500,68 @@ def test_list_pagination_backward_last_page_info():
     page_info = result.data["books"]["pageInfo"]
     assert page_info["hasNextPage"]
     assert page_info["hasPreviousPage"] is False
+
+
+@pytest.mark.parametrize(
+    ("_case", "field_name", "is_cached"),
+    [
+        ("connection opted out", "books", False),
+        ("connection opted in", "booksWithCachedTotalCount", True),
+    ],
+)
+def test_total_count_cached_only_when_opted_in(
+    _case, field_name, is_cached, books, total_count_cache
+):
+    # given
+    query = f"{{ {field_name}(first: 1) {{ totalCount }} }}"
+    initial_count = len(books)
+    result = schema.execute(query)
+    assert result.data[field_name]["totalCount"] == initial_count
+    books[0].delete()
+
+    # when
+    result = schema.execute(query)
+
+    # then
+    expected_count = initial_count if is_cached else initial_count - 1
+    assert result.data[field_name]["totalCount"] == expected_count
+
+
+def test_total_count_cache_key_is_stable_for_the_same_query(books):
+    # when
+    first_key = _get_total_count_cache_key(Book.objects.filter(name="Book1"))
+    second_key = _get_total_count_cache_key(Book.objects.filter(name="Book1"))
+
+    # then
+    assert first_key == second_key
+
+
+@pytest.mark.parametrize(
+    ("_case", "setting_name", "other_value"),
+    [
+        ("different database name", "NAME", "other_tenant"),
+        ("different database host", "HOST", "other-tenant.example.com"),
+        ("different database port", "PORT", "15432"),
+    ],
+)
+def test_total_count_cache_key_includes_database_identity(
+    _case, setting_name, other_value, books, monkeypatch
+):
+    # given
+    qs = Book.objects.all()
+    key = _get_total_count_cache_key(qs)
+    monkeypatch.setitem(connections[qs.db].settings_dict, setting_name, other_value)
+
+    # when
+    other_tenant_key = _get_total_count_cache_key(qs)
+
+    # then
+    assert other_tenant_key != key
+
+
+def test_total_count_cache_key_is_none_for_empty_queryset():
+    # when
+    key = _get_total_count_cache_key(Book.objects.none())
+
+    # then
+    assert key is None
