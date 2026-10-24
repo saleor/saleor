@@ -1420,3 +1420,67 @@ def test_update_product_attribute_with_only_customer_type_permission(
     assert_no_permission(response)
     attribute.refresh_from_db()
     assert attribute.name == original_name
+
+
+UPDATE_ATTRIBUTE_INTERNAL_DESCRIPTION_MUTATION = """
+    mutation updateAttribute($id: ID!, $input: AttributeUpdateInput!) {
+        attributeUpdate(id: $id, input: $input) {
+            errors {
+                field
+                message
+                code
+            }
+            attribute {
+                internalDescription
+            }
+        }
+    }
+"""
+
+EXISTING_INTERNAL_DESCRIPTION = "Old internal description."
+NEW_INTERNAL_DESCRIPTION = "Use the color from the supplier's catalog."
+
+
+@pytest.mark.parametrize(
+    ("_case", "input", "expected_internal_description"),
+    [
+        (
+            "new_value",
+            {"internalDescription": NEW_INTERNAL_DESCRIPTION},
+            NEW_INTERNAL_DESCRIPTION,
+        ),
+        ("explicit_null_clears", {"internalDescription": None}, None),
+        ("empty_string_clears", {"internalDescription": ""}, ""),
+        ("omitted_keeps_existing", {}, EXISTING_INTERNAL_DESCRIPTION),
+    ],
+)
+def test_update_attribute_internal_description(
+    _case,
+    input,
+    expected_internal_description,
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    color_attribute.internal_description = EXISTING_INTERNAL_DESCRIPTION
+    color_attribute.save(update_fields=["internal_description"])
+    variables = {
+        "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+        "input": input,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_ATTRIBUTE_INTERNAL_DESCRIPTION_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeUpdate"]
+    assert data["errors"] == []
+    assert data["attribute"]["internalDescription"] == expected_internal_description
+    color_attribute.refresh_from_db(fields=["internal_description"])
+    assert color_attribute.internal_description == expected_internal_description

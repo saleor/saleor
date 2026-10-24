@@ -3869,6 +3869,15 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
 
   """External ID of this attribute."""
   externalReference: String
+
+  """
+  Plain-text description of the attribute for staff users and apps. Not exposed to customers.
+  
+  Added in Saleor 3.23.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  internalDescription: String
 }
 
 enum AttributeInputTypeEnum @doc(category: "Attributes") {
@@ -33317,6 +33326,13 @@ input AttributeCreateInput @doc(category: "Attributes") {
   externalReference: String
 
   """
+  Plain-text description of the attribute for staff users and apps. Not exposed to customers.
+  
+  Added in Saleor 3.23.
+  """
+  internalDescription: String
+
+  """
   Specifies reference types to narrow down the choices of reference objects. Applicable only for `REFERENCE` and `SINGLE_REFERENCE` attributes with `PRODUCT`, `PRODUCT_VARIANT` and `PAGE` entity types. Accepts `ProductType` IDs for `PRODUCT` and `PRODUCT_VARIANT` entity types, and `PageType` IDs for `PAGE` entity type. If omitted, all objects of the selected entity type are available as attribute values.
   
   A maximum of 100 reference types can be specified.
@@ -33432,6 +33448,13 @@ input AttributeUpdateInput @doc(category: "Attributes") {
 
   """External ID of this product."""
   externalReference: String
+
+  """
+  Plain-text description of the attribute for staff users and apps. Not exposed to customers.
+  
+  Added in Saleor 3.23.
+  """
+  internalDescription: String
 
   """
   Specifies reference types to narrow down the choices of reference objects. Applicable only for `REFERENCE` and `SINGLE_REFERENCE` attributes with `PRODUCT`, `PRODUCT_VARIANT` and `PAGE` entity types. Accepts `ProductType` IDs for `PRODUCT` and `PRODUCT_VARIANT` entity types, and `PageType` IDs for `PAGE` entity type. If omitted, all objects of the selected entity type are available as attribute values.
