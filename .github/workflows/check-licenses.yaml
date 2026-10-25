@@ -25,7 +25,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: saleor/saleor-internal-actions/.github/workflows/run-license-check.yaml@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
+    uses: saleor/saleor-internal-actions/.github/workflows/run-license-check.yaml@692d3282b8edb0d64aecacb110b3732af71e9f6e # v1.13.1
     with:
       # List of ecosystems to scan.
       ecosystems: >-
@@ -42,6 +42,10 @@ jobs:
           name: "deny-gpl"
           mode: "deny"
           reason: "GPL licenses are not compatible with BSD-3-Clause"
+          exceptions:
+            # Under a dual license (GPL-2.0 OR Artistic License)
+            # https://github.com/kmike/text-unidecode/blob/a0005d7a0b43a6aa21ce8a63f1da48c6c44f03e1/LICENSE
+            - text-unidecode
         - pattern: "*proprietary*"
           name: "deny-proprietary"
           mode: "deny"
