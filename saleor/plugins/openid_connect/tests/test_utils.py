@@ -15,6 +15,7 @@ from requests import Response
 from requests_hardened import HTTPSession
 
 from ....account.models import Group, User
+from ....account.search import prepare_user_search_document_value
 from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
@@ -814,6 +815,70 @@ def test_jwt_token_without_expiration_claim_email_not_match_staff_user_domains(
     assert list(user.effective_permissions) == []
     assert Group.objects.count() == 0
     assert user.groups.count() == 0
+
+
+@pytest.mark.parametrize(("is_staff", "expected_updates"), [(False, 0), (True, 1)])
+def test_jwt_token_without_expiration_claim_saves_is_staff_only_when_changed(
+    is_staff,
+    expected_updates,
+    customer_user,
+    monkeypatch,
+    mocker,
+    decoded_access_token,
+    capture_queries,
+):
+    # given
+    mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    mocked_cache_get.return_value = None
+    mocked_send_user_event = mocker.patch(
+        "saleor.plugins.openid_connect.utils.send_user_event"
+    )
+    oauth_url = "https://example.com"
+    customer_user.is_staff = is_staff
+    customer_user.store_value_in_private_metadata(
+        {f"oidc:{oauth_url}": decoded_access_token["sub"]}
+    )
+    customer_user.last_login = datetime.datetime.fromtimestamp(
+        decoded_access_token["iat"], tz=datetime.UTC
+    )
+    customer_user.search_document = prepare_user_search_document_value(
+        customer_user, attach_addresses_data=False
+    )
+    customer_user.save()
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        lambda *args, **kwargs: {
+            "email": customer_user.email,
+            "sub": decoded_access_token["sub"],
+            "given_name": customer_user.first_name,
+            "family_name": customer_user.last_name,
+            "scope": "",
+        },
+    )
+    decoded_access_token.pop("exp")
+    token_payload = JWTClaims(decoded_access_token, {})
+
+    # when
+    with capture_queries() as ctx:
+        user = get_user_from_oauth_access_token_in_jwt_format(
+            token_payload,
+            oauth_url,
+            access_token="fake-token",
+            use_scope_permissions=False,
+            audience="",
+            staff_user_domains=["test.pl"],
+            staff_default_group_name="",
+        )
+
+    # then
+    assert user.id == customer_user.id
+    assert user.is_staff is False
+    account_user_updates = [
+        q for q in ctx.captured_queries if q["sql"].startswith('UPDATE "account_user"')
+    ]
+    assert len(account_user_updates) == expected_updates
+    assert mocked_send_user_event.call_count == expected_updates
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
