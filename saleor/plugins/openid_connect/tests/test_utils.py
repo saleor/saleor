@@ -961,20 +961,25 @@ def test_jwt_token_without_expiration_claim_email_not_match_staff_user_domains(
     assert user.groups.count() == 0
 
 
-@mock.patch("saleor.plugins.openid_connect.utils.send_user_event")
-@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
-@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
-def test_jwt_token_without_expiration_claim_returning_customer_not_updated(
-    mocked_cache_get,
-    mocked_cache_set,
-    mocked_send_user_event,
+@pytest.mark.parametrize(("is_staff", "expected_updates"), [(False, 0), (True, 1)])
+def test_jwt_token_without_expiration_claim_saves_is_staff_only_when_changed(
+    is_staff,
+    expected_updates,
     customer_user,
     monkeypatch,
+    mocker,
     decoded_access_token,
     capture_queries,
 ):
     # given
+    mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    mocked_cache_get.return_value = None
+    mocked_send_user_event = mocker.patch(
+        "saleor.plugins.openid_connect.utils.send_user_event"
+    )
     oauth_url = "https://example.com"
+    customer_user.is_staff = is_staff
     customer_user.store_value_in_private_metadata(
         {f"oidc:{oauth_url}": decoded_access_token["sub"]}
     )
@@ -995,7 +1000,6 @@ def test_jwt_token_without_expiration_claim_returning_customer_not_updated(
     )
     decoded_access_token.pop("exp")
     token_payload = JWTClaims(decoded_access_token, {})
-    mocked_cache_get.side_effect = lambda cache_key: None
 
     # when
     with capture_queries() as ctx:
@@ -1015,8 +1019,8 @@ def test_jwt_token_without_expiration_claim_returning_customer_not_updated(
     account_user_updates = [
         q for q in ctx.captured_queries if q["sql"].startswith('UPDATE "account_user"')
     ]
-    assert account_user_updates == []
-    mocked_send_user_event.assert_not_called()
+    assert len(account_user_updates) == expected_updates
+    assert mocked_send_user_event.call_count == expected_updates
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
