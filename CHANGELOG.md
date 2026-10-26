@@ -134,6 +134,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
   - Accent-insensitive search: queries automatically normalize diacritical marks, allowing searches to match regardless of accents (e.g., "cafe" matches "café")
   - Relevance-based ranking: exact matches score higher than prefix matches and appear first by default (can be overridden with `sortBy` parameter)
   - New `RANK` sort field available when using search filters to sort by relevance score
+- Fixed requests authenticated with an OIDC access token saving `is_staff = false` on the customer's row and triggering a `CUSTOMER_UPDATED` webhook on every call, even when nothing changed. Under bursts of authenticated traffic those writes could stall the database. - #19962 by @stmpn
 
 ### Direct warehouse-channel stock availability
 

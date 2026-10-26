@@ -269,7 +269,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
                 is_staff = True
         elif user.is_staff:
             is_staff = False
-    else:
+    elif user.is_staff:
         is_staff = False
 
     if is_staff is not None:
