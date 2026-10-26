@@ -250,6 +250,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed a bug that could prevent rich text attributes written in scripts using combining diacritical marks (for example, Arabic) from being saved properly.
 - Fixed a bug where a Checkout partially paid by Transaction(s) and partially paid by Gift Card(s) could not be completed due to `CHECKOUT_NOT_FULLY_PAID` error. Checkout authorize and charge statuses are now recalculated more reliably. Status calculation is now taking into account available gift cards balance.
 - Added a new `variant` field on `AssignedVariantAttributeValue`. First part of a simplification of Attribute - ProductVariant relation from #12881.
+- Fixed requests authenticated with an OIDC access token saving `is_staff = false` on the customer's row and triggering a `CUSTOMER_UPDATED` webhook on every call, even when nothing changed. Under bursts of authenticated traffic those writes could stall the database. - #19960 by @stmpn
 
 
 ### Deprecations
