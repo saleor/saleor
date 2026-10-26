@@ -384,7 +384,8 @@ def deallocate_stock(
         line_to_allocations[allocation.order_line_id].append(allocation)
 
     allocations_to_update = []
-    stocks_to_update = []
+    stocks_by_pk: dict[int, Stock] = {}
+    quantity_to_deallocate_per_stock: dict[int, int] = defaultdict(int)
     not_dellocated_lines = []
     for line_info in order_lines_data:
         order_line = line_info.line
@@ -399,11 +400,10 @@ def deallocate_stock(
                 allocation.quantity_allocated = (
                     allocation.quantity_allocated - quantity_to_deallocate
                 )
-                stock = allocation.stock
-                stock.quantity_allocated = (
-                    F("quantity_allocated") - quantity_to_deallocate
+                stocks_by_pk[allocation.stock_id] = allocation.stock
+                quantity_to_deallocate_per_stock[allocation.stock_id] += (
+                    quantity_to_deallocate
                 )
-                stocks_to_update.append(stock)
                 quantity_dealocated += quantity_to_deallocate
                 allocations_to_update.append(allocation)
                 if quantity_dealocated == quantity:
@@ -446,6 +446,13 @@ def deallocate_stock(
             )
         )
 
+    # `bulk_update` applies only the first of the duplicated instances of the same
+    # row, so reduce the allocated quantity once per stock.
+    stocks_to_update = []
+    for stock_pk, quantity in quantity_to_deallocate_per_stock.items():
+        stock = stocks_by_pk[stock_pk]
+        stock.quantity_allocated = F("quantity_allocated") - quantity
+        stocks_to_update.append(stock)
     Stock.objects.bulk_update(stocks_to_update, ["quantity_allocated"])
 
     if not_dellocated_lines:
