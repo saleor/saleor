@@ -11,7 +11,7 @@ from ...permission.utils import has_one_of_permissions
 from ...product import models as product_models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.filters import get_channel_slug_from_filter_data
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.filters import (
@@ -252,6 +252,10 @@ def filter_attribute_slug(qs, _, value):
     return filter_where_by_value_field(qs, "slug", value)
 
 
+def filter_attribute_external_reference(qs, _, value):
+    return filter_where_by_value_field(qs, "external_reference", value)
+
+
 def filter_with_choices(qs, _, value):
     lookup = Q(input_type__in=AttributeInputType.TYPES_WITH_CHOICES)
     if value is True:
@@ -291,6 +295,11 @@ class AttributeWhere(MetadataWhereFilterBase):
     )
     slug = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput, method=filter_attribute_slug
+    )
+    external_reference = OperationObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method=filter_attribute_external_reference,
+        help_text="Filter by external reference." + ADDED_IN_323,
     )
     with_choices = BooleanWhereFilter(method=filter_with_choices)
     input_type = OperationObjectTypeWhereFilter(

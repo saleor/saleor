@@ -1,13 +1,16 @@
 from typing import cast
 
-import graphene
-
 from ....core import models
 from ...core import ResolveInfo
 from ...core.types import MetadataError, NonNullList
 from ..inputs import MetadataInput, MetadataInputDescription
 from ..permissions import PUBLIC_META_PERMISSION_MAP
-from .base import BaseMetadataMutation
+from .base import (
+    BaseMetadataMutation,
+    external_reference_argument,
+    external_reference_type_argument,
+    object_id_argument,
+)
 from .utils import get_valid_metadata_instance, update_metadata
 
 
@@ -22,10 +25,9 @@ class UpdateMetadata(BaseMetadataMutation):
         error_type_field = "metadata_errors"
 
     class Arguments:
-        id = graphene.ID(
-            description="ID or token (for Order and Checkout) of an object to update.",
-            required=True,
-        )
+        id = object_id_argument()
+        external_reference = external_reference_argument()
+        type = external_reference_type_argument()
         input = NonNullList(
             MetadataInput,
             description="Fields required to update the object's metadata.",

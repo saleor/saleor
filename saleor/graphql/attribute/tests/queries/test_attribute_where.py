@@ -139,6 +139,93 @@ def test_attributes_filter_by_slug(
     assert returned_attrs == {attributes[index].slug for index in indexes}
 
 
+ATTRIBUTE_A_EXTERNAL_REFERENCE = "external-reference-a"
+ATTRIBUTE_B_EXTERNAL_REFERENCE = "external-reference-b"
+
+
+@pytest.mark.parametrize(
+    ("_case", "where", "indexes"),
+    [
+        ("eq_match", {"eq": ATTRIBUTE_A_EXTERNAL_REFERENCE}, [0]),
+        ("eq_no_match", {"eq": "non-existing"}, []),
+        ("eq_empty_string", {"eq": ""}, []),
+        ("eq_null_matches_attributes_without_reference", {"eq": None}, [2]),
+        (
+            "one_of_multiple_matches",
+            {"oneOf": [ATTRIBUTE_A_EXTERNAL_REFERENCE, ATTRIBUTE_B_EXTERNAL_REFERENCE]},
+            [0, 1],
+        ),
+        (
+            "one_of_mixed_existing_and_non_existing",
+            {"oneOf": [ATTRIBUTE_B_EXTERNAL_REFERENCE, "non-existing"]},
+            [1],
+        ),
+        ("one_of_no_match", {"oneOf": ["non-existing-1", "non-existing-2"]}, []),
+        ("one_of_empty_list", {"oneOf": []}, []),
+        ("one_of_null", {"oneOf": None}, []),
+        ("empty_input", {}, []),
+        ("null_input", None, []),
+    ],
+)
+def test_attributes_filter_by_external_reference(
+    _case, where, indexes, api_client, product_type_attribute_list
+):
+    # given
+    attributes = product_type_attribute_list
+    attributes[0].external_reference = ATTRIBUTE_A_EXTERNAL_REFERENCE
+    attributes[1].external_reference = ATTRIBUTE_B_EXTERNAL_REFERENCE
+    Attribute.objects.bulk_update(attributes[:2], ["external_reference"])
+    assert attributes[2].external_reference is None
+
+    variables = {"where": {"externalReference": where}}
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {attributes[index].slug for index in indexes}
+
+
+def test_attributes_filter_by_external_reference_and_slug(
+    api_client, product_type_attribute_list
+):
+    # given
+    attributes = product_type_attribute_list
+    attributes[0].external_reference = ATTRIBUTE_A_EXTERNAL_REFERENCE
+    attributes[1].external_reference = ATTRIBUTE_B_EXTERNAL_REFERENCE
+    Attribute.objects.bulk_update(attributes[:2], ["external_reference"])
+    expected_attribute = attributes[1]
+
+    variables = {
+        "where": {
+            "AND": [
+                {
+                    "externalReference": {
+                        "oneOf": [
+                            ATTRIBUTE_A_EXTERNAL_REFERENCE,
+                            ATTRIBUTE_B_EXTERNAL_REFERENCE,
+                        ]
+                    }
+                },
+                {"slug": {"eq": expected_attribute.slug}},
+            ]
+        }
+    }
+
+    # when
+    response = api_client.post_graphql(ATTRIBUTES_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["attributes"]["edges"]
+    assert len(nodes) == 1
+    assert nodes[0]["node"]["slug"] == expected_attribute.slug
+
+
 @pytest.mark.parametrize(
     ("value", "indexes"), [(True, [0]), (False, [1, 2]), (None, [])]
 )
