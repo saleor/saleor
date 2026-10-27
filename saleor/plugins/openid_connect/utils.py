@@ -319,8 +319,6 @@ def get_user_from_oauth_access_token(
     email_domain = get_domain_from_email(user.email)
     is_staff_email = email_domain in staff_user_domains
     if not use_scope_permissions and not is_staff_email:
-        # Request-only: saving would strip staff granted in the dashboard, and marking
-        # the user as updated would send a webhook on every request.
         user.is_staff = False
     elif is_staff_email:
         assign_staff_to_default_group_and_update_permissions(
