@@ -554,7 +554,7 @@ def _update_user_details(
     else:
         if (
             not user.last_login
-            or (timezone.now() - user.last_login).seconds
+            or (timezone.now() - user.last_login).total_seconds()
             > settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
         ):
             user.last_login = timezone.now()

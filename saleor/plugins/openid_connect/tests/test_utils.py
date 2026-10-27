@@ -795,13 +795,17 @@ def test_get_or_create_user_from_payload_last_login_stays_same(
     assert customer_user.last_login == last_login
 
 
-@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
-@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+@pytest.mark.parametrize(
+    "last_login_age",
+    [datetime.timedelta(minutes=16), datetime.timedelta(days=1, minutes=14)],
+)
 def test_get_or_create_user_from_payload_last_login_modifies(
-    mocked_cache_get, mocked_cache_set, customer_user
+    last_login_age, customer_user, mocker
 ):
     # given
-    last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=16)
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    last_login = datetime.datetime.now(tz=datetime.UTC) - last_login_age
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
