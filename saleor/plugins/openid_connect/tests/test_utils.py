@@ -1415,9 +1415,17 @@ def test_update_user_details_nothing_changed(
     update_user_search_vector_mock.assert_not_called()
 
 
-@pytest.mark.parametrize("iat", [1_700_000_000, None], ids=["with_iat", "without_iat"])
+@pytest.mark.parametrize(
+    ("first_iat", "second_iat"),
+    [
+        (1_700_000_000, 1_700_000_000),
+        (1_700_000_100, 1_700_000_000),
+        (None, None),
+    ],
+    ids=["same_token", "older_token", "without_iat"],
+)
 def test_update_user_details_parallel_requests_write_last_login_once(
-    iat, customer_user
+    first_iat, second_iat, customer_user
 ):
     # given
     update_user_search_vector(customer_user, save=False)
@@ -1433,7 +1441,7 @@ def test_update_user_details_parallel_requests_write_last_login_once(
         first_request_user.first_name,
         first_request_user.last_name,
         None,
-        iat,
+        first_iat,
     )
     second_updated = _update_user_details(
         second_request_user,
@@ -1442,7 +1450,7 @@ def test_update_user_details_parallel_requests_write_last_login_once(
         second_request_user.first_name,
         second_request_user.last_name,
         None,
-        iat,
+        second_iat,
     )
 
     # then
