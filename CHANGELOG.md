@@ -136,6 +136,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
   - New `RANK` sort field available when using search filters to sort by relevance score
 - Fixed requests authenticated with an OIDC access token saving `is_staff = false` on the customer's row and triggering a `CUSTOMER_UPDATED` webhook on every call, even when nothing changed. Under bursts of authenticated traffic those writes could stall the database. - #19962 by @stmpn
 - Fixed OIDC requests sent at the same time each writing `last_login` and triggering a `CUSTOMER_UPDATED` webhook; only the first one writes it now. Also fixed the 15-minute `last_login` refresh check ignoring whole days, so a user who last logged in 1 day and 10 minutes ago looked like they logged in 10 minutes ago. - #19965 by @stmpn
+- Fixed OIDC requests that read a user right after their staff status changed saving `is_staff` again and triggering another user webhook; only the first one saves it now. Also fixed opaque access tokens triggering a `CUSTOMER_UPDATED` webhook on every request from a staff user with no staff rule. - #19967 by @stmpn
 
 ### Direct warehouse-channel stock availability
 
