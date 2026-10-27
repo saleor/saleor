@@ -272,10 +272,8 @@ def get_user_from_oauth_access_token_in_jwt_format(
     elif user.is_staff:
         is_staff = False
 
-    if is_staff is not None:
-        user.is_staff = is_staff
+    if is_staff is not None and update_is_staff(user, is_staff):
         user_updated = True
-        user.save(update_fields=["is_staff"])
 
     if user_created or user_updated:
         send_user_event(user, user_created, user_updated)
@@ -321,9 +319,9 @@ def get_user_from_oauth_access_token(
     email_domain = get_domain_from_email(user.email)
     is_staff_email = email_domain in staff_user_domains
     if not use_scope_permissions and not is_staff_email:
-        if user.is_staff:
-            user.is_staff = False
-            user_updated = True
+        # Request-only: saving would strip staff granted in the dashboard, and marking
+        # the user as updated would send a webhook on every request.
+        user.is_staff = False
     elif is_staff_email:
         assign_staff_to_default_group_and_update_permissions(
             user, staff_default_group_name
@@ -353,6 +351,15 @@ def assign_staff_to_default_group_and_update_permissions(
         user.groups.add(group)
     group_permissions = get_user_groups_permissions(user)
     user.effective_permissions |= group_permissions
+
+
+def update_is_staff(user: User, is_staff: bool) -> bool:
+    user.is_staff = is_staff
+    return bool(
+        User.objects.filter(pk=user.pk)
+        .exclude(is_staff=is_staff)
+        .update(is_staff=is_staff)
+    )
 
 
 def create_jwt_token(

@@ -43,6 +43,7 @@ from ..utils import (
     get_or_create_user_from_payload,
     get_saleor_permission_names,
     get_saleor_permissions_qs_from_scope,
+    get_user_from_oauth_access_token,
     get_user_from_oauth_access_token_in_jwt_format,
     get_user_from_token,
     get_user_info,
@@ -1025,6 +1026,97 @@ def test_jwt_token_without_expiration_claim_saves_is_staff_only_when_changed(
     ]
     assert len(account_user_updates) == expected_updates
     assert mocked_send_user_event.call_count == expected_updates
+
+
+@pytest.mark.parametrize(
+    ("is_staff", "staff_user_domains"),
+    [(True, ["example.com"]), (False, ["test.pl"])],
+    ids=["promotion", "demotion"],
+)
+def test_jwt_token_parallel_requests_save_is_staff_once(
+    is_staff, staff_user_domains, customer_user, mocker, decoded_access_token
+):
+    # given
+    customer_user.is_staff = not is_staff
+    customer_user.save(update_fields=["is_staff"])
+    first_request_user = User.objects.get(pk=customer_user.pk)
+    second_request_user = User.objects.get(pk=customer_user.pk)
+    mocker.patch(
+        "saleor.plugins.openid_connect.utils.get_or_create_user_from_payload",
+        side_effect=[
+            (first_request_user, False, False),
+            (second_request_user, False, False),
+        ],
+    )
+    mocker.patch(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        return_value={"email": customer_user.email, "sub": decoded_access_token["sub"]},
+    )
+    mocked_send_user_event = mocker.patch(
+        "saleor.plugins.openid_connect.utils.send_user_event"
+    )
+    decoded_access_token.pop("exp")
+    token_payload = JWTClaims(decoded_access_token, {})
+    request_kwargs = {
+        "user_info_url": "https://example.com",
+        "access_token": "fake-token",
+        "use_scope_permissions": False,
+        "audience": "",
+        "staff_user_domains": staff_user_domains,
+        "staff_default_group_name": "",
+    }
+
+    # when
+    get_user_from_oauth_access_token_in_jwt_format(token_payload, **request_kwargs)
+    get_user_from_oauth_access_token_in_jwt_format(token_payload, **request_kwargs)
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.is_staff is is_staff
+    assert first_request_user.is_staff is is_staff
+    assert second_request_user.is_staff is is_staff
+    mocked_send_user_event.assert_called_once()
+
+
+def test_opaque_token_demotes_staff_user_only_for_the_request(staff_user, mocker):
+    # given
+    mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocker.patch("saleor.plugins.openid_connect.utils.cache.get", return_value=None)
+    mocked_send_user_event = mocker.patch(
+        "saleor.plugins.openid_connect.utils.send_user_event"
+    )
+    user_info_url = "https://example.com/userinfo"
+    sub = "oidc-sub"
+    staff_user.store_value_in_private_metadata({f"oidc:{user_info_url}": sub})
+    staff_user.last_login = datetime.datetime.now(tz=datetime.UTC)
+    update_user_search_vector(staff_user, save=False)
+    staff_user.save()
+    mocker.patch(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        return_value={
+            "email": staff_user.email,
+            "sub": sub,
+            "given_name": staff_user.first_name,
+            "family_name": staff_user.last_name,
+        },
+    )
+
+    # when
+    user = get_user_from_oauth_access_token(
+        "opaque-token",
+        jwks_url="https://example.com/jwks",
+        user_info_url=user_info_url,
+        use_scope_permissions=False,
+        audience="",
+        staff_user_domains=[],
+        staff_default_group_name="",
+    )
+
+    # then
+    assert user.is_staff is False
+    staff_user.refresh_from_db()
+    assert staff_user.is_staff is True
+    mocked_send_user_event.assert_not_called()
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
