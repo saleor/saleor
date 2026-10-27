@@ -651,13 +651,17 @@ def test_get_or_create_user_from_payload_last_login_stays_same(
     assert customer_user.last_login == last_login
 
 
-@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
-@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+@pytest.mark.parametrize(
+    "last_login_age",
+    [datetime.timedelta(minutes=16), datetime.timedelta(days=1, minutes=14)],
+)
 def test_get_or_create_user_from_payload_last_login_modifies(
-    mocked_cache_get, mocked_cache_set, customer_user
+    last_login_age, customer_user, mocker
 ):
     # given
-    last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=16)
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    last_login = datetime.datetime.now(tz=datetime.UTC) - last_login_age
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
@@ -1253,3 +1257,50 @@ def test_update_user_details_nothing_changed(
     customer_user.refresh_from_db()
     assert customer_user.first_name == first_name
     assert updated is False
+
+
+@pytest.mark.parametrize(
+    ("first_iat", "second_iat"),
+    [
+        (1_700_000_000, 1_700_000_000),
+        (1_700_000_100, 1_700_000_000),
+        (None, None),
+    ],
+    ids=["same_token", "older_token", "without_iat"],
+)
+def test_update_user_details_parallel_requests_write_last_login_once(
+    first_iat, second_iat, customer_user
+):
+    # given
+    customer_user.search_document = prepare_user_search_document_value(
+        customer_user, attach_addresses_data=False
+    )
+    customer_user.save(update_fields=["search_document"])
+    first_request_user = User.objects.get(pk=customer_user.pk)
+    second_request_user = User.objects.get(pk=customer_user.pk)
+
+    # when
+    first_updated = _update_user_details(
+        first_request_user,
+        "test oidc_key",
+        first_request_user.email,
+        first_request_user.first_name,
+        first_request_user.last_name,
+        None,
+        first_iat,
+    )
+    second_updated = _update_user_details(
+        second_request_user,
+        "test oidc_key",
+        second_request_user.email,
+        second_request_user.first_name,
+        second_request_user.last_name,
+        None,
+        second_iat,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.last_login == first_request_user.last_login
+    assert first_updated is True
+    assert second_updated is False

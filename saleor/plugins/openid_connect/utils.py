@@ -12,7 +12,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from jwt import PyJWTError
 
@@ -489,18 +489,18 @@ def _update_user_details(
         fields_to_save.update({"email", "search_document"})
 
     if last_login:
-        if not user.last_login or user.last_login.timestamp() < last_login:
-            login_time = datetime.datetime.fromtimestamp(last_login, tz=datetime.UTC)
-            user.last_login = login_time
-            fields_to_save.add("last_login")
+        last_login_updated = _maybe_update_last_login(
+            user=user,
+            new_login=datetime.datetime.fromtimestamp(last_login, tz=datetime.UTC),
+        )
     else:
-        if (
-            not user.last_login
-            or (timezone.now() - user.last_login).seconds
-            > settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
-        ):
-            user.last_login = timezone.now()
-            fields_to_save.add("last_login")
+        last_login_updated = _maybe_update_last_login(
+            user=user,
+            new_login=timezone.now(),
+            threshold=datetime.timedelta(
+                seconds=settings.OAUTH_UPDATE_LAST_LOGIN_THRESHOLD
+            ),
+        )
 
     if user.first_name != user_first_name:
         user.first_name = user_first_name
@@ -523,7 +523,26 @@ def _update_user_details(
     if fields_to_save:
         user.save(update_fields=fields_to_save)
 
-    return bool(fields_to_save)
+    return bool(fields_to_save) or last_login_updated
+
+
+def _maybe_update_last_login(
+    *,
+    user: User,
+    new_login: datetime.datetime,
+    threshold: datetime.timedelta = datetime.timedelta(0),
+) -> bool:
+    older_than = new_login - threshold
+    if user.last_login and user.last_login >= older_than:
+        return False
+    user.last_login = new_login
+    # Parallel requests all read the old value from the replica; only the first
+    # one may write the new value.
+    return bool(
+        User.objects.filter(
+            Q(last_login__isnull=True) | Q(last_login__lt=older_than), pk=user.pk
+        ).update(last_login=new_login)
+    )
 
 
 def get_staff_user_domains(
