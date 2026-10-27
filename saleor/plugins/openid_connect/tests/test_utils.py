@@ -1415,38 +1415,41 @@ def test_update_user_details_nothing_changed(
     update_user_search_vector_mock.assert_not_called()
 
 
-@pytest.mark.parametrize(
-    ("stored_last_login_delta", "expected_updated"),
-    [(datetime.timedelta(seconds=-10), True), (datetime.timedelta(0), False)],
-)
-def test_update_user_details_last_login_with_stale_user(
-    stored_last_login_delta, expected_updated, customer_user
+@pytest.mark.parametrize("iat", [1_700_000_000, None], ids=["with_iat", "without_iat"])
+def test_update_user_details_parallel_requests_write_last_login_once(
+    iat, customer_user
 ):
     # given
-    iat = int(time.time())
-    login_time = datetime.datetime.fromtimestamp(iat, tz=datetime.UTC)
     update_user_search_vector(customer_user, save=False)
     customer_user.save(update_fields=["search_vector"])
-    stale_user = User.objects.get(pk=customer_user.pk)
-    User.objects.filter(pk=customer_user.pk).update(
-        last_login=login_time + stored_last_login_delta
-    )
+    first_request_user = User.objects.get(pk=customer_user.pk)
+    second_request_user = User.objects.get(pk=customer_user.pk)
 
     # when
-    updated = _update_user_details(
-        stale_user,
+    first_updated = _update_user_details(
+        first_request_user,
         "test oidc_key",
-        stale_user.email,
-        stale_user.first_name,
-        stale_user.last_name,
+        first_request_user.email,
+        first_request_user.first_name,
+        first_request_user.last_name,
+        None,
+        iat,
+    )
+    second_updated = _update_user_details(
+        second_request_user,
+        "test oidc_key",
+        second_request_user.email,
+        second_request_user.first_name,
+        second_request_user.last_name,
         None,
         iat,
     )
 
     # then
     customer_user.refresh_from_db()
-    assert customer_user.last_login == login_time
-    assert updated is expected_updated
+    assert customer_user.last_login == first_request_user.last_login
+    assert first_updated is True
+    assert second_updated is False
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
