@@ -1072,13 +1072,17 @@ def test_get_or_create_user_from_payload_last_login_stays_same(
     assert customer_user.last_login == last_login
 
 
-@mock.patch("saleor.plugins.openid_connect.utils.cache.set")
-@mock.patch("saleor.plugins.openid_connect.utils.cache.get")
+@pytest.mark.parametrize(
+    "last_login_age",
+    [datetime.timedelta(minutes=16), datetime.timedelta(days=1, minutes=14)],
+)
 def test_get_or_create_user_from_payload_last_login_modifies(
-    mocked_cache_get, mocked_cache_set, customer_user
+    last_login_age, customer_user, mocker
 ):
     # given
-    last_login = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(minutes=16)
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    mocked_cache_set = mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    last_login = datetime.datetime.now(tz=datetime.UTC) - last_login_age
     customer_user.last_login = last_login
     customer_user.save()
     oauth_url = "https://saleor.io/oauth"
@@ -1236,6 +1240,68 @@ def test_jwt_token_without_expiration_claim_email_not_match_staff_user_domains(
     assert list(user.effective_permissions) == []
     assert Group.objects.count() == 0
     assert user.groups.count() == 0
+
+
+@pytest.mark.parametrize(("is_staff", "expected_updates"), [(False, 0), (True, 1)])
+def test_jwt_token_without_expiration_claim_saves_is_staff_only_when_changed(
+    is_staff,
+    expected_updates,
+    customer_user,
+    monkeypatch,
+    mocker,
+    decoded_access_token,
+    capture_queries,
+):
+    # given
+    mocker.patch("saleor.plugins.openid_connect.utils.cache.set")
+    mocked_cache_get = mocker.patch("saleor.plugins.openid_connect.utils.cache.get")
+    mocked_cache_get.return_value = None
+    mocked_send_user_event = mocker.patch(
+        "saleor.plugins.openid_connect.utils.send_user_event"
+    )
+    oauth_url = "https://example.com"
+    customer_user.is_staff = is_staff
+    customer_user.store_value_in_private_metadata(
+        {f"oidc:{oauth_url}": decoded_access_token["sub"]}
+    )
+    customer_user.last_login = datetime.datetime.fromtimestamp(
+        decoded_access_token["iat"], tz=datetime.UTC
+    )
+    update_user_search_vector(customer_user, save=False)
+    customer_user.save()
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        lambda *args, **kwargs: {
+            "email": customer_user.email,
+            "sub": decoded_access_token["sub"],
+            "given_name": customer_user.first_name,
+            "family_name": customer_user.last_name,
+            "scope": "",
+        },
+    )
+    decoded_access_token.pop("exp")
+    token_payload = JWTClaims(decoded_access_token, {})
+
+    # when
+    with capture_queries() as ctx:
+        user = get_user_from_oauth_access_token_in_jwt_format(
+            token_payload,
+            oauth_url,
+            access_token="fake-token",
+            use_scope_permissions=False,
+            audience="",
+            staff_user_domains=["test.pl"],
+            staff_default_group_name="",
+        )
+
+    # then
+    assert user.id == customer_user.id
+    assert user.is_staff is False
+    account_user_updates = [
+        q for q in ctx.captured_queries if q["sql"].startswith('UPDATE "account_user"')
+    ]
+    assert len(account_user_updates) == expected_updates
+    assert mocked_send_user_event.call_count == expected_updates
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
@@ -1624,6 +1690,51 @@ def test_update_user_details_nothing_changed(
     assert customer_user.first_name == first_name
     assert updated is False
     update_user_search_vector_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("first_iat", "second_iat"),
+    [
+        (1_700_000_000, 1_700_000_000),
+        (1_700_000_100, 1_700_000_000),
+        (None, None),
+    ],
+    ids=["same_token", "older_token", "without_iat"],
+)
+def test_update_user_details_parallel_requests_write_last_login_once(
+    first_iat, second_iat, customer_user
+):
+    # given
+    update_user_search_vector(customer_user, save=False)
+    customer_user.save(update_fields=["search_vector"])
+    first_request_user = User.objects.get(pk=customer_user.pk)
+    second_request_user = User.objects.get(pk=customer_user.pk)
+
+    # when
+    first_updated = _update_user_details(
+        first_request_user,
+        "test oidc_key",
+        first_request_user.email,
+        first_request_user.first_name,
+        first_request_user.last_name,
+        None,
+        first_iat,
+    )
+    second_updated = _update_user_details(
+        second_request_user,
+        "test oidc_key",
+        second_request_user.email,
+        second_request_user.first_name,
+        second_request_user.last_name,
+        None,
+        second_iat,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.last_login == first_request_user.last_login
+    assert first_updated is True
+    assert second_updated is False
 
 
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")

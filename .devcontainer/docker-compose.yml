@@ -5,6 +5,7 @@ services:
       context: ..
       dockerfile: .devcontainer/Dockerfile
     command: sleep infinity
+    working_dir: /app
     env_file:
       - common.env
       - backend.env

@@ -44,7 +44,7 @@ dependencies = [
     "oauthlib~=3.1",
     "petl==1.7.20",
     "phonenumberslite>=9.0.36,<10",
-    "pillow>=12.3.0,<13",
+    "pillow>=13.0.0,<14",
     "prices~=1.0",
     "promise~=2.3",
     "pybars3>=0.9.7,<0.10",
@@ -65,10 +65,16 @@ dependencies = [
     "psycopg[binary]>=3.3.4,<4",
     "pydantic>=2.13.4,<3",
     "pydantic-core>=2.33.0,<3",
-    "opentelemetry-api>=1.32.1,<2",
-    "opentelemetry-sdk>=1.32.1,<2",
-    "opentelemetry-semantic-conventions>=0.53b1,<0.54",
-    "opentelemetry-distro[otlp]>=0.53b1,<0.54",
+    "opentelemetry-api>=1.37.0,<2",
+    "opentelemetry-sdk>=1.37.0,<2",
+    "opentelemetry-semantic-conventions>=0.58b0,<0.59",
+    "opentelemetry-distro[otlp]>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-botocore>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-celery>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-psycopg>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-redis>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-requests>=0.58b0,<0.59",
+    "opentelemetry-instrumentation-threading>=0.58b0,<0.59",
     "celery[redis, sqs]>=5.6.3,<6.0.0",
     "kombu[sqs]>=4.6.11,<6.0.0",
     "django-storages[google]~=1.11",
@@ -127,6 +133,10 @@ dev = [
 envfile = ".env"
 
 [tool.uv]
+# 0.13.5 fixes bundled `pip` version containing a compromised certificate
+# (https://github.com/astral-sh/uv/releases/tag/0.13.5)
+required-version = ">=0.13.5"
+
 environments = [
   "platform_python_implementation != 'PyPy'"
 ]
@@ -147,10 +157,11 @@ exclude-newer = "3 weeks"
 #       window).
 # Note: if you remove a package from this list and 'uv lock' does not update the
 #       lockfile, run 'uv lock --refresh' to force a refresh.
+certifi = "2026-10-20T02:24:16" # https://pypi.org/pypi/certifi/2026.10.19/json
 cryptography = "2026-09-30T15:31:00Z" # https://pypi.org/pypi/cryptography/50.0.2/json
-pyjwt = "2026-09-23T16:57:00Z" # https://pypi.org/pypi/pyjwt/2.15.0/json
-urllib3 = "2026-09-15T19:30:00Z" # https://pypi.org/pypi/urllib3/2.8.0/json
 django = "2026-10-06T13:02:00Z" # https://pypi.org/pypi/django/5.2.18/json
+pillow = "2026-10-16T22:20:00Z" # https://pypi.org/pypi/pillow/13.0.0/json
+virtualenv = "2026-10-22T20:11:00Z" # https://pypi.org/pypi/virtualenv/21.14.13/json
 
 [tool.pytest]
 addopts = [
@@ -226,7 +237,7 @@ pillow = "PIL"
 python-magic-bin = "magic"
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb"]
+DEP002 = ["azure-common", "azure-storage-blob", "azure-storage-common", "django-redis", "psycopg", "pyxb", "opentelemetry-instrumentation-botocore", "opentelemetry-instrumentation-celery", "opentelemetry-instrumentation-psycopg", "opentelemetry-instrumentation-redis", "opentelemetry-instrumentation-requests", "opentelemetry-instrumentation-threading"]
 
 [tool.django-stubs]
 django_settings_module = "saleor.settings"
