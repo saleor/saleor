@@ -12,7 +12,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from jwt import PyJWTError
 
@@ -523,6 +523,7 @@ def _update_user_details(
 ) -> bool:
     user_sub = user.get_value_from_private_metadata(oidc_key)
     fields_to_save = set()
+    last_login_updated = False
     if user_sub != sub:
         user.store_value_in_private_metadata({oidc_key: sub})
         fields_to_save.add("private_metadata")
@@ -542,7 +543,14 @@ def _update_user_details(
         if not user.last_login or user.last_login.timestamp() < last_login:
             login_time = datetime.datetime.fromtimestamp(last_login, tz=datetime.UTC)
             user.last_login = login_time
-            fields_to_save.add("last_login")
+            # Parallel requests with a new token all see the old value here;
+            # only the first one may write the new value.
+            last_login_updated = bool(
+                User.objects.filter(
+                    Q(last_login__isnull=True) | Q(last_login__lt=login_time),
+                    pk=user.pk,
+                ).update(last_login=login_time)
+            )
     else:
         if (
             not user.last_login
@@ -571,7 +579,7 @@ def _update_user_details(
     if fields_to_save:
         user.save(update_fields=fields_to_save)
 
-    return bool(fields_to_save)
+    return bool(fields_to_save) or last_login_updated
 
 
 def get_staff_user_domains(

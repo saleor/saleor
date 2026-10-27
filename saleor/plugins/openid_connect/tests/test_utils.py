@@ -1411,6 +1411,40 @@ def test_update_user_details_nothing_changed(
     update_user_search_vector_mock.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    ("stored_last_login_delta", "expected_updated"),
+    [(datetime.timedelta(seconds=-10), True), (datetime.timedelta(0), False)],
+)
+def test_update_user_details_last_login_with_stale_user(
+    stored_last_login_delta, expected_updated, customer_user
+):
+    # given
+    iat = int(time.time())
+    login_time = datetime.datetime.fromtimestamp(iat, tz=datetime.UTC)
+    update_user_search_vector(customer_user, save=False)
+    customer_user.save(update_fields=["search_vector"])
+    stale_user = User.objects.get(pk=customer_user.pk)
+    User.objects.filter(pk=customer_user.pk).update(
+        last_login=login_time + stored_last_login_delta
+    )
+
+    # when
+    updated = _update_user_details(
+        stale_user,
+        "test oidc_key",
+        stale_user.email,
+        stale_user.first_name,
+        stale_user.last_name,
+        None,
+        iat,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    assert customer_user.last_login == login_time
+    assert updated is expected_updated
+
+
 @mock.patch("saleor.plugins.openid_connect.utils.cache.set")
 @mock.patch("saleor.plugins.openid_connect.utils.cache.get")
 def test_get_or_create_user_from_payload_assigns_default_customer_type(
