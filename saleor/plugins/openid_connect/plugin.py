@@ -42,6 +42,7 @@ from .utils import (
     get_user_from_token,
     is_owner_of_token_valid,
     send_user_event,
+    update_is_staff,
     validate_refresh_token,
 )
 
@@ -326,14 +327,10 @@ class OpenIDConnectPlugin(BasePlugin):
                 assign_staff_to_default_group_and_update_permissions(
                     user, self.config.default_group_name
                 )
-                if not user.is_staff:
-                    user.is_staff = True
+                if not user.is_staff and update_is_staff(user, True):
                     user_updated = True
-                    user.save(update_fields=["is_staff"])
-            elif user.is_staff and not is_staff_user:
-                user.is_staff = False
+            elif user.is_staff and not is_staff_user and update_is_staff(user, False):
                 user_updated = True
-                user.save(update_fields=["is_staff"])
 
         if user_created or user_updated:
             send_user_event(user, user_created, user_updated)
