@@ -13,7 +13,7 @@ exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for 
 exclude-newer-span = "P3W"
 
 [options.exclude-newer-package]
-certifi = "2026-10-21T00:00:00Z"
+certifi = "2026-10-20T22:00:00Z"
 cryptography = "2026-09-30T15:31:00Z"
 django = "2026-10-06T13:02:00Z"
 pillow = "2026-10-16T22:20:00Z"
@@ -2561,7 +2561,7 @@ wheels = [
 
 [[package]]
 name = "saleor"
-version = "3.23.44"
+version = "3.23.45"
 source = { virtual = "." }
 dependencies = [
     { name = "asgiref" },
