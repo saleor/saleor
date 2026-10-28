@@ -704,7 +704,6 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     id_payload,
     staff_user,
 ):
-    staff_user.is_staff = False
     staff_user.email = "admin@example.com"
     staff_user.save()
 
