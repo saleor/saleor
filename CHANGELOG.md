@@ -251,6 +251,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed a bug where a Checkout partially paid by Transaction(s) and partially paid by Gift Card(s) could not be completed due to `CHECKOUT_NOT_FULLY_PAID` error. Checkout authorize and charge statuses are now recalculated more reliably. Status calculation is now taking into account available gift cards balance.
 - Added a new `variant` field on `AssignedVariantAttributeValue`. First part of a simplification of Attribute - ProductVariant relation from #12881.
 - Fixed requests authenticated with an OIDC access token saving `is_staff = false` on the customer's row and triggering a `CUSTOMER_UPDATED` webhook on every call, even when nothing changed. Under bursts of authenticated traffic those writes could stall the database. - #19961 by @stmpn
+- Fixed OIDC requests sent at the same time each writing `last_login` and triggering a `CUSTOMER_UPDATED` webhook; only the first one writes it now. Also fixed the 15-minute `last_login` refresh check ignoring whole days, so a user who last logged in 1 day and 10 minutes ago looked like they logged in 10 minutes ago. - #19966 by @stmpn
 
 
 ### Deprecations
