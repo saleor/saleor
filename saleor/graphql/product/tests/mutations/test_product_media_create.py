@@ -10,7 +10,12 @@ from requests import RequestException
 from requests.exceptions import InvalidSchema
 from requests_hardened.ip_filter import InvalidIPAddress
 
-from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
+from .....graphql.tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+    get_multipart_request_body,
+)
 from .....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Product, ProductMedia
@@ -698,3 +703,217 @@ def test_product_media_create_when_product_deleted_while_media_url_is_probed(
     assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
     assert errors[0]["message"] == "Product no longer exists."
     assert ProductMedia.objects.exists() is False
+
+
+PRODUCT_MEDIA_CREATE_WITH_EXTERNAL_REFERENCE_MUTATION = """
+    mutation createProductMedia(
+        $product: ID!, $image: Upload, $externalReference: String
+    ) {
+        productMediaCreate(
+            input: {
+                product: $product,
+                image: $image,
+                externalReference: $externalReference
+            }
+        ) {
+            media {
+                alt
+                externalReference
+            }
+            errors {
+                code
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def _media_create_body(product, **reference_input):
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.pk),
+        "image": image_name,
+        **reference_input,
+    }
+    return get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        image_file,
+        image_name,
+    )
+
+
+@pytest.mark.parametrize(
+    ("_case", "external_reference"),
+    [
+        ("non_empty", "test-ext-ref"),
+        ("empty_string", ""),
+    ],
+)
+def test_with_external_reference(
+    _case,
+    external_reference,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    body = _media_create_body(product, externalReference=external_reference)
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productMediaCreate"]
+    assert data["errors"] == []
+    assert data["media"]["externalReference"] == external_reference
+    media = ProductMedia.objects.get(product=product)
+    assert media.external_reference == external_reference
+
+
+@pytest.mark.parametrize(
+    ("_case", "external_reference"),
+    [
+        ("non_empty", "test-ext-ref"),
+        ("empty_string", ""),
+    ],
+)
+def test_with_non_unique_external_reference(
+    _case,
+    external_reference,
+    staff_api_client,
+    product_with_image,
+    permission_manage_products,
+    media_root,
+    mocker,
+):
+    # given
+    existing_media = product_with_image.media.get()
+    existing_media.external_reference = external_reference
+    existing_media.save(update_fields=["external_reference"])
+    product_updated_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_updated"
+    )
+    media_created_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_media_created"
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    body = _media_create_body(product_with_image, externalReference=external_reference)
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productMediaCreate"]
+    assert data["media"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "Product media with this External reference already exists."
+    )
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
+    assert ProductMedia.objects.get(product=product_with_image) == existing_media
+    product_updated_mock.assert_not_called()
+    media_created_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    product,
+    permission_manage_products,
+    media_root,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    if is_allowed:
+        if client.app:
+            client.app.permissions.add(permission_manage_products)
+        else:
+            client.user.user_permissions.add(permission_manage_products)
+    external_reference = "new-reference"
+    product_updated_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_updated"
+    )
+    media_created_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_media_created"
+    )
+    body = _media_create_body(product, externalReference=external_reference)
+
+    # when
+    response = client.post_multipart(body)
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["productMediaCreate"]
+        assert data["errors"] == []
+        created = ProductMedia.objects.get(external_reference=external_reference)
+        assert created.product_id == product.pk
+        assert data["media"] == {
+            "alt": created.alt,
+            "externalReference": created.external_reference,
+        }
+        product_updated_mock.assert_called_once_with(product)
+        media_created_mock.assert_called_once_with(created)
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"productMediaCreate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["productMediaCreate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: "
+            "MANAGE_PRODUCTS"
+        )
+        assert ProductMedia.objects.filter(product=product).exists() is False
+        product_updated_mock.assert_not_called()
+        media_created_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "reference_input"),
+    [("omitted", {}), ("null", {"externalReference": None})],
+)
+def test_without_external_reference(
+    _case,
+    reference_input,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    body = _media_create_body(product, **reference_input)
+
+    # when
+    response = staff_api_client.post_multipart(body)
+
+    # then
+    data = get_graphql_content(response)["data"]["productMediaCreate"]
+    assert data["errors"] == []
+    assert data["media"] == {"alt": "", "externalReference": None}
+    created = ProductMedia.objects.get(product=product)
+    assert created.external_reference is None
