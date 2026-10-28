@@ -67,6 +67,7 @@ permissions.
   - A listing with `isAvailableForPurchase: false` behaves exactly as if the variant had no listing in that channel: it is hidden from customers, excluded from the product price range, and cannot be added to a checkout or an order. Its `price`, `costPrice` and `priorPrice` are kept, so re-enabling it restores the original prices. Previously the only way to make a variant unavailable was `productChannelListingUpdate(removeVariants:)`, which deletes the listing and its prices.
   - Existing listings and newly created ones default to `true`, so behaviour is unchanged unless the flag is set.
 - Added `sizeRounding` argument to thumbnail fields: `User.avatar`, `Product.thumbnail`, `ProductMedia.url`, `ProductImage.url`, `OrderLine.thumbnail`, `Category.backgroundImage`, `Collection.backgroundImage`, `AppBrandLogo.default` and `AppManifestBrandLogo.default`. Thumbnails are generated only in the available sizes (32, 64, 128, 256, 512, 1024, 2048, 4096); a requested `size` outside that list is matched to one of them. `NEAREST` (default) keeps the current behavior and returns the closest size, which may be smaller than requested (e.g. `1500` returns `1024`). `UP` returns the smallest available size not smaller than requested (e.g. `1500` returns `2048`), so the image does not look blurry when displayed at the requested size.
+- Added `externalReference` filter to `productVariants(where: ...)`. Supports `eq` and `oneOf`, allowing product variants to be fetched in batch by their external references.
 
 ### Webhooks
 
