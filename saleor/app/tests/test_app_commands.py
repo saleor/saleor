@@ -1,8 +1,10 @@
+import json
+from io import StringIO
 from unittest.mock import ANY, Mock, call, patch
 
 import graphene
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.forms import ValidationError
 from django.utils import timezone
 from requests_hardened import HTTPSession
@@ -414,3 +416,317 @@ def test_app_delete_all_with_force_sync_dispatches_sync_webhooks(
         for call in mocked_apply.call_args_list
     }
     assert called_pks == delivery_pks
+
+
+def _call_command_json_lines(name: str, *args: str) -> list[dict]:
+    out = StringIO()
+    call_command(name, *args, stdout=out)
+    return [json.loads(line) for line in out.getvalue().splitlines()]
+
+
+def _create_webhook(app: App, name: str, is_active: bool = True) -> Webhook:
+    return Webhook.objects.create(
+        name=name,
+        app=app,
+        target_url=f"https://example.com/{app.identifier}/{name}",
+        is_active=is_active,
+        secret_key="secret-key",
+        custom_headers={"X-Secret": "secret-header"},
+        subscription_query="subscription { event { ... on OrderCreated { order { id } } } }",
+    )
+
+
+def _app_record(app: App) -> dict:
+    return {
+        "kind": "app",
+        "id": graphene.Node.to_global_id("App", app.pk),
+        "identifier": app.identifier,
+        "name": app.name,
+        "is_active": app.is_active,
+    }
+
+
+def _webhook_record(webhook: Webhook, delivering: bool) -> dict:
+    return {
+        "kind": "webhook",
+        "id": graphene.Node.to_global_id("Webhook", webhook.pk),
+        "app_id": graphene.Node.to_global_id("App", webhook.app_id),
+        "name": webhook.name,
+        "target_url": webhook.target_url,
+        "is_active": webhook.is_active,
+        "app_is_active": webhook.app.is_active,
+        "delivering": delivering,
+    }
+
+
+def test_app_list_outputs_not_removed_apps_with_their_webhooks(db):
+    # given
+    active_app = App.objects.create(name="Active", identifier="active", is_active=True)
+    active_webhook = _create_webhook(active_app, "on")
+    inactive_webhook = _create_webhook(active_app, "off", is_active=False)
+    inactive_app = App.objects.create(
+        name="Inactive", identifier="inactive", is_active=False
+    )
+    webhook_of_inactive_app = _create_webhook(inactive_app, "on")
+    removed_app = App.objects.create(
+        name="Removed", identifier="removed", removed_at=timezone.now()
+    )
+    _create_webhook(removed_app, "on")
+
+    # when
+    records = _call_command_json_lines("app_list")
+
+    # then
+    assert records == [
+        _app_record(active_app),
+        _webhook_record(active_webhook, delivering=True),
+        _webhook_record(inactive_webhook, delivering=False),
+        _app_record(inactive_app),
+        _webhook_record(webhook_of_inactive_app, delivering=False),
+    ]
+
+
+def test_app_list_with_no_apps_outputs_nothing(db):
+    # when
+    records = _call_command_json_lines("app_list")
+
+    # then
+    assert records == []
+
+
+@pytest.mark.parametrize("count", [1, 3])
+def test_app_list_query_count_does_not_depend_on_number_of_objects(
+    count, db, django_assert_num_queries
+):
+    # given
+    for i in range(count):
+        app = App.objects.create(name=f"App {i}", identifier=f"app-{i}")
+        for j in range(count):
+            _create_webhook(app, f"hook-{j}")
+
+    # when
+    with django_assert_num_queries(2):
+        records = _call_command_json_lines("app_list")
+
+    # then
+    assert len(records) == count + count * count
+
+
+APP_SET_ACTIVE_COMMAND_MODULE = "saleor.app.management.commands.app_set_active"
+
+
+@pytest.fixture
+def _patched_app_set_active_manager():
+    with patch(
+        f"{APP_SET_ACTIVE_COMMAND_MODULE}.get_plugins_manager"
+    ) as mocked_get_manager:
+        mocked_manager = Mock()
+        mocked_get_manager.return_value = mocked_manager
+        yield mocked_manager
+
+
+@pytest.mark.parametrize(("before", "target"), [(True, False), (False, True)])
+def test_app_set_active_changes_state_and_emits_status_changed(
+    before,
+    target,
+    db,
+    _patched_app_set_active_manager,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    app = App.objects.create(name="App", identifier="app", is_active=before)
+    app_id = graphene.Node.to_global_id("App", app.pk)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        records = _call_command_json_lines(
+            "app_set_active", "--id", app_id, "--active", str(target).lower()
+        )
+
+    # then
+    app.refresh_from_db()
+    assert app.is_active is target
+    _patched_app_set_active_manager.app_status_changed.assert_called_once_with(app)
+    assert records == [
+        {
+            "kind": "app",
+            "id": app_id,
+            "identifier": app.identifier,
+            "name": app.name,
+            "is_active": {"before": before, "after": target},
+        }
+    ]
+
+
+@pytest.mark.parametrize("state", [True, False])
+def test_app_set_active_same_state_does_not_emit_event(
+    state, db, _patched_app_set_active_manager, django_capture_on_commit_callbacks
+):
+    # given
+    app = App.objects.create(name="App", identifier="app", is_active=state)
+    app_id = graphene.Node.to_global_id("App", app.pk)
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        records = _call_command_json_lines(
+            "app_set_active", "--id", app_id, "--active", str(state).upper()
+        )
+
+    # then
+    _patched_app_set_active_manager.app_status_changed.assert_not_called()
+    assert records[0]["is_active"] == {"before": state, "after": state}
+
+
+@pytest.mark.parametrize(
+    ("_case", "global_id", "message"),
+    [
+        ("not_base64", "garbage", "Invalid ID: garbage."),
+        (
+            "wrong_type",
+            graphene.Node.to_global_id("Webhook", 1),
+            "Invalid ID: V2ViaG9vazox. Expected: App, received: Webhook.",
+        ),
+        (
+            "non_int_pk",
+            graphene.Node.to_global_id("App", "x"),
+            "Invalid ID: QXBwOng=.",
+        ),
+        (
+            "unknown_pk",
+            graphene.Node.to_global_id("App", -1),
+            "App not found: QXBwOi0x.",
+        ),
+    ],
+)
+def test_app_set_active_rejects_invalid_id(
+    _case, global_id, message, db, _patched_app_set_active_manager
+):
+    # when
+    with pytest.raises(CommandError) as exc_info:
+        call_command("app_set_active", "--id", global_id, "--active", "false")
+
+    # then
+    assert str(exc_info.value) == message
+    _patched_app_set_active_manager.app_status_changed.assert_not_called()
+
+
+def test_app_set_active_rejects_removed_app(db, _patched_app_set_active_manager):
+    # given
+    app = App.objects.create(
+        name="Removed", identifier="removed", is_active=True, removed_at=timezone.now()
+    )
+    app_id = graphene.Node.to_global_id("App", app.pk)
+
+    # when
+    with pytest.raises(CommandError) as exc_info:
+        call_command("app_set_active", "--id", app_id, "--active", "false")
+
+    # then
+    assert str(exc_info.value) == f"App not found: {app_id}."
+    app.refresh_from_db()
+    assert app.is_active is True
+    _patched_app_set_active_manager.app_status_changed.assert_not_called()
+
+
+@pytest.mark.parametrize("command", ["app_set_active", "webhook_set_active"])
+@pytest.mark.parametrize("active", ["yes", "1", ""])
+def test_set_active_rejects_non_boolean_active(command, active, db):
+    # when
+    with pytest.raises(CommandError) as exc_info:
+        call_command(command, "--id", "unused", "--active", active)
+
+    # then
+    assert str(exc_info.value) == (
+        f"Error: argument --active: expected 'true' or 'false', got {active!r}"
+    )
+
+
+@pytest.mark.parametrize(("before", "target"), [(True, False), (False, True)])
+@pytest.mark.parametrize("app_is_active", [True, False])
+def test_webhook_set_active_changes_state(before, target, app_is_active, db):
+    # given
+    app = App.objects.create(name="App", identifier="app", is_active=app_is_active)
+    webhook = _create_webhook(app, "hook", is_active=before)
+    other_webhook = _create_webhook(app, "other", is_active=before)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+
+    # when
+    records = _call_command_json_lines(
+        "webhook_set_active", "--id", webhook_id, "--active", str(target)
+    )
+
+    # then
+    webhook.refresh_from_db()
+    other_webhook.refresh_from_db()
+    assert webhook.is_active is target
+    assert other_webhook.is_active is before
+    assert records == [
+        {
+            "kind": "webhook",
+            "id": webhook_id,
+            "app_id": graphene.Node.to_global_id("App", app.pk),
+            "name": webhook.name,
+            "is_active": {"before": before, "after": target},
+        }
+    ]
+
+
+@pytest.mark.parametrize("state", [True, False])
+def test_webhook_set_active_same_state_reports_no_change(state, db):
+    # given
+    app = App.objects.create(name="App", identifier="app", is_active=True)
+    webhook = _create_webhook(app, "hook", is_active=state)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+
+    # when
+    records = _call_command_json_lines(
+        "webhook_set_active", "--id", webhook_id, "--active", str(state)
+    )
+
+    # then
+    webhook.refresh_from_db()
+    assert webhook.is_active is state
+    assert records[0]["is_active"] == {"before": state, "after": state}
+
+
+@pytest.mark.parametrize(
+    ("_case", "global_id", "message"),
+    [
+        ("not_base64", "garbage", "Invalid ID: garbage."),
+        (
+            "wrong_type",
+            graphene.Node.to_global_id("App", 1),
+            "Invalid ID: QXBwOjE=. Expected: Webhook, received: App.",
+        ),
+        (
+            "unknown_pk",
+            graphene.Node.to_global_id("Webhook", -1),
+            "Webhook not found: V2ViaG9vazotMQ==.",
+        ),
+    ],
+)
+def test_webhook_set_active_rejects_invalid_id(_case, global_id, message, db):
+    # when
+    with pytest.raises(CommandError) as exc_info:
+        call_command("webhook_set_active", "--id", global_id, "--active", "false")
+
+    # then
+    assert str(exc_info.value) == message
+
+
+def test_webhook_set_active_rejects_webhook_of_removed_app(db):
+    # given
+    app = App.objects.create(
+        name="Removed", identifier="removed", removed_at=timezone.now()
+    )
+    webhook = _create_webhook(app, "hook", is_active=True)
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+
+    # when
+    with pytest.raises(CommandError) as exc_info:
+        call_command("webhook_set_active", "--id", webhook_id, "--active", "false")
+
+    # then
+    assert str(exc_info.value) == f"Webhook not found: {webhook_id}."
+    webhook.refresh_from_db()
+    assert webhook.is_active is True
