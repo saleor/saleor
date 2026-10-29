@@ -30,7 +30,7 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_318, ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
@@ -95,7 +95,6 @@ class DraftOrderInput(BaseInputObjectType):
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
-        + ADDED_IN_321
     )
     user = graphene.ID(
         description="Customer associated with the draft order.", name="user"
@@ -116,7 +115,6 @@ class DraftOrderInput(BaseInputObjectType):
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to not save the address."
         )
-        + ADDED_IN_321
     )
     shipping_method = graphene.ID(
         description="ID of a selected shipping method.", name="shippingMethod"
@@ -128,7 +126,7 @@ class DraftOrderInput(BaseInputObjectType):
         deprecation_reason="Use `voucherCode` instead.",
     )
     voucher_code = graphene.String(
-        description="A code of the voucher associated with the order." + ADDED_IN_318,
+        description="A code of the voucher associated with the order.",
         name="voucherCode",
     )
     customer_note = graphene.String(
@@ -147,13 +145,13 @@ class DraftOrderInput(BaseInputObjectType):
     )
     metadata = NonNullList(
         MetadataInput,
-        description=f"Order public metadata. {ADDED_IN_321} "
+        description=f"Order public metadata. "
         f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}",
         required=False,
     )
     private_metadata = NonNullList(
         MetadataInput,
-        description=f"Order private metadata. {ADDED_IN_321} "
+        description=f"Order private metadata. "
         f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}",
         required=False,
     )
@@ -161,7 +159,7 @@ class DraftOrderInput(BaseInputObjectType):
     language_code = graphene.Argument(
         LanguageCodeEnum,
         required=False,
-        description=(f"Order language code.{ADDED_IN_321}"),
+        description=("Order language code."),
     )
 
     class Meta:

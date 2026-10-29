@@ -1,4 +1,3 @@
-import datetime
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
@@ -44,13 +43,6 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                         currency
                         amount
                     }
-                    preorderThreshold {
-                        quantity
-                    }
-                }
-                preorder {
-                    globalThreshold
-                    endDate
                 }
             }
             count
@@ -584,7 +576,6 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[0]["channelListings"][0]["costPrice"],
                         "currency": channel_USD.currency_code,
                     },
-                    "preorderThreshold": {"quantity": None},
                 }
             ],
         },
@@ -601,7 +592,6 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[1]["channelListings"][0]["costPrice"],
                         "currency": channel_USD.currency_code,
                     },
-                    "preorderThreshold": {"quantity": None},
                 },
                 {
                     "channel": {"slug": channel_PLN.slug},
@@ -613,7 +603,6 @@ def test_product_variant_bulk_create_channel_listings_input(
                         "amount": variants[1]["channelListings"][1]["costPrice"],
                         "currency": channel_PLN.currency_code,
                     },
-                    "preorderThreshold": {"quantity": None},
                 },
             ],
         },
@@ -627,124 +616,6 @@ def test_product_variant_bulk_create_channel_listings_input(
             channelListing in expected_channel_listing
             for channelListing in variant_data["channelListings"]
         )
-
-
-def test_product_variant_bulk_create_preorder_channel_listings_input(
-    staff_api_client,
-    product_available_in_many_channels,
-    permission_manage_products,
-    size_attribute,
-    channel_USD,
-    channel_PLN,
-):
-    product = product_available_in_many_channels
-    ProductChannelListing.objects.filter(product=product, channel=channel_PLN).update(
-        is_published=False
-    )
-    product_variant_count = ProductVariant.objects.count()
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    attribute_value_count = size_attribute.values.count()
-    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
-    attribute_value = size_attribute.values.last()
-
-    global_threshold = 10
-    end_date = (
-        (datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(days=3))
-        .astimezone()
-        .replace(microsecond=0)
-        .isoformat()
-    )
-
-    variants = [
-        {
-            "sku": str(uuid4())[:12],
-            "channelListings": [
-                {
-                    "price": 10.0,
-                    "costPrice": 11.0,
-                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
-                    "preorderThreshold": 5,
-                }
-            ],
-            "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
-            "preorder": {
-                "globalThreshold": global_threshold,
-                "endDate": end_date,
-            },
-        },
-        {
-            "sku": str(uuid4())[:12],
-            "attributes": [{"id": size_attribute_id, "values": ["Test-attribute"]}],
-            "channelListings": [
-                {
-                    "price": 15.0,
-                    "costPrice": 16.0,
-                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
-                    "preorderThreshold": None,
-                },
-                {
-                    "price": 12.0,
-                    "costPrice": 13.0,
-                    "channelId": graphene.Node.to_global_id("Channel", channel_PLN.pk),
-                    "preorderThreshold": 4,
-                },
-            ],
-            "preorder": {
-                "globalThreshold": global_threshold,
-                "endDate": end_date,
-            },
-        },
-    ]
-
-    variables = {"productId": product_id, "variants": variants}
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantBulkCreate"]
-    assert not data["errors"]
-    assert data["count"] == 2
-    assert product_variant_count + 2 == ProductVariant.objects.count()
-    assert attribute_value_count + 1 == size_attribute.values.count()
-
-    expected_result = {
-        variants[0]["sku"]: {
-            "sku": variants[0]["sku"],
-            "channelListings": [{"preorderThreshold": {"quantity": 5}}],
-            "preorder": {
-                "globalThreshold": global_threshold,
-                "endDate": end_date,
-            },
-        },
-        variants[1]["sku"]: {
-            "sku": variants[1]["sku"],
-            "channelListings": [
-                {"preorderThreshold": {"quantity": None}},
-                {"preorderThreshold": {"quantity": 4}},
-            ],
-            "preorder": {
-                "globalThreshold": global_threshold,
-                "endDate": end_date,
-            },
-        },
-    }
-    for variant_data in data["productVariants"]:
-        variant_data.pop("id")
-        assert variant_data["sku"] in expected_result
-        expected_variant = expected_result[variant_data["sku"]]
-        expected_channel_listing_thresholds = [
-            channel_listing["preorderThreshold"]["quantity"]
-            for channel_listing in expected_variant["channelListings"]
-        ]
-        assert all(
-            channel_listing["preorderThreshold"]["quantity"]
-            in expected_channel_listing_thresholds
-            for channel_listing in variant_data["channelListings"]
-        )
-        preorder_data = variant_data["preorder"]
-        assert preorder_data["globalThreshold"] == global_threshold
-        assert preorder_data["endDate"] == end_date
 
 
 def test_product_variant_bulk_create_duplicated_channels(

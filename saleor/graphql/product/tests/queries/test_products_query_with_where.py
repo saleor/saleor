@@ -134,6 +134,97 @@ def test_product_filter_by_slug(where, indexes, api_client, product_list, channe
     assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
+PRODUCT_A_EXTERNAL_REFERENCE = "external-reference-a"
+PRODUCT_B_EXTERNAL_REFERENCE = "external-reference-b"
+
+
+@pytest.mark.parametrize(
+    ("_case", "where", "indexes"),
+    [
+        ("eq_match", {"eq": PRODUCT_A_EXTERNAL_REFERENCE}, [0]),
+        ("eq_no_match", {"eq": "non-existing"}, []),
+        ("eq_empty_string", {"eq": ""}, []),
+        ("eq_null_matches_products_without_reference", {"eq": None}, [2]),
+        (
+            "one_of_multiple_matches",
+            {"oneOf": [PRODUCT_A_EXTERNAL_REFERENCE, PRODUCT_B_EXTERNAL_REFERENCE]},
+            [0, 1],
+        ),
+        (
+            "one_of_mixed_existing_and_non_existing",
+            {"oneOf": [PRODUCT_B_EXTERNAL_REFERENCE, "non-existing"]},
+            [1],
+        ),
+        ("one_of_no_match", {"oneOf": ["non-existing-1", "non-existing-2"]}, []),
+        ("one_of_empty_list", {"oneOf": []}, []),
+        ("one_of_null", {"oneOf": None}, []),
+        ("empty_input", {}, []),
+        ("null_input", None, []),
+    ],
+)
+def test_product_filter_by_external_reference(
+    _case, where, indexes, api_client, product_list, channel_USD
+):
+    # given
+    product_list[0].external_reference = PRODUCT_A_EXTERNAL_REFERENCE
+    product_list[1].external_reference = PRODUCT_B_EXTERNAL_REFERENCE
+    Product.objects.bulk_update(product_list[:2], ["external_reference"])
+    assert product_list[2].external_reference is None
+
+    variables = {"channel": channel_USD.slug, "where": {"externalReference": where}}
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_ids = {node["node"]["id"] for node in nodes}
+    assert returned_ids == {
+        graphene.Node.to_global_id("Product", product_list[index].pk)
+        for index in indexes
+    }
+
+
+def test_product_filter_by_external_reference_and_name(
+    api_client, product_list, channel_USD
+):
+    # given
+    product_list[0].external_reference = PRODUCT_A_EXTERNAL_REFERENCE
+    product_list[1].external_reference = PRODUCT_B_EXTERNAL_REFERENCE
+    Product.objects.bulk_update(product_list[:2], ["external_reference"])
+    expected_product = product_list[1]
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "AND": [
+                {
+                    "externalReference": {
+                        "oneOf": [
+                            PRODUCT_A_EXTERNAL_REFERENCE,
+                            PRODUCT_B_EXTERNAL_REFERENCE,
+                        ]
+                    }
+                },
+                {"name": {"eq": expected_product.name}},
+            ]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == 1
+    assert nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", expected_product.pk
+    )
+
+
 def test_product_filter_by_product_types(
     api_client, product_list, channel_USD, product_type_list
 ):
@@ -744,7 +835,16 @@ def test_products_filter_by_attributes_value_slug(
     assert returned_ids == {product1_id, product2_id}
 
 
-def test_products_filter_by_attributes_empty_list(
+@pytest.mark.parametrize(
+    ("_case", "attributes_value"),
+    [
+        ("empty_list", []),
+        ("null", None),
+    ],
+)
+def test_products_filter_by_attributes_empty(
+    _case,
+    attributes_value,
     api_client,
     product_list,
     channel_USD,
@@ -773,7 +873,7 @@ def test_products_filter_by_attributes_empty_list(
     variables = {
         "channel": channel_USD.slug,
         "where": {
-            "attributes": [],
+            "attributes": attributes_value,
         },
     }
 
@@ -1806,98 +1906,6 @@ def test_products_filter_by_none_as_gift_card(
 
     # then
     content = get_graphql_content(response)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 0
-
-
-@pytest.mark.parametrize(("filter", "index"), [(False, 0), (True, 1)])
-def test_products_query_with_filter_has_preordered_variants(
-    filter,
-    index,
-    api_client,
-    preorder_variant_global_threshold,
-    product_without_shipping,
-    channel_USD,
-):
-    # given
-    product_list = [product_without_shipping, preorder_variant_global_threshold.product]
-    variables = {
-        "channel": channel_USD.slug,
-        "where": {"hasPreorderedVariants": filter},
-    }
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
-    product_id = graphene.Node.to_global_id("Product", product_list[index].id)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == product_id
-
-
-def test_products_query_with_filter_none_as_has_preordered_variants(
-    api_client,
-    preorder_variant_global_threshold,
-    product_without_shipping,
-    channel_USD,
-):
-    # given
-    variables = {
-        "channel": channel_USD.slug,
-        "where": {"hasPreorderedVariants": None},
-    }
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
-    products = content["data"]["products"]["edges"]
-    assert len(products) == 0
-
-
-def test_products_filter_by_has_preordered_variants_before_end_date(
-    api_client, preorder_variant_global_threshold, channel_USD
-):
-    # given
-    variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() + datetime.timedelta(days=3)
-    variant.save(update_fields=["preorder_end_date"])
-
-    product = preorder_variant_global_threshold.product
-    variables = {"channel": channel_USD.slug, "where": {"hasPreorderedVariants": True}}
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
-    product_id = graphene.Node.to_global_id("Product", product.id)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["id"] == product_id
-
-
-def test_products_filter_by_has_preordered_variants_after_end_date(
-    api_client, preorder_variant_global_threshold, channel_USD
-):
-    # given
-    variant = preorder_variant_global_threshold
-    variant.preorder_end_date = timezone.now() - datetime.timedelta(days=3)
-    variant.save(update_fields=["preorder_end_date"])
-
-    variables = {"channel": channel_USD.slug, "where": {"hasPreorderedVariants": True}}
-
-    # when
-    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
-    content = get_graphql_content(response)
-
-    # then
     products = content["data"]["products"]["edges"]
 
     assert len(products) == 0

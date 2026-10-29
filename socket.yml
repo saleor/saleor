@@ -1,0 +1,18 @@
+# Docs: https://docs.socket.dev/docs/socket-yml
+version: 2
+
+# Only trigger pull request scans when these files change.
+triggerPaths:
+  - "package.json"
+  - "package-lock.json"
+  - "pnpm-lock.yaml"
+  - "bun.lock"
+  - "uv.lock"
+  - "poetry.lock"
+  - "requirements*.txt"
+
+githubApp:
+  enabled: true
+  dependencyOverviewEnabled: true
+  ignoreUsers: []
+  disableCommentsAndCheckRuns: false

@@ -24,12 +24,13 @@ def test_pages_query_with_attribute_value_reference_to_product_variants(
     # given
     page_type.page_attributes.add(page_type_variant_reference_attribute)
     second_variant_reference_attribute = Attribute.objects.create(
-        slug="second-product-reference",
-        name="Product reference",
-        type=AttributeType.PRODUCT_TYPE,
+        slug="second-variant-reference",
+        name="Variant reference",
+        type=AttributeType.PAGE_TYPE,
         input_type=AttributeInputType.REFERENCE,
         entity_type=AttributeEntityType.PRODUCT_VARIANT,
     )
+    page_type.page_attributes.add(second_variant_reference_attribute)
 
     first_variant_sku = "test-variant-1"
     second_variant_sku = "test-variant-2"

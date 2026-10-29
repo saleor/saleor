@@ -595,6 +595,8 @@ class Allocation(models.Model):
 
 
 class PreorderAllocation(models.Model):
+    """TODO remove after 3.24: preorder API was removed in 3.24."""
+
     order_line = models.ForeignKey(
         OrderLine,
         null=False,
@@ -634,6 +636,8 @@ ReservationManager = models.Manager.from_queryset(ReservationQuerySet)
 
 
 class PreorderReservation(models.Model):
+    """TODO remove after 3.24: preorder API was removed in 3.24."""
+
     checkout_line = models.ForeignKey(
         CheckoutLine,
         null=False,

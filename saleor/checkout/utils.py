@@ -1,5 +1,6 @@
 """Checkout-related utility functions."""
 
+from collections import defaultdict
 from collections.abc import Iterable
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, cast
@@ -32,7 +33,13 @@ from ..core.utils.promo_code import (
 )
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
-from ..discount import DiscountType, VoucherType
+from ..discount import (
+    NOT_APPLICABLE_MESSAGE,
+    DiscountType,
+    PromoCodeRejection,
+    PromoCodeRejectionReason,
+    VoucherType,
+)
 from ..discount.interface import fetch_voucher_info
 from ..discount.models import CheckoutDiscount, NotApplicable, Voucher, VoucherCode
 from ..discount.utils.checkout import (
@@ -217,6 +224,8 @@ def add_variants_to_checkout(
         lines_by_id = {str(line.pk): line for line in checkout_lines}
         variants_map = {str(variant.pk): variant for variant in variants}
 
+        _match_lines_data_to_locked_lines(checkout_lines_data, checkout_lines)
+
         new_variant_ids = set()
         non_existing_line_ids = set()
         for line_data in checkout_lines_data:
@@ -256,7 +265,8 @@ def add_variants_to_checkout(
 
         if to_update:
             checkout_lines_bulk_update(
-                to_update, ["quantity", "price_override", "metadata"]
+                to_update,
+                ["quantity", "price_override", "price_override_reason", "metadata"],
             )
 
         if to_create:
@@ -296,6 +306,28 @@ def _get_line_if_exist(line_data, lines_by_ids):
     return None
 
 
+def _match_lines_data_to_locked_lines(checkout_lines_data, checkout_lines):
+    """Point input lines at the lines that exist now that the checkout is locked.
+
+    The input lines are resolved against the checkout lines before the checkout
+    row lock is taken, so a concurrent request may have created a line for the
+    same variant in the meantime. Without this step both requests would create
+    their own line for the variant instead of merging into one.
+    """
+    lines_by_variant_id: dict[str, list[CheckoutLine]] = defaultdict(list)
+    for line in checkout_lines:
+        lines_by_variant_id[str(line.variant_id)].append(line)
+
+    for line_data in checkout_lines_data:
+        if line_data.line_id or line_data.force_new_line or not line_data.variant_id:
+            continue
+        matching_lines = lines_by_variant_id[str(line_data.variant_id)]
+        # When the variant is already in multiple lines a new line is created,
+        # which mirrors the resolution done before the lock was taken.
+        if len(matching_lines) == 1:
+            line_data.line_id = str(matching_lines[0].pk)
+
+
 def _append_line_to_update(to_update, to_delete, line_data, replace, line):
     if line_data.metadata_list:
         line.store_value_in_metadata(
@@ -313,6 +345,11 @@ def _append_line_to_update(to_update, to_delete, line_data, replace, line):
         if line not in to_delete:
             line.price_override = line_data.custom_price
             to_update.append(line)
+    if line_data.custom_price_reason_to_update:
+        if line not in to_delete:
+            line.price_override_reason = line_data.custom_price_reason
+            if line not in to_update:
+                to_update.append(line)
 
 
 def _append_line_to_delete(to_delete, line_data, line):
@@ -341,6 +378,7 @@ def _append_line_to_create(
             quantity=line_data.quantity,
             currency=checkout.currency,
             price_override=line_data.custom_price,
+            price_override_reason=line_data.custom_price_reason,
             undiscounted_unit_price_amount=variant_price_amount,
             prior_unit_price_amount=variant_prior_price_amount,
         )
@@ -436,17 +474,20 @@ def _get_shipping_voucher_discount_for_checkout(
     """Calculate discount value for a voucher of shipping type."""
     if not is_shipping_required(lines):
         msg = "Your order does not require shipping."
-        raise NotApplicable(msg)
+        raise NotApplicable(msg, reason=PromoCodeRejectionReason.SHIPPING_NOT_REQUIRED)
     shipping_method = checkout_info.get_delivery_method_info().delivery_method
     if not shipping_method:
         msg = "Please select a delivery method first."
-        raise NotApplicable(msg)
+        raise NotApplicable(
+            msg, reason=PromoCodeRejectionReason.DELIVERY_METHOD_NOT_SET
+        )
 
     # check if voucher is limited to specified countries
     if address:
         if voucher.countries and address.country.code not in voucher.countries:
-            msg = "This offer is not valid in your country."
-            raise NotApplicable(msg)
+            raise NotApplicable(
+                NOT_APPLICABLE_MESSAGE, reason=PromoCodeRejectionReason.NOT_APPLICABLE
+            )
 
     shipping_price = base_calculations.base_checkout_undiscounted_delivery_price(
         checkout_info=checkout_info, lines=lines
@@ -527,7 +568,7 @@ def _get_products_voucher_discount(
         prices = get_prices_of_discounted_specific_product(lines, voucher)
     if not prices:
         msg = "This offer is only valid for selected items."
-        raise NotApplicable(msg)
+        raise NotApplicable(msg, reason=PromoCodeRejectionReason.NO_ELIGIBLE_PRODUCTS)
     return get_products_voucher_discount(voucher, prices, checkout_info.channel)
 
 
@@ -690,12 +731,7 @@ def add_promo_code_to_checkout(
     Raise InvalidPromoCode if promo code does not match to any voucher or gift card.
     """
     if promo_code_is_voucher(promo_code):
-        add_voucher_code_to_checkout(
-            manager,
-            checkout_info,
-            lines,
-            promo_code,
-        )
+        add_voucher_code_to_checkout(manager, checkout_info, lines, promo_code)
     elif promo_code_is_gift_card(promo_code):
         if not checkout_info.channel.allow_legacy_gift_card_use:
             raise ValidationError(
@@ -715,7 +751,11 @@ def add_promo_code_to_checkout(
             checkout_info.channel.currency_code,
         )
     else:
-        raise InvalidPromoCode()
+        raise InvalidPromoCode(
+            promo_code_rejection=PromoCodeRejection(
+                reason=PromoCodeRejectionReason.NOT_FOUND
+            )
+        )
 
 
 def add_voucher_code_to_checkout(
@@ -739,6 +779,7 @@ def add_voucher_code_to_checkout(
                 "promo_code": ValidationError(
                     "Voucher is not applicable to this checkout.",
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                    params={"promo_code_details": e.rejection},
                 )
             }
         ) from e

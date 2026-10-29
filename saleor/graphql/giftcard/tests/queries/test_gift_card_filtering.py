@@ -141,6 +141,37 @@ def test_query_filter_gift_cards_by_used_by_user(
     )
 
 
+def test_query_filter_gift_cards_by_assigned_to_user(
+    staff_api_client,
+    gift_card,
+    gift_card_expiry_date,
+    gift_card_used,
+    customer_user,
+    permission_manage_gift_card,
+):
+    # given
+    query = QUERY_GIFT_CARDS
+    gift_card_used.assigned_to = customer_user
+    gift_card_used.save(update_fields=["assigned_to"])
+
+    variables = {
+        "filter": {"assignedTo": [graphene.Node.to_global_id("User", customer_user.pk)]}
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCards"]["edges"]
+    assert len(data) == 1
+    assert data[0]["node"]["id"] == graphene.Node.to_global_id(
+        "GiftCard", gift_card_used.pk
+    )
+
+
 @pytest.mark.parametrize(
     ("filter_value", "expected_gift_card_indexes"),
     [("PLN", [0]), ("USD", [1, 2]), ("EUR", []), ("", [0, 1, 2])],

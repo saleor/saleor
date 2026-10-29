@@ -99,10 +99,6 @@ query ($id: ID!, $query: String) {
     }
     valueRequired
     visibleInStorefront
-    filterableInStorefront
-    filterableInDashboard
-    availableInGrid
-    storefrontSearchPosition
     translation(languageCode: PL) {
       id
       name
@@ -151,22 +147,6 @@ def test_get_single_product_attribute_by_staff(
         content["data"]["attribute"]["visibleInStorefront"]
         == color_attribute_without_values.visible_in_storefront
     )
-    assert (
-        content["data"]["attribute"]["filterableInStorefront"]
-        == color_attribute_without_values.filterable_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInDashboard"]
-        == color_attribute_without_values.filterable_in_dashboard
-    )
-    assert (
-        content["data"]["attribute"]["availableInGrid"]
-        == color_attribute_without_values.available_in_grid
-    )
-    assert (
-        content["data"]["attribute"]["storefrontSearchPosition"]
-        == color_attribute_without_values.storefront_search_position
-    )
 
 
 def test_get_single_product_attribute_by_app(
@@ -191,22 +171,6 @@ def test_get_single_product_attribute_by_app(
     assert (
         content["data"]["attribute"]["visibleInStorefront"]
         == color_attribute_without_values.visible_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInStorefront"]
-        == color_attribute_without_values.filterable_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInDashboard"]
-        == color_attribute_without_values.filterable_in_dashboard
-    )
-    assert (
-        content["data"]["attribute"]["availableInGrid"]
-        == color_attribute_without_values.available_in_grid
-    )
-    assert (
-        content["data"]["attribute"]["storefrontSearchPosition"]
-        == color_attribute_without_values.storefront_search_position
     )
 
 
@@ -288,19 +252,6 @@ def test_get_single_product_attribute_with_file_value(
     assert attribute_data["slug"] == file_attribute.slug
     assert attribute_data["valueRequired"] == file_attribute.value_required
     assert attribute_data["visibleInStorefront"] == file_attribute.visible_in_storefront
-    assert (
-        attribute_data["filterableInStorefront"]
-        == file_attribute.filterable_in_storefront
-    )
-    assert (
-        attribute_data["filterableInDashboard"]
-        == file_attribute.filterable_in_dashboard
-    )
-    assert attribute_data["availableInGrid"] == file_attribute.available_in_grid
-    assert (
-        attribute_data["storefrontSearchPosition"]
-        == file_attribute.storefront_search_position
-    )
     assert attribute_data["choices"]["edges"] == []
 
 
@@ -329,22 +280,6 @@ def test_get_single_reference_attribute_by_staff(
     assert (
         content["data"]["attribute"]["visibleInStorefront"]
         == product_type_page_reference_attribute.visible_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInStorefront"]
-        == product_type_page_reference_attribute.filterable_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInDashboard"]
-        == product_type_page_reference_attribute.filterable_in_dashboard
-    )
-    assert (
-        content["data"]["attribute"]["availableInGrid"]
-        == product_type_page_reference_attribute.available_in_grid
-    )
-    assert (
-        content["data"]["attribute"]["storefrontSearchPosition"]
-        == product_type_page_reference_attribute.storefront_search_position
     )
     assert (
         content["data"]["attribute"]["entityType"]
@@ -379,22 +314,6 @@ def test_get_single_numeric_attribute_by_staff(
         content["data"]["attribute"]["visibleInStorefront"]
         == numeric_attribute.visible_in_storefront
     )
-    assert (
-        content["data"]["attribute"]["filterableInStorefront"]
-        == numeric_attribute.filterable_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInDashboard"]
-        == numeric_attribute.filterable_in_dashboard
-    )
-    assert (
-        content["data"]["attribute"]["availableInGrid"]
-        == numeric_attribute.available_in_grid
-    )
-    assert (
-        content["data"]["attribute"]["storefrontSearchPosition"]
-        == numeric_attribute.storefront_search_position
-    )
 
 
 def test_get_single_swatch_attribute_by_staff(
@@ -420,22 +339,6 @@ def test_get_single_swatch_attribute_by_staff(
     assert (
         content["data"]["attribute"]["visibleInStorefront"]
         == swatch_attribute.visible_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInStorefront"]
-        == swatch_attribute.filterable_in_storefront
-    )
-    assert (
-        content["data"]["attribute"]["filterableInDashboard"]
-        == swatch_attribute.filterable_in_dashboard
-    )
-    assert (
-        content["data"]["attribute"]["availableInGrid"]
-        == swatch_attribute.available_in_grid
-    )
-    assert (
-        content["data"]["attribute"]["storefrontSearchPosition"]
-        == swatch_attribute.storefront_search_position
     )
     assert (
         len(content["data"]["attribute"]["choices"]["edges"])
@@ -1024,12 +927,8 @@ def test_attributes_query_ids_not_exists(user_api_client, category):
 @pytest.mark.parametrize(
     ("attribute", "expected_value"),
     [
-        ("filterable_in_storefront", True),
-        ("filterable_in_dashboard", True),
         ("visible_in_storefront", True),
-        ("available_in_grid", True),
         ("value_required", False),
-        ("storefront_search_position", 0),
     ],
 )
 def test_retrieving_the_restricted_attributes_restricted(
@@ -1156,9 +1055,6 @@ def test_attributes_with_choice_flag(
         name=input_type.upper(),
         type=AttributeType.PRODUCT_TYPE,
         input_type=input_type,
-        filterable_in_storefront=True,
-        filterable_in_dashboard=True,
-        available_in_grid=True,
     )
 
     attribute_gql_id = graphene.Node.to_global_id("Attribute", attribute.id)

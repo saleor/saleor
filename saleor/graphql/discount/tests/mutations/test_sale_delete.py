@@ -75,11 +75,9 @@ def test_sale_delete_mutation(
         assert listing.discounted_price_dirty is True
 
 
-@patch("saleor.product.tasks.update_discounted_prices_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.sale_deleted")
 def test_sale_delete_mutation_with_promotion_id(
     deleted_webhook_mock,
-    update_discounted_prices_task_mock,
     staff_api_client,
     promotion_converted_from_sale,
     permission_manage_discounts,
@@ -107,7 +105,6 @@ def test_sale_delete_mutation_with_promotion_id(
     )
 
     deleted_webhook_mock.assert_not_called()
-    update_discounted_prices_task_mock.assert_not_called()
 
 
 def test_sale_delete_not_found_error(staff_api_client, permission_manage_discounts):

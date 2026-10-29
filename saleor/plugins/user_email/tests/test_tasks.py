@@ -658,7 +658,6 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_user(
     payload = get_default_fulfillment_payload(order, fulfillment)
     payload["requester_user_id"] = to_global_id_or_none(staff_user)
     payload["requester_app_id"] = None
-    payload["digital_lines"] = []
     recipient_email = payload["recipient_email"]
 
     send_fulfillment_confirmation_email_task(
@@ -705,7 +704,6 @@ def test_send_fulfillment_confirmation_email_task_custom_template_by_app(
     payload = get_default_fulfillment_payload(order, fulfillment)
     payload["requester_user_id"] = None
     payload["requester_app_id"] = to_global_id_or_none(app)
-    payload["digital_lines"] = []
     recipient_email = payload["recipient_email"]
 
     send_fulfillment_confirmation_email_task(

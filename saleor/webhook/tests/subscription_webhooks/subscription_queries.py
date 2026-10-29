@@ -591,25 +591,6 @@ GIFT_CARD_METADATA_UPDATED = (
 """
 )
 
-GIFT_CARD_EXPORT_COMPLETED = (
-    fragments.GIFT_CARD_EXPORT_DETAILS
-    + fragments.RECIPIENT_APP_DETAILS
-    + """
-    subscription{
-      event{
-        recipient{
-          ...Recipient
-        }
-        ...on GiftCardExportCompleted{
-          export{
-            ...GiftCardExportDetails
-          }
-        }
-      }
-    }
-"""
-)
-
 VOUCHER_CREATED = (
     fragments.VOUCHER_DETAILS
     + fragments.RECIPIENT_APP_DETAILS
@@ -759,26 +740,6 @@ VOUCHER_METADATA_UPDATED = (
         ...on VoucherMetadataUpdated{
           voucher{
             ...VoucherDetails
-          }
-        }
-      }
-    }
-"""
-)
-
-
-VOUCHER_CODE_EXPORT_COMPLETED = (
-    fragments.VOUCHER_CODE_EXPORT_DETAILS
-    + fragments.RECIPIENT_APP_DETAILS
-    + """
-    subscription{
-      event{
-        recipient{
-          ...Recipient
-        }
-        ...on VoucherCodeExportCompleted{
-          export{
-            ...VoucherCodeExportDetails
           }
         }
       }
@@ -2283,6 +2244,63 @@ PAGE_TYPE_DELETED = (
 """
 )
 
+CUSTOMER_TYPE_CREATED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeCreated{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+CUSTOMER_TYPE_UPDATED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeUpdated{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+CUSTOMER_TYPE_DELETED = (
+    fragments.CUSTOMER_TYPE_DETAILS
+    + fragments.RECIPIENT_APP_DETAILS
+    + """
+    subscription{
+      event{
+        recipient{
+          ...Recipient
+        }
+        ...on CustomerTypeDeleted{
+          customerType{
+            ...CustomerTypeDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 PRODUCT_TYPE_CREATED = (
     fragments.PRODUCT_TYPE_DETAILS
     + fragments.RECIPIENT_APP_DETAILS
@@ -2552,6 +2570,24 @@ TRANSLATION_CREATED_PRODUCT_VARIANT = build_translation_query(
     TranslationQueryType.CREATED,
     "productVariantId",
 )
+TRANSLATION_CREATED_PRODUCT_MEDIA = """
+    subscription {
+      event {
+        ... on TranslationCreated {
+          translation {
+            ... on ProductMediaTranslation {
+              id
+              alt
+              translatableContent {
+                productMediaId
+                alt
+              }
+            }
+          }
+        }
+      }
+    }
+"""
 TRANSLATION_CREATED_COLLECTION = build_translation_query(
     TranslationTypes.COLLECTION_TRANSLATION,
     TranslationQueryType.CREATED,
@@ -2697,6 +2733,24 @@ TRANSLATION_UPDATED_PRODUCT_VARIANT = build_translation_query(
     TranslationQueryType.UPDATED,
     "productVariantId",
 )
+TRANSLATION_UPDATED_PRODUCT_MEDIA = """
+    subscription {
+      event {
+        ... on TranslationUpdated {
+          translation {
+            ... on ProductMediaTranslation {
+              id
+              alt
+              translatableContent {
+                productMediaId
+                alt
+              }
+            }
+          }
+        }
+      }
+    }
+"""
 TRANSLATION_UPDATED_COLLECTION = build_translation_query(
     TranslationTypes.COLLECTION_TRANSLATION,
     TranslationQueryType.UPDATED,

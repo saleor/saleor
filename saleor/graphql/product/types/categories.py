@@ -6,6 +6,7 @@ from ....core.search import prefix_search
 from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
+from ....thumbnail import ThumbnailSizeRounding
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -19,7 +20,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.context import ChannelQsContext, get_database_connection_name
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
@@ -47,7 +48,15 @@ class Category(ModelObjectType[models.Category]):
     seo_description = graphene.String(description="SEO description of category.")
     name = graphene.String(required=True, description="Name of category")
     description = JSONString(description="Description of the category." + RICH_CONTENT)
+    full_description = JSONString(
+        description="Full description of the category. Returns null when unset."
+        + RICH_CONTENT
+        + ADDED_IN_323
+    )
     slug = graphene.String(required=True, description="Slug of the category.")
+    external_reference = graphene.String(
+        description=f"External ID of this category.{ADDED_IN_323}"
+    )
     parent = graphene.Field(lambda: Category, description="Parent category.")
     level = graphene.Int(required=True, description="Level of the category.")
     description_json = JSONString(
@@ -118,6 +127,7 @@ class Category(ModelObjectType[models.Category]):
         root: models.Category,
         info,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> None | Image | Promise[Image]:
         if not root.background_image:
@@ -128,7 +138,7 @@ class Category(ModelObjectType[models.Category]):
             return Image(url=root.background_image.url, alt=alt)
 
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_background_image(thumbnail):
             url = get_image_or_proxy_url(

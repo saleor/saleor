@@ -11,6 +11,7 @@ from ..core.connection import (
     filter_connection_queryset,
 )
 from ..core.context import get_database_connection_name
+from ..core.descriptions import ADDED_IN_323
 from ..core.fields import FilterConnectionField, JSONString
 from ..core.scalars import DateTime
 from ..core.types import ModelObjectType, NonNullList
@@ -155,6 +156,13 @@ class EventDeliveryCountableConnection(CountableConnection):
 class Webhook(ModelObjectType[models.Webhook]):
     id = graphene.GlobalID(required=True, description="The ID of webhook.")
     name = graphene.String(required=False, description="The name of webhook.")
+    identifier = graphene.String(
+        required=False,
+        description=(
+            "The unique identifier of the webhook, set by the app. Unique per "
+            "app, null when not set." + ADDED_IN_323
+        ),
+    )
     events = NonNullList(
         WebhookEvent,
         description="List of webhook events.",
@@ -195,6 +203,15 @@ class Webhook(ModelObjectType[models.Webhook]):
     )
     custom_headers = JSONString(
         description="Custom headers, which will be added to HTTP request."
+    )
+    payload_generation = enums.WebhookPayloadGenerationEnum(
+        required=True,
+        description=(
+            "Determines when the subscription payload is built for asynchronous "
+            "events that defer payload generation. Ignored for webhooks without a "
+            "subscription query, for synchronous events and for events that do "
+            "not defer their payload." + ADDED_IN_323
+        ),
     )
 
     class Meta:

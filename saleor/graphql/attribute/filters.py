@@ -143,9 +143,6 @@ class AttributeFilter(MetadataFilterBase):
             "value_required",
             "is_variant_only",
             "visible_in_storefront",
-            "filterable_in_storefront",
-            "filterable_in_dashboard",
-            "available_in_grid",
         ]
 
     def filter_in_collection(self, qs, name, value):
@@ -288,7 +285,6 @@ class AttributeWhere(MetadataWhereFilterBase):
     in_category = GlobalIDWhereFilter(method="filter_in_category")
     value_required = BooleanWhereFilter()
     visible_in_storefront = BooleanWhereFilter()
-    filterable_in_dashboard = BooleanWhereFilter()
 
     class Meta:
         model = Attribute

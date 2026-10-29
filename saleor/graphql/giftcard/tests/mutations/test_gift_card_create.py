@@ -677,6 +677,7 @@ def test_create_gift_card_trigger_webhook(
         permissions=[permission_manage_gift_card, permission_manage_users],
     )
     gift_card = GiftCard.objects.last()
+    assert gift_card is not None
 
     # then
     content = get_graphql_content(response)
@@ -751,6 +752,7 @@ def test_create_gift_card_with_email_triggers_gift_card_sent_webhook(
         permissions=[permission_manage_gift_card, permission_manage_users],
     )
     gift_card = GiftCard.objects.last()
+    assert gift_card is not None
 
     # then
     content = get_graphql_content(response)
@@ -1006,3 +1008,74 @@ def test_create_gift_card_with_private_and_public_metadata(
     assert data["metadata"][0]["value"] == metadata_value
     assert data["privateMetadata"][0]["key"] == metadata_key
     assert data["privateMetadata"][0]["value"] == metadata_value
+
+
+def test_create_with_assigned_to(
+    staff_api_client, customer_user, permission_manage_gift_card
+):
+    # given
+    query = """
+        mutation Create($input: GiftCardCreateInput!) {
+            giftCardCreate(input: $input) {
+                giftCard { id }
+                errors { field code }
+            }
+        }
+    """
+    variables = {
+        "input": {
+            "balance": {"amount": 100, "currency": "USD"},
+            "isActive": True,
+            "assignedTo": graphene.Node.to_global_id("User", customer_user.pk),
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardCreate"]
+    assert data["errors"] == []
+    gift_card = GiftCard.objects.get(
+        pk=graphene.Node.from_global_id(data["giftCard"]["id"])[1]
+    )
+    assert gift_card.assigned_to == customer_user
+    assert gift_card.assigned_to_email == customer_user.email
+    assert gift_card.events.filter(type=GiftCardEvents.ASSIGNED_TO_USER).count() == 1
+
+
+def test_create_with_assigned_to_not_found(
+    staff_api_client, permission_manage_gift_card
+):
+    # given
+    query = """
+        mutation Create($input: GiftCardCreateInput!) {
+            giftCardCreate(input: $input) {
+                giftCard { id }
+                errors { field code }
+            }
+        }
+    """
+    non_existing_id = graphene.Node.to_global_id("User", -1)
+    variables = {
+        "input": {
+            "balance": {"amount": 100, "currency": "USD"},
+            "isActive": True,
+            "assignedTo": non_existing_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_gift_card]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["giftCardCreate"]
+    assert data["giftCard"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "assignedTo"
+    assert data["errors"][0]["code"] == GiftCardErrorCode.NOT_FOUND.name
+    assert GiftCard.objects.count() == 0

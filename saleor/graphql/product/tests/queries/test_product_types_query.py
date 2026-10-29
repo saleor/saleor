@@ -39,7 +39,6 @@ def test_product_types(user_api_client, product_type, channel_USD):
     [
         ({"configurable": "CONFIGURABLE"}, 2),  # has_variants
         ({"configurable": "SIMPLE"}, 1),  # !has_variants
-        ({"productType": "DIGITAL"}, 1),
         ({"productType": "SHIPPABLE"}, 2),  # is_shipping_required
         ({"kind": "NORMAL"}, 2),
         ({"kind": "GIFT_CARD"}, 1),
@@ -69,7 +68,6 @@ def test_product_type_query_with_filter(
                 slug="digital-type",
                 has_variants=True,
                 is_shipping_required=False,
-                is_digital=True,
                 kind=ProductTypeKind.NORMAL,
             ),
             ProductType(
@@ -77,7 +75,6 @@ def test_product_type_query_with_filter(
                 slug="tools",
                 has_variants=True,
                 is_shipping_required=True,
-                is_digital=False,
                 kind=ProductTypeKind.NORMAL,
             ),
             ProductType(
@@ -85,7 +82,6 @@ def test_product_type_query_with_filter(
                 slug="books",
                 has_variants=False,
                 is_shipping_required=True,
-                is_digital=False,
                 kind=ProductTypeKind.GIFT_CARD,
             ),
         ]
@@ -118,15 +114,6 @@ QUERY_PRODUCT_TYPES_WITH_SORT = """
     [
         ({"field": "NAME", "direction": "ASC"}, ["Digital", "Subscription", "Tools"]),
         ({"field": "NAME", "direction": "DESC"}, ["Tools", "Subscription", "Digital"]),
-        # is_digital
-        (
-            {"field": "DIGITAL", "direction": "ASC"},
-            ["Subscription", "Tools", "Digital"],
-        ),
-        (
-            {"field": "DIGITAL", "direction": "DESC"},
-            ["Digital", "Tools", "Subscription"],
-        ),
         # is_shipping_required
         (
             {"field": "SHIPPING_REQUIRED", "direction": "ASC"},
@@ -148,21 +135,18 @@ def test_product_type_query_with_sort(
                 slug="digital",
                 has_variants=True,
                 is_shipping_required=False,
-                is_digital=True,
             ),
             ProductType(
                 name="Tools",
                 slug="tools",
                 has_variants=True,
                 is_shipping_required=True,
-                is_digital=False,
             ),
             ProductType(
                 name="Subscription",
                 slug="subscription",
                 has_variants=False,
                 is_shipping_required=False,
-                is_digital=False,
             ),
         ]
     )

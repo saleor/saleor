@@ -17,7 +17,7 @@ from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import DeprecatedModelMutation
-from ....core.scalars import DateTime, WeightScalar
+from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
 from ....meta.inputs import MetadataInput, MetadataInputDescription
@@ -33,16 +33,6 @@ from ..product.product_create import StockInput
 from . import product_variant_cleaner as cleaner
 
 T_INPUT_MAP = list[tuple[attribute_models.Attribute, AttrValuesInput]]
-
-
-class PreorderSettingsInput(BaseInputObjectType):
-    global_threshold = graphene.Int(
-        description="The global threshold for preorder variant."
-    )
-    end_date = DateTime(description="The end date for preorder.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantInput(BaseInputObjectType):
@@ -61,9 +51,6 @@ class ProductVariantInput(BaseInputObjectType):
         )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
-    preorder = PreorderSettingsInput(
-        description="Determines if variant is in preorder."
-    )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
@@ -147,7 +134,6 @@ class ProductVariantCreate(DeprecatedModelMutation):
         cls.clean_attributes(cleaned_input, instance)
         if "sku" in cleaned_input:
             cleaned_input["sku"] = clean_variant_sku(cleaned_input.get("sku"))
-        cleaner.clean_preorder_settings(cleaned_input)
 
         return cleaned_input
 

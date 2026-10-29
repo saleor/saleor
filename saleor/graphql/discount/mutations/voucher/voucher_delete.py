@@ -6,16 +6,21 @@ from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
-from ....core.mutations import ModelDeleteMutation
+from ....core.descriptions import ADDED_IN_323
+from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import DiscountError
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Voucher
 
 
-class VoucherDelete(ModelDeleteMutation):
+class VoucherDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a voucher to delete.")
+        id = graphene.ID(required=False, description="ID of a voucher to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a voucher to delete.{ADDED_IN_323}",
+        )
 
     class Meta:
         description = "Deletes a voucher."

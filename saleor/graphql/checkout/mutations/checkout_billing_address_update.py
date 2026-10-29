@@ -9,7 +9,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -43,8 +43,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 "Indicates whether the billing address should be saved "
                 "to the user’s address book upon checkout completion. "
                 "If not provided, the default behavior is to save the address."
-            )
-            + ADDED_IN_321,
+            ),
         )
         validation_rules = CheckoutAddressValidationRules(
             required=False,

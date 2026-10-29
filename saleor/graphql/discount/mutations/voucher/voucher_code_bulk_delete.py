@@ -4,7 +4,6 @@ from .....core.tracing import traced_atomic_transaction
 from .....discount import models
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
-from ....core.descriptions import ADDED_IN_318
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.enums import VoucherCodeBulkDeleteErrorCode
 from ....core.mutations import BaseMutation
@@ -27,7 +26,7 @@ class VoucherCodeBulkDelete(BaseMutation):
         )
 
     class Meta:
-        description = "Deletes voucher codes." + ADDED_IN_318
+        description = "Deletes voucher codes."
         model = models.VoucherCode
         object_type = VoucherCode
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)

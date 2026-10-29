@@ -12,11 +12,13 @@ from ....discount.utils.promotion import mark_active_catalogue_promotion_rules_a
 from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode, ProductVariantBulkErrorCode
+from ....product.utils.product import mark_products_in_channels_as_dirty
 from ....warehouse import models as warehouse_models
 from ....warehouse.management import delete_stocks, stock_bulk_update
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...attribute.utils.attribute_assignment import AttributeAssignmentMixin
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
@@ -27,7 +29,10 @@ from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
 from ...webhook.subscription_payload import generate_pre_save_payloads
-from ..mutations.channels import ProductVariantChannelListingAddInput
+from ..mutations.channels import (
+    ProductVariantChannelListingAddInput,
+    get_new_listing_availability,
+)
 from ..mutations.product.product_create import StockInput, StockUpdateInput
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
 from .product_variant_bulk_create import (
@@ -66,8 +71,9 @@ class ChannelListingUpdateInput(BaseInputObjectType):
     price = PositiveDecimal(description="Price of the particular variant in channel.")
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     prior_price = PositiveDecimal(description="Price of the variant before discount.")
-    preorder_threshold = graphene.Int(
-        description="The threshold for preorder variant in channel."
+    is_available_for_purchase = graphene.Boolean(
+        description="Determines whether the variant can be bought in this channel. "
+        "When omitted, the current value is kept." + ADDED_IN_323
     )
 
     class Meta:
@@ -228,6 +234,12 @@ class ProductVariantBulkUpdate(BaseMutation):
         index_error_map,
     ):
         if listings_data := cleaned_input["channel_listings"].get("create"):
+            variant = cleaned_input["id"]
+            existing_channel_ids = {
+                graphene.Node.to_global_id("Channel", listing.channel_id)
+                for listing in listings_global_id_to_instance_map.values()
+                if listing.variant_id == variant.id
+            }
             cleaned_input["channel_listings"]["create"] = (
                 ProductVariantBulkCreate.clean_channel_listings(
                     listings_data,
@@ -236,6 +248,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                     variant_index,
                     index_error_map,
                     "channelListings.create",
+                    existing_channel_ids=existing_channel_ids,
                 )
             )
         if listings_data := cleaned_input["channel_listings"].get("update"):
@@ -400,14 +413,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         sku = cleaned_input.get("sku")
         if sku is not None:
             cleaned_input["sku"] = clean_variant_sku(sku)
-
-        preorder_settings = cleaned_input.get("preorder")
-        if preorder_settings:
-            cleaned_input["is_preorder"] = True
-            cleaned_input["preorder_global_threshold"] = preorder_settings.get(
-                "global_threshold"
-            )
-            cleaned_input["preorder_end_date"] = preorder_settings.get("end_date")
 
         base_fields_errors_count = cls.validate_base_fields(
             cleaned_input, duplicated_sku, index_error_map, index
@@ -639,7 +644,9 @@ class ProductVariantBulkUpdate(BaseMutation):
                     cost_price_amount=listing_data.get("cost_price"),
                     prior_price_amount=listing_data.get("prior_price"),
                     currency=listing_data["channel"].currency_code,
-                    preorder_quantity_threshold=listing_data.get("preorder_threshold"),
+                    is_available_for_purchase=get_new_listing_availability(
+                        listing_data
+                    ),
                 )
                 for listing_data in listings_data
             ]
@@ -647,10 +654,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         if listings_data := listings_input.get("update"):
             for listing_data in listings_data:
                 listing = listing_data["channel_listings"]
-                if "preorder_threshold" in listing_data:
-                    listing.preorder_quantity_threshold = listing_data[
-                        "preorder_threshold"
-                    ]
                 if "price" in listing_data:
                     listing.price_amount = listing_data["price"]
                     # set the discounted price the same as price for now, the discounted
@@ -660,6 +663,10 @@ class ProductVariantBulkUpdate(BaseMutation):
                     listing.cost_price_amount = listing_data["cost_price"]
                 if "prior_price" in listing_data:
                     listing.prior_price_amount = listing_data["prior_price"]
+                if listing_data.get("is_available_for_purchase") is not None:
+                    listing.is_available_for_purchase = listing_data[
+                        "is_available_for_purchase"
+                    ]
                 listings_to_update.append(listing)
 
     @classmethod
@@ -712,9 +719,6 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "metadata",
                 "private_metadata",
                 "external_reference",
-                "preorder_end_date",
-                "preorder_global_threshold",
-                "is_preorder",
             ],
         )
 
@@ -735,7 +739,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 "discounted_price_amount",
                 "cost_price_amount",
                 "prior_price_amount",
-                "preorder_quantity_threshold",
+                "is_available_for_purchase",
             ],
         )
         if stocks_to_remove:
@@ -764,6 +768,10 @@ class ProductVariantBulkUpdate(BaseMutation):
         impacted_channel_ids,
     ):
         if impacted_channel_ids:
+            cls.call_event(
+                mark_products_in_channels_as_dirty,
+                {channel_id: {product.pk} for channel_id in impacted_channel_ids},
+            )
             cls.call_event(
                 mark_active_catalogue_promotion_rules_as_dirty, impacted_channel_ids
             )

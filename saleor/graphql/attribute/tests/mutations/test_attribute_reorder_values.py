@@ -2,6 +2,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -9,7 +10,7 @@ from .....attribute.models import AttributeValue
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ATTRIBUTE_VALUES_REORDER_MUTATION = """
     mutation attributeReorderValues($attributeId: ID!, $moves: [ReorderInput!]!) {
@@ -250,3 +251,128 @@ def test_sort_values_trigger_webhook(
     assert attribute_updated_call in mocked_webhook_trigger.call_args_list
     assert attribute_value_1_updated_call in mocked_webhook_trigger.call_args_list
     assert attribute_value_2_updated_call in mocked_webhook_trigger.call_args_list
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "client_fixture",
+        "attribute_fixture",
+        "permission_fixture",
+        "is_allowed",
+    ),
+    [
+        (
+            "Unauthenticated user should be rejected",
+            "api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Staff user w/o any permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Product attribute w/ page permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_page_types_and_attributes",
+            False,
+        ),
+        (
+            "Product attribute w/ product permission should be allowed",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_product_types_and_attributes",
+            True,
+        ),
+        (
+            "Page attribute w/ product permission should be rejected",
+            "staff_api_client",
+            "size_page_attribute",
+            "permission_manage_product_types_and_attributes",
+            False,
+        ),
+        (
+            "Page attribute w/ page permission should be allowed",
+            "staff_api_client",
+            "size_page_attribute",
+            "permission_manage_page_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute w/ customer permission should be allowed",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_customer_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute w/ legacy product permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_product_types_and_attributes",
+            False,
+        ),
+        (
+            "Customer attribute w/ page permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_page_types_and_attributes",
+            False,
+        ),
+        (
+            "Product attribute w/ customer permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_customer_types_and_attributes",
+            False,
+        ),
+    ],
+)
+def test_authorization(
+    request, _case, client_fixture, attribute_fixture, permission_fixture, is_allowed
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    attribute = request.getfixturevalue(attribute_fixture)
+    if permission_fixture:
+        client.user.user_permissions.add(request.getfixturevalue(permission_fixture))
+    values = attribute.values
+    values.set(list(values.all()))
+    initial_order = list(values.values_list("pk", flat=True))
+    assert len(initial_order) == 2
+    variables = {
+        "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", initial_order[0]),
+                "sortOrder": +1,
+            }
+        ],
+    }
+
+    # when
+    response = client.post_graphql(ATTRIBUTE_VALUES_REORDER_MUTATION, variables)
+
+    # then
+    if is_allowed:
+        content = get_graphql_content(response)
+        data = content["data"]["attributeReorderValues"]
+        assert data["errors"] == []
+        expected_order = [initial_order[1], initial_order[0]]
+        assert list(values.values_list("pk", flat=True)) == expected_order
+    else:
+        assert_no_permission(response)
+        assert list(values.values_list("pk", flat=True)) == initial_order

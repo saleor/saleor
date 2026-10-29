@@ -12,7 +12,7 @@ from django.db.models import F, QuerySet, Sum
 
 from ..account.models import User
 from ..attribute.models import AttributeValueTranslation
-from ..checkout.models import Checkout
+from ..checkout.models import Checkout, CheckoutDelivery
 from ..checkout.utils import get_checkout_metadata
 from ..core.db.connection import allow_writer
 from ..core.prices import quantize_price, quantize_price_fields
@@ -534,10 +534,17 @@ def generate_checkout_payload(
     else:
         warehouse = Warehouse.objects.for_channel(checkout.channel_id).first()
 
+    try:
+        assigned_delivery = checkout.assigned_delivery
+    except CheckoutDelivery.DoesNotExist:
+        # Deleted by a concurrent request after the checkout was fetched; the DB
+        # has already nulled the FK (SET_NULL), so drop the stale reference.
+        checkout.assigned_delivery = assigned_delivery = None
+
     shipping_method = None
-    if checkout.assigned_delivery and not checkout.assigned_delivery.is_external:
+    if assigned_delivery and not assigned_delivery.is_external:
         shipping_method = ShippingMethod.objects.filter(
-            id=checkout.assigned_delivery.shipping_method_id
+            id=assigned_delivery.shipping_method_id
         ).first()
     checkout_data = serializer.serialize(
         [checkout],
@@ -640,6 +647,7 @@ def generate_collection_payload(
         fields=[
             "name",
             "description",
+            "full_description",
             "background_image_alt",
             "private_metadata",
             "metadata",
@@ -906,18 +914,22 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
                 )
             ),
             "total_price_net_amount": (
-                lambda fl: quantize_price(
-                    fl.order_line.undiscounted_unit_price.net.amount,
-                    fl.order_line.currency,
+                lambda fl: (
+                    quantize_price(
+                        fl.order_line.undiscounted_unit_price.net.amount,
+                        fl.order_line.currency,
+                    )
+                    * fl.quantity
                 )
-                * fl.quantity
             ),
             "total_price_gross_amount": (
-                lambda fl: quantize_price(
-                    fl.order_line.undiscounted_unit_price.gross.amount,
-                    fl.order_line.currency,
+                lambda fl: (
+                    quantize_price(
+                        fl.order_line.undiscounted_unit_price.gross.amount,
+                        fl.order_line.currency,
+                    )
+                    * fl.quantity
                 )
-                * fl.quantity
             ),
             "currency": lambda fl: fl.order_line.currency,
             "warehouse_id": lambda fl: (
@@ -1129,7 +1141,7 @@ def generate_sample_payload(event_name: str) -> dict | None:
     ]
 
     if event_name in user_events:
-        user = generate_fake_user()
+        user, _fake_address = generate_fake_user()
         payload = generate_customer_payload(user)
     elif event_name == WebhookEventAsyncType.PRODUCT_CREATED:
         product = _get_sample_object(Product.objects.all())

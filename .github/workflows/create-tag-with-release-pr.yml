@@ -64,12 +64,18 @@ jobs:
               ref: `refs/tags/${process.env.VERSION}`,
               sha: context.sha
             })
+      - name: Checkout tagged commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          sparse-checkout: |
+            saleor/graphql/schema.graphql
       - name: Create github release
         env:
           VERSION: ${{ steps.set-version.outputs.VERSION }}
           IS_LATEST: ${{ steps.check-latest.outputs.IS_LATEST }}
         run: |
-          gh release create -d "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag
+          gh release create -d "$VERSION" --repo="$GITHUB_REPOSITORY" --latest="$IS_LATEST" --generate-notes --verify-tag saleor/graphql/schema.graphql
 
   publish:
     needs: [create-release-tag]
@@ -96,7 +102,7 @@ jobs:
     steps:
       - name: Get Token
         id: get-token
-        uses: saleor/saleor-internal-actions/request-vault-token@d7b612674c6d2c0c04c9e946e5decfc483e2795a # v1.12.0
+        uses: saleor/saleor-internal-actions/request-vault-token@d8bc107b3eb1c48111e47e1e2fc192232086f534 # v1.13.0
         with:
           vault-url: ${{ secrets.VAULT_URL }}
           vault-jwt: ${{ secrets.VAULT_JWT }}

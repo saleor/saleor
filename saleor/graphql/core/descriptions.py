@@ -10,10 +10,6 @@ DEPRECATED_IN_3X_TYPE = "\n\nDEPRECATED: this type will be removed."
 
 DEPRECATED_IN_3X_EVENT = "\n\nDEPRECATED: this event will be removed."
 
-ADDED_IN_318 = "\n\nAdded in Saleor 3.18."
-ADDED_IN_319 = "\n\nAdded in Saleor 3.19."
-ADDED_IN_320 = "\n\nAdded in Saleor 3.20."
-ADDED_IN_321 = "\n\nAdded in Saleor 3.21."
 ADDED_IN_322 = "\n\nAdded in Saleor 3.22."
 ADDED_IN_323 = "\n\nAdded in Saleor 3.23."
 ADDED_IN_324 = "\n\nAdded in Saleor 3.24."
@@ -21,6 +17,23 @@ ADDED_IN_324 = "\n\nAdded in Saleor 3.24."
 DEPRECATED_EXPORT_MUTATIONS = (
     "Export functionality is deprecated and will be removed. "
     "All data can be fetched via the GraphQL API and parsed into the desired format by apps or external tools."
+)
+
+DEPRECATED_EXPORT_MUTATIONS_TYPE_DESCRIPTION = "\n\n" + DEPRECATED_EXPORT_MUTATIONS
+
+DEPRECATED_LEGACY_PAYMENTS = (
+    "The legacy Payments API is deprecated and will be removed. "
+    "Use the Transactions API instead."
+)
+
+DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION = "\n\n" + DEPRECATED_LEGACY_PAYMENTS
+
+DEPRECATED_PRODUCT_RATING = (
+    "Product rating is deprecated and will be removed. Use a numeric attribute instead."
+)
+
+DEPRECATED_PRODUCT_RATING_INPUT = (
+    f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_PRODUCT_RATING}"
 )
 
 

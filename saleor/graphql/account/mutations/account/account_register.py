@@ -7,7 +7,7 @@ from django.db import IntegrityError, transaction
 from .....account import models
 from .....account.error_codes import AccountErrorCode
 from .....account.tasks import finish_creating_user
-from .....account.utils import RequestorAwareContext
+from .....account.utils import RequestorAwareContext, get_default_customer_type
 from .....core.utils.url import validate_storefront_url
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
@@ -237,6 +237,7 @@ class AccountRegister(DeprecatedModelMutation):
             cleaned_input["password"]
         )
         instance.is_confirmed = False
+        instance.customer_type = get_default_customer_type()
 
         user_created = False
         if not user_exists:

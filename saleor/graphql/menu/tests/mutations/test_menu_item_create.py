@@ -5,6 +5,7 @@ import graphene
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
+from .....core.db.locks import AdvisoryLock
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....menu.models import MenuItem
 from .....webhook.event_types import WebhookEventAsyncType
@@ -96,3 +97,29 @@ def test_create_menu_item_trigger_webhook(
         SimpleLazyObject(lambda: staff_api_client.user),
         allow_replica=False,
     )
+
+
+def test_takes_menu_item_tree_lock_before_insert(
+    staff_api_client,
+    menu,
+    permission_manage_menus,
+    assert_advisory_lock_before_tree_write,
+):
+    # given
+    name = "item menu"
+    menu_id = graphene.Node.to_global_id("Menu", menu.pk)
+    variables = {"name": name, "menu_id": menu_id}
+
+    # when
+    with assert_advisory_lock_before_tree_write(
+        AdvisoryLock.MENU_ITEM_TREE, MenuItem._meta.db_table
+    ):
+        response = staff_api_client.post_graphql(
+            CREATE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
+        )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["menuItemCreate"]["menuItem"]["name"] == name
+    created_item = MenuItem.objects.get(name=name, menu=menu)
+    assert created_item.parent_id is None

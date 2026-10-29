@@ -206,30 +206,6 @@ query OrdersQuery {
                         amount
                     }
                 }
-                availableShippingMethods {
-                    id
-                    name
-                    description
-                    price{
-                      amount
-                    }
-                    minimumOrderPrice {
-                      amount
-                    }
-                    maximumOrderPrice{
-                      amount
-                    }
-                    maximumDeliveryDays
-                    minimumDeliveryDays
-                    metadata{
-                      key
-                      value
-                    }
-                    privateMetadata{
-                      key
-                      value
-                    }
-                }
                 shippingMethods{
                   id
                   name
@@ -437,12 +413,12 @@ def test_order_query(
         lines_qs=order.lines.all(), channel_id=order.channel.id
     )
 
-    assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["shippingMethods"]) == (expected_methods.count())
     assert len(order_data["availableCollectionPoints"]) == (
         expected_collection_points.count()
     )
 
-    method = order_data["availableShippingMethods"][0]
+    method = order_data["shippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
@@ -1438,9 +1414,9 @@ def test_order_query_in_pln_channel(
         country_code=order.shipping_address.country.code,
         channel_id=order.channel_id,
     )
-    assert len(order_data["availableShippingMethods"]) == (expected_methods.count())
+    assert len(order_data["shippingMethods"]) == (expected_methods.count())
 
-    method = order_data["availableShippingMethods"][0]
+    method = order_data["shippingMethods"][0]
     expected_method = expected_methods.first()
     expected_shipping_price = expected_method.channel_listings.get(
         channel_id=order.channel_id
@@ -1878,6 +1854,40 @@ def test_query_order_fields_order_with_old_id_staff_with_perm(
         == order.shipping_address.street_address_1
     )
     assert content["data"]["order"]["userEmail"] == order.user_email
+
+
+def test_query_order_fields_order_with_old_id_and_anonymous_request(
+    order, app_api_client, permission_manage_orders
+):
+    # given
+    order.user = None
+    order.use_old_id = True
+    order.save(update_fields=["use_old_id", "user_id"])
+
+    variables = {"id": graphene.Node.to_global_id("Order", order.id)}
+
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_ORDER_FIELDS_BY_ID,
+        variables,
+        permissions=(permission_manage_orders,),
+        check_no_permissions=False,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["order"]
+    assert (
+        content["data"]["order"]["billingAddress"]["streetAddress1"]
+        == order.billing_address.street_address_1[0] + "........"
+    )
+    assert (
+        content["data"]["order"]["shippingAddress"]["streetAddress1"]
+        == order.shipping_address.street_address_1[0] + "........"
+    )
+    assert (
+        content["data"]["order"]["userEmail"] == order.user_email[0] + "...@example.com"
+    )
 
 
 def test_query_order_fields_by_old_id_app_no_perm(order, app_api_client):

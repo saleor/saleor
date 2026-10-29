@@ -353,10 +353,10 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_authorizat
     transaction_release_funds_for_checkout_task()
 
     # then
-    request_event = transaction_item.events.filter(
+    request_event = transaction_item.events.get(
         type=TransactionEventType.CANCEL_REQUEST
-    ).first()
-    assert request_event
+    )
+    assert request_event.idempotency_key
     assert not mocked_refund_action.called
     mocked_cancel_action.assert_called_once_with(
         channel_slug=checkout.channel.slug,
@@ -401,10 +401,10 @@ def test_transaction_release_funds_for_checkout_task_transaction_with_charge(
     transaction_release_funds_for_checkout_task()
 
     # then
-    request_event = transaction_item.events.filter(
+    request_event = transaction_item.events.get(
         type=TransactionEventType.REFUND_REQUEST
-    ).first()
-    assert request_event
+    )
+    assert request_event.idempotency_key
     assert not mocked_cancel_action.called
     mocked_refund_action.assert_called_once_with(
         channel_slug=checkout.channel.slug,

@@ -97,6 +97,17 @@ class ProductBulkTranslate(BaseBulkTranslateMutation):
         cleaned_inputs_map: dict = {}
 
         for index, data in enumerate(data_inputs):
+            if "full_description" in data["translation_fields"]:
+                index_error_map[index].append(
+                    ProductBulkTranslateError(
+                        path="fullDescription",
+                        message="Full descriptions are only supported for categories "
+                        "and collections.",
+                        code=ProductTranslateErrorCode.INVALID.value,
+                    )
+                )
+                cleaned_inputs_map[index] = None
+                continue
             global_id = data.get("id")
             external_ref = data.get("external_reference")
 

@@ -49,7 +49,7 @@ def update_checkouts_search_vector(checkouts: list["Checkout"]):
 
     with transaction.atomic():
         with allow_writer():
-            _locked_checkouts = (
+            _locked_checkouts = list(
                 checkout_qs_select_for_update()
                 .filter(pk__in=[checkout.pk for checkout in checkouts])
                 .values_list("pk", flat=True)

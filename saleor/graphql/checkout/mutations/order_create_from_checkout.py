@@ -28,6 +28,10 @@ from ...core.context import SyncWebhookControlContext
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
+from ...core.types.common import (
+    PROMO_CODE_DETAILS_DESCRIPTION,
+    PromoCodeRejectionDetails,
+)
 from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
 from ...meta.inputs import MetadataInput, MetadataInputDescription
 from ...order.types import Order
@@ -49,6 +53,11 @@ class OrderCreateFromCheckoutError(Error):
     lines = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of line Ids which cause the error.",
+        required=False,
+    )
+    promo_code_details = graphene.Field(
+        PromoCodeRejectionDetails,
+        description=PROMO_CODE_DETAILS_DESCRIPTION,
         required=False,
     )
 
@@ -220,14 +229,14 @@ class OrderCreateFromCheckout(BaseMutation):
         app = get_app_promise(info.context).get()
         requestor = app or user
 
-        cls.validate_checkout(
-            checkout_info,
-            checkout_lines,
-            unavailable_variant_pks,
-            manager,
-            requestor=requestor,
-        )
         try:
+            cls.validate_checkout(
+                checkout_info,
+                checkout_lines,
+                unavailable_variant_pks,
+                manager,
+                requestor=requestor,
+            )
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
                 manager=manager,
@@ -244,6 +253,7 @@ class OrderCreateFromCheckout(BaseMutation):
                     "voucher_code": ValidationError(
                         "Voucher not applicable",
                         code=code,
+                        params={"promo_code_details": e.rejection},
                     )
                 }
             ) from e
@@ -251,7 +261,15 @@ class OrderCreateFromCheckout(BaseMutation):
             error = prepare_insufficient_stock_checkout_validation_error(e)
             raise error from e
         except GiftCardNotApplicable as e:
-            raise ValidationError({"gift_cards": e}) from e
+            raise ValidationError(
+                {
+                    "gift_cards": ValidationError(
+                        e.message,
+                        code=OrderCreateFromCheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value,
+                        params={"promo_code_details": e.rejection},
+                    )
+                }
+            ) from e
         except TaxDataError as e:
             raise ValidationError(
                 "Configured Tax App returned invalid response.",

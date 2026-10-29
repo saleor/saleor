@@ -2,6 +2,7 @@ import json
 from unittest.mock import call, patch
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -10,8 +11,288 @@ from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import DiscountValueTypeEnum
+
+MUTATION_UPDATE_VOUCHER_BY_EXTERNAL_REFERENCE = """
+    mutation updateVoucher(
+        $id: ID, $externalReference: String, $input: VoucherInput!
+    ) {
+        voucherUpdate(
+            id: $id, externalReference: $externalReference, input: $input
+        ) {
+            errors {
+                message
+                field
+                code
+            }
+            voucher {
+                name
+                externalReference
+            }
+        }
+    }
+"""
+
+
+def test_by_external_reference(staff_api_client, voucher, permission_manage_discounts):
+    # given
+    external_reference = "test-ext-ref"
+    voucher.external_reference = external_reference
+    voucher.save(update_fields=["external_reference"])
+    name = "New name"
+    variables = {
+        "externalReference": external_reference,
+        "input": {"name": name},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["voucherUpdate"]
+    assert data["errors"] == []
+    voucher.refresh_from_db(fields=("name", "external_reference"))
+    assert data["voucher"]["name"] == name
+    assert voucher.name == name
+    assert voucher.external_reference == external_reference
+
+
+def test_with_non_unique_external_reference(
+    staff_api_client, voucher, voucher_list, permission_manage_discounts
+):
+    # given
+    external_reference = "test-ext-ref"
+    other_voucher = voucher_list[0]
+    other_voucher.external_reference = external_reference
+    other_voucher.save(update_fields=["external_reference"])
+
+    variables = {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "input": {"externalReference": external_reference},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["voucherUpdate"]
+    voucher.refresh_from_db(fields=("external_reference",))
+    assert voucher.external_reference is None
+    assert data["voucher"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"] == "Voucher with this External reference already exists."
+    )
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == DiscountErrorCode.UNIQUE.name
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "null",
+            {"id": None, "externalReference": None},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "empty",
+            {"externalReference": ""},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'external_reference'.",
+        ),
+        (
+            "both",
+            {"externalReference": "existing-reference"},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "Argument 'id' cannot be combined with 'external_reference'",
+        ),
+        (
+            "not_found",
+            {"externalReference": "missing-reference"},
+            "externalReference",
+            DiscountErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    mocker,
+):
+    # given
+    voucher.external_reference = "existing-reference"
+    voucher.save(update_fields=("external_reference",))
+    original_name = voucher.name
+    original_reference = voucher.external_reference
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.voucher_updated")
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["id"] = graphene.Node.to_global_id("Voucher", voucher.pk)
+    variables["input"] = {"name": "Changed name"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts],
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["voucherUpdate"]
+    assert data["voucher"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    voucher.refresh_from_db(fields=("name", "external_reference"))
+    assert voucher.name == original_name
+    assert voucher.external_reference == original_reference
+    webhook.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    voucher,
+    permission_manage_discounts,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    voucher.external_reference = "existing-reference"
+    voucher.save(update_fields=("external_reference",))
+    original_name = voucher.name
+    original_reference = voucher.external_reference
+    name = "Changed voucher"
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.voucher_updated")
+    variables = {"externalReference": original_reference, "input": {"name": name}}
+
+    # when
+    response = client.post_graphql(
+        MUTATION_UPDATE_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["voucherUpdate"]
+        assert data["errors"] == []
+        voucher.refresh_from_db(fields=("name", "external_reference"))
+        assert voucher.name == name
+        assert voucher.external_reference == original_reference
+        assert data["voucher"] == {
+            "name": name,
+            "externalReference": original_reference,
+        }
+        webhook.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"voucherUpdate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["voucherUpdate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: MANAGE_DISCOUNTS"
+        )
+        voucher.refresh_from_db(fields=("name", "external_reference"))
+        assert voucher.name == original_name
+        assert voucher.external_reference == original_reference
+        webhook.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "reference_input", "expected_reference"),
+    [
+        ("changed", {"externalReference": "new-reference"}, "new-reference"),
+        ("cleared", {"externalReference": None}, None),
+        ("omitted", {}, "original-reference"),
+    ],
+)
+def test_external_reference_input(
+    _case,
+    reference_input,
+    expected_reference,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+):
+    # given
+    voucher.external_reference = "original-reference"
+    voucher.save(update_fields=("external_reference",))
+    name = "Updated voucher"
+    variables = {
+        "externalReference": voucher.external_reference,
+        "input": {"name": name, **reference_input},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_VOUCHER_BY_EXTERNAL_REFERENCE,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["voucherUpdate"]
+    assert data["errors"] == []
+    assert data["voucher"] == {"name": name, "externalReference": expected_reference}
+    voucher.refresh_from_db(fields=("name", "external_reference"))
+    assert voucher.name == name
+    assert voucher.external_reference == expected_reference
+
 
 UPDATE_VOUCHER_MUTATION = """
 mutation voucherUpdate($id: ID!, $input: VoucherInput!) {

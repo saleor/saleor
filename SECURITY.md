@@ -12,12 +12,14 @@ Whichever method you choose, you will be credited as the reporter once the annou
 
 ## Guidelines
 
-A report must include:
+A report must:
 
-- A clear description of the issue
-- Reproduction steps that allow us to verify the behavior
-- Affected version(s) and environment details (versions, OS, tools, configurations)
-- Let us know if you are willing to review the patches before their publication
+- Include a clear description of the issue
+- Include reproduction steps that allow us to verify the behavior
+- Include affected version(s) and environment details (versions, OS, tools, configurations)
+- Mention whether you are willing to review the patches before their publication
+- Be self-contained (no file attachments nor download links). Reports requiring to open
+  arbitrary files or links may not be accepted.
 
 Reports that lack these elements may be considered incomplete and may be closed without follow-up,
 reports may also be closed if the submitter does not engage to follow-ups.
@@ -51,5 +53,5 @@ The following releases of Saleor are currently supported.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| ≥ 3.21  | :white_check_mark: |
-| < 3.21  | :x:                |
+| ≥ 3.22  | :white_check_mark: |
+| < 3.22  | :x:                |

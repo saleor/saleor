@@ -27,6 +27,7 @@ from ....core.telemetry import (
 )
 from ....core.tracing import webhooks_otel_trace
 from ....core.utils import get_domain
+from ....core.utils.events import get_is_deferred_payload
 from ....core.utils.url import sanitize_url_for_logging
 from ....graphql.webhook.subscription_payload import (
     generate_payload_promise_from_subscription,
@@ -35,6 +36,7 @@ from ....graphql.webhook.subscription_payload import (
 )
 from ... import observability
 from ...event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ...models import WebhookPayloadGeneration
 from ...observability import WebhookData
 from ..metrics import record_external_request, record_first_delivery_attempt_delay
 from ..utils import (
@@ -299,6 +301,27 @@ def group_webhooks_by_subscription(
     return legacy, subscription
 
 
+def group_subscription_webhooks_by_payload_generation(
+    webhooks: Sequence["Webhook"],
+) -> tuple[list["Webhook"], list["Webhook"]]:
+    """Group subscription webhooks by their `payload_generation` setting.
+
+    Returns a tuple of two lists: webhooks whose payload is built in the deferred
+    task and webhooks whose payload is built immediately, in the request.
+    """
+    deferred = [
+        webhook
+        for webhook in webhooks
+        if webhook.payload_generation == WebhookPayloadGeneration.DEFERRED
+    ]
+    immediate = [
+        webhook
+        for webhook in webhooks
+        if webhook.payload_generation != WebhookPayloadGeneration.DEFERRED
+    ]
+    return deferred, immediate
+
+
 @allow_writer()
 def create_event_delivery_list_for_webhooks(
     webhooks: Sequence["Webhook"],
@@ -359,9 +382,7 @@ def trigger_webhooks_async_for_multiple_objects(
 
     legacy_webhooks, subscription_webhooks = group_webhooks_by_subscription(webhooks)
 
-    is_deferred_payload = WebhookEventAsyncType.EVENT_MAP.get(event_type, {}).get(
-        "is_deferred_payload", False
-    )
+    is_deferrable_event = get_is_deferred_payload(event_type)
 
     # List of deliveries with payloads.
     deliveries: list[EventDelivery] = []
@@ -401,24 +422,40 @@ def trigger_webhooks_async_for_multiple_objects(
             webhook_payload_data.subscribable_object
             for webhook_payload_data in webhook_payloads_data
         ]
-        if is_deferred_payload:
+        # A webhook's `payload_generation` is read here, once, when its deliveries
+        # are created. Deliveries and tasks created earlier are not affected by a
+        # later change of the setting.
+        deferred_webhooks: list[Webhook] = []
+        immediate_webhooks = subscription_webhooks
+        if is_deferrable_event:
+            deferred_webhooks, immediate_webhooks = (
+                group_subscription_webhooks_by_payload_generation(subscription_webhooks)
+            )
+        if deferred_webhooks:
             deferred_deliveries_per_object = (
                 create_deliveries_for_deferred_payload_subscriptions(
                     event_type=event_type,
                     subscribable_objects=subscribable_objects,
-                    webhooks=subscription_webhooks,
+                    webhooks=deferred_webhooks,
                     requestor=requestor,
                     allow_replica=allow_replica,
                     request_time=request_time,
                 )
             )
-        else:
+        if immediate_webhooks:
+            # A deferrable event can be fired by a task right after it wrote the
+            # object on the writer, with a manager that allows the replica. The
+            # deferred task waits for the replica to catch up before it resolves
+            # the payload, but this path resolves it now, so the fields it loads
+            # through dataloaders are read from the writer instead. Fields taken
+            # from the subscribable object itself still reflect wherever the
+            # caller loaded that object from.
             delivery_promise = create_deliveries_for_multiple_subscription_objects(
                 event_type=event_type,
                 subscribable_objects=subscribable_objects,
-                webhooks=subscription_webhooks,
+                webhooks=immediate_webhooks,
                 requestor=requestor,
-                allow_replica=allow_replica,
+                allow_replica=allow_replica and not is_deferrable_event,
                 pre_save_payloads=pre_save_payloads,
                 request_time=request_time,
             )
@@ -546,6 +583,12 @@ def generate_deferred_payloads(
     *,
     telemetry_context: TelemetryTaskContext,
 ):
+    """Build subscription payloads for deferred deliveries and send them.
+
+    This task must not read the webhook's `payload_generation`. The deliveries it
+    receives were created under the setting's value at trigger time, and a change
+    made since must not alter how they complete.
+    """
     if not event_delivery_ids:
         logger.warning(
             "No event delivery IDs provided for deferred payload generation task."

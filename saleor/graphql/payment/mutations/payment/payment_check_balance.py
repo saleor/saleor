@@ -6,6 +6,7 @@ from .....payment.error_codes import PaymentErrorCode
 from .....payment.gateway import get_payment_gateways, is_currency_supported
 from ....channel.utils import validate_channel
 from ....core import ResolveInfo
+from ....core.descriptions import DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.fields import JSONString
 from ....core.mutations import BaseMutation
@@ -32,6 +33,12 @@ class CardInput(graphene.InputObjectType):
         description="Information about currency and amount.", required=True
     )
 
+    class Meta:
+        description = (
+            "Card data used to check a payment balance."
+            + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
+
 
 class PaymentCheckBalanceInput(BaseInputObjectType):
     gateway_id = graphene.types.String(
@@ -46,6 +53,10 @@ class PaymentCheckBalanceInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
+        description = (
+            "Fields required to check a payment balance."
+            + DEPRECATED_LEGACY_PAYMENTS_TYPE_DESCRIPTION
+        )
 
 
 class PaymentCheckBalance(BaseMutation):

@@ -6,6 +6,47 @@ from .....tests.utils import get_graphql_content
 from .shared import PRODUCT_VARIANTS_WHERE_QUERY
 
 
+@pytest.mark.parametrize(
+    ("_case", "attributes_value"),
+    [
+        ("empty_list", []),
+        ("null", None),
+    ],
+)
+def test_product_variants_query_with_empty_attributes(
+    _case,
+    attributes_value,
+    staff_api_client,
+    product_variant_list,
+    weight_attribute,
+    channel_USD,
+):
+    # given
+    product_type = product_variant_list[0].product.product_type
+    product_type.variant_attributes.add(weight_attribute)
+    attr_value = weight_attribute.values.first()
+
+    associate_attribute_values_to_instance(
+        product_variant_list[0], {weight_attribute.pk: [attr_value]}
+    )
+
+    variables = {
+        "where": {"attributes": attributes_value},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANTS_WHERE_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    product_variants_nodes = content["data"]["productVariants"]["edges"]
+    assert product_variants_nodes == []
+
+
 def test_product_variants_query_with_attribute_slug(
     staff_api_client, product_variant_list, weight_attribute, channel_USD
 ):

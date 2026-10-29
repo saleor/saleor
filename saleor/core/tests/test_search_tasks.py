@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from ...account.search import update_user_search_vector
 from ...core.postgres import FlatConcatSearchVector
 from ...core.search_tasks import (
@@ -24,6 +26,68 @@ def test_set_user_search_document_values(customer_user, customer_user2):
     assert customer_user.search_vector
     assert customer_user.email in customer_user.search_vector
     assert customer_user2.search_vector == search_vector_customer_2
+
+
+@patch("saleor.core.search_tasks.USER_BATCH_SIZE", 1)
+@patch("saleor.core.search_tasks.set_user_search_document_values.delay")
+def test_set_user_search_document_values_schedules_next_batch_with_cursor(
+    mocked_delay, customer_user, customer_user2
+):
+    # given
+    assert not customer_user.search_vector
+    assert not customer_user2.search_vector
+    assert customer_user2.pk > customer_user.pk
+
+    # when
+    set_user_search_document_values()
+
+    # then
+    customer_user.refresh_from_db()
+    customer_user2.refresh_from_db()
+    assert customer_user2.search_vector
+    assert not customer_user.search_vector
+    mocked_delay.assert_called_once_with(1, last_user_pk=customer_user2.pk)
+
+
+@patch("saleor.core.search_tasks.USER_BATCH_SIZE", 1)
+@patch("saleor.core.search_tasks.set_user_search_document_values.delay")
+def test_set_user_search_document_values_respects_cursor(
+    mocked_delay, customer_user, customer_user2
+):
+    # given
+    assert not customer_user.search_vector
+    assert not customer_user2.search_vector
+    assert customer_user2.pk > customer_user.pk
+
+    # when
+    set_user_search_document_values(1, last_user_pk=customer_user2.pk)
+
+    # then
+    customer_user.refresh_from_db()
+    customer_user2.refresh_from_db()
+    assert customer_user.search_vector
+    assert not customer_user2.search_vector
+    mocked_delay.assert_called_once_with(2, last_user_pk=customer_user.pk)
+
+
+@patch("saleor.core.search_tasks.USER_BATCH_SIZE", 3)
+@patch("saleor.core.search_tasks.set_user_search_document_values.delay")
+def test_set_user_search_document_values_last_batch_does_not_reschedule(
+    mocked_delay, customer_user, customer_user2
+):
+    # given
+    assert not customer_user.search_vector
+    assert not customer_user2.search_vector
+
+    # when
+    set_user_search_document_values()
+
+    # then
+    customer_user.refresh_from_db()
+    customer_user2.refresh_from_db()
+    assert customer_user.search_vector
+    assert customer_user2.search_vector
+    mocked_delay.assert_not_called()
 
 
 def test_set_order_search_document_values_already_present(

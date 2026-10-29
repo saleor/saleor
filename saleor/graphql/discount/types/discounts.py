@@ -8,7 +8,6 @@ from ....core.prices import quantize_price
 from ....discount import models
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.fields import PermissionsField
 from ...core.scalars import PositiveDecimal
@@ -62,7 +61,7 @@ class OrderDiscount(BaseOrderDiscount[models.OrderDiscount]):
     total = graphene.Field(
         Money,
         required=True,
-        description="The amount of discount applied to the order." + ADDED_IN_321,
+        description="The amount of discount applied to the order.",
     )
 
     class Meta:
