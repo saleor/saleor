@@ -12,7 +12,7 @@ from ...metrics import (
     METRIC_EXTERNAL_REQUEST_DURATION,
 )
 from ...utils import WebhookResponse
-from ..transport import _send_webhook_request_sync
+from ..transport import _send_webhook_request_sync, send_webhook_request_sync
 
 
 @patch("saleor.webhook.transport.synchronous.transport.send_webhook_using_http")
@@ -269,3 +269,63 @@ def test_send_webhook_request_sync_record_external_request_with_unknown_webhook_
     assert external_request_content_length.attributes == attributes
     assert external_request_content_length.count == 1
     assert external_request_content_length.sum == payload_size
+
+
+@patch("saleor.webhook.transport.synchronous.transport._send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.transaction.get_connection")
+def test_send_webhook_request_sync_logs_warning_when_called_inside_transaction(
+    mock_get_connection,
+    mock_send_webhook_request_sync,
+    event_delivery_payload_in_database,
+    caplog,
+):
+    # given
+    mock_get_connection.return_value.in_atomic_block = True
+    response = MagicMock(spec=WebhookResponse)
+    response.status = EventDeliveryStatus.SUCCESS
+    response_data = {"key": "value"}
+    mock_send_webhook_request_sync.return_value = (response, response_data)
+    delivery = event_delivery_payload_in_database
+
+    # when
+    result = send_webhook_request_sync(delivery)
+
+    # then
+    mock_send_webhook_request_sync.assert_called_once()
+    assert result == response_data
+    warning_records = [
+        record for record in caplog.records if record.levelname == "WARNING"
+    ]
+    assert len(warning_records) == 1
+    assert warning_records[0].message == (
+        f"Sync webhook was triggered inside a database transaction: "
+        f"{delivery.event_type}"
+    )
+
+
+@patch("saleor.webhook.transport.synchronous.transport._send_webhook_request_sync")
+@patch("saleor.webhook.transport.synchronous.transport.transaction.get_connection")
+def test_send_webhook_request_sync_no_warning_when_called_outside_transaction(
+    mock_get_connection,
+    mock_send_webhook_request_sync,
+    event_delivery_payload_in_database,
+    caplog,
+):
+    # given
+    mock_get_connection.return_value.in_atomic_block = False
+    response = MagicMock(spec=WebhookResponse)
+    response.status = EventDeliveryStatus.SUCCESS
+    response_data = {"key": "value"}
+    mock_send_webhook_request_sync.return_value = (response, response_data)
+    delivery = event_delivery_payload_in_database
+
+    # when
+    result = send_webhook_request_sync(delivery)
+
+    # then
+    mock_send_webhook_request_sync.assert_called_once()
+    assert result == response_data
+    warning_records = [
+        record for record in caplog.records if record.levelname == "WARNING"
+    ]
+    assert len(warning_records) == 0
