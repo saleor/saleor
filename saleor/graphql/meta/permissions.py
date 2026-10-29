@@ -392,3 +392,24 @@ PRIVATE_META_PERMISSION_MAP: dict[
     "Voucher": discount_permissions,
     "Warehouse": product_permissions,
 }
+
+
+def external_reference_lookup_permissions(
+    info: ResolveInfo,
+    type_name: str,
+    permission_map: dict[str, Callable[[ResolveInfo, Any], list[BasePermissionEnum]]],
+) -> list[BasePermissionEnum]:
+    """Return permissions required to look an object up by its external reference.
+
+    Checked before the lookup, so a requestor without access to the type can't
+    probe which external references exist. Attribute permissions depend on the
+    attribute's type, which is unknown before the lookup, so any of them allows it;
+    the object-level permission check still runs once the object is resolved.
+    """
+    if type_name == "Attribute":
+        return [
+            ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
+            CustomerTypePermissions.MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES,
+        ]
+    return permission_map[type_name](info, None)
