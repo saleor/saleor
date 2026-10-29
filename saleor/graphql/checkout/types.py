@@ -45,10 +45,8 @@ from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext
 from ..core.descriptions import (
-    ADDED_IN_318,
-    ADDED_IN_319,
-    ADDED_IN_321,
     ADDED_IN_323,
+    DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT
@@ -302,8 +300,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
     )
     prior_unit_price = graphene.Field(
         Money,
-        description="The unit price of the checkout line prior to promotion."
-        + ADDED_IN_321,
+        description="The unit price of the checkout line prior to promotion.",
     )
     total_price = BaseField(
         TaxedMoney,
@@ -323,8 +320,7 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
     )
     prior_total_price = graphene.Field(
         Money,
-        description="The sum of the checkout line price prior to promotion."
-        + ADDED_IN_321,
+        description="The sum of the checkout line price prior to promotion.",
     )
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered.",
@@ -334,7 +330,18 @@ class CheckoutLine(SyncWebhookControlContextModelObjectType[models.CheckoutLine]
         CheckoutLineProblem, description="List of problems with the checkout line."
     )
     is_gift = graphene.Boolean(
-        description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
+        description="Determine if the line is a gift." + PREVIEW_FEATURE,
+    )
+    price_override_reason = PermissionsField(
+        graphene.String,
+        description=(
+            "Reason explaining why a custom price was set on the line, provided by "
+            "the app that set the price override." + ADDED_IN_323
+        ),
+        permissions=[
+            CheckoutPermissions.MANAGE_CHECKOUTS,
+            CheckoutPermissions.HANDLE_CHECKOUTS,
+        ],
     )
 
     class Meta:
@@ -609,12 +616,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
         description="The shipping address of the checkout.",
     )
     customer_note = graphene.String(
-        required=True, description=f"The customer note for the checkout. {ADDED_IN_321}"
-    )
-    note = graphene.String(
-        required=True,
-        description="The note for the checkout.",
-        deprecation_reason="Use `customerNote` instead.",
+        required=True, description="The customer note for the checkout. "
     )
     discount = graphene.Field(
         Money,
@@ -636,7 +638,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
     )
     voucher = PermissionsField(
         "saleor.graphql.discount.types.vouchers.Voucher",
-        description="The voucher assigned to the checkout." + ADDED_IN_318,
+        description="The voucher assigned to the checkout.",
         permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
     )
     voucher_code = graphene.String(
@@ -700,6 +702,7 @@ class Checkout(SyncWebhookControlContextModelObjectType[models.Checkout]):
                 description="Fetch payment gateways available for checkout.",
             ),
         ],
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = NonNullList(

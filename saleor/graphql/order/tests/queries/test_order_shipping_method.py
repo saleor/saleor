@@ -8,7 +8,7 @@ ORDERS_QUERY_SHIPPING_METHODS = """
         orders(first: 1) {
             edges {
                 node {
-                    availableShippingMethods {
+                    shippingMethods {
                         name
                         price {
                             amount
@@ -21,7 +21,7 @@ ORDERS_QUERY_SHIPPING_METHODS = """
 """
 
 
-def test_order_query_without_available_shipping_methods(
+def test_order_query_without_shipping_methods(
     staff_api_client,
     permission_group_manage_orders,
     order,
@@ -36,11 +36,11 @@ def test_order_query_without_available_shipping_methods(
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert len(order_data["availableShippingMethods"]) == 0
+    assert len(order_data["shippingMethods"]) == 0
 
 
 @pytest.mark.parametrize("minimum_order_weight_value", [0, 2, None])
-def test_order_available_shipping_methods_with_weight_based_shipping_method(
+def test_order_shipping_methods_with_weight_based_shipping_method(
     staff_api_client,
     order_line,
     shipping_method_weight_based,
@@ -64,13 +64,11 @@ def test_order_available_shipping_methods_with_weight_based_shipping_method(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
 
-    shipping_methods = [
-        method["name"] for method in order_data["availableShippingMethods"]
-    ]
+    shipping_methods = [method["name"] for method in order_data["shippingMethods"]]
     assert shipping_method.name in shipping_methods
 
 
-def test_order_available_shipping_methods_weight_method_with_higher_minimal_weigh(
+def test_order_shipping_methods_weight_method_with_higher_minimal_weight(
     staff_api_client,
     order_line,
     shipping_method_weight_based,
@@ -91,13 +89,11 @@ def test_order_available_shipping_methods_weight_method_with_higher_minimal_weig
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
 
-    shipping_methods = [
-        method["name"] for method in order_data["availableShippingMethods"]
-    ]
+    shipping_methods = [method["name"] for method in order_data["shippingMethods"]]
     assert shipping_method.name not in shipping_methods
 
 
-def test_order_query_shipping_zones_with_available_shipping_methods(
+def test_order_query_shipping_zones_with_shipping_methods(
     staff_api_client,
     permission_group_manage_orders,
     fulfilled_order,
@@ -107,7 +103,7 @@ def test_order_query_shipping_zones_with_available_shipping_methods(
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert len(order_data["availableShippingMethods"]) == 1
+    assert len(order_data["shippingMethods"]) == 1
 
 
 def test_order_query_shipping_zones_without_channel(
@@ -123,7 +119,7 @@ def test_order_query_shipping_zones_without_channel(
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
 
-    assert len(order_data["availableShippingMethods"]) == 0
+    assert len(order_data["shippingMethods"]) == 0
 
 
 def test_order_query_shipping_methods_excluded_postal_codes(
@@ -141,10 +137,10 @@ def test_order_query_shipping_methods_excluded_postal_codes(
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["availableShippingMethods"] == []
+    assert order_data["shippingMethods"] == []
 
 
-def test_order_available_shipping_methods_query(
+def test_order_shipping_methods_query(
     staff_api_client,
     permission_group_manage_orders,
     fulfilled_order,
@@ -159,6 +155,6 @@ def test_order_available_shipping_methods_query(
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    method = order_data["availableShippingMethods"][0]
+    method = order_data["shippingMethods"][0]
 
     assert shipping_price.amount == method["price"]["amount"]

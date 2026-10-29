@@ -4,6 +4,8 @@ from .models.base import Attribute, AttributeValue
 
 
 def attribute_value_qs_select_for_update() -> QuerySet[AttributeValue]:
+    # Matching lock order (sort_order, pk) of `perform_reordering` to avoid deadlocks.
+    # TODO: switch to a stable pk-only ordering together with the reordering logic.
     return AttributeValue.objects.order_by("sort_order", "pk").select_for_update(
         of=(["self"])
     )

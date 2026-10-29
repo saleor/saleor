@@ -45,9 +45,6 @@ mutation UpdateProductVariantChannelListing(
                     currency
                 }
                 margin
-                preorderThreshold {
-                    quantity
-                }
             }
         }
     }
@@ -556,74 +553,6 @@ def test_product_channel_listing_update_invalid_cost_price(
     assert_negative_positive_decimal_value(response)
 
 
-def test_variant_channel_listing_update_preorder(
-    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
-):
-    # given
-    ProductChannelListing.objects.create(
-        product=product,
-        channel=channel_PLN,
-        is_published=True,
-    )
-    variant = product.variants.get()
-    variant.is_preorder = True
-    variant.save(update_fields=["is_preorder"])
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    preorder_threshold_channel_usd = 10
-    preorder_threshold_channel_pln = 20
-    variables = {
-        "id": variant_id,
-        "input": [
-            {
-                "channelId": channel_usd_id,
-                "price": 1,
-                "preorderThreshold": preorder_threshold_channel_usd,
-            },
-            {
-                "channelId": channel_pln_id,
-                "price": 20,
-                "preorderThreshold": preorder_threshold_channel_pln,
-            },
-        ],
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
-        variables=variables,
-        permissions=(permission_manage_products,),
-    )
-    content = get_graphql_content(response)
-
-    # then
-    data = content["data"]["productVariantChannelListingUpdate"]
-    variant_data = data["variant"]
-    assert not data["errors"]
-    assert variant_data["id"] == variant_id
-    channel_usd_data = next(
-        channel_data
-        for channel_data in variant_data["channelListings"]
-        if channel_data["channel"]["id"] == channel_usd_id
-    )
-    channel_pln_data = next(
-        channel_data
-        for channel_data in variant_data["channelListings"]
-        if channel_data["channel"]["id"] == channel_pln_id
-    )
-    assert channel_usd_data["channel"]["slug"] == channel_USD.slug
-    assert (
-        channel_usd_data["preorderThreshold"]["quantity"]
-        == preorder_threshold_channel_usd
-    )
-    assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
-    assert (
-        channel_pln_data["preorderThreshold"]["quantity"]
-        == preorder_threshold_channel_pln
-    )
-
-
 @pytest.mark.parametrize("prior_price", [1.5, 0])
 def test_variant_channel_listing_update_with_prior_price(
     staff_api_client, product, permission_manage_products, channel_USD, prior_price
@@ -655,3 +584,101 @@ def test_variant_channel_listing_update_with_prior_price(
     assert variant_data["id"] == variant_id
     assert variant_data["channelListings"][0]["priorPrice"]["currency"] == "USD"
     assert variant_data["channelListings"][0]["priorPrice"]["amount"] == prior_price
+
+
+@pytest.mark.parametrize(
+    ("_case", "initial_availability", "availability_input"),
+    [
+        ("omitted on an available listing", True, {}),
+        ("omitted on an unavailable listing", False, {}),
+        (
+            "explicit null on an available listing",
+            True,
+            {"isAvailableForPurchase": None},
+        ),
+        (
+            "explicit null on an unavailable listing",
+            False,
+            {"isAvailableForPurchase": None},
+        ),
+    ],
+)
+def test_variant_channel_listing_update_keeps_availability(
+    _case,
+    initial_availability,
+    availability_input,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+):
+    # given
+    new_price = 33
+    variant = product.variants.get()
+    listing = variant.channel_listings.get(channel=channel_USD)
+    listing.is_available_for_purchase = initial_availability
+    listing.save(update_fields=("is_available_for_purchase",))
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "input": [
+            {
+                "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                "price": new_price,
+                **availability_input,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantChannelListingUpdate"]
+    assert data["errors"] == []
+
+    listing.refresh_from_db(fields=("is_available_for_purchase", "price_amount"))
+    assert listing.is_available_for_purchase is initial_availability
+    assert listing.price_amount == new_price
+
+
+def test_variant_channel_listing_update_sets_availability(
+    staff_api_client, product, permission_manage_products, channel_USD
+):
+    # given
+    new_price = 44
+    variant = product.variants.get()
+    listing = variant.channel_listings.get(channel=channel_USD)
+    assert listing.is_available_for_purchase is True
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "input": [
+            {
+                "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                "price": new_price,
+                "isAvailableForPurchase": False,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantChannelListingUpdate"]
+    assert data["errors"] == []
+
+    listing.refresh_from_db(fields=("is_available_for_purchase", "price_amount"))
+    assert listing.is_available_for_purchase is False
+    assert listing.price_amount == new_price

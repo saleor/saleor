@@ -12,6 +12,7 @@ class CheckoutErrorCode(Enum):
     INVALID_SHIPPING_METHOD = "invalid_shipping_method"
     NOT_FOUND = "not_found"
     PAYMENT_ERROR = "payment_error"
+    PRICE_OVERRIDE_REASON_WITHOUT_OVERRIDE = "price_override_reason_without_override"
     QUANTITY_GREATER_THAN_LIMIT = "quantity_greater_than_limit"
     REQUIRED = "required"
     SHIPPING_ADDRESS_NOT_SET = "shipping_address_not_set"

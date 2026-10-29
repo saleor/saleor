@@ -9,12 +9,7 @@ from freezegun import freeze_time
 from ...core import JobStatus
 from .. import ExportEvents, FileTypes
 from ..models import ExportEvent, ExportFile
-from ..tasks import (
-    ExportTask,
-    delete_old_export_files,
-    export_gift_cards_task,
-    export_products_task,
-)
+from ..tasks import ExportTask, delete_old_export_files, export_products_task
 
 
 @patch("saleor.csv.tasks.export_products")
@@ -55,42 +50,6 @@ def test_export_products_task_failed(
 
     # then
     send_export_failed_info_mock.assert_called_once_with(user_export_file, "products")
-
-
-@patch("saleor.csv.tasks.export_gift_cards")
-def test_export_gift_cards_task(export_gift_cards_mock, user_export_file):
-    # given
-    scope = {"all": ""}
-    file_type = FileTypes.CSV
-    delimiter = ";"
-
-    # when
-    export_gift_cards_task(user_export_file.id, scope, file_type, delimiter)
-
-    # then
-    export_gift_cards_mock.assert_called_once_with(
-        user_export_file, scope, file_type, delimiter
-    )
-
-
-@patch("saleor.csv.tasks.send_export_failed_info")
-@patch("saleor.csv.tasks.export_gift_cards")
-def test_export_gift_cards_task_failed(
-    export_gift_cards_mock, send_export_failed_info_mock, user_export_file
-):
-    # given
-    scope = {"all": ""}
-    file_type = FileTypes.CSV
-    delimiter = ";"
-
-    exc_message = "Test error"
-    export_gift_cards_mock.side_effect = Exception(exc_message)
-
-    # when
-    export_gift_cards_task.delay(user_export_file.id, scope, file_type, delimiter)
-
-    # then
-    send_export_failed_info_mock.assert_called_once_with(user_export_file, "gift cards")
 
 
 @patch("saleor.csv.tasks.send_export_failed_info")

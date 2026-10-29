@@ -541,52 +541,6 @@ def test_order_query_with_filter_is_click_and_collect_false(
     }
 
 
-@freeze_time("2021-11-01 12:00:01")
-def test_order_query_with_filter_is_preorder_true(
-    staff_api_client,
-    permission_group_manage_orders,
-    preorders,
-):
-    # given
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"filter": {"isPreorder": True}}
-
-    # when
-    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_FILTERS, variables)
-
-    # then
-    content = get_graphql_content(response)
-    returned_orders = content["data"]["orders"]["edges"]
-    assert len(returned_orders) == len(preorders)
-    assert {order["node"]["id"] for order in returned_orders} == {
-        graphene.Node.to_global_id("Order", order.pk) for order in preorders
-    }
-
-
-@freeze_time("2021-11-01 12:00:01")
-def test_order_query_with_filter_is_preorder_false(
-    staff_api_client,
-    permission_group_manage_orders,
-    preorders,
-):
-    # given
-    permission_group_manage_orders.user_set.add(staff_api_client.user)
-    variables = {"filter": {"isPreorder": False}}
-
-    # when
-    response = staff_api_client.post_graphql(ORDERS_QUERY_WITH_FILTERS, variables)
-
-    # then
-    content = get_graphql_content(response)
-    returned_orders = content["data"]["orders"]["edges"]
-    preorders_ids = {
-        graphene.Node.to_global_id("Order", order.pk) for order in preorders
-    }
-    preorder_ids = {order["node"]["id"] for order in returned_orders}
-    for order_id in preorders_ids:
-        assert order_id not in preorder_ids
-
-
 @pytest.mark.parametrize(
     ("orders_filter", "count"),
     [

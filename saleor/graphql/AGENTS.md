@@ -33,6 +33,8 @@ def resolve_parent(root: models.Category, info):
 
 **Write exhaustive GraphQL descriptions on fields, including limits and behavior**
 
+**Do not rely on `default_value` for optional list inputs.** In the graphene version used here `default_value` is passed to the resolver as a literal, not a factory — `default_value=[]` shares one mutable list instance across all requests, and `default_value=list` passes the `list` class itself (not an empty list). Prefer `required=False` without a default and normalize the absent/`None` case in the resolver (e.g. `lines = data.pop("lines", None) or []`).
+
 # Input validation
 
 For complex input shapes prefer using Pydantic model. Ensure Pydantic errors are mapped to Django ValidationError using `pydantic_to_validation_error` from `saleor/graphql/error.py`:

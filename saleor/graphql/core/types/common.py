@@ -5,6 +5,7 @@ import graphene
 from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
+from ....thumbnail import DEFAULT_THUMBNAIL_SIZE_ROUNDING
 from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
@@ -26,7 +27,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_WEBHOOKS,
 )
 from ...core.scalars import DateTime, Decimal
-from ..descriptions import ADDED_IN_318
+from ..descriptions import ADDED_IN_323
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -53,7 +54,6 @@ from ..enums import (
     MetadataErrorCode,
     OrderBulkCreateErrorCode,
     OrderErrorCode,
-    OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
     PaymentGatewayConfigErrorCode,
@@ -69,6 +69,7 @@ from ..enums import (
     ProductTranslateErrorCode,
     ProductVariantBulkErrorCode,
     ProductVariantTranslateErrorCode,
+    PromoCodeRejectionReason,
     RefundSettingsErrorCode,
     ReturnSettingsErrorCode,
     SendConfirmationEmailErrorCode,
@@ -78,6 +79,7 @@ from ..enums import (
     StockErrorCode,
     StoredPaymentMethodRequestDeleteErrorCode,
     ThumbnailFormatEnum,
+    ThumbnailSizeRoundingEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
     TransactionEventReportErrorCode,
@@ -98,7 +100,7 @@ from ..enums import (
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
 from .base import BaseObjectType
-from .money import VAT
+from .money import VAT, Money
 from .upload import Upload
 
 if TYPE_CHECKING:
@@ -188,6 +190,11 @@ class AccountError(Error):
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error." + ADDED_IN_323,
+        required=False,
+    )
 
     class Meta:
         description = "Represents errors in account mutations."
@@ -258,6 +265,40 @@ class ChannelError(Error):
         doc_category = DOC_CATEGORY_CHANNELS
 
 
+PROMO_CODE_DETAILS_DESCRIPTION = (
+    "Details of the promo code that caused the error. Null when the error is "
+    "not a promo code rejection." + ADDED_IN_323
+)
+
+
+class PromoCodeRejectionDetails(BaseObjectType):
+    reason = PromoCodeRejectionReason(
+        description="The specific reason why the promo code cannot be applied.",
+        required=True,
+    )
+    min_spent = graphene.Field(
+        Money,
+        description=(
+            "The minimum order value required by the voucher. "
+            "Set only when `reason` is `MIN_SPENT_NOT_REACHED`."
+        ),
+        required=False,
+    )
+    min_checkout_items_quantity = graphene.Int(
+        description=(
+            "The minimum number of items required by the voucher. "
+            "Set only when `reason` is `MIN_QUANTITY_NOT_REACHED`."
+        ),
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
+        description = (
+            "Details explaining why a promo code cannot be applied." + ADDED_IN_323
+        )
+
+
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
     variants = NonNullList(
@@ -273,6 +314,11 @@ class CheckoutError(Error):
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
+    promo_code_details = graphene.Field(
+        PromoCodeRejectionDetails,
+        description=PROMO_CODE_DETAILS_DESCRIPTION,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT
@@ -280,6 +326,11 @@ class CheckoutError(Error):
 
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error." + ADDED_IN_323,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -304,7 +355,7 @@ class DiscountError(ProductWithoutVariantError):
     )
     voucher_codes = NonNullList(
         graphene.String,
-        description="List of voucher codes which causes the error." + ADDED_IN_318,
+        description="List of voucher codes which causes the error.",
         required=False,
     )
 
@@ -339,13 +390,6 @@ class MenuError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_MENU
-
-
-class OrderSettingsError(Error):
-    code = OrderSettingsErrorCode(description="The error code.", required=True)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
 
 
 class GiftCardSettingsError(Error):
@@ -413,6 +457,11 @@ class OrderError(Error):
     )
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
+    )
+    promo_code_details = graphene.Field(
+        PromoCodeRejectionDetails,
+        description=PROMO_CODE_DETAILS_DESCRIPTION,
+        required=False,
     )
 
     class Meta:
@@ -493,6 +542,22 @@ class ProductChannelListingError(ProductError):
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class ProductVariantChannelListingAvailabilityUpdateError(Error):
+    code = ProductErrorCode(description="The error code.", required=True)
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channels IDs which causes the error.",
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        description = (
+            "Error of the `productVariantChannelListingAvailabilityUpdate` mutation."
+            + ADDED_IN_323
+        )
 
 
 class CollectionChannelListingError(ProductError):
@@ -1008,7 +1073,17 @@ class ThumbnailField(graphene.Field):
         description=(
             "Desired longest side the image in pixels. Defaults to 4096. "
             "Images are never cropped. "
-            "Pass 0 to retrieve the original size (not recommended)."
+            "Pass 0 to retrieve the original size (not recommended). "
+            "Thumbnails are generated only in the available sizes: "
+            "32, 64, 128, 256, 512, 1024, 2048, 4096; `sizeRounding` determines "
+            "which one is used."
+        ),
+    )
+    size_rounding = ThumbnailSizeRoundingEnum(
+        default_value=DEFAULT_THUMBNAIL_SIZE_ROUNDING.value,
+        description=(
+            "Determines how the requested size is matched to an available "
+            "thumbnail size." + ADDED_IN_323
         ),
     )
     format = ThumbnailFormatEnum(
@@ -1021,6 +1096,7 @@ class ThumbnailField(graphene.Field):
 
     def __init__(self, of_type=Image, *args, **kwargs):
         kwargs["size"] = self.size
+        kwargs["size_rounding"] = self.size_rounding
         kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
 

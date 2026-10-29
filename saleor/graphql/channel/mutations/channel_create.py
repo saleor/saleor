@@ -10,9 +10,6 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.descriptions import (
-    ADDED_IN_318,
-    ADDED_IN_320,
-    ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
@@ -120,7 +117,6 @@ class CheckoutSettingsInput(BaseInputObjectType):
             "checkout `authorize_status` reaches `FULL`. This occurs when the total sum "
             "of charged and authorized transaction amounts equals or exceeds the "
             "checkout's total amount."
-            + ADDED_IN_320
             + DEPRECATED_IN_3X_INPUT
             + " Use `automatic_completion` instead."
         )
@@ -193,9 +189,7 @@ class OrderSettingsInput(BaseInputObjectType):
             "Specify whether a coupon applied to draft orders will count toward "
             "voucher usage."
             "\n\nWarning:  when switching this setting from `false` to `true`, "
-            "the vouchers will be disconnected from all draft orders."
-            + ADDED_IN_318
-            + PREVIEW_FEATURE
+            "the vouchers will be disconnected from all draft orders." + PREVIEW_FEATURE
         ),
     )
     draft_order_line_price_freeze_period = Hour(
@@ -203,7 +197,7 @@ class OrderSettingsInput(BaseInputObjectType):
         description=(
             "Time in hours after which the draft order line price will be refreshed. "
             "Default value is 24 hours. "
-            "Enter 0 or null to disable." + ADDED_IN_321 + PREVIEW_FEATURE
+            "Enter 0 or null to disable." + PREVIEW_FEATURE
         ),
     )
 
@@ -223,7 +217,7 @@ class OrderSettingsInput(BaseInputObjectType):
             "returned in the `OrderLine.discounts` field. In this case, "
             "percentage-based vouchers retain their original type."
             "\nIn future releases, `OrderLineDiscount` will become the default "
-            "behavior, and this flag will be deprecated and removed." + ADDED_IN_321
+            "behavior, and this flag will be deprecated and removed."
         ),
     )
 
@@ -244,14 +238,12 @@ class PaymentSettingsInput(BaseInputObjectType):
         required=False,
         description=(
             "Determine if the funds for expired checkouts should be released automatically."
-            + ADDED_IN_320
         ),
     )
     checkout_ttl_before_releasing_funds = Hour(
         required=False,
         description=(
             "The time in hours after which funds for expired checkouts will be released."
-            + ADDED_IN_320
         ),
     )
     checkout_release_funds_cut_off_date = DateTime(
@@ -260,7 +252,7 @@ class PaymentSettingsInput(BaseInputObjectType):
             "Specifies the earliest date on which funds for expired checkouts can begin "
             "to be released. Expired checkouts dated before this cut-off will not have their "
             "funds released. Additionally, no funds will be released for checkouts that are "
-            "more than one year old, regardless of the cut-off date." + ADDED_IN_320
+            "more than one year old, regardless of the cut-off date."
         ),
     )
 

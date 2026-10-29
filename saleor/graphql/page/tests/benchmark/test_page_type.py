@@ -37,7 +37,6 @@ def test_query_page_type(
                     }
                     valueRequired
                     visibleInStorefront
-                    filterableInStorefront
                 }
                 availableAttributes(first: 10, filter: $filters) {
                     edges {
@@ -56,7 +55,6 @@ def test_query_page_type(
                             }
                             valueRequired
                             visibleInStorefront
-                            filterableInStorefront
                         }
                     }
                 }
@@ -108,7 +106,6 @@ def test_query_page_types(
                             }
                             valueRequired
                             visibleInStorefront
-                            filterableInStorefront
                         }
                         availableAttributes(first: 10) {
                             edges {
@@ -127,7 +124,6 @@ def test_query_page_types(
                                     }
                                     valueRequired
                                     visibleInStorefront
-                                    filterableInStorefront
                                 }
                             }
                         }

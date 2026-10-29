@@ -17,7 +17,6 @@ CHECKOUT_CUSTOMER_NOTE_UPDATE_MUTATION = """
         checkoutCustomerNoteUpdate(id: $id, customerNote: $customerNote) {
             checkout {
                 id,
-                note
                 customerNote
             },
             errors {
@@ -55,7 +54,7 @@ def test_checkout_customer_note_update(user_api_client, checkout_with_item):
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.note == customer_note
-    assert data["checkout"]["customerNote"] == data["checkout"]["note"] == customer_note
+    assert data["checkout"]["customerNote"] == customer_note
     assert checkout.last_change != previous_last_change
 
 
@@ -95,7 +94,7 @@ def test_checkout_customer_note_update_when_line_without_listing(
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.note == customer_note
-    assert data["checkout"]["customerNote"] == data["checkout"]["note"] == customer_note
+    assert data["checkout"]["customerNote"] == customer_note
     assert checkout.last_change != previous_last_change
 
 

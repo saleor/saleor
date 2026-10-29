@@ -1,3 +1,7 @@
+from unittest import mock
+
+import pytest
+
 REQUEST_EMAIL_CHANGE_QUERY = """
 mutation requestEmailChange(
     $password: String!, $new_email: String!, $redirect_url: String!, $channel:String
@@ -34,3 +38,11 @@ mutation emailUpdate($token: String!, $channel: String) {
   }
 }
 """
+
+
+@pytest.fixture
+def throttling_disabled():
+    """Disable password throttling."""
+
+    with mock.patch("saleor.account.throttling.cache"):
+        yield

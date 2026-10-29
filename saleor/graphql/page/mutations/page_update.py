@@ -6,6 +6,7 @@ from django.db.models import Exists, OuterRef, QuerySet
 from ....attribute import models as attribute_models
 from ....core.utils.update_mutation_manager import InstanceTracker
 from ....page import models
+from ....page.error_codes import PageErrorCode
 from ....permission.enums import PagePermissions
 from ....product.models import Product
 from ....product.utils.search_helpers import (
@@ -41,7 +42,7 @@ class PageUpdate(PageCreate):
         attributes_qs = page_type.page_attributes
         attributes_qs = cast(QuerySet, attributes_qs)
         cleaned_attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, creation=False, is_page_attributes=True
+            attributes, attributes_qs, creation=False, error_class=PageErrorCode
         )
         return cleaned_attributes
 

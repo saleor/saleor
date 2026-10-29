@@ -21,7 +21,7 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders.by_self import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_321
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date, DateTime
@@ -290,21 +290,6 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         return Promise.all([channel, tax_class_id_loader]).then(load_tax_configuration)
 
 
-class PreorderThreshold(BaseObjectType):
-    quantity = graphene.Int(
-        required=False,
-        description="Preorder threshold for product variant in this channel.",
-    )
-    sold_units = graphene.Int(
-        required=True,
-        description="Number of sold product variant in this channel.",
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-        description = "Represents preorder variant data for channel."
-
-
 class ProductVariantChannelListing(
     ModelObjectType[models.ProductVariantChannelListing]
 ):
@@ -322,18 +307,19 @@ class ProductVariantChannelListing(
         Money,
         description="Previous price of the variant in channel. Useful for providing "
         "promotion information required by customer protection laws such as EU Omnibus "
-        "directive.\n\n Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually."
-        + ADDED_IN_321,
+        "directive.\n\n Warning: This field is not updated automatically. Use Channel Listings mutation to update it manually.",
+    )
+    is_available_for_purchase = graphene.Boolean(
+        required=True,
+        description="Determines whether the variant can be bought in this channel. "
+        "When set to `false`, the variant behaves as if it had no listing in this "
+        "channel: it is hidden from customers and cannot be added to a checkout or "
+        "an order. Its prices are preserved." + ADDED_IN_323,
     )
     margin = PermissionsField(
         graphene.Int,
         description="Gross margin percentage value.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
-    )
-    preorder_threshold = graphene.Field(
-        PreorderThreshold,
-        required=False,
-        description="Preorder variant data.",
     )
 
     class Meta:
@@ -348,15 +334,6 @@ class ProductVariantChannelListing(
     @staticmethod
     def resolve_margin(root: models.ProductVariantChannelListing, _info):
         return get_margin_for_variant_channel_listing(root)
-
-    @staticmethod
-    def resolve_preorder_threshold(root: models.ProductVariantChannelListing, _info):
-        # The preorder_quantity_allocated field is added through annotation
-        # when using the `resolve_channel_listings` resolver.
-        return PreorderThreshold(
-            quantity=root.preorder_quantity_threshold,
-            sold_units=getattr(root, "preorder_quantity_allocated", 0),
-        )
 
 
 class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing]):

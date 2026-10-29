@@ -17,7 +17,7 @@ def test_retrieve_shop(api_client, channel_USD, count_queries):
               country
             }
             availableShippingMethods(channel: $channel) {
-              ...AvailableShippingMethods
+              ...ShippingMethods
             }
             countries {
               country

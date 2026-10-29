@@ -4,12 +4,14 @@ from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import (
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.filters import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
+from ..core.validators import validate_one_of_args_is_in_query
 from ..translations.mutations import (
     PromotionRuleTranslate,
     PromotionTranslate,
@@ -42,10 +44,12 @@ from .mutations import (
 from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .resolvers import (
     resolve_promotion,
+    resolve_promotion_by_external_reference,
     resolve_promotions,
     resolve_sale,
     resolve_sales,
     resolve_voucher,
+    resolve_voucher_by_external_reference,
     resolve_vouchers,
 )
 from .sorters import PromotionSortingInput, SaleSortingInput, VoucherSortingInput
@@ -108,12 +112,16 @@ class DiscountQueries(graphene.ObjectType):
     voucher = PermissionsField(
         Voucher,
         id=graphene.Argument(
-            graphene.ID, description="ID of the voucher.", required=True
+            graphene.ID, description="ID of the voucher.", required=False
+        ),
+        external_reference=graphene.Argument(
+            graphene.String,
+            description=f"External ID of the voucher.{ADDED_IN_323}",
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
-        description="Look up a voucher by ID.",
+        description="Look up a voucher by ID or external reference.",
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -141,9 +149,13 @@ class DiscountQueries(graphene.ObjectType):
     promotion = PermissionsField(
         Promotion,
         id=graphene.Argument(
-            graphene.ID, description="ID of the promotion.", required=True
+            graphene.ID, description="ID of the promotion.", required=False
         ),
-        description="Look up a promotion by ID.",
+        external_reference=graphene.Argument(
+            graphene.String,
+            description=f"External ID of the promotion.{ADDED_IN_323}",
+        ),
+        description="Look up a promotion by ID or external reference.",
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -175,9 +187,21 @@ class DiscountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
     @staticmethod
-    def resolve_voucher(_root, info: ResolveInfo, *, id, channel=None):
-        _, id = from_global_id_or_error(id, Voucher)
-        return resolve_voucher(info, id, channel)
+    def resolve_voucher(
+        _root,
+        info: ResolveInfo,
+        *,
+        id=None,
+        external_reference=None,
+        channel=None,
+    ):
+        validate_one_of_args_is_in_query(
+            "id", id, "external_reference", external_reference
+        )
+        if id:
+            _, id = from_global_id_or_error(id, Voucher)
+            return resolve_voucher(info, id, channel)
+        return resolve_voucher_by_external_reference(info, external_reference, channel)
 
     @staticmethod
     def resolve_vouchers(_root, info: ResolveInfo, *, channel=None, **kwargs):
@@ -189,9 +213,16 @@ class DiscountQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, VoucherCountableConnection)
 
     @staticmethod
-    def resolve_promotion(_root, info, *, id, channel=None):
-        _, id = from_global_id_or_error(id, Promotion)
-        return resolve_promotion(info, id)
+    def resolve_promotion(
+        _root, info, *, id=None, external_reference=None, channel=None
+    ):
+        validate_one_of_args_is_in_query(
+            "id", id, "external_reference", external_reference
+        )
+        if id:
+            _, id = from_global_id_or_error(id, Promotion)
+            return resolve_promotion(info, id)
+        return resolve_promotion_by_external_reference(info, external_reference)
 
     @staticmethod
     def resolve_promotions(_root, info: ResolveInfo, **kwargs):

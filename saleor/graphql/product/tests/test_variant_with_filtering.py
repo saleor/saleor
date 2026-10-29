@@ -1,7 +1,4 @@
-import datetime
-
 import pytest
-from django.utils import timezone
 from freezegun import freeze_time
 
 from ....product.models import Product, ProductVariant
@@ -62,12 +59,6 @@ def products_for_variant_filtering(product_type, category):
                 category=category,
                 product_type=product_type,
             ),
-            Product(
-                name="ProductWithPreorder",
-                slug="prod5",
-                category=category,
-                product_type=product_type,
-            ),
         ]
     )
     ProductVariant.objects.bulk_create(
@@ -97,23 +88,6 @@ def products_for_variant_filtering(product_type, category):
             ProductVariant(
                 product=products[5],
             ),
-            ProductVariant(
-                product=products[6],
-                sku="Preorder-V1",
-                is_preorder=True,
-            ),
-            ProductVariant(
-                product=products[6],
-                sku="Preorder-V2",
-                is_preorder=True,
-                preorder_end_date=timezone.now() + datetime.timedelta(days=1),
-            ),
-            ProductVariant(
-                product=products[6],
-                sku="Preorder-V3",
-                is_preorder=True,
-                preorder_end_date=timezone.now() - datetime.timedelta(days=1),
-            ),
         ]
     )
     update_products_search_vector([product.id for product in products])
@@ -135,21 +109,6 @@ def products_for_variant_filtering(product_type, category):
         ({"sku": ["P1-V1", "P1-V2", "PP1-V1"]}, ["P1-V1", "P1-V2", "PP1-V1"]),
         ({"sku": ["PP1-V1", "PP2-V1"]}, ["PP1-V1", "PP2-V1"]),
         ({"sku": ["invalid"]}, []),
-        ({"isPreorder": True}, ["Preorder-V1", "Preorder-V2"]),
-        (
-            {"isPreorder": False},
-            [
-                "P-NO-SKU",
-                "P1-V1",
-                "P1-V2",
-                "P2-V1",
-                "P3-V1",
-                "PP1-V1",
-                "PP2-V1",
-                "Preorder-V3",
-                None,
-            ],
-        ),
     ],
 )
 def test_products_pagination_with_filtering(

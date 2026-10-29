@@ -15,6 +15,7 @@ QUERY_WEBHOOK = """
         id
         isActive
         name
+        identifier
         subscriptionQuery
         asyncEvents {
           eventType
@@ -39,10 +40,31 @@ def test_query_webhook_by_staff(staff_api_client, webhook, permission_manage_app
     webhook_response = content["data"]["webhook"]
     assert webhook_response["id"] == webhook_id
     assert webhook_response["isActive"] == webhook.is_active
+    assert webhook_response["identifier"] == webhook.identifier
     assert webhook_response["subscriptionQuery"] is None
     events = webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
+
+
+def test_query_webhook_identifier_by_staff(
+    staff_api_client, webhook, permission_manage_apps
+):
+    # given
+    identifier = "order-created-handler"
+    webhook.identifier = identifier
+    webhook.save(update_fields=["identifier"])
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_WEBHOOK, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    webhook_response = content["data"]["webhook"]
+    assert webhook_response["identifier"] == identifier
 
 
 def test_query_webhook_with_subscription_query_by_staff(
@@ -105,6 +127,23 @@ def test_query_webhook_by_app(app_api_client, webhook):
     events = webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
+
+
+def test_query_webhook_identifier_by_app(app_api_client, webhook):
+    # given
+    identifier = "order-created-handler"
+    webhook.identifier = identifier
+    webhook.save(update_fields=["identifier"])
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+
+    # when
+    response = app_api_client.post_graphql(QUERY_WEBHOOK, variables=variables)
+
+    # then
+    content = get_graphql_content(response)
+    webhook_response = content["data"]["webhook"]
+    assert webhook_response["identifier"] == identifier
 
 
 def test_query_webhook_by_app_without_permission(app_api_client):

@@ -9,7 +9,7 @@ from requests_hardened import HTTPSession
 
 from ..... import schema_version
 from .....app.error_codes import AppErrorCode
-from .....app.models import App
+from .....app.models import DEPRECATION_REASON_MAX_LENGTH, App
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -47,6 +47,7 @@ mutation AppFetchManifest(
         mountName
         targetName
         settings
+        identifier
         permissions{
           code
           name
@@ -527,6 +528,44 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["targetName"] == "POPUP"
 
     assert extension["settings"] == {}
+    assert extension["identifier"] is None
+
+
+def test_app_fetch_manifest_with_extension_identifier(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    manifest_url = "http://localhost:3000/manifest"
+    identifier = "refund-button"
+
+    app_manifest["extensions"] = [
+        {
+            "label": "Create product with App",
+            "url": "http://127.0.0.1:8080/app",
+            "mount": "PRODUCT_OVERVIEW_CREATE",
+            "identifier": identifier,
+        }
+    ]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_get_response))
+
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables=variables,
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["appFetchManifest"]["errors"]
+    extensions = content["data"]["appFetchManifest"]["manifest"]["extensions"]
+    assert len(extensions) == 1
+    assert extensions[0]["identifier"] == identifier
 
 
 def test_app_fetch_manifest_with_widget_extension_settings(
@@ -1043,3 +1082,117 @@ def test_app_fetch_manifest_extension_with_invalid_absolute_url(
     assert errors[0]["field"] == "extensions"
     assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name
     assert "url" in errors[0]["message"].lower()
+
+
+APP_FETCH_MANIFEST_DEPRECATION_MUTATION = """
+mutation AppFetchManifest($manifest_url: String!) {
+  appFetchManifest(manifestUrl: $manifest_url) {
+    manifest {
+      identifier
+      deprecationReason
+    }
+    errors {
+      field
+      code
+      message
+    }
+  }
+}
+"""
+
+
+def test_fetch_manifest_returns_deprecation_reason(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    """Lets the dashboard warn about a deprecated app before it is installed."""
+    # given
+    reason = "Replaced by the new payments app."
+    app_manifest["deprecationReason"] = reason
+    manifest_url = "http://localhost:3000/manifest"
+    mocked_response = Mock()
+    mocked_response.status_code = 200
+    mocked_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_response))
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_DEPRECATION_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_apps,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appFetchManifest"]
+    assert len(data["errors"]) == 0
+    assert data["manifest"]["deprecationReason"] == reason
+
+
+def test_fetch_manifest_without_deprecation_reason(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    assert "deprecationReason" not in app_manifest
+    manifest_url = "http://localhost:3000/manifest"
+    mocked_response = Mock()
+    mocked_response.status_code = 200
+    mocked_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_response))
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_DEPRECATION_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_apps,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appFetchManifest"]
+    assert len(data["errors"]) == 0
+    assert data["manifest"]["deprecationReason"] is None
+
+
+@pytest.mark.parametrize(
+    ("manifest_reason", "expected_reason"),
+    [
+        ("", None),
+        ("   ", None),
+        ("  Replaced by the new payments app.  ", "Replaced by the new payments app."),
+        (
+            "x" * (DEPRECATION_REASON_MAX_LENGTH + 100),
+            "x" * (DEPRECATION_REASON_MAX_LENGTH - 1) + "…",
+        ),
+    ],
+)
+def test_fetch_manifest_normalizes_deprecation_reason(
+    staff_api_client,
+    app_manifest,
+    permission_manage_apps,
+    monkeypatch,
+    manifest_reason,
+    expected_reason,
+):
+    # given
+    app_manifest["deprecationReason"] = manifest_reason
+    manifest_url = "http://localhost:3000/manifest"
+    mocked_response = Mock()
+    mocked_response.status_code = 200
+    mocked_response.json.return_value = app_manifest
+    monkeypatch.setattr(HTTPSession, "request", Mock(return_value=mocked_response))
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_DEPRECATION_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_apps,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appFetchManifest"]
+    assert len(data["errors"]) == 0
+    assert data["manifest"]["deprecationReason"] == expected_reason

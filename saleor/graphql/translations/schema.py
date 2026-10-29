@@ -1,11 +1,18 @@
 import graphene
 
+from ...attribute import AttributeType
 from ...attribute.models import Attribute, AttributeValue
 from ...discount.models import Promotion, PromotionRule, Voucher
 from ...menu.models import MenuItem
 from ...page.models import Page
 from ...permission.enums import SitePermissions
-from ...product.models import Category, Collection, Product, ProductVariant
+from ...product.models import (
+    Category,
+    Collection,
+    Product,
+    ProductMedia,
+    ProductVariant,
+)
 from ...shipping.models import ShippingMethod
 from ..attribute.resolvers import resolve_attributes
 from ..core import ResolveInfo
@@ -20,6 +27,7 @@ from ..translations import types as translation_types
 from .resolvers import (
     resolve_attribute_values,
     resolve_collections,
+    resolve_product_media,
     resolve_product_variants,
     resolve_products,
     resolve_promotion_rules,
@@ -35,6 +43,7 @@ TYPES_TRANSLATIONS_MAP = {
     Category: translation_types.CategoryTranslatableContent,
     Attribute: translation_types.AttributeTranslatableContent,
     AttributeValue: translation_types.AttributeValueTranslatableContent,
+    ProductMedia: translation_types.ProductMediaTranslatableContent,
     ProductVariant: translation_types.ProductVariantTranslatableContent,
     Page: translation_types.PageTranslatableContent,
     ShippingMethod: translation_types.ShippingMethodTranslatableContent,
@@ -78,6 +87,7 @@ class TranslatableKinds(graphene.Enum):
     MENU_ITEM = "MenuItem"
     PAGE = "Page"
     PRODUCT = "Product"
+    PRODUCT_MEDIA = "ProductMedia"
     PROMOTION = "Promotion"
     PROMOTION_RULE = "PromotionRule"
     SALE = "Sale"
@@ -115,6 +125,8 @@ class TranslationQueries(graphene.ObjectType):
     def resolve_translations(_root, info: ResolveInfo, *, kind, **kwargs):
         if kind == TranslatableKinds.PRODUCT:
             qs = resolve_products(info)
+        elif kind == TranslatableKinds.PRODUCT_MEDIA:
+            qs = resolve_product_media(info)
         elif kind == TranslatableKinds.COLLECTION:
             qs = resolve_collections(info)
         elif kind == TranslatableKinds.CATEGORY:
@@ -152,7 +164,7 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds.COLLECTION.value: Collection,  # type: ignore[attr-defined] # noqa: E501
             TranslatableKinds.CATEGORY.value: Category,  # type: ignore[attr-defined]
             TranslatableKinds.ATTRIBUTE.value: Attribute,  # type: ignore[attr-defined]
-            TranslatableKinds.ATTRIBUTE_VALUE.value: AttributeValue,  # type: ignore[attr-defined] # noqa: E501
+            TranslatableKinds.PRODUCT_MEDIA.value: ProductMedia,  # type: ignore[attr-defined] # noqa: E501
             TranslatableKinds.VARIANT.value: ProductVariant,  # type: ignore[attr-defined] # noqa: E501
             TranslatableKinds.PAGE.value: Page,  # type: ignore[attr-defined]
             TranslatableKinds.SHIPPING_METHOD.value: ShippingMethod,  # type: ignore[attr-defined] # noqa: E501
@@ -165,6 +177,16 @@ class TranslationQueries(graphene.ObjectType):
             return (
                 Promotion.objects.using(get_database_connection_name(info.context))
                 .filter(old_sale_id=kind_id)
+                .first()
+            )
+        if kind == TranslatableKinds.ATTRIBUTE_VALUE.value:  # type: ignore[attr-defined]
+            # Customer attribute values are excluded from the translations
+            # domain: they may be created per user and carry customer data
+            # (PII) that MANAGE_TRANSLATIONS holders must not be able to read.
+            return (
+                AttributeValue.objects.using(get_database_connection_name(info.context))
+                .exclude(attribute__type=AttributeType.CUSTOMER_TYPE)
+                .filter(pk=kind_id)
                 .first()
             )
         return (

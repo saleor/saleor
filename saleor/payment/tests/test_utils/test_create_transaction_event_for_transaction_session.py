@@ -513,7 +513,7 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
 
 
 @pytest.mark.parametrize(
-    "response_result,",
+    "response_result",
     [
         (TransactionEventType.AUTHORIZATION_REQUEST),
         (TransactionEventType.AUTHORIZATION_SUCCESS),

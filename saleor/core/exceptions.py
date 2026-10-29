@@ -10,6 +10,7 @@ from ..checkout.error_codes import CheckoutErrorCode
 
 if TYPE_CHECKING:
     from ..checkout.models import CheckoutLine
+    from ..discount import PromoCodeRejection
     from ..order.models import OrderLine
     from ..product.models import ProductVariant
 
@@ -85,10 +86,18 @@ class PermissionDenied(Exception):
 
 
 class GiftCardNotApplicable(Exception):
-    def __init__(self, message: str):
+    """Raised when a gift card on a checkout can no longer be used.
+
+    `rejection` carries a `PromoCodeRejection` so the API can report why. The
+    card is already attached to the checkout by the time this is raised, so the
+    caller has demonstrably held it and the reason discloses nothing new.
+    """
+
+    def __init__(self, message: str, rejection: "PromoCodeRejection | None" = None):
         super().__init__(message)
         self.message = message
         self.code = CheckoutErrorCode.GIFT_CARD_NOT_APPLICABLE.value
+        self.rejection = rejection
 
 
 class CircularSubscriptionSyncEvent(GraphQLError):

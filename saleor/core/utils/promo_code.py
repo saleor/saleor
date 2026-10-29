@@ -2,17 +2,31 @@ import secrets
 
 from django.core.exceptions import ValidationError
 
+from ...discount import PromoCodeRejection
 from ...discount.models import VoucherCode
 from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.models import GiftCard
 
 
 class InvalidPromoCode(ValidationError):
-    def __init__(self, message=None, **kwargs):
+    def __init__(
+        self,
+        message=None,
+        promo_code_rejection: PromoCodeRejection | None = None,
+        **kwargs,
+    ):
+        """Carry the reason for a rejected voucher or gift card code, if known."""
+        self.rejection = promo_code_rejection
         if message is None:
             message = {
                 "promo_code": ValidationError(
-                    "Promo code is invalid", code=GiftCardErrorCode.INVALID.value
+                    "Promo code is invalid",
+                    code=GiftCardErrorCode.INVALID.value,
+                    params=(
+                        {"promo_code_details": promo_code_rejection}
+                        if promo_code_rejection
+                        else None
+                    ),
                 )
             }
         super().__init__(message, **kwargs)

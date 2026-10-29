@@ -22,7 +22,6 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
-from ...core.descriptions import ADDED_IN_321
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import DeprecatedModelMutation
@@ -35,11 +34,13 @@ from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .utils import (
+    PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
     apply_gift_reward_if_applicable_on_checkout_creation,
     check_lines_quantity,
     check_permissions_for_custom_prices,
     get_variants_and_total_quantities,
     group_lines_input_on_add,
+    validate_price_override_reason,
     validate_variants_are_published,
     validate_variants_available_for_purchase,
 )
@@ -110,6 +111,10 @@ class CheckoutLineInput(BaseInputObjectType):
             "will be provided multiple times, the last price will be used."
         ),
     )
+    price_override_reason = graphene.String(
+        required=False,
+        description=PRICE_OVERRIDE_REASON_INPUT_DESCRIPTION,
+    )
     force_new_line = graphene.Boolean(
         required=False,
         default_value=False,
@@ -137,9 +142,10 @@ class CheckoutCreateInput(BaseInputObjectType):
         CheckoutLineInput,
         description=(
             "A list of checkout lines, each containing information about "
-            "an item in the checkout."
+            "an item in the checkout. When omitted, a checkout with no lines "
+            "is created."
         ),
-        required=True,
+        required=False,
     )
     email = graphene.String(description="The customer's email address.")
     save_shipping_address = graphene.Boolean(
@@ -149,7 +155,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a shipping address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
-        + ADDED_IN_321
     )
     shipping_address = AddressInput(
         description=(
@@ -166,7 +171,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             "Can only be set when a billing address is provided. If not specified "
             "along with the address, the default behavior is to save the address."
         )
-        + ADDED_IN_321
     )
     billing_address = AddressInput(
         description=(
@@ -187,7 +191,6 @@ class CheckoutCreateInput(BaseInputObjectType):
         description=(
             f"Checkout public metadata. "
             f"{MetadataInputDescription.PUBLIC_METADATA_INPUT}"
-            f"{ADDED_IN_321}"
         ),
         required=False,
     )
@@ -199,7 +202,6 @@ class CheckoutCreateInput(BaseInputObjectType):
             f"{CheckoutPermissions.MANAGE_CHECKOUTS.name}, "
             f"{CheckoutPermissions.HANDLE_CHECKOUTS.name} \n\n"
             f"{MetadataInputDescription.PRIVATE_METADATA_INPUT}"
-            f"{ADDED_IN_321}"
         ),
         required=False,
     )
@@ -266,6 +268,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
         )
 
         checkout_lines_data = group_lines_input_on_add(lines)
+        validate_price_override_reason(checkout_lines_data)
 
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)

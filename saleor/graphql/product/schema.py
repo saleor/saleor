@@ -13,8 +13,8 @@ from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.context import ChannelContext, ChannelQsContext
 from ..core.descriptions import (
-    ADDED_IN_321,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -34,6 +34,7 @@ from ..translations.mutations import (
     CategoryTranslate,
     CollectionTranslate,
     ProductBulkTranslate,
+    ProductMediaTranslate,
     ProductTranslate,
     ProductVariantBulkTranslate,
     ProductVariantTranslate,
@@ -81,7 +82,6 @@ from .mutations import (
     ProductUpdate,
     ProductVariantCreate,
     ProductVariantDelete,
-    ProductVariantPreorderDeactivate,
     ProductVariantReorder,
     ProductVariantSetDefault,
     ProductVariantUpdate,
@@ -99,11 +99,14 @@ from .mutations.attributes import (
 from .mutations.channels import (
     CollectionChannelListingUpdate,
     ProductChannelListingUpdate,
+    ProductVariantChannelListingAvailabilityUpdate,
     ProductVariantChannelListingUpdate,
 )
 from .resolvers import (
     resolve_categories,
+    resolve_category_by_external_reference,
     resolve_category_by_translated_slug,
+    resolve_collection_by_external_reference,
     resolve_collection_by_id,
     resolve_collection_by_slug,
     resolve_collection_by_translated_slug,
@@ -157,10 +160,17 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the category"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the category slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the category slug, omit to use primary slug.",
         ),
-        description="Look up a category by ID or slug.",
+        external_reference=graphene.Argument(
+            graphene.String,
+            description=f"External ID of the category.{ADDED_IN_323}",
+        ),
+        description=(
+            "Look up a category by ID, slug or external reference. If "
+            "slugLanguageCode is provided, category will be fetched by slug "
+            "translation."
+        ),
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
     collection = BaseField(
@@ -172,17 +182,20 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the collection"),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the collection slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the collection slug, omit to use primary slug.",
+        ),
+        external_reference=graphene.Argument(
+            graphene.String,
+            description=f"External ID of the collection.{ADDED_IN_323}",
         ),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
         description=(
-            "Look up a collection by ID or slug. If slugLanguageCode is provided, "
-            "category will be fetched by slug translation. Requires one of the "
-            "following permissions to include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
+            "Look up a collection by ID, slug or external reference. If "
+            "slugLanguageCode is provided, category will be fetched by slug "
+            "translation. Requires one of the following permissions to include "
+            f"the unpublished items: {', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
         doc_category=DOC_CATEGORY_PRODUCTS,
     )
@@ -212,8 +225,7 @@ class ProductQueries(graphene.ObjectType):
         slug=graphene.Argument(graphene.String, description="Slug of the product."),
         slug_language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="Language code of the product slug, omit to use primary slug."
-            + ADDED_IN_321,
+            description="Language code of the product slug, omit to use primary slug.",
         ),
         external_reference=graphene.Argument(
             graphene.String, description="External ID of the product."
@@ -347,15 +359,20 @@ class ProductQueries(graphene.ObjectType):
         id=None,
         slug=None,
         slug_language_code=None,
+        external_reference=None,
         **kwargs,
     ) -> Promise[Category] | None | Category:
-        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        validate_one_of_args_is_in_query(
+            "id", id, "slug", slug, "external_reference", external_reference
+        )
         if id:
             _, id = from_global_id_or_error(id, Category)
             # FIXME: we should raise an error above
             if id is not None:
                 return CategoryByIdLoader(info.context).load(int(id))
             return None
+        if external_reference:
+            return resolve_category_by_external_reference(info, external_reference)
         if slug:
             if slug_language_code:
                 return resolve_category_by_translated_slug(
@@ -374,8 +391,11 @@ class ProductQueries(graphene.ObjectType):
         slug=None,
         channel=None,
         slug_language_code=None,
+        external_reference=None,
     ):
-        validate_one_of_args_is_in_query("id", id, "slug", slug)
+        validate_one_of_args_is_in_query(
+            "id", id, "slug", slug, "external_reference", external_reference
+        )
         requestor = get_user_or_app_from_context(info.context)
 
         has_required_permissions = has_one_of_permissions(
@@ -389,6 +409,10 @@ class ProductQueries(graphene.ObjectType):
         if id:
             _, id = from_global_id_or_error(id, Collection)
             collection = resolve_collection_by_id(info, id, channel, requestor)
+        elif external_reference:
+            collection = resolve_collection_by_external_reference(
+                info, external_reference, channel, requestor
+            )
         else:
             if slug_language_code is None:
                 collection = resolve_collection_by_slug(
@@ -674,6 +698,7 @@ class ProductMutations(graphene.ObjectType):
     product_media_delete = ProductMediaDelete.Field()
     product_media_bulk_delete = ProductMediaBulkDelete.Field()
     product_media_reorder = ProductMediaReorder.Field()
+    product_media_translate = ProductMediaTranslate.Field()
     product_media_update = ProductMediaUpdate.Field()
 
     product_type_create = ProductTypeCreate.Field()
@@ -696,10 +721,11 @@ class ProductMutations(graphene.ObjectType):
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_bulk_translate = ProductVariantBulkTranslate.Field()
     product_variant_channel_listing_update = ProductVariantChannelListingUpdate.Field()
+    product_variant_channel_listing_availability_update = (
+        ProductVariantChannelListingAvailabilityUpdate.Field()
+    )
     product_variant_reorder_attribute_values = (
         ProductVariantReorderAttributeValues.Field()
     )
-    product_variant_preorder_deactivate = ProductVariantPreorderDeactivate.Field()
-
     variant_media_assign = VariantMediaAssign.Field()
     variant_media_unassign = VariantMediaUnassign.Field()

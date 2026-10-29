@@ -55,6 +55,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS, ProductMedia, ProductMed
 from ...shipping.interface import ShippingMethodData
 from ...shipping.utils import convert_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
+from ...thumbnail import ThumbnailSizeRounding
 from ...thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -75,13 +76,10 @@ from ..checkout.utils import prevent_sync_event_circular_query
 from ..core.connection import CountableConnection
 from ..core.context import ChannelContext
 from ..core.descriptions import (
-    ADDED_IN_318,
-    ADDED_IN_319,
-    ADDED_IN_320,
-    ADDED_IN_321,
     ADDED_IN_322,
     ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -129,6 +127,7 @@ from ..payment.types import (
     PaymentChargeStatusEnum,
     TransactionEvent,
     TransactionItem,
+    TransactionSummary,
 )
 from ..product.dataloaders import (
     ImagesByProductIdLoader,
@@ -355,19 +354,17 @@ class OrderGrantedRefund(
         required=True,
         description=(
             "Status of the granted refund calculated based on transactionItem assigned "
-            "to granted refund." + ADDED_IN_320
+            "to granted refund."
         ),
     )
     transaction_events = NonNullList(
         TransactionEvent,
-        description=(
-            "List of refund events associated with the granted refund." + ADDED_IN_320
-        ),
+        description=("List of refund events associated with the granted refund."),
     )
 
     transaction = graphene.Field(
         TransactionItem,
-        description="The transaction assigned to the granted refund." + ADDED_IN_320,
+        description="The transaction assigned to the granted refund.",
     )
 
     class Meta:
@@ -1183,6 +1180,15 @@ class OrderLine(
     is_price_overridden = graphene.Boolean(
         description="Returns True, if the line unit price was overridden."
     )
+    price_override_reason = PermissionsField(
+        graphene.String,
+        description=(
+            "Reason explaining why a custom price was set on the line, copied from "
+            "the checkout line when the order was created from a checkout."
+            + ADDED_IN_323
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
     variant = graphene.Field(
         ProductVariant,
         required=False,
@@ -1248,11 +1254,11 @@ class OrderLine(
         required=False, description="Voucher code that was used for this order line."
     )
     is_gift = graphene.Boolean(
-        description="Determine if the line is a gift." + ADDED_IN_319 + PREVIEW_FEATURE,
+        description="Determine if the line is a gift." + PREVIEW_FEATURE,
     )
     discounts = NonNullList(
         "saleor.graphql.discount.types.discounts.OrderLineDiscount",
-        description="List of applied discounts" + ADDED_IN_321,
+        description="List of applied discounts",
     )
 
     class Meta:
@@ -1270,6 +1276,7 @@ class OrderLine(
         info,
         *,
         size: int = 256,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ):
         variant_id = root.node.variant_id
@@ -1277,7 +1284,7 @@ class OrderLine(
             return None
 
         format = get_thumbnail_format(format)
-        size = get_thumbnail_size(size)
+        size = get_thumbnail_size(size, size_rounding)
 
         def _get_image_from_media(image):
             def _resolve_url(thumbnail):
@@ -1664,12 +1671,6 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         ),
         required=True,
     )
-    available_shipping_methods = NonNullList(
-        ShippingMethod,
-        description="Shipping methods that can be used with this order.",
-        required=False,
-        deprecation_reason="Use `shippingMethods`, this field will be removed in 4.0",
-    )
     shipping_methods = NonNullList(
         ShippingMethod,
         description="Shipping methods related to this order.",
@@ -1725,8 +1726,22 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         ),
         required=True,
     )
+    transaction_summaries = NonNullList(
+        TransactionSummary,
+        description=(
+            "Payment history of the order, with one entry per payment transaction "
+            "that moved any money. Unlike `transactions`, it requires no permission "
+            "and exposes only the payment method and the amounts, so it can be used "
+            "to display payment details to the customer without exposing internal "
+            "information." + ADDED_IN_323
+        ),
+        required=True,
+    )
     payments = NonNullList(
-        Payment, description="List of payments for the order.", required=True
+        Payment,
+        description="List of payments for the order.",
+        required=True,
+        deprecation_reason=DEPRECATED_LEGACY_PAYMENTS,
     )
     total = graphene.Field(
         TaxedMoney, description="Total amount of the order.", required=True
@@ -1741,7 +1756,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     )
     undiscounted_shipping_price = graphene.Field(
         Money,
-        description="Undiscounted total price of shipping." + ADDED_IN_319,
+        description="Undiscounted total price of shipping.",
         required=True,
     )
     shipping_price = graphene.Field(
@@ -1788,7 +1803,7 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     voucher = graphene.Field(Voucher, description="Voucher linked to the order.")
     voucher_code = graphene.String(
         required=False,
-        description="Voucher code that was used for Order." + ADDED_IN_318,
+        description="Voucher code that was used for Order.",
     )
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
@@ -2569,6 +2584,22 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         return TransactionItemsByOrderIDLoader(info.context).load(root.node.id)
 
     @staticmethod
+    def resolve_transaction_summaries(
+        root: SyncWebhookControlContext[models.Order], info
+    ):
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.node.id)
+            .then(
+                lambda transactions: [
+                    transaction
+                    for transaction in transactions
+                    if transaction.has_money_movement()
+                ]
+            )
+        )
+
+    @staticmethod
     def resolve_status_display(root: SyncWebhookControlContext[models.Order], _info):
         return root.node.get_status_display()
 
@@ -2761,16 +2792,6 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
     ):
         return OrderShippingMethodsByOrderIdAndWebhookSyncLoader(info.context).load(
             (root.node.id, root.allow_sync_webhooks)
-        )
-
-    @classmethod
-    @traced_resolver
-    @prevent_sync_event_circular_query
-    def resolve_available_shipping_methods(
-        cls, root: SyncWebhookControlContext[models.Order], info
-    ):
-        return cls.resolve_shipping_methods(root, info).then(
-            lambda methods: [method for method in methods if method.active]
         )
 
     @classmethod

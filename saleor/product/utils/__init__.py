@@ -41,9 +41,10 @@ def delete_categories(categories_ids: list[str | int], manager):
     Set products of deleted categories as unpublished, delete categories
     and update products minimal variant prices.
     """
-    from ..models import Category, Product
+    from ..lock_objects import acquire_category_tree_lock, category_qs_select_for_update
 
-    categories = Category.objects.select_for_update().filter(pk__in=categories_ids)
+    acquire_category_tree_lock()
+    categories = category_qs_select_for_update().filter(pk__in=categories_ids)
     categories.prefetch_related("products")
 
     products = Product.objects.none()

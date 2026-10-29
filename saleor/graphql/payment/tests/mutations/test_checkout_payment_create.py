@@ -325,7 +325,7 @@ def test_checkout_add_payment_no_checkout_email(
 
 
 @patch(
-    "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin.CONFIGURATION_PER_CHANNEL",
+    "saleor.plugins.tests.gateways.dummy.DummyGatewayPlugin.CONFIGURATION_PER_CHANNEL",
     False,
 )
 def test_checkout_add_payment_not_supported_currency(
@@ -376,7 +376,7 @@ def test_checkout_add_payment_not_existing_gateway(
 
 
 @patch(
-    "saleor.payment.gateways.dummy.plugin.DeprecatedDummyGatewayPlugin.DEFAULT_ACTIVE",
+    "saleor.plugins.tests.gateways.dummy.DummyGatewayPlugin.DEFAULT_ACTIVE",
     False,
 )
 def test_checkout_add_payment_gateway_inactive(

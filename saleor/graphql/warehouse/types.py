@@ -11,7 +11,6 @@ from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.context import ChannelContext, get_database_connection_name
 from ..core.descriptions import (
-    ADDED_IN_320,
     DEPRECATED_IN_3X_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -107,7 +106,7 @@ class Warehouse(ModelObjectType[models.Warehouse]):
     )
     stocks = ConnectionField(
         "saleor.graphql.warehouse.types.StockCountableConnection",
-        description="Stocks that belong to this warehouse." + ADDED_IN_320,
+        description="Stocks that belong to this warehouse.",
         permissions=[
             ProductPermissions.MANAGE_PRODUCTS,
             OrderPermissions.MANAGE_ORDERS,

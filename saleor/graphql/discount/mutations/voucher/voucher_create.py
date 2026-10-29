@@ -10,7 +10,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
 from ....core.descriptions import (
-    ADDED_IN_318,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
@@ -34,6 +34,10 @@ class VoucherInput(BaseInputObjectType):
         description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
     )
     name = graphene.String(description="Voucher name.")
+    external_reference = graphene.String(
+        description=f"External ID of this voucher.{ADDED_IN_323}",
+        required=False,
+    )
     code = graphene.String(
         required=False,
         description="Code to use the voucher. "
@@ -43,7 +47,7 @@ class VoucherInput(BaseInputObjectType):
     add_codes = NonNullList(
         graphene.String,
         required=False,
-        description="List of codes to add." + ADDED_IN_318 + PREVIEW_FEATURE,
+        description="List of codes to add." + PREVIEW_FEATURE,
     )
     start_date = DateTime(description="Start date of the voucher in ISO 8601 format.")
     end_date = DateTime(description="End date of the voucher in ISO 8601 format.")
@@ -89,7 +93,7 @@ class VoucherInput(BaseInputObjectType):
             "When set to 'True', each voucher code can be used only once; "
             "otherwise, codes can be used multiple times depending on `usageLimit`."
             "\n\nThe option can only be changed if none of the voucher codes "
-            "have been used." + ADDED_IN_318 + PREVIEW_FEATURE
+            "have been used." + PREVIEW_FEATURE
         )
     )
     usage_limit = graphene.Int(

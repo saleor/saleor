@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.conf import settings
+from PIL import Image
 from requests import RequestException
 from requests.exceptions import InvalidSchema
 from requests_hardened.ip_filter import InvalidIPAddress
@@ -12,6 +13,7 @@ from requests_hardened.ip_filter import InvalidIPAddress
 from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
 from .....product import MEDIA_URL_CHAR_LIMIT, ProductMediaTypes
 from .....product.error_codes import ProductErrorCode
+from .....product.models import Product, ProductMedia
 from .....product.tests.utils import create_image, create_zip_file_with_image_ext
 
 PRODUCT_MEDIA_CREATE_QUERY = """
@@ -113,6 +115,40 @@ def test_product_media_create_mutation_file_size_exceeds_limit(
     assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
     assert "File size exceeds the maximum allowed size" in errors[0]["message"]
     assert product.media.count() == 0
+
+
+def test_product_media_create_mutation_pixel_count_exceeds_limit(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    # given
+    # `settings.MAX_IMAGE_PIXELS` is applied to `PIL.Image.MAX_IMAGE_PIXELS` once at
+    # app startup, so patch Pillow directly; 0 rejects any image.
+    monkeypatch.setattr(Image, "MAX_IMAGE_PIXELS", 0)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    image_file, image_name = create_image()
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "alt": "",
+        "image": image_name,
+    }
+    body = get_multipart_request_body(
+        PRODUCT_MEDIA_CREATE_QUERY, variables, image_file, image_name
+    )
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "image"
+    assert errors[0]["code"] == ProductErrorCode.FILE_SIZE_LIMIT_EXCEEDED.name
+    assert errors[0]["message"] == (
+        "Image exceeds the maximum allowed number of pixels of "
+        f"{settings.MAX_IMAGE_PIXELS}."
+    )
+    assert product.media.exists() is False
 
 
 def test_product_media_create_mutation_without_file(
@@ -624,3 +660,41 @@ def test_product_media_create_mutation_with_empty_product_id(
     assert len(errors) == 1
     assert errors[0]["field"] == "product"
     assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
+# The insert must really hit the database for the foreign key to be checked, so
+# this test needs actual commits instead of the usual wrapping transaction.
+@pytest.mark.django_db(transaction=True)
+@patch("saleor.graphql.product.utils.HTTPClient")
+def test_product_media_create_when_product_deleted_while_media_url_is_probed(
+    mock_HTTPClient, staff_api_client, product, permission_manage_products
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    mock_response = Mock()
+    mock_response.headers.get = Mock(return_value="image/jpeg")
+    mock_HTTPClient.send_request.return_value.__enter__.return_value = mock_response
+
+    def delete_product_mid_probe(*args, **kwargs):
+        # simulate a concurrent request deleting the product while the URL is probed
+        Product.objects.filter(pk=product.pk).delete()
+        return mock_HTTPClient.send_request.return_value
+
+    mock_HTTPClient.send_request.side_effect = delete_product_mid_probe
+
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "mediaUrl": "https://www.example.com/image.jpg",
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_MEDIA_CREATE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productMediaCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "product"
+    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[0]["message"] == "Product no longer exists."
+    assert ProductMedia.objects.exists() is False

@@ -5,7 +5,12 @@ import graphene
 import pytest
 
 from .....tests.utils import dummy_editorjs
-from ....core.enums import LanguageCodeEnum, TranslationErrorCode
+from ....core.enums import (
+    AttributeValueTranslateErrorCode,
+    ErrorPolicyEnum,
+    LanguageCodeEnum,
+    TranslationErrorCode,
+)
 from ....tests.utils import get_graphql_content
 from ...mutations import AttributeValueBulkTranslate
 
@@ -485,3 +490,78 @@ def test_attribute_value_bulk_translate_return_error_when_invalid_value_external
     assert error["code"] == TranslationErrorCode.NOT_FOUND.name
     assert error["message"] == message
     assert error["path"] == "externalReference"
+
+
+@patch("saleor.plugins.manager.PluginsManager.translations_created")
+def test_attribute_value_bulk_translate_rejects_customer_attribute_values(
+    created_webhook_mock,
+    staff_api_client,
+    color_attribute,
+    loyalty_customer_attribute,
+    permission_manage_translations,
+):
+    # given
+    mutation = """
+        mutation AttributeValueBulkTranslate(
+            $translations: [AttributeValueBulkTranslateInput!]!,
+            $errorPolicy: ErrorPolicyEnum
+        ) {
+            attributeValueBulkTranslate(
+                translations: $translations, errorPolicy: $errorPolicy
+            ) {
+                results {
+                    errors {
+                        path
+                        code
+                        message
+                    }
+                    translation {
+                        id
+                        name
+                    }
+                }
+                count
+            }
+        }
+    """
+    catalog_value = color_attribute.values.first()
+    customer_value = loyalty_customer_attribute.values.first()
+    translated_name = "Czerwony"
+    translations = [
+        {
+            "id": graphene.Node.to_global_id("AttributeValue", catalog_value.id),
+            "languageCode": LanguageCodeEnum.PL.name,
+            "translationFields": {"name": translated_name},
+        },
+        {
+            "id": graphene.Node.to_global_id("AttributeValue", customer_value.id),
+            "languageCode": LanguageCodeEnum.PL.name,
+            "translationFields": {"name": "Złoty"},
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_translations)
+    response = staff_api_client.post_graphql(
+        mutation,
+        {
+            "translations": translations,
+            "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name,
+        },
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["attributeValueBulkTranslate"]
+
+    # then
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assert data["results"][0]["translation"]["name"] == translated_name
+    assert data["results"][1]["translation"] is None
+    errors = data["results"][1]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Values of customer attributes cannot be translated."
+    assert errors[0]["code"] == AttributeValueTranslateErrorCode.INVALID.name
+    assert errors[0]["path"] == "id"
+    assert catalog_value.translations.get().name == translated_name
+    assert not customer_value.translations.exists()
+    assert created_webhook_mock.call_count == 1

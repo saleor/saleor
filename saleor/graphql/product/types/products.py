@@ -29,6 +29,7 @@ from ....tax.utils import (
     get_tax_calculation_strategy,
     get_tax_rate_for_country,
 )
+from ....thumbnail import ThumbnailSizeRounding
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_original_image_proxy_url,
@@ -66,9 +67,10 @@ from ...core.context import (
     get_database_connection_name,
 )
 from ...core.descriptions import (
-    ADDED_IN_321,
     ADDED_IN_322,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_PRODUCT_RATING,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -95,9 +97,6 @@ from ...core.types import (
 )
 from ...core.types.context import ChannelContextType
 from ...core.utils import from_global_id_or_error
-from ...core.validators import (
-    validate_one_of_args_is_in_query,
-)
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -120,7 +119,11 @@ from ...tax.dataloaders import (
 )
 from ...tax.types import TaxClass
 from ...translations.fields import TranslationField
-from ...translations.types import ProductTranslation, ProductVariantTranslation
+from ...translations.types import (
+    ProductMediaTranslation,
+    ProductTranslation,
+    ProductVariantTranslation,
+)
 from ...utils import get_user_or_app_from_context
 from ...utils.filters import reporting_period_to_date
 from ...warehouse.dataloaders import (
@@ -206,7 +209,6 @@ class BasePricingInfo(BaseObjectType):
         description=(
             "The discount amount compared to prior price. Null if product "
             "is not on sale or prior price was not provided in VariantChannelListing"
-            + ADDED_IN_321
         ),
     )
 
@@ -229,9 +231,7 @@ class VariantPricingInfo(BasePricingInfo):
     price_undiscounted = graphene.Field(
         TaxedMoney, description="The price without any discount."
     )
-    price_prior = graphene.Field(
-        TaxedMoney, description="The price prior to discount." + ADDED_IN_321
-    )
+    price_prior = graphene.Field(TaxedMoney, description="The price prior to discount.")
 
     # deprecated
     discount_local_currency = graphene.Field(
@@ -265,7 +265,7 @@ class ProductPricingInfo(BasePricingInfo):
     )
     price_range_prior = graphene.Field(
         TaxedMoneyRange,
-        description="The prior price range of the product variants." + ADDED_IN_321,
+        description="The prior price range of the product variants.",
     )
 
     # deprecated
@@ -280,34 +280,6 @@ class ProductPricingInfo(BasePricingInfo):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents availability of a product in the storefront."
-
-
-class PreorderData(BaseObjectType):
-    global_threshold = PermissionsField(
-        graphene.Int,
-        required=False,
-        description="The global preorder threshold for product variant.",
-        permissions=[ProductPermissions.MANAGE_PRODUCTS],
-    )
-    global_sold_units = PermissionsField(
-        graphene.Int,
-        required=True,
-        description="Total number of sold product variant during preorder.",
-        permissions=[ProductPermissions.MANAGE_PRODUCTS],
-    )
-    end_date = DateTime(required=False, description="Preorder end date.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
-        description = "Represents preorder settings for product variant."
-
-    @staticmethod
-    def resolve_global_threshold(root, _info):
-        return root.global_threshold
-
-    @staticmethod
-    def resolve_global_sold_units(root, _info):
-        return root.global_sold_units
 
 
 @federated_entity("id channel")
@@ -456,11 +428,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
                 f"{DEPRECATED_IN_3X_INPUT} Use `address` argument instead."
             ),
         ),
-    )
-    preorder = graphene.Field(
-        PreorderData,
-        required=False,
-        description="Preorder data for product variant.",
     )
     created = DateTime(
         required=True,
@@ -855,32 +822,6 @@ class ProductVariant(ChannelContextType[models.ProductVariant]):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
-    @traced_resolver
-    def resolve_preorder(root: ChannelContext[models.ProductVariant], info):
-        variant = root.node
-
-        variant_channel_listings = VariantChannelListingByVariantIdLoader(
-            info.context
-        ).load(variant.id)
-
-        def calculate_global_sold_units(variant_channel_listings):
-            global_sold_units = sum(
-                channel_listing.preorder_quantity_allocated
-                for channel_listing in variant_channel_listings
-            )
-            return (
-                PreorderData(
-                    global_threshold=variant.preorder_global_threshold,
-                    global_sold_units=global_sold_units,
-                    end_date=variant.preorder_end_date,
-                )
-                if variant.is_preorder_active()
-                else None
-            )
-
-        return variant_channel_listings.then(calculate_global_sold_units)
-
-    @staticmethod
     def __resolve_references(roots: list["ProductVariant"], info):
         requestor = get_user_or_app_from_context(info.context)
 
@@ -946,7 +887,10 @@ class Product(ChannelContextType[models.Product]):
     default_variant = graphene.Field(
         ProductVariant, description="Default variant of the product."
     )
-    rating = graphene.Float(description="Rating of the product.")
+    rating = graphene.Float(
+        description="Rating of the product.",
+        deprecation_reason=DEPRECATED_PRODUCT_RATING,
+    )
     channel = graphene.String(
         description=(
             "Channel given to retrieve this product. Also used by federation "
@@ -1037,13 +981,6 @@ class Product(ChannelContextType[models.Product]):
         description="Get a single product image by ID.",
         deprecation_reason="Use the `mediaById` field instead.",
     )
-    variant = graphene.Field(
-        ProductVariant,
-        id=graphene.Argument(graphene.ID, description="ID of the variant."),
-        sku=graphene.Argument(graphene.String, description="SKU of the variant."),
-        description="Get a single variant by SKU or ID.",
-        deprecation_reason="Use top-level `variant` query.",
-    )
     variants = NonNullList(
         ProductVariant,
         description=(
@@ -1068,7 +1005,7 @@ class Product(ChannelContextType[models.Product]):
         description=(
             "List of variants for the product. Requires the following permissions to "
             "include the unpublished items: "
-            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}." + ADDED_IN_321
+            f"{', '.join([p.name for p in ALL_PRODUCTS_PERMISSIONS])}."
         ),
     )
     media = NonNullList(
@@ -1191,10 +1128,11 @@ class Product(ChannelContextType[models.Product]):
         info,
         *,
         size: int = 256,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ):
         format = get_thumbnail_format(format)
-        size = get_thumbnail_size(size)
+        size = get_thumbnail_size(size, size_rounding)
 
         def return_first_thumbnail(product_media):
             if not product_media:
@@ -1484,40 +1422,6 @@ class Product(ChannelContextType[models.Product]):
         return ImagesByProductIdLoader(info.context).load(root.node.id)
 
     @staticmethod
-    def resolve_variant(root: ChannelContext[models.Product], info, id=None, sku=None):
-        validate_one_of_args_is_in_query("id", id, "sku", sku)
-
-        def get_product_variant(
-            product_variants,
-        ) -> ProductVariant | None:
-            if id:
-                id_type, variant_id = graphene.Node.from_global_id(id)
-                if id_type != "ProductVariant":
-                    return None
-
-                return next(
-                    (
-                        variant
-                        for variant in product_variants
-                        if variant.node.id == int(variant_id)
-                    ),
-                    None,
-                )
-            if sku:
-                return next(
-                    (
-                        variant
-                        for variant in product_variants
-                        if variant.node.sku == sku
-                    ),
-                    None,
-                )
-            return None
-
-        variants = Product.resolve_variants(root, info)
-        return variants.then(get_product_variant)
-
-    @staticmethod
     def resolve_variants(root: ChannelContext[models.Product], info):
         requestor = get_user_or_app_from_context(info.context)
         has_required_permissions = has_one_of_permissions(
@@ -1783,16 +1687,6 @@ class ProductType(ModelObjectType[models.ProductType]):
     )
     is_shipping_required = graphene.Boolean(
         required=True, description="Whether shipping is required for this product type."
-    )
-    is_digital = graphene.Boolean(
-        required=True,
-        description=(
-            "Whether the product type is digital - doesn't have any effect, "
-            "it's present for backward-compatibility."
-        ),
-        deprecation_reason=(
-            "Will be removed in v3.24.0, use metadata or attributes instead."
-        ),
     )
     weight = graphene.Field(Weight, description="Weight of the product type.")
     kind = ProductTypeKindEnum(description="The product type kind.", required=True)
@@ -2071,6 +1965,11 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
     )
     sort_order = graphene.Int(description="The sort order of the media.")
     alt = graphene.String(required=True, description="The alt text of the media.")
+    translation = TranslationField(
+        ProductMediaTranslation,
+        type_name="product media",
+        description_suffix=ADDED_IN_323,
+    )
     type = ProductMediaType(required=True, description="The type of the media.")
     oembed_data = JSONString(required=True, description="The oEmbed data of the media.")
     url = ThumbnailField(
@@ -2089,6 +1988,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         info,
         *,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> str | None | Promise[str]:
         if root.external_url and root.type != ProductMediaTypes.IMAGE:
@@ -2108,7 +2008,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
 
         # Else, return proxy URL for thumbnail.
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_url(thumbnail) -> str:
             url = get_image_or_proxy_url(
@@ -2165,6 +2065,7 @@ class ProductImage(BaseObjectType):
         info,
         *,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> None | str | Promise[str]:
         if not root.image:
@@ -2174,7 +2075,7 @@ class ProductImage(BaseObjectType):
             return build_absolute_uri(root.image.url)
 
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_url(thumbnail):
             url = get_image_or_proxy_url(
