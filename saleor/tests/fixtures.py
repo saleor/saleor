@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 import graphene
 import pytest
 from django.conf import settings
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
@@ -15,6 +16,7 @@ from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
 from ..core import JobStatus
+from ..core.db.locks import AdvisoryLock, get_advisory_lock_namespace
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.telemetry import initialize_telemetry, meter, tracer
@@ -161,6 +163,75 @@ def assert_num_queries(capture_queries):
 @pytest.fixture
 def assert_max_num_queries(capture_queries):
     return partial(capture_queries, exact=False)
+
+
+@pytest.fixture
+def assert_locks_rows_before_write(capture_queries):
+    """Assert that the wrapped block locks rows before writing them.
+
+    Verifies the emitted SQL contains exactly one `SELECT ... FOR UPDATE` with a
+    deterministic `ORDER BY` (concurrent lockers acquiring rows in the same
+    order is what prevents deadlocks between them), followed by exactly one
+    `UPDATE`. Asserting on SQL is deliberate, as a missing lock is hard to
+    detect with a behavioral test.
+    """
+
+    @contextmanager
+    def _assert_locks_rows_before_write():
+        with capture_queries() as ctx:
+            yield
+
+        lock_and_update_queries = [
+            query["sql"]
+            for query in ctx.captured_queries
+            if "FOR UPDATE" in query["sql"] or query["sql"].startswith("UPDATE")
+        ]
+        assert len(lock_and_update_queries) == 2, (
+            "expected exactly one lock SELECT and one UPDATE query, got: "
+            f"{lock_and_update_queries}"
+        )
+        lock_query, update_query = lock_and_update_queries
+        assert "FOR UPDATE" in lock_query, "rows were not locked before the write"
+        assert "ORDER BY" in lock_query, "the lock query has no deterministic order"
+        assert update_query.startswith("UPDATE")
+
+    return _assert_locks_rows_before_write
+
+
+@pytest.fixture
+def assert_advisory_lock_before_tree_write(capture_queries):
+    """Assert the given advisory lock is taken before the first write to a table."""
+
+    @contextmanager
+    def _assert_advisory_lock_before_tree_write(lock: AdvisoryLock, table: str):
+        with capture_queries() as ctx:
+            yield
+
+        queries = [query["sql"] for query in ctx.captured_queries]
+        lock_indexes = [
+            index
+            for index, sql in enumerate(queries)
+            if "pg_advisory_xact_lock" in sql
+            and f"{get_advisory_lock_namespace()}, {lock.value}" in sql
+        ]
+        assert len(lock_indexes) == 1, (
+            f"expected exactly one advisory lock query for {lock.name}, got: "
+            f"{[queries[index] for index in lock_indexes]}"
+        )
+        write_prefixes = (
+            f'INSERT INTO "{table}"',
+            f'UPDATE "{table}"',
+            f'DELETE FROM "{table}"',
+        )
+        write_indexes = [
+            index for index, sql in enumerate(queries) if sql.startswith(write_prefixes)
+        ]
+        assert write_indexes, f"no write query on {table} was captured"
+        assert lock_indexes[0] < write_indexes[0], (
+            f"the advisory lock was taken after the first write to {table}"
+        )
+
+    return _assert_advisory_lock_before_tree_write
 
 
 @pytest.fixture
@@ -1149,7 +1220,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_gift_card_sent_webhook,
     subscription_gift_card_status_changed_webhook,
     subscription_gift_card_metadata_updated_webhook,
-    subscription_gift_card_export_completed_webhook,
     subscription_menu_created_webhook,
     subscription_menu_updated_webhook,
     subscription_menu_deleted_webhook,
@@ -1223,6 +1293,9 @@ def async_subscription_webhooks_with_root_objects(
     subscription_page_type_created_webhook,
     subscription_page_type_updated_webhook,
     subscription_page_type_deleted_webhook,
+    subscription_customer_type_created_webhook,
+    subscription_customer_type_updated_webhook,
+    subscription_customer_type_deleted_webhook,
     subscription_permission_group_created_webhook,
     subscription_permission_group_updated_webhook,
     subscription_permission_group_deleted_webhook,
@@ -1244,7 +1317,6 @@ def async_subscription_webhooks_with_root_objects(
     subscription_voucher_codes_deleted_webhook,
     subscription_voucher_webhook_with_meta,
     subscription_voucher_metadata_updated_webhook,
-    subscription_voucher_code_export_completed_webhook,
     address,
     app,
     numeric_attribute,
@@ -1258,6 +1330,7 @@ def async_subscription_webhooks_with_root_objects(
     fulfillment,
     stock,
     customer_user,
+    customer_type,
     collection,
     checkout,
     page,
@@ -1360,10 +1433,6 @@ def async_subscription_webhooks_with_root_objects(
         events.GIFT_CARD_METADATA_UPDATED: [
             subscription_gift_card_metadata_updated_webhook,
             gift_card,
-        ],
-        events.GIFT_CARD_EXPORT_COMPLETED: [
-            subscription_gift_card_export_completed_webhook,
-            user_export_file,
         ],
         events.MENU_CREATED: [subscription_menu_created_webhook, menu],
         events.MENU_UPDATED: [subscription_menu_updated_webhook, menu],
@@ -1518,6 +1587,18 @@ def async_subscription_webhooks_with_root_objects(
         events.PAGE_TYPE_CREATED: [subscription_page_type_created_webhook, page_type],
         events.PAGE_TYPE_UPDATED: [subscription_page_type_updated_webhook, page_type],
         events.PAGE_TYPE_DELETED: [subscription_page_type_deleted_webhook, page_type],
+        events.CUSTOMER_TYPE_CREATED: [
+            subscription_customer_type_created_webhook,
+            customer_type,
+        ],
+        events.CUSTOMER_TYPE_UPDATED: [
+            subscription_customer_type_updated_webhook,
+            customer_type,
+        ],
+        events.CUSTOMER_TYPE_DELETED: [
+            subscription_customer_type_deleted_webhook,
+            customer_type,
+        ],
         events.PERMISSION_GROUP_CREATED: [
             subscription_permission_group_created_webhook,
             permission_group_manage_users,
@@ -1587,10 +1668,6 @@ def async_subscription_webhooks_with_root_objects(
         events.VOUCHER_METADATA_UPDATED: [
             subscription_voucher_metadata_updated_webhook,
             voucher,
-        ],
-        events.VOUCHER_CODE_EXPORT_COMPLETED: [
-            subscription_voucher_code_export_completed_webhook,
-            user_export_file,
         ],
         events.WAREHOUSE_CREATED: [subscription_warehouse_created_webhook, warehouse],
         events.WAREHOUSE_UPDATED: [subscription_warehouse_updated_webhook, warehouse],
@@ -1697,3 +1774,11 @@ def tax_configuration_avatax_plugin(channel_USD):
     tc.tax_app_id = "plugin:avatax"
     tc.save()
     return tc
+
+
+@pytest.fixture
+def cache_clear():
+    """Clear the cache before & after a test case."""
+    cache.clear()
+    yield
+    cache.clear()

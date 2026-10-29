@@ -171,6 +171,9 @@ def test_channel_update_mutation_as_app(
 
 
 def test_channel_update_mutation_as_customer(user_api_client, channel_USD):
+    old_name = channel_USD.name
+    old_slug = channel_USD.slug
+
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
@@ -187,8 +190,16 @@ def test_channel_update_mutation_as_customer(user_api_client, channel_USD):
     # then
     assert_no_permission(response)
 
+    # Shouldn't have updated
+    channel_USD.refresh_from_db(fields=("slug", "name"))
+    assert channel_USD.name == old_name
+    assert channel_USD.slug == old_slug
+
 
 def test_channel_update_mutation_as_anonymous(api_client, channel_USD):
+    old_name = channel_USD.name
+    old_slug = channel_USD.slug
+
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     name = "newName"
@@ -204,6 +215,79 @@ def test_channel_update_mutation_as_anonymous(api_client, channel_USD):
 
     # then
     assert_no_permission(response)
+
+    # Shouldn't have updated
+    channel_USD.refresh_from_db(fields=("slug", "name"))
+    assert channel_USD.name == old_name
+    assert channel_USD.slug == old_slug
+
+
+@pytest.mark.parametrize(
+    ("gql_field", "python_field", "new_value"),
+    [
+        (
+            "automaticallyConfirmAllNewOrders",
+            "automatically_confirm_all_new_orders",
+            False,
+        ),
+        (
+            "automaticallyFulfillNonShippableGiftCard",
+            "automatically_fulfill_non_shippable_gift_card",
+            False,
+        ),
+        ("allowUnpaidOrders", "allow_unpaid_orders", True),
+        ("expireOrdersAfter", "expire_orders_after", 1),
+        ("deleteExpiredOrdersAfter", "delete_expired_orders_after", 1),
+        ("markAsPaidStrategy", "order_mark_as_paid_strategy", "TRANSACTION_FLOW"),
+        (
+            "includeDraftOrderInVoucherUsage",
+            "include_draft_order_in_voucher_usage",
+            True,
+        ),
+        ("draftOrderLinePriceFreezePeriod", "draft_order_line_price_freeze_period", 1),
+        (
+            "useLegacyLineDiscountPropagation",
+            "use_legacy_line_discount_propagation_for_order",
+            False,
+        ),
+    ],
+)
+def test_channel_update_order_settings_anonymous_is_denied(
+    api_client,
+    channel_USD,
+    gql_field,
+    python_field,
+    new_value,
+):
+    """Anonymous user shouldn't be able to edit order settings."""
+
+    old_value = getattr(channel_USD, python_field)
+    assert new_value != old_value
+
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                gql_field: new_value,
+            },
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+    channel_USD.refresh_from_db(fields=(python_field,))
+    assert getattr(channel_USD, python_field) == old_value, (
+        "shouldn't have changed the value"
+    )
 
 
 def test_channel_update_mutation_slugify_slug_field(
@@ -1023,6 +1107,17 @@ def test_channel_update_order_settings_manage_orders_permission_denied(
     staff_api_client,
     channel_USD,
 ):
+    old_name = channel_USD.name
+
+    channel_USD.automatically_confirm_all_new_orders = True
+    channel_USD.automatically_fulfill_non_shippable_gift_card = True
+    channel_USD.save(
+        update_fields=(
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        )
+    )
+
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -1046,12 +1141,35 @@ def test_channel_update_order_settings_manage_orders_permission_denied(
     # then
     assert_no_permission(response)
 
+    # Shouldn't have changed the values
+    channel_USD.refresh_from_db(
+        fields=(
+            "name",
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        )
+    )
+    assert channel_USD.name == old_name
+    assert channel_USD.automatically_confirm_all_new_orders is True
+    assert channel_USD.automatically_fulfill_non_shippable_gift_card is True
+
 
 def test_channel_update_order_settings_manage_orders_as_app_permission_denied(
     permission_manage_orders,
     app_api_client,
     channel_USD,
 ):
+    old_name = channel_USD.name
+
+    channel_USD.automatically_confirm_all_new_orders = True
+    channel_USD.automatically_fulfill_non_shippable_gift_card = True
+    channel_USD.save(
+        update_fields=(
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        )
+    )
+
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -1074,6 +1192,18 @@ def test_channel_update_order_settings_manage_orders_as_app_permission_denied(
 
     # then
     assert_no_permission(response)
+
+    # Shouldn't have changed the values
+    channel_USD.refresh_from_db(
+        fields=(
+            "name",
+            "automatically_confirm_all_new_orders",
+            "automatically_fulfill_non_shippable_gift_card",
+        )
+    )
+    assert channel_USD.name == old_name
+    assert channel_USD.automatically_confirm_all_new_orders is True
+    assert channel_USD.automatically_fulfill_non_shippable_gift_card is True
 
 
 def test_channel_update_order_mark_as_paid_strategy(
@@ -2003,6 +2133,15 @@ def test_channel_update_channel_settings_with_checkout_permission(
 def test_channel_update_channel_settings_without_permission(
     staff_api_client, channel_USD
 ):
+    channel_USD.use_legacy_error_flow_for_checkout = True
+    channel_USD.automatically_complete_fully_paid_checkouts = False
+    channel_USD.save(
+        update_fields=(
+            "use_legacy_error_flow_for_checkout",
+            "automatically_complete_fully_paid_checkouts",
+        )
+    )
+
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -2024,10 +2163,29 @@ def test_channel_update_channel_settings_without_permission(
     # then
     assert_no_permission(response)
 
+    # Shouldn't have changed
+    channel_USD.refresh_from_db(
+        fields=(
+            "use_legacy_error_flow_for_checkout",
+            "automatically_complete_fully_paid_checkouts",
+        )
+    )
+    assert channel_USD.use_legacy_error_flow_for_checkout is True
+    assert channel_USD.automatically_complete_fully_paid_checkouts is False
+
 
 def test_channel_update_order_settings_with_manage_orders(
     staff_api_client, channel_USD, permission_manage_orders
 ):
+    channel_USD.use_legacy_error_flow_for_checkout = True
+    channel_USD.automatically_complete_fully_paid_checkouts = False
+    channel_USD.save(
+        update_fields=(
+            "use_legacy_error_flow_for_checkout",
+            "automatically_complete_fully_paid_checkouts",
+        )
+    )
+
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -2048,10 +2206,29 @@ def test_channel_update_order_settings_with_manage_orders(
     # then
     assert_no_permission(response)
 
+    # Shouldn't have changed
+    channel_USD.refresh_from_db(
+        fields=(
+            "use_legacy_error_flow_for_checkout",
+            "automatically_complete_fully_paid_checkouts",
+        )
+    )
+    assert channel_USD.use_legacy_error_flow_for_checkout is True
+    assert channel_USD.automatically_complete_fully_paid_checkouts is False
+
 
 def test_channel_update_order_and_checkout_settings_with_manage_checkouts(
     staff_api_client, channel_USD, permission_manage_checkouts
 ):
+    channel_USD.use_legacy_error_flow_for_checkout = True
+    channel_USD.automatically_complete_fully_paid_checkouts = False
+    channel_USD.save(
+        update_fields=(
+            "use_legacy_error_flow_for_checkout",
+            "automatically_complete_fully_paid_checkouts",
+        )
+    )
+
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
@@ -2071,6 +2248,16 @@ def test_channel_update_order_and_checkout_settings_with_manage_checkouts(
 
     # then
     assert_no_permission(response)
+
+    # Shouldn't have changed
+    channel_USD.refresh_from_db(
+        fields=(
+            "use_legacy_error_flow_for_checkout",
+            "automatically_complete_fully_paid_checkouts",
+        )
+    )
+    assert channel_USD.use_legacy_error_flow_for_checkout is True
+    assert channel_USD.automatically_complete_fully_paid_checkouts is False
 
 
 def test_channel_update_with_order_and_checkout_settings(

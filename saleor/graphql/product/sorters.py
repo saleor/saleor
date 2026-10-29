@@ -17,13 +17,18 @@ from django.db.models import (
 )
 from django.db.models.functions import Coalesce
 
+from ...product.managers import sellable_listing_q
 from ...product.models import (
     Category,
     CollectionChannelListing,
     Product,
     ProductChannelListing,
 )
-from ..core.descriptions import CHANNEL_REQUIRED
+from ..core.descriptions import (
+    ADDED_IN_323,
+    CHANNEL_REQUIRED,
+    DEPRECATED_PRODUCT_RATING,
+)
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
 
@@ -211,6 +216,7 @@ class ProductOrderField(BaseEnum):
             ProductOrderField.DATE.name: "Use `LAST_MODIFIED` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             ProductOrderField.PUBLICATION_DATE.name: "Use `PUBLISHED_AT` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             ProductOrderField.LAST_MODIFIED.name: "Use `LAST_MODIFIED_AT` instead.",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
+            ProductOrderField.RATING.name: DEPRECATED_PRODUCT_RATING,  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in deprecations:
             return deprecations[self.name]
@@ -222,7 +228,7 @@ class ProductOrderField(BaseEnum):
             min_variants_price_amount=Min(
                 "variants__channel_listings__price_amount",
                 filter=Q(variants__channel_listings__channel__slug=str(channel_slug))
-                & Q(variants__channel_listings__price_amount__isnull=False),
+                & sellable_listing_q("variants__channel_listings__"),
             )
         )
 
@@ -304,6 +310,7 @@ class ProductOrder(ChannelSortInputObjectType):
 
 class ProductVariantSortField(BaseEnum):
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
+    ID = ["pk"]
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
@@ -312,6 +319,7 @@ class ProductVariantSortField(BaseEnum):
     def description(self):
         descriptions = {
             ProductVariantSortField.LAST_MODIFIED_AT.name: "last modification date.",  # type: ignore[attr-defined] # noqa: E501
+            ProductVariantSortField.ID.name: "ID." + ADDED_IN_323,  # type: ignore[attr-defined] # noqa: E501
         }
         if self.name in descriptions:
             return f"Sort product variants by {descriptions[self.name]}"
@@ -328,7 +336,6 @@ class ProductVariantSortingInput(SortInputObjectType):
 
 class ProductTypeSortField(BaseEnum):
     NAME = ["name", "slug"]
-    DIGITAL = ["is_digital", "name", "slug"]
     SHIPPING_REQUIRED = ["is_shipping_required", "name", "slug"]
 
     class Meta:
@@ -339,23 +346,11 @@ class ProductTypeSortField(BaseEnum):
         # pylint: disable=no-member
         descriptions = {
             ProductTypeSortField.NAME.name: "name",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-            ProductTypeSortField.DIGITAL.name: "type",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
             ProductTypeSortField.SHIPPING_REQUIRED.name: "shipping",  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
         }
         if self.name in descriptions:
             return f"Sort products by {descriptions[self.name]}."
         raise ValueError(f"Unsupported enum value: {self.value}")
-
-    @property
-    def deprecation_reason(self):
-        deprecations = {
-            ProductTypeSortField.DIGITAL.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
-                "DIGITAL will removed in Saleor 3.24.0. Use SHIPPING_REQUIRED instead."
-            ),
-        }
-        if self.name in deprecations:
-            return deprecations[self.name]
-        return None
 
 
 class ProductTypeSortingInput(SortInputObjectType):

@@ -13,7 +13,7 @@ from .....attribute.models import AttributeValue
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 from ...mutations.validators import validate_value_is_unique
 
 
@@ -73,7 +73,7 @@ CREATE_ATTRIBUTE_VALUE_MUTATION = """
 
 
 def test_create_attribute_value(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     attribute = color_attribute
@@ -89,7 +89,7 @@ def test_create_attribute_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -115,7 +115,7 @@ def test_create_attribute_value_trigger_webhooks(
     any_webhook,
     staff_api_client,
     color_attribute,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
     settings,
 ):
     # given
@@ -130,7 +130,7 @@ def test_create_attribute_value_trigger_webhooks(
     response = staff_api_client.post_graphql(
         CREATE_ATTRIBUTE_VALUE_MUTATION,
         variables,
-        permissions=[permission_manage_products],
+        permissions=[permission_manage_product_types_and_attributes],
     )
     content = get_graphql_content(response)
     data = content["data"]["attributeValueCreate"]
@@ -188,7 +188,7 @@ def test_create_attribute_value_with_the_same_name_as_different_attribute_value(
     staff_api_client,
     attribute_without_values,
     color_attribute,
-    permission_manage_products,
+    permission_manage_product_types_and_attributes,
 ):
     # given
     attribute = attribute_without_values
@@ -202,7 +202,7 @@ def test_create_attribute_value_with_the_same_name_as_different_attribute_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -219,7 +219,7 @@ def test_create_attribute_value_with_the_same_name_as_different_attribute_value(
 
 
 def test_create_swatch_attribute_value_with_value(
-    staff_api_client, swatch_attribute, permission_manage_products
+    staff_api_client, swatch_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     attribute = swatch_attribute
@@ -231,7 +231,7 @@ def test_create_swatch_attribute_value_with_value(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -251,7 +251,7 @@ def test_create_swatch_attribute_value_with_value(
 
 
 def test_create_swatch_attribute_value_with_file(
-    staff_api_client, swatch_attribute, permission_manage_products
+    staff_api_client, swatch_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     attribute = swatch_attribute
@@ -269,7 +269,7 @@ def test_create_swatch_attribute_value_with_file(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -289,7 +289,7 @@ def test_create_swatch_attribute_value_with_file(
 
 
 def test_create_swatch_attribute_value_with_value_and_file(
-    staff_api_client, swatch_attribute, permission_manage_products
+    staff_api_client, swatch_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     attribute = swatch_attribute
@@ -307,7 +307,7 @@ def test_create_swatch_attribute_value_with_value_and_file(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -331,7 +331,11 @@ def test_create_swatch_attribute_value_with_value_and_file(
     ],
 )
 def test_create_attribute_value_provide_not_allowed_input_data(
-    field, value, staff_api_client, color_attribute, permission_manage_products
+    field,
+    value,
+    staff_api_client,
+    color_attribute,
+    permission_manage_product_types_and_attributes,
 ):
     # given
     attribute = color_attribute
@@ -342,7 +346,7 @@ def test_create_attribute_value_provide_not_allowed_input_data(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -356,7 +360,7 @@ def test_create_attribute_value_provide_not_allowed_input_data(
 
 
 def test_create_attribute_value_not_unique_name(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     attribute = color_attribute
@@ -367,7 +371,7 @@ def test_create_attribute_value_not_unique_name(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -378,7 +382,7 @@ def test_create_attribute_value_not_unique_name(
 
 
 def test_create_attribute_value_capitalized_name(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     attribute = color_attribute
@@ -389,7 +393,7 @@ def test_create_attribute_value_capitalized_name(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
 
     # then
@@ -400,7 +404,7 @@ def test_create_attribute_value_capitalized_name(
 
 
 def test_create_attribute_value_with_non_unique_external_reference(
-    staff_api_client, color_attribute, permission_manage_products
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
 ):
     # given
     query = CREATE_ATTRIBUTE_VALUE_MUTATION
@@ -419,7 +423,7 @@ def test_create_attribute_value_with_non_unique_external_reference(
 
     # when
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
     )
     content = get_graphql_content(response)
 
@@ -431,3 +435,129 @@ def test_create_attribute_value_with_non_unique_external_reference(
         error["message"]
         == "Attribute value with this External reference already exists."
     )
+
+
+@pytest.mark.parametrize(
+    (
+        "_case",
+        "client_fixture",
+        "attribute_fixture",
+        "permission_fixture",
+        "is_allowed",
+    ),
+    [
+        (
+            "Unauthenticated user should be rejected",
+            "api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Authenticated unprivileged user (non-staff) should be rejected",
+            "user_api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Staff user w/o any permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            None,
+            False,
+        ),
+        (
+            "Product attribute w/ manage products permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_products",
+            False,
+        ),
+        (
+            "Product attribute w/ page permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_page_types_and_attributes",
+            False,
+        ),
+        (
+            "Product attribute w/ product permission should be allowed",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_product_types_and_attributes",
+            True,
+        ),
+        (
+            "Page attribute w/ product permission should be rejected",
+            "staff_api_client",
+            "size_page_attribute",
+            "permission_manage_product_types_and_attributes",
+            False,
+        ),
+        (
+            "Page attribute w/ page permission should be allowed",
+            "staff_api_client",
+            "size_page_attribute",
+            "permission_manage_page_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute w/ customer permission should be allowed",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_customer_types_and_attributes",
+            True,
+        ),
+        (
+            "Customer attribute w/ product permission should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_product_types_and_attributes",
+            False,
+        ),
+        (
+            "Customer attribute w/ legacy manage products permission "
+            "should be rejected",
+            "staff_api_client",
+            "loyalty_customer_attribute",
+            "permission_manage_products",
+            False,
+        ),
+        (
+            "Product attribute w/ customer permission should be rejected",
+            "staff_api_client",
+            "color_attribute",
+            "permission_manage_customer_types_and_attributes",
+            False,
+        ),
+    ],
+)
+def test_authorization(
+    request, _case, client_fixture, attribute_fixture, permission_fixture, is_allowed
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    attribute = request.getfixturevalue(attribute_fixture)
+    if permission_fixture:
+        client.user.user_permissions.add(request.getfixturevalue(permission_fixture))
+    name = "New value"
+    variables = {
+        "attributeId": graphene.Node.to_global_id("Attribute", attribute.pk),
+        "name": name,
+    }
+
+    # when
+    response = client.post_graphql(CREATE_ATTRIBUTE_VALUE_MUTATION, variables)
+
+    # then
+    if is_allowed:
+        content = get_graphql_content(response)
+        data = content["data"]["attributeValueCreate"]
+        assert data["errors"] == []
+        value = attribute.values.get(name=name)
+        assert data["attributeValue"]["name"] == value.name
+        assert data["attributeValue"]["slug"] == value.slug
+    else:
+        assert_no_permission(response)
+        assert attribute.values.filter(name=name).exists() is False

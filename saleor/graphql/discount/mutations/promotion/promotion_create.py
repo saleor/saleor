@@ -16,7 +16,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
-from ....core.descriptions import ADDED_IN_319, PREVIEW_FEATURE
+from ....core.descriptions import ADDED_IN_323, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.scalars import JSON, DateTime
@@ -59,7 +59,6 @@ class PromotionRuleInput(PromotionRuleBaseInput):
     gifts = NonNullList(
         graphene.ID,
         description="Product variant IDs available as a gift to choose."
-        + ADDED_IN_319
         + PREVIEW_FEATURE,
     )
 
@@ -73,6 +72,10 @@ class PromotionInput(BaseInputObjectType):
         description="The start date of the promotion in ISO 8601 format."
     )
     end_date = DateTime(description="The end date of the promotion in ISO 8601 format.")
+    external_reference = graphene.String(
+        description=f"External ID of this promotion.{ADDED_IN_323}",
+        required=False,
+    )
 
 
 class PromotionCreateInput(PromotionInput):
@@ -81,7 +84,7 @@ class PromotionCreateInput(PromotionInput):
         description=(
             "Defines the promotion type. Implicate the required promotion rules "
             "predicate type and whether the promotion rules will give the catalogue "
-            "or order discount. " + ADDED_IN_319
+            "or order discount. "
         ),
         required=True,
     )

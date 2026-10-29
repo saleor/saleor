@@ -99,7 +99,9 @@ def test_payment_void_gateway_error(
     assert payment_txn_preauth.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
     variables = {"paymentId": payment_id}
-    monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
+    monkeypatch.setattr(
+        "saleor.plugins.tests.gateways.dummy.dummy_success", lambda: False
+    )
 
     # when
     response = staff_api_client.post_graphql(VOID_QUERY, variables)

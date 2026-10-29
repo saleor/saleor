@@ -53,7 +53,7 @@ from .base_plugin import ExternalAccessTokens
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
-    from ..account.models import Address, Group, User
+    from ..account.models import Address, CustomerType, Group, User
     from ..app.models import App
     from ..attribute.models import Attribute, AttributeValue
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
@@ -710,6 +710,28 @@ class PluginsManager(PaymentInterface):
             "customer_metadata_updated",
             default_value,
             customer,
+            webhooks=webhooks,
+            channel_slug=None,
+        )
+
+    def customer_type_created(self, customer_type: "CustomerType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "customer_type_created", default_value, customer_type, channel_slug=None
+        )
+
+    def customer_type_updated(self, customer_type: "CustomerType"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "customer_type_updated", default_value, customer_type, channel_slug=None
+        )
+
+    def customer_type_deleted(self, customer_type: "CustomerType", webhooks=None):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "customer_type_deleted",
+            default_value,
+            customer_type,
             webhooks=webhooks,
             channel_slug=None,
         )
@@ -1934,17 +1956,6 @@ class PluginsManager(PaymentInterface):
 
     # Note: this method is deprecated and will be removed in a future release.
     # Webhook-related functionality will be moved from plugin to core modules.
-    def gift_card_export_completed(self, export: "ExportFile"):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "gift_card_export_completed",
-            default_value,
-            export,
-            channel_slug=None,
-        )
-
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
     def menu_created(self, menu: "Menu"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -2267,17 +2278,6 @@ class PluginsManager(PaymentInterface):
             "voucher_metadata_updated",
             default_value,
             voucher,
-            channel_slug=None,
-        )
-
-    # Note: this method is deprecated and will be removed in a future release.
-    # Webhook-related functionality will be moved from plugin to core modules.
-    def voucher_code_export_completed(self, export: "ExportFile"):
-        default_value = None
-        return self.__run_method_on_plugins(
-            "voucher_code_export_completed",
-            default_value,
-            export,
             channel_slug=None,
         )
 

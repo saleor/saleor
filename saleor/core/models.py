@@ -45,7 +45,13 @@ class SortableModel(models.Model):
         super().delete(*args, **kwargs)
 
 
-T = TypeVar("T", bound="PublishableModel")
+# Bound to models.Model instead of the more precise "PublishableModel":
+# a forward-referenced bound on a TypeVar used in QuerySet[T] crashes mypy's
+# semantic analyzer ("Must not defer during final iteration", mypy <= 1.20)
+# when mypy is invoked on a small subset of files, as happens when pre-commit
+# splits the file list into batches in CI.
+# See https://github.com/typeddjango/django-stubs/issues/2479
+T = TypeVar("T", bound=models.Model)
 
 
 class PublishedQuerySet(models.QuerySet[T]):

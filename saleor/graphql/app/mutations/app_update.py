@@ -56,9 +56,10 @@ class AppUpdate(DeprecatedModelMutation):
             code = AppErrorCode.OUT_OF_SCOPE_APP.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
-        # clean and prepare permissions
-        if "permissions" in cleaned_input:
-            permissions = cleaned_input.pop("permissions")
+        # clean and prepare permissions; a null input leaves them untouched,
+        # an empty list clears them
+        permissions = cleaned_input.pop("permissions", None)
+        if permissions is not None:
             ensure_app_permissions_allowed(permissions)
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)

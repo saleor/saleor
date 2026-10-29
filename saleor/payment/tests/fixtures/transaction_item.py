@@ -36,6 +36,8 @@ def transaction_item_generator():
         metadata=None,
         currency="USD",
         gift_card=None,
+        gift_card_brand=None,
+        gift_card_last_chars=None,
     ):
         if available_actions is None:
             available_actions = []
@@ -64,6 +66,8 @@ def transaction_item_generator():
             cc_exp_year=cc_exp_year,
             metadata=metadata,
             gift_card=gift_card,
+            gift_card_brand=gift_card_brand,
+            gift_card_last_chars=gift_card_last_chars,
         )
         create_manual_adjustment_events(
             transaction=transaction,

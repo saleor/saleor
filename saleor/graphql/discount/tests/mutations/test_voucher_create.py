@@ -3,6 +3,7 @@ import json
 from unittest.mock import call, patch
 
 import graphene
+import pytest
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
@@ -13,8 +14,189 @@ from .....discount.error_codes import DiscountErrorCode
 from .....discount.models import Voucher
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
+
+CREATE_VOUCHER_WITH_EXTERNAL_REFERENCE_MUTATION = """
+    mutation createVoucher($name: String, $externalReference: String) {
+        voucherCreate(
+            input: {
+                name: $name
+                addCodes: [""]
+                externalReference: $externalReference
+            }
+        ) {
+            voucher {
+                name
+                externalReference
+            }
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    ("_case", "external_reference"),
+    [
+        ("non_empty", "test-ext-ref"),
+        ("empty_string", ""),
+    ],
+)
+def test_with_external_reference(
+    _case, external_reference, staff_api_client, permission_manage_discounts
+):
+    # given
+    name = "test-voucher"
+    variables = {"name": name, "externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["voucherCreate"]
+    assert data["errors"] == []
+    assert data["voucher"]["externalReference"] == external_reference
+    voucher = Voucher.objects.get(name=name)
+    assert voucher.external_reference == external_reference
+
+
+@pytest.mark.parametrize(
+    ("_case", "external_reference"),
+    [
+        ("non_empty", "test-ext-ref"),
+        ("empty_string", ""),
+    ],
+)
+def test_with_non_unique_external_reference(
+    _case, external_reference, staff_api_client, voucher, permission_manage_discounts
+):
+    # given
+    voucher.external_reference = external_reference
+    voucher.save(update_fields=["external_reference"])
+
+    name = "new-voucher"
+    variables = {"name": name, "externalReference": external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["voucherCreate"]
+    assert data["voucher"] is None
+    assert Voucher.objects.filter(name=name).exists() is False
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"] == "Voucher with this External reference already exists."
+    )
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == DiscountErrorCode.UNIQUE.name
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    permission_manage_discounts,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    name = "Changed voucher"
+    webhook = mocker.patch("saleor.plugins.manager.PluginsManager.voucher_created")
+    variables = {"name": name, "externalReference": "new-reference"}
+
+    # when
+    response = client.post_graphql(
+        CREATE_VOUCHER_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["voucherCreate"]
+        assert data["errors"] == []
+        created = Voucher.objects.get(external_reference="new-reference")
+        assert created.name == name
+        assert data["voucher"] == {
+            "name": name,
+            "externalReference": created.external_reference,
+        }
+        webhook.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"voucherCreate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["voucherCreate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: MANAGE_DISCOUNTS"
+        )
+        assert Voucher.objects.filter(name=name).exists() is False
+        webhook.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "reference_input"),
+    [("omitted", {}), ("null", {"externalReference": None})],
+)
+def test_without_external_reference(
+    _case,
+    reference_input,
+    staff_api_client,
+    permission_manage_discounts,
+):
+    # given
+    name = "Voucher without reference"
+    variables = {"name": name, **reference_input}
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_VOUCHER_WITH_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["voucherCreate"]
+    assert data["errors"] == []
+    assert data["voucher"] == {"name": name, "externalReference": None}
+    created = Voucher.objects.get(name=name)
+    assert created.external_reference is None
+
 
 CREATE_VOUCHER_MUTATION = """
 mutation voucherCreate($input: VoucherInput!) {

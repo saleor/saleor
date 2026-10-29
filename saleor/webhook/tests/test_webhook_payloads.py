@@ -13,6 +13,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from freezegun import freeze_time
 
 from ... import __version__
+from ...checkout.models import Checkout, CheckoutDelivery
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountType, DiscountValueType
@@ -25,6 +26,7 @@ from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...product.models import ProductVariant
+from ...tests.utils import dummy_editorjs
 from ...warehouse import WarehouseClickAndCollectOption
 from ..payloads import (
     PRODUCT_VARIANT_FIELDS,
@@ -570,14 +572,25 @@ def test_generate_order_metadata_updated_payload(
     }
 
 
-def test_generate_collection_payload(collection):
+@pytest.mark.parametrize(
+    "full_description", [None, dummy_editorjs("Detailed collection description.")]
+)
+def test_generate_collection_payload(collection, full_description):
+    # given
+    collection.full_description = full_description
+    collection.save(update_fields=["full_description"])
+
+    # when
     payload = json.loads(generate_collection_payload(collection))
+
+    # then
     expected_payload = [
         {
             "type": "Collection",
             "id": graphene.Node.to_global_id("Collection", collection.id),
             "name": collection.name,
             "description": collection.description,
+            "full_description": collection.full_description,
             "background_image": None,
             "background_image_alt": "",
             "private_metadata": {},
@@ -1530,6 +1543,24 @@ def test_generate_checkout_payload(
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
         "warehouse_address": ANY,
     }
+
+
+def test_generate_checkout_payload_assigned_delivery_deleted_concurrently(
+    checkout_with_prices, customer_user
+):
+    # given
+    assigned_delivery_id = checkout_with_prices.assigned_delivery_id
+    assert assigned_delivery_id is not None
+    stale_checkout = Checkout.objects.get(pk=checkout_with_prices.pk)
+    CheckoutDelivery.objects.filter(pk=assigned_delivery_id).delete()
+
+    # when
+    payload = json.loads(generate_checkout_payload(stale_checkout, customer_user))[0]
+
+    # then
+    assert payload["shipping_method"] is None
+    assert payload["token"] == graphene.Node.to_global_id("Checkout", stale_checkout.pk)
+    assert stale_checkout.assigned_delivery is None
 
 
 def test_generate_requestor_returns_dict_with_user_id_and_user_type(staff_user, rf):

@@ -7,6 +7,7 @@ from promise import Promise
 from ....core.search import prefix_search
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....thumbnail import ThumbnailSizeRounding
 from ....thumbnail.utils import (
     get_image_or_proxy_url,
     get_thumbnail_format,
@@ -24,7 +25,7 @@ from ...core.context import (
     ChannelQsContext,
     get_database_connection_name,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ...core.descriptions import ADDED_IN_323, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
@@ -57,7 +58,15 @@ class Collection(ChannelContextType[models.Collection]):
     description = JSONString(
         description="Description of the collection." + RICH_CONTENT
     )
+    full_description = JSONString(
+        description="Full description of the collection. Returns null when unset."
+        + RICH_CONTENT
+        + ADDED_IN_323
+    )
     slug = graphene.String(required=True, description="Slug of the collection.")
+    external_reference = graphene.String(
+        description=f"External ID of this collection.{ADDED_IN_323}"
+    )
     channel = graphene.String(
         description=(
             "Channel given to retrieve this collection. Also used by federation "
@@ -110,6 +119,7 @@ class Collection(ChannelContextType[models.Collection]):
         root: ChannelContext[models.Collection],
         info: ResolveInfo,
         size: int | None = None,
+        size_rounding: ThumbnailSizeRounding | None = None,
         format: str | None = None,
     ) -> None | Image | Promise[Image]:
         node = root.node
@@ -121,7 +131,7 @@ class Collection(ChannelContextType[models.Collection]):
             return Image(url=node.background_image.url, alt=alt)
 
         format = get_thumbnail_format(format)
-        selected_size = get_thumbnail_size(size)
+        selected_size = get_thumbnail_size(size, size_rounding)
 
         def _resolve_background_image(thumbnail):
             url = get_image_or_proxy_url(

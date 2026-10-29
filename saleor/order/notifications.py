@@ -394,9 +394,6 @@ def get_default_fulfillment_payload(order, fulfillment):
         "physical_lines": [
             get_default_fulfillment_line_payload(line, attribute_data) for line in lines
         ],
-        # Note: saleor keeps 'digital_lines' for backward compatibility but this
-        #       may be removed once ProductType supports metadata
-        "digital_lines": [],
         "recipient_email": order.get_customer_email(),
         **get_site_context(),
     }
@@ -408,7 +405,7 @@ def prepare_order_details_url(order: Order, redirect_url: str) -> str:
     return prepare_url(params, redirect_url)
 
 
-def send_order_confirmation(order_info, redirect_url, manager):
+def send_order_confirmation(order_info, redirect_url, manager, *, notify_customer=True):
     """Send notification with order confirmation."""
 
     def _generate_payload():
@@ -419,12 +416,13 @@ def send_order_confirmation(order_info, redirect_url, manager):
         }
         return payload
 
-    handler = NotifyHandler(_generate_payload)
-    manager.notify(
-        NotifyEventType.ORDER_CONFIRMATION,
-        payload_func=handler.payload,
-        channel_slug=order_info.channel.slug,
-    )
+    if notify_customer is True:
+        handler = NotifyHandler(_generate_payload)
+        manager.notify(
+            NotifyEventType.ORDER_CONFIRMATION,
+            payload_func=handler.payload,
+            channel_slug=order_info.channel.slug,
+        )
 
     # Prepare staff notification for this order
     staff_notifications = StaffNotificationRecipient.objects.filter(

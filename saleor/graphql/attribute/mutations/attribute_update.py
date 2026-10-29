@@ -4,14 +4,13 @@ from django.core.exceptions import ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....page.utils import mark_pages_search_vector_as_dirty_in_batches
-from ....permission.enums import ProductTypePermissions
 from ....product.utils.search_helpers import (
     mark_products_search_vector_as_dirty_in_batches,
 )
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_322
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
@@ -22,6 +21,10 @@ from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 from .attribute_create import AttributeValueInput
 from .mixins import REFERENCE_TYPES_LIMIT, AttributeMixin
+from .permissions import (
+    check_any_attribute_type_permission,
+    check_attribute_type_permissions,
+)
 from .utils import (
     get_page_ids_to_search_index_update_for_attribute_values,
     get_product_ids_to_search_index_update_for_attribute_values,
@@ -56,22 +59,6 @@ class AttributeUpdateInput(BaseInputObjectType):
     visible_in_storefront = graphene.Boolean(
         description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
     )
-    filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
-        + DEPRECATED_IN_3X_INPUT
-    )
-    filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
-    )
-    storefront_search_position = graphene.Int(
-        required=False,
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
-        + DEPRECATED_IN_3X_INPUT,
-    )
-    available_in_grid = graphene.Boolean(
-        required=False,
-        description=AttributeDescriptions.AVAILABLE_IN_GRID + DEPRECATED_IN_3X_INPUT,
-    )
     external_reference = graphene.String(
         description="External ID of this product.", required=False
     )
@@ -93,12 +80,7 @@ class AttributeUpdateInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_ATTRIBUTES
-        description = (
-            "Represents an input for update of attribute.\n\n"
-            "NOTE: Deprecated fields `filterableInStorefront`, "
-            "`storefrontSearchPosition` and `availableInGrid` are not supported in "
-            "bulk mutations: `attributeBulkCreate`, `attributeBulkUpdate`."
-        )
+        description = "Represents an input for update of attribute."
 
 
 class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
@@ -121,8 +103,13 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     class Meta:
         model = models.Attribute
         object_type = Attribute
-        description = "Updates attribute."
-        permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
+        description = (
+            "Updates attribute.\n\nRequires one of the following permissions, "
+            "depending on the attribute type: "
+            "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES for `PRODUCT_TYPE` attributes, "
+            "MANAGE_PAGE_TYPES_AND_ATTRIBUTES for `PAGE_TYPE` attributes, "
+            "MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES for `CUSTOMER_TYPE` attributes."
+        )
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
         webhook_events_info = [
@@ -158,7 +145,10 @@ class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None, input
     ):
+        # Concrete permission is checked after instance is resolved.
+        check_any_attribute_type_permission(cls, info.context)
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
+        check_attribute_type_permissions(cls, info.context, [instance.type])
 
         cls.validate_reference_types_limit(input)
         # Do cleaning and uniqueness checks

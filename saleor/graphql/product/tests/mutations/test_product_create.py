@@ -679,7 +679,7 @@ def test_create_product_with_rich_text_attribute(
             "attribute": {"slug": "text"},
             "values": [
                 {
-                    "slug": f"{product_id}_{rich_text_attribute.id}",
+                    "slug": f"product-{product_id}_{rich_text_attribute.id}",
                     "name": (
                         "test producttest producttest producttest producttest product"
                     ),
@@ -819,7 +819,7 @@ def test_create_product_with_plain_text_attribute(
             "attribute": {"slug": plain_text_attribute.slug},
             "values": [
                 {
-                    "slug": f"{product_id}_{plain_text_attribute.id}",
+                    "slug": f"product-{product_id}_{plain_text_attribute.id}",
                     "name": text_value,
                     "reference": None,
                     "richText": None,
@@ -949,7 +949,7 @@ def test_create_product_with_date_time_attribute(
         "attribute": {"slug": "release-date-time"},
         "values": [
             {
-                "slug": f"{product_id}_{date_time_attribute.id}",
+                "slug": f"product-{product_id}_{date_time_attribute.id}",
                 "name": str(value),
                 "reference": None,
                 "richText": None,
@@ -1018,7 +1018,7 @@ def test_create_product_with_date_attribute(
         "attribute": {"slug": "release-date"},
         "values": [
             {
-                "slug": f"{product_id}_{date_attribute.id}",
+                "slug": f"product-{product_id}_{date_attribute.id}",
                 "name": str(value),
                 "reference": None,
                 "richText": None,
@@ -3249,7 +3249,7 @@ def test_create_product_with_numeric_attribute_new_attribute_value(
     values = data["product"]["attributes"][0]["values"]
     assert len(values) == 1
     assert values[0]["name"] == expected_name
-    assert values[0]["slug"] == f"{product_pk}_{numeric_attribute.id}"
+    assert values[0]["slug"] == f"product-{product_pk}_{numeric_attribute.id}"
 
     assigned_attributes = data["product"]["assignedAttributes"]
     expected_assigned_attribute = {
@@ -3312,7 +3312,7 @@ def test_create_product_with_numeric_attribute_existing_value(
     values = data["product"]["attributes"][0]["values"]
     assert len(values) == 1
     assert values[0]["name"] == existing_value.name
-    assert values[0]["slug"] == f"{product_pk}_{numeric_attribute.id}"
+    assert values[0]["slug"] == f"product-{product_pk}_{numeric_attribute.id}"
 
     numeric_attribute.refresh_from_db()
     assert numeric_attribute.values.count() == values_count + 1

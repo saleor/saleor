@@ -9,7 +9,6 @@ from ....app import models as app_models
 from ....app.error_codes import AppErrorCode
 from ....graphql.app.enums import CircuitBreakerState
 from ....graphql.app.types import App
-from ....graphql.core.descriptions import ADDED_IN_321
 from ....permission.enums import AppPermission
 from ....webhook.circuit_breaker.breaker_board import (
     initialize_breaker_board,
@@ -40,7 +39,7 @@ class AppReenableSyncWebhooks(BaseMutation):
         description = (
             "Re-enable sync webhooks for provided app. "
             "Can be used to manually re-enable sync webhooks for the app before "
-            "the cooldown period ends." + ADDED_IN_321
+            "the cooldown period ends."
         )
         doc_category = DOC_CATEGORY_APPS
         permissions = (AppPermission.MANAGE_APPS,)

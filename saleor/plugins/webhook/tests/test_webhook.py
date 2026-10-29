@@ -28,7 +28,7 @@ from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify import NotifyEventType
-from ....core.tokens import token_generator
+from ....core.tokens import account_confirm_token_generator
 from ....core.utils.url import prepare_url
 from ....discount import DiscountType, DiscountValueType, RewardType, RewardValueType
 from ....discount.interface import VariantPromotionRuleInfo
@@ -1617,7 +1617,7 @@ def test_notify_user(
     redirect_url = "http://redirect.com/"
     send_account_confirmation(customer_user, redirect_url, manager, channel_USD.slug)
 
-    token = token_generator.make_token(customer_user)
+    token = account_confirm_token_generator.make_token(customer_user)
     params = urlencode({"email": customer_user.email, "token": token})
     confirm_url = prepare_url(params, redirect_url)
 

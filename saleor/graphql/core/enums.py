@@ -18,6 +18,7 @@ from ...core.units import (
     WeightUnits,
 )
 from ...csv import error_codes as csv_error_codes
+from ...discount import PromoCodeRejectionReason as promo_code_rejection_reason
 from ...discount import error_codes as discount_error_codes
 from ...giftcard import error_codes as giftcard_error_codes
 from ...invoice import error_codes as invoice_error_codes
@@ -25,16 +26,17 @@ from ...menu import error_codes as menu_error_codes
 from ...order import error_codes as order_error_codes
 from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
-from ...permission.enums import get_permissions_enum_list
+from ...permission.enums import AppPermission, get_permissions_enum_list
 from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...site import error_codes as site_error_codes
-from ...thumbnail import IconThumbnailFormat, ThumbnailFormat
+from ...thumbnail import IconThumbnailFormat, ThumbnailFormat, ThumbnailSizeRounding
 from ...translations import error_codes as translatable_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
+from .descriptions import ADDED_IN_323
 from .doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
@@ -117,8 +119,20 @@ LanguageCodeEnum = graphene.Enum(
 
 JobStatusEnum: Final[graphene.Enum] = to_enum(JobStatus)
 
+
+def permission_enum_deprecation_reason(enum):
+    if enum.value == AppPermission.MANAGE_OBSERVABILITY.value:
+        return (
+            "The observability feature is no longer supported. "
+            "This permission will be removed in Saleor 3.24."
+        )
+    return None
+
+
 PermissionEnum: Final[graphene.Enum] = graphene.Enum(
-    "PermissionEnum", get_permissions_enum_list()
+    "PermissionEnum",
+    get_permissions_enum_list(),
+    deprecation_reason=permission_enum_deprecation_reason,
 )
 PermissionEnum.doc_category = DOC_CATEGORY_USERS
 
@@ -129,6 +143,21 @@ IconThumbnailFormatEnum: Final[graphene.Enum] = to_enum(
     type_name="IconThumbnailFormatEnum",
     description=IconThumbnailFormat.__doc__,
 )
+
+
+class ThumbnailSizeRoundingEnum(graphene.Enum):
+    class Meta:
+        enum = ThumbnailSizeRounding
+        description = (
+            "Determines how a requested size is matched to an available thumbnail "
+            "size: 32, 64, 128, 256, 512, 1024, 2048, 4096.\n\n"
+            "NEAREST - the closest available size; it may be smaller than "
+            "requested.\n"
+            "UP - the smallest available size not smaller than requested, so the "
+            "image is never smaller than requested unless the original is smaller "
+            "or the requested size exceeds 4096." + ADDED_IN_323
+        )
+
 
 # unit enums
 MeasurementUnitsEnum: Final[graphene.Enum] = to_enum(MeasurementUnits)
@@ -221,6 +250,36 @@ CustomerBulkUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 CustomerBulkUpdateErrorCode.doc_category = DOC_CATEGORY_USERS
 
+CustomerTypeAssignAttributesErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeAssignAttributesErrorCode
+)
+CustomerTypeAssignAttributesErrorCode.doc_category = DOC_CATEGORY_USERS
+
+CustomerTypeUnassignAttributesErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeUnassignAttributesErrorCode
+)
+CustomerTypeUnassignAttributesErrorCode.doc_category = DOC_CATEGORY_USERS
+
+CustomerTypeCreateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeCreateErrorCode
+)
+CustomerTypeCreateErrorCode.doc_category = DOC_CATEGORY_USERS
+
+CustomerTypeUpdateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeUpdateErrorCode
+)
+CustomerTypeUpdateErrorCode.doc_category = DOC_CATEGORY_USERS
+
+CustomerTypeDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeDeleteErrorCode
+)
+CustomerTypeDeleteErrorCode.doc_category = DOC_CATEGORY_USERS
+
+CustomerTypeReorderAttributesErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    account_error_codes.CustomerTypeReorderAttributesErrorCode
+)
+CustomerTypeReorderAttributesErrorCode.doc_category = DOC_CATEGORY_USERS
+
 ExternalNotificationTriggerErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     external_notifications_error_codes.ExternalNotificationErrorCodes
 )
@@ -238,6 +297,73 @@ VoucherCodeBulkDeleteErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
 )
 VoucherCodeBulkDeleteErrorCode.doc_category = DOC_CATEGORY_DISCOUNTS
 
+
+def promo_code_rejection_reason_description(enum):
+    if enum is None:
+        return (
+            "The specific reason why a promo code cannot be applied. "
+            "A code that has not been proven usable yet is only ever reported "
+            "as `NOT_FOUND`, `EXPIRED` or `USAGE_LIMIT_REACHED`, so that a "
+            "rejected code cannot be told apart from one that does not exist. "
+            "The reason never depends on the caller's permissions."
+        )
+    return {
+        promo_code_rejection_reason.NOT_FOUND: (
+            "No promo code matches the given code. Also reported in place of a "
+            "reason that may not be disclosed, so this value does not prove "
+            "that no voucher or gift card exists with that code."
+        ),
+        promo_code_rejection_reason.EXPIRED: (
+            "The voucher's end date, or the gift card's expiry date, is in the past."
+        ),
+        promo_code_rejection_reason.USAGE_LIMIT_REACHED: (
+            "The voucher's total usage limit, summed over all of its codes, is "
+            "exhausted, or a single-use code was already redeemed."
+        ),
+        promo_code_rejection_reason.NOT_APPLICABLE: (
+            "The promo code exists but cannot be used here. Reported when the "
+            "reason is specific to the code's configuration rather than to "
+            "something the customer can change: a voucher limited to staff, to "
+            "other countries, to another channel or to one use per customer, "
+            "or a gift card restricted to another customer."
+        ),
+        promo_code_rejection_reason.MIN_SPENT_NOT_REACHED: (
+            "The order value is below the voucher's minimum. "
+            "Populates the `minSpent` field."
+        ),
+        promo_code_rejection_reason.MIN_QUANTITY_NOT_REACHED: (
+            "The order contains fewer items than the voucher's minimum. "
+            "Populates the `minCheckoutItemsQuantity` field."
+        ),
+        promo_code_rejection_reason.CUSTOMER_EMAIL_REQUIRED: (
+            "The voucher is limited to one use per customer, so a customer email "
+            "must be set on the checkout before it can be applied."
+        ),
+        promo_code_rejection_reason.SHIPPING_NOT_REQUIRED: (
+            "The voucher applies to shipping, but nothing in the order requires "
+            "shipping."
+        ),
+        promo_code_rejection_reason.DELIVERY_METHOD_NOT_SET: (
+            "The voucher applies to shipping, but no delivery method is selected "
+            "yet. Selecting one may make the voucher applicable."
+        ),
+        promo_code_rejection_reason.NO_ELIGIBLE_PRODUCTS: (
+            "The voucher applies to specific products, collections or categories, "
+            "and none of the ordered lines match."
+        ),
+        promo_code_rejection_reason.NO_LONGER_AVAILABLE: (
+            "The promo code was applicable when it was added to the checkout, "
+            "but is no longer available."
+        ),
+    }.get(enum)
+
+
+PromoCodeRejectionReason: Final[graphene.Enum] = graphene.Enum.from_enum(
+    promo_code_rejection_reason,
+    description=promo_code_rejection_reason_description,
+)
+PromoCodeRejectionReason.doc_category = DOC_CATEGORY_DISCOUNTS
+
 PluginErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     plugin_error_codes.PluginErrorCode
 )
@@ -250,11 +376,6 @@ GiftCardErrorCode.doc_category = DOC_CATEGORY_GIFT_CARDS
 MenuErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     menu_error_codes.MenuErrorCode
 )
-
-OrderSettingsErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
-    site_error_codes.OrderSettingsErrorCode
-)
-OrderSettingsErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 GiftCardSettingsErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     site_error_codes.GiftCardSettingsErrorCode
@@ -303,6 +424,12 @@ ProductTranslateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     translatable_error_codes.ProductTranslateErrorCode
 )
 ProductTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
+
+ProductMediaTranslateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
+    translatable_error_codes.ProductMediaTranslateErrorCode
+)
+ProductMediaTranslateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
 
 ProductVariantTranslateErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
@@ -389,6 +516,7 @@ PermissionGroupErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
 PermissionGroupErrorCode.doc_category = DOC_CATEGORY_USERS
+
 
 ProductErrorCode: Final[graphene.Enum] = graphene.Enum.from_enum(
     product_error_codes.ProductErrorCode

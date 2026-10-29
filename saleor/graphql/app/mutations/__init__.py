@@ -9,6 +9,7 @@ from .app_problem_create import AppProblemCreate
 from .app_problem_dismiss import AppProblemDismiss
 from .app_reenable_sync_webhooks import AppReenableSyncWebhooks
 from .app_retry_install import AppRetryInstall
+from .app_self_update import AppSelfUpdate
 from .app_token_create import AppTokenCreate
 from .app_token_delete import AppTokenDelete
 from .app_token_verify import AppTokenVerify
@@ -25,6 +26,7 @@ __all__ = [
     "AppFetchManifest",
     "AppInstall",
     "AppRetryInstall",
+    "AppSelfUpdate",
     "AppTokenCreate",
     "AppTokenDelete",
     "AppTokenVerify",

@@ -21,6 +21,11 @@ def lazy_re_compile(regex, flags=0):
 
 POPULATE_DEFAULTS = False
 
+# Every xdist worker gets its own database but they all share one Redis, so without a
+# per-worker namespace a value cached by one worker is read by all the others.
+if xdist_worker := os.environ.get("PYTEST_XDIST_WORKER"):  # noqa: F405
+    CACHES["default"]["KEY_PREFIX"] = xdist_worker  # noqa: F405
+
 CELERY_TASK_ALWAYS_EAGER = True
 
 PUBLIC_URL = "https://example.com"
@@ -102,3 +107,5 @@ BREAKER_BOARD_ENABLED = False
 TELEMETRY_RAISE_UNIT_CONVERSION_ERRORS = True
 TELEMETRY_TRACER_CLASS = "saleor.core.telemetry.tests.TestTracer"
 TELEMETRY_METER_CLASS = "saleor.core.telemetry.tests.TestMeter"
+# Library instrumentors are covered by dedicated unit tests, keep the suite unpatched
+TELEMETRY_INSTRUMENTORS = []

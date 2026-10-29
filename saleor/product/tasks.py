@@ -1,7 +1,6 @@
 import logging
 from collections import defaultdict
 from collections.abc import Iterable
-from uuid import UUID
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -16,11 +15,13 @@ from ..core.db.connection import allow_writer
 from ..core.exceptions import PreorderAllocationError
 from ..core.http_client import HTTPClient
 from ..core.utils.events import call_event
+from ..core.utils.url import sanitize_url_for_logging
 from ..core.utils.validators import get_mime_type
 from ..discount import PromotionType
 from ..discount.models import Promotion, PromotionRule
 from ..plugins.manager import get_plugins_manager
 from ..product import ProductMediaTypes
+from ..thumbnail.exceptions import ImageTooLargeError
 from ..warehouse.management import deactivate_preorder_for_variant
 from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.utils import get_webhooks_for_event
@@ -116,16 +117,6 @@ def update_variants_names(product_type_pk: int, saved_attributes_ids: list[int])
     ).filter(pk__in=saved_attributes_ids)
     with allow_writer():
         _update_variants_names(instance, saved_attributes)
-
-
-@app.task
-@allow_writer()
-def update_products_discounted_prices_of_promotion_task(promotion_pk: UUID):
-    # FIXME: Should be removed in Saleor 3.21
-
-    # In case of triggering this task by old server worker, mark promotion
-    # as dirty. The reclacultion will happen in the background
-    PromotionRule.objects.filter(promotion_id=promotion_pk).update(variants_dirty=True)
 
 
 def _get_channel_to_products_map(rule_to_variant_list):
@@ -234,21 +225,6 @@ def update_variant_relations_for_active_promotion_rules_task():
         update_variant_relations_for_active_promotion_rules_task.delay()
 
 
-@app.task
-@allow_writer()
-def update_products_discounted_prices_for_promotion_task(
-    product_ids: Iterable[int],
-    start_id: UUID | None = None,
-    *,
-    rule_ids: list[UUID] | None = None,
-):
-    # FIXME: Should be removed in Saleor 3.21
-
-    # In case of triggered the task by old server worker, mark all active promotions as
-    # dirty. This will make the same re-calculation as the old task.
-    PromotionRule.objects.filter(variants_dirty=False).update(variants_dirty=True)
-
-
 def _send_variant_price_updated_webhooks(
     changed_prices: list[VariantDiscountedPriceChange],
 ) -> None:
@@ -302,18 +278,6 @@ def recalculate_discounted_price_for_products_task():
                 discounted_price_dirty=False
             )
         recalculate_discounted_price_for_products_task.delay()
-
-
-@app.task
-@allow_writer()
-def update_discounted_prices_task(product_ids: Iterable[int]):
-    # FIXME: Should be removed in Saleor 3.21
-
-    # in case triggering the task by old server worker, we will just mark the products
-    # as dirty. The recalculation will happen in the background.
-    ProductChannelListing.objects.filter(product_id__in=product_ids).update(
-        discounted_price_dirty=True
-    )
 
 
 @app.task
@@ -447,8 +411,33 @@ def fetch_product_media_image_task(product_media_id: int):
         validate_status_code(response.status_code)
         mime_type = get_mime_type(response.headers.get("content-type"))
         validate_content_type_header(product_media, mime_type)
-        image = create_image(product_media, mime_type, response)
+        try:
+            image = create_image(product_media, mime_type, response)
+        except ValueError as error:
+            logger.warning(
+                "Image fetched for product media %s was rejected: %s",
+                product_media.pk,
+                error,
+            )
+            # NOTE: we do not wish to retry on this error hence why this exception
+            #       isn't listed in `app.task(autoretry_for=...)` as this is a
+            #       permanent error which will never be fixed upon retrying.
+            raise
 
     validate_image_mime_type(image)
-    validate_image_exif(image)
+    try:
+        validate_image_exif(image)
+    except ImageTooLargeError as error:
+        logger.warning(
+            "Image fetched for product media %s exceeds the pixel limit: %s",
+            product_media.pk,
+            sanitize_url_for_logging(product_media.external_url),
+            extra={
+                "image_source": sanitize_url_for_logging(product_media.external_url),
+                "object_type": "ProductMedia",
+                "object_pk": product_media.pk,
+                "pillow_error": str(error),
+            },
+        )
+        raise
     update_product_media(product_media, image)

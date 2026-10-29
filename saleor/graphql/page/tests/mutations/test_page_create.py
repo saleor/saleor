@@ -1050,7 +1050,7 @@ def test_create_page_with_date_attribute(
                 "dateTime": None,
                 "date": str(date_value),
                 "name": str(date_value),
-                "slug": f"{new_page_pk}_{date_attribute.id}",
+                "slug": f"page-{new_page_pk}_{date_attribute.id}",
             }
         ],
     }
@@ -1116,7 +1116,7 @@ def test_create_page_with_date_time_attribute(
                 "dateTime": date_time_value.isoformat(),
                 "date": None,
                 "name": str(date_time_value),
-                "slug": f"{new_page_pk}_{date_time_attribute.id}",
+                "slug": f"page-{new_page_pk}_{date_time_attribute.id}",
             }
         ],
     }
@@ -1183,7 +1183,7 @@ def test_create_page_with_plain_text_attribute(
                 "date": None,
                 "name": text,
                 "plainText": text,
-                "slug": f"{new_page_pk}_{plain_text_attribute_page_type.id}",
+                "slug": f"page-{new_page_pk}_{plain_text_attribute_page_type.id}",
             }
         ],
     }
@@ -2023,7 +2023,7 @@ def test_page_create_mutation_with_numeric_attribue(
     assert len(attribute["values"]) == 1
     assert (
         attribute["values"][0]["slug"]
-        == f"{Page.objects.get().id}_{numeric_attribute.id}"
+        == f"page-{Page.objects.get().id}_{numeric_attribute.id}"
     )
     assert attribute["values"][0]["name"] == numeric_name
 

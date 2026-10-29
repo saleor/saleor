@@ -3,6 +3,7 @@
 
 import gzip
 import io
+import secrets
 
 from asgiref.typing import (
     ASGI3Application,
@@ -12,6 +13,20 @@ from asgiref.typing import (
     HTTPResponseStartEvent,
     Scope,
 )
+
+
+def _get_random_filename() -> str:
+    """Generate a random filename with up to 100 bytes (inclusive, i.e., [0,100]).
+
+    This ensures the HTTP content-length is random thus making it more difficult
+    to guess whether a given character is present in the response
+    (see https://ieeexplore.ieee.org/document/9754554).
+
+    Note: this doesn't use `random.randint()` because the `secrets` generates
+          stronger random numbers by utilizing the operating system's random
+          number generator (such as `/dev/urandom` or CryptGenRandom on Windows)
+    """
+    return "x" * secrets.randbelow(101)
 
 
 def gzip_compression(
@@ -35,7 +50,10 @@ def gzip_compression(
                 started = False
                 gzip_buffer = io.BytesIO()
                 gzip_file = gzip.GzipFile(
-                    mode="wb", fileobj=gzip_buffer, compresslevel=compresslevel
+                    mode="wb",
+                    fileobj=gzip_buffer,
+                    compresslevel=compresslevel,
+                    filename=_get_random_filename(),
                 )
 
                 async def send_compressed(message: ASGISendEvent) -> None:

@@ -26,7 +26,12 @@ from ..core.taxes import TaxDataError, TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
-from ..discount import DiscountType, DiscountValueType
+from ..discount import (
+    DiscountType,
+    DiscountValueType,
+    PromoCodeRejection,
+    PromoCodeRejectionReason,
+)
 from ..discount.models import CheckoutDiscount, NotApplicable, OrderLineDiscount
 from ..discount.utils.promotion import get_sale_id
 from ..discount.utils.voucher import (
@@ -120,7 +125,7 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
 
     if checkout.voucher_code and not voucher_code:
         msg = "Voucher expired in meantime. Order placement aborted."
-        raise NotApplicable(msg)
+        raise NotApplicable(msg, reason=PromoCodeRejectionReason.NO_LONGER_AVAILABLE)
 
     if not voucher_code or not voucher:
         return {}
@@ -406,6 +411,7 @@ def _create_line_for_order(
         base_unit_price=base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         undiscounted_base_unit_price=undiscounted_base_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         is_price_overridden=is_price_overridden,
+        price_override_reason=checkout_line.price_override_reason,
         metadata=checkout_line.metadata,
         private_metadata=checkout_line.private_metadata,
         **get_tax_class_kwargs_for_order_line(tax_class),
@@ -970,6 +976,11 @@ def _prepare_checkout_with_transactions(
                 "voucher_code": ValidationError(
                     "Voucher not applicable",
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                    params={
+                        "promo_code_details": PromoCodeRejection(
+                            reason=PromoCodeRejectionReason.NO_LONGER_AVAILABLE
+                        )
+                    },
                 )
             }
         )
@@ -1034,9 +1045,12 @@ def _get_order_data(
         raise ValidationError(
             "Voucher not applicable",
             code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+            params={"promo_code_details": e.rejection},
         ) from e
     except GiftCardNotApplicable as e:
-        raise ValidationError(e.message, code=e.code) from e
+        raise ValidationError(
+            e.message, code=e.code, params={"promo_code_details": e.rejection}
+        ) from e
     except TaxError as e:
         raise ValidationError(
             f"Unable to calculate taxes - {str(e)}",
@@ -1203,7 +1217,11 @@ def complete_checkout_post_payment_part(
                 voucher=checkout_info.voucher,
                 payment=payment,
             )
-            raise ValidationError(code=e.code, message=e.message) from e
+            raise ValidationError(
+                code=e.code,
+                message=e.message,
+                params={"promo_code_details": e.rejection},
+            ) from e
 
     return order, action_required, action_data
 
@@ -1810,6 +1828,7 @@ def complete_checkout_with_transaction(
                 "voucher_code": ValidationError(
                     "Voucher not applicable",
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                    params={"promo_code_details": e.rejection},
                 )
             }
         ) from e
@@ -1817,7 +1836,17 @@ def complete_checkout_with_transaction(
         error = prepare_insufficient_stock_checkout_validation_error(e)
         raise error from e
     except GiftCardNotApplicable as e:
-        raise ValidationError({"gift_cards": e}) from e
+        raise ValidationError(
+            {
+                "gift_cards": ValidationError(
+                    e.message,
+                    # Deliberately no `code`: this path has always reported the
+                    # default `INVALID` rather than the exception's
+                    # GIFT_CARD_NOT_APPLICABLE, and clients depend on it.
+                    params={"promo_code_details": e.rejection},
+                )
+            }
+        ) from e
 
 
 def complete_checkout_with_payment(

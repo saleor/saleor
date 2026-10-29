@@ -1,3 +1,4 @@
+from ...attribute import AttributeType
 from ...attribute import models as attribute_models
 from ...discount import models as discount_models
 from ...menu import models as menu_models
@@ -25,6 +26,9 @@ TYPE_TO_TRANSLATION_LOADER_MAP: dict[type, type[DataLoader]] = {
     menu_models.MenuItem: (dataloaders.MenuItemTranslationByIdAndLanguageCodeLoader),
     page_models.Page: dataloaders.PageTranslationByIdAndLanguageCodeLoader,
     product_models.Product: (dataloaders.ProductTranslationByIdAndLanguageCodeLoader),
+    product_models.ProductMedia: (
+        dataloaders.ProductMediaTranslationByIdAndLanguageCodeLoader
+    ),
     product_models.ProductVariant: (
         dataloaders.ProductVariantTranslationByIdAndLanguageCodeLoader
     ),
@@ -63,13 +67,26 @@ def resolve_shipping_methods(info):
 
 
 def resolve_attribute_values(info):
-    return attribute_models.AttributeValue.objects.using(
-        get_database_connection_name(info.context)
-    ).all()
+    # Customer attribute values are excluded from the translations domain:
+    # they may be created per user and carry customer data (PII) that
+    # MANAGE_TRANSLATIONS holders must not be able to read.
+    return (
+        attribute_models.AttributeValue.objects.using(
+            get_database_connection_name(info.context)
+        )
+        .exclude(attribute__type=AttributeType.CUSTOMER_TYPE)
+        .all()
+    )
 
 
 def resolve_products(info):
     return product_models.Product.objects.using(
+        get_database_connection_name(info.context)
+    ).all()
+
+
+def resolve_product_media(info):
+    return product_models.ProductMedia.objects.using(
         get_database_connection_name(info.context)
     ).all()
 

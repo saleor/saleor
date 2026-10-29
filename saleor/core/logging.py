@@ -13,6 +13,7 @@ class JsonFormatter(BaseFormatter):
     def add_fields(self, log_record, record, message_dict):
         super().add_fields(log_record, record, message_dict)
         log_record["hostname"] = platform.node()
+        log_record["level"] = log_record["levelname"]
         try:
             log_record["query"] = record.exc_info[1]._exc_query
             log_record["version"] = saleor_version

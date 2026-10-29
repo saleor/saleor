@@ -16,6 +16,7 @@ from ..core.descriptions import (
     ADDED_IN_322,
     DEFAULT_DEPRECATION_REASON,
     DEPRECATED_IN_3X_INPUT,
+    DEPRECATED_LEGACY_PAYMENTS,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
@@ -27,13 +28,14 @@ from ..core.fields import (
 )
 from ..core.filters import FilterInputObjectType
 from ..core.scalars import UUID
-from ..core.types import TaxedMoney
+from ..core.types import NonNullList, TaxedMoney
 from ..core.utils import (
     ext_ref_to_global_id_or_error,
     from_global_id_or_error,
     validate_and_apply_search_rank_sorting,
 )
 from ..core.validators import validate_one_of_args_is_in_query
+from ..payment.enums import PaymentChargeStatusEnum
 from ..utils import get_user_or_app_from_context
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.order_bulk_cancel import OrderBulkCancel
@@ -69,7 +71,7 @@ from .mutations.order_line_discount_update import OrderLineDiscountUpdate
 from .mutations.order_line_update import OrderLineUpdate
 from .mutations.order_lines_create import OrderLinesCreate
 from .mutations.order_mark_as_paid import OrderMarkAsPaid
-from .mutations.order_note_add import OrderAddNote, OrderNoteAdd
+from .mutations.order_note_add import OrderNoteAdd
 from .mutations.order_note_update import OrderNoteUpdate
 from .mutations.order_refund import OrderRefund
 from .mutations.order_update import OrderUpdate
@@ -88,6 +90,14 @@ from .types import Order, OrderCountableConnection, OrderEventCountableConnectio
 
 
 class OrderFilterInput(FilterInputObjectType):
+    payment_status = NonNullList(
+        PaymentChargeStatusEnum,
+        description=(
+            "Filter orders by payment charge status."
+            f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_LEGACY_PAYMENTS}"
+        ),
+    )
+
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
         filterset_class = OrderFilter
@@ -281,11 +291,8 @@ class OrderMutations(graphene.ObjectType):
     )
     draft_order_update = DraftOrderUpdate.Field()
 
-    order_add_note = OrderAddNote.Field(
-        deprecation_reason="Use `orderNoteAdd` instead."
-    )
     order_cancel = OrderCancel.Field()
-    order_capture = OrderCapture.Field()
+    order_capture = OrderCapture.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
     order_confirm = OrderConfirm.Field()
 
     order_fulfill = OrderFulfill.Field()
@@ -313,9 +320,9 @@ class OrderMutations(graphene.ObjectType):
     order_note_update = OrderNoteUpdate.Field()
 
     order_mark_as_paid = OrderMarkAsPaid.Field()
-    order_refund = OrderRefund.Field()
+    order_refund = OrderRefund.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
     order_update = OrderUpdate.Field()
     order_update_shipping = OrderUpdateShipping.Field()
-    order_void = OrderVoid.Field()
+    order_void = OrderVoid.Field(deprecation_reason=DEPRECATED_LEGACY_PAYMENTS)
     order_bulk_cancel = OrderBulkCancel.Field()
     order_bulk_create = OrderBulkCreate.Field()

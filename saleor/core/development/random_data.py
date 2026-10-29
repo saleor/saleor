@@ -1,0 +1,2379 @@
+import datetime
+import itertools
+import json
+import os
+import random
+import uuid
+from collections import defaultdict
+from decimal import Decimal
+from functools import lru_cache
+from typing import Any, cast
+from unittest.mock import patch
+
+import graphene
+import magic
+from django.conf import settings
+from django.contrib.auth import password_validation
+from django.core.files import File
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
+from django.utils.text import slugify
+from faker import Factory
+from faker.providers import BaseProvider
+from measurement.measures import Weight
+from prices import Money, TaxedMoney
+
+from ...account.models import Group, User
+from ...account.search import (
+    update_user_search_vector,
+)
+from ...account.tests.fixtures.user import dangerously_create_test_user
+from ...account.utils import get_default_customer_type, store_user_address
+from ...app.models import App
+from ...attribute.models import (
+    AssignedPageAttributeValue,
+    AssignedProductAttributeValue,
+    AssignedVariantAttribute,
+    AssignedVariantAttributeValue,
+    Attribute,
+    AttributePage,
+    AttributeProduct,
+    AttributeTranslation,
+    AttributeValue,
+    AttributeValueTranslation,
+    AttributeVariant,
+)
+from ...channel.models import Channel
+from ...checkout import AddressType
+from ...checkout.fetch import fetch_checkout_info
+from ...checkout.models import Checkout
+from ...checkout.tests.utils import add_variant_to_checkout
+from ...core.weight import zero_weight
+from ...discount import DiscountValueType, RewardValueType, VoucherType
+from ...discount.models import (
+    Promotion,
+    PromotionRule,
+    PromotionType,
+    RewardType,
+    Voucher,
+    VoucherChannelListing,
+    VoucherCode,
+)
+from ...giftcard import events as gift_card_events
+from ...giftcard.models import GiftCard, GiftCardTag
+from ...menu.lock_objects import acquire_menu_item_tree_lock
+from ...menu.models import Menu, MenuItem
+from ...order import OrderOrigin, OrderStatus
+from ...order.models import Fulfillment, Order, OrderLine
+from ...order.search import prepare_order_search_vector_value
+from ...order.utils import update_order_status
+from ...page.models import Page, PageTranslation, PageType
+from ...payment import TransactionAction, TransactionEventType
+from ...payment.models import TransactionEvent, TransactionItem
+from ...payment.utils import (
+    recalculate_transaction_amounts,
+    update_order_with_transaction_details,
+)
+from ...permission.enums import (
+    AccountPermissions,
+    CheckoutPermissions,
+    GiftcardPermissions,
+    OrderPermissions,
+    get_permissions,
+)
+from ...permission.models import Permission
+from ...plugins.manager import get_plugins_manager
+from ...product.lock_objects import acquire_category_tree_lock
+from ...product.models import (
+    Category,
+    Collection,
+    CollectionChannelListing,
+    CollectionProduct,
+    Product,
+    ProductChannelListing,
+    ProductMedia,
+    ProductTranslation,
+    ProductType,
+    ProductVariant,
+    ProductVariantChannelListing,
+    VariantMedia,
+)
+from ...product.search import update_products_search_vector
+from ...product.tasks import (
+    recalculate_discounted_price_for_products_task,
+    update_variant_relations_for_active_promotion_rules_task,
+)
+from ...shipping.models import (
+    ShippingMethod,
+    ShippingMethodChannelListing,
+    ShippingMethodType,
+    ShippingZone,
+)
+from ...site.models import SiteSettings
+from ...tax.models import TaxClass, TaxClassCountryRate, TaxConfiguration
+from ...tax.utils import get_tax_class_kwargs_for_order_line
+from ...warehouse import WarehouseClickAndCollectOption
+from ...warehouse.management import increase_stock
+from ...warehouse.models import PreorderAllocation, Stock, Warehouse
+from ..postgres import FlatConcatSearchVector
+from ..utils.anonymization import (
+    generate_fake_address as base_generate_fake_address,
+)
+from ..utils.anonymization import (
+    generate_fake_user as base_generate_fake_user,
+)
+from ..utils.anonymization import (
+    get_email,
+)
+
+fake = cast(Any, Factory.create())
+fake.seed(0)
+
+PRODUCTS_LIST_DIR = "products-list/"
+ATTRIBUTE_FILES_DIR = "file-upload/"
+
+DUMMY_STAFF_PASSWORD = "password"
+
+DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
+
+RETIRED_PRODUCT_PKS = (127, 132, 133)
+
+GROCERIES_TAX_CLASS_PK = 1
+BOOKS_TAX_CLASS_PK = 2
+NO_TAXES_TAX_CLASS_PK = 3
+
+TAX_CLASS_NAMES_BY_PK = {
+    GROCERIES_TAX_CLASS_PK: "Groceries",
+    BOOKS_TAX_CLASS_PK: "Books",
+    NO_TAXES_TAX_CLASS_PK: "No taxes",
+}
+
+DEFAULT_COUNTRY_TAX_RATES = {
+    "AT": Decimal(20),
+    "BE": Decimal(21),
+    "CZ": Decimal(21),
+    "DE": Decimal(19),
+    "DK": Decimal(25),
+    "ES": Decimal(21),
+    "FR": Decimal(20),
+    "GB": Decimal(20),
+    "PL": Decimal(23),
+}
+
+TAX_CLASS_COUNTRY_RATES = {
+    GROCERIES_TAX_CLASS_PK: {
+        "AT": Decimal(10),
+        "BE": Decimal(6),
+        "CZ": Decimal(10),
+        "DE": Decimal(19),
+        "ES": Decimal(4),
+        "FR": Decimal(10),
+        "GB": Decimal(5),
+        "PL": Decimal(5),
+    },
+    BOOKS_TAX_CLASS_PK: {
+        "AT": Decimal(10),
+        "BE": Decimal(6),
+        "CZ": Decimal(10),
+        "DE": Decimal(7),
+        "ES": Decimal(4),
+        "FR": Decimal("5.5"),
+        "GB": Decimal(0),
+        "PL": Decimal(8),
+    },
+    NO_TAXES_TAX_CLASS_PK: {
+        country: Decimal(0) for country in DEFAULT_COUNTRY_TAX_RATES
+    },
+}
+
+IMAGES_MAPPING = {
+    126: ["saleor-headless-omnichannel-book.png"],
+    128: [
+        "saleor-blue-plimsolls-1.png",
+        "saleor-blue-plimsolls-2.png",
+        "saleor-blue-plimsolls-3.png",
+        "saleor-blue-plimsolls-4.png",
+        "saleor-white-plimsolls-1.png",
+        "saleor-white-plimsolls-2.png",
+        "saleor-white-plimsolls-3.png",
+        "saleor-white-plimsolls-4.png",
+    ],
+    129: ["saleor-dash-force-1.png", "saleor-dash-force-2.png"],
+    130: ["saleor-pauls-blanace-420-1.png", "saleor-pauls-blanace-420-2.png"],
+    131: [
+        "saleor-grey-hoodie.png",
+        "saleor-blue-hoodie.png",
+        "saleor-white-hoodie.png",
+    ],
+    134: ["saleor-ascii-shirt-front.png", "saleor-ascii-shirt-back.png"],
+    135: ["saleor-team-tee-front.png", "saleor-team-tee-front.png"],
+    136: ["saleor-polo-shirt-front.png", "saleor-polo-shirt-back.png"],
+    137: ["saleor-blue-polygon-tee-front.png", "saleor-blue-polygon-tee-back.png"],
+    138: ["saleor-dark-polygon-tee-front.png", "saleor-dark-polygon-tee-back.png"],
+    141: ["saleor-beanie-1.png", "saleor-beanie-2.png"],
+    143: ["saleor-neck-warmer.png"],
+    144: ["saleor-sunnies.png"],
+    145: ["saleor-battle-tested-book.png"],
+    146: ["saleor-enterprise-cloud-book.png"],
+    147: ["saleor-own-your-stack-and-data-book.png"],
+    150: ["saleor-mighty-mug.png"],
+    151: ["saleor-cushion-blue.png"],
+    152: ["saleor-apple-drink.png"],
+    153: ["saleor-bean-drink.png"],
+    154: ["saleor-banana-drink.png"],
+    155: ["saleor-carrot-drink.png"],
+    156: ["saleor-sunnies-dark.png"],
+    157: [
+        "saleor-monospace-white-tee-front.png",
+        "saleor-monospace-white-tee-back.png",
+    ],
+    160: ["saleor-gift-100.png"],
+    161: ["saleor-white-cubes-tee-front.png", "saleor-white-cubes-tee-back.png"],
+    162: ["saleor-white-parrot-cushion.png"],
+    163: ["saleor-gift-500.png"],
+    164: ["saleor-gift-50.png"],
+}
+
+VARIANT_IMAGES_MAPPING = {
+    324: ("saleor-headless-omnichannel-book.png",),
+    332: tuple(IMAGES_MAPPING[128][:4]),
+    333: tuple(IMAGES_MAPPING[128][:4]),
+    334: tuple(IMAGES_MAPPING[128][:4]),
+    335: ("saleor-dash-force-1.png",),
+    336: ("saleor-dash-force-1.png",),
+    337: ("saleor-dash-force-1.png",),
+    338: ("saleor-dash-force-1.png",),
+    339: ("saleor-dash-force-1.png",),
+    340: ("saleor-pauls-blanace-420-1.png",),
+    341: ("saleor-pauls-blanace-420-1.png",),
+    342: ("saleor-pauls-blanace-420-1.png",),
+    343: ("saleor-pauls-blanace-420-1.png",),
+    344: ("saleor-pauls-blanace-420-1.png",),
+    345: ("saleor-grey-hoodie.png",),
+    348: ("saleor-ascii-shirt-front.png",),
+    349: ("saleor-ascii-shirt-front.png",),
+    350: ("saleor-ascii-shirt-front.png",),
+    351: ("saleor-ascii-shirt-front.png",),
+    352: ("saleor-ascii-shirt-front.png",),
+    353: ("saleor-team-tee-front.png",),
+    354: ("saleor-team-tee-front.png",),
+    355: ("saleor-team-tee-front.png",),
+    356: ("saleor-team-tee-front.png",),
+    357: ("saleor-team-tee-front.png",),
+    358: ("saleor-polo-shirt-front.png",),
+    359: ("saleor-polo-shirt-front.png",),
+    360: ("saleor-polo-shirt-front.png",),
+    361: ("saleor-blue-polygon-tee-front.png",),
+    362: ("saleor-blue-polygon-tee-front.png",),
+    363: ("saleor-blue-polygon-tee-front.png",),
+    364: ("saleor-dark-polygon-tee-front.png",),
+    365: ("saleor-dark-polygon-tee-front.png",),
+    366: ("saleor-dark-polygon-tee-front.png",),
+    368: ("saleor-beanie-1.png",),
+    370: ("saleor-neck-warmer.png",),
+    371: ("saleor-sunnies.png",),
+    372: ("saleor-battle-tested-book.png",),
+    373: ("saleor-battle-tested-book.png",),
+    374: ("saleor-battle-tested-book.png",),
+    375: ("saleor-enterprise-cloud-book.png",),
+    376: ("saleor-enterprise-cloud-book.png",),
+    377: ("saleor-enterprise-cloud-book.png",),
+    378: ("saleor-enterprise-cloud-book.png",),
+    379: ("saleor-own-your-stack-and-data-book.png",),
+    380: ("saleor-own-your-stack-and-data-book.png",),
+    382: ("saleor-mighty-mug.png",),
+    383: ("saleor-cushion-blue.png",),
+    384: ("saleor-apple-drink.png",),
+    385: ("saleor-bean-drink.png",),
+    386: ("saleor-banana-drink.png",),
+    387: ("saleor-carrot-drink.png",),
+    388: ("saleor-sunnies-dark.png",),
+    389: ("saleor-monospace-white-tee-front.png",),
+    390: ("saleor-monospace-white-tee-front.png",),
+    393: ("saleor-gift-100.png",),
+    394: ("saleor-white-cubes-tee-front.png",),
+    395: ("saleor-white-cubes-tee-front.png",),
+    396: ("saleor-white-cubes-tee-front.png",),
+    397: ("saleor-white-cubes-tee-front.png",),
+    398: ("saleor-white-cubes-tee-front.png",),
+    399: ("saleor-white-parrot-cushion.png",),
+    400: ("saleor-gift-500.png",),
+    401: ("saleor-gift-50.png",),
+    404: tuple(IMAGES_MAPPING[128][4:]),
+    405: tuple(IMAGES_MAPPING[128][4:]),
+    406: tuple(IMAGES_MAPPING[128][4:]),
+    407: tuple(IMAGES_MAPPING[128][4:]),
+    408: tuple(IMAGES_MAPPING[128][4:]),
+    409: tuple(IMAGES_MAPPING[128][4:]),
+    410: tuple(IMAGES_MAPPING[128][4:]),
+    411: ("saleor-grey-hoodie.png",),
+    412: ("saleor-grey-hoodie.png",),
+    413: ("saleor-grey-hoodie.png",),
+    414: ("saleor-white-hoodie.png",),
+    415: ("saleor-white-hoodie.png",),
+    416: ("saleor-white-hoodie.png",),
+    417: ("saleor-blue-hoodie.png",),
+    418: ("saleor-blue-hoodie.png",),
+    419: ("saleor-blue-hoodie.png",),
+    420: ("saleor-blue-hoodie.png",),
+}
+
+ATTRIBUTE_FILE_MAPPING = {
+    343: ("audio-quality-standard-black.png", "image/png"),
+    344: ("audio-quality-hi-res-black.png", "image/png"),
+    366: ("audiobook-enterprise-sample.mp3", "audio/mpeg"),
+    367: ("audiobook-headless-sample.mp3", "audio/mpeg"),
+    369: ("audiobook-battle-tested-sample.mp3", "audio/mpeg"),
+    380: ("audiobook-stack-and-data-sample.mp3", "audio/mpeg"),
+}
+
+CATEGORY_IMAGES = {
+    7: "accessories.jpg",
+    8: "groceries.jpg",
+    9: "apparel.jpg",
+}
+
+COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg", 3: "clothing.jpg"}
+
+
+@lru_cache
+def get_sample_data():
+    path = os.path.join(
+        settings.PROJECT_ROOT, "saleor", "static", "populatedb_data.json"
+    )
+    with open(path, encoding="utf8") as f:
+        db_items = json.load(f)
+    types = defaultdict(list)
+    # Sort db objects by its model
+    for item in db_items:
+        model = item.pop("model")
+        types[model].append(item)
+    return types
+
+
+def get_weight(weight):
+    if not weight:
+        return zero_weight()
+    value, unit = weight.split(":")
+    return Weight(**{unit: value})
+
+
+def create_product_types(product_type_data):
+    for product_type in product_type_data:
+        pk = product_type["pk"]
+        defaults = dict(product_type["fields"])
+        defaults["weight"] = get_weight(defaults["weight"])
+        ProductType.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_categories(categories_data, placeholder_dir):
+    placeholder_dir = get_product_list_images_dir(placeholder_dir)
+    categories_data = sorted(
+        categories_data, key=lambda category: category["fields"]["level"]
+    )
+    for category in categories_data:
+        pk = category["pk"]
+        defaults = dict(category["fields"])
+        parent = defaults["parent"]
+        image_name = CATEGORY_IMAGES.get(pk)
+        if image_name:
+            background_image = get_image(placeholder_dir, image_name)
+            defaults["background_image"] = background_image
+        if parent:
+            defaults["parent"] = Category.objects.get(pk=parent)
+        with transaction.atomic():
+            acquire_category_tree_lock()
+            Category.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_collection_channel_listings(collection_channel_listings_data):
+    channel_USD = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+    channel_PLN = Channel.objects.get(slug="channel-pln")
+    for collection_channel_listing in collection_channel_listings_data:
+        pk = collection_channel_listing["pk"]
+        defaults = dict(collection_channel_listing["fields"])
+        defaults["collection_id"] = defaults.pop("collection")
+        channel = defaults.pop("channel")
+        defaults["channel_id"] = channel_USD.pk if channel == 1 else channel_PLN.pk
+        CollectionChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_collections(data, placeholder_dir):
+    placeholder_dir = get_product_list_images_dir(placeholder_dir)
+    for collection in data:
+        pk = collection["pk"]
+        defaults = dict(collection["fields"])
+        image_name = COLLECTION_IMAGES.get(pk)
+        if image_name:
+            background_image = get_image(placeholder_dir, image_name)
+            defaults["background_image"] = background_image
+        Collection.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_products_to_collections(associations: list):
+    for value in associations:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["collection_id"] = defaults.pop("collection")
+        defaults["product_id"] = defaults.pop("product")
+        CollectionProduct.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_attributes(attributes_data):
+    for attribute in attributes_data:
+        pk = attribute["pk"]
+        defaults = attribute["fields"]
+        attr, _ = Attribute.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_attributes_values(values_data):
+    for value in values_data:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["attribute_id"] = defaults.pop("attribute")
+        for relation_field in (
+            "reference_category",
+            "reference_collection",
+            "reference_page",
+            "reference_product",
+            "reference_variant",
+        ):
+            if relation_field in defaults:
+                defaults[f"{relation_field}_id"] = defaults.pop(relation_field)
+        AttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_product_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        product_id = defaults.pop("product")
+        language_code = defaults.pop("language_code")
+        ProductTranslation.objects.update_or_create(
+            product_id=product_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_page_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        page_id = defaults.pop("page")
+        language_code = defaults.pop("language_code")
+        PageTranslation.objects.update_or_create(
+            page_id=page_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_attribute_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        attribute_id = defaults.pop("attribute")
+        language_code = defaults.pop("language_code")
+        AttributeTranslation.objects.update_or_create(
+            attribute_id=attribute_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_attribute_value_translations(translations_data):
+    for translation in translations_data:
+        defaults = dict(translation["fields"])
+        attribute_value_id = defaults.pop("attribute_value")
+        language_code = defaults.pop("language_code")
+        AttributeValueTranslation.objects.update_or_create(
+            attribute_value_id=attribute_value_id,
+            language_code=language_code,
+            defaults=defaults,
+        )
+
+
+def create_attribute_file_values(placeholder_dir):
+    source_dir = os.path.join(placeholder_dir, ATTRIBUTE_FILES_DIR)
+    for value_id, (file_name, content_type) in ATTRIBUTE_FILE_MAPPING.items():
+        source_path = os.path.join(source_dir, file_name)
+        with open(source_path, "rb") as source_file:
+            detected_content_type = magic.from_buffer(source_file.read(2048), mime=True)
+            source_file.seek(0)
+            extension = os.path.splitext(file_name)[1].lower()
+            if (
+                detected_content_type != content_type
+                or extension not in settings.ALLOWED_MIME_TYPES.get(content_type, ())
+            ):
+                raise ValueError(
+                    f"Attribute file {file_name} does not match its allowed content "
+                    f"type {content_type}. Detected {detected_content_type}."
+                )
+
+            storage_path = f"file_upload/{file_name}"
+            if not default_storage.exists(storage_path):
+                storage_path = default_storage.save(
+                    storage_path, File(source_file, name=file_name)
+                )
+
+        updated_count = AttributeValue.objects.filter(pk=value_id).update(
+            file_url=storage_path, content_type=content_type
+        )
+        if updated_count != 1:
+            raise ValueError(
+                f"Attribute value {value_id} for {file_name} was not found."
+            )
+
+
+def assign_reference_page_types_to_attributes(relations: list):
+    attribute_ids = {relation["fields"]["attribute"] for relation in relations}
+    attributes_by_id = Attribute.objects.in_bulk(attribute_ids)
+    for relation in relations:
+        fields = relation["fields"]
+        attribute = attributes_by_id[fields["attribute"]]
+        attribute.reference_page_types.add(fields["page_type"])
+
+
+def assign_reference_product_types_to_attributes(relations: list):
+    attribute_ids = {relation["fields"]["attribute"] for relation in relations}
+    attributes_by_id = Attribute.objects.in_bulk(attribute_ids)
+    for relation in relations:
+        fields = relation["fields"]
+        attribute = attributes_by_id[fields["attribute"]]
+        attribute.reference_product_types.add(fields["product_type"])
+
+
+def get_matching_placeholder_image_name(stored_image_name, image_names):
+    stored_stem, stored_extension = os.path.splitext(
+        os.path.basename(stored_image_name)
+    )
+    matching_image_names = {
+        image_name
+        for image_name in image_names
+        if (image_parts := os.path.splitext(image_name))[1] == stored_extension
+        and (
+            stored_stem == image_parts[0]
+            or stored_stem.startswith(f"{image_parts[0]}_")
+        )
+    }
+    if len(matching_image_names) > 1:
+        raise ValueError(
+            f"Stored image {stored_image_name} matches multiple placeholder images."
+        )
+    return matching_image_names.pop() if matching_image_names else None
+
+
+def create_missing_product_images(product, placeholder_dir, image_names):
+    existing_image_names = {
+        image_name
+        for stored_image_name in product.media.values_list("image", flat=True)
+        if (
+            image_name := get_matching_placeholder_image_name(
+                stored_image_name, image_names
+            )
+        )
+    }
+    for image_name in image_names:
+        if image_name not in existing_image_names:
+            create_product_image(product, placeholder_dir, image_name)
+
+
+def create_products(products_data, placeholder_dir, create_images):
+    Product.objects.filter(pk__in=RETIRED_PRODUCT_PKS).delete()
+
+    for product in products_data:
+        pk = product["pk"]
+        # We are skipping products without images
+        if pk not in IMAGES_MAPPING:
+            continue
+
+        defaults = dict(product["fields"])
+        defaults["weight"] = get_weight(defaults["weight"])
+        defaults["category_id"] = defaults.pop("category")
+        defaults["product_type_id"] = defaults.pop("product_type")
+        if default_variant := defaults.pop("default_variant", None):
+            defaults["default_variant_id"] = default_variant
+
+        product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
+
+        if create_images:
+            create_missing_product_images(
+                product, placeholder_dir, IMAGES_MAPPING.get(pk, [])
+            )
+
+
+def create_product_channel_listings(product_channel_listings_data):
+    channel_USD = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+    channel_PLN = Channel.objects.get(slug="channel-pln")
+    for product_channel_listing in product_channel_listings_data:
+        pk = product_channel_listing["pk"]
+        defaults = dict(product_channel_listing["fields"])
+        defaults["product_id"] = defaults.pop("product")
+        channel = defaults.pop("channel")
+        defaults["channel_id"] = channel_USD.pk if channel == 1 else channel_PLN.pk
+        ProductChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def create_stocks(variant, warehouse_qs=None, **defaults):
+    if warehouse_qs is None:
+        warehouse_qs = Warehouse.objects.all()
+
+    for warehouse in warehouse_qs:
+        Stock.objects.update_or_create(
+            warehouse=warehouse, product_variant=variant, defaults=defaults
+        )
+
+
+def create_product_variants(variants_data):
+    for variant in variants_data:
+        pk = variant["pk"]
+        defaults = dict(variant["fields"])
+        defaults["weight"] = get_weight(defaults["weight"])
+        product_id = defaults.pop("product")
+        # We have not created products without images
+        if product_id not in IMAGES_MAPPING:
+            continue
+        defaults["product_id"] = product_id
+        set_field_as_money(defaults, "price_override")
+        set_field_as_money(defaults, "cost_price")
+        is_default_variant = defaults.pop("default", False)
+        variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+        if is_default_variant:
+            product = variant.product
+            product.default_variant = variant
+            product.save(update_fields=["default_variant", "updated_at"])
+        quantity = random.randint(100, 500)
+        create_stocks(variant, quantity=quantity)
+
+
+def assign_media_to_product_variants():
+    variants = ProductVariant.objects.filter(pk__in=VARIANT_IMAGES_MAPPING).values_list(
+        "pk", "product_id"
+    )
+    product_id_by_variant_id = dict(variants)
+    product_ids = set(product_id_by_variant_id.values())
+
+    media_by_product_id = defaultdict(list)
+    for media in ProductMedia.objects.filter(product_id__in=product_ids):
+        media_by_product_id[media.product_id].append(media)
+
+    media_by_product_and_image_name: dict[tuple[int, str], ProductMedia] = {}
+    for product_id, media_items in media_by_product_id.items():
+        if product_id is None:
+            continue
+        image_names = IMAGES_MAPPING.get(product_id)
+        if image_names is None:
+            continue
+        for media in media_items:
+            image_name = get_matching_placeholder_image_name(
+                media.image.name, image_names
+            )
+            if image_name:
+                media_by_product_and_image_name.setdefault(
+                    (product_id, image_name), media
+                )
+
+    missing_media = {
+        (product_id_by_variant_id[variant_id], image_name)
+        for variant_id, image_names in VARIANT_IMAGES_MAPPING.items()
+        if variant_id in product_id_by_variant_id
+        for image_name in image_names
+        if (product_id_by_variant_id[variant_id], image_name)
+        not in media_by_product_and_image_name
+    }
+    if missing_media:
+        raise ValueError(f"Missing product media for placeholders: {missing_media}.")
+
+    desired_relations = {
+        (
+            variant_id,
+            media_by_product_and_image_name[
+                (product_id_by_variant_id[variant_id], image_name)
+            ].pk,
+        )
+        for variant_id, image_names in VARIANT_IMAGES_MAPPING.items()
+        if variant_id in product_id_by_variant_id
+        for image_name in image_names
+    }
+    existing_relations = {
+        (variant_id, media_id): relation_id
+        for relation_id, variant_id, media_id in VariantMedia.objects.filter(
+            variant_id__in=VARIANT_IMAGES_MAPPING
+        ).values_list("pk", "variant_id", "media_id")
+    }
+    stale_relation_ids = [
+        relation_id
+        for relation, relation_id in existing_relations.items()
+        if relation not in desired_relations
+    ]
+    if stale_relation_ids:
+        VariantMedia.objects.filter(pk__in=stale_relation_ids).delete()
+
+    VariantMedia.objects.bulk_create(
+        [
+            VariantMedia(variant_id=variant_id, media_id=media_id)
+            for variant_id, media_id in desired_relations - existing_relations.keys()
+        ],
+        ignore_conflicts=True,
+    )
+
+
+def create_product_variant_channel_listings(product_variant_channel_listings_data):
+    channel_USD = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+    channel_PLN = Channel.objects.get(slug="channel-pln")
+    for variant_channel_listing in product_variant_channel_listings_data:
+        pk = variant_channel_listing["pk"]
+        defaults = dict(variant_channel_listing["fields"])
+
+        defaults["variant_id"] = defaults.pop("variant")
+        channel = defaults.pop("channel")
+        defaults["channel_id"] = channel_USD.pk if channel == 1 else channel_PLN.pk
+        ProductVariantChannelListing.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attributes_to_product_types(
+    association_model: type[AttributeProduct] | type[AttributeVariant],
+    attributes: list,
+):
+    for value in attributes:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["attribute_id"] = defaults.pop("attribute")
+        defaults["product_type_id"] = defaults.pop("product_type")
+        association_model.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attributes_to_page_types(
+    association_model: type[AttributePage],
+    attributes: list,
+):
+    for value in attributes:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["attribute_id"] = defaults.pop("attribute")
+        defaults["page_type_id"] = defaults.pop("page_type")
+        association_model.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attribute_values_to_products(values):
+    for value in values:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["value_id"] = defaults.pop("value")
+        defaults["product_id"] = defaults.pop("product")
+        AssignedProductAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attribute_values_to_pages(values):
+    for value in values:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["value_id"] = defaults.pop("value")
+        defaults["page_id"] = defaults.pop("page")
+        AssignedPageAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attributes_to_variants(variant_attributes):
+    for value in variant_attributes:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["variant_id"] = defaults.pop("variant")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        AssignedVariantAttribute.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attribute_values_to_variants(variant_attribute_values):
+    for value in variant_attribute_values:
+        pk = value["pk"]
+        defaults = dict(value["fields"])
+        defaults["value_id"] = defaults.pop("value")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        if variant_id := defaults.pop("variant", None):
+            defaults["variant_id"] = variant_id
+        AssignedVariantAttributeValue.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def set_field_as_money(defaults, field):
+    amount_field = f"{field}_amount"
+    if amount_field in defaults and defaults[amount_field] is not None:
+        defaults[field] = Money(defaults[amount_field], DEFAULT_CURRENCY)
+
+
+def create_products_by_schema(placeholder_dir, create_images):
+    types = get_sample_data()
+
+    create_product_types(product_type_data=types["product.producttype"])
+    create_categories(
+        categories_data=types["product.category"], placeholder_dir=placeholder_dir
+    )
+    create_attributes(attributes_data=types["attribute.attribute"])
+
+    create_products(
+        products_data=types["product.product"],
+        placeholder_dir=placeholder_dir,
+        create_images=create_images,
+    )
+    create_attributes_values(values_data=types["attribute.attributevalue"])
+    create_product_translations(types["product.producttranslation"])
+    create_attribute_translations(types["attribute.attributetranslation"])
+    create_attribute_value_translations(types["attribute.attributevaluetranslation"])
+    if create_images:
+        create_attribute_file_values(placeholder_dir)
+    create_product_channel_listings(
+        product_channel_listings_data=types["product.productchannellisting"],
+    )
+    create_product_variants(variants_data=types["product.productvariant"])
+    if create_images:
+        assign_media_to_product_variants()
+    create_product_variant_channel_listings(
+        product_variant_channel_listings_data=types[
+            "product.productvariantchannellisting"
+        ],
+    )
+    assign_attributes_to_product_types(
+        AttributeProduct, attributes=types["attribute.attributeproduct"]
+    )
+    assign_attributes_to_product_types(
+        AttributeVariant, attributes=types["attribute.attributevariant"]
+    )
+    assign_attributes_to_page_types(
+        AttributePage, attributes=types["attribute.attributepage"]
+    )
+    assign_attribute_values_to_products(
+        types["attribute.assignedproductattributevalue"]
+    )
+    assign_attribute_values_to_pages(types["attribute.assignedpageattributevalue"])
+    assign_attributes_to_variants(
+        variant_attributes=types["attribute.assignedvariantattribute"]
+    )
+    assign_attribute_values_to_variants(
+        types["attribute.assignedvariantattributevalue"]
+    )
+    assign_reference_page_types_to_attributes(
+        types["attribute.attribute_reference_page_types"]
+    )
+    assign_reference_product_types_to_attributes(
+        types["attribute.attribute_reference_product_types"]
+    )
+    create_collections(
+        data=types["product.collection"], placeholder_dir=placeholder_dir
+    )
+    create_collection_channel_listings(
+        collection_channel_listings_data=types["product.collectionchannellisting"],
+    )
+    assign_products_to_collections(associations=types["product.collectionproduct"])
+
+    all_products_qs = Product.objects.all()
+    update_products_search_vector(all_products_qs.values_list("id", flat=True))
+
+
+class SaleorProvider(BaseProvider):
+    def money(self):
+        return Money(fake.pydecimal(2, 2, positive=True), DEFAULT_CURRENCY)
+
+    def weight(self):
+        return Weight(kg=fake.pydecimal(1, 2, positive=True))
+
+
+fake.add_provider(SaleorProvider)
+
+
+def create_product_image(product, placeholder_dir, image_name):
+    image = get_image(placeholder_dir, image_name)
+    product_image = ProductMedia(product=product, image=image)
+    product_image.save()
+    return product_image
+
+
+def create_fake_user(user_password, save=True, generate_id=False, customer_type=None):
+    fake_user, fake_address = base_generate_fake_user(
+        generate_id=generate_id, with_fake_save=False
+    )
+
+    # Skip the email if it already exists
+    try:
+        return User.objects.get(email=fake_user.email)
+    except User.DoesNotExist:
+        pass
+
+    if save:
+        fake_address.save()
+        fake_user.customer_type = customer_type or get_default_customer_type()
+        password_validation.validate_password(user_password, fake_user)
+        fake_user.set_password(user_password)
+        fake_user.save()
+        fake_user.addresses.add(fake_address)
+        update_user_search_vector(fake_user)
+    else:
+        update_user_search_vector(fake_user, attach_addresses_data=False, save=False)
+
+    return fake_user
+
+
+# We don't want to spam the console with payment confirmations sent to
+# fake customers.
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def create_fake_payment(mock_notify, order):
+    amount = order.total.gross.amount
+    dummy_app = App.objects.filter(identifier="saleor.io.dummy-payment-app").first()
+    dummy_app_identifier = (
+        dummy_app.identifier if dummy_app else "saleor.io.dummy-payment-app"
+    )
+    flow = order.channel.default_transaction_flow_strategy.lower()
+
+    auth_psp = uuid.uuid4()
+    charge_psp = uuid.uuid4()
+    refund_psp = uuid.uuid4()
+    pick = random.random()
+
+    kwargs = {
+        "order": order,
+        "name": "",
+        "app": dummy_app,
+        "app_identifier": dummy_app_identifier,
+        "user": None,
+        "available_actions": [],
+        "authorized_amount": None,
+        "charge_amount": None,
+        "refund_amount": None,
+        "authorization_psp": None,
+        "charge_psp": None,
+        "refund_psp": None,
+    }
+    if flow == "authorization":
+        if pick < 0.15:
+            # Authorized only: actions -> CHARGE, CANCEL
+            kwargs["available_actions"] = [
+                TransactionAction.CHARGE,
+                TransactionAction.CANCEL,
+            ]
+            kwargs["authorized_amount"] = amount
+            kwargs["authorization_psp"] = auth_psp
+            return create_transaction_with_events(**kwargs)
+        if pick < 0.75:
+            # Authorized + Charged: actions -> REFUND
+            kwargs["available_actions"] = [TransactionAction.REFUND]
+            kwargs["authorized_amount"] = amount
+            kwargs["authorization_psp"] = auth_psp
+            kwargs["charge_amount"] = amount
+            kwargs["charge_psp"] = charge_psp
+            return create_transaction_with_events(**kwargs)
+        # Authorized + Charged + Refunded
+        kwargs["authorized_amount"] = amount
+        kwargs["authorization_psp"] = auth_psp
+        kwargs["charge_amount"] = amount
+        kwargs["charge_psp"] = charge_psp
+        kwargs["refund_amount"] = amount
+        kwargs["refund_psp"] = refund_psp
+        return create_transaction_with_events(**kwargs)
+
+    # Charge strategy:
+    if pick < 0.8:
+        # Charged only
+        kwargs["available_actions"] = [TransactionAction.REFUND]
+        kwargs["charge_amount"] = amount
+        kwargs["charge_psp"] = charge_psp
+        return create_transaction_with_events(**kwargs)
+    # Charged + Refunded
+    kwargs["charge_amount"] = amount
+    kwargs["charge_psp"] = charge_psp
+    kwargs["refund_amount"] = amount
+    kwargs["refund_psp"] = refund_psp
+    return create_transaction_with_events(**kwargs)
+
+
+def create_transaction_with_events(
+    *,
+    order: Order,
+    name: str,
+    app: App | None,
+    app_identifier: str | None = None,
+    user: User | None,
+    available_actions: list[str] | None,
+    authorized_amount: Decimal | None,
+    charge_amount: Decimal | None,
+    refund_amount: Decimal | None,
+    authorization_psp: str | None,
+    charge_psp: str | None,
+    refund_psp: str | None,
+) -> TransactionItem:
+    item_psp = authorization_psp or charge_psp or str(uuid.uuid4())
+    transaction_item = TransactionItem.objects.create(
+        name=name,
+        order_id=order.pk,
+        currency=order.currency,
+        app=app,
+        app_identifier=(app.identifier if app else app_identifier),
+        user=user,
+        psp_reference=item_psp,
+        available_actions=available_actions or [],
+    )
+
+    events_to_create: list[TransactionEvent] = []
+
+    event_defaults = {
+        "currency": order.currency,
+        "transaction_id": transaction_item.pk,
+        "app": app,
+        "app_identifier": (app.identifier if app else app_identifier),
+    }
+    if authorized_amount is not None:
+        events_to_create.append(
+            TransactionEvent(
+                type=TransactionEventType.AUTHORIZATION_REQUEST,
+                amount_value=authorized_amount,
+                psp_reference=authorization_psp or item_psp,
+                include_in_calculations=False,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=None,
+                **event_defaults,
+            )
+        )
+        events_to_create.append(
+            TransactionEvent(
+                type=TransactionEventType.AUTHORIZATION_SUCCESS,
+                amount_value=authorized_amount,
+                psp_reference=authorization_psp or item_psp,
+                include_in_calculations=True,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
+                message="Authorization success",
+                **event_defaults,
+            )
+        )
+
+    if charge_amount is not None:
+        events_to_create.append(
+            TransactionEvent(
+                type=TransactionEventType.CHARGE_REQUEST,
+                amount_value=charge_amount,
+                psp_reference=charge_psp or item_psp,
+                include_in_calculations=False,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
+                **event_defaults,
+            )
+        )
+        events_to_create.append(
+            TransactionEvent(
+                type=TransactionEventType.CHARGE_SUCCESS,
+                amount_value=charge_amount,
+                psp_reference=charge_psp or item_psp,
+                include_in_calculations=True,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
+                message="Charge success",
+                **event_defaults,
+            )
+        )
+
+    if refund_amount is not None and refund_amount > 0:
+        events_to_create.append(
+            TransactionEvent(
+                type=TransactionEventType.REFUND_REQUEST,
+                amount_value=refund_amount,
+                psp_reference=refund_psp or item_psp,
+                include_in_calculations=False,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
+                **event_defaults,
+            )
+        )
+        events_to_create.append(
+            TransactionEvent(
+                type=TransactionEventType.REFUND_SUCCESS,
+                amount_value=refund_amount,
+                psp_reference=refund_psp or item_psp,
+                include_in_calculations=True,
+                created_at=timezone.now() + datetime.timedelta(microseconds=1),
+                user=user,
+                message="Refund success",
+                **event_defaults,
+            )
+        )
+
+    if events_to_create:
+        TransactionEvent.objects.bulk_create(events_to_create)
+        recalculate_transaction_amounts(transaction=transaction_item)
+        update_order_with_transaction_details(order)
+
+    return transaction_item
+
+
+def create_order_lines(order, how_many=10):
+    channel = order.channel
+    available_variant_ids = channel.variant_listings.values_list(
+        "variant_id", flat=True
+    )
+    variants = (
+        ProductVariant.objects.filter(pk__in=available_variant_ids, is_preorder=False)
+        .order_by("?")
+        .prefetch_related("product__product_type")[:how_many]
+    )
+    variants_iter = itertools.cycle(variants)
+    lines = []
+    for _ in range(how_many):
+        variant = next(variants_iter)
+        lines.append(_get_new_order_line(order, variant, channel))
+
+    lines = OrderLine.objects.bulk_create(lines)
+    manager = get_plugins_manager(allow_replica=False)
+    country = order.shipping_method.shipping_zone.countries[0]
+    warehouses = Warehouse.objects.filter(
+        shipping_zones__countries__contains=country
+    ).order_by("?")
+    warehouse_iter = itertools.cycle(warehouses)
+    for line in lines:
+        variant = cast(ProductVariant, line.variant)
+        unit_price_data = manager.calculate_order_line_unit(
+            order, line, variant, variant.product, lines
+        )
+        total_price_data = manager.calculate_order_line_total(
+            order, line, variant, variant.product, lines
+        )
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
+        warehouse = next(warehouse_iter)
+        increase_stock(line, warehouse, line.quantity, allocate=True)
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+            "currency",
+            "tax_rate",
+        ],
+    )
+    return lines
+
+
+def create_order_lines_with_preorder(order, how_many=1):
+    channel = order.channel
+    available_variant_ids = channel.variant_listings.values_list(
+        "variant_id", flat=True
+    )
+    variants = (
+        ProductVariant.objects.filter(pk__in=available_variant_ids, is_preorder=True)
+        .order_by("?")
+        .prefetch_related("product__product_type")[:how_many]
+    )
+    variants_iter = itertools.cycle(variants)
+    lines = []
+    for _ in range(how_many):
+        variant = next(variants_iter)
+        lines.append(_get_new_order_line(order, variant, channel))
+
+    lines = OrderLine.objects.bulk_create(lines)
+    manager = get_plugins_manager(allow_replica=False)
+
+    preorder_allocations = []
+    for line in lines:
+        variant = cast(ProductVariant, line.variant)
+        unit_price_data = manager.calculate_order_line_unit(
+            order, line, variant, variant.product, lines
+        )
+        total_price_data = manager.calculate_order_line_total(
+            order, line, variant, variant.product, lines
+        )
+        line.unit_price = unit_price_data.price_with_discounts
+        line.total_price = total_price_data.price_with_discounts
+        line.undiscounted_unit_price = unit_price_data.undiscounted_price
+        line.undiscounted_total_price = total_price_data.undiscounted_price
+        line.tax_rate = (
+            unit_price_data.price_with_discounts.tax
+            / unit_price_data.price_with_discounts.net
+        )
+        variant_channel_listing = variant.channel_listings.get(channel=channel)
+        preorder_allocations.append(
+            PreorderAllocation(
+                order_line=line,
+                product_variant_channel_listing=variant_channel_listing,
+                quantity=line.quantity,
+            )
+        )
+    PreorderAllocation.objects.bulk_create(preorder_allocations)
+
+    OrderLine.objects.bulk_update(
+        lines,
+        [
+            "unit_price_net_amount",
+            "unit_price_gross_amount",
+            "undiscounted_unit_price_gross_amount",
+            "undiscounted_unit_price_net_amount",
+            "undiscounted_total_price_gross_amount",
+            "undiscounted_total_price_net_amount",
+            "currency",
+            "tax_rate",
+        ],
+    )
+    return lines
+
+
+def _get_new_order_line(order, variant, channel):
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+    product = variant.product
+    quantity = random.randrange(
+        1,
+        variant_channel_listing.preorder_quantity_threshold
+        or variant.preorder_global_threshold
+        or 5,
+    )
+    untaxed_unit_price = variant.get_price(
+        variant_channel_listing,
+    )
+    unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
+    total_price = unit_price * quantity
+    return OrderLine(  # type: ignore[misc] # see below:
+        order=order,
+        product_name=str(product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_type_id=product.product_type.id,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        variant=variant,
+        unit_price=unit_price,  # money field not supported by mypy_django_plugin
+        total_price=total_price,  # money field not supported by mypy_django_plugin
+        undiscounted_unit_price=unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_total_price=total_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        base_unit_price=untaxed_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_base_unit_price=untaxed_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        tax_rate=0,
+        **get_tax_class_kwargs_for_order_line(product.tax_class),
+    )
+
+
+def create_fulfillments(order):
+    for line in order.lines.all():
+        if random.choice([False, True]):
+            fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
+            quantity = random.randrange(0, line.quantity) + 1
+            allocation = line.allocations.get()
+            stock = allocation.stock
+            fulfillment.lines.create(order_line=line, quantity=quantity, stock=stock)
+            line.quantity_fulfilled = quantity
+            line.save(update_fields=["quantity_fulfilled"])
+
+            allocation.quantity_allocated = F("quantity_allocated") - quantity
+            allocation.save(update_fields=["quantity_allocated"])
+
+            stock.quantity_allocated = F("quantity_allocated") - quantity
+            stock.save(update_fields=["quantity_allocated"])
+
+    update_order_status(order)
+
+
+def create_fake_order(max_order_lines=5, create_preorder_lines=False):
+    channel = (
+        Channel.objects.filter(slug__in=[settings.DEFAULT_CHANNEL_SLUG, "channel-pln"])
+        .order_by("?")
+        .first()
+    )
+    if not channel:
+        raise ValueError("No channel found.")
+    customers = (
+        User.objects.filter(is_superuser=False)
+        .exclude(default_billing_address=None)
+        .order_by("?")
+    )
+    customer = random.choice([None, customers.first()])
+
+    # # 10% chance to be unconfirmed order.
+    will_be_unconfirmed = (random.random() < 0.1) if not create_preorder_lines else True
+
+    if customer and customer.default_shipping_address:
+        address = customer.default_shipping_address
+    else:
+        address = base_generate_fake_address(with_fake_save=False)
+        address.save()
+    if customer and customer.default_billing_address:
+        billing_address = customer.default_billing_address
+    else:
+        billing_address = address
+    order_data: dict[str, Any] = {
+        "billing_address": billing_address or address,
+        "origin": OrderOrigin.CHECKOUT,
+        "shipping_address": address,
+        "user_email": get_email(address.first_name, address.last_name),
+    }
+
+    shipping_method_channel_listing = (
+        ShippingMethodChannelListing.objects.filter(channel=channel)
+        .order_by("?")
+        .first()
+    )
+    if not shipping_method_channel_listing:
+        raise Exception(f"No shipping method found for channel {channel.slug}")
+    shipping_method = shipping_method_channel_listing.shipping_method
+    shipping_price = shipping_method_channel_listing.price
+    shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
+    order_data.update(
+        {
+            "channel": channel,
+            "shipping_method": shipping_method,
+            "shipping_method_name": shipping_method.name,
+            "shipping_price": shipping_price,
+            "base_shipping_price": shipping_method_channel_listing.price,
+            "undiscounted_base_shipping_price": shipping_method_channel_listing.price,
+            "lines_count": 0,
+        }
+    )
+    if will_be_unconfirmed:
+        order_data["status"] = OrderStatus.UNCONFIRMED
+
+    order = Order.objects.create(**order_data)
+    if create_preorder_lines:
+        lines = create_order_lines_with_preorder(order)
+    else:
+        lines = create_order_lines(order, random.randrange(1, max_order_lines))
+    order.total = sum([line.total_price for line in lines], shipping_price)
+    order.subtotal = sum(
+        [line.total_price for line in lines],
+        TaxedMoney(net=Money(0, order.currency), gross=Money(0, order.currency)),
+    )
+    weight = Weight(kg=0)
+    for line in order.lines.all():
+        if line.variant:
+            weight += line.variant.get_weight()
+    order.weight = weight
+    order.search_vector = FlatConcatSearchVector(
+        *prepare_order_search_vector_value(order)
+    )
+    order.lines_count = order.lines.count()
+    order.save()
+
+    # `prepare_order_search_vector_value` above prefetched `payment_transactions`
+    # while the order had none, caching an empty list on the instance. Drop that
+    # stale cache so `create_fake_payment` recalculates charge amounts against the
+    # transaction it creates instead of the cached empty queryset.
+    order.refresh_from_db()
+
+    create_fake_payment(order=order)
+
+    # Ensure totals (including total_balance) reflect the latest transactions
+    order.refresh_from_db()
+
+    # Fulfill only when order is confirmed and fully balanced (total_balance == 0)
+    if not will_be_unconfirmed and order.total_balance == Money(0, order.currency):
+        create_fulfillments(order)
+
+    return order
+
+
+def get_populatedb_uuid(object_type, *identifiers):
+    identifier = "/".join(str(value) for value in identifiers)
+    return uuid.uuid5(
+        uuid.NAMESPACE_URL, f"https://saleor.io/populatedb/{object_type}/{identifier}"
+    )
+
+
+def update_sample_promotion_rules(
+    promotion, promotion_index, rule_defaults, promotion_type
+):
+    rules = []
+    for rule_index, defaults in enumerate(rule_defaults):
+        rule_id = get_populatedb_uuid(
+            "promotion-rule", promotion_type, promotion_index, rule_index
+        )
+        rule, _ = PromotionRule.objects.update_or_create(
+            pk=rule_id,
+            defaults={"promotion": promotion, **defaults},
+        )
+        rules.append(rule)
+
+    channels = Channel.objects.all()
+    for rule in rules:
+        rule.channels.set(channels)
+
+
+def create_fake_catalogue_promotion(promotion_index=0):
+    promotion_id = get_populatedb_uuid(
+        "promotion", PromotionType.CATALOGUE, promotion_index
+    )
+    promotion, _ = Promotion.objects.update_or_create(
+        pk=promotion_id,
+        defaults={
+            "name": f"Happy {fake.word()} day!",
+            "type": PromotionType.CATALOGUE,
+        },
+    )
+    update_sample_promotion_rules(
+        promotion,
+        promotion_index,
+        [
+            {
+                "reward_value_type": RewardValueType.PERCENTAGE,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "variants_dirty": True,
+                "catalogue_predicate": {
+                    "productPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id("Product", product.pk)
+                            for product in Product.objects.all().order_by("?")[:2]
+                        ]
+                    },
+                },
+            },
+            {
+                "reward_value_type": RewardValueType.PERCENTAGE,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "variants_dirty": True,
+                "catalogue_predicate": {
+                    "variantPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id("ProductVariant", variant.pk)
+                            for variant in ProductVariant.objects.all().order_by("?")[
+                                :2
+                            ]
+                        ]
+                    },
+                },
+            },
+        ],
+        PromotionType.CATALOGUE,
+    )
+
+    return promotion
+
+
+def create_fake_order_promotion(promotion_index=0):
+    promotion_id = get_populatedb_uuid(
+        "promotion", PromotionType.ORDER, promotion_index
+    )
+    promotion, _ = Promotion.objects.update_or_create(
+        pk=promotion_id,
+        defaults={
+            "name": f"Happy {fake.word()} day!",
+            "type": PromotionType.ORDER,
+            "start_date": timezone.now() + datetime.timedelta(days=1),
+        },
+    )
+    update_sample_promotion_rules(
+        promotion,
+        promotion_index,
+        [
+            {
+                "reward_value_type": RewardValueType.PERCENTAGE,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "reward_type": RewardType.SUBTOTAL_DISCOUNT,
+                "order_predicate": {
+                    "discountedObjectPredicate": {
+                        "baseSubtotalPrice": {"range": {"gte": "200"}}
+                    },
+                },
+            },
+            {
+                "reward_value_type": RewardValueType.FIXED,
+                "reward_value": random.choice([10, 20, 30, 40, 50]),
+                "reward_type": RewardType.SUBTOTAL_DISCOUNT,
+                "order_predicate": {
+                    "discountedObjectPredicate": {
+                        "baseSubtotalPrice": {"range": {"gte": "100"}}
+                    },
+                },
+            },
+        ],
+        PromotionType.ORDER,
+    )
+
+    return promotion
+
+
+def create_users(user_password, how_many=10):
+    default_customer_type = get_default_customer_type()
+    for _ in range(how_many):
+        user = create_fake_user(user_password, customer_type=default_customer_type)
+        yield f"User: {user.email}"
+
+
+def create_permission_groups(staff_password):
+    super_users = User.objects.filter(is_superuser=True)
+    if not super_users:
+        super_users = create_staff_users(staff_password, 1, True)
+    group = create_group("Full Access", get_permissions(), super_users)
+    yield f"Group: {group}"
+
+    staff_users = create_staff_users(staff_password)
+    customer_support_codenames = [
+        perm.codename
+        for enum in [CheckoutPermissions, OrderPermissions, GiftcardPermissions]
+        for perm in enum
+    ]
+    customer_support_codenames.append(AccountPermissions.MANAGE_USERS.codename)
+    customer_support_permissions = Permission.objects.filter(
+        codename__in=customer_support_codenames
+    )
+    group = create_group("Customer Support", customer_support_permissions, staff_users)
+    yield f"Group: {group}"
+
+
+def create_staffs(staff_password):
+    default_customer_type = get_default_customer_type()
+    for permission in get_permissions():
+        base_name = permission.codename.split("_")[1:]
+
+        group_name = " ".join(base_name)
+        group_name += " management"
+        group_name = group_name.capitalize()
+
+        email_base_name = [name[:-1] if name[-1] == "s" else name for name in base_name]
+        user_email = ".".join(email_base_name)
+        user_email += ".manager@example.com"
+
+        user = _create_staff_user(
+            staff_password, email=user_email, customer_type=default_customer_type
+        )
+        group = create_group(group_name, [permission], [user])
+
+        yield f"Group: {group}"
+        yield f"User: {user}"
+
+
+def create_group(name, permissions, users):
+    group, _ = Group.objects.get_or_create(name=name)
+    group.permissions.add(*permissions)
+    group.user_set.add(*users)
+    return group
+
+
+def _create_staff_user(staff_password, email=None, superuser=False, customer_type=None):
+    address = base_generate_fake_address(with_fake_save=False)
+    first_name = address.first_name
+    last_name = address.last_name
+    if not email:
+        email = get_email(first_name, last_name)
+
+    staff_user = User.objects.filter(email=email).first()
+    if staff_user:
+        return staff_user
+
+    address.save()
+    staff_user = dangerously_create_test_user(
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        password=staff_password,
+        default_billing_address=address,
+        default_shipping_address=address,
+        is_staff=True,
+        is_active=True,
+        is_superuser=superuser,
+        customer_type=customer_type or get_default_customer_type(),
+    )
+    staff_user.addresses.add(address)
+    update_user_search_vector(staff_user)
+    return staff_user
+
+
+def create_staff_users(staff_password, how_many=2, superuser=False):
+    default_customer_type = get_default_customer_type()
+    users = []
+    for _ in range(how_many):
+        staff_user = _create_staff_user(
+            staff_password, superuser=superuser, customer_type=default_customer_type
+        )
+        users.append(staff_user)
+    return users
+
+
+def create_orders(how_many=10):
+    for _ in range(how_many):
+        order = create_fake_order()
+        yield f"Order: {order}"
+
+
+def create_catalogue_promotions(how_many=5):
+    for promotion_index in range(how_many):
+        promotion = create_fake_catalogue_promotion(promotion_index)
+        yield f"Promotion: {promotion}"
+    # recalculation is handled by celery beat, so we trigger it manually, to receive the
+    # correct amounts in random data created by saleor.
+    update_variant_relations_for_active_promotion_rules_task()
+    recalculate_discounted_price_for_products_task()
+
+
+def create_order_promotions(how_many=5):
+    for promotion_index in range(how_many):
+        promotion = create_fake_order_promotion(promotion_index)
+        yield f"Promotion: {promotion}"
+
+
+def create_channel(
+    channel_name,
+    currency_code,
+    slug=None,
+    country=None,
+    mark_as_paid_strategy="transaction_flow",
+    default_transaction_flow_strategy="charge",
+):
+    if not slug:
+        slug = slugify(channel_name)
+    defaults = {
+        "name": channel_name,
+        "currency_code": currency_code,
+        "is_active": True,
+        "default_country": country,
+        "order_mark_as_paid_strategy": mark_as_paid_strategy,
+        "default_transaction_flow_strategy": default_transaction_flow_strategy,
+    }
+    channel, _ = Channel.objects.update_or_create(
+        slug=slug,
+        defaults=defaults,
+    )
+    TaxConfiguration.objects.update_or_create(channel=channel)
+    return f"Channel: {channel}"
+
+
+def create_channels():
+    yield create_channel(
+        channel_name="Channel-USD",
+        currency_code="USD",
+        slug=settings.DEFAULT_CHANNEL_SLUG,
+        country=settings.DEFAULT_COUNTRY,
+        default_transaction_flow_strategy="authorization",
+    )
+    yield create_channel(
+        channel_name="Channel-PLN",
+        currency_code="PLN",
+        slug="channel-pln",
+        country="PL",
+    )
+
+
+def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
+    shipping_zone = ShippingZone.objects.get_or_create(
+        name=shipping_zone_name, defaults={"countries": countries}
+    )[0]
+    shipping_methods = ShippingMethod.objects.bulk_create(
+        [
+            ShippingMethod(
+                name=name,
+                shipping_zone=shipping_zone,
+                type=(
+                    ShippingMethodType.PRICE_BASED
+                    if random.randint(0, 1)
+                    else ShippingMethodType.WEIGHT_BASED
+                ),
+                minimum_order_weight=0,
+                maximum_order_weight=None,
+            )
+            for name in shipping_methods_names
+        ]
+    )
+    channels = Channel.objects.all()
+    for channel in channels:
+        ShippingMethodChannelListing.objects.bulk_create(
+            [
+                ShippingMethodChannelListing(
+                    shipping_method=shipping_method,
+                    price_amount=fake.money().amount,
+                    minimum_order_price_amount=Decimal(0),
+                    maximum_order_price_amount=None,
+                    channel=channel,
+                    currency=channel.currency_code,
+                )
+                for shipping_method in shipping_methods
+            ]
+        )
+    shipping_zone.channels.add(*channels)
+    return f"Shipping Zone: {shipping_zone}"
+
+
+def create_shipping_zones():
+    european_countries = [
+        "AX",
+        "AL",
+        "AD",
+        "AT",
+        "BY",
+        "BE",
+        "BA",
+        "BG",
+        "HR",
+        "CZ",
+        "DK",
+        "EE",
+        "FO",
+        "FI",
+        "FR",
+        "DE",
+        "GI",
+        "GR",
+        "GG",
+        "VA",
+        "HU",
+        "IS",
+        "IE",
+        "IM",
+        "IT",
+        "JE",
+        "LV",
+        "LI",
+        "LT",
+        "LU",
+        "MK",
+        "MT",
+        "MD",
+        "MC",
+        "ME",
+        "NL",
+        "NO",
+        "PL",
+        "PT",
+        "RO",
+        "RU",
+        "SM",
+        "RS",
+        "SK",
+        "SI",
+        "ES",
+        "SJ",
+        "SE",
+        "CH",
+        "UA",
+        "GB",
+    ]
+    yield create_shipping_zone(
+        shipping_zone_name="Europe",
+        countries=european_countries,
+        shipping_methods_names=["DHL", "UPS", "Registered priority", "DB Schenker"],
+    )
+    oceanian_countries = [
+        "AS",
+        "AU",
+        "CX",
+        "CC",
+        "CK",
+        "FJ",
+        "PF",
+        "GU",
+        "HM",
+        "KI",
+        "MH",
+        "FM",
+        "NR",
+        "NC",
+        "NZ",
+        "NU",
+        "NF",
+        "MP",
+        "PW",
+        "PG",
+        "PN",
+        "WS",
+        "SB",
+        "TK",
+        "TO",
+        "TV",
+        "UM",
+        "VU",
+        "WF",
+    ]
+    yield create_shipping_zone(
+        shipping_zone_name="Oceania",
+        countries=oceanian_countries,
+        shipping_methods_names=["FBA", "FedEx Express", "Oceania Air Mail"],
+    )
+    asian_countries = [
+        "AF",
+        "AM",
+        "AZ",
+        "BH",
+        "BD",
+        "BT",
+        "BN",
+        "KH",
+        "CN",
+        "CY",
+        "GE",
+        "HK",
+        "IN",
+        "ID",
+        "IR",
+        "IQ",
+        "IL",
+        "JP",
+        "JO",
+        "KZ",
+        "KP",
+        "KR",
+        "KW",
+        "KG",
+        "LA",
+        "LB",
+        "MO",
+        "MY",
+        "MV",
+        "MN",
+        "MM",
+        "NP",
+        "OM",
+        "PK",
+        "PS",
+        "PH",
+        "QA",
+        "SA",
+        "SG",
+        "LK",
+        "SY",
+        "TW",
+        "TJ",
+        "TH",
+        "TL",
+        "TR",
+        "TM",
+        "AE",
+        "UZ",
+        "VN",
+        "YE",
+    ]
+    yield create_shipping_zone(
+        shipping_zone_name="Asia",
+        countries=asian_countries,
+        shipping_methods_names=["China Post", "TNT", "Aramex", "EMS"],
+    )
+    american_countries = [
+        "AI",
+        "AG",
+        "AR",
+        "AW",
+        "BS",
+        "BB",
+        "BZ",
+        "BM",
+        "BO",
+        "BQ",
+        "BV",
+        "BR",
+        "CA",
+        "KY",
+        "CL",
+        "CO",
+        "CR",
+        "CU",
+        "CW",
+        "DM",
+        "DO",
+        "EC",
+        "SV",
+        "FK",
+        "GF",
+        "GL",
+        "GD",
+        "GP",
+        "GT",
+        "GY",
+        "HT",
+        "HN",
+        "JM",
+        "MQ",
+        "MX",
+        "MS",
+        "NI",
+        "PA",
+        "PY",
+        "PE",
+        "PR",
+        "BL",
+        "KN",
+        "LC",
+        "MF",
+        "PM",
+        "VC",
+        "SX",
+        "GS",
+        "SR",
+        "TT",
+        "TC",
+        "US",
+        "UY",
+        "VE",
+        "VG",
+        "VI",
+    ]
+    yield create_shipping_zone(
+        shipping_zone_name="Americas",
+        countries=american_countries,
+        shipping_methods_names=["DHL", "UPS", "FedEx", "EMS"],
+    )
+    african_countries = [
+        "DZ",
+        "AO",
+        "BJ",
+        "BW",
+        "IO",
+        "BF",
+        "BI",
+        "CV",
+        "CM",
+        "CF",
+        "TD",
+        "KM",
+        "CG",
+        "CD",
+        "CI",
+        "DJ",
+        "EG",
+        "GQ",
+        "ER",
+        "SZ",
+        "ET",
+        "TF",
+        "GA",
+        "GM",
+        "GH",
+        "GN",
+        "GW",
+        "KE",
+        "LS",
+        "LR",
+        "LY",
+        "MG",
+        "MW",
+        "ML",
+        "MR",
+        "MU",
+        "YT",
+        "MA",
+        "MZ",
+        "NA",
+        "NE",
+        "NG",
+        "RE",
+        "RW",
+        "SH",
+        "ST",
+        "SN",
+        "SC",
+        "SL",
+        "SO",
+        "ZA",
+        "SS",
+        "SD",
+        "TZ",
+        "TG",
+        "TN",
+        "UG",
+        "EH",
+        "ZM",
+        "ZW",
+    ]
+    yield create_shipping_zone(
+        shipping_zone_name="Africa",
+        countries=african_countries,
+        shipping_methods_names=[
+            "Royale International",
+            "ACE",
+            "fastway couriers",
+            "Post Office",
+        ],
+    )
+
+
+def create_additional_cc_warehouse():
+    channel = Channel.objects.first()
+    if not channel:
+        raise Exception("No channels found")
+    shipping_zone = ShippingZone.objects.first()
+    if not shipping_zone:
+        raise Exception("No shipping zones found")
+    address = base_generate_fake_address(with_fake_save=False)
+    address.save()
+    warehouse_name = f"{shipping_zone.name} for click and collect"
+    warehouse, _ = Warehouse.objects.update_or_create(
+        name=warehouse_name,
+        slug=slugify(warehouse_name),
+        defaults={
+            "address": address,
+            "is_private": False,
+            "click_and_collect_option": WarehouseClickAndCollectOption.LOCAL_STOCK,
+        },
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel)
+
+
+def create_warehouses():
+    channels = Channel.objects.all()
+    for shipping_zone in ShippingZone.objects.all():
+        shipping_zone_name = shipping_zone.name
+        is_private = random.choice([True, False])
+        cc_option = random.choice(
+            [
+                option[0]
+                for option in WarehouseClickAndCollectOption.CHOICES
+                if not (
+                    is_private and option == WarehouseClickAndCollectOption.LOCAL_STOCK
+                )
+            ]
+        )
+        address = base_generate_fake_address(
+            with_fake_save=False, company_name=fake.company()
+        )
+        address.save()
+        warehouse, _ = Warehouse.objects.update_or_create(
+            name=shipping_zone_name,
+            slug=slugify(shipping_zone_name),
+            defaults={
+                "address": address,
+                "is_private": is_private,
+                "click_and_collect_option": cc_option,
+            },
+        )
+        warehouse.shipping_zones.add(shipping_zone)
+        warehouse.channels.add(*channels)
+
+    create_additional_cc_warehouse()
+
+
+def create_vouchers():
+    channels = list(Channel.objects.all())
+    voucher, created = Voucher.objects.get_or_create(
+        name="Free shipping",
+        defaults={
+            "type": VoucherType.SHIPPING,
+            "discount_value_type": DiscountValueType.PERCENTAGE,
+        },
+    )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="FREESHIPPING")
+    for channel in channels:
+        VoucherChannelListing.objects.get_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={"discount_value": 100, "currency": channel.currency_code},
+        )
+    if created:
+        yield f"Voucher #{voucher.pk}"
+    else:
+        yield "Shipping voucher already exists"
+
+    voucher, created = Voucher.objects.get_or_create(
+        name="Big order discount",
+        defaults={
+            "type": VoucherType.ENTIRE_ORDER,
+            "discount_value_type": DiscountValueType.FIXED,
+        },
+    )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="DISCOUNT")
+
+    for channel in channels:
+        discount_value = 25
+        min_spent_amount = 200
+        if channel.currency_code == "PLN":
+            min_spent_amount *= 4
+            discount_value *= 4
+        VoucherChannelListing.objects.get_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={
+                "discount_value": discount_value,
+                "currency": channel.currency_code,
+                "min_spent_amount": 200,
+            },
+        )
+    if created:
+        yield f"Voucher #{voucher.pk}"
+    else:
+        yield "Value voucher already exists"
+
+    voucher, created = Voucher.objects.update_or_create(
+        name="Single Use Vouchers",
+        defaults={
+            "type": VoucherType.ENTIRE_ORDER,
+            "usage_limit": 50,
+            "min_checkout_items_quantity": 0,
+            "apply_once_per_customer": True,
+            "single_use": True,
+            "discount_value_type": DiscountValueType.PERCENTAGE,
+        },
+    )
+    code_count = 50
+    voucher_codes = [f"SINGLE-USE-{index:03}" for index in range(1, code_count + 1)]
+    existing_codes = set(
+        voucher.codes.filter(code__in=voucher_codes).values_list("code", flat=True)
+    )
+    VoucherCode.objects.bulk_create(
+        [
+            VoucherCode(voucher=voucher, code=code)
+            for code in voucher_codes
+            if code not in existing_codes
+        ],
+        ignore_conflicts=True,
+    )
+
+    for channel in channels:
+        if channel.currency_code not in {"PLN", "USD"}:
+            continue
+        VoucherChannelListing.objects.update_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={"discount_value": 10, "currency": channel.currency_code},
+        )
+    if created:
+        yield f"Voucher #{voucher.pk}"
+    else:
+        yield "Single use voucher already exists"
+
+    voucher, created = Voucher.objects.get_or_create(
+        name="Percentage order discount",
+        defaults={
+            "type": VoucherType.ENTIRE_ORDER,
+            "discount_value_type": DiscountValueType.PERCENTAGE,
+        },
+    )
+    VoucherCode.objects.get_or_create(voucher=voucher, code="VCO9KV98LC")
+
+    for channel in channels:
+        VoucherChannelListing.objects.get_or_create(
+            voucher=voucher,
+            channel=channel,
+            defaults={"discount_value": 5, "currency": channel.currency_code},
+        )
+    if created:
+        yield f"Voucher #{voucher.pk}"
+    else:
+        yield "Value voucher already exists"
+
+
+def create_gift_cards(how_many=5):
+    product = Product.objects.filter(name="Gift card 100").first()
+    if not product:
+        return
+    product_pk = product.pk
+    tag, _ = GiftCardTag.objects.get_or_create(name="issued-gift-cards")
+    for i in range(how_many):
+        staff_user = User.objects.filter(is_staff=True).order_by("?").first()
+        gift_card, created = GiftCard.objects.get_or_create(
+            code=f"Gift_card_{i + 1}",
+            defaults={
+                "created_by": staff_user,
+                "initial_balance": Money(50, DEFAULT_CURRENCY),
+                "current_balance": Money(50, DEFAULT_CURRENCY),
+            },
+        )
+        gift_card.tags.add(tag)
+        gift_card_events.gift_card_issued_event(gift_card, staff_user, None)
+        if created:
+            yield f"Gift card #{gift_card.pk}"
+        else:
+            yield "Gift card already exists"
+
+        user = User.objects.filter(is_superuser=False).order_by("?").first()
+        gift_card, created = GiftCard.objects.get_or_create(
+            code=f"Gift_card_1{i + 1}",
+            defaults={
+                "created_by": user,
+                "product_id": product_pk,
+                "initial_balance": Money(20, DEFAULT_CURRENCY),
+                "current_balance": Money(20, DEFAULT_CURRENCY),
+            },
+        )
+        order = Order.objects.order_by("?").first()
+        if not order:
+            raise Exception("No orders found")
+        gift_card_events.gift_cards_bought_event([gift_card], order, user, None)
+        if created:
+            yield f"Gift card #{gift_card.pk}"
+        else:
+            yield "Gift card already exists"
+
+
+def add_address_to_admin(email):
+    address = base_generate_fake_address(with_fake_save=False)
+    address.save()
+    user = User.objects.get(email=email)
+    manager = get_plugins_manager(allow_replica=False)
+    store_user_address(user, address, AddressType.BILLING, manager)
+    store_user_address(user, address, AddressType.SHIPPING, manager)
+
+
+def create_page_type():
+    types = get_sample_data()
+
+    data = types["page.pagetype"]
+
+    for page_type_data in data:
+        pk = page_type_data["pk"]
+        defaults = dict(page_type_data["fields"])
+        page_type, _ = PageType.objects.update_or_create(pk=pk, defaults=defaults)
+        yield f"Page type {page_type.slug} created"
+
+
+def create_pages():
+    types = get_sample_data()
+
+    data_pages = types["page.page"]
+
+    for page_data in data_pages:
+        pk = page_data["pk"]
+        defaults = dict(page_data["fields"])
+        defaults["page_type_id"] = defaults.pop("page_type")
+        page, _ = Page.objects.update_or_create(pk=pk, defaults=defaults)
+        yield f"Page {page.slug} created"
+
+    create_page_translations(types["page.pagetranslation"])
+
+
+def create_site_settings():
+    types = get_sample_data()
+    data = types["site.sitesettings"]
+
+    for settings_item in data:
+        pk = settings_item["pk"]
+        defaults = dict(settings_item["fields"])
+
+        SiteSettings.objects.update_or_create(pk=pk, defaults=defaults)
+        yield "Site settings updated"
+
+
+def create_menus():
+    types = get_sample_data()
+
+    menu_data = types["menu.menu"]
+    menu_item_data = types["menu.menuitem"]
+    for menu in menu_data:
+        pk = menu["pk"]
+        defaults = menu["fields"]
+        menu, _ = Menu.objects.update_or_create(pk=pk, defaults=defaults)
+        yield f"Menu {menu.name} created"
+    for menu_item in menu_item_data:
+        pk = menu_item["pk"]
+        defaults = dict(menu_item["fields"])
+        defaults["category_id"] = defaults.pop("category")
+        defaults["collection_id"] = defaults.pop("collection")
+        defaults["menu_id"] = defaults.pop("menu")
+        defaults["page_id"] = defaults.pop("page")
+        defaults.pop("parent")
+        with transaction.atomic():
+            acquire_menu_item_tree_lock()
+            menu_item, _ = MenuItem.objects.update_or_create(pk=pk, defaults=defaults)
+        yield f"MenuItem {menu_item.name} created"
+    for menu_item in menu_item_data:
+        pk = menu_item["pk"]
+        defaults = dict(menu_item["fields"])
+        MenuItem.objects.filter(pk=pk).update(parent_id=defaults["parent"])
+
+
+def get_product_list_images_dir(placeholder_dir):
+    product_list_images_dir = os.path.join(placeholder_dir, PRODUCTS_LIST_DIR)
+    return product_list_images_dir
+
+
+def get_image(image_dir, image_name):
+    img_path = os.path.join(image_dir, image_name)
+    return File(open(img_path, "rb"), name=image_name)
+
+
+def prepare_checkout_info():
+    channel = Channel.objects.get(slug=settings.DEFAULT_CHANNEL_SLUG)
+    checkout = Checkout.objects.create(currency=channel.currency_code, channel=channel)
+    checkout.set_country(channel.default_country, commit=True)
+    checkout_info = fetch_checkout_info(
+        checkout, [], get_plugins_manager(allow_replica=False)
+    )
+    return checkout_info
+
+
+def create_checkout_with_preorders():
+    checkout_info = prepare_checkout_info()
+    for product_variant in ProductVariant.objects.all()[:2]:
+        product_variant.is_preorder = True
+        product_variant.preorder_global_threshold = 10
+        product_variant.preorder_end_date = timezone.now() + datetime.timedelta(days=10)
+        product_variant.save(
+            update_fields=[
+                "is_preorder",
+                "preorder_global_threshold",
+                "preorder_end_date",
+                "updated_at",
+            ]
+        )
+        add_variant_to_checkout(checkout_info, product_variant, 2)
+    yield (
+        "Created checkout with two preorders. Checkout token: "
+        f"{checkout_info.checkout.token}"
+    )
+
+
+def create_checkout_with_custom_prices():
+    checkout_info = prepare_checkout_info()
+    for product_variant in ProductVariant.objects.all()[:2]:
+        add_variant_to_checkout(
+            checkout_info, product_variant, 2, price_override=Decimal("20.0")
+        )
+    yield (
+        "Created checkout with two lines and custom prices. "
+        f"Checkout token: {checkout_info.checkout.token}."
+    )
+
+
+def create_checkout_with_same_variant_in_multiple_lines():
+    checkout_info = prepare_checkout_info()
+    for product_variant in ProductVariant.objects.all()[:2]:
+        add_variant_to_checkout(checkout_info, product_variant, 2)
+        add_variant_to_checkout(checkout_info, product_variant, 2, force_new_line=True)
+
+    yield (
+        "Created checkout with four lines and same variant in multiple lines "
+        f"Checkout token: {checkout_info.checkout.token}."
+    )
+
+
+def create_tax_classes():
+    TaxClass.objects.bulk_create(
+        [TaxClass(pk=pk, name=name) for pk, name in TAX_CLASS_NAMES_BY_PK.items()],
+        update_conflicts=True,
+        update_fields=["name"],
+        unique_fields=["pk"],
+    )
+    tax_classes = TaxClass.objects.in_bulk(TAX_CLASS_NAMES_BY_PK)
+
+    TaxClassCountryRate.objects.bulk_create(
+        [
+            TaxClassCountryRate(country=country, rate=rate)
+            for country, rate in DEFAULT_COUNTRY_TAX_RATES.items()
+        ],
+        ignore_conflicts=True,
+    )
+    default_country_rates = list(
+        TaxClassCountryRate.objects.filter(
+            country__in=DEFAULT_COUNTRY_TAX_RATES,
+            tax_class=None,
+        )
+    )
+    for country_rate in default_country_rates:
+        country_rate.rate = DEFAULT_COUNTRY_TAX_RATES[country_rate.country.code]
+    TaxClassCountryRate.objects.bulk_update(default_country_rates, ["rate"])
+
+    TaxClassCountryRate.objects.bulk_create(
+        [
+            TaxClassCountryRate(
+                country=country,
+                rate=rate,
+                tax_class=tax_classes[tax_class_pk],
+            )
+            for tax_class_pk, country_rates in TAX_CLASS_COUNTRY_RATES.items()
+            for country, rate in country_rates.items()
+        ],
+        update_conflicts=True,
+        update_fields=["rate"],
+        unique_fields=["country", "tax_class"],
+    )
+
+    ProductType.objects.filter(slug="juice").update(
+        tax_class=tax_classes[GROCERIES_TAX_CLASS_PK]
+    )
+
+    yield f"Created tax classes: {list(TAX_CLASS_NAMES_BY_PK.values())}"

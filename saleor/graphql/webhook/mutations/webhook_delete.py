@@ -10,14 +10,30 @@ from ....webhook import models
 from ....webhook.error_codes import WebhookErrorCode
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_323
 from ...core.mutations import ModelDeleteMutation
 from ...core.types import WebhookError
 from ..types import Webhook
+from .utils import get_webhook_object_id
 
 
 class WebhookDelete(ModelDeleteMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a webhook to delete.")
+        id = graphene.ID(
+            required=False,
+            description=(
+                "ID of a webhook to delete. Cannot be used together with `identifier`."
+            ),
+        )
+        identifier = graphene.String(
+            required=False,
+            description=(
+                "App-provided identifier of a webhook to delete. Identifiers are "
+                "unique per app only, so this argument is available exclusively to an "
+                "app referencing its own webhook; staff users must use `id`. Cannot "
+                "be used together with `id`." + ADDED_IN_323
+            ),
+        )
 
     class Meta:
         description = (
@@ -38,12 +54,17 @@ class WebhookDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         app = get_app_promise(info.context).get()
-        node_id: str = data["id"]
         if app and not app.is_active:
             raise ValidationError(
                 "App needs to be active to delete webhook",
                 code=WebhookErrorCode.INVALID.value,
             )
+        node_id = get_webhook_object_id(
+            app=app,
+            object_id=data.get("id"),
+            identifier=data.pop("identifier", None),
+        )
+        data["id"] = node_id
         apps = App.objects.filter(removed_at__isnull=True)
         webhook = cls.get_node_or_error(
             info,

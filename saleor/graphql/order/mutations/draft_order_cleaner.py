@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 
 from ....channel.models import Channel
+from ....core.utils.promo_code import InvalidPromoCode
 from ....core.utils.url import validate_storefront_url
 from ....discount.models import Voucher, VoucherCode
 from ....discount.utils.voucher import (
@@ -43,7 +44,11 @@ def clean_voucher_and_voucher_code(channel: "Channel", cleaned_input: dict):
         clean_voucher_code(voucher_code, channel, cleaned_input)
 
 
-def clean_voucher(voucher: Voucher | None, channel: Channel, cleaned_input: dict):
+def clean_voucher(
+    voucher: Voucher | None,
+    channel: Channel,
+    cleaned_input: dict,
+):
     # We need to clean voucher_code as well
     if voucher is None:
         cleaned_input["voucher_code"] = None
@@ -64,12 +69,13 @@ def clean_voucher(voucher: Voucher | None, channel: Channel, cleaned_input: dict
     validate_usage = channel.include_draft_order_in_voucher_usage
     try:
         code_instance = get_active_voucher_code(voucher, channel.slug, validate_usage)
-    except ValidationError as e:
+    except InvalidPromoCode as e:
         raise ValidationError(
             {
                 "voucher": ValidationError(
                     "Voucher is invalid.",
                     code=OrderErrorCode.INVALID_VOUCHER.value,
+                    params={"promo_code_details": e.rejection},
                 )
             }
         ) from e
@@ -80,7 +86,11 @@ def clean_voucher(voucher: Voucher | None, channel: Channel, cleaned_input: dict
         cleaned_input["voucher_code_instance"] = code_instance
 
 
-def clean_voucher_code(voucher_code: str | None, channel: Channel, cleaned_input: dict):
+def clean_voucher_code(
+    voucher_code: str | None,
+    channel: Channel,
+    cleaned_input: dict,
+):
     # We need to clean voucher instance as well
     if voucher_code is None:
         cleaned_input["voucher"] = None
@@ -90,12 +100,13 @@ def clean_voucher_code(voucher_code: str | None, channel: Channel, cleaned_input
         code_instance = get_voucher_code_instance(
             voucher_code, channel.slug, validate_usage
         )
-    except ValidationError as e:
+    except InvalidPromoCode as e:
         raise ValidationError(
             {
                 "voucher_code": ValidationError(
                     "Voucher code is invalid.",
                     code=OrderErrorCode.INVALID_VOUCHER_CODE.value,
+                    params={"promo_code_details": e.rejection},
                 )
             }
         ) from e

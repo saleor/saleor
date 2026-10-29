@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 
 from ..core.exceptions import GiftCardNotApplicable
 from ..core.taxes import TaxError
+from ..discount import PromoCodeRejection, PromoCodeRejectionReason
 from ..giftcard.models import GiftCard
 from ..payment import gateway
 from ..payment import models as payment_models
@@ -119,7 +120,31 @@ def _validate_gift_cards(checkout: Checkout):
     )
     if not all_gift_cards == active_gift_cards:
         msg = "Gift card has expired. Order placement cancelled."
-        raise GiftCardNotApplicable(msg)
+        raise GiftCardNotApplicable(
+            msg, PromoCodeRejection(reason=PromoCodeRejectionReason.EXPIRED)
+        )
+
+    # Re-check restricted gift cards at completion time: a card may have been
+    # assigned to another customer after it was added to the checkout.
+    # This also acts as a defense-in-depth safeguard in case an actor
+    # may successfully add a giftcard that they are not authorized
+    # to use into their checkout (shouldn't happen)
+    # defense-in-depth safeguard, not a redundant check — do not remove it.
+    #
+    # We deliberately do not acquire a row lock here. A gift card changing hands
+    # mid-checkoutComplete() is outside the threat model, and locking would have
+    # a real performance/reliability cost for an unrealistic security risk.
+    restricted = GiftCard.objects.filter(
+        checkouts=checkout.token, assigned_to_email__isnull=False
+    )
+    if checkout.user_id:
+        restricted = restricted.exclude(assigned_to_id=checkout.user_id)
+    if restricted.exists():
+        # Generic message — do not reveal the assignee.
+        raise GiftCardNotApplicable(
+            "Gift card cannot be used. Order placement cancelled.",
+            PromoCodeRejection(reason=PromoCodeRejectionReason.NOT_APPLICABLE),
+        )
 
 
 def validate_checkout(
@@ -169,6 +194,11 @@ def validate_checkout(
                 "voucher_code": ValidationError(
                     "Voucher not applicable",
                     code=OrderCreateFromCheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
+                    params={
+                        "promo_code_details": PromoCodeRejection(
+                            reason=PromoCodeRejectionReason.NO_LONGER_AVAILABLE
+                        )
+                    },
                 )
             }
         )

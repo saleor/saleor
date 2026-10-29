@@ -11,6 +11,7 @@ from ....product.models import (
     ProductVariantChannelListing,
 )
 from ...channel.filters import get_channel_slug_from_filter_data
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     BooleanWhereFilter,
@@ -54,7 +55,6 @@ from .product_helpers import (
     filter_collections,
     filter_gift_card,
     filter_has_category,
-    filter_has_preordered_variants,
     filter_minimal_price,
     filter_product_types,
     filter_products_channel_field_from_date,
@@ -68,7 +68,6 @@ from .product_helpers import (
     where_filter_by_categories,
     where_filter_gift_card,
     where_filter_has_category,
-    where_filter_has_preordered_variants,
     where_filter_products_channel_field_from_date,
     where_filter_products_is_available,
     where_filter_stock_availability,
@@ -134,9 +133,6 @@ class ProductFilter(MetadataFilterBase):
         help_text="Filter on whether product is a gift card or not.",
     )
     ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
-    has_preordered_variants = django_filters.BooleanFilter(
-        method=filter_has_preordered_variants
-    )
     slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
@@ -234,6 +230,11 @@ class ProductWhere(MetadataWhereFilterBase):
         method="filter_product_slug",
         help_text="Filter by product slug.",
     )
+    external_reference = OperationObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_product_external_reference",
+        help_text="Filter by external reference." + ADDED_IN_323,
+    )
     product_type = OperationObjectTypeWhereFilter(
         input_class=GlobalIDFilterInput,
         method="filter_product_type",
@@ -302,10 +303,6 @@ class ProductWhere(MetadataWhereFilterBase):
         method=where_filter_gift_card,
         help_text="Filter on whether product is a gift card or not.",
     )
-    has_preordered_variants = BooleanWhereFilter(
-        method=where_filter_has_preordered_variants,
-        help_text="Filter by product with preordered variants.",
-    )
     updated_at = ObjectTypeWhereFilter(
         input_class=DateTimeFilterInput,
         method=where_filter_updated_at_range,
@@ -323,6 +320,10 @@ class ProductWhere(MetadataWhereFilterBase):
     @staticmethod
     def filter_product_slug(qs, _, value):
         return filter_where_by_value_field(qs, "slug", value)
+
+    @staticmethod
+    def filter_product_external_reference(qs, _, value):
+        return filter_where_by_value_field(qs, "external_reference", value)
 
     @staticmethod
     def filter_product_type(qs, _, value):

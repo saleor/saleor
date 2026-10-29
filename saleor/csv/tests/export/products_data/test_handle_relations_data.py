@@ -246,6 +246,34 @@ def test_prepare_products_relations_data(
     assert result == expected_result
 
 
+def test_prepare_products_relations_data_ignores_unassigned_attribute_values(
+    product, color_attribute
+):
+    # given a product with an attribute value assigned
+    pk = product.pk
+    attribute_ids = [str(color_attribute.pk)]
+    qs = Product.objects.all()
+
+    result = prepare_products_relations_data(qs, set(), attribute_ids, [])
+
+    expected_result = add_product_attribute_data_to_expected_data(
+        {pk: {}}, product, attribute_ids, pk
+    )
+    assert expected_result[pk] != {}
+    assert result == expected_result
+
+    # given the attribute got unassigned from the product's product type,
+    # with the assigned value row left behind
+    product.product_type.product_attributes.remove(color_attribute)
+    assert product.attributevalues.filter(value__attribute=color_attribute).exists()
+
+    # when
+    result = prepare_products_relations_data(qs, set(), attribute_ids, [])
+
+    # then
+    assert result == {}
+
+
 def test_prepare_products_relations_data_only_fields(
     product_with_image, collection_list
 ):

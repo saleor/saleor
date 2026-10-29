@@ -143,26 +143,27 @@ def test_update_checkouts_search_vector_constant_queries(
     checkout_list = checkout_list_with_relations
 
     # when & then
-    # Expected query breakdown (14 total):
+    # Expected query breakdown (15 total):
     # First transaction block:
-    # 1. Select for update (filter dirty checkouts)
-    # 2. Update search_index_dirty flag
+    # 1. Transaction savepoint
+    # 2. Update search_index_dirty flag (locks via inlined FOR UPDATE subquery)
+    # 3. Release savepoint
     # Load checkout data:
-    # 3. Load users (1 query)
-    # 4. Load addresses (1 query)
-    # 5. Load payments (1 query)
-    # 6. Load checkout lines (1 query)
-    # 7. Load transactions (1 query)
-    # 8. Load product variants (1 query)
-    # 9. Load products (1 query)
-    # 10. Load transaction events (1 query)
+    # 4. Load users (1 query)
+    # 5. Load addresses (1 query)
+    # 6. Load payments (1 query)
+    # 7. Load checkout lines (1 query)
+    # 8. Load transactions (1 query)
+    # 9. Load product variants (1 query)
+    # 10. Load products (1 query)
+    # 11. Load transaction events (1 query)
     # Second transaction block:
-    # 11. Transaction savepoint
-    # 12. Select for update (lock checkouts)
-    # 13. Bulk update search vectors
-    # 14. Release savepoint
+    # 12. Transaction savepoint
+    # 13. Select for update (lock checkouts)
+    # 14. Bulk update search vectors
+    # 15. Release savepoint
 
-    expected_queries = 14
+    expected_queries = 15
     with django_assert_num_queries(expected_queries):
         update_checkouts_search_vector(checkout_list[: len(checkout_list) - 1])
     with django_assert_num_queries(expected_queries):
@@ -708,3 +709,21 @@ def test_update_checkouts_search_vector_resets_flag_on_load_data_exception(
     checkout.refresh_from_db()
     assert checkout.search_index_dirty is True
     assert not checkout.search_vector
+
+
+def test_update_checkouts_search_vector_locks_rows_before_write(
+    checkout_with_item, assert_locks_rows_before_write
+):
+    # given
+    assert not checkout_with_item.search_vector
+
+    # when
+    # patch out set_search_index_dirty - it emits its own locked UPDATE and is
+    # tested separately; here we only verify the search vector write phase.
+    with patch("saleor.checkout.search.indexing.set_search_index_dirty"):
+        with assert_locks_rows_before_write():
+            update_checkouts_search_vector([checkout_with_item])
+
+    # then
+    checkout_with_item.refresh_from_db(fields=("search_vector",))
+    assert checkout_with_item.search_vector

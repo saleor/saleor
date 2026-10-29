@@ -6,7 +6,12 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Thumbnail sizes are now rounded up by default. A requested `size` that is not one of the available thumbnail sizes (32, 64, 128, 256, 512, 1024, 2048, 4096) now resolves to the smallest available size not smaller than requested (e.g. `1500` returns `2048`), instead of the nearest one (`1024`), which made images look blurry when displayed at the requested size. Pass `sizeRounding: NEAREST` to restore the previous behavior. This applies to all thumbnail fields: `User.avatar`, `Product.thumbnail`, `ProductMedia.url`, `ProductImage.url`, `OrderLine.thumbnail`, `Category.backgroundImage`, `Collection.backgroundImage`, `AppBrandLogo.default` and `AppManifestBrandLogo.default`, as well as product thumbnails in email notifications.
 - Removed the deprecated Authorize.Net payment gateway plugin (`mirumee.payments.authorize_net`).
+- Removed the deprecated Razorpay payment gateway plugin (`mirumee.payments.razorpay`).
+- Removed the deprecated Braintree payment gateway plugin (`mirumee.payments.braintree`).
+- Removed the deprecated Dummy (`mirumee.payments.dummy`) and Dummy Credit Card (`mirumee.payments.dummy_credit_card`) payment gateway plugins.
+- Removed the deprecated Sendgrid email plugin (`mirumee.notifications.sendgrid_email`), along with the `sendgrid` dependency. It sent customer notification emails (account confirmation, password reset, order confirmation, fulfillment, invoice and gift card) through SendGrid dynamic templates, and served custom events passed to `externalNotificationTrigger` with its `pluginId`. Use the SMTP app or your own app subscribing to the corresponding webhook events instead. Staff notification emails are unaffected — they are sent by the separate Admin emails plugin (`mirumee.notifications.admin_email`).
 - Apps will be no longer to be granted with `MANAGE_APPS` permission. In certain cases, this permission was able to be assigned by the authorized user.
   App with such permission was not able to *act* like an admin app, but permission technically was granted.
 
@@ -14,11 +19,49 @@ All notable, unreleased changes to this project will be documented in this file.
   To safely upgrade, ensure that all installed apps do not have this permission.
 - Bulk delete mutations now limit the number of `ids` per call (default 100, configurable via the `BULK_DELETE_LIMIT` env var). Exceeding the limit returns an `INVALID` error. This applies to all bulk delete mutations, including `productBulkDelete`, `productVariantBulkDelete`, `categoryBulkDelete`, `collectionBulkDelete`, `productTypeBulkDelete`, `productMediaBulkDelete`, `attributeBulkDelete`, `attributeValueBulkDelete`, `customerBulkDelete`, `staffBulkDelete`, `pageBulkDelete`, `pageTypeBulkDelete`, `menuBulkDelete`, `menuItemBulkDelete`, `giftCardBulkDelete`, `saleBulkDelete`, `voucherBulkDelete`, `promotionBulkDelete`, `shippingPriceBulkDelete`, `shippingZoneBulkDelete`, `draftOrderBulkDelete`, and `draftOrderLinesBulkDelete`.
 - Removed the deprecated `checkoutId` input argument from the `checkoutShippingAddressUpdate` and `checkoutBillingAddressUpdate` mutations. Use the `id` argument instead.
+- `confirmAccount()` mutation no longer allows to confirm an account that was already confirmed. - #19459 by @NyanKiyosi
+- Removed the deprecated `shopDomainUpdate` mutation. Use the `PUBLIC_URL` environment variable to configure the shop domain instead.
+- Removed the deprecated `checkoutLineDelete` mutation. Use `checkoutLinesDelete` instead — it takes a `linesIds` list and only accepts the checkout `id` (the `token` and `checkoutId` arguments are gone).
+- Removed the deprecated `shopFetchTaxRates` mutation, along with the `ShopFetchTaxRates` type. It was a no-op; configure taxes with the tax mutations (e.g. `taxConfigurationUpdate`) instead.
+- Removed the deprecated `orderSettingsUpdate` mutation. Use the `channelUpdate` mutation with the `orderSettings` input to update order settings per channel instead.
+- Removed the deprecated `orderSettings` query field. Use the `channel` query and read its `orderSettings` field instead.
+- Removed the deprecated `orderAddNote` mutation, along with the `OrderAddNote` type and `OrderAddNoteInput` input. Use the `orderNoteAdd` mutation instead.
+- Removed the deprecated `exportGiftCards` and `exportVoucherCodes` mutations, along with the `ExportGiftCards`, `ExportGiftCardsInput`, `ExportVoucherCodes` and `ExportVoucherCodesInput` types. Fetch the data with the `giftCards` and `voucher` queries and format it in your app instead.
+- Removed the `GIFT_CARD_EXPORT_COMPLETED` and `VOUCHER_CODE_EXPORT_COMPLETED` webhook event types, along with the `GiftCardExportCompleted` and `VoucherCodeExportCompleted` subscription types. They were emitted only by the removed `exportGiftCards` and `exportVoucherCodes` mutations. Existing webhook subscriptions to these events are deleted by a migration; a webhook left with no other events will stop being triggered.
+- Removed the preorder GraphQL API, deprecated in 3.23. Model pre-sales with regular stock instead: create the planned quantity in a warehouse, or set `trackInventory` to false to sell without a stock limit. Removed:
+  - the `productVariantPreorderDeactivate` mutation, along with the `ProductVariantPreorderDeactivate` type,
+  - the `PreorderData` type and the `ProductVariant.preorder` field, and the `PreorderThreshold` type and the `ProductVariantChannelListing.preorderThreshold` field,
+  - the `PreorderSettingsInput` input and the `preorder` field on `ProductVariantInput`, `ProductVariantCreateInput`, `ProductVariantBulkCreateInput` and `ProductVariantBulkUpdateInput`,
+  - the `preorderThreshold` input field on `ProductVariantChannelListingAddInput` and `ChannelListingUpdateInput`,
+  - the `hasPreorderedVariants` filter on `ProductFilterInput` and `ProductWhereInput`, and the `isPreorder` filter on `ProductVariantFilterInput` and `OrderFilterInput`,
+  - the `PREORDER_VARIANT_CANNOT_BE_DEACTIVATED` value from the `ProductErrorCode` enum.
+
+  Variants already in preorder keep being handled by the checkout and order flow; a preorder with an end date is still deactivated automatically once that date passes. The preorder database columns will be dropped in a later release.
+- Removed the `DIGITAL_LINKS` value from the `OrderEventsEmailsEnum` enum and the `DIGITAL_LINK_DOWNLOADED` value from the `CustomerEventsEnum` enum. Events with these types were deleted in 3.23, along with the legacy digital content feature that emitted them.
+- Removed the always-empty `digital_lines` key from the fulfillment confirmation notification payload. Use `physical_lines`, which holds every line of the fulfillment.
+- Attribute value and bulk attribute mutations now require the permission matching the attribute's type: `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` for `PRODUCT_TYPE` attributes, `MANAGE_PAGE_TYPES_AND_ATTRIBUTES` for `PAGE_TYPE` attributes, and `MANAGE_CUSTOMER_TYPES_AND_ATTRIBUTES` for `CUSTOMER_TYPE` attributes. Previously each mutation required a single fixed permission regardless of the attribute's type, which let a requestor modify attributes of a type they were not authorized for.
+
+  The affected mutations and their previously required permission:
+  - `attributeValueCreate` — previously `MANAGE_PRODUCTS`; `PRODUCT_TYPE` attributes now require `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES` and `PAGE_TYPE` attributes now require `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`
+  - `attributeValueUpdate`, `attributeValueDelete`, `attributeReorderValues` — previously `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`; unchanged for `PRODUCT_TYPE` attributes, but `PAGE_TYPE` attributes now require `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`.
+  - `attributeBulkDelete`, `attributeValueBulkDelete` — previously `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`; unchanged for `PAGE_TYPE` attributes, but `PRODUCT_TYPE` attributes now require `MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES`. When the call targets several types, every matching permission is required.
+  - `attributeBulkCreate` and `attributeBulkUpdate` already resolved the permission from the attribute type. They now reject an attribute type that has no permission mapped, instead of falling back to `MANAGE_PAGE_TYPES_AND_ATTRIBUTES`.
+
+  To upgrade, grant staff members and apps the permission matching the attribute types they operate on. A requestor holding only `MANAGE_PRODUCTS` can no longer create attribute values.
+- Removed the deprecated storefront and dashboard presentation flags of attributes: `filterableInStorefront`, `filterableInDashboard`, `availableInGrid` and `storefrontSearchPosition`. Saleor never read them. Every surface exposing them is gone: the fields of the `Attribute` type, the inputs of `AttributeCreateInput` and `AttributeUpdateInput` (which also covers `attributeBulkCreate` and `attributeBulkUpdate`), the `filterableInStorefront`, `availableInGrid` and `filterableInDashboard` inputs of `AttributeFilterInput`, the `filterableInDashboard` input of `AttributeWhereInput`, and the `FILTERABLE_IN_STOREFRONT`, `FILTERABLE_IN_DASHBOARD`, `AVAILABLE_IN_GRID` and `STOREFRONT_SEARCH_POSITION` values of `AttributeSortField`. Keep the logic in the storefront or dashboard, or use `Attribute` metadata instead. The database columns are still present and will be dropped in a later release.
+- The default ordering of attributes is now `slug` alone. Previously the `attributes(...)` query (and other places listing attributes without an explicit `sortBy`) returned them ordered by `storefrontSearchPosition` first, settable through `attributeCreate` and `attributeUpdate`. If you relied on that field to control the order of attributes, it is no longer honored; sort them in the storefront or keep the position in `Attribute` metadata instead.
+- Providing an empty `attributes` list (`null` or `[]`) in `where` filters for pages, products, and product variants now matches no objects instead of being ignored. The same now applies to a no-op attribute filter that builds no condition, such as an empty reference container (`reference: { pageSlugs: {} }`) - previously such a filter matched all product variants.
 
 ### GraphQL API
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
 - `checkoutCustomerAttach` now returns success when reattaching the same customer that already owns the checkout, and returns a `CheckoutError` with the `CHECKOUT_HAS_USER` code (instead of a permission error) when attaching a different customer to an already-owned checkout - #12037 by @ayesha-waris
+- `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
+- Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
+- Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.
+- Removed the deprecated `note` field from the `Checkout` type. Use `customerNote` instead.
+- Removed the deprecated `isDigital` field from the `ProductType` type, the `isDigital` input from `ProductTypeInput`, the `DIGITAL` value from the `ProductTypeEnum` filter, and the `DIGITAL` value from `ProductTypeSortField`. These had no effect; use metadata or attributes instead (or `SHIPPING_REQUIRED` for sorting).
+- Fixed `productVariantBulkUpdate` returning a 500 error when `channelListings.create` targeted a channel the variant was already listed in. The mutation now returns a `DUPLICATED_INPUT_ITEM` error recommending the `update` field, and respects the selected `errorPolicy` - #19355 by @ayesha-waris
 
 ### Webhooks
 
@@ -26,6 +69,18 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 
+- Added OpenTelemetry instrumentation for psycopg, Celery, Redis, requests and botocore. Spans for database queries, cache and broker commands, Celery tasks, outgoing HTTP requests and AWS calls are now emitted alongside Saleor's own spans, with Celery task spans linked to the request that scheduled them. The threading instrumentor is enabled too, so spans created in threads and thread pools, for example S3 calls that boto3 runs in its transfer threads, stay in the trace of the request or task that started them. Library instrumentors emit spans only, their metrics are not exported. The set of enabled instrumentors is controlled by the new `TELEMETRY_INSTRUMENTORS` environment variable, which takes a comma-separated list of OpenTelemetry instrumentor entry point names and defaults to `psycopg,celery,redis,requests,botocore,threading`. Set it to an empty string to disable library instrumentation. The OpenTelemetry packages were upgraded to SDK 1.37.0 and instrumentation 0.58b0.
+- Dropped the database leftovers of the legacy digital content feature removed in 3.23: the `product_digitalcontent` and `product_digitalcontenturl` tables, and the `automatic_fulfillment_digital_products`, `default_digital_max_downloads` and `default_digital_url_valid_days` columns of `site_sitesettings`. Files uploaded through the legacy API are not removed from the media storage — the `digital_contents/` directory can be deleted manually.
+- `ProductType.is_digital` was removed from the ORM model; the column itself will be dropped in 3.25.
+- Removed the `is_digital` field from the `populatedb` sample data.
+
 #### Search improvements
+
+### Fixes
+
+- Fixed migration `account.0103_create_default_customer_type` to respect `POPULATE_DEFAULTS`; the default customer type is no longer created when defaults are disabled, and the post-migration assignment task skips when none exists.
+- Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
+- Fixed the `set_user_search_document_values` data migration task failing with a statement timeout on large user tables.
+- Fixed orders being completed with untaxed totals when a concurrent modification drops the tax calculation. The pre-tax prices used to qualify order promotions are now stored in dedicated `base_subtotal_amount` and `base_total_amount` columns instead of overwriting `subtotal` and `total`, and `draftOrderComplete` returns a `TAX_ERROR` instead of finalizing an order whose recalculated prices could not be stored because another process modified it in the meantime. Retrying the mutation succeeds.
 
 ### Deprecations

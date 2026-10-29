@@ -2,6 +2,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -457,6 +458,73 @@ def test_app_update_mutation_removed_app(
     assert app_data["app"] is None
     assert app_data["errors"][0]["code"] == AppErrorCode.NOT_FOUND.name
     assert app_data["errors"][0]["field"] == "id"
+
+
+@pytest.mark.parametrize(
+    ("_case", "permissions_variable"),
+    [
+        ("omitted", {}),
+        ("explicit_null", {"permissions": None}),
+    ],
+)
+def test_app_update_null_permissions_leaves_them_untouched(
+    _case,
+    permissions_variable,
+    app,
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
+):
+    # given
+    app.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_products)
+    variables = {
+        "id": graphene.Node.to_global_id("App", app.pk),
+        **permissions_variable,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_UPDATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appUpdate"]
+    assert data["errors"] == []
+    assert [permission["code"] for permission in data["app"]["permissions"]] == [
+        PermissionEnum.MANAGE_PRODUCTS.name
+    ]
+    assert list(app.permissions.all()) == [permission_manage_products]
+
+
+def test_app_update_empty_permissions_clears_them(
+    app,
+    permission_manage_apps,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
+):
+    # given
+    app.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_products)
+    variables = {
+        "id": graphene.Node.to_global_id("App", app.pk),
+        "permissions": [],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_UPDATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["appUpdate"]
+    assert data["errors"] == []
+    assert data["app"]["permissions"] == []
+    assert app.permissions.exists() is False
 
 
 def test_app_update_rejects_manage_apps_permission(

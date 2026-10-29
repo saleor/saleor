@@ -10,6 +10,7 @@ from freezegun import freeze_time
 
 from ......account.error_codes import AccountErrorCode
 from ......account.models import Group, User
+from ......attribute.models import AssignedUserAttributeValue, AttributeValue
 from ......core.utils.json_serializer import CustomJsonEncoder
 from ......permission.enums import AccountPermissions, OrderPermissions
 from ......webhook.event_types import WebhookEventAsyncType
@@ -344,3 +345,36 @@ def test_staff_update_errors(staff_user, customer_user, admin_user):
     # should not raise any errors
     StaffUpdate.clean_is_active(input, customer_user, staff_user, errors)
     assert not errors["is_active"]
+
+
+def test_deletes_unique_attribute_values_and_keeps_shared_choices(
+    staff_api_client,
+    permission_manage_staff,
+    description_customer_attribute,
+    loyalty_customer_attribute,
+):
+    # given: the staff user has a unique (plain text) value and a shared choice
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    plain_text = "Notes about the staff member"
+    unique_value = AttributeValue.objects.create(
+        attribute=description_customer_attribute,
+        name=plain_text,
+        slug=f"{staff_user.pk}_{description_customer_attribute.pk}",
+        plain_text=plain_text,
+    )
+    choice_value = loyalty_customer_attribute.values.get(slug="gold")
+    AssignedUserAttributeValue.objects.create(user=staff_user, value=unique_value)
+    AssignedUserAttributeValue.objects.create(user=staff_user, value=choice_value)
+    variables = {"id": graphene.Node.to_global_id("User", staff_user.pk)}
+
+    # when
+    response = staff_api_client.post_graphql(
+        STAFF_DELETE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+
+    # then: the unique value is deleted with the user, the shared choice stays
+    content = get_graphql_content(response)
+    assert content["data"]["staffDelete"]["errors"] == []
+    assert User.objects.filter(pk=staff_user.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=unique_value.pk).exists() is False
+    assert AttributeValue.objects.filter(pk=choice_value.pk).exists() is True
