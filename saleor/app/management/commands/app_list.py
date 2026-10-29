@@ -1,15 +1,23 @@
-import json
 from typing import Any
+from urllib.parse import urlsplit
 
 import graphene
-from django.core.management import BaseCommand
 from django.db.models import Prefetch
 
+from ....core.utils.url import sanitize_url_for_logging
 from ....webhook.models import Webhook
 from ...models import App
+from .utils import JSONLinesCommand
 
 
-class Command(BaseCommand):
+def redact_target_url(url: str) -> str:
+    """Mask credentials and drop the query string and fragment, which may hold secrets."""
+    return (
+        urlsplit(sanitize_url_for_logging(url))._replace(query="", fragment="").geturl()
+    )
+
+
+class Command(JSONLinesCommand):
     help = (
         "List apps that are not soft-deleted, each followed by its webhooks, "
         "as JSON Lines. Inactive apps and webhooks are included."
@@ -25,7 +33,7 @@ class Command(BaseCommand):
             .only("pk", "identifier", "name", "is_active")
             .prefetch_related(Prefetch("webhooks", queryset=webhooks))
         )
-        for app in apps:
+        for app in apps.iterator(chunk_size=1000):
             app_id = graphene.Node.to_global_id("App", app.pk)
             self._write(
                 {
@@ -36,6 +44,8 @@ class Command(BaseCommand):
                     "is_active": app.is_active,
                 }
             )
+            # .all(), not .iterator(): iterator() bypasses the prefetch cache
+            # and would run one query per app.
             for webhook in app.webhooks.all():
                 self._write(
                     {
@@ -43,7 +53,7 @@ class Command(BaseCommand):
                         "id": graphene.Node.to_global_id("Webhook", webhook.pk),
                         "app_id": app_id,
                         "name": webhook.name,
-                        "target_url": webhook.target_url,
+                        "target_url": redact_target_url(webhook.target_url),
                         "is_active": webhook.is_active,
                         "app_is_active": app.is_active,
                         # Mirrors the is_active filters in saleor/webhook/utils.py.
@@ -52,6 +62,3 @@ class Command(BaseCommand):
                         "delivering": webhook.is_active and app.is_active,
                     }
                 )
-
-    def _write(self, record: dict[str, Any]) -> None:
-        self.stdout.write(json.dumps(record))

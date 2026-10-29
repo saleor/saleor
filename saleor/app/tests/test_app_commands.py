@@ -506,6 +506,40 @@ def test_app_list_with_no_apps_outputs_nothing(db):
     assert records == []
 
 
+@pytest.mark.parametrize(
+    ("_case", "target_url", "expected"),
+    [
+        (
+            "credentials",
+            "https://user:pass@example.com/hook",
+            "https://***:***@example.com/hook",
+        ),
+        (
+            "query_and_fragment",
+            "https://example.com/hook?token=secret#frag",
+            "https://example.com/hook",
+        ),
+        (
+            "credentials_port_and_query",
+            "awssqs://key:secret@sqs.example.com:443/queue?region=x",
+            "awssqs://***:***@sqs.example.com:443/queue",
+        ),
+    ],
+)
+def test_app_list_redacts_webhook_target_url(_case, target_url, expected, db):
+    # given
+    app = App.objects.create(name="App", identifier="app")
+    webhook = _create_webhook(app, "hook")
+    webhook.target_url = target_url
+    webhook.save(update_fields=["target_url"])
+
+    # when
+    records = _call_command_json_lines("app_list")
+
+    # then
+    assert records[1]["target_url"] == expected
+
+
 @pytest.mark.parametrize("count", [1, 3])
 def test_app_list_query_count_does_not_depend_on_number_of_objects(
     count, db, django_assert_num_queries
@@ -537,10 +571,12 @@ def _patched_app_set_active_manager():
         yield mocked_manager
 
 
+@pytest.mark.parametrize("id_format", ["graphql", "database"])
 @pytest.mark.parametrize(("before", "target"), [(True, False), (False, True)])
 def test_app_set_active_changes_state_and_emits_status_changed(
     before,
     target,
+    id_format,
     db,
     _patched_app_set_active_manager,
     django_capture_on_commit_callbacks,
@@ -548,11 +584,12 @@ def test_app_set_active_changes_state_and_emits_status_changed(
     # given
     app = App.objects.create(name="App", identifier="app", is_active=before)
     app_id = graphene.Node.to_global_id("App", app.pk)
+    command_id = app_id if id_format == "graphql" else str(app.pk)
 
     # when
     with django_capture_on_commit_callbacks(execute=True):
         records = _call_command_json_lines(
-            "app_set_active", "--id", app_id, "--active", str(target).lower()
+            "app_set_active", "--id", command_id, "--active", str(target).lower()
         )
 
     # then
@@ -608,6 +645,7 @@ def test_app_set_active_same_state_does_not_emit_event(
             graphene.Node.to_global_id("App", -1),
             "App not found: QXBwOi0x.",
         ),
+        ("unknown_database_id", "-1", "App not found: -1."),
     ],
 )
 def test_app_set_active_rejects_invalid_id(
@@ -653,18 +691,20 @@ def test_set_active_rejects_non_boolean_active(command, active, db):
     )
 
 
+@pytest.mark.parametrize("id_format", ["graphql", "database"])
 @pytest.mark.parametrize(("before", "target"), [(True, False), (False, True)])
 @pytest.mark.parametrize("app_is_active", [True, False])
-def test_webhook_set_active_changes_state(before, target, app_is_active, db):
+def test_webhook_set_active_changes_state(before, target, app_is_active, id_format, db):
     # given
     app = App.objects.create(name="App", identifier="app", is_active=app_is_active)
     webhook = _create_webhook(app, "hook", is_active=before)
     other_webhook = _create_webhook(app, "other", is_active=before)
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    command_id = webhook_id if id_format == "graphql" else str(webhook.pk)
 
     # when
     records = _call_command_json_lines(
-        "webhook_set_active", "--id", webhook_id, "--active", str(target)
+        "webhook_set_active", "--id", command_id, "--active", str(target)
     )
 
     # then
@@ -715,6 +755,7 @@ def test_webhook_set_active_same_state_reports_no_change(state, db):
             graphene.Node.to_global_id("Webhook", -1),
             "Webhook not found: V2ViaG9vazotMQ==.",
         ),
+        ("unknown_database_id", "-1", "Webhook not found: -1."),
     ],
 )
 def test_webhook_set_active_rejects_invalid_id(_case, global_id, message, db):

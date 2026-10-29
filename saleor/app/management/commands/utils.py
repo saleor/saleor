@@ -1,7 +1,9 @@
+import json
 from argparse import ArgumentTypeError
+from typing import Any
 
 import graphene
-from django.core.management import CommandError
+from django.core.management import BaseCommand, CommandError
 
 from ....permission.enums import (
     AppPermission,
@@ -41,14 +43,26 @@ def parse_bool(value: str) -> bool:
     raise ArgumentTypeError(f"expected 'true' or 'false', got {value!r}")
 
 
-def decode_global_id(global_id: str, expected_type: str) -> int:
+def parse_id(value: str, expected_type: str) -> int:
+    """Parse a database ID or a GraphQL global ID of `expected_type`."""
     try:
-        type_, pk = graphene.Node.from_global_id(global_id)
+        return int(value)
+    except ValueError:
+        pass
+    try:
+        type_, pk = graphene.Node.from_global_id(value)
         pk = int(pk)
     except ValueError as e:
-        raise CommandError(f"Invalid ID: {global_id}.") from e
+        raise CommandError(f"Invalid ID: {value}.") from e
     if type_ != expected_type:
         raise CommandError(
-            f"Invalid ID: {global_id}. Expected: {expected_type}, received: {type_}."
+            f"Invalid ID: {value}. Expected: {expected_type}, received: {type_}."
         )
     return pk
+
+
+class JSONLinesCommand(BaseCommand):
+    """Command that writes its output as JSON Lines for machine consumption."""
+
+    def _write(self, record: dict[str, Any]) -> None:
+        self.stdout.write(json.dumps(record))
