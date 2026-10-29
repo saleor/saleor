@@ -206,6 +206,49 @@ def test_with_non_unique_external_reference(
     media_updated_mock.assert_not_called()
 
 
+def test_with_too_long_external_reference(
+    staff_api_client, product_with_image, permission_manage_products, mocker
+):
+    # given
+    media = product_with_image.media.get()
+    original_alt = media.alt
+    product_updated_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_updated"
+    )
+    media_updated_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_media_updated"
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "input": {"alt": "Changed alt", "externalReference": "x" * 251},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_MEDIA_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productMediaUpdate"]
+    assert data["media"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "Ensure this value has at most 250 characters (it has 251)."
+    )
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    media.refresh_from_db(fields=("alt", "external_reference"))
+    assert media.alt == original_alt
+    assert media.external_reference is None
+    product_updated_mock.assert_not_called()
+    media_updated_mock.assert_not_called()
+
+
 @pytest.mark.parametrize(
     ("_case", "identifiers", "error_field", "error_code", "message"),
     [

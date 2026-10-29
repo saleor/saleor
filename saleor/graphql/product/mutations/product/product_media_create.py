@@ -40,26 +40,6 @@ class ProductMediaCreateInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-def clean_media_external_reference(
-    external_reference: str | None, instance_pk: int | None = None
-):
-    """Raise a validation error when the external reference is already taken."""
-    if external_reference is None:
-        return
-    lookup = models.ProductMedia.objects.filter(external_reference=external_reference)
-    if instance_pk is not None:
-        lookup = lookup.exclude(pk=instance_pk)
-    if lookup.exists():
-        raise ValidationError(
-            {
-                "external_reference": ValidationError(
-                    "Product media with this External reference already exists.",
-                    code=ProductErrorCode.UNIQUE.value,
-                )
-            }
-        )
-
-
 class ProductMediaCreate(BaseMutation):
     product = graphene.Field(Product)
     media = graphene.Field(ProductMedia)
@@ -80,6 +60,8 @@ class ProductMediaCreate(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        # A product deleted concurrently is reported on insert as "no longer exists".
+        exclude = ["product"]
 
     @classmethod
     def validate_input(cls, input):
@@ -98,9 +80,6 @@ class ProductMediaCreate(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, input
     ):
         cls.validate_input(input)
-
-        external_reference = input.get("external_reference")
-        clean_media_external_reference(external_reference)
 
         image = input.get("image")
         media_url = input.get("media_url")
@@ -158,11 +137,16 @@ class ProductMediaCreate(BaseMutation):
 
         media = None
         if media_data:
-            media_data["external_reference"] = external_reference
+            media = models.ProductMedia(
+                product=product,
+                external_reference=input.get("external_reference"),
+                **media_data,
+            )
+            cls.clean_instance(info, media)
             # The product can be deleted concurrently while the image is uploaded or
             # the remote URL is probed, so the insert may fail on the foreign key.
             try:
-                media = product.media.create(**media_data)
+                media.save()
             except IntegrityError as e:
                 if not models.Product.objects.filter(pk=product.pk).exists():
                     raise ValidationError(

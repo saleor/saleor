@@ -750,6 +750,7 @@ def _media_create_body(product, **reference_input):
     [
         ("non_empty", "test-ext-ref"),
         ("empty_string", ""),
+        ("max_length", "x" * 250),
     ],
 )
 def test_with_external_reference(
@@ -821,6 +822,43 @@ def test_with_non_unique_external_reference(
     assert errors[0]["field"] == "externalReference"
     assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
     assert ProductMedia.objects.get(product=product_with_image) == existing_media
+    product_updated_mock.assert_not_called()
+    media_created_mock.assert_not_called()
+
+
+def test_with_too_long_external_reference(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    media_root,
+    mocker,
+):
+    # given
+    product_updated_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_updated"
+    )
+    media_created_mock = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_media_created"
+    )
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    body = _media_create_body(product, externalReference="x" * 251)
+
+    # when
+    response = staff_api_client.post_multipart(body)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productMediaCreate"]
+    assert data["media"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"]
+        == "Ensure this value has at most 250 characters (it has 251)."
+    )
+    assert errors[0]["field"] == "externalReference"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert ProductMedia.objects.filter(product=product).exists() is False
     product_updated_mock.assert_not_called()
     media_created_mock.assert_not_called()
 

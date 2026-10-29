@@ -13,7 +13,6 @@ from ....core.types import BaseInputObjectType, ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 from ...utils import ALT_CHAR_LIMIT
-from .product_media_create import clean_media_external_reference
 
 
 class ProductMediaUpdateInput(BaseInputObjectType):
@@ -59,9 +58,7 @@ class ProductMediaUpdate(ModelWithExtRefMutation):
         product = models.Product.objects.get(pk=media.product_id)
         update_fields = []
         if "external_reference" in input:
-            new_external_reference = input["external_reference"]
-            clean_media_external_reference(new_external_reference, media.pk)
-            media.external_reference = new_external_reference
+            media.external_reference = input["external_reference"]
             update_fields.append("external_reference")
         alt = input.get("alt")
         if alt is not None:
@@ -78,6 +75,7 @@ class ProductMediaUpdate(ModelWithExtRefMutation):
             media.alt = alt
             update_fields.append("alt")
         if update_fields:
+            cls.clean_instance(info, media)
             media.save(update_fields=update_fields)
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
