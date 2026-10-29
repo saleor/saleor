@@ -1314,6 +1314,51 @@ mutation orderCreateFromCheckout($id: ID!){
 """
 
 
+def test_order_from_checkout_insufficient_stock_releases_voucher_usage(
+    app_api_client,
+    permission_handle_checkouts,
+    checkout_with_voucher,
+    voucher,
+    address,
+    checkout_delivery,
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+    used_before = code.used
+
+    checkout = checkout_with_voucher
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.assigned_delivery = checkout_delivery(checkout)
+    checkout.save()
+
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+
+    variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == OrderCreateFromCheckoutErrorCode.INSUFFICIENT_STOCK.name
+
+    code.refresh_from_db()
+    checkout.refresh_from_db()
+    assert code.used == used_before
+    assert checkout.is_voucher_usage_increased is False
+
+
 def test_order_from_checkout_on_catalogue_promotion(
     app_api_client,
     checkout_with_item_on_promotion,
