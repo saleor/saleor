@@ -194,10 +194,6 @@ class Webhook(ModelObjectType[models.Webhook]):
     is_active = graphene.Boolean(
         required=True, description="Informs if webhook is activated."
     )
-    secret_key = graphene.String(
-        description="Used to create a hash signature for each payload.",
-        deprecation_reason="As of Saleor 3.5, webhook payloads default to signing using a verifiable JWS.",
-    )
     subscription_query = graphene.String(
         description="Used to define payloads for specific events."
     )
