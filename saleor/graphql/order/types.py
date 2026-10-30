@@ -84,6 +84,7 @@ from ..core.descriptions import (
     ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     DEPRECATED_LEGACY_PAYMENTS,
+    DEPRECATED_ORDER_PAYMENT_STATUS,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
@@ -1713,10 +1714,14 @@ class Order(SyncWebhookControlContextModelObjectType[ModelObjectType[models.Orde
         description="Informs if an order is fully paid.", required=True
     )
     payment_status = PaymentChargeStatusEnum(
-        description="Internal payment status.", required=True
+        description="Internal payment status.",
+        deprecation_reason=DEPRECATED_ORDER_PAYMENT_STATUS,
+        required=True,
     )
     payment_status_display = graphene.String(
-        description="User-friendly payment status.", required=True
+        description="User-friendly payment status.",
+        deprecation_reason=DEPRECATED_ORDER_PAYMENT_STATUS,
+        required=True,
     )
     authorize_status = OrderAuthorizeStatusEnum(
         description="The authorize status of the order.",
