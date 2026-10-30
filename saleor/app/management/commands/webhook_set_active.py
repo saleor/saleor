@@ -5,7 +5,6 @@ from django.core.management import CommandError
 from django.core.management.base import CommandParser
 
 from ....webhook.models import Webhook
-from ...models import App
 from .utils import JSONLinesCommand, parse_bool, parse_id
 
 
@@ -26,7 +25,7 @@ class Command(JSONLinesCommand):
     def handle(self, *args: Any, **options: Any) -> None:
         target = options["active"]
         pk = parse_id(options["id"], "Webhook")
-        webhooks = Webhook.objects.filter(pk=pk, app__in=App.objects.not_removed())
+        webhooks = Webhook.objects.filter(pk=pk, app__removed_at__isnull=True)
         changed = webhooks.filter(is_active=not target).update(is_active=target)
         webhook = webhooks.first()
         if webhook is None:

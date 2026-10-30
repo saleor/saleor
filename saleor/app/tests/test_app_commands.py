@@ -629,7 +629,7 @@ def test_app_set_active_same_state_does_not_emit_event(
 @pytest.mark.parametrize(
     ("_case", "global_id", "message"),
     [
-        ("not_base64", "garbage", "Invalid ID: garbage."),
+        ("not_base64", "garbage", "Invalid ID: garbage. Expected: App."),
         (
             "wrong_type",
             graphene.Node.to_global_id("Webhook", 1),
@@ -638,7 +638,13 @@ def test_app_set_active_same_state_does_not_emit_event(
         (
             "non_int_pk",
             graphene.Node.to_global_id("App", "x"),
-            "Invalid ID: QXBwOng=.",
+            "Invalid ID: QXBwOng=. Expected: App.",
+        ),
+        (
+            "uuid_pk",
+            graphene.Node.to_global_id("App", "9f1c0e9e-3b1a-4a5e-9a8d-1c2b3d4e5f60"),
+            "Invalid ID: QXBwOjlmMWMwZTllLTNiMWEtNGE1ZS05YThkLTFjMmIzZDRlNWY2MA==. "
+            "Expected: App.",
         ),
         (
             "unknown_pk",
@@ -744,7 +750,7 @@ def test_webhook_set_active_same_state_reports_no_change(state, db):
 @pytest.mark.parametrize(
     ("_case", "global_id", "message"),
     [
-        ("not_base64", "garbage", "Invalid ID: garbage."),
+        ("not_base64", "garbage", "Invalid ID: garbage. Expected: Webhook."),
         (
             "wrong_type",
             graphene.Node.to_global_id("App", 1),

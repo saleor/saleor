@@ -1,5 +1,4 @@
 from typing import Any
-from urllib.parse import urlsplit
 
 import graphene
 from django.db.models import Prefetch
@@ -8,13 +7,6 @@ from ....core.utils.url import sanitize_url_for_logging
 from ....webhook.models import Webhook
 from ...models import App
 from .utils import JSONLinesCommand
-
-
-def redact_target_url(url: str) -> str:
-    """Mask credentials and drop the query string and fragment, which may hold secrets."""
-    return (
-        urlsplit(sanitize_url_for_logging(url))._replace(query="", fragment="").geturl()
-    )
 
 
 class Command(JSONLinesCommand):
@@ -53,7 +45,11 @@ class Command(JSONLinesCommand):
                         "id": graphene.Node.to_global_id("Webhook", webhook.pk),
                         "app_id": app_id,
                         "name": webhook.name,
-                        "target_url": redact_target_url(webhook.target_url),
+                        "target_url": sanitize_url_for_logging(
+                            webhook.target_url,
+                            strip_querystring=True,
+                            strip_fragment=True,
+                        ),
                         "is_active": webhook.is_active,
                         "app_is_active": app.is_active,
                         # Mirrors the is_active filters in saleor/webhook/utils.py.

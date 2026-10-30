@@ -2,9 +2,13 @@ import json
 from argparse import ArgumentTypeError
 from typing import Any
 
-import graphene
 from django.core.management import BaseCommand, CommandError
+from graphql import GraphQLError
 
+# Special case: non-GraphQL code must not import from the graphql layer, but
+# these commands accept GraphQL global IDs as input, so they reuse the same
+# decoder the API uses.
+from ....graphql.core.utils import from_global_id_or_error
 from ....permission.enums import (
     AppPermission,
     get_permissions,
@@ -50,15 +54,13 @@ def parse_id(value: str, expected_type: str) -> int:
     except ValueError:
         pass
     try:
-        type_, pk = graphene.Node.from_global_id(value)
-        pk = int(pk)
+        _, pk = from_global_id_or_error(value, expected_type, raise_error=True)
+    except GraphQLError as e:
+        raise CommandError(e.message) from e
+    try:
+        return int(pk)
     except ValueError as e:
-        raise CommandError(f"Invalid ID: {value}.") from e
-    if type_ != expected_type:
-        raise CommandError(
-            f"Invalid ID: {value}. Expected: {expected_type}, received: {type_}."
-        )
-    return pk
+        raise CommandError(f"Invalid ID: {value}. Expected: {expected_type}.") from e
 
 
 class JSONLinesCommand(BaseCommand):
