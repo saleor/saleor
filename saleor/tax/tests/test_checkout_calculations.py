@@ -9,6 +9,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.tests.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
+from ...discount import VoucherType
 from ...discount.utils.checkout import (
     create_checkout_discount_objects_for_order_promotions,
 )
@@ -1484,3 +1485,83 @@ def test_calculate_checkout_shipping_free_entire_order_voucher(
         ),
         gross=shipping_channel_listings.price,
     )
+
+
+@pytest.mark.parametrize(
+    (
+        "prices_entered_with_tax",
+        "expected_first_line_total",
+        "expected_second_line_total",
+        "expected_fee_line_total",
+    ),
+    [
+        (False, ("9.80", "12.15"), ("19.60", "22.34"), ("2.00", "2.48")),
+        (True, ("7.90", "9.80"), ("17.19", "19.60"), ("1.61", "2.00")),
+    ],
+)
+def test_specific_product_voucher_percentage_is_tax_neutral_and_skips_excluded_type(
+    checkout,
+    address,
+    product_list,
+    product_type_list,
+    tax_classes,
+    voucher_percentage,
+    prices_entered_with_tax,
+    expected_first_line_total,
+    expected_second_line_total,
+    expected_fee_line_total,
+):
+    # given
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+    country = address.country.code
+    high_rate_tax_class, low_rate_tax_class = tax_classes
+    high_rate_tax_class.country_rates.filter(country=country).update(rate=24)
+    low_rate_tax_class.country_rates.filter(country=country).update(rate=14)
+
+    first_product, second_product, fee_product = product_list
+    first_product.tax_class = high_rate_tax_class
+    second_product.tax_class = low_rate_tax_class
+    fee_product.tax_class = high_rate_tax_class
+    recycling_fee_type = product_type_list[0]
+    fee_product.product_type = recycling_fee_type
+    for product in product_list:
+        product.save(update_fields=["tax_class", "product_type"])
+    ProductVariantChannelListing.objects.filter(
+        variant__product=fee_product, channel=checkout.channel
+    ).update(price_amount=Decimal(2), discounted_price_amount=Decimal(2))
+
+    voucher = voucher_percentage
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.channel_listings.update(discount_value=Decimal(2))
+    voucher.excluded_product_types.add(recycling_fee_type)
+
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.voucher_code = voucher.codes.get().code
+    checkout.save(update_fields=["shipping_address", "billing_address", "voucher_code"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    for product in product_list:
+        add_variant_to_checkout(checkout_info, product.variants.get(), 1)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout, checkout_info, lines, prices_entered_with_tax
+    )
+
+    # then
+    expected_totals = {
+        first_product.pk: expected_first_line_total,
+        second_product.pk: expected_second_line_total,
+        fee_product.pk: expected_fee_line_total,
+    }
+    assert len(lines) == len(expected_totals)
+    for line_info in lines:
+        net, gross = expected_totals[line_info.product.pk]
+        assert line_info.line.total_price == TaxedMoney(
+            net=Money(net, "USD"), gross=Money(gross, "USD")
+        )

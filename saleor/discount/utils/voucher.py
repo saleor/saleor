@@ -322,36 +322,33 @@ def attach_voucher_to_line_info(
 def get_discounted_lines(
     lines: Iterable["LineInfo"], voucher_info: "VoucherInfo"
 ) -> Iterable["LineInfo"]:
+    """Return lines matching the voucher's includes and none of its exclusions.
+
+    A voucher with no includes applies to every line that is not excluded.
+    Gift lines are skipped whenever the voucher has includes or exclusions;
+    only a voucher with neither returns every line as is.
+    """
+    included = voucher_info.included
+    excluded = voucher_info.excluded
+    if included.is_empty() and excluded.is_empty():
+        return list(lines)
+
     discounted_lines = []
-    if (
-        voucher_info.product_pks
-        or voucher_info.collection_pks
-        or voucher_info.category_pks
-        or voucher_info.variant_pks
-    ):
-        for line_info in lines:
-            if line_info.line.is_gift:
-                continue
-            line_variant = line_info.variant
-            line_product = line_info.product
-            if not line_variant or not line_product:
-                continue
-            line_category = line_product.category
-            line_collections = {
-                collection.pk for collection in line_info.collections if collection
-            }
-            if line_info.variant and (
-                line_variant.pk in voucher_info.variant_pks
-                or line_product.pk in voucher_info.product_pks
-                or line_category
-                and line_category.pk in voucher_info.category_pks
-                or line_collections.intersection(voucher_info.collection_pks)
-            ):
-                discounted_lines.append(line_info)
-    else:
-        # If there's no discounted products, collections or categories,
-        # it means that all products are discounted
-        discounted_lines.extend(lines)
+    for line_info in lines:
+        if line_info.line.is_gift:
+            continue
+        line_variant = line_info.variant
+        line_product = line_info.product
+        if not line_variant or not line_product:
+            continue
+        collection_pks = {
+            collection.pk for collection in line_info.collections if collection
+        }
+        if (
+            included.is_empty()
+            or included.matches(line_variant, line_product, collection_pks)
+        ) and not excluded.matches(line_variant, line_product, collection_pks):
+            discounted_lines.append(line_info)
     return discounted_lines
 
 
