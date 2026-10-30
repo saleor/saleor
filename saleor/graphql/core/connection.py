@@ -1,3 +1,4 @@
+import hashlib
 from base64 import b64encode
 from collections.abc import Callable, Iterable
 from decimal import Decimal, InvalidOperation
@@ -6,6 +7,10 @@ from typing import TYPE_CHECKING, Any
 import graphene
 import orjson
 from django.conf import settings
+from django.core.cache import cache
+from django.core.exceptions import EmptyResultSet
+from django.db import connections
+from django.db.backends.postgresql.psycopg_any import mogrify
 from django.db.models import Model as DjangoModel
 from django.db.models import Q, QuerySet
 from graphene.relay import Connection
@@ -248,12 +253,44 @@ def _get_id_coercion(qs: QuerySet) -> Callable[[str], Any]:
     return qs.model.id.field.to_python if hasattr(qs.model, "id") else int
 
 
+def _get_total_count_cache_key(qs: QuerySet) -> str | None:
+    """Build a cache key from the database identity and the SQL with its params.
+
+    Params are rendered by the database adapter rather than `repr()`, which
+    truncates long values such as JSON. A query that embeds the current time as
+    a param gets a new key on every call, so filter on `Now()` instead.
+    """
+    try:
+        sql, params = qs.query.get_compiler(using=qs.db).as_sql()
+    except EmptyResultSet:
+        return None
+    connection = connections[qs.db]
+    db = connection.settings_dict
+    raw_key = repr(
+        (db["HOST"], db["PORT"], db["NAME"], mogrify(sql, params, connection))
+    )
+    return f"graphql-total-count-{hashlib.sha256(raw_key.encode()).hexdigest()}"
+
+
+def _get_cached_total_count(qs: QuerySet) -> int:
+    timeout = settings.GRAPHQL_TOTAL_COUNT_CACHE_TIMEOUT
+    cache_key = _get_total_count_cache_key(qs) if timeout else None
+    if cache_key is None:
+        return qs.count()
+    total_count = cache.get(cache_key)
+    if total_count is None:
+        total_count = qs.count()
+        cache.set(cache_key, total_count, timeout)
+    return total_count
+
+
 def connection_from_queryset_slice(
     qs: QuerySet,
     args: ConnectionArguments | None = None,
     connection_type: Any = Connection,
     edge_type: Any = Edge,
     pageinfo_type: Any = PageInfo,
+    cache_total_count: bool = False,
 ) -> Connection:
     """Create a connection object from a QuerySet."""
     args = args or {}
@@ -299,6 +336,8 @@ def connection_from_queryset_slice(
     if "total_count" in connection_type._meta.fields:
 
         def get_total_count():
+            if cache_total_count:
+                return _get_cached_total_count(qs)
             return qs.count()
 
         return connection_type(
@@ -321,7 +360,14 @@ def create_connection_slice(
     edge_type=None,
     pageinfo_type=graphene.relay.PageInfo,
     max_limit: int | None = None,
+    cache_total_count: bool = False,
 ):
+    """Slice an iterable into a connection.
+
+    Pass `cache_total_count=True` to cache `totalCount` of a queryset for
+    `GRAPHQL_TOTAL_COUNT_CACHE_TIMEOUT`, trading freshness for skipping a
+    `COUNT` on every request.
+    """
     _validate_slice_args(info, args, max_limit)
 
     if isinstance(iterable, list):
@@ -353,6 +399,7 @@ def create_connection_slice(
             connection_type,
             edge_type or connection_type.Edge,
             pageinfo_type or graphene.relay.PageInfo,
+            cache_total_count=cache_total_count,
         )
 
     if isinstance(iterable, ChannelQsContext):

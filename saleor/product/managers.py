@@ -19,7 +19,7 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Now
 
 from ..account.models import User
 from ..app.models import App
@@ -33,11 +33,10 @@ class ProductsQueryset(models.QuerySet):
 
         if not channel.is_active:
             return self.none()
-        today = datetime.datetime.now(tz=datetime.UTC)
         channel_listings = (
             ProductChannelListing.objects.using(self.db)
             .filter(
-                Q(published_at__lte=today) | Q(published_at__isnull=True),
+                Q(published_at__lte=Now()) | Q(published_at__isnull=True),
                 channel_id=channel.id,
                 is_published=True,
             )
@@ -46,9 +45,8 @@ class ProductsQueryset(models.QuerySet):
         return self.filter(Exists(channel_listings.filter(product_id=OuterRef("pk"))))
 
     def not_published(self, channel: Channel):
-        today = datetime.datetime.now(tz=datetime.UTC)
         return self.annotate_publication_info(channel).filter(
-            Q(published_at__gt=today) & Q(is_published=True)
+            Q(published_at__gt=Now()) & Q(is_published=True)
             | Q(is_published=False)
             | Q(is_published__isnull=True)
         )
