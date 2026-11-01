@@ -221,6 +221,21 @@ def test_invalid_request_body_error_is_not_logged(client, caplog, settings, debu
     assert caplog.records == []
 
 
+def test_request_body_with_nul_byte_is_rejected(client, caplog):
+    # given
+    data = b'{"query": "{ category(slug: \\"foo\x00bar\\") { id } }"}'
+
+    # when
+    response = client.post(API_PATH, data, content_type="application/json")
+
+    # then
+    assert response.status_code == 400
+    content = get_graphql_content_from_response(response)
+    errors = content.get("errors")
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Unable to parse query."
+
+
 @pytest.mark.parametrize(
     "data",
     [
