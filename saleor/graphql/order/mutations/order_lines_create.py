@@ -42,6 +42,7 @@ from .utils import (
     VariantData,
     call_event_by_order_status,
     get_variant_rule_info_map,
+    validate_variants_available,
 )
 
 
@@ -188,6 +189,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         )
         variants_rule_map = get_variant_rule_info_map(
             variant_pks, order.channel_id, order.language_code
+        )
+        validate_variants_available(
+            [line["variant_id"] for line in input], variants_rule_map
         )
 
         lines_to_add = cls.validate_lines(
