@@ -1218,15 +1218,16 @@ TELEMETRY_METER_CLASS = "saleor.core.telemetry.metric.Meter"
 # OpenTelemetry library instrumentors enabled when telemetry is initialized, by
 # entry point name in the `opentelemetry_instrumentor` group (registered by the
 # opentelemetry-instrumentation-* packages). They produce spans for database
-# queries, cache and broker calls, outgoing HTTP requests and Celery tasks. The
+# queries, cache and broker calls, AWS calls and Celery tasks. The
 # threading instrumentor produces no spans of its own, it carries the current trace
 # context into threads and thread pools (for example the ones boto3 uses for S3
 # uploads and downloads), so spans created there keep their parent.
+#
+# The requests instrumentor (opentelemetry-instrumentation-requests) is deliberately not installed and must not be added here. It opens its own span for every outgoing HTTP request and writes that span's context into the `traceparent` header. For webhooks this overwrites the `traceparent` that `send_webhook_using_http` injects for the `webhooks.<event>` span, so apps would continue the instrumentor's span instead of the webhook span, and the header sent would differ from the one stored in the delivery attempt's `request_headers`. Every other outgoing call would get a `traceparent` with internal span ids.
+#
 # Set to an empty string to disable library instrumentation.
 TELEMETRY_INSTRUMENTORS = get_list(
-    os.environ.get(
-        "TELEMETRY_INSTRUMENTORS", "psycopg,celery,redis,requests,botocore,threading"
-    )
+    os.environ.get("TELEMETRY_INSTRUMENTORS", "psycopg,celery,redis,botocore,threading")
 )
 # Whether to raise or log exceptions for telemetry unit conversion errors
 # Disabled by default to prevent disruptions caused by unexpected unit conversion issues

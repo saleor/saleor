@@ -11,7 +11,6 @@ DEFAULT_INSTRUMENTORS = [
     "psycopg",
     "celery",
     "redis",
-    "requests",
     "botocore",
     "threading",
 ]
