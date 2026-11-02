@@ -6,9 +6,12 @@ import pytest
 from celery import Task
 from celery.exceptions import Retry
 from celery.utils.threads import LocalStack
+from requests import Response
+from requests.adapters import HTTPAdapter
 
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt
+from ....core.tracing import webhooks_otel_trace
 from ...event_types import WebhookEventAsyncType
 from ..utils import (
     WebhookResponse,
@@ -19,6 +22,7 @@ from ..utils import (
     get_sqs_message_group_id,
     handle_webhook_retry,
     send_webhook_using_aws_sqs,
+    send_webhook_using_http,
 )
 
 
@@ -426,3 +430,40 @@ def test_get_sqs_message_group_id_no_app():
     message_group_id = get_sqs_message_group_id("example.com", None)
 
     assert message_group_id == "example.com"
+
+
+@patch.object(HTTPAdapter, "send")
+def test_send_webhook_using_http_sends_webhook_span_traceparent(
+    mocked_adapter_send,
+    requests_instrumentor,
+    trace_context_propagation,
+    get_test_spans,
+    app,
+):
+    # given
+    assert requests_instrumentor.is_instrumented_by_opentelemetry is True
+    app_response = Response()
+    app_response.status_code = 200
+    app_response._content = b"{}"
+    mocked_adapter_send.return_value = app_response
+    event_type = WebhookEventAsyncType.ORDER_CREATED
+
+    # when
+    with webhooks_otel_trace(event_type, payload_size=2, app=app) as span:
+        webhook_response = send_webhook_using_http(
+            "https://example.com/webhook", "{}", "example.com", "signature", event_type
+        )
+
+    # then
+    span_context = span.get_span_context()
+    expected_traceparent = (
+        f"00-{span_context.trace_id:032x}-{span_context.span_id:016x}-01"
+    )
+    sent_request = mocked_adapter_send.call_args.args[0]
+    assert sent_request.headers["traceparent"] == expected_traceparent
+    assert (webhook_response.request_headers or {}).get(
+        "traceparent"
+    ) == expected_traceparent
+    assert [finished_span.name for finished_span in get_test_spans()] == [
+        f"webhooks.{event_type}"
+    ]

@@ -12,6 +12,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from freezegun import freeze_time
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
@@ -20,6 +21,7 @@ from ..core.db.locks import AdvisoryLock, get_advisory_lock_namespace
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
 from ..core.telemetry import initialize_telemetry, meter, tracer
+from ..core.telemetry import tests as telemetry_tests
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
 from ..discount import PromotionEvents
@@ -116,6 +118,18 @@ def get_test_spans(initialize_test_telemetry):
     yield tracer._tracer.span_exporter.get_finished_spans
     # Clean up by clearing the buffer after test completion
     tracer._tracer.span_exporter.clear()
+
+
+@pytest.fixture
+def requests_instrumentor(initialize_test_telemetry):
+    """Enable the OpenTelemetry requests instrumentor, which test settings leave off.
+
+    Its spans go to the test tracer provider, so `get_test_spans` would show them.
+    """
+    instrumentor = RequestsInstrumentor()
+    instrumentor.instrument(tracer_provider=telemetry_tests.TestTracer.tracer_provider)
+    yield instrumentor
+    instrumentor.uninstrument()
 
 
 @pytest.fixture

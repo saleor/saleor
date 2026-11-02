@@ -1,10 +1,15 @@
+from unittest.mock import patch
+
 import pytest
 import requests_hardened
-from requests import Request
+from requests import Request, Response
+from requests.adapters import HTTPAdapter
 from requests_hardened.ip_filter import InvalidIPAddress
 
 from ... import user_agent_version
+from ...plugins.openid_connect.client import OAuth2Client
 from ..http_client import HTTPClient, HTTPConfig
+from ..telemetry import tracer
 
 
 def test_user_agent_override():
@@ -42,3 +47,36 @@ def test_http_client_disallows_private_ip_ranges(protocol):
     # Should not reject public IP ranges (sanity check).
     response = http_manager.send_request("GET", f"{protocol}://example.com")
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    ("_case", "get_session"),
+    [
+        ("http_client", HTTPClient.get_session),
+        ("cloned_http_client", lambda: HTTPClient.clone().get_session()),
+        (
+            "oauth2_client",
+            lambda: OAuth2Client(
+                token={"access_token": "token", "token_type": "Bearer"}
+            ),
+        ),
+    ],
+)
+@patch.object(HTTPAdapter, "send")
+def test_http_session_is_not_traced_by_requests_instrumentor(
+    mocked_adapter_send, _case, get_session, requests_instrumentor, get_test_spans
+):
+    # given
+    assert requests_instrumentor.is_instrumented_by_opentelemetry is True
+    server_response = Response()
+    server_response.status_code = 200
+    mocked_adapter_send.return_value = server_response
+
+    # when
+    with tracer.start_as_current_span("outgoing_call"), get_session() as session:
+        session.request("GET", "https://example.com")
+
+    # then
+    sent_request = mocked_adapter_send.call_args.args[0]
+    assert "traceparent" not in sent_request.headers
+    assert [span.name for span in get_test_spans()] == ["outgoing_call"]

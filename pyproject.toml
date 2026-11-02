@@ -69,6 +69,7 @@ dependencies = [
     "opentelemetry-sdk>=1.37.0,<2",
     "opentelemetry-semantic-conventions>=0.58b0,<0.59",
     "opentelemetry-distro[otlp]>=0.58b0,<0.59",
+    "opentelemetry-instrumentation>=0.58b0,<0.59",
     "opentelemetry-instrumentation-botocore>=0.58b0,<0.59",
     "opentelemetry-instrumentation-celery>=0.58b0,<0.59",
     "opentelemetry-instrumentation-psycopg>=0.58b0,<0.59",

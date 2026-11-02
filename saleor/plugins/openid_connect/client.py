@@ -1,7 +1,6 @@
 from authlib.integrations import requests_client
-from requests_hardened import HTTPSession
 
-from ...core.http_client import HTTPConfig
+from ...core.http_client import HTTPConfig, HTTPSession
 
 
 class OAuth2Client(HTTPSession, requests_client.OAuth2Session):
