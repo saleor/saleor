@@ -51,7 +51,9 @@ def get_default_storage_root_url():
     return build_absolute_uri(default_storage.url(tmp_path)).rstrip(tmp_path)
 
 
-def sanitize_url_for_logging(url: str) -> str:
+def sanitize_url_for_logging(
+    url: str, *, strip_querystring: bool = False, strip_fragment: bool = False
+) -> str:
     """Remove sensitive data from a URL to make it safe for logging."""
     url_parts = urlparse(url)
     if url_parts.username or url_parts.password:
@@ -60,4 +62,8 @@ def sanitize_url_for_logging(url: str) -> str:
             if url_parts.port
             else f"***:***@{url_parts.hostname}"
         )
+    if strip_querystring:
+        url_parts = url_parts._replace(query="")
+    if strip_fragment:
+        url_parts = url_parts._replace(fragment="")
     return url_parts.geturl()
