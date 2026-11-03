@@ -172,3 +172,97 @@ def test_product_variant_filter_by_sku(
     assert len(variants) == len(indexes)
     skus = {node["node"]["sku"] for node in variants}
     assert skus == {product_variant_list[index].sku for index in indexes}
+
+
+VARIANT_A_EXTERNAL_REFERENCE = "external-reference-a"
+VARIANT_B_EXTERNAL_REFERENCE = "external-reference-b"
+
+
+@pytest.mark.parametrize(
+    ("_case", "where", "indexes"),
+    [
+        ("eq_match", {"eq": VARIANT_A_EXTERNAL_REFERENCE}, [0]),
+        ("eq_no_match", {"eq": "non-existing"}, []),
+        ("eq_empty_string", {"eq": ""}, []),
+        ("eq_null_matches_variants_without_reference", {"eq": None}, [3]),
+        (
+            "one_of_multiple_matches",
+            {"oneOf": [VARIANT_A_EXTERNAL_REFERENCE, VARIANT_B_EXTERNAL_REFERENCE]},
+            [0, 1],
+        ),
+        (
+            "one_of_mixed_existing_and_non_existing",
+            {"oneOf": [VARIANT_B_EXTERNAL_REFERENCE, "non-existing"]},
+            [1],
+        ),
+        ("one_of_no_match", {"oneOf": ["non-existing-1", "non-existing-2"]}, []),
+        ("one_of_empty_list", {"oneOf": []}, []),
+        ("one_of_null", {"oneOf": None}, []),
+        ("empty_input", {}, []),
+        ("null_input", None, []),
+    ],
+)
+def test_product_variant_filter_by_external_reference(
+    _case, where, indexes, api_client, product_variant_list, channel_USD
+):
+    # given
+    ProductVariant.objects.exclude(
+        pk__in=[variant.pk for variant in product_variant_list]
+    ).delete()
+    product_variant_list[0].external_reference = VARIANT_A_EXTERNAL_REFERENCE
+    product_variant_list[1].external_reference = VARIANT_B_EXTERNAL_REFERENCE
+    ProductVariant.objects.bulk_update(product_variant_list[:2], ["external_reference"])
+    assert product_variant_list[3].external_reference is None
+
+    variables = {"channel": channel_USD.slug, "where": {"externalReference": where}}
+
+    # when
+    response = api_client.post_graphql(PRODUCT_VARIANTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variants = content["data"]["productVariants"]["edges"]
+    assert len(variants) == len(indexes)
+    returned_ids = {node["node"]["id"] for node in variants}
+    assert returned_ids == {
+        graphene.Node.to_global_id("ProductVariant", product_variant_list[index].pk)
+        for index in indexes
+    }
+
+
+def test_product_variant_filter_by_external_reference_and_sku(
+    api_client, product_variant_list, channel_USD
+):
+    # given
+    product_variant_list[0].external_reference = VARIANT_A_EXTERNAL_REFERENCE
+    product_variant_list[1].external_reference = VARIANT_B_EXTERNAL_REFERENCE
+    ProductVariant.objects.bulk_update(product_variant_list[:2], ["external_reference"])
+    expected_variant = product_variant_list[1]
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "AND": [
+                {
+                    "externalReference": {
+                        "oneOf": [
+                            VARIANT_A_EXTERNAL_REFERENCE,
+                            VARIANT_B_EXTERNAL_REFERENCE,
+                        ]
+                    }
+                },
+                {"sku": {"eq": expected_variant.sku}},
+            ]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCT_VARIANTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    variants = content["data"]["productVariants"]["edges"]
+    assert len(variants) == 1
+    assert variants[0]["node"]["id"] == graphene.Node.to_global_id(
+        "ProductVariant", expected_variant.pk
+    )

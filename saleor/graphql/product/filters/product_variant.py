@@ -15,7 +15,7 @@ from ...attribute.shared_filters import (
     filter_objects_by_attributes,
     validate_attribute_value_input,
 )
-from ...core.descriptions import ADDED_IN_322, DEPRECATED_PREORDER_INPUT
+from ...core.descriptions import ADDED_IN_322, ADDED_IN_323, DEPRECATED_PREORDER_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
     FilterInputObjectType,
@@ -120,6 +120,11 @@ class ProductVariantWhere(MetadataWhereFilterBase):
         method="filter_product_sku",
         help_text="Filter by product SKU.",
     )
+    external_reference = ObjectTypeWhereFilter(
+        input_class=StringFilterInput,
+        method="filter_external_reference",
+        help_text="Filter by external reference." + ADDED_IN_323,
+    )
     updated_at = ObjectTypeWhereFilter(
         input_class=DateTimeRangeInput,
         method="filter_updated_at",
@@ -138,6 +143,10 @@ class ProductVariantWhere(MetadataWhereFilterBase):
     @staticmethod
     def filter_product_sku(qs, _, value):
         return filter_where_by_value_field(qs, "sku", value)
+
+    @staticmethod
+    def filter_external_reference(qs, _, value):
+        return filter_where_by_value_field(qs, "external_reference", value)
 
     @staticmethod
     def filter_updated_at(qs, _, value):
