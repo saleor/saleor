@@ -8,6 +8,7 @@ from ....permission.enums import SitePermissions
 from ....product import models as product_models
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.descriptions import ADDED_IN_323
 from ...core.enums import LanguageCodeEnum, TranslationErrorCode
 from ...core.types import TranslationError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -18,8 +19,12 @@ from .utils import BaseTranslateMutationWithSlug, TranslationInput
 class ProductTranslate(BaseTranslateMutationWithSlug):
     class Arguments:
         id = graphene.ID(
-            required=True,
+            required=False,
             description="Product ID or ProductTranslatableContent ID.",
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product to translate.{ADDED_IN_323}",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
@@ -52,9 +57,17 @@ class ProductTranslate(BaseTranslateMutationWithSlug):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id=None,
+        external_reference=None,
+        input,
+        language_code,
     ):
-        node_id = cls.clean_node_id(id)[0]
+        node_id = cls.clean_node_id_or_external_reference(id, external_reference)[0]
         instance = cls.get_node_or_error(info, node_id, only_type=Product)
         cls.validate_input(input)
         input = cls.pre_update_or_create(instance, input, language_code)

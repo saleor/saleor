@@ -1,11 +1,17 @@
 from unittest import mock
 
 import graphene
+import pytest
 
+from .....product.error_codes import ProductErrorCode
 from .....warehouse import WarehouseClickAndCollectOption
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
-from ....tests.utils import get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 VARIANT_STOCKS_CREATE_MUTATION = """
     mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
@@ -436,3 +442,246 @@ def test_create_stocks_skips_channel_events_when_legacy_flag_enabled(
     # then
     mocked_back.assert_not_called()
     mocked_back_cc.assert_not_called()
+
+
+VARIANT_STOCKS_CREATE_BY_EXTERNAL_REFERENCE_MUTATION = """
+    mutation ProductVariantStocksCreate(
+        $variantId: ID, $variantExternalReference: String, $stocks: [StockInput!]!
+    ){
+        productVariantStocksCreate(
+            variantId: $variantId,
+            variantExternalReference: $variantExternalReference,
+            stocks: $stocks
+        ){
+            productVariant{
+                id
+                stocks {
+                    quantity
+                    warehouse{
+                        slug
+                    }
+                }
+            }
+            errors{
+                code
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_by_external_reference(
+    staff_api_client, variant, warehouse, permission_manage_products, mocker
+):
+    # given
+    external_reference = "variant-ext-ref"
+    variant.external_reference = external_reference
+    variant.save(update_fields=["external_reference"])
+    assert variant.stocks.exists() is False
+    back_in_stock = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_create"
+        ".trigger_product_variant_back_in_stock"
+    )
+    quantity = 20
+    variables = {
+        "variantExternalReference": external_reference,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+                "quantity": quantity,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantStocksCreate"]
+    assert data["errors"] == []
+    assert data["productVariant"] == {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "stocks": [{"quantity": quantity, "warehouse": {"slug": warehouse.slug}}],
+    }
+    stock = Stock.objects.get(product_variant=variant)
+    assert stock.warehouse_id == warehouse.pk
+    assert stock.quantity == quantity
+    back_in_stock.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "null",
+            {"variantId": None, "variantExternalReference": None},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "empty",
+            {"variantExternalReference": ""},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "both",
+            {"variantExternalReference": "existing-reference"},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "Argument 'variantId' cannot be combined with 'variantExternalReference'",
+        ),
+        (
+            "not_found",
+            {"variantExternalReference": "missing-reference"},
+            "variantExternalReference",
+            ProductErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    variant,
+    warehouse,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    variant.external_reference = "existing-reference"
+    variant.save(update_fields=["external_reference"])
+    assert variant.stocks.exists() is False
+    back_in_stock = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_create"
+        ".trigger_product_variant_back_in_stock"
+    )
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["variantId"] = graphene.Node.to_global_id(
+            "ProductVariant", variant.pk
+        )
+    variables["stocks"] = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["productVariantStocksCreate"]
+    assert data["productVariant"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    assert variant.stocks.exists() is False
+    back_in_stock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    variant,
+    warehouse,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    external_reference = "existing-reference"
+    variant.external_reference = external_reference
+    variant.save(update_fields=["external_reference"])
+    assert variant.stocks.exists() is False
+    back_in_stock = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_create"
+        ".trigger_product_variant_back_in_stock"
+    )
+    quantity = 20
+    variables = {
+        "variantExternalReference": external_reference,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+                "quantity": quantity,
+            }
+        ],
+    }
+
+    # when
+    response = client.post_graphql(
+        VARIANT_STOCKS_CREATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["productVariantStocksCreate"]
+        assert data["errors"] == []
+        assert data["productVariant"]["id"] == graphene.Node.to_global_id(
+            "ProductVariant", variant.pk
+        )
+        stock = Stock.objects.get(product_variant=variant)
+        assert stock.warehouse_id == warehouse.pk
+        assert stock.quantity == quantity
+        back_in_stock.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"productVariantStocksCreate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["productVariantStocksCreate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: "
+            "MANAGE_PRODUCTS"
+        )
+        assert variant.stocks.exists() is False
+        back_in_stock.assert_not_called()

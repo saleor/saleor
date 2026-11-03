@@ -4,6 +4,7 @@ from ....discount import models as discount_models
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.descriptions import ADDED_IN_323
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...discount.types import Voucher
@@ -13,7 +14,11 @@ from .utils import BaseTranslateMutation, NameTranslationInput
 class VoucherTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
-            required=True, description="Voucher ID or VoucherTranslatableContent ID."
+            required=False, description="Voucher ID or VoucherTranslatableContent ID."
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a voucher to translate.{ADDED_IN_323}",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
@@ -32,10 +37,23 @@ class VoucherTranslate(BaseTranslateMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        root,
+        info: ResolveInfo,
+        /,
+        *,
+        id=None,
+        external_reference=None,
+        input,
+        language_code,
     ):
         response = super().perform_mutation(
-            root, info, id=id, input=input, language_code=language_code
+            root,
+            info,
+            id=id,
+            external_reference=external_reference,
+            input=input,
+            language_code=language_code,
         )
         instance = ChannelContext(node=response.voucher, channel_slug=None)
         return cls(**{cls._meta.return_field_name: instance})

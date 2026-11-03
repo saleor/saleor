@@ -131,6 +131,7 @@ def ext_ref_to_global_id_or_error(
     model,
     external_reference,
     database_connection_name: str = settings.DATABASE_CONNECTION_DEFAULT_NAME,
+    field: str = "externalReference",
 ):
     """Convert external reference to global id."""
     internal_id = (
@@ -142,7 +143,7 @@ def ext_ref_to_global_id_or_error(
     if internal_id:
         return graphene.Node.to_global_id(model.__name__, internal_id)
     raise_validation_error(
-        field="externalReference",
+        field=field,
         message=f"Couldn't resolve to a node: {external_reference}",
         code="not_found",
     )

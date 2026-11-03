@@ -3,7 +3,7 @@ import graphene
 from ....discount import models as discount_models
 from ....permission.enums import SitePermissions
 from ...core import ResolveInfo
-from ...core.descriptions import RICH_CONTENT
+from ...core.descriptions import ADDED_IN_323, RICH_CONTENT
 from ...core.enums import LanguageCodeEnum
 from ...core.scalars import JSON
 from ...core.types import TranslationError
@@ -20,8 +20,12 @@ class PromotionTranslationInput(NameTranslationInput):
 class PromotionTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
-            required=True,
+            required=False,
             description="Promotion ID or PromotionTranslatableContent ID.",
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a promotion to translate.{ADDED_IN_323}",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
@@ -40,9 +44,19 @@ class PromotionTranslate(BaseTranslateMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id=None,
+        external_reference=None,
+        input,
+        language_code,
     ):
-        node_id, model_type = cls.clean_node_id(id)
+        node_id, model_type = cls.clean_node_id_or_external_reference(
+            id, external_reference
+        )
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
         cls.validate_input(input)
 
