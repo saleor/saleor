@@ -11,7 +11,7 @@ from ..celeryconf import app
 from ..core.db.connection import allow_writer
 from ..graphql.discount.utils import get_variants_for_catalogue_predicate
 from ..order import OrderStatus
-from ..order.models import Order, OrderLine
+from ..order.models import Order
 from ..plugins.manager import get_plugins_manager
 from ..product.models import (
     Product,
@@ -317,9 +317,9 @@ def disconnect_voucher_codes_from_draft_orders_task(order_ids):
         OrderDiscount.objects.filter(order_id__in=ids).filter(
             type=DiscountType.VOUCHER
         ).delete()
-        OrderLineDiscount.objects.filter(
-            Exists(OrderLine.objects.filter(order_id__in=order_ids))
-        ).filter(type=DiscountType.VOUCHER).delete()
+        OrderLineDiscount.objects.filter(line__order_id__in=ids).filter(
+            type=DiscountType.VOUCHER
+        ).delete()
         if remaining_ids := list(set(order_ids) - set(ids)):
             disconnect_voucher_codes_from_draft_orders_task.delay(remaining_ids)
 
