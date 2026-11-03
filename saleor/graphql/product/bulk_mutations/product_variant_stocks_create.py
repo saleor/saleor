@@ -17,6 +17,7 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
@@ -37,8 +38,15 @@ class ProductVariantStocksCreate(BaseMutation):
 
     class Arguments:
         variant_id = graphene.ID(
-            required=True,
+            required=False,
             description="ID of a product variant for which stocks will be created.",
+        )
+        variant_external_reference = graphene.String(
+            required=False,
+            description=(
+                "External ID of a product variant for which stocks will be created."
+                + ADDED_IN_323
+            ),
         )
         stocks = NonNullList(
             StockInput,
@@ -86,8 +94,13 @@ class ProductVariantStocksCreate(BaseMutation):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         stocks = data["stocks"]
-        variant = cls.get_node_or_error(
-            info, data["variant_id"], only_type=ProductVariant
+        variant = cls.get_node_by_id_or_external_reference(
+            info,
+            node_id=data.get("variant_id"),
+            external_reference=data.get("variant_external_reference"),
+            only_type=ProductVariant,
+            id_field="variant_id",
+            external_reference_field="variant_external_reference",
         )
         if stocks:
             warehouses = cls.clean_stocks_input(variant, stocks, errors)

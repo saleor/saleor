@@ -11,6 +11,7 @@ from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.mutations import BaseChannelListingMutation
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
@@ -51,7 +52,11 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
     voucher = graphene.Field(Voucher, description="An updated voucher instance.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a voucher to update.")
+        id = graphene.ID(required=False, description="ID of a voucher to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a voucher to update.{ADDED_IN_323}",
+        )
         input = VoucherChannelListingInput(
             required=True,
             description="Fields required to update voucher channel listings.",
@@ -204,9 +209,11 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input
+        cls, _root, info: ResolveInfo, /, *, id=None, external_reference=None, input
     ):
-        voucher = cls.get_node_or_error(info, id, only_type=Voucher, field="id")
+        voucher = cls.get_node_by_id_or_external_reference(
+            info, node_id=id, external_reference=external_reference, only_type=Voucher
+        )
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         cleaned_input = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value

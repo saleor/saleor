@@ -19058,8 +19058,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   categoryTranslate(
+    """
+    External ID of a category to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """Category ID or CategoryTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update category translations."""
     input: TranslationInput!
@@ -19074,8 +19081,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   collectionAddProducts(
+    """
+    External ID of a collection.
+    
+    Added in Saleor 3.23.
+    """
+    collectionExternalReference: String
+
     """ID of a collection."""
-    collectionId: ID!
+    collectionId: ID
 
     """List of product IDs."""
     products: [ID!]!
@@ -19114,8 +19128,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   collectionReorderProducts(
+    """
+    External ID of a collection.
+    
+    Added in Saleor 3.23.
+    """
+    collectionExternalReference: String
+
     """ID of a collection."""
-    collectionId: ID!
+    collectionId: ID
 
     """The collection products position operations."""
     moves: [MoveProductInput!]!
@@ -19137,8 +19158,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   collectionRemoveProducts(
+    """
+    External ID of a collection.
+    
+    Added in Saleor 3.23.
+    """
+    collectionExternalReference: String
+
     """ID of a collection."""
-    collectionId: ID!
+    collectionId: ID
 
     """List of product IDs."""
     products: [ID!]!
@@ -19170,8 +19198,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   collectionTranslate(
+    """
+    External ID of a collection to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """Collection ID or CollectionTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update collection translations."""
     input: TranslationInput!
@@ -19186,8 +19221,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   collectionChannelListingUpdate(
+    """
+    External ID of a collection to update.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a collection to update."""
-    id: ID!
+    id: ID
 
     """Fields required to create or update collection channel listings."""
     input: CollectionChannelListingUpdateInput!
@@ -19278,8 +19320,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   productTranslate(
+    """
+    External ID of a product to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """Product ID or ProductTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update product translations."""
     input: TranslationInput!
@@ -19294,8 +19343,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productChannelListingUpdate(
+    """
+    External ID of a product to update.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a product to update."""
-    id: ID!
+    id: ID
 
     """Fields required to create or update product channel listings."""
     input: ProductChannelListingUpdateInput!
@@ -19552,8 +19608,15 @@ type Mutation {
     """Input list of stocks to create."""
     stocks: [StockInput!]!
 
+    """
+    External ID of a product variant for which stocks will be created.
+    
+    Added in Saleor 3.23.
+    """
+    variantExternalReference: String
+
     """ID of a product variant for which stocks will be created."""
-    variantId: ID!
+    variantId: ID
   ): ProductVariantStocksCreate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [PRODUCT_VARIANT_BACK_IN_STOCK, PRODUCT_VARIANT_BACK_IN_STOCK_IN_CHANNEL, PRODUCT_VARIANT_BACK_IN_STOCK_FOR_CLICK_AND_COLLECT], syncEvents: [])
 
   """
@@ -19573,6 +19636,13 @@ type Mutation {
   productVariantStocksDelete(
     """SKU of product variant for which stocks will be deleted."""
     sku: String
+
+    """
+    External ID of a product variant for which stocks will be deleted.
+    
+    Added in Saleor 3.23.
+    """
+    variantExternalReference: String
 
     """ID of product variant for which stocks will be deleted."""
     variantId: ID
@@ -19609,6 +19679,13 @@ type Mutation {
 
     """Input list of stocks to create or update."""
     stocks: [StockInput!]!
+
+    """
+    External ID of a product variant for which stocks will be updated.
+    
+    Added in Saleor 3.23.
+    """
+    variantExternalReference: String
 
     """ID of a product variant for which stocks will be updated."""
     variantId: ID
@@ -19652,8 +19729,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   productVariantTranslate(
+    """
+    External ID of a product variant to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ProductVariant ID or ProductVariantTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update product variant translations."""
     input: NameTranslationInput!
@@ -19685,6 +19769,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantChannelListingUpdate(
+    """
+    External ID of a product variant to update.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a product variant to update."""
     id: ID
 
@@ -19705,6 +19796,9 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantChannelListingAvailabilityUpdate(
+    """External ID of a product variant to update."""
+    externalReference: String
+
     """ID of a product variant to update."""
     id: ID
 
@@ -21389,8 +21483,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   promotionTranslate(
+    """
+    External ID of a promotion to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """Promotion ID or PromotionTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update promotion translations."""
     input: PromotionTranslationInput!
@@ -21625,8 +21726,15 @@ type Mutation {
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesAdd(
+    """
+    External ID of a voucher.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a voucher."""
-    id: ID!
+    id: ID
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
@@ -21641,8 +21749,15 @@ type Mutation {
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesRemove(
+    """
+    External ID of a voucher.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a voucher."""
-    id: ID!
+    id: ID
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
@@ -21654,8 +21769,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   voucherTranslate(
+    """
+    External ID of a voucher to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """Voucher ID or VoucherTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update voucher translations."""
     input: NameTranslationInput!
@@ -21673,8 +21795,15 @@ type Mutation {
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherChannelListingUpdate(
+    """
+    External ID of a voucher to update.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """ID of a voucher to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update voucher channel listings."""
     input: VoucherChannelListingInput!
@@ -22379,8 +22508,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   attributeTranslate(
+    """
+    External ID of an attribute to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """Attribute ID or AttributeTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update attribute translations."""
     input: NameTranslationInput!
@@ -22502,8 +22638,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   attributeValueTranslate(
+    """
+    External ID of an attribute value to translate.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
     """AttributeValue ID or AttributeValueTranslatableContent ID."""
-    id: ID!
+    id: ID
 
     """Fields required to update attribute value translations."""
     input: AttributeValueTranslationInput!
@@ -31332,8 +31475,17 @@ input PromotionRuleCreateInput {
   """
   gifts: [ID!]
 
-  """The ID of the promotion that rule belongs to."""
-  promotion: ID!
+  """
+  The ID of the promotion that rule belongs to. Required unless `promotionExternalReference` is provided.
+  """
+  promotion: ID
+
+  """
+  External ID of the promotion that rule belongs to.
+  
+  Added in Saleor 3.23.
+  """
+  promotionExternalReference: String
 }
 
 """

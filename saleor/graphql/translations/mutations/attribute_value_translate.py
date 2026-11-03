@@ -8,7 +8,7 @@ from ....core.utils.text import safe_truncate
 from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeValue
 from ...core.context import ChannelContext
-from ...core.descriptions import RICH_CONTENT
+from ...core.descriptions import ADDED_IN_323, RICH_CONTENT
 from ...core.enums import LanguageCodeEnum, TranslationErrorCode
 from ...core.fields import JSONString
 from ...core.types import TranslationError
@@ -23,8 +23,12 @@ class AttributeValueTranslationInput(NameTranslationInput):
 class AttributeValueTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
-            required=True,
+            required=False,
             description="AttributeValue ID or AttributeValueTranslatableContent ID.",
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of an attribute value to translate.{ADDED_IN_323}",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."

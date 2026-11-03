@@ -7,6 +7,7 @@ from .....product.utils import get_products_ids_without_variants
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
@@ -46,7 +47,10 @@ class VoucherBaseCatalogueMutation(BaseMutation):
     )
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a voucher.")
+        id = graphene.ID(required=False, description="ID of a voucher.")
+        external_reference = graphene.String(
+            required=False, description=f"External ID of a voucher.{ADDED_IN_323}"
+        )
         input = CatalogueInput(
             required=True,
             description="Fields required to modify catalogue IDs of voucher.",
@@ -61,6 +65,15 @@ class VoucherBaseCatalogueMutation(BaseMutation):
         if response.voucher:
             response.voucher = ChannelContext(node=response.voucher, channel_slug=None)
         return response
+
+    @classmethod
+    def get_voucher(cls, info: ResolveInfo, data: dict):
+        return cls.get_node_by_id_or_external_reference(
+            info,
+            node_id=data.get("id"),
+            external_reference=data.get("external_reference"),
+            only_type=Voucher,
+        )
 
     @classmethod
     def clean_product(cls, products):
@@ -94,16 +107,13 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        voucher = cls.get_node_or_error(
-            info, data.get("id"), only_type=Voucher, field="voucher_id"
-        )
-        if voucher:
-            input_data = data.get("input", {})
-            cls.add_catalogues_to_node(voucher, input_data)
+        voucher = cls.get_voucher(info, data)
+        input_data = data.get("input", {})
+        cls.add_catalogues_to_node(voucher, input_data)
 
-            if input_data:
-                manager = get_plugin_manager_promise(info.context).get()
-                cls.call_event(manager.voucher_updated, voucher, voucher.code)
+        if input_data:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.voucher_updated, voucher, voucher.code)
 
         return VoucherAddCatalogues(voucher=voucher)
 
