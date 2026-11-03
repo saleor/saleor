@@ -70,6 +70,7 @@ permissions.
   - A listing with `isAvailableForPurchase: false` behaves exactly as if the variant had no listing in that channel: it is hidden from customers, excluded from the product price range, and cannot be added to a checkout or an order. Its `price`, `costPrice` and `priorPrice` are kept, so re-enabling it restores the original prices. Previously the only way to make a variant unavailable was `productChannelListingUpdate(removeVariants:)`, which deletes the listing and its prices.
   - Existing listings and newly created ones default to `true`, so behaviour is unchanged unless the flag is set.
 - Added `sizeRounding` argument to thumbnail fields: `User.avatar`, `Product.thumbnail`, `ProductMedia.url`, `ProductImage.url`, `OrderLine.thumbnail`, `Category.backgroundImage`, `Collection.backgroundImage`, `AppBrandLogo.default` and `AppManifestBrandLogo.default`. Thumbnails are generated only in the available sizes (32, 64, 128, 256, 512, 1024, 2048, 4096); a requested `size` outside that list is matched to one of them. `NEAREST` (default) keeps the current behavior and returns the closest size, which may be smaller than requested (e.g. `1500` returns `1024`). `UP` returns the smallest available size not smaller than requested (e.g. `1500` returns `2048`), so the image does not look blurry when displayed at the requested size.
+- Added `externalReference` filter to `productVariants(where: ...)`. Supports `eq` and `oneOf`, allowing product variants to be fetched in batch by their external references.
 
 ### Webhooks
 
@@ -124,6 +125,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Removed support for custom `User` DB models in `./manage.py createsuperuser` command. - #18890 by @NyanKiyoshi
 - OIDC: When an existing user is claimed by an OIDC provider for the first time, their password is now invalidated to prevent login with stale credentials. This covers the case where a previously deleted staff account is recreated via OIDC.
 - Fixed migration `account.0103_create_default_customer_type` to respect `POPULATE_DEFAULTS`; the default customer type is no longer created when defaults are disabled, and the post-migration assignment task skips when none exists.
+- Added OpenTelemetry instrumentation for psycopg, Celery, Redis and botocore. Spans for database queries, cache and broker commands, Celery tasks and AWS calls are now emitted alongside Saleor's own spans, with Celery task spans linked to the request that scheduled them. The threading instrumentor is enabled too, so spans created in threads and thread pools, for example S3 calls that boto3 runs in its transfer threads, stay in the trace of the request or task that started them. Outgoing HTTP requests are deliberately not instrumented, because the requests instrumentor would replace the `traceparent` header that apps receive with webhooks, which points at the `webhooks.<event>` span, with its own span. Library instrumentors emit spans only, their metrics are not exported. The set of enabled instrumentors is controlled by the new `TELEMETRY_INSTRUMENTORS` environment variable, which takes a comma-separated list of OpenTelemetry instrumentor entry point names and defaults to `psycopg,celery,redis,botocore,threading`. Set it to an empty string to disable library instrumentation. The OpenTelemetry packages were upgraded to SDK 1.37.0 and instrumentation 0.58b0.
 
 #### Search improvements
 
@@ -137,6 +139,9 @@ Validation is now performed on the frontend (Dashboard). This change increases v
   - Accent-insensitive search: queries automatically normalize diacritical marks, allowing searches to match regardless of accents (e.g., "cafe" matches "café")
   - Relevance-based ranking: exact matches score higher than prefix matches and appear first by default (can be overridden with `sortBy` parameter)
   - New `RANK` sort field available when using search filters to sort by relevance score
+- Fixed requests authenticated with an OIDC access token saving `is_staff = false` on the customer's row and triggering a `CUSTOMER_UPDATED` webhook on every call, even when nothing changed. Under bursts of authenticated traffic those writes could stall the database. - #19962 by @stmpn
+- Fixed OIDC requests sent at the same time each writing `last_login` and triggering a `CUSTOMER_UPDATED` webhook; only the first one writes it now. Also fixed the 15-minute `last_login` refresh check ignoring whole days, so a user who last logged in 1 day and 10 minutes ago looked like they logged in 10 minutes ago. - #19965 by @stmpn
+- Fixed OIDC requests that read a user right after their staff status changed saving `is_staff` again and triggering another user webhook; only the first one saves it now. Also fixed opaque access tokens triggering a `CUSTOMER_UPDATED` webhook on every request from a staff user with no staff rule. - #19967 by @stmpn
 
 ### Direct warehouse-channel stock availability
 

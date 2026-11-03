@@ -33,9 +33,9 @@ class Tracer:
         - SERVICE: For business logic and service-level operations
 
     Note:
-        The Tracer internally uses the global OpenTelemetry TracerProvider, which should
-        be initialized following OpenTelemetry's standard process, for example using
-        the `opentelemetry-instrument` tool.
+        The Tracer internally uses the global OpenTelemetry TracerProvider, which is
+        configured by `saleor.core.telemetry.initialize_telemetry()` from the standard
+        OTEL_* environment variables.
 
     """
 

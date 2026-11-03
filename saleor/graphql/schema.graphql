@@ -10326,6 +10326,13 @@ input ProductVariantWhereInput @doc(category: "Products") {
   """Filter by product SKU."""
   sku: StringFilterInput
 
+  """
+  Filter by external reference.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: StringFilterInput
+
   """Filter by when was the most recent update."""
   updatedAt: DateTimeRangeInput
 
