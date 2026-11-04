@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import graphene
 import pytest
+from django.conf import settings
 from django.utils import timezone
 from django_countries.fields import Country
 from freezegun import freeze_time
@@ -1962,3 +1963,37 @@ def test_get_checkout_metadata(checkout):
 
     # then
     assert metadata_container
+
+
+@pytest.mark.parametrize(
+    ("_case", "started_ago", "expected_locked"),
+    [
+        ("within_lock_time", datetime.timedelta(seconds=10), True),
+        (
+            "lock_time_exceeded",
+            datetime.timedelta(seconds=settings.CHECKOUT_COMPLETION_LOCK_TIME + 1),
+            False,
+        ),
+        ("lock_time_exceeded_by_days", datetime.timedelta(days=1, seconds=10), False),
+    ],
+)
+def test_is_checkout_locked(_case, started_ago, expected_locked, checkout):
+    # given
+    checkout.completing_started_at = timezone.now() - started_ago
+
+    # when
+    is_locked = checkout.is_checkout_locked()
+
+    # then
+    assert is_locked is expected_locked
+
+
+def test_is_checkout_locked_completion_not_started(checkout):
+    # given
+    assert checkout.completing_started_at is None
+
+    # when
+    is_locked = checkout.is_checkout_locked()
+
+    # then
+    assert is_locked is False

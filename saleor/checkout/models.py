@@ -380,7 +380,7 @@ class Checkout(models.Model):
         return bool(
             self.completing_started_at
             and (
-                (timezone.now() - self.completing_started_at).seconds
+                (timezone.now() - self.completing_started_at).total_seconds()
                 < settings.CHECKOUT_COMPLETION_LOCK_TIME
             )
         )

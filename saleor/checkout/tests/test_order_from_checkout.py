@@ -1070,3 +1070,57 @@ def test_created_order_from_checkout_missing_lines(
                 user=None,
                 app=app,
             )
+
+
+def test_create_order_from_checkout_voucher_usage_increased_once_on_concurrent_call(
+    checkout_with_voucher_free_shipping, voucher_free_shipping, app
+):
+    # given
+    checkout = checkout_with_voucher_free_shipping
+    voucher_free_shipping.usage_limit = 10
+    voucher_free_shipping.save(update_fields=["usage_limit"])
+    code = voucher_free_shipping.codes.get()
+    initial_code_used = code.used
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # a concurrent request holds its own copy fetched before any completion started
+    concurrent_checkout = Checkout.objects.get(pk=checkout.pk)
+    concurrent_lines, _ = fetch_checkout_lines(concurrent_checkout)
+    concurrent_checkout_info = fetch_checkout_info(
+        concurrent_checkout, concurrent_lines, manager
+    )
+    assert concurrent_checkout.is_voucher_usage_increased is False
+
+    concurrent_orders = []
+
+    def complete_checkout_concurrently(*args, **kwargs):
+        concurrent_orders.append(
+            create_order_from_checkout(
+                checkout_info=concurrent_checkout_info,
+                manager=manager,
+                user=None,
+                app=app,
+            )
+        )
+
+    # when
+    with race_condition.RunAfter(
+        "saleor.checkout.complete_checkout._increase_voucher_code_usage_value",
+        complete_checkout_concurrently,
+    ):
+        order = create_order_from_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            user=None,
+            app=app,
+        )
+
+    # then
+    [concurrent_order] = concurrent_orders
+    assert order == concurrent_order
+    assert Order.objects.get(checkout_token=str(checkout.token)) == order
+    code.refresh_from_db(fields=["used"])
+    assert code.used == initial_code_used + 1

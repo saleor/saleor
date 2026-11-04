@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import graphene
 import pytest
+from django.db.models import F
 from graphene import Node
 
 from .....checkout import calculations
@@ -1655,8 +1656,9 @@ def test_complete_checkout_with_out_of_stock_webhook(
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
+    drained_stock = Stock.objects.get(quantity=F("quantity_allocated"))
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
-        Stock.objects.last(), requestor=api_client.app
+        drained_stock, requestor=api_client.app
     )
 
 
