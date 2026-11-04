@@ -34,6 +34,16 @@ rules:
           for $ITEM in $QUERYSET.filter(...):
             ...
       - pattern-not-inside: |
+          {$EXPRESSION for $ITEM in $QUERYSET.filter(...) }
+      - pattern-not-inside: |
+          [$EXPRESSION for $ITEM in $QUERYSET.filter(...) ]
+      - pattern-not-inside: |
+          ($EXPRESSION for $ITEM in $QUERYSET.filter(...))
+      - pattern-not-inside: |
+          $VALUE in $QUERYSET.filter(...)
+      - pattern-not-inside: |
+          $VALUE not in $QUERYSET.filter(...)
+      - pattern-not-inside: |
           if $QUERYSET.filter(...):
             ...
       - pattern-not-inside: |
@@ -59,5 +69,7 @@ rules:
             ...
       - pattern-not-inside: |
           assert $QUERYSET.filter(...)
+      - pattern-not-inside: |
+          assert not $QUERYSET.filter(...)
       - pattern-not-inside: |
           $VARIABLE |= $VALUE

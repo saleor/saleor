@@ -1,0 +1,7 @@
+# Semgrep excludes tests by default which causes a behavior difference between
+# using Semgrep via pre-commit (which explicitly passes the list of files, e.g.,
+# `semgrep saleor/tests/test_foo.py`) instead of passing a directory (such as
+# `semgrep ./saleor`) thus causing Semgrep to not ignore test files in pre-commit
+# while running Semgrep manually outside pre-commit would exclude tests.
+!**/tests/
+!**/tests/**

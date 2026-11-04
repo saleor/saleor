@@ -35,7 +35,7 @@ repos:
       - id: deptry
 
   - repo: https://github.com/returntocorp/semgrep
-    rev: a4a84e81e8cde78eb4893def4b971f8597a0aed8 # frozen: v1.153.0
+    rev: 4fe07d805dd2a4b64fed486e95136923f08648d0 # frozen: v1.183.0
     hooks:
       - id: semgrep
         exclude_types:

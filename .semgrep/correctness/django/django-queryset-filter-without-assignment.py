@@ -80,6 +80,26 @@ def test_filter_result_iterated_through_iterator():
         product.save()
 
 
+def test_filter_result_used_in_comprehension():
+    """When iterating in a comprehension, it shouldn't match."""
+    qs = Product.objects.all()
+
+    # ok: django-queryset-filter-without-assignment
+    {product.pk for product in qs.filter(pk=1)}
+
+
+def test_filter_result_used_in_membership_test():
+    """When checking membership, it shouldn't match."""
+    qs = Product.objects.all()
+    product = Product()
+
+    # ok: django-queryset-filter-without-assignment
+    product in qs.filter(pk=1)
+
+    # ok: django-queryset-filter-without-assignment
+    product not in qs.filter(pk=1)
+
+
 def test_filter_result_used_as_condition():
     """When filtering in an `if` condition, it shouldn't match."""
     qs = Product.objects.all()
@@ -129,6 +149,9 @@ def test_filter_result_asserted():
 
     # ok: django-queryset-filter-without-assignment
     assert qs.filter(pk=1)
+
+    # ok: django-queryset-filter-without-assignment
+    assert not qs.filter(pk=1)
 
 
 def test_filter_result_used_in_augmented_assignment():
