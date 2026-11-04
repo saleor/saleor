@@ -185,13 +185,20 @@ class Category(ModelObjectType[models.Category]):
         has_required_permissions = has_one_of_permissions(
             requestor, ALL_PRODUCTS_PERMISSIONS
         )
-        tree = root.get_descendants(include_self=True)
         limited_channel_access = False if channel is None else True
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error(
                 allow_replica=info.context.allow_replica
             )
         connection_name = get_database_connection_name(info.context)
+        # Evaluate the subtree into a literal id list. A subquery over the MPTT
+        # `lft`/`rght` range is misestimated by the Postgres planner, which then
+        # reads far more products than the category holds.
+        category_ids = list(
+            root.get_descendants(include_self=True)
+            .using(connection_name)
+            .values_list("pk", flat=True)
+        )
 
         def _resolve_products(channel_obj):
             qs = models.Product.objects.using(connection_name).all()
@@ -205,7 +212,7 @@ class Category(ModelObjectType[models.Category]):
                 )
             if channel_obj and has_required_permissions:
                 qs = qs.filter(channel_listings__channel_id=channel_obj.id)
-            qs = qs.filter(category__in=tree)
+            qs = qs.filter(category_id__in=category_ids)
 
             if search:
                 channel_qs = ChannelQsContext(
