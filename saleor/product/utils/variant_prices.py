@@ -68,7 +68,9 @@ def update_discounted_prices_for_promotion(
         .prefetch_related("channel")
     )
     if only_dirty_products:
-        product_channel_listings.filter(discounted_price_dirty=True)
+        product_channel_listings = product_channel_listings.filter(
+            discounted_price_dirty=True
+        )
 
     for product_channel_listing in product_channel_listings:
         product_id = product_channel_listing.product_id

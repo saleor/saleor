@@ -625,6 +625,13 @@ def test_update_discounted_prices_for_promotion_only_dirty_products(
         available_for_purchase_at=(datetime.datetime(1999, 1, 1, tzinfo=datetime.UTC)),
         discounted_price_dirty=False,
     )
+    second_channel_variant_price = Decimal(50)
+    variant.channel_listings.create(
+        channel=channel_PLN,
+        price_amount=second_channel_variant_price,
+        discounted_price_amount=second_channel_variant_price,
+        currency=channel_PLN.currency_code,
+    )
 
     variant_price = Money("9.99", "USD")
     variant_channel_listing.price = variant_price
