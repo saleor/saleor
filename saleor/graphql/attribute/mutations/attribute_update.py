@@ -10,7 +10,7 @@ from ....product.utils.search_helpers import (
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
-from ...core.descriptions import ADDED_IN_322, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_322, ADDED_IN_323, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
@@ -92,6 +92,10 @@ class AttributeUpdateInput(BaseInputObjectType):
     )
     external_reference = graphene.String(
         description="External ID of this product.", required=False
+    )
+    internal_description = graphene.String(
+        description=AttributeDescriptions.INTERNAL_DESCRIPTION + ADDED_IN_323,
+        required=False,
     )
     reference_types = NonNullList(
         graphene.ID,

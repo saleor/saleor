@@ -34,6 +34,10 @@ class AttributeDescriptions:
         "Whether the attribute can be displayed in the admin product list."
     )
     WITH_CHOICES = "Flag indicating that attribute has predefined choices."
+    INTERNAL_DESCRIPTION = (
+        "Plain-text description of the attribute for staff users and apps. "
+        "Not exposed to customers."
+    )
 
 
 class AttributeValueDescriptions:
