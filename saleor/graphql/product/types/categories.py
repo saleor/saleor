@@ -191,14 +191,20 @@ class Category(ModelObjectType[models.Category]):
                 allow_replica=info.context.allow_replica
             )
         connection_name = get_database_connection_name(info.context)
-        # Evaluate the subtree into a literal id list. A subquery over the MPTT
-        # `lft`/`rght` range is misestimated by the Postgres planner, which then
-        # reads far more products than the category holds.
-        category_ids = list(
-            root.get_descendants(include_self=True)
-            .using(connection_name)
-            .values_list("pk", flat=True)
-        )
+        # Evaluate the subtree into a literal id list. A correlated subquery over the
+        # MPTT `lft`/`rght` range inside the products query is misestimated by the
+        # Postgres planner, which then reads far more products than the category
+        # holds. A leaf has no descendants, so skip the query for it. The ids are
+        # ordered so the generated `IN (...)` text is stable across requests.
+        if root.is_leaf_node():
+            category_ids = [root.pk]
+        else:
+            category_ids = list(
+                root.get_descendants(include_self=True)
+                .using(connection_name)
+                .order_by("pk")
+                .values_list("pk", flat=True)
+            )
 
         def _resolve_products(channel_obj):
             qs = models.Product.objects.using(connection_name).all()

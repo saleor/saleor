@@ -37,8 +37,14 @@ class ChannelIdFilterSetMixin:
     instead of a `channel_channel.slug` subquery. The subquery hides the channel from
     the Postgres planner, which then misestimates the listing rows by two orders of
     magnitude and picks a plan that reads the whole catalogue on every page.
+
+    `channel_id` is `None` when the filter data has no `channel` slug or the slug
+    matches no channel. `filter_qs` in `saleor.graphql.core.connection` always
+    injects a slug (the argument, the filter input or the default channel), so the
+    `None` case means an unknown channel and the channel filters match nothing.
     """
 
+    # Provided by `django_filters.FilterSet`.
     data: dict
     queryset: QuerySet
 

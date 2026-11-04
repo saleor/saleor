@@ -62,6 +62,8 @@ def filter_products_by_minimal_price(
     qs, channel_id, minimal_price_lte=None, minimal_price_gte=None
 ):
     if channel_id is None:
+        # Unlike the other channel filters, an unknown channel leaves the queryset
+        # unfiltered. Kept as it was for backwards compatibility.
         return qs
     product_channel_listings = ProductChannelListing.objects.using(qs.db).filter(
         channel_id=channel_id
@@ -82,11 +84,14 @@ def get_category_descendant_ids(qs, category_ids) -> list[int]:
     """Return the ids of the given categories and all of their descendants.
 
     The ids are evaluated into a literal list on purpose. A subquery over the MPTT
-    `lft`/`rght` range is misestimated by the Postgres planner, which then picks a
-    plan reading far more products than the category holds. Category trees are small
-    enough for the list to stay cheap.
+    `lft`/`rght` range correlated with `product_product` inside the paginated
+    products query is misestimated by the Postgres planner, which then picks a plan
+    reading far more products than the category holds. The subtree is resolved here
+    against the category table alone, in one query, and category trees are small
+    enough for the list to stay cheap. The ids are ordered so the generated
+    `IN (...)` text is stable across requests.
     """
-    ancestors = Category.objects.using(qs.db).filter(
+    ancestors_or_self = Category.objects.using(qs.db).filter(
         pk__in=category_ids,
         tree_id=OuterRef("tree_id"),
         lft__lte=OuterRef("lft"),
@@ -94,7 +99,8 @@ def get_category_descendant_ids(qs, category_ids) -> list[int]:
     )
     return list(
         Category.objects.using(qs.db)
-        .filter(Exists(ancestors))
+        .filter(Exists(ancestors_or_self))
+        .order_by("pk")
         .values_list("pk", flat=True)
     )
 

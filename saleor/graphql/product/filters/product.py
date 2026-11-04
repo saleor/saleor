@@ -381,6 +381,8 @@ class ProductWhere(ChannelIdFilterSetMixin, MetadataWhereFilterBase):
 
     def filter_minimal_price(self, qs, _, value):
         if self.channel_id is None:
+            # Unlike the other channel filters, an unknown channel leaves the
+            # queryset unfiltered. Kept as it was for backwards compatibility.
             return qs
         product_listing = ProductChannelListing.objects.using(qs.db).filter(
             channel_id=self.channel_id

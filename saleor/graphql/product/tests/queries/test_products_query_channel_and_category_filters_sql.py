@@ -102,6 +102,12 @@ def get_products_select(captured_queries: list[dict]) -> str:
     return selects[0]
 
 
+def count_category_queries(captured_queries: list[dict]) -> int:
+    return sum(
+        1 for query in captured_queries if 'FROM "product_category"' in query["sql"]
+    )
+
+
 def get_product_ids(content: dict, *path: str) -> set[str]:
     data = content["data"]
     for key in path:
@@ -210,23 +216,23 @@ def test_where_resolves_channel_once_per_filterset(
 
 
 @pytest.mark.parametrize(
-    ("filter_input", "expected_indexes"),
+    ("filter_input", "expects_all_products"),
     [
-        ({"isPublished": True}, []),
-        ({"isPublished": False}, []),
-        ({"isAvailable": True}, []),
-        ({"isAvailable": False}, []),
-        ({"isVisibleInListing": True}, []),
-        ({"publishedFrom": PUBLISHED_FROM}, []),
-        ({"availableFrom": PUBLISHED_FROM}, []),
-        ({"price": {"gte": 1}}, []),
+        ({"isPublished": True}, False),
+        ({"isPublished": False}, False),
+        ({"isAvailable": True}, False),
+        ({"isAvailable": False}, False),
+        ({"isVisibleInListing": True}, False),
+        ({"publishedFrom": PUBLISHED_FROM}, False),
+        ({"availableFrom": PUBLISHED_FROM}, False),
+        ({"price": {"gte": 1}}, False),
         # minimal price is the one channel filter that ignores an unknown channel
-        ({"minimalPrice": {"gte": 1}}, [0, 1, 2]),
+        ({"minimalPrice": {"gte": 1}}, True),
     ],
 )
 def test_filter_with_nonexistent_channel(
     filter_input,
-    expected_indexes,
+    expects_all_products,
     staff_api_client,
     permission_manage_products,
     published_product_list,
@@ -240,7 +246,7 @@ def test_filter_with_nonexistent_channel(
 
     # then
     content = get_graphql_content(response)
-    expected_products = [published_product_list[index] for index in expected_indexes]
+    expected_products = published_product_list if expects_all_products else []
     assert get_product_ids(content, "products") == to_product_ids(expected_products)
 
 
@@ -274,15 +280,47 @@ def test_filter_excludes_products_listed_only_in_another_channel(
 
 
 @pytest.mark.parametrize(
+    ("where_input", "expects_all_products"),
+    [
+        ({"is_published": True}, False),
+        ({"is_available": True}, False),
+        ({"is_visible_in_listing": True}, False),
+        ({"published_from": PUBLISHED_FROM}, False),
+        ({"available_from": PUBLISHED_FROM}, False),
+        ({"price": {"range": {"gte": 1}}}, False),
+        # minimal price is the one channel filter that ignores an unknown channel
+        ({"minimal_price": {"range": {"gte": 1}}}, True),
+    ],
+)
+def test_where_with_nonexistent_channel(
+    where_input, expects_all_products, published_product_list
+):
+    # given
+    filterset = ProductWhere(
+        {"channel": "non-existent-channel", **where_input},
+        queryset=Product.objects.all(),
+    )
+
+    # when
+    queryset = filterset.qs
+
+    # then
+    assert filterset.channel_id is None
+    expected_products = published_product_list if expects_all_products else []
+    assert set(queryset) == set(expected_products)
+
+
+@pytest.mark.parametrize(
     ("is_published", "expected_count"),
     [(True, 1), (False, 0)],
 )
-def test_where_without_channel_falls_back_to_default_channel(
+def test_where_without_channel_in_input_uses_default_channel(
     is_published, expected_count, product, channel_USD
 ):
     # given
     # Promotion rule predicates evaluate `ProductWhere` outside a GraphQL request,
-    # with no channel in the filter input. The only channel is then the default one.
+    # with no channel in the filter input. `filter_qs` then injects the default
+    # channel slug, which is the only channel here.
     assert product.channel_listings.get().channel_id == channel_USD.pk
 
     # when
@@ -291,7 +329,9 @@ def test_where_without_channel_falls_back_to_default_channel(
     )
 
     # then
-    assert "channel_channel" not in str(queryset.query)
+    sql = str(queryset.query)
+    assert "channel_channel" not in sql
+    assert f'"channel_id" = {channel_USD.pk}' in sql
     assert list(queryset) == [product] * expected_count
 
 
@@ -372,6 +412,37 @@ def test_category_products_uses_literal_descendant_ids(
     assert f'"product_product"."category_id" IN ({parent.pk}, {child.pk})' in (
         products_select
     )
+    # The category itself and its descendants.
+    assert count_category_queries(queries.captured_queries) == 2
+
+
+def test_category_products_of_leaf_category_skips_descendants_query(
+    staff_api_client, permission_manage_products, categories_tree, channel_USD
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    leaf = categories_tree.children.get()
+    assert leaf.is_leaf_node() is True
+    product_in_leaf = leaf.products.get()
+    variables = {
+        "id": graphene.Node.to_global_id("Category", leaf.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    with CaptureQueriesContext(connection) as queries:
+        response = staff_api_client.post_graphql(CATEGORY_PRODUCTS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert get_product_ids(content, "category", "products") == to_product_ids(
+        [product_in_leaf]
+    )
+    products_select = get_products_select(queries.captured_queries)
+    assert "product_category" not in products_select
+    assert f'"product_product"."category_id" IN ({leaf.pk})' in products_select
+    # Only the category itself is loaded.
+    assert count_category_queries(queries.captured_queries) == 1
 
 
 def test_filter_products_by_categories_fetches_descendants_in_one_query(
@@ -393,12 +464,13 @@ def test_filter_products_by_categories_fetches_descendants_in_one_query(
     assert list(queryset) == [product_in_child]
 
 
-def test_filter_products_by_categories_with_nonexistent_category(
-    product_list, django_assert_num_queries
+@pytest.mark.parametrize("category_ids", [[], [-1]])
+def test_filter_products_by_categories_without_matching_category(
+    category_ids, product_list, django_assert_num_queries
 ):
     # when
     with django_assert_num_queries(1):
-        queryset = filter_products_by_categories(Product.objects.all(), [-1])
+        queryset = filter_products_by_categories(Product.objects.all(), category_ids)
 
     # then
     assert queryset.exists() is False
