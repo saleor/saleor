@@ -334,6 +334,101 @@ def test_allocate_stock_with_reservations_prioritize_sorting_order_strategy(
     assert allocations[1].quantity_allocated == 1 == stock_1.quantity_allocated
 
 
+def test_allocate_stocks_with_reservations_skips_fully_allocated_warehouse(
+    order_line,
+    order_generator,
+    variant_with_many_stocks,
+    channel_USD,
+    site_settings,
+):
+    # given
+    channel_USD.allocation_strategy = AllocationStrategy.PRIORITIZE_SORTING_ORDER
+    channel_USD.save(update_fields=["allocation_strategy"])
+
+    variant = variant_with_many_stocks
+    stock_1, stock_2 = variant.stocks.order_by("pk")
+    stock_1.quantity = 1
+    stock_2.quantity = 1
+    Stock.objects.bulk_update([stock_1, stock_2], ["quantity"])
+
+    channel_warehouse_1 = stock_1.warehouse.channelwarehouse.first()
+    channel_warehouse_2 = stock_2.warehouse.channelwarehouse.first()
+    channel_warehouse_1.sort_order = 0
+    channel_warehouse_2.sort_order = 1
+    ChannelWarehouse.objects.bulk_update(
+        [channel_warehouse_1, channel_warehouse_2], ["sort_order"]
+    )
+
+    def line_for(order):
+        return order.lines.create(
+            product_name=order_line.product_name,
+            variant_name=order_line.variant_name,
+            product_sku=order_line.product_sku,
+            product_variant_id=order_line.product_variant_id,
+            is_shipping_required=order_line.is_shipping_required,
+            is_gift_card=order_line.is_gift_card,
+            quantity=1,
+            variant=variant,
+            unit_price=order_line.unit_price,
+            total_price=order_line.unit_price,
+            undiscounted_unit_price=order_line.undiscounted_unit_price,
+            undiscounted_total_price=order_line.undiscounted_unit_price,
+            base_unit_price=order_line.base_unit_price,
+            undiscounted_base_unit_price=order_line.undiscounted_base_unit_price,
+            tax_rate=order_line.tax_rate,
+        )
+
+    first_line = line_for(order_generator())
+    second_line = line_for(order_generator())
+    third_line = line_for(order_generator())
+
+    # when
+    allocate_stocks(
+        [OrderLineInfo(line=first_line, variant=variant, quantity=1)],
+        COUNTRY_CODE,
+        channel_USD,
+        site_settings=site_settings,
+        requestor=None,
+        calculate_stocks_with_shipping_zones=True,
+        check_reservations=True,
+    )
+    allocate_stocks(
+        [OrderLineInfo(line=second_line, variant=variant, quantity=1)],
+        COUNTRY_CODE,
+        channel_USD,
+        site_settings=site_settings,
+        requestor=None,
+        calculate_stocks_with_shipping_zones=True,
+        check_reservations=True,
+    )
+
+    # then
+    first_allocation = Allocation.objects.get(order_line=first_line)
+    second_allocation = Allocation.objects.get(order_line=second_line)
+    assert first_allocation.stock_id == stock_1.pk
+    assert first_allocation.quantity_allocated == 1
+    assert second_allocation.stock_id == stock_2.pk
+    assert second_allocation.quantity_allocated == 1
+
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
+    assert stock_1.quantity_allocated == 1
+    assert stock_2.quantity_allocated == 1
+
+    with pytest.raises(InsufficientStock):
+        allocate_stocks(
+            [OrderLineInfo(line=third_line, variant=variant, quantity=1)],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+            check_reservations=True,
+        )
+
+    assert not Allocation.objects.filter(order_line=third_line).exists()
+
+
 def test_allocate_stock_insufficient_stock_due_to_reservations(
     order_line,
     variant_with_many_stocks,

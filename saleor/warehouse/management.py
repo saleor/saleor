@@ -147,7 +147,9 @@ def allocate_stocks(
         .filter(**filter_lookup)
         .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
-    stocks_id = (stock.pop("id") for stock in stocks)
+    # Materialize once. A generator is consumed by the reservation lookup
+    # below, and the allocation query would then see no stock ids.
+    stocks_id = [stock.pop("id") for stock in stocks]
 
     quantity_reservation_for_stocks: dict = _prepare_stock_to_reserved_quantity_map(
         checkout_lines, check_reservations, stocks_id
