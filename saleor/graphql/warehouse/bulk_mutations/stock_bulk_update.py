@@ -15,6 +15,7 @@ from ....warehouse.webhooks.stock_events import (
 )
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation
@@ -36,6 +37,22 @@ class StockBulkResult(BaseObjectType):
         StockBulkUpdateError,
         required=False,
         description="List of errors occurred on create or update attempt.",
+    )
+    variant_external_reference = graphene.String(
+        required=False,
+        description=(
+            "Variant external reference provided in the corresponding input row. "
+            "Returned also when the row failed, so the result can be matched with "
+            "the input." + ADDED_IN_323
+        ),
+    )
+    warehouse_external_reference = graphene.String(
+        required=False,
+        description=(
+            "Warehouse external reference provided in the corresponding input row. "
+            "Returned also when the row failed, so the result can be matched with "
+            "the input." + ADDED_IN_323
+        ),
     )
 
     class Meta:
@@ -408,26 +425,31 @@ class StockBulkUpdate(BaseMutation):
             )
 
     @classmethod
-    def get_results(cls, instances_data_with_errors_list, reject_everything=False):
-        if reject_everything:
-            return [
-                StockBulkResult(stock=None, errors=data.get("errors"))
-                for data in instances_data_with_errors_list
-            ]
+    def get_results(
+        cls, instances_data_with_errors_list, stocks_input, reject_everything=False
+    ):
         return [
-            (
-                StockBulkResult(stock=data.get("instance"), errors=data.get("errors"))
-                if data.get("instance")
-                else StockBulkResult(stock=None, errors=data.get("errors"))
+            StockBulkResult(
+                stock=None if reject_everything else data.get("instance"),
+                errors=data.get("errors"),
+                variant_external_reference=stock_input.get(
+                    "variant_external_reference"
+                ),
+                warehouse_external_reference=stock_input.get(
+                    "warehouse_external_reference"
+                ),
             )
-            for data in instances_data_with_errors_list
+            for data, stock_input in zip(
+                instances_data_with_errors_list, stocks_input, strict=True
+            )
         ]
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         index_error_map: dict = defaultdict(list)
-        cleaned_inputs_map = cls.clean_stocks(data["stocks"], index_error_map)
+        stocks_input = data["stocks"]
+        cleaned_inputs_map = cls.clean_stocks(stocks_input, index_error_map)
 
         warehouse_selector, variant_selector = cls.get_selectors(cleaned_inputs_map)
 
@@ -441,7 +463,9 @@ class StockBulkUpdate(BaseMutation):
 
             if any(bool(error) for error in index_error_map.values()):
                 if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
-                    results = cls.get_results(instances_data_with_errors_list, True)
+                    results = cls.get_results(
+                        instances_data_with_errors_list, stocks_input, True
+                    )
                     return StockBulkUpdate(count=0, results=results)
 
                 if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
@@ -453,7 +477,7 @@ class StockBulkUpdate(BaseMutation):
             cls.post_save_actions(info, updated_stocks)
 
         # prepare and return data
-        results = cls.get_results(instances_data_with_errors_list)
+        results = cls.get_results(instances_data_with_errors_list, stocks_input)
         count = len(
             list(filter(lambda item: item["instance"], instances_data_with_errors_list))
         )
