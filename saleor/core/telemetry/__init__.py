@@ -49,10 +49,8 @@ def instrument_libraries(names: Iterable[str]) -> None:
     """
     # Library instrumentors are used for spans only, their metrics are discarded on
     # purpose by handing them a no-op MeterProvider. Saleor owns what goes to the
-    # metric pipeline: the requests instrumentor would duplicate the webhook request
-    # metrics recorded in saleor.webhook.transport.metrics, with extra port and
-    # status dimensions multiplying the series, and the Celery task runtime histogram
-    # is not needed. Keeping the metric set fixed also keeps its cost predictable.
+    # metric pipeline: the Celery task runtime histogram, for example, is not needed.
+    # Keeping the metric set fixed also keeps its cost predictable.
     meter_provider = NoOpMeterProvider()
     enabled = []
     for name in names:
