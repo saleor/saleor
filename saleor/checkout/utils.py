@@ -608,14 +608,7 @@ def get_voucher_for_checkout(
             return None, None
 
         if with_prefetch:
-            prefetch_related_objects(
-                [voucher],
-                "products",
-                "collections",
-                "categories",
-                "variants",
-                "channel_listings",
-            )
+            prefetch_related_objects([voucher], "channel_listings")
 
         if voucher.usage_limit is not None and with_lock:
             code = (

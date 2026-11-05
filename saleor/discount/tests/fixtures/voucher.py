@@ -70,6 +70,21 @@ def voucher_specific_product_type(voucher_percentage, product):
 
 
 @pytest.fixture
+def voucher_with_exclusions(
+    voucher, product, variant, collection, category, product_type_list
+):
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.product_types.add(product_type_list[0])
+    voucher.excluded_products.add(product)
+    voucher.excluded_variants.add(variant)
+    voucher.excluded_collections.add(collection)
+    voucher.excluded_categories.add(category)
+    voucher.excluded_product_types.add(product_type_list[1])
+    return voucher
+
+
+@pytest.fixture
 def voucher_with_high_min_spent_amount(channel_USD):
     voucher = Voucher.objects.create()
     VoucherCode.objects.create(code="mirumee", voucher=voucher)
