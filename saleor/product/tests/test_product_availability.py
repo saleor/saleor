@@ -239,6 +239,37 @@ def test_product_is_visible_from_today(product):
     assert product_channel_listing.is_visible
 
 
+@pytest.mark.parametrize(
+    ("_case", "published_at_offset", "is_published"),
+    [
+        ("published in the past", datetime.timedelta(days=-1), True),
+        ("scheduled for the future", datetime.timedelta(days=1), False),
+        ("no publication date", None, True),
+    ],
+)
+def test_published_and_not_published_split_by_published_at(
+    _case, published_at_offset, is_published, product_list, channel_USD
+):
+    # given
+    product = product_list[0]
+    published_at = timezone.now() + published_at_offset if published_at_offset else None
+    models.ProductChannelListing.objects.filter(
+        product=product, channel=channel_USD
+    ).update(is_published=True, published_at=published_at)
+
+    # when
+    published_ids = set(
+        models.Product.objects.published(channel_USD).values_list("pk", flat=True)
+    )
+    not_published_ids = set(
+        models.Product.objects.not_published(channel_USD).values_list("pk", flat=True)
+    )
+
+    # then
+    assert (product.pk in published_ids) is is_published
+    assert (product.pk in not_published_ids) is not is_published
+
+
 def test_available_products_with_variants(product_list, channel_USD):
     product = product_list[0]
     product.variants.all().delete()
