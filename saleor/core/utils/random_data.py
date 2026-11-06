@@ -1209,10 +1209,36 @@ def create_staff_users(staff_password, how_many=2, superuser=False):
     return users
 
 
-def create_orders(how_many=10):
+def create_orders(how_many=10, max_age=datetime.timedelta(days=30)):
+    now = timezone.now()
     for _ in range(how_many):
         order = create_fake_order()
+        _backdate_order(order, now - max_age * random.random(), now)
         yield f"Order: {order}"
+
+
+def _backdate_order(order, placed_at, now):
+    """Move a freshly created order and its payment and fulfillments to `placed_at`.
+
+    Without it every order would be created within the same second. The payment
+    lands shortly after the order and the fulfillment a while after the payment,
+    never later than `now`.
+    """
+    paid_at = min(placed_at + datetime.timedelta(minutes=random.randint(1, 120)), now)
+    fulfilled_at = min(paid_at + datetime.timedelta(hours=random.randint(1, 48)), now)
+
+    # `update()` skips `auto_now`/`auto_now_add`, which `save()` would reapply.
+    Order.objects.filter(pk=order.pk).update(created_at=placed_at, updated_at=paid_at)
+    OrderLine.objects.filter(order_id=order.pk).update(created_at=placed_at)
+    for transaction_item in TransactionItem.objects.filter(order_id=order.pk):
+        # Shift events by one delta to keep their relative order.
+        delta = paid_at - transaction_item.created_at
+        transaction_item.events.update(created_at=F("created_at") + delta)
+        TransactionItem.objects.filter(pk=transaction_item.pk).update(
+            created_at=paid_at, modified_at=paid_at
+        )
+    if Fulfillment.objects.filter(order_id=order.pk).update(created_at=fulfilled_at):
+        Order.objects.filter(pk=order.pk).update(updated_at=fulfilled_at)
 
 
 def create_catalogue_promotions(how_many=5):
@@ -1757,10 +1783,9 @@ def create_gift_cards(how_many=5):
                 "current_balance": Money(20, DEFAULT_CURRENCY),
             },
         )
-        order = Order.objects.order_by("?").first()
-        if not order:
-            raise Exception("No orders found")
-        gift_card_events.gift_cards_bought_event([gift_card], order, user, None)
+        # Orders are absent when populatedb runs with --skip-orders.
+        if order := Order.objects.order_by("?").first():
+            gift_card_events.gift_cards_bought_event([gift_card], order, user, None)
         if created:
             yield f"Gift card #{gift_card.pk}"
         else:
