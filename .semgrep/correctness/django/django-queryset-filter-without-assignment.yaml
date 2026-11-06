@@ -1,0 +1,77 @@
+rules:
+  - id: django-queryset-filter-without-assignment
+    version: 1.0.0
+    message: >
+      QuerySet.filter() returns a new queryset. Assign the result before using it.
+    metadata:
+      category: correctness
+      technology:
+        - django
+    languages:
+      - python
+    severity: WARNING
+    patterns:
+      # Note: since QuerySet comes from `<MyModel>.objects.<METHOD>`, we cannot
+      #       use Semgrep's type detection feature (such as `metavariable-type`)
+      #       as Semgrep doesn't know and cannot know that the type returned by
+      #       models is `django.db.models.QuerySet`, thus we accept the fact
+      #       that we may have false-positives due to the limited type detection
+      #       engine.
+      - pattern: $QUERYSET.filter(...)
+      - pattern-not-inside: |
+          $VARIABLE = $VALUE
+      - pattern-not-inside: |
+          $VARIABLE: $TYPE = $VALUE
+      - pattern-not-inside: |
+          return $VALUE
+      - pattern-not-inside: |
+          $FUNCTION(..., <... $QUERYSET.filter(...) ...>, ...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.aggregate(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.contains(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.count(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.delete(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.earliest(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.exists(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.first(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.get(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.in_bulk(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.last(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.latest(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.update(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>[...]
+      - pattern-not-inside: |
+          for $ITEM in <... $QUERYSET.filter(...) ...>:
+            ...
+      - pattern-not-inside: |
+          {$EXPRESSION for $ITEM in <... $QUERYSET.filter(...) ...>}
+      - pattern-not-inside: |
+          [$EXPRESSION for $ITEM in <... $QUERYSET.filter(...) ...>]
+      - pattern-not-inside: |
+          ($EXPRESSION for $ITEM in <... $QUERYSET.filter(...) ...>)
+      - pattern-not-inside: |
+          $VALUE in <... $QUERYSET.filter(...) ...>
+      - pattern-not-inside: |
+          $VALUE not in <... $QUERYSET.filter(...) ...>
+      - pattern-not-inside: |
+          if <... $QUERYSET.filter(...) ...>:
+            ...
+      - pattern-not-inside: |
+          while <... $QUERYSET.filter(...) ...>:
+            ...
+      - pattern-not-inside: |
+          assert <... $QUERYSET.filter(...) ...>
+      - pattern-not-inside: |
+          $VARIABLE |= $VALUE
