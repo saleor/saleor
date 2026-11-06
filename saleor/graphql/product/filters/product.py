@@ -2,7 +2,6 @@ import django_filters
 import graphene
 from django.db.models import Exists, OuterRef
 
-from ....channel.models import Channel
 from ....product.models import (
     CollectionProduct,
     Product,
@@ -10,7 +9,10 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
-from ...channel.filters import get_channel_slug_from_filter_data
+from ...channel.filters import (
+    ChannelIdFilterSetMixin,
+    get_channel_slug_from_filter_data,
+)
 from ...core.descriptions import ADDED_IN_323, DEPRECATED_PREORDER_INPUT
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.filters import (
@@ -92,7 +94,7 @@ class ProductStockFilterInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class ProductFilter(MetadataFilterBase):
+class ProductFilter(ChannelIdFilterSetMixin, MetadataFilterBase):
     is_published = django_filters.BooleanFilter(method="filter_is_published")
     published_from = ObjectTypeFilter(
         input_class=DateTime,
@@ -171,58 +173,30 @@ class ProductFilter(MetadataFilterBase):
         return filter_products_by_attributes(queryset, value)
 
     def filter_variant_price(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_variant_price(queryset, name, value, channel_slug)
+        return filter_variant_price(queryset, name, value, self.channel_id)
 
     def filter_minimal_price(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_minimal_price(queryset, name, value, channel_slug)
+        return filter_minimal_price(queryset, name, value, self.channel_id)
 
     def filter_is_published(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_products_is_published(
-            queryset,
-            name,
-            value,
-            channel_slug,
-        )
+        return filter_products_is_published(queryset, name, value, self.channel_id)
 
     def filter_published_from(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_products_channel_field_from_date(
-            queryset,
-            name,
-            value,
-            channel_slug,
-            "published_at",
+            queryset, name, value, self.channel_id, "published_at"
         )
 
     def filter_is_available(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_products_is_available(
-            queryset,
-            name,
-            value,
-            channel_slug,
-        )
+        return filter_products_is_available(queryset, name, value, self.channel_id)
 
     def filter_available_from(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_products_channel_field_from_date(
-            queryset,
-            name,
-            value,
-            channel_slug,
-            "available_for_purchase_at",
+            queryset, name, value, self.channel_id, "available_for_purchase_at"
         )
 
     def filter_listed(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_products_visible_in_listing(
-            queryset,
-            name,
-            value,
-            channel_slug,
+            queryset, name, value, self.channel_id
         )
 
     def filter_stock_availability(self, queryset, name, value):
@@ -235,7 +209,7 @@ class ProductFilter(MetadataFilterBase):
         return super().is_valid()
 
 
-class ProductWhere(MetadataWhereFilterBase):
+class ProductWhere(ChannelIdFilterSetMixin, MetadataWhereFilterBase):
     ids = GlobalIDMultipleChoiceWhereFilter(method=filter_by_ids("Product"))
     name = OperationObjectTypeWhereFilter(
         input_class=StringFilterInput,
@@ -366,57 +340,33 @@ class ProductWhere(MetadataWhereFilterBase):
         return qs.filter(Exists(collection_products.filter(product_id=OuterRef("pk"))))
 
     def filter_is_available(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
         return where_filter_products_is_available(
-            queryset,
-            name,
-            value,
-            channel_slug,
+            queryset, name, value, self.channel_id
         )
 
     def filter_is_published(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        return filter_products_is_published(
-            queryset,
-            name,
-            value,
-            channel_slug,
-        )
+        return filter_products_is_published(queryset, name, value, self.channel_id)
 
     def filter_is_listed(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
         return filter_products_visible_in_listing(
-            queryset,
-            name,
-            value,
-            channel_slug,
+            queryset, name, value, self.channel_id
         )
 
     def filter_published_from(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
         return where_filter_products_channel_field_from_date(
-            queryset,
-            name,
-            value,
-            channel_slug,
-            "published_at",
+            queryset, name, value, self.channel_id, "published_at"
         )
 
     def filter_available_from(self, queryset, name, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
         return where_filter_products_channel_field_from_date(
-            queryset,
-            name,
-            value,
-            channel_slug,
-            "available_for_purchase_at",
+            queryset, name, value, self.channel_id, "available_for_purchase_at"
         )
 
     def filter_variant_price(self, qs, _, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        channel_id = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+        if self.channel_id is None:
+            return qs.none()
         variant_listing = ProductVariantChannelListing.objects.using(qs.db).filter(
-            Exists(channel_id.filter(pk=OuterRef("channel_id")))
+            channel_id=self.channel_id
         )
         variant_listing = filter_where_by_numeric_field(
             variant_listing, "price_amount", value
@@ -430,12 +380,12 @@ class ProductWhere(MetadataWhereFilterBase):
         return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
 
     def filter_minimal_price(self, qs, _, value):
-        channel_slug = get_channel_slug_from_filter_data(self.data)
-        channel = Channel.objects.using(qs.db).filter(slug=channel_slug).first()
-        if not channel:
+        if self.channel_id is None:
+            # Unlike the other channel filters, an unknown channel leaves the
+            # queryset unfiltered. Kept as it was for backwards compatibility.
             return qs
         product_listing = ProductChannelListing.objects.using(qs.db).filter(
-            channel_id=channel.id
+            channel_id=self.channel_id
         )
         product_listing = filter_where_by_numeric_field(
             product_listing, "discounted_price_amount", value
