@@ -25,51 +25,53 @@ rules:
       - pattern-not-inside: |
           return $VALUE
       - pattern-not-inside: |
-          $FUNCTION(..., $QUERYSET.filter(...), ...)
+          $FUNCTION(..., <... $QUERYSET.filter(...) ...>, ...)
       - pattern-not-inside: |
-          $QUERYSET.filter(...).$METHOD(...)
+          <... $QUERYSET.filter(...) ...>.aggregate(...)
       - pattern-not-inside: |
-          $QUERYSET.filter(...)[...]
+          <... $QUERYSET.filter(...) ...>.contains(...)
       - pattern-not-inside: |
-          for $ITEM in $QUERYSET.filter(...):
+          <... $QUERYSET.filter(...) ...>.count(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.delete(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.earliest(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.exists(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.first(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.get(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.in_bulk(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.last(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.latest(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>.update(...)
+      - pattern-not-inside: |
+          <... $QUERYSET.filter(...) ...>[...]
+      - pattern-not-inside: |
+          for $ITEM in <... $QUERYSET.filter(...) ...>:
             ...
       - pattern-not-inside: |
-          {$EXPRESSION for $ITEM in $QUERYSET.filter(...) }
+          {$EXPRESSION for $ITEM in <... $QUERYSET.filter(...) ...>}
       - pattern-not-inside: |
-          [$EXPRESSION for $ITEM in $QUERYSET.filter(...) ]
+          [$EXPRESSION for $ITEM in <... $QUERYSET.filter(...) ...>]
       - pattern-not-inside: |
-          ($EXPRESSION for $ITEM in $QUERYSET.filter(...))
+          ($EXPRESSION for $ITEM in <... $QUERYSET.filter(...) ...>)
       - pattern-not-inside: |
-          $VALUE in $QUERYSET.filter(...)
+          $VALUE in <... $QUERYSET.filter(...) ...>
       - pattern-not-inside: |
-          $VALUE not in $QUERYSET.filter(...)
+          $VALUE not in <... $QUERYSET.filter(...) ...>
       - pattern-not-inside: |
-          if $QUERYSET.filter(...):
+          if <... $QUERYSET.filter(...) ...>:
             ...
       - pattern-not-inside: |
-          if not $QUERYSET.filter(...):
+          while <... $QUERYSET.filter(...) ...>:
             ...
       - pattern-not-inside: |
-          if $LEFT and $QUERYSET.filter(...):
-            ...
-      - pattern-not-inside: |
-          if $QUERYSET.filter(...) and $RIGHT:
-            ...
-      - pattern-not-inside: |
-          if $LEFT or $QUERYSET.filter(...):
-            ...
-      - pattern-not-inside: |
-          if $QUERYSET.filter(...) or $RIGHT:
-            ...
-      - pattern-not-inside: |
-          while $QUERYSET.filter(...):
-            ...
-      - pattern-not-inside: |
-          while not $QUERYSET.filter(...):
-            ...
-      - pattern-not-inside: |
-          assert $QUERYSET.filter(...)
-      - pattern-not-inside: |
-          assert not $QUERYSET.filter(...)
+          assert <... $QUERYSET.filter(...) ...>
       - pattern-not-inside: |
           $VARIABLE |= $VALUE

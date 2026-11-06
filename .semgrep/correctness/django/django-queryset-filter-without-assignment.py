@@ -6,6 +6,51 @@ def test_discarded_filter_result():
     qs.filter(pk=1)
 
 
+def test_discarded_filter_chain():
+    """Discarding a queryset transformed after filtering should flag it."""
+    qs = Product.objects.all()
+
+    # ruleid: django-queryset-filter-without-assignment
+    qs.filter(pk=1).filter(pk=1).exclude(pk=1).exclude(pk=1)
+
+
+def test_discarded_queryset_without_intermediary_var():
+    """Unassigned queryset without first assigning a variable should match."""
+
+    # No `qs.filter()` + chained calls
+    # ruleid: django-queryset-filter-without-assignment
+    Product.objects.filter(pk=1).filter(pk=1).exclude(pk=1).exclude(pk=1)
+
+    # Once again no intermediary `qs` variable + basic filter
+    # ruleid: django-queryset-filter-without-assignment
+    Product.objects.filter(pk=1)
+
+    # ok: django-queryset-filter-without-assignment
+    Product.objects.filter(pk=1).first()
+
+    # ok: django-queryset-filter-without-assignment
+    Product.objects.first()
+
+    # ok: django-queryset-filter-without-assignment
+    qs = Product.objects.filter(pk=1)
+
+
+def test_assigned_filter_chain():
+    """Assigning a transformed queryset shouldn't flag it."""
+    qs = Product.objects.all()
+
+    # ok: django-queryset-filter-without-assignment
+    qs = qs.filter(pk=1).exclude(pk=1)
+
+
+def test_filter_chain_deleted():
+    """Deleting a transformed queryset shouldn't flag it."""
+    qs = Product.objects.all()
+
+    # ok: django-queryset-filter-without-assignment
+    qs.filter(pk=1).exclude(pk=1).delete()
+
+
 def test_assigned_filter_result():
     """Properly assign `qs = ...` shouldn't be flagged."""
     qs = Product.objects.all()
