@@ -17,6 +17,8 @@ class AccountPermissions(BasePermissionEnum):
     MANAGE_USERS = "account.manage_users"
     MANAGE_STAFF = "account.manage_staff"
     IMPERSONATE_USER = "account.impersonate_user"
+    READ_USERS = "account.read_users"
+    READ_STAFF = "account.read_staff"
 
 
 class AppPermission(BasePermissionEnum):
