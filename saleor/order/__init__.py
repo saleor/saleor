@@ -300,6 +300,29 @@ class OrderChargeStatus:
     ]
 
 
+class OrderRefundStatus:
+    """Determine the current refund status for the order.
+
+    The refund status is computed from TransactionItem refunded amounts
+    compared to the order's total charged amount.
+
+    NONE - no refunds were made.
+    PARTIAL - the sum of refunded amounts is less than the total charged amount.
+    FULL - the sum of refunded amounts equals or exceeds the total charged amount
+    and the total charged amount is greater than 0.
+    """
+
+    NONE = "none"
+    PARTIAL = "partial"
+    FULL = "full"
+
+    CHOICES = [
+        (NONE, "No refunds were made."),
+        (PARTIAL, "The order is partially refunded"),
+        (FULL, "The order is fully refunded"),
+    ]
+
+
 @dataclass
 class FulfillmentLineData:
     line: "FulfillmentLine"
