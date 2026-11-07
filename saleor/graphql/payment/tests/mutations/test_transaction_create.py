@@ -548,6 +548,42 @@ def test_transaction_create_for_checkout_by_app_metadata_null_value(
     assert transaction.user is None
 
 
+def test_transaction_create_accepts_root_relative_external_url(
+    checkout_with_prices, permission_manage_payments, app_api_client
+):
+    # given
+    relative_external_url = (
+        "/dashboard/apps/QXBwOjY=/app/app/transactions/"
+        "VHJhbnNhY3Rpb25JdGVtOmIxOGE4NTdkLTM0OWEtNDFlYS04NDYyLTgzMzhhNzJlOTdiMQ=="
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout_with_prices.pk),
+        "transaction": {
+            "pspReference": "PSP reference - 456",
+            "amountAuthorized": {
+                "amount": Decimal("5.00"),
+                "currency": "USD",
+            },
+            "externalUrl": relative_external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]
+    assert not data["errors"]
+    assert data["transaction"]["externalUrl"] == relative_external_url
+
+    checkout_with_prices.refresh_from_db()
+    transaction = checkout_with_prices.payment_transactions.first()
+    assert transaction.external_url == relative_external_url
+
+
 @pytest.mark.parametrize(
     ("amount_field_name", "amount_db_field"),
     [
