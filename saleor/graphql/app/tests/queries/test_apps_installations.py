@@ -1,9 +1,14 @@
 import graphene
 import pytest
 
+from .....permission.enums import AccountPermissions
 from .....thumbnail import IconThumbnailFormat
 from .....thumbnail.models import Thumbnail
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 APPS_INSTALLATION_QUERY = """
     {
@@ -48,6 +53,87 @@ def test_apps_installation_by_app_missing_permission(app_api_client):
 def test_apps_installation_missing_permission(staff_api_client):
     response = staff_api_client.post_graphql(APPS_INSTALLATION_QUERY)
     assert_no_permission(response)
+
+
+APPS_INSTALLATION_QUERY_WITH_INSTALLED_BY = """
+    {
+      appsInstallations{
+        id
+        installedBy {
+          id
+          email
+        }
+      }
+    }
+"""
+
+MISSING_MANAGE_STAFF_MESSAGE = (
+    "To access this path, you need one of the following permissions: "
+    f"{AccountPermissions.MANAGE_STAFF.name}"
+)
+
+
+def test_apps_installation_installed_by(
+    app_installation,
+    staff_api_client,
+    permission_manage_apps,
+    permission_manage_staff,
+    staff_user,
+):
+    # given
+    app_installation.installed_by = staff_user
+    app_installation.save(update_fields=["installed_by"])
+
+    # when
+    response = staff_api_client.post_graphql(
+        APPS_INSTALLATION_QUERY_WITH_INSTALLED_BY,
+        permissions=[permission_manage_apps, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    installations = content["data"]["appsInstallations"]
+    assert len(installations) == 1
+    assert installations[0]["installedBy"]["email"] == staff_user.email
+
+
+def test_apps_installation_installed_by_without_manage_staff(
+    app_installation, staff_api_client, permission_manage_apps, staff_user
+):
+    """MANAGE_STAFF is the only permission missing, so the denial is unambiguous."""
+    # given
+    app_installation.installed_by = staff_user
+    app_installation.save(update_fields=["installed_by"])
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
+
+    # when
+    response = staff_api_client.post_graphql(APPS_INSTALLATION_QUERY_WITH_INSTALLED_BY)
+
+    # then
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    error = content["errors"][0]
+    assert error["extensions"]["exception"]["code"] == "PermissionDenied"
+    assert error["message"] == MISSING_MANAGE_STAFF_MESSAGE
+
+
+def test_apps_installation_installed_by_null(
+    app_installation, staff_api_client, permission_manage_apps, permission_manage_staff
+):
+    # given - installation recorded before creator tracking existed
+    assert app_installation.installed_by is None
+
+    # when
+    response = staff_api_client.post_graphql(
+        APPS_INSTALLATION_QUERY_WITH_INSTALLED_BY,
+        permissions=[permission_manage_apps, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    installations = content["data"]["appsInstallations"]
+    assert len(installations) == 1
+    assert installations[0]["installedBy"] is None
 
 
 APPS_INSTALLATION_QUERY_WITH_LOGO = """
