@@ -7,6 +7,7 @@ from uuid import UUID
 
 import graphene
 from django.contrib.sites.models import Site
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F
 
@@ -19,7 +20,10 @@ from ..core.utils.events import (
     call_event,
 )
 from ..giftcard import GiftCardLineData
-from ..order.lock_objects import order_lines_qs_select_for_update
+from ..order.lock_objects import (
+    fulfillment_qs_select_for_update,
+    order_lines_qs_select_for_update,
+)
 from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -46,6 +50,7 @@ from . import (
     OrderStatus,
     events,
 )
+from .error_codes import OrderErrorCode
 from .events import (
     draft_order_created_from_replace_event,
     fulfillment_refunded_event,
@@ -871,8 +876,17 @@ def approve_fulfillment(
     allow_stock_to_be_exceeded: bool = False,
 ):
     with traced_atomic_transaction():
+        # Re-read the status under a row lock, so a concurrent approval of the same
+        # fulfillment can't decrease the stock a second time.
+        fulfillment = fulfillment_qs_select_for_update().get(pk=fulfillment.pk)
+        if fulfillment.status != FulfillmentStatus.WAITING_FOR_APPROVAL:
+            raise ValidationError(
+                "Invalid fulfillment status, only WAITING_FOR_APPROVAL "
+                "fulfillments can be accepted.",
+                code=OrderErrorCode.INVALID.value,
+            )
         fulfillment.status = FulfillmentStatus.FULFILLED
-        fulfillment.save()
+        fulfillment.save(update_fields=["status"])
         order = fulfillment.order
         lines_to_fulfill = []
         gift_card_lines_info = []
@@ -1298,6 +1312,17 @@ def create_fulfillments(
             order_line_quantities_to_fulfill[line.pk] for line in order_lines
         ]
         clean_order_line_quantities(order_lines, quantities_for_lines)
+
+        # The passed order lines may be stale; `quantity_fulfilled` is incremented on
+        # them and saved, so it must start from the locked value to not lose updates
+        # made by a concurrent fulfillment.
+        locked_quantity_fulfilled = {
+            line.pk: line.quantity_fulfilled for line in order_lines
+        }
+        for lines in fulfillment_lines_for_warehouses.values():
+            for line in lines:
+                order_line = line["order_line"]
+                order_line.quantity_fulfilled = locked_quantity_fulfilled[order_line.pk]
 
         for warehouse_pk in fulfillment_lines_for_warehouses:
             fulfillment = Fulfillment.objects.create(

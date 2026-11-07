@@ -491,6 +491,45 @@ def test_allocate_stock_insufficient_stocks(
     ).exists()
 
 
+@pytest.mark.parametrize(
+    ("_case", "check_reservations"),
+    [
+        ("reservations_ignored", False),
+        ("reservations_checked", True),
+    ],
+)
+def test_allocate_stock_insufficient_stocks_due_to_existing_allocations(
+    _case, check_reservations, allocation, channel_USD, site_settings
+):
+    # given
+    stock = allocation.stock
+    stock.quantity = allocation.quantity_allocated
+    stock.quantity_allocated = allocation.quantity_allocated
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+    order_line = allocation.order_line
+    line_data = OrderLineInfo(line=order_line, variant=order_line.variant, quantity=1)
+
+    # when
+    with pytest.raises(InsufficientStock) as exc:
+        allocate_stocks(
+            [line_data],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+            check_reservations=check_reservations,
+            checkout_lines=[],
+        )
+
+    # then
+    [insufficient_stock_data] = exc.value.items
+    assert insufficient_stock_data.variant == order_line.variant
+    assert Allocation.objects.get(stock=stock) == allocation
+    stock.refresh_from_db(fields=["quantity_allocated"])
+    assert stock.quantity_allocated == allocation.quantity_allocated
+
+
 def test_allocate_stock_insufficient_stocks_for_multiple_lines(
     order_line, variant_with_many_stocks, product, channel_USD, site_settings
 ):
@@ -1316,6 +1355,122 @@ def test_decrease_stock_with_out_of_stock_webhook_triggered(
         )
 
     product_variant_out_of_stock_webhook_mock.assert_called_once()
+
+
+def _create_order_line_for_variant(order_line, variant):
+    order_line_2 = OrderLine.objects.get(pk=order_line.pk)
+    order_line_2.pk = None
+    order_line_2.variant = variant
+    order_line_2.variant_name = variant.name
+    order_line_2.product_sku = variant.sku
+    order_line_2.save()
+    return order_line_2
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
+def test_allocate_stocks_out_of_stock_webhook_triggered_for_each_drained_stock(
+    product_variant_out_of_stock_webhook_mock,
+    order_line,
+    product,
+    stock,
+    channel_USD,
+    site_settings,
+    django_capture_on_commit_callbacks,
+):
+    # given
+    variant_2 = product.variants.first()
+    stock_2 = Stock.objects.get(product_variant=variant_2)
+    assert stock_2.pk != stock.pk
+    order_line_2 = _create_order_line_for_variant(order_line, variant_2)
+
+    quantity_1 = 3
+    quantity_2 = 2
+    stock.quantity = quantity_1
+    stock_2.quantity = quantity_2
+    Stock.objects.bulk_update([stock, stock_2], ["quantity"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        allocate_stocks(
+            [
+                OrderLineInfo(
+                    line=order_line, variant=order_line.variant, quantity=quantity_1
+                ),
+                OrderLineInfo(
+                    line=order_line_2, variant=variant_2, quantity=quantity_2
+                ),
+            ],
+            COUNTRY_CODE,
+            channel_USD,
+            site_settings=site_settings,
+            requestor=None,
+            calculate_stocks_with_shipping_zones=True,
+        )
+
+    # then
+    assert product_variant_out_of_stock_webhook_mock.call_count == 2
+    notified_stock_pks = {
+        call.args[0].pk
+        for call in product_variant_out_of_stock_webhook_mock.call_args_list
+    }
+    assert notified_stock_pks == {stock.pk, stock_2.pk}
+
+
+@mock.patch("saleor.warehouse.management.trigger_product_variant_out_of_stock")
+def test_decrease_stock_out_of_stock_webhook_triggered_for_each_drained_stock(
+    product_variant_out_of_stock_webhook_mock,
+    allocation,
+    product,
+    django_capture_on_commit_callbacks,
+    site_settings,
+):
+    # given
+    stock = allocation.stock
+    order_line = allocation.order_line
+    variant_2 = product.variants.first()
+    stock_2 = Stock.objects.get(product_variant=variant_2)
+    assert stock_2.pk != stock.pk
+    order_line_2 = _create_order_line_for_variant(order_line, variant_2)
+
+    quantity_1 = allocation.quantity_allocated
+    quantity_2 = 2
+    Allocation.objects.create(
+        order_line=order_line_2, stock=stock_2, quantity_allocated=quantity_2
+    )
+    stock.quantity = quantity_1
+    stock.quantity_allocated = quantity_1
+    stock_2.quantity = quantity_2
+    stock_2.quantity_allocated = quantity_2
+    Stock.objects.bulk_update([stock, stock_2], ["quantity", "quantity_allocated"])
+
+    # when
+    with django_capture_on_commit_callbacks(execute=True):
+        decrease_stock(
+            [
+                OrderLineInfo(
+                    line=order_line,
+                    quantity=quantity_1,
+                    variant=order_line.variant,
+                    warehouse_pk=stock.warehouse_id,
+                ),
+                OrderLineInfo(
+                    line=order_line_2,
+                    quantity=quantity_2,
+                    variant=variant_2,
+                    warehouse_pk=stock_2.warehouse_id,
+                ),
+            ],
+            site_settings=site_settings,
+            requestor=None,
+        )
+
+    # then
+    assert product_variant_out_of_stock_webhook_mock.call_count == 2
+    notified_stock_pks = {
+        call.args[0].pk
+        for call in product_variant_out_of_stock_webhook_mock.call_args_list
+    }
+    assert notified_stock_pks == {stock.pk, stock_2.pk}
 
 
 def test_allocate_preorders(
