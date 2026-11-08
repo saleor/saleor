@@ -13,9 +13,12 @@ from .....checkout import base_calculations, calculations
 from .....checkout.actions import call_checkout_info_event
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from .....checkout.models import Checkout
 from .....checkout.tests.utils import add_variant_to_checkout
+from .....checkout.utils import add_voucher_to_checkout
 from .....core.models import EventDelivery
-from .....discount import DiscountValueType, VoucherType
+from .....discount import DiscountValueType, RewardValueType, VoucherType
+from .....discount.models import CheckoutLineDiscount
 from .....plugins.manager import get_plugins_manager
 from .....product.models import (
     Collection,
@@ -393,6 +396,203 @@ def test_checkout_add_voucher_code_checkout_on_promotion(
     assert checkout.discount_amount == voucher_discount
     assert checkout.last_change != previous_checkout_last_change
     assert checkout.subtotal < subtotal_discounted
+
+
+MUTATION_CHECKOUT_CREATE = """
+    mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
+      checkoutCreate(input: $checkoutInput) {
+        checkout {
+          id
+        }
+        errors {
+          field
+          message
+          code
+        }
+      }
+    }
+"""
+
+
+def _create_catalogue_promotion_for_variant(
+    variant, channel, promotion, discount_amount
+):
+    """Create a catalogue promotion rule discounting the variant.
+
+    Only the variant listing and the promotion rule are created, mirroring the
+    state left by `checkoutCreate`: no `CheckoutLineDiscount` rows exist yet.
+    """
+    variant_channel_listing = variant.channel_listings.get(channel=channel)
+    variant_channel_listing.discounted_price_amount = (
+        variant_channel_listing.price_amount - discount_amount
+    )
+    variant_channel_listing.save(update_fields=["discounted_price_amount"])
+
+    rule = promotion.rules.create(
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=discount_amount,
+    )
+    rule.channels.add(channel)
+    variant_channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=discount_amount,
+        currency=channel.currency_code,
+    )
+
+
+def test_checkout_add_entire_order_voucher_with_catalogue_promotion_not_yet_stored(
+    api_client,
+    channel_USD,
+    product,
+    product_list,
+    voucher_percentage,
+    catalogue_promotion_without_rules,
+):
+    # given
+    variant_a = product.variants.get()
+    variant_b = product_list[0].variants.get()
+    price_a = Decimal("156.12")
+    discounted_price_a = Decimal("124.90")
+    price_b = Decimal("253.87")
+    promotion_discount = price_a - discounted_price_a
+    discounted_subtotal = discounted_price_a + price_b
+    # 10% of the discounted subtotal (378.77)
+    voucher_discount = Decimal("37.88")
+    expected_subtotal = discounted_subtotal - voucher_discount
+
+    listing_a = variant_a.channel_listings.get(channel=channel_USD)
+    listing_a.price_amount = price_a
+    listing_a.save(update_fields=["price_amount"])
+    listing_b = variant_b.channel_listings.get(channel=channel_USD)
+    listing_b.price_amount = price_b
+    listing_b.discounted_price_amount = price_b
+    listing_b.save(update_fields=["price_amount", "discounted_price_amount"])
+    _create_catalogue_promotion_for_variant(
+        variant_a,
+        channel_USD,
+        catalogue_promotion_without_rules,
+        promotion_discount,
+    )
+
+    variables = {
+        "checkoutInput": {
+            "channel": channel_USD.slug,
+            "lines": [
+                {
+                    "quantity": 1,
+                    "variantId": graphene.Node.to_global_id(
+                        "ProductVariant", variant_a.id
+                    ),
+                },
+                {
+                    "quantity": 1,
+                    "variantId": graphene.Node.to_global_id(
+                        "ProductVariant", variant_b.id
+                    ),
+                },
+            ],
+        }
+    }
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["checkoutCreate"]["errors"] == []
+    checkout_id = content["data"]["checkoutCreate"]["checkout"]["id"]
+
+    # `checkoutCreate` does not store catalogue promotion discounts on the lines
+    assert CheckoutLineDiscount.objects.exists() is False
+
+    # when
+    data = _mutate_checkout_add_promo_code(
+        api_client, {"id": checkout_id, "promoCode": voucher_percentage.code}
+    )
+
+    # then
+    assert data["errors"] == []
+    assert data["checkout"]["voucherCode"] == voucher_percentage.code
+    assert data["checkout"]["discount"]["amount"] == voucher_discount
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_subtotal
+
+    checkout = Checkout.objects.get()
+    assert checkout.discount_amount == voucher_discount
+
+
+def test_entire_order_voucher_recalculated_when_prices_expire(
+    channel_USD,
+    checkout,
+    product,
+    product_list,
+    voucher_percentage,
+    catalogue_promotion_without_rules,
+):
+    # given
+    variant_a = product.variants.get()
+    variant_b = product_list[0].variants.get()
+    price_a = Decimal("156.12")
+    discounted_price_a = Decimal("124.90")
+    price_b = Decimal("253.87")
+    promotion_discount = price_a - discounted_price_a
+    discounted_subtotal = discounted_price_a + price_b
+    voucher_discount = Decimal("37.88")
+    expected_subtotal = discounted_subtotal - voucher_discount
+
+    listing_a = variant_a.channel_listings.get(channel=channel_USD)
+    listing_a.price_amount = price_a
+    listing_a.save(update_fields=["price_amount"])
+    listing_b = variant_b.channel_listings.get(channel=channel_USD)
+    listing_b.price_amount = price_b
+    listing_b.discounted_price_amount = price_b
+    listing_b.save(update_fields=["price_amount", "discounted_price_amount"])
+    _create_catalogue_promotion_for_variant(
+        variant_a,
+        channel_USD,
+        catalogue_promotion_without_rules,
+        promotion_discount,
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+    add_variant_to_checkout(checkout_info, variant_a, 1)
+    add_variant_to_checkout(checkout_info, variant_b, 1)
+    checkout.save()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # no catalogue promotion discounts stored on the lines yet
+    assert CheckoutLineDiscount.objects.exists() is False
+
+    # voucher applied while the promotion discounts are not stored yet,
+    # so the stored amount is calculated from undiscounted prices
+    add_voucher_to_checkout(
+        manager,
+        checkout_info,
+        lines,
+        voucher_percentage,
+        voucher_percentage.codes.first(),
+    )
+    checkout.refresh_from_db()
+    assert checkout.discount_amount == Decimal("41.00")
+
+    # prices expire, e.g. a promotion starts or a channel price changes
+    checkout.price_expiration = timezone.now()
+    checkout.discount_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration", "discount_expiration"])
+
+    # when
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager, checkout_info=checkout_info, lines=lines
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.discount_amount == voucher_discount
+    assert subtotal.gross.amount == expected_subtotal
 
 
 def test_checkout_add_specific_product_voucher_code_checkout_on_promotion(
