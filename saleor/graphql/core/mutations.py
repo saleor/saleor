@@ -3,7 +3,7 @@ import secrets
 from collections.abc import Collection, Iterable
 from enum import Enum
 from itertools import chain
-from typing import Any, TypeVar, cast, overload
+from typing import Any, cast, overload
 from uuid import UUID
 
 import graphene
@@ -137,9 +137,6 @@ class ModelMutationOptions(MutationOptions):
     max_input_size = None
 
 
-MT = TypeVar("MT", bound=Model)
-
-
 class BaseMutation(graphene.Mutation):
     class Meta:
         abstract = True
@@ -229,7 +226,7 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def _get_node_by_pk(
+    def _get_node_by_pk[MT: Model](
         cls,
         info: ResolveInfo,
         graphene_type: type[ModelObjectType[MT]],
@@ -276,7 +273,7 @@ class BaseMutation(graphene.Mutation):
 
     @overload
     @classmethod
-    def get_node_or_error(
+    def get_node_or_error[MT: Model](
         cls,
         info: ResolveInfo,
         node_id: str,
@@ -289,7 +286,7 @@ class BaseMutation(graphene.Mutation):
 
     @overload
     @classmethod
-    def get_node_or_error(
+    def get_node_or_error[MT: Model](
         cls,
         info: ResolveInfo,
         node_id: str | None,
@@ -302,7 +299,7 @@ class BaseMutation(graphene.Mutation):
 
     @overload
     @classmethod
-    def get_node_or_error(
+    def get_node_or_error[MT: Model](
         cls,
         info: ResolveInfo,
         node_id: str,
@@ -401,7 +398,7 @@ class BaseMutation(graphene.Mutation):
 
     @overload
     @classmethod
-    def get_nodes_or_error(
+    def get_nodes_or_error[MT: Model](
         cls, ids, field, only_type: type[ModelObjectType[MT]], qs=None, schema=None
     ) -> list[MT]: ...
 

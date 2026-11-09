@@ -1,7 +1,6 @@
 import threading
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TypeVar
 
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
@@ -12,9 +11,6 @@ from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
 from .context import get_database_connection_name
-
-K = TypeVar("K")
-R = TypeVar("R")
 
 
 class DataLoader[K, R](BaseLoader):

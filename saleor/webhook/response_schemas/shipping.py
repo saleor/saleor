@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Annotated, TypeVar
+from typing import Annotated
 
 from graphql.error import GraphQLError
 from prices import Money
@@ -22,8 +22,6 @@ from .utils.annotations import DefaultIfNone, Metadata, OnErrorSkip
 logger = logging.getLogger(__name__)
 
 name_max_length = ShippingMethod._meta.get_field("name").max_length
-
-T = TypeVar("T")
 
 
 class ShippingMethodSchema(BaseModel):

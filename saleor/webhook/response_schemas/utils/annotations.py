@@ -20,7 +20,6 @@ from pydantic_core import PydanticOmit, PydanticUseDefault, core_schema
 from ....core.utils.metadata_manager import metadata_is_valid
 from ....payment import interface
 
-M = TypeVar("M")
 logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
