@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.db.models import Model, QuerySet
@@ -74,16 +74,13 @@ def setup_context_user(context: SaleorContext) -> None:
         context.user = context.user._wrapped  # type: ignore[union-attr]
 
 
-N = TypeVar("N")
-
-
 @dataclass
 class BaseContext[N]:
     node: N
 
 
 @dataclass
-class SyncWebhookControlContext(BaseContext[N]):
+class SyncWebhookControlContext[N](BaseContext[N]):
     allow_sync_webhooks: bool = True
 
     def __init__(self, node: N, allow_sync_webhooks: bool = True):
@@ -92,14 +89,11 @@ class SyncWebhookControlContext(BaseContext[N]):
 
 
 @dataclass
-class ChannelContext(BaseContext[N]):
+class ChannelContext[N](BaseContext[N]):
     channel_slug: str | None
 
 
-M = TypeVar("M", bound=Model)
-
-
 @dataclass
-class ChannelQsContext(Generic[M]):
+class ChannelQsContext[M: Model]:
     qs: QuerySet[M]
     channel_slug: str | None
