@@ -1,8 +1,8 @@
 import datetime
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from functools import partial
 from io import BytesIO
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import graphene
 import pytest
@@ -12,9 +12,11 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from freezegun import freeze_time
+from kombu import Connection
 from PIL import Image
 
 from ..account.models import Address, Group, StaffNotificationRecipient
+from ..celeryconf import app as celery_app
 from ..core import JobStatus
 from ..core.db.locks import AdvisoryLock, get_advisory_lock_namespace
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
@@ -1792,3 +1794,25 @@ def cache_clear():
     cache.clear()
     yield
     cache.clear()
+
+
+@pytest.fixture
+def sqs_broker_client(settings):
+    """Publish Celery messages through Saleor's SQS transport instead of running them.
+
+    Yields the mocked SQS client, so a test can assert on what `send_message` got.
+    """
+    settings.CELERY_TASK_ALWAYS_EAGER = False
+    sqs_client = MagicMock()
+    session = MagicMock()
+    session.client.return_value = sqs_client
+    with (
+        patch("boto3.session.Session", return_value=session),
+        Connection(transport="saleor.core.sqs:Transport") as connection,
+        patch.object(
+            celery_app,
+            "producer_or_acquire",
+            return_value=nullcontext(celery_app.amqp.Producer(connection)),
+        ),
+    ):
+        yield sqs_client

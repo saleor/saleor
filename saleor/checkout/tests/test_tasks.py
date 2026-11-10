@@ -10,9 +10,11 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from ...channel.models import Channel
+from ...core.utils import get_domain
 from ...order import OrderEvents
 from ...order.models import Order
 from ...product.models import ProductChannelListing, ProductVariantChannelListing
+from ...webhook.transport.utils import get_sqs_message_group_id
 from .. import CheckoutAuthorizeStatus
 from ..models import Checkout, CheckoutLine
 from ..tasks import (
@@ -1002,11 +1004,42 @@ def test_trigger_automatic_checkout_completion_task_with_eligible_checkouts(
     trigger_automatic_checkout_completion_task()
 
     # then
-    assert mocked_automatic_checkout_completion.call_count == 1
     mocked_automatic_checkout_completion.assert_called_once_with(
         args=[checkout_with_prices.token],
         kwargs={},
-        headers={"MessageGroupId": mock.ANY},
+        MessageGroupId=get_sqs_message_group_id(get_domain()),
+    )
+
+
+@freeze_time("2024-05-31 12:00:01")
+def test_trigger_automatic_checkout_completion_task_publishes_message_group_id(
+    sqs_broker_client,
+    checkout_with_prices,
+    channel_USD,
+):
+    # given
+    channel_USD.automatically_complete_fully_paid_checkouts = True
+    channel_USD.automatic_completion_delay = 5
+    channel_USD.save(
+        update_fields=[
+            "automatically_complete_fully_paid_checkouts",
+            "automatic_completion_delay",
+        ]
+    )
+
+    Checkout.objects.update(
+        authorize_status=CheckoutAuthorizeStatus.FULL,
+        last_change=timezone.now() - datetime.timedelta(minutes=7),
+    )
+
+    # when
+    trigger_automatic_checkout_completion_task()
+
+    # then
+    sqs_broker_client.send_message.assert_called_once()
+    send_message_kwargs = sqs_broker_client.send_message.call_args.kwargs
+    assert send_message_kwargs["MessageGroupId"] == get_sqs_message_group_id(
+        get_domain()
     )
 
 

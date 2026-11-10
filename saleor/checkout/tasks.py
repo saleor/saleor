@@ -199,7 +199,7 @@ def trigger_automatic_checkout_completion_task():
             automatic_checkout_completion_task.apply_async(
                 args=[checkout.pk],
                 kwargs={},
-                headers={"MessageGroupId": get_sqs_message_group_id(domain)},
+                MessageGroupId=get_sqs_message_group_id(domain),
             )
 
 
