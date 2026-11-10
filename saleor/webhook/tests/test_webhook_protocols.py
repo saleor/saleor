@@ -51,7 +51,7 @@ def test_trigger_webhooks_with_aws_sqs(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"))
     trigger_webhooks_async(
         expected_data,
         WebhookEventAsyncType.ORDER_CREATED,
@@ -90,7 +90,7 @@ def test_trigger_webhooks_with_aws_sqs(
         ("secret%2B%2Faccess", "secret+/access"),
     ],
 )
-def test_trigger_webhooks_with_aws_sqs_and_secret_key(
+def test_trigger_webhooks_with_aws_sqs_and_url_encoded_credentials(
     webhook,
     order_with_lines,
     permission_manage_orders,
@@ -117,14 +117,11 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
         f"awssqs://{access_key}:{secret_key}@sqs.{region}.amazonaws.com/account_id/"
         f"queue_name"
     )
-    webhook.secret_key = "secret+/access"
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
     message = expected_data
-    expected_signature = signature_for_payload(
-        message.encode("utf-8"), webhook.secret_key
-    )
+    expected_signature = signature_for_payload(message.encode("utf-8"))
     trigger_webhooks_async(
         expected_data,
         WebhookEventAsyncType.ORDER_CREATED,
@@ -176,7 +173,7 @@ def test_trigger_webhooks_with_google_pub_sub(
     webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
-    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"))
 
     # when
     trigger_webhooks_async(
@@ -227,7 +224,7 @@ def test_trigger_webhooks_with_google_pub_sub_when_timout_error_raised(
     webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
     webhook.save()
     expected_data = serialize("json", [order_with_lines])
-    expected_signature = signature_for_payload(expected_data.encode("utf-8"), None)
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"))
 
     # when
     trigger_webhooks_async(
@@ -248,49 +245,6 @@ def test_trigger_webhooks_with_google_pub_sub_when_timout_error_raised(
     mocked_publisher.publish.assert_called_once_with(
         "projects/saleor/topics/test",
         expected_data.encode("utf-8"),
-        saleorDomain="example.com",
-        saleorApiUrl="https://example.com/graphql/",
-        eventType=WebhookEventAsyncType.ORDER_CREATED,
-        signature=expected_signature,
-        retry=ANY,
-        timeout=settings.WEBHOOK_WAITING_FOR_RESPONSE_TIMEOUT,
-    )
-
-
-def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
-    webhook,
-    order_with_lines,
-    permission_manage_orders,
-    permission_manage_users,
-    permission_manage_products,
-    monkeypatch,
-    settings,
-):
-    mocked_publisher = MagicMock(spec=PublisherClient)
-    mocked_publisher.publish.return_value.result.return_value = "message_id"
-    monkeypatch.setattr(
-        "saleor.webhook.transport.utils.pubsub_v1.PublisherClient",
-        lambda: mocked_publisher,
-    )
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "gcpubsub://cloud.google.com/projects/saleor/topics/test"
-    webhook.secret_key = "secret_key"
-    webhook.save()
-
-    expected_data = serialize("json", [order_with_lines])
-    message = expected_data
-    expected_signature = signature_for_payload(
-        message.encode("utf-8"), webhook.secret_key
-    )
-    trigger_webhooks_async(
-        expected_data,
-        WebhookEventAsyncType.ORDER_CREATED,
-        [webhook],
-        allow_replica=False,
-    )
-    mocked_publisher.publish.assert_called_once_with(
-        "projects/saleor/topics/test",
-        message.encode("utf-8"),
         saleorDomain="example.com",
         saleorApiUrl="https://example.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
@@ -322,9 +276,7 @@ def test_trigger_webhooks_with_http(
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    expected_signature = signature_for_payload(
-        expected_data.encode("utf-8"), webhook.secret_key
-    )
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"))
 
     trigger_webhooks_async(
         expected_data,
@@ -356,7 +308,7 @@ def test_trigger_webhooks_with_http(
 
 
 @patch.object(HTTPSession, "request")
-def test_trigger_webhooks_with_http_and_secret_key(
+def test_trigger_webhooks_with_http_signs_payload_with_jws(
     mock_request, webhook, order_with_lines, permission_manage_orders, settings
 ):
     mock_request.return_value = MagicMock(
@@ -368,7 +320,6 @@ def test_trigger_webhooks_with_http_and_secret_key(
     )
     webhook.app.permissions.add(permission_manage_orders)
     webhook.target_url = "https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009"
-    webhook.secret_key = "secret_key"
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
@@ -379,56 +330,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
         allow_replica=False,
     )
 
-    expected_signature = signature_for_payload(
-        expected_data.encode("utf-8"), webhook.secret_key
-    )
-    expected_headers = {
-        "Content-Type": "application/json",
-        # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-        "X-Saleor-Event": "order_created",
-        "X-Saleor-Domain": "example.com",
-        "X-Saleor-Signature": expected_signature,
-        "Saleor-Event": "order_created",
-        "Saleor-Domain": "example.com",
-        "Saleor-Signature": expected_signature,
-        "Saleor-Api-Url": "https://example.com/graphql/",
-    }
-
-    mock_request.assert_called_once_with(
-        "POST",
-        webhook.target_url,
-        data=bytes(expected_data, "utf-8"),
-        headers=expected_headers,
-        timeout=settings.WEBHOOK_SYNC_TIMEOUT,
-        allow_redirects=False,
-    )
-
-
-@patch.object(HTTPSession, "request")
-def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
-    mock_request, webhook, order_with_lines, permission_manage_orders, settings
-):
-    mock_request.return_value = MagicMock(
-        text="{response: body}",
-        headers={"response": "header"},
-        elapsed=datetime.timedelta(seconds=2),
-        status_code=200,
-        ok=True,
-    )
-    webhook.app.permissions.add(permission_manage_orders)
-    webhook.target_url = "https://webhook.site/48978b64-4efb-43d5-a334-451a1d164009"
-    webhook.secret_key = ""
-    webhook.save()
-
-    expected_data = serialize("json", [order_with_lines])
-    trigger_webhooks_async(
-        expected_data,
-        WebhookEventAsyncType.ORDER_CREATED,
-        [webhook],
-        allow_replica=False,
-    )
-
-    expected_signature = signature_for_payload(expected_data.encode("utf-8"), "")
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"))
     expected_headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
@@ -464,11 +366,10 @@ def test_trigger_webhooks_with_http_and_custom_headers(
     # given
     webhook.app.permissions.add(permission_manage_orders)
     webhook.custom_headers = {"X-Key": "Value", "Authorization-Key": "Value"}
-    webhook.secret_key = ""
     webhook.save()
 
     expected_data = serialize("json", [order_with_lines])
-    expected_signature = signature_for_payload(expected_data.encode("utf-8"), "")
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"))
     expected_headers = {
         "Content-Type": "application/json",
         "X-Saleor-Event": "order_created",
