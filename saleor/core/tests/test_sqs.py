@@ -1,11 +1,53 @@
+import base64
+import json
 from datetime import timedelta
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from celery import Task
+from celery._state import _task_stack
+from celery.utils.threads import LocalStack
 from django.utils import timezone
 from freezegun import freeze_time
 
 from ..sqs import Channel
+
+
+class DummyTask(Task):
+    request_stack = LocalStack()
+
+
+@pytest.fixture
+def sqs_client():
+    return MagicMock()
+
+
+@pytest.fixture
+def sqs_channel(sqs_client):
+    session = Mock()
+    session.client.return_value = sqs_client
+    connection = Mock()
+    connection._used_channel_ids = []
+    connection.channel_max = 5
+    connection.client.transport_options = {}
+    with patch("boto3.session.Session", return_value=session):
+        yield Channel(connection)
+
+
+@pytest.fixture
+def executing_task():
+    """Make a task the currently executing one, the way a Celery worker does."""
+    task = DummyTask()
+
+    def start(**request):
+        task.push_request(**request)
+        _task_stack.push(task)
+        return task
+
+    yield start
+    if _task_stack.top is task:
+        _task_stack.pop()
+        task.pop_request()
 
 
 @pytest.mark.parametrize(
@@ -83,3 +125,96 @@ def test_sqs_channel_skips_delay_seconds_for_fifo():
     call_kwargs = mock_sqs_client.send_message.call_args.kwargs
     # DelaySeconds is not supported for FIFO queues
     assert "DelaySeconds" not in call_kwargs
+
+
+def test_sqs_channel_put_retried_task_keeps_message_group_id(
+    sqs_client, sqs_channel, executing_task
+):
+    # given
+    task_id = "task-id"
+    message_group_id = "example.com:app"
+    executing_task(id=task_id, properties={"MessageGroupId": message_group_id})
+    message = {"headers": {"id": task_id}, "properties": {}}
+
+    # when
+    sqs_channel._put("test-queue", message)
+
+    # then
+    sqs_client.send_message.assert_called_once()
+    send_message_kwargs = sqs_client.send_message.call_args.kwargs
+    assert send_message_kwargs["MessageGroupId"] == message_group_id
+    # the worker reads the properties from the body, so the next retry needs it there
+    published_message = json.loads(base64.b64decode(send_message_kwargs["MessageBody"]))
+    assert published_message["properties"]["MessageGroupId"] == message_group_id
+
+
+def test_sqs_channel_put_explicit_message_group_id_wins_over_retried_task(
+    sqs_client, sqs_channel, executing_task
+):
+    # given
+    task_id = "task-id"
+    message_group_id = "example.com:explicit"
+    executing_task(id=task_id, properties={"MessageGroupId": "example.com:app"})
+    message = {
+        "headers": {"id": task_id},
+        "properties": {"MessageGroupId": message_group_id},
+    }
+
+    # when
+    sqs_channel._put("test-queue", message)
+
+    # then
+    sqs_client.send_message.assert_called_once()
+    send_message_kwargs = sqs_client.send_message.call_args.kwargs
+    assert send_message_kwargs["MessageGroupId"] == message_group_id
+
+
+@pytest.mark.parametrize(
+    ("_case", "request_kwargs", "message"),
+    [
+        (
+            "new task published by the executing task",
+            {"id": "task-id", "properties": {"MessageGroupId": "example.com:app"}},
+            {"headers": {"id": "other-task-id"}, "properties": {}},
+        ),
+        (
+            "message without headers",
+            {"id": "task-id", "properties": {"MessageGroupId": "example.com:app"}},
+            {"properties": {}},
+        ),
+        (
+            "executing task without message properties",
+            {"id": "task-id", "properties": None},
+            {"headers": {"id": "task-id"}, "properties": {}},
+        ),
+        (
+            "executing task without group ID",
+            {"id": "task-id", "properties": {}},
+            {"headers": {"id": "task-id"}, "properties": {}},
+        ),
+    ],
+)
+def test_sqs_channel_put_does_not_inherit_message_group_id(
+    _case, request_kwargs, message, sqs_client, sqs_channel, executing_task
+):
+    # given
+    executing_task(**request_kwargs)
+
+    # when
+    sqs_channel._put("test-queue", message)
+
+    # then
+    sqs_client.send_message.assert_called_once()
+    assert "MessageGroupId" not in sqs_client.send_message.call_args.kwargs
+
+
+def test_sqs_channel_put_without_executing_task(sqs_client, sqs_channel):
+    # given
+    message = {"headers": {"id": "task-id"}, "properties": {}}
+
+    # when
+    sqs_channel._put("test-queue", message)
+
+    # then
+    sqs_client.send_message.assert_called_once()
+    assert "MessageGroupId" not in sqs_client.send_message.call_args.kwargs
