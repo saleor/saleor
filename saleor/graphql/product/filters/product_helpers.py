@@ -31,11 +31,12 @@ from ..enums import (
 )
 
 
-def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte=None):
-    channels = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+def filter_products_by_variant_price(qs, channel_id, price_lte=None, price_gte=None):
+    if channel_id is None:
+        return qs.none()
     product_variant_channel_listings = ProductVariantChannelListing.objects.using(
         qs.db
-    ).filter(Exists(channels.filter(pk=OuterRef("channel_id"))))
+    ).filter(channel_id=channel_id)
     if price_lte:
         product_variant_channel_listings = product_variant_channel_listings.filter(
             Q(price_amount__lte=price_lte) | Q(price_amount__isnull=True)
@@ -58,13 +59,14 @@ def filter_products_by_variant_price(qs, channel_slug, price_lte=None, price_gte
 
 
 def filter_products_by_minimal_price(
-    qs, channel_slug, minimal_price_lte=None, minimal_price_gte=None
+    qs, channel_id, minimal_price_lte=None, minimal_price_gte=None
 ):
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).first()
-    if not channel:
+    if channel_id is None:
+        # Unlike the other channel filters, an unknown channel leaves the queryset
+        # unfiltered. Kept as it was for backwards compatibility.
         return qs
     product_channel_listings = ProductChannelListing.objects.using(qs.db).filter(
-        channel_id=channel.id
+        channel_id=channel_id
     )
     if minimal_price_lte:
         product_channel_listings = product_channel_listings.filter(
@@ -78,14 +80,36 @@ def filter_products_by_minimal_price(
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_by_categories(qs, category_ids):
-    categories = Category.objects.using(qs.db).filter(pk__in=category_ids)
-    categories = (
-        Category.tree.get_queryset_descendants(categories, include_self=True)
-        .using(qs.db)
-        .values("pk")
+def get_category_descendant_ids(qs, category_ids) -> list[int]:
+    """Return the ids of the given categories and all of their descendants.
+
+    The ids are evaluated into a literal list on purpose. A subquery over the MPTT
+    `lft`/`rght` range correlated with `product_product` inside the paginated
+    products query is misestimated by the Postgres planner, which then picks a plan
+    reading far more products than the category holds. The subtree is resolved here
+    against the category table alone, in one query, and category trees are small
+    enough for the list to stay cheap. The ids are ordered so the generated
+    `IN (...)` text is stable across requests.
+    """
+    ancestors_or_self = Category.objects.using(qs.db).filter(
+        pk__in=category_ids,
+        tree_id=OuterRef("tree_id"),
+        lft__lte=OuterRef("lft"),
+        rght__gte=OuterRef("rght"),
     )
-    return qs.filter(Exists(categories.filter(pk=OuterRef("category_id"))))
+    return list(
+        Category.objects.using(qs.db)
+        .filter(Exists(ancestors_or_self))
+        .order_by("pk")
+        .values_list("pk", flat=True)
+    )
+
+
+def filter_products_by_categories(qs, category_ids):
+    descendant_ids = get_category_descendant_ids(qs, category_ids)
+    if not descendant_ids:
+        return qs.none()
+    return qs.filter(category_id__in=descendant_ids)
 
 
 def filter_products_by_collections(qs, collection_pks):
@@ -220,11 +244,12 @@ def filter_collections(qs, _, value):
     return qs
 
 
-def filter_products_is_published(qs, _, value, channel_slug):
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+def filter_products_is_published(qs, _, value, channel_id):
+    if channel_id is None:
+        return qs.none()
     product_channel_listings = (
         ProductChannelListing.objects.using(qs.db)
-        .filter(Exists(channel.filter(pk=OuterRef("channel_id"))), is_published=value)
+        .filter(channel_id=channel_id, is_published=value)
         .values("product_id")
     )
 
@@ -232,7 +257,7 @@ def filter_products_is_published(qs, _, value, channel_slug):
     variant_channel_listings = (
         ProductVariantChannelListing.objects.using(qs.db)
         .sellable()
-        .filter(Exists(channel.filter(pk=OuterRef("channel_id"))))
+        .filter(channel_id=channel_id)
         .values("id")
     )
     variants = (
@@ -247,25 +272,23 @@ def filter_products_is_published(qs, _, value, channel_slug):
     )
 
 
-def filter_products_is_available(qs, _, value, channel_slug):
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+def filter_products_is_available(qs, _, value, channel_id):
+    if channel_id is None:
+        return qs.none()
     now = datetime.datetime.now(tz=datetime.UTC)
     if value:
         product_channel_listings = (
             ProductChannelListing.objects.using(qs.db)
-            .filter(
-                Exists(channel.filter(pk=OuterRef("channel_id"))),
-                available_for_purchase_at__lte=now,
-            )
+            .filter(channel_id=channel_id, available_for_purchase_at__lte=now)
             .values("product_id")
         )
     else:
         product_channel_listings = (
             ProductChannelListing.objects.using(qs.db)
             .filter(
-                Exists(channel.filter(pk=OuterRef("channel_id"))),
                 Q(available_for_purchase_at__gt=now)
                 | Q(available_for_purchase_at__isnull=True),
+                channel_id=channel_id,
             )
             .values("product_id")
         )
@@ -273,47 +296,44 @@ def filter_products_is_available(qs, _, value, channel_slug):
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_channel_field_from_date(qs, _, value, channel_slug, field):
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+def filter_products_channel_field_from_date(qs, _, value, channel_id, field):
+    if channel_id is None:
+        return qs.none()
     lookup = {
         f"{field}__lte": value,
     }
     product_channel_listings = (
         ProductChannelListing.objects.using(qs.db)
-        .filter(
-            Exists(channel.filter(pk=OuterRef("channel_id"))),
-            **lookup,
-        )
+        .filter(channel_id=channel_id, **lookup)
         .values("product_id")
     )
 
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
-def filter_products_visible_in_listing(qs, _, value, channel_slug):
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
+def filter_products_visible_in_listing(qs, _, value, channel_id):
+    if channel_id is None:
+        return qs.none()
     product_channel_listings = (
         ProductChannelListing.objects.using(qs.db)
-        .filter(
-            Exists(channel.filter(pk=OuterRef("channel_id"))), visible_in_listings=value
-        )
+        .filter(channel_id=channel_id, visible_in_listings=value)
         .values("product_id")
     )
 
     return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
 
 
-def filter_variant_price(qs, _, value, channel_slug):
+def filter_variant_price(qs, _, value, channel_id):
     qs = filter_products_by_variant_price(
-        qs, channel_slug, price_lte=value.get("lte"), price_gte=value.get("gte")
+        qs, channel_id, price_lte=value.get("lte"), price_gte=value.get("gte")
     )
     return qs
 
 
-def filter_minimal_price(qs, _, value, channel_slug):
+def filter_minimal_price(qs, _, value, channel_id):
     qs = filter_products_by_minimal_price(
         qs,
-        channel_slug,
+        channel_id,
         minimal_price_lte=value.get("lte"),
         minimal_price_gte=value.get("gte"),
     )
@@ -399,51 +419,16 @@ def filter_quantity(qs, quantity_value, warehouse_ids=None):
     return qs.filter(pk__in=variants)
 
 
-def where_filter_products_is_available(qs, _, value, channel_slug):
+def where_filter_products_is_available(qs, _, value, channel_id):
     if value is None:
         return qs.none()
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    now = datetime.datetime.now(tz=datetime.UTC)
-    if value:
-        product_channel_listings = (
-            ProductChannelListing.objects.using(qs.db)
-            .filter(
-                Exists(channel.filter(pk=OuterRef("channel_id"))),
-                available_for_purchase_at__lte=now,
-            )
-            .values("product_id")
-        )
-    else:
-        product_channel_listings = (
-            ProductChannelListing.objects.using(qs.db)
-            .filter(
-                Exists(channel.filter(pk=OuterRef("channel_id"))),
-                Q(available_for_purchase_at__gt=now)
-                | Q(available_for_purchase_at__isnull=True),
-            )
-            .values("product_id")
-        )
-
-    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+    return filter_products_is_available(qs, _, value, channel_id)
 
 
-def where_filter_products_channel_field_from_date(qs, _, value, channel_slug, field):
+def where_filter_products_channel_field_from_date(qs, _, value, channel_id, field):
     if value is None:
         return qs.none()
-    channel = Channel.objects.using(qs.db).filter(slug=channel_slug).values("pk")
-    lookup = {
-        f"{field}__lte": value,
-    }
-    product_channel_listings = (
-        ProductChannelListing.objects.using(qs.db)
-        .filter(
-            Exists(channel.filter(pk=OuterRef("channel_id"))),
-            **lookup,
-        )
-        .values("product_id")
-    )
-
-    return qs.filter(Exists(product_channel_listings.filter(product_id=OuterRef("pk"))))
+    return filter_products_channel_field_from_date(qs, _, value, channel_id, field)
 
 
 def where_filter_has_category(qs, _, value):
