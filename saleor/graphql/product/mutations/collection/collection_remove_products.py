@@ -5,6 +5,7 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
@@ -19,7 +20,10 @@ class CollectionRemoveProducts(BaseMutation):
 
     class Arguments:
         collection_id = graphene.Argument(
-            graphene.ID, required=True, description="ID of a collection."
+            graphene.ID, required=False, description="ID of a collection."
+        )
+        collection_external_reference = graphene.String(
+            required=False, description=f"External ID of a collection.{ADDED_IN_323}"
         )
         products = NonNullList(
             graphene.ID, required=True, description="List of product IDs."
@@ -34,10 +38,22 @@ class CollectionRemoveProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, collection_id, products
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        collection_id=None,
+        collection_external_reference=None,
+        products,
     ):
-        collection = cls.get_node_or_error(
-            info, collection_id, field="collection_id", only_type=Collection
+        collection = cls.get_node_by_id_or_external_reference(
+            info,
+            node_id=collection_id,
+            external_reference=collection_external_reference,
+            only_type=Collection,
+            id_field="collection_id",
+            external_reference_field="collection_external_reference",
         )
         products = cls.get_nodes_or_error(
             products,

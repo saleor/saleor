@@ -7,10 +7,13 @@ from .....product import models
 from .....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, CollectionError, NonNullList
+from ....core.utils import ext_ref_to_global_id_or_error
 from ....core.utils.reordering import perform_reordering
+from ....core.validators import validate_one_of_args_is_in_mutation
 from ...types import Collection, Product
 
 
@@ -45,7 +48,10 @@ class CollectionReorderProducts(BaseMutation):
 
     class Arguments:
         collection_id = graphene.Argument(
-            graphene.ID, required=True, description="ID of a collection."
+            graphene.ID, required=False, description="ID of a collection."
+        )
+        collection_external_reference = graphene.String(
+            required=False, description=f"External ID of a collection.{ADDED_IN_323}"
         )
         moves = NonNullList(
             MoveProductInput,
@@ -55,8 +61,27 @@ class CollectionReorderProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, collection_id, moves
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        moves,
+        collection_id=None,
+        collection_external_reference=None,
     ):
+        validate_one_of_args_is_in_mutation(
+            "collection_id",
+            collection_id,
+            "collection_external_reference",
+            collection_external_reference,
+            use_camel_case=True,
+        )
+        if collection_external_reference:
+            collection_id = ext_ref_to_global_id_or_error(
+                models.Collection,
+                collection_external_reference,
+                field="collection_external_reference",
+            )
         pk = cls.get_global_id_or_error(
             collection_id, only_type=Collection, field="collection_id"
         )

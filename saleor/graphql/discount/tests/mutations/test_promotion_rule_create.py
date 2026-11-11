@@ -2,13 +2,18 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+import pytest
 from django.test import override_settings
 
 from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionRuleCreateErrorCode
-from .....discount.models import PromotionEvent
+from .....discount.models import PromotionEvent, PromotionRule
 from .....product.models import ProductChannelListing
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import RewardTypeEnum, RewardValueTypeEnum
 
 PROMOTION_RULE_CREATE_MUTATION = """
@@ -1931,3 +1936,235 @@ def test_promotion_rule_create_invalid_promotion_id(
     assert len(data["errors"]) == 1
     assert data["errors"][0]["field"] == "promotion"
     assert data["errors"][0]["code"] == PromotionRuleCreateErrorCode.GRAPHQL_ERROR.name
+
+
+PROMOTION_RULE_CREATE_BY_EXTERNAL_REFERENCE_MUTATION = """
+    mutation promotionRuleCreate($input: PromotionRuleCreateInput!) {
+        promotionRuleCreate(input: $input) {
+            promotionRule {
+                name
+                promotion {
+                    id
+                }
+            }
+            errors {
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def _rule_input(name, channel, variant):
+    return {
+        "name": name,
+        "channels": [graphene.Node.to_global_id("Channel", channel.pk)],
+        "rewardValueType": RewardValueTypeEnum.PERCENTAGE.name,
+        "rewardValue": 10,
+        "cataloguePredicate": {
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.pk)]
+            }
+        },
+    }
+
+
+def test_by_promotion_external_reference(
+    staff_api_client,
+    permission_manage_discounts,
+    channel_USD,
+    variant,
+    catalogue_promotion,
+    mocker,
+):
+    # given
+    promotion = catalogue_promotion
+    external_reference = "test-ext-ref"
+    promotion.external_reference = external_reference
+    promotion.save(update_fields=["external_reference"])
+    rules_count = promotion.rules.count()
+    webhook = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.promotion_rule_created"
+    )
+    name = "test promotion rule"
+    rule_input = _rule_input(name, channel_USD, variant)
+    rule_input["promotionExternalReference"] = external_reference
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_RULE_CREATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        {"input": rule_input},
+        permissions=[permission_manage_discounts],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["promotionRuleCreate"]
+    assert data["errors"] == []
+    assert data["promotionRule"] == {
+        "name": name,
+        "promotion": {"id": graphene.Node.to_global_id("Promotion", promotion.pk)},
+    }
+    rule = PromotionRule.objects.get(name=name)
+    assert rule.promotion_id == promotion.pk
+    assert promotion.rules.count() == rules_count + 1
+    webhook.assert_called_once_with(rule)
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            PromotionRuleCreateErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: "
+            "'promotion', 'promotionExternalReference'.",
+        ),
+        (
+            "null",
+            {"promotion": None, "promotionExternalReference": None},
+            None,
+            PromotionRuleCreateErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: "
+            "'promotion', 'promotionExternalReference'.",
+        ),
+        (
+            "empty",
+            {"promotionExternalReference": ""},
+            None,
+            PromotionRuleCreateErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: "
+            "'promotion', 'promotionExternalReference'.",
+        ),
+        (
+            "both",
+            {"promotionExternalReference": "existing-reference"},
+            None,
+            PromotionRuleCreateErrorCode.GRAPHQL_ERROR,
+            "Argument 'promotion' cannot be combined with 'promotionExternalReference'",
+        ),
+        (
+            "not_found",
+            {"promotionExternalReference": "missing-reference"},
+            "promotionExternalReference",
+            PromotionRuleCreateErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_promotion_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    permission_manage_discounts,
+    channel_USD,
+    variant,
+    catalogue_promotion,
+    mocker,
+):
+    # given
+    promotion = catalogue_promotion
+    promotion.external_reference = "existing-reference"
+    promotion.save(update_fields=["external_reference"])
+    webhook = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.promotion_rule_created"
+    )
+    name = "test promotion rule"
+    rule_input = _rule_input(name, channel_USD, variant)
+    rule_input.update(identifiers)
+    if _case == "both":
+        rule_input["promotion"] = graphene.Node.to_global_id("Promotion", promotion.pk)
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_RULE_CREATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        {"input": rule_input},
+        permissions=[permission_manage_discounts],
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["promotionRuleCreate"]
+    assert data["promotionRule"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    assert PromotionRule.objects.filter(name=name).exists() is False
+    webhook.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_promotion_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    permission_manage_discounts,
+    channel_USD,
+    variant,
+    catalogue_promotion,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    promotion = catalogue_promotion
+    external_reference = "existing-reference"
+    promotion.external_reference = external_reference
+    promotion.save(update_fields=["external_reference"])
+    webhook = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.promotion_rule_created"
+    )
+    name = "test promotion rule"
+    rule_input = _rule_input(name, channel_USD, variant)
+    rule_input["promotionExternalReference"] = external_reference
+
+    # when
+    response = client.post_graphql(
+        PROMOTION_RULE_CREATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        {"input": rule_input},
+        permissions=[permission_manage_discounts] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["promotionRuleCreate"]
+        assert data["errors"] == []
+        assert data["promotionRule"] == {
+            "name": name,
+            "promotion": {"id": graphene.Node.to_global_id("Promotion", promotion.pk)},
+        }
+        rule = PromotionRule.objects.get(name=name)
+        assert rule.promotion_id == promotion.pk
+        webhook.assert_called_once_with(rule)
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"promotionRuleCreate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["promotionRuleCreate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: "
+            "MANAGE_DISCOUNTS"
+        )
+        assert PromotionRule.objects.filter(name=name).exists() is False
+        webhook.assert_not_called()

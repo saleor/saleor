@@ -1,10 +1,8 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.events import call_event
 from ....permission.enums import ProductPermissions
-from ....product import models
 from ....warehouse import models as warehouse_models
 from ....warehouse.channel_stock_availability import (
     trigger_out_of_stock_in_channel_events_for_stocks,
@@ -17,19 +15,20 @@ from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.utils import get_webhooks_for_event
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.descriptions import ADDED_IN_323
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
 from ...core.utils import WebhookEventInfo
-from ...core.validators import validate_one_of_args_is_in_mutation
 from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
 from ...warehouse.dataloaders import StocksByProductVariantIdLoader
 from ...warehouse.types import Warehouse
+from ..mutations.utils import VariantLookupMixin
 from ..types import ProductVariant
 
 
-class ProductVariantStocksDelete(BaseMutation):
+class ProductVariantStocksDelete(VariantLookupMixin, BaseMutation):
     product_variant = graphene.Field(
         ProductVariant, description="Updated product variant."
     )
@@ -42,6 +41,13 @@ class ProductVariantStocksDelete(BaseMutation):
         sku = graphene.String(
             required=False,
             description="SKU of product variant for which stocks will be deleted.",
+        )
+        variant_external_reference = graphene.String(
+            required=False,
+            description=(
+                "External ID of a product variant for which stocks will be deleted."
+                + ADDED_IN_323
+            ),
         )
         warehouse_ids = NonNullList(
             graphene.ID, description="Input list of warehouse IDs."
@@ -85,22 +91,14 @@ class ProductVariantStocksDelete(BaseMutation):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        sku = data.get("sku")
-        variant_id = data.get("variant_id")
-        validate_one_of_args_is_in_mutation("sku", sku, "variant_id", variant_id)
-
-        if variant_id:
-            variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
-        else:
-            variant = models.ProductVariant.objects.filter(sku=sku).first()
-            if not variant:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            f"Couldn't resolve to a node: {sku}", code="not_found"
-                        )
-                    }
-                )
+        variant = cls.get_variant(
+            info,
+            id=data.get("variant_id"),
+            sku=data.get("sku"),
+            external_reference=data.get("variant_external_reference"),
+            id_field="variant_id",
+            external_reference_field="variant_external_reference",
+        )
 
         warehouses_pks = cls.get_global_ids_or_error(
             data["warehouse_ids"], Warehouse, field="warehouse_ids"
