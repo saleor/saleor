@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import TypeVar, cast
+from typing import cast
 
 from ...account.exceptions import NoDefaultCustomerType
 from ...account.models import Address, CustomerEvent, CustomerType, Group, User
@@ -173,9 +173,6 @@ class PermissionByCodenameLoader(DataLoader[str, Permission]):
             .in_bulk(field_name="codename")
         )
         return [permission_map.get(codename) for codename in keys]
-
-
-K = TypeVar("K")
 
 
 class BaseAccessibleChannels[K](DataLoader[K, list[Channel]]):

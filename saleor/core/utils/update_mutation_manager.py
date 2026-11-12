@@ -1,9 +1,7 @@
 from copy import deepcopy
-from typing import Any, TypeVar
+from typing import Any
 
 from django.db.models import Model
-
-T = TypeVar("T", bound=Model)
 
 
 class InstanceTracker:
@@ -12,7 +10,7 @@ class InstanceTracker:
     It is used to determine modified fields of the instance.
     """
 
-    def __init__(
+    def __init__[T: Model](
         self,
         instance: T | None,
         fields_to_track: list[str],

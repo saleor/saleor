@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from decimal import Decimal
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from babel.numbers import get_currency_precision
 from prices import Money, TaxedMoney, TaxedMoneyRange
@@ -10,7 +10,6 @@ from saleor import settings
 if TYPE_CHECKING:
     from django.db.models import Model
 
-PriceType = TypeVar("PriceType", TaxedMoney, Money, Decimal, TaxedMoneyRange)
 
 # The maximum price value we can save in the database
 MAXIMUM_PRICE = (

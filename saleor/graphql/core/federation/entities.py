@@ -1,15 +1,10 @@
-from typing import TypeVar
-
 import graphene
 
 federated_entities: dict[str, graphene.ObjectType] = {}
 
 
-T = TypeVar("T", bound=graphene.ObjectType)
-
-
 def federated_entity(key_fields: str):
-    def federate_entity(graphql_type: T) -> T:
+    def federate_entity[T: graphene.ObjectType](graphql_type: T) -> T:
         # Add entity to registry
         federated_entities[graphql_type.__name__] = graphql_type
 

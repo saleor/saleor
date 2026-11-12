@@ -1,7 +1,7 @@
 import json
 import logging
 from json import JSONDecodeError
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Union
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -59,8 +59,6 @@ if TYPE_CHECKING:
     from ....account.models import User
     from ....app.models import App
     from ....webhook.models import Webhook
-
-R = TypeVar("R")
 
 
 logger = logging.getLogger(__name__)

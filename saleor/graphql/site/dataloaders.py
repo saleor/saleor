@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from functools import partial, reduce
-from typing import TypeVar
 
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -66,9 +65,6 @@ def ensure_that_site_is_not_none(request, host, site):
         )
 
     return execute_callback_if_site_not_none(site)
-
-
-T = TypeVar("T")
 
 
 def load_site_callback[T](func: Callable[..., T]) -> Callable[..., Promise[T]]:

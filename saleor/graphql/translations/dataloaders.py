@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import TypeVar
 
 from ...attribute import models as attribute_models
 from ...discount import models as discount_models
@@ -9,8 +8,6 @@ from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..core.dataloaders import DataLoader
-
-T = TypeVar("T")
 
 
 class BaseTranslationByIdAndLanguageCodeLoader[T](DataLoader[tuple[int, str], T]):
