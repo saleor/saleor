@@ -6,15 +6,27 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from celery import Task
 from celery._state import _task_stack
+from celery.app.trace import build_tracer
 from celery.utils.threads import LocalStack
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ...celeryconf import app
 from ..sqs import Channel
 
 
 class DummyTask(Task):
     request_stack = LocalStack()
+
+
+@app.task
+def replacement_task():
+    pass
+
+
+@app.task(bind=True)
+def replaced_task(self):
+    raise self.replace(replacement_task.s())
 
 
 @pytest.fixture
@@ -145,6 +157,36 @@ def test_sqs_channel_put_retried_task_keeps_message_group_id(
     assert send_message_kwargs["MessageGroupId"] == message_group_id
     # the worker reads the properties from the body, so the next retry needs it there
     published_message = json.loads(base64.b64decode(send_message_kwargs["MessageBody"]))
+    assert published_message["properties"]["MessageGroupId"] == message_group_id
+
+
+def test_sqs_channel_put_replacement_task_keeps_message_group_id(sqs_broker_client):
+    # given
+    task_id = "task-id"
+    message_group_id = "example.com:app"
+    # run the task the way a Celery worker does, so the replacement is really
+    # published
+    trace_task = build_tracer(replaced_task.name, replaced_task, app=app)
+
+    # when
+    trace_task(
+        task_id,
+        (),
+        {},
+        request={
+            "id": task_id,
+            "properties": {"MessageGroupId": message_group_id},
+        },
+    )
+
+    # then
+    sqs_broker_client.send_message.assert_called_once()
+    send_message_kwargs = sqs_broker_client.send_message.call_args.kwargs
+    assert send_message_kwargs["MessageGroupId"] == message_group_id
+    published_message = json.loads(base64.b64decode(send_message_kwargs["MessageBody"]))
+    assert published_message["headers"]["task"] == replacement_task.name
+    # `Task.replace()` publishes the replacement under the ID of the replaced task
+    assert published_message["headers"]["id"] == task_id
     assert published_message["properties"]["MessageGroupId"] == message_group_id
 
 
