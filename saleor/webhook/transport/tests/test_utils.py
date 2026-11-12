@@ -1,15 +1,19 @@
+import base64
 import datetime
 import json
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 from celery import Task
+from celery.app.trace import build_tracer
 from celery.exceptions import Retry
 from celery.utils.threads import LocalStack
 
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt
+from ....core.utils import get_domain
 from ...event_types import WebhookEventAsyncType
+from ..asynchronous.transport import send_webhook_request_async
 from ..utils import (
     WebhookResponse,
     attempt_update,
@@ -71,6 +75,51 @@ def test_webhook_retry(webhook, event_delivery):
     # then
     with pytest.raises(Retry):
         handle_webhook_retry(task, webhook, response, event_delivery, attempt)
+
+
+@patch(
+    "saleor.webhook.transport.asynchronous.transport.send_webhook_using_scheme_method"
+)
+def test_webhook_retry_keeps_message_group_id(
+    mocked_send_webhook_using_scheme_method,
+    sqs_broker_client,
+    event_delivery,
+    webhook_response_failed,
+):
+    # given
+    mocked_send_webhook_using_scheme_method.return_value = webhook_response_failed
+    message_group_id = get_sqs_message_group_id(
+        get_domain(), event_delivery.webhook.app
+    )
+    task_id = "task-id"
+    # run the task the way a Celery worker does, so the retry is really published
+    trace_task = build_tracer(
+        send_webhook_request_async.name,
+        send_webhook_request_async,
+        app=send_webhook_request_async.app,
+    )
+
+    # when
+    trace_task(
+        task_id,
+        (),
+        {"event_delivery_id": event_delivery.pk, "telemetry_context": {}},
+        request={
+            "id": task_id,
+            "retries": 0,
+            "properties": {"MessageGroupId": message_group_id},
+        },
+    )
+
+    # then
+    sqs_broker_client.send_message.assert_called_once()
+    send_message_kwargs = sqs_broker_client.send_message.call_args.kwargs
+    assert send_message_kwargs["MessageGroupId"] == message_group_id
+    retried_message = json.loads(base64.b64decode(send_message_kwargs["MessageBody"]))
+    assert retried_message["headers"]["id"] == task_id
+    assert retried_message["headers"]["retries"] == 1
+    # the worker reads the properties from the body, so the next retry needs it there
+    assert retried_message["properties"]["MessageGroupId"] == message_group_id
 
 
 def test_webhook_retry_404(webhook, event_delivery):
