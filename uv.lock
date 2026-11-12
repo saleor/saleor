@@ -2601,7 +2601,7 @@ wheels = [
 
 [[package]]
 name = "saleor"
-version = "3.23.48"
+version = "3.23.49"
 source = { virtual = "." }
 dependencies = [
     { name = "asgiref" },
