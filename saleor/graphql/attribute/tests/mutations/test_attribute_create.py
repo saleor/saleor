@@ -1929,3 +1929,58 @@ def test_create_customer_attribute_without_customer_type_permission(
     # then
     assert_no_permission(response)
     assert not Attribute.objects.filter(slug=slugify(attribute_name)).exists()
+
+
+CREATE_ATTRIBUTE_INTERNAL_DESCRIPTION_MUTATION = """
+    mutation createAttribute($input: AttributeCreateInput!) {
+        attributeCreate(input: $input) {
+            errors {
+                field
+                message
+                code
+            }
+            attribute {
+                internalDescription
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    ("_case", "internal_description"),
+    [
+        ("text", "Use the color from the supplier's catalog."),
+        ("explicit_null", None),
+    ],
+)
+def test_create_attribute_with_internal_description(
+    _case,
+    internal_description,
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    attribute_name = "Example name"
+    variables = {
+        "input": {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "internalDescription": internal_description,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CREATE_ATTRIBUTE_INTERNAL_DESCRIPTION_MUTATION,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeCreate"]
+    assert data["errors"] == []
+    assert data["attribute"]["internalDescription"] == internal_description
+    attribute = Attribute.objects.get(name=attribute_name)
+    assert attribute.internal_description == internal_description

@@ -728,6 +728,7 @@ class AttributeBulkUpdate(BaseMutation):
                     "is_variant_only",
                     "filterable_in_dashboard",
                     "external_reference",
+                    "internal_description",
                 ],
             )
             locked_ids = (
