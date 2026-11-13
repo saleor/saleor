@@ -11,6 +11,7 @@ from ....order import events
 from ....order import models as order_models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo, fetch_order_lines
+from ....order.lock_objects import order_qs_select_for_update
 from ....order.search import update_order_search_vector
 from ....order.utils import (
     add_variant_to_order,
@@ -199,6 +200,11 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         site = get_site_promise(info.context).get()
         with traced_atomic_transaction():
+            # Lock the order before modifying lines to ensure consistent lock
+            # ordering (order -> lines) with `order.calculations.process_order_prices`
+            # and prevent deadlocks.
+            order_qs_select_for_update().only("pk").get(pk=order.pk)
+
             added_lines = cls.add_lines_to_order(
                 order,
                 lines_to_add,

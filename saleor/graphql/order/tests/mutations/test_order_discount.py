@@ -2470,3 +2470,66 @@ def test_delete_order_line_discount_with_line_level_voucher_deleted_in_meantime(
 
     order_line = data["orderLine"]
     assert order_line["totalPrice"]["net"]["amount"] == line_undiscounted_total_price
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_update_order_line_discount_locks_order_before_writing_lines(
+    status,
+    order_with_lines,
+    staff_api_client,
+    permission_group_manage_orders,
+    assert_row_lock_before_first_write,
+):
+    # given
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    # the line is written only when the discount value changes
+    assert line.unit_discount_value != Decimal(1)
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+        "input": {"valueType": DiscountValueTypeEnum.FIXED.name, "value": 1},
+    }
+
+    # when
+    with assert_row_lock_before_first_write("order_order", "order_orderline"):
+        response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderLineDiscountUpdate"]["errors"]
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_delete_order_line_discount_locks_order_before_writing_lines(
+    status,
+    order_with_lines,
+    staff_api_client,
+    permission_group_manage_orders,
+    assert_row_lock_before_first_write,
+):
+    # given
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    line.discounts.create(
+        type=DiscountType.MANUAL,
+        value_type=DiscountValueType.FIXED,
+        value=Decimal(1),
+        amount_value=Decimal(1) * line.quantity,
+        currency=order.currency,
+        reason="Manual line discount",
+    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"orderLineId": graphene.Node.to_global_id("OrderLine", line.pk)}
+
+    # when
+    with assert_row_lock_before_first_write("order_order", "order_orderline"):
+        response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderLineDiscountRemove"]["errors"]
