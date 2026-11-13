@@ -31,11 +31,19 @@ class BaseTokenGenerator(_base_token_generator_cls):  # type: ignore[valid-type,
         super().__init__()
 
 
-class AccountDeleteTokenGenerator(BaseTokenGenerator):
+class SessionIndependentTokenGenerator(BaseTokenGenerator):
+    """Django's token generator with `last_login` left out of the hash.
+
+    `last_login` tracks activity here, not just authentication: it is stamped on
+    token refresh and on requests carrying an OIDC access token. Django hashes it
+    so a link expires once its owner signs back in; here that would expire links
+    while the user simply has a session open.
+
+    The password hash is still part of the value, so a link is spent by the reset
+    that uses it.
+    """
+
     def _make_hash_value(self, user, timestamp):
-        # Override this method to remove the user `last_login` value from the hash.
-        # As this token is used for deleting the user, so there is no worry
-        # that the token will be used again.
         email_field = user.get_email_field_name()
         email = getattr(user, email_field, "") or ""
         return f"{user.pk}{user.password}{timestamp}{email}"
@@ -64,18 +72,20 @@ def try_generators(
 
 
 # Account delete
-account_delete_token_generator = AccountDeleteTokenGenerator(
+account_delete_token_generator = SessionIndependentTokenGenerator(
     key_salt=f"{__name__}.account_delete_token_generator"
 )
-legacy_account_delete_token_generator = AccountDeleteTokenGenerator(
+legacy_account_delete_token_generator = SessionIndependentTokenGenerator(
     key_salt=LEGACY_SALT
 )
 
 # Password reset
-password_reset_token_generator = BaseTokenGenerator(
+password_reset_token_generator = SessionIndependentTokenGenerator(
     key_salt=f"{__name__}.password_reset_token_generator"
 )
-legacy_password_reset_token_generator = BaseTokenGenerator(key_salt=LEGACY_SALT)
+legacy_password_reset_token_generator = SessionIndependentTokenGenerator(
+    key_salt=LEGACY_SALT
+)
 
 # Account confirmation
 account_confirm_token_generator = BaseTokenGenerator(
