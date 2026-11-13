@@ -77,6 +77,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Fixes
 
+- Fixed entire-order voucher amount being calculated from pre-promotion prices when the catalogue promotion discounts were not yet stored on the checkout lines. `checkoutAddPromoCode` now refreshes the catalogue promotion discounts before calculating the voucher, and the lazy price refresh recomputes the voucher amount when prices change. - #19999
 - Fixed `update_discounted_prices_for_promotion` recalculating the discounted prices of every channel listing of the given products when `only_dirty_products` is set. The `discounted_price_dirty` filter was built but never applied, so listings that were not marked dirty were recalculated too.
 - Fixed migration `account.0103_create_default_customer_type` to respect `POPULATE_DEFAULTS`; the default customer type is no longer created when defaults are disabled, and the post-migration assignment task skips when none exists.
 - Fixed `appCreate` and `appUpdate` failing with an unhandled error when `permissions` was `null` or omitted. `appCreate` now creates an app with no permissions, and `appUpdate` leaves the app's existing permissions untouched. Passing an empty list to `appUpdate` still clears them.
