@@ -2246,3 +2246,42 @@ def test_order_lines_create_sets_product_type_id_for_order_line(
     order.refresh_from_db()
     assert len(order.lines.all()) == 1
     assert order.lines.first().product_type_id == expected_product_type_id
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+@pytest.mark.parametrize("add_to_existing_line", [False, True])
+def test_order_lines_create_locks_order_before_writing_lines(
+    add_to_existing_line,
+    status,
+    order_with_lines,
+    variant_with_many_stocks,
+    permission_group_manage_orders,
+    staff_api_client,
+    assert_row_lock_before_first_write,
+):
+    # given
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    # a variant already in the order updates its line, a new one creates a line
+    variant = (
+        order.lines.first().variant
+        if add_to_existing_line
+        else variant_with_many_stocks
+    )
+    lines_count = order.lines.count()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.id),
+        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "quantity": 1,
+    }
+
+    # when
+    with assert_row_lock_before_first_write("order_order", "order_orderline"):
+        response = staff_api_client.post_graphql(ORDER_LINES_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderLinesCreate"]["errors"]
+    assert order.lines.count() == lines_count + (0 if add_to_existing_line else 1)
