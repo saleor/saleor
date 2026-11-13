@@ -249,7 +249,7 @@ def test_null_alt_is_treated_as_omitted(
 
     data = get_graphql_content(response)["data"]["productMediaTranslate"]
     assert data["errors"] == []
-    assert data["productMedia"]["translation"]["alt"] == ""
+    assert data["productMedia"]["translation"]["alt"] is None
     translation = product_media_image.translations.get(language_code="pl")
     assert translation.alt == ""
 
