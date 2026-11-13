@@ -17,11 +17,42 @@ from ....product import models as product_models
 from ....shipping import models as shipping_models
 from ...core import ResolveInfo
 from ...core.context import BaseContext, ChannelContext, SyncWebhookControlContext
+from ...core.descriptions import ADDED_IN_323
 from ...core.mutations import BaseMutation
-from ...core.utils import from_global_id_or_error
+from ...core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
+from ...core.validators import validate_one_of_args_is_in_mutation
+from ..enums import EXTERNAL_REFERENCE_TYPE_TO_MODEL, ExternalReferenceTypeEnum
 from ..extra_methods import TYPE_EXTRA_METHODS
+from ..permissions import external_reference_lookup_permissions
 from ..types import ObjectWithMetadata
 from .utils import get_valid_metadata_instance
+
+
+def object_id_argument():
+    return graphene.ID(
+        description=(
+            "ID or token (for Order and Checkout) of an object to update. "
+            "Required unless `externalReference` is provided."
+        ),
+    )
+
+
+def external_reference_argument():
+    return graphene.String(
+        description=(
+            "External reference of an object to update. Requires `type`." + ADDED_IN_323
+        ),
+    )
+
+
+def external_reference_type_argument():
+    return graphene.Argument(
+        ExternalReferenceTypeEnum,
+        description=(
+            "Type of the object referenced by `externalReference`. Required when "
+            "`externalReference` is provided." + ADDED_IN_323
+        ),
+    )
 
 
 class MetadataPermissionOptions(graphene.types.mutation.MutationOptions):
@@ -155,6 +186,7 @@ class BaseMetadataMutation(BaseMutation):
     @allow_writer()
     def mutate(cls, root, info: ResolveInfo, **data):
         try:
+            data = cls.resolve_external_reference(info, data)
             type_name, object_pk = cls.get_object_type_name_and_pk(data)
             permissions = cls.get_permissions(info, type_name, object_pk, **data)
         except GraphQLError as e:
@@ -209,6 +241,51 @@ class BaseMetadataMutation(BaseMutation):
         except ValidationError as e:
             return cls.handle_errors(e)
         return result
+
+    @classmethod
+    def resolve_external_reference(cls, info: ResolveInfo, data: dict) -> dict:
+        """Replace `externalReference` and `type` arguments with the object's ID."""
+        external_reference = data.pop("external_reference", None)
+        type_name = data.pop("type", None)
+        validate_one_of_args_is_in_mutation(
+            "id",
+            data.get("id"),
+            "external_reference",
+            external_reference,
+            use_camel_case=True,
+        )
+        if not external_reference:
+            if type_name:
+                raise ValidationError(
+                    {
+                        "type": ValidationError(
+                            "Argument 'type' can only be used with "
+                            "'externalReference'.",
+                            code=MetadataErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            return data
+        if not type_name:
+            raise ValidationError(
+                {
+                    "type": ValidationError(
+                        "Argument 'type' is required when 'externalReference' "
+                        "is provided.",
+                        code=MetadataErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+
+        permissions = external_reference_lookup_permissions(
+            info, type_name, cls._meta.permission_map
+        )
+        if not cls.check_permissions(info.context, permissions):
+            raise PermissionDenied(permissions=permissions)
+
+        model = EXTERNAL_REFERENCE_TYPE_TO_MODEL[type_name]
+        data["id"] = ext_ref_to_global_id_or_error(model, external_reference)
+        return data
 
     @classmethod
     def get_object_type_name_and_pk(cls, data):

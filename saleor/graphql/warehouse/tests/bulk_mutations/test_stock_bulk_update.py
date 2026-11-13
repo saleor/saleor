@@ -1,8 +1,10 @@
 from unittest.mock import patch
 
 import graphene
+import pytest
 
 from .....warehouse.error_codes import StockBulkUpdateErrorCode
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 
 STOCKS_BULK_UPDATE_MUTATION = """
@@ -491,3 +493,189 @@ def test_stocks_bulk_update_when_stock_not_exists(
     error = data["results"][0]["errors"][0]
     assert error["code"] == StockBulkUpdateErrorCode.NOT_FOUND.name
     assert error["message"] == "Stock was not found."
+
+
+STOCKS_BULK_UPDATE_WITH_EXTERNAL_REFERENCES_MUTATION = """
+    mutation StockBulkUpdate(
+        $stocks: [StockBulkUpdateInput!]!, $errorPolicy: ErrorPolicyEnum
+    ){
+        stockBulkUpdate(stocks: $stocks, errorPolicy: $errorPolicy){
+            results{
+                errors {
+                    field
+                    message
+                    code
+                }
+                stock{
+                    id
+                }
+                variantExternalReference
+                warehouseExternalReference
+            }
+            count
+        }
+    }
+"""
+
+
+def test_stocks_bulk_update_results_echo_external_references(
+    staff_api_client, variant_with_many_stocks, permission_manage_products
+):
+    # given
+    variant = variant_with_many_stocks
+    stock_1, stock_2 = variant.stocks.order_by("pk")
+    variant_external_reference = variant.external_reference
+    warehouse_1_external_reference = stock_1.warehouse.external_reference
+    warehouse_2_external_reference = stock_2.warehouse.external_reference
+
+    variables = {
+        "stocks": [
+            {
+                "variantExternalReference": variant_external_reference,
+                "warehouseExternalReference": warehouse_1_external_reference,
+                "quantity": 10,
+            },
+            {
+                "variantExternalReference": variant_external_reference,
+                "warehouseExternalReference": warehouse_2_external_reference,
+                "quantity": 20,
+            },
+        ]
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        STOCKS_BULK_UPDATE_WITH_EXTERNAL_REFERENCES_MUTATION, variables
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["stockBulkUpdate"]
+    assert data["count"] == 2
+    assert data["results"] == [
+        {
+            "errors": [],
+            "stock": {"id": graphene.Node.to_global_id("Stock", stock_1.pk)},
+            "variantExternalReference": variant_external_reference,
+            "warehouseExternalReference": warehouse_1_external_reference,
+        },
+        {
+            "errors": [],
+            "stock": {"id": graphene.Node.to_global_id("Stock", stock_2.pk)},
+            "variantExternalReference": variant_external_reference,
+            "warehouseExternalReference": warehouse_2_external_reference,
+        },
+    ]
+
+
+@pytest.mark.parametrize(
+    ("_case", "error_policy", "expected_count", "is_valid_row_saved"),
+    [
+        ("reject_everything", ErrorPolicyEnum.REJECT_EVERYTHING, 0, False),
+        ("reject_failed_rows", ErrorPolicyEnum.REJECT_FAILED_ROWS, 1, True),
+    ],
+)
+def test_stocks_bulk_update_results_echo_external_references_for_failed_rows(
+    _case,
+    error_policy,
+    expected_count,
+    is_valid_row_saved,
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    stock = variant.stocks.order_by("pk").first()
+    initial_quantity = stock.quantity
+    new_quantity = initial_quantity + 10
+    variant_external_reference = variant.external_reference
+    warehouse_external_reference = stock.warehouse.external_reference
+    missing_warehouse_external_reference = "non-existing-warehouse"
+
+    variables = {
+        "errorPolicy": error_policy.name,
+        "stocks": [
+            {
+                "variantExternalReference": variant_external_reference,
+                "warehouseExternalReference": warehouse_external_reference,
+                "quantity": new_quantity,
+            },
+            {
+                "variantExternalReference": variant_external_reference,
+                "warehouseExternalReference": missing_warehouse_external_reference,
+                "quantity": new_quantity,
+            },
+        ],
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        STOCKS_BULK_UPDATE_WITH_EXTERNAL_REFERENCES_MUTATION, variables
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["stockBulkUpdate"]
+    assert data["count"] == expected_count
+    valid_result, failed_result = data["results"]
+    assert valid_result["variantExternalReference"] == variant_external_reference
+    assert valid_result["warehouseExternalReference"] == warehouse_external_reference
+    assert failed_result["stock"] is None
+    assert failed_result["variantExternalReference"] == variant_external_reference
+    assert (
+        failed_result["warehouseExternalReference"]
+        == missing_warehouse_external_reference
+    )
+    assert len(failed_result["errors"]) == 1
+    assert failed_result["errors"][0]["code"] == StockBulkUpdateErrorCode.NOT_FOUND.name
+    assert failed_result["errors"][0]["message"] == "Stock was not found."
+    stock.refresh_from_db(fields=["quantity"])
+    if is_valid_row_saved:
+        assert valid_result["stock"] == {
+            "id": graphene.Node.to_global_id("Stock", stock.pk)
+        }
+        assert stock.quantity == new_quantity
+    else:
+        assert valid_result["stock"] is None
+        assert stock.quantity == initial_quantity
+
+
+def test_stocks_bulk_update_results_without_external_references_in_input(
+    staff_api_client, variant_with_many_stocks, permission_manage_products
+):
+    # given
+    variant = variant_with_many_stocks
+    stock = variant.stocks.order_by("pk").first()
+    assert variant.external_reference is not None
+    assert stock.warehouse.external_reference is not None
+
+    variables = {
+        "stocks": [
+            {
+                "variantId": graphene.Node.to_global_id("ProductVariant", variant.pk),
+                "warehouseId": graphene.Node.to_global_id(
+                    "Warehouse", stock.warehouse_id
+                ),
+                "quantity": 10,
+            },
+        ]
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(
+        STOCKS_BULK_UPDATE_WITH_EXTERNAL_REFERENCES_MUTATION, variables
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["stockBulkUpdate"]
+    assert data["count"] == 1
+    assert data["results"] == [
+        {
+            "errors": [],
+            "stock": {"id": graphene.Node.to_global_id("Stock", stock.pk)},
+            "variantExternalReference": None,
+            "warehouseExternalReference": None,
+        }
+    ]

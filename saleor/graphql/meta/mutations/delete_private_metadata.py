@@ -3,7 +3,12 @@ import graphene
 from ...core import ResolveInfo
 from ...core.types import MetadataError, NonNullList
 from ..permissions import PRIVATE_META_PERMISSION_MAP
-from .base import BaseMetadataMutation
+from .base import (
+    BaseMetadataMutation,
+    external_reference_argument,
+    external_reference_type_argument,
+    object_id_argument,
+)
 from .utils import delete_private_metadata_keys, get_valid_metadata_instance
 
 
@@ -18,10 +23,9 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         error_type_field = "metadata_errors"
 
     class Arguments:
-        id = graphene.ID(
-            description="ID or token (for Order and Checkout) of an object to update.",
-            required=True,
-        )
+        id = object_id_argument()
+        external_reference = external_reference_argument()
+        type = external_reference_type_argument()
         keys = NonNullList(
             graphene.String,
             description="Metadata keys to delete.",
