@@ -1,6 +1,6 @@
 from django.db.models import QuerySet
 
-from .models import Order, OrderLine
+from .models import Fulfillment, Order, OrderLine
 
 
 def order_lines_qs_select_for_update() -> QuerySet[OrderLine]:
@@ -9,3 +9,7 @@ def order_lines_qs_select_for_update() -> QuerySet[OrderLine]:
 
 def order_qs_select_for_update() -> QuerySet[Order]:
     return Order.objects.order_by("pk").select_for_update(of=(["self"]))
+
+
+def fulfillment_qs_select_for_update() -> QuerySet[Fulfillment]:
+    return Fulfillment.objects.order_by("pk").select_for_update(of=["self"])
