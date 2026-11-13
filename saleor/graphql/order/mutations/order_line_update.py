@@ -6,6 +6,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....order import models
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderLineInfo
+from ....order.lock_objects import order_qs_select_for_update
 from ....order.utils import (
     change_order_line_quantity,
     invalidate_order_prices,
@@ -85,13 +86,18 @@ class OrderLineUpdate(
         )
         app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
+            order = instance.order
+            # Lock the order before modifying lines to ensure consistent lock
+            # ordering (order -> lines) with `order.calculations.process_order_prices`
+            # and prevent deadlocks.
+            order_qs_select_for_update().only("pk").get(pk=order.pk)
+
             line_info = OrderLineInfo(
                 line=instance,
                 quantity=instance.quantity,
                 variant=instance.variant,
                 warehouse_pk=warehouse_pk,
             )
-            order = instance.order
             try:
                 change_order_line_quantity(
                     info.context.user,
