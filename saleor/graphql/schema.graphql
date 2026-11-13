@@ -12356,10 +12356,10 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   isPaid: Boolean!
 
   """Internal payment status."""
-  paymentStatus: PaymentChargeStatusEnum!
+  paymentStatus: PaymentChargeStatusEnum! @deprecated(reason: "Only valid for orders paid with the legacy Payments API (payment plugins). For orders paid with the Transactions API, use `chargeStatus` and `authorizeStatus` instead, `totalChargePending` for pending charges and `totalRefunded` for refunds.")
 
   """User-friendly payment status."""
-  paymentStatusDisplay: String!
+  paymentStatusDisplay: String! @deprecated(reason: "Only valid for orders paid with the legacy Payments API (payment plugins). For orders paid with the Transactions API, use `chargeStatus` and `authorizeStatus` instead, `totalChargePending` for pending charges and `totalRefunded` for refunds.")
 
   """The authorize status of the order."""
   authorizeStatus: OrderAuthorizeStatusEnum!
