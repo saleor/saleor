@@ -34,6 +34,7 @@ from ...types import TransactionItem
 from ...utils import check_if_requestor_has_access
 from .shared import get_payment_method_details, validate_payment_method_details_input
 from .transaction_create import (
+    TRANSACTION_ITEM_MAX_LENGTHS,
     TransactionCreate,
     TransactionCreateInput,
     TransactionEventInput,
@@ -114,6 +115,12 @@ class TransactionUpdate(TransactionCreate):
                 set(transaction_data.get("available_actions", []))
             )
 
+        cls.validate_max_length(
+            transaction_data,
+            max_lengths=TRANSACTION_ITEM_MAX_LENGTHS,
+            error_field="transaction",
+            error_code=TransactionUpdateErrorCode.INVALID.value,
+        )
         cls.validate_money_input(
             transaction_data,
             currency,
@@ -219,6 +226,9 @@ class TransactionUpdate(TransactionCreate):
         previous_charged_value = instance.charged_value
         previous_refunded_value = instance.refunded_value
 
+        cls.validate_transaction_event_input(
+            transaction_event, error_code=TransactionUpdateErrorCode.INVALID.value
+        )
         if transaction:
             cls.validate_transaction_input(instance, transaction)
             cls.assign_app_to_transaction_data_if_missing(instance, transaction, app)

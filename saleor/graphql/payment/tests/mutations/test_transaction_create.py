@@ -20,7 +20,7 @@ from .....payment.lock_objects import (
 )
 from .....payment.models import TransactionItem
 from .....tests import race_condition
-from ....core.utils import to_global_id_or_none
+from ....core.utils import snake_to_camel_case, to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 
@@ -2891,3 +2891,81 @@ def test_transaction_create_checkout_completed_race_condition(
     assert order.status == OrderStatus.UNFULFILLED
     assert order.charge_status == OrderChargeStatus.NONE
     assert order.authorize_status == OrderAuthorizeStatus.FULL
+
+
+@pytest.mark.parametrize(
+    ("_case", "input_field", "model_field", "error_field"),
+    [
+        ("transaction_name", "transaction", "name", "transaction"),
+        ("transaction_message", "transaction", "message", "transaction"),
+        ("transaction_psp_reference", "transaction", "psp_reference", "transaction"),
+        (
+            "event_psp_reference",
+            "transaction_event",
+            "psp_reference",
+            "transactionEvent",
+        ),
+    ],
+)
+def test_transaction_create_value_exceeds_max_length(
+    _case,
+    input_field,
+    model_field,
+    error_field,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    max_length = TransactionItem._meta.get_field(model_field).max_length
+    graphql_field = snake_to_camel_case(model_field)
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {"name": "Credit Card"},
+        "transaction_event": {"message": "Event message"},
+    }
+    variables[input_field][graphql_field] = "a" * (max_length + 1)
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]
+    assert data["transaction"] is None
+    errors = data["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == error_field
+    assert errors[0]["code"] == TransactionCreateErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        f"`{graphql_field}` cannot be longer than {max_length} characters."
+    )
+    assert order_with_lines.payment_transactions.exists() is False
+    assert order_with_lines.events.exists() is False
+
+
+def test_transaction_create_value_with_max_length(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    max_length = TransactionItem._meta.get_field("psp_reference").max_length
+    psp_reference = "a" * max_length
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {"pspReference": psp_reference},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]
+    assert data["errors"] == []
+    assert data["transaction"]["pspReference"] == psp_reference
+    transaction = order_with_lines.payment_transactions.get()
+    assert transaction.psp_reference == psp_reference
