@@ -5413,3 +5413,70 @@ def test_checkout_delivery_returns_shipping_when_marked_as_invalid(
     assert data["id"] == to_global_id_or_none(delivery)
     assert data["shippingMethod"]["name"] == shipping_method.name
     mocked_shipping_webhook_fetch.assert_not_called()
+
+
+QUERY_CHECKOUT_LINE_TOTALS = """
+query getCheckout($id: ID) {
+  checkout(id: $id) {
+    lines {
+      variant {
+        id
+      }
+      totalPrice {
+        gross {
+          amount
+        }
+      }
+      undiscountedTotalPrice {
+        amount
+      }
+    }
+  }
+}
+"""
+
+
+def test_checkout_prices_specific_product_voucher_skips_excluded_product_type(
+    user_api_client, checkout_with_items, voucher_percentage, product_type_list
+):
+    # given
+    checkout = checkout_with_items
+    recycling_fee_type = product_type_list[0]
+    fee_variant = checkout.lines.first().variant
+    fee_product = fee_variant.product
+    fee_product.product_type = recycling_fee_type
+    fee_product.save(update_fields=["product_type"])
+
+    discount_percentage = Decimal(2)
+    voucher = voucher_percentage
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.channel_listings.update(discount_value=discount_percentage)
+    voucher.excluded_product_types.add(recycling_fee_type)
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher, voucher.codes.get())
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(QUERY_CHECKOUT_LINE_TOTALS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    lines_data = content["data"]["checkout"]["lines"]
+    assert len(lines_data) == 4
+    fee_variant_id = graphene.Node.to_global_id("ProductVariant", fee_variant.pk)
+    for line_data in lines_data:
+        undiscounted_total = Decimal(str(line_data["undiscountedTotalPrice"]["amount"]))
+        total = Decimal(str(line_data["totalPrice"]["gross"]["amount"]))
+        if line_data["variant"]["id"] == fee_variant_id:
+            assert total == undiscounted_total
+        else:
+            assert total == undiscounted_total - quantize_price(
+                undiscounted_total * discount_percentage / 100, checkout.currency
+            )

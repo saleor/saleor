@@ -148,6 +148,22 @@ class Voucher(ModelWithMetadata, ModelWithExternalReference):
     variants = models.ManyToManyField("product.ProductVariant", blank=True)
     collections = models.ManyToManyField("product.Collection", blank=True)
     categories = models.ManyToManyField("product.Category", blank=True)
+    product_types = models.ManyToManyField("product.ProductType", blank=True)
+    excluded_products = models.ManyToManyField(
+        "product.Product", blank=True, related_name="excluded_from_vouchers"
+    )
+    excluded_variants = models.ManyToManyField(
+        "product.ProductVariant", blank=True, related_name="excluded_from_vouchers"
+    )
+    excluded_collections = models.ManyToManyField(
+        "product.Collection", blank=True, related_name="excluded_from_vouchers"
+    )
+    excluded_categories = models.ManyToManyField(
+        "product.Category", blank=True, related_name="excluded_from_vouchers"
+    )
+    excluded_product_types = models.ManyToManyField(
+        "product.ProductType", blank=True, related_name="excluded_from_vouchers"
+    )
 
     objects = VoucherManager()
 

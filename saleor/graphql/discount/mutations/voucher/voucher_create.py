@@ -2,9 +2,12 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from .....core.tracing import traced_atomic_transaction
 from .....core.utils.promo_code import generate_promo_code, is_available_promo_code
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
+from .....discount.interface import fetch_voucher_catalogue_pks
+from .....discount.lock_objects import voucher_qs_select_for_update
 from .....permission.enums import DiscountPermissions
 from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
@@ -28,6 +31,15 @@ from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ...types import Voucher
+from .catalogue_validation import (
+    EXCLUSION_DESCRIPTION,
+    LIMITED_VOUCHER_INPUT_FIELDS,
+    VOUCHER_CATALOGUE_ITEMS_LIMIT,
+    VOUCHER_CATALOGUE_NODE_TYPES,
+    clean_voucher_catalogue,
+    resolve_voucher_catalogue_nodes,
+    validate_voucher_catalogue_items_limit,
+)
 
 
 class VoucherInput(BaseInputObjectType):
@@ -72,6 +84,34 @@ class VoucherInput(BaseInputObjectType):
         graphene.ID,
         description="Categories discounted by the voucher.",
         name="categories",
+    )
+    product_types = NonNullList(
+        graphene.ID,
+        description=(
+            "Product types discounted by the voucher. "
+            f"Max {VOUCHER_CATALOGUE_ITEMS_LIMIT} items per call." + ADDED_IN_323
+        ),
+    )
+    excluded_products = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Products") + ADDED_IN_323,
+    )
+    excluded_variants = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Product variants")
+        + ADDED_IN_323,
+    )
+    excluded_collections = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Collections") + ADDED_IN_323,
+    )
+    excluded_categories = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Categories") + ADDED_IN_323,
+    )
+    excluded_product_types = NonNullList(
+        graphene.ID,
+        description=EXCLUSION_DESCRIPTION.format(entity="Product types") + ADDED_IN_323,
     )
     min_checkout_items_quantity = graphene.Int(
         description="Minimal quantity of checkout items required to apply the voucher."
@@ -132,9 +172,39 @@ class VoucherCreate(DeprecatedModelMutation):
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cls.clean_codes(data)
+        validate_voucher_catalogue_items_limit(data, LIMITED_VOUCHER_INPUT_FIELDS)
+        # Resolved here instead of the base `clean_input`, which doesn't check
+        # that an ID is of the field's type.
+        catalogue_ids = {
+            field: data.pop(field)
+            for field in VOUCHER_CATALOGUE_NODE_TYPES
+            if field in data
+        }
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
+        catalogue_nodes = resolve_voucher_catalogue_nodes(catalogue_ids)
+        for field, ids in catalogue_ids.items():
+            if ids is not None:
+                cleaned_input[field] = catalogue_nodes.get(field, [])
 
         return cleaned_input
+
+    @classmethod
+    def clean_catalogue(cls, instance, cleaned_input):
+        """Validate the catalogue against the stored one; call under the voucher lock."""
+        stored_pks = fetch_voucher_catalogue_pks(instance) if instance.pk else {}
+        input_pks = {
+            field: {node.pk for node in cleaned_input[field]}
+            for field in VOUCHER_CATALOGUE_NODE_TYPES
+            if field in cleaned_input
+        }
+        clean_voucher_catalogue(
+            instance.type,
+            {
+                field: input_pks.get(field, stored_pks.get(field, set()))
+                for field in VOUCHER_CATALOGUE_NODE_TYPES
+            },
+            input_pks,
+        )
 
     @classmethod
     def _clean_old_code(cls, data):
@@ -315,8 +385,14 @@ class VoucherCreate(DeprecatedModelMutation):
             cls.clean_codes_instance(code_instances)
 
         has_multiple_codes = bool(codes_data)
-        cls.save(info, voucher_instance, code_instances, has_multiple_codes)
-        cls._save_m2m(info, voucher_instance, cleaned_input)
+        with traced_atomic_transaction():
+            if voucher_instance.pk:
+                # Lock so a concurrent catalogue edit can't slip past the
+                # validation below.
+                list(voucher_qs_select_for_update().filter(pk=voucher_instance.pk))
+            cls.clean_catalogue(voucher_instance, cleaned_input)
+            cls.save(info, voucher_instance, code_instances, has_multiple_codes)
+            cls._save_m2m(info, voucher_instance, cleaned_input)
 
         cls.post_save_action(info, voucher_instance, code_instances, cleaned_input)
         return cls.success_response(voucher_instance)
