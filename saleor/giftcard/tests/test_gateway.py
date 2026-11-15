@@ -1,4 +1,5 @@
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 
@@ -130,3 +131,135 @@ def test_refund_creates_refunded_in_order_event(
     )
     assert event.user is None
     assert event.app == app
+
+
+@pytest.mark.django_db
+def test_charge_rolls_back_balance_when_recording_charge_fails(
+    order, gift_card_created_by_staff, transaction_item_generator
+):
+    # given
+    authorized_amount = Decimal("5.00")
+    gift_card = gift_card_created_by_staff
+    initial_balance = gift_card.current_balance_amount
+
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=authorized_amount,
+        charged_value=Decimal(0),
+        gift_card=gift_card,
+        available_actions=[TransactionAction.CHARGE],
+    )
+
+    # when
+    with patch(
+        "saleor.giftcard.gateway.create_transaction_event_from_request_and_webhook_response",
+        side_effect=RuntimeError("Crash after the balance change."),
+    ):
+        with pytest.raises(RuntimeError):
+            charge_gift_card_transactions(order)
+
+    # then
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance_amount == initial_balance
+    assert gift_card.last_used_on is None
+    assert not GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+    ).exists()
+    transaction.refresh_from_db()
+    assert transaction.charged_value == Decimal(0)
+    assert not transaction.events.filter(
+        type=TransactionEventType.CHARGE_REQUEST
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_charge_is_retried_after_recording_charge_failed(
+    order, gift_card_created_by_staff, transaction_item_generator
+):
+    # given
+    authorized_amount = Decimal("5.00")
+    gift_card = gift_card_created_by_staff
+    initial_balance = gift_card.current_balance_amount
+
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=authorized_amount,
+        charged_value=Decimal(0),
+        gift_card=gift_card,
+        available_actions=[TransactionAction.CHARGE],
+    )
+    with patch(
+        "saleor.giftcard.gateway.create_transaction_event_from_request_and_webhook_response",
+        side_effect=RuntimeError("Crash after the balance change."),
+    ):
+        with pytest.raises(RuntimeError):
+            charge_gift_card_transactions(order)
+
+    # when
+    charge_gift_card_transactions(order)
+
+    # then
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance_amount == initial_balance - authorized_amount
+    assert (
+        GiftCardEvent.objects.filter(
+            gift_card=gift_card, type=GiftCardEvents.USED_IN_ORDER
+        ).count()
+        == 1
+    )
+    transaction.refresh_from_db()
+    assert transaction.charged_value == authorized_amount
+    assert (
+        transaction.events.filter(type=TransactionEventType.CHARGE_REQUEST).count() == 1
+    )
+    assert (
+        transaction.events.filter(type=TransactionEventType.CHARGE_SUCCESS).count() == 1
+    )
+
+
+@pytest.mark.django_db
+def test_refund_rolls_back_balance_when_recording_refund_fails(
+    order, gift_card_created_by_staff, transaction_item_generator, app
+):
+    # given
+    charged_amount = Decimal("5.00")
+    gift_card = gift_card_created_by_staff
+    gift_card.current_balance_amount -= charged_amount
+    gift_card.save(update_fields=["current_balance_amount"])
+    balance_before_refund = gift_card.current_balance_amount
+
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+        authorized_value=Decimal(0),
+        charged_value=charged_amount,
+        gift_card=gift_card,
+        available_actions=[TransactionAction.REFUND],
+    )
+
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=charged_amount,
+        currency=transaction.currency,
+        psp_reference="ref-1",
+    )
+
+    # when
+    with patch(
+        "saleor.giftcard.gateway.create_transaction_event_from_request_and_webhook_response",
+        side_effect=RuntimeError("Crash after the balance change."),
+    ):
+        with pytest.raises(RuntimeError):
+            refund_gift_card_transaction(transaction, request_event, user=None, app=app)
+
+    # then
+    gift_card.refresh_from_db()
+    assert gift_card.current_balance_amount == balance_before_refund
+    assert not GiftCardEvent.objects.filter(
+        gift_card=gift_card, type=GiftCardEvents.REFUNDED_IN_ORDER
+    ).exists()
+    transaction.refresh_from_db()
+    assert transaction.refunded_value == Decimal(0)

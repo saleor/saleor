@@ -298,75 +298,81 @@ def charge_gift_card_transactions(
     )
 
     for gift_card_transaction in gift_card_transactions:
-        request_event = create_transaction_event_requested(
-            gift_card_transaction,
-            gift_card_transaction.amount_authorized.amount,
-            TransactionAction.CHARGE,
-            app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
-        )
-
-        response = {
-            "result": TransactionEventType.CHARGE_FAILURE.upper(),
-            "pspReference": str(uuid4()),
-            "amount": gift_card_transaction.amount_authorized.amount,
-            "message": "Gift card could not be found.",
-        }
-
-        if not gift_card_transaction.gift_card_id:
-            create_transaction_event_from_request_and_webhook_response(
-                request_event,
-                None,
-                transaction_webhook_response=response,
+        # The charge request, the balance change and the charge result are saved in
+        # one database transaction. If any step fails, none of them is saved, so a
+        # card is never charged without the order recording the charge, and the
+        # next attempt picks the transaction up again.
+        with transaction.atomic():
+            _charge_gift_card_transaction(
+                gift_card_transaction, order, user=user, app=app
             )
-            continue
 
+
+def _charge_gift_card_transaction(
+    gift_card_transaction: "TransactionItem",
+    order: "Order",
+    user: User | None = None,
+    app: App | None = None,
+):
+    request_event = create_transaction_event_requested(
+        gift_card_transaction,
+        gift_card_transaction.amount_authorized.amount,
+        TransactionAction.CHARGE,
+        app_identifier=GIFT_CARD_PAYMENT_GATEWAY_ID,
+    )
+
+    response = {
+        "result": TransactionEventType.CHARGE_FAILURE.upper(),
+        "pspReference": str(uuid4()),
+        "amount": gift_card_transaction.amount_authorized.amount,
+        "message": "Gift card could not be found.",
+    }
+
+    if gift_card_transaction.gift_card_id:
         try:
-            with transaction.atomic():
-                gift_card = (
-                    GiftCard.objects.filter(id=gift_card_transaction.gift_card_id)
-                    .select_for_update()
-                    .get()
-                )
-
-                if (
-                    gift_card_transaction.authorized_value
-                    > gift_card.current_balance_amount
-                ):
-                    response["message"] = (
-                        f"Gift card has insufficient amount ({quantize_price(gift_card.current_balance_amount, gift_card.currency)}) "
-                        f"to cover requested amount ({quantize_price(gift_card_transaction.authorized_value, gift_card_transaction.currency)})."
-                    )
-                else:
-                    previous_balance = gift_card.current_balance_amount
-                    charge_gift_card(
-                        gift_card,
-                        gift_card_transaction.authorized_value,
-                        order,
-                    )
-                    mark_gift_cards_search_index_as_dirty([gift_card])
-
-                    gift_cards_used_in_order_event(
-                        balance_data=[(gift_card, previous_balance)],
-                        order=order,
-                        user=user,
-                        app=app,
-                    )
-
-                    response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
-                    response["message"] = (
-                        f"Gift card (ending: {gift_card.display_code})."
-                    )
-                    response["actions"] = [TransactionAction.REFUND.upper()]
+            gift_card = (
+                GiftCard.objects.filter(id=gift_card_transaction.gift_card_id)
+                .select_for_update()
+                .get()
+            )
         except GiftCard.DoesNotExist:
             # Gift card must have been just deleted.
             # Eat the exception, failure response dict is already prepared.
             pass
+        else:
+            if (
+                gift_card_transaction.authorized_value
+                > gift_card.current_balance_amount
+            ):
+                response["message"] = (
+                    f"Gift card has insufficient amount ({quantize_price(gift_card.current_balance_amount, gift_card.currency)}) "
+                    f"to cover requested amount ({quantize_price(gift_card_transaction.authorized_value, gift_card_transaction.currency)})."
+                )
+            else:
+                previous_balance = gift_card.current_balance_amount
+                charge_gift_card(
+                    gift_card,
+                    gift_card_transaction.authorized_value,
+                    order,
+                )
+                mark_gift_cards_search_index_as_dirty([gift_card])
 
-        create_transaction_event_from_request_and_webhook_response(
-            request_event,
-            None,
-            transaction_webhook_response=response,
-        )
+                gift_cards_used_in_order_event(
+                    balance_data=[(gift_card, previous_balance)],
+                    order=order,
+                    user=user,
+                    app=app,
+                )
+
+                response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+                response["message"] = f"Gift card (ending: {gift_card.display_code})."
+                response["actions"] = [TransactionAction.REFUND.upper()]
+
+    create_transaction_event_from_request_and_webhook_response(
+        request_event,
+        None,
+        transaction_webhook_response=response,
+    )
 
 
 def cancel_gift_card_transaction(
@@ -432,13 +438,20 @@ def refund_gift_card_transaction(
         )
         return
 
-    try:
-        with transaction.atomic():
+    # The balance change and the refund result are saved in one database
+    # transaction, so a card is never credited without the refund being recorded.
+    with transaction.atomic():
+        try:
             gift_card = (
                 GiftCard.objects.filter(id=transaction_item.gift_card_id)
                 .select_for_update()
                 .get()
             )
+        except GiftCard.DoesNotExist:
+            # Gift card must have been just deleted.
+            # Eat the exception, failure response dict is already prepared.
+            pass
+        else:
             previous_balance = gift_card.current_balance_amount
             gift_card.current_balance_amount = F("current_balance_amount") + amount
             gift_card.save(update_fields=["current_balance_amount"])
@@ -451,22 +464,18 @@ def refund_gift_card_transaction(
                 user=user,
                 app=app,
             )
-    except GiftCard.DoesNotExist:
-        # Gift card must have been just deleted.
-        # Eat the exception, failure response dict is already prepared.
-        pass
-    else:
-        response = {
-            "result": TransactionEventType.REFUND_SUCCESS.upper(),
-            "pspReference": str(uuid4()),
-            "amount": amount,
-        }
 
-        if amount >= transaction_item.charged_value:
-            response["actions"] = []
+            response = {
+                "result": TransactionEventType.REFUND_SUCCESS.upper(),
+                "pspReference": str(uuid4()),
+                "amount": amount,
+            }
 
-    create_transaction_event_from_request_and_webhook_response(
-        request_event,
-        None,
-        transaction_webhook_response=response,
-    )
+            if amount >= transaction_item.charged_value:
+                response["actions"] = []
+
+        create_transaction_event_from_request_and_webhook_response(
+            request_event,
+            None,
+            transaction_webhook_response=response,
+        )
