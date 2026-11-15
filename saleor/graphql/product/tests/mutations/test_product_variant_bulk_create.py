@@ -11,6 +11,7 @@ from .....attribute import AttributeInputType
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import (
+    Product,
     ProductChannelListing,
     ProductVariant,
     ProductVariantChannelListing,
@@ -2647,3 +2648,41 @@ def test_product_variant_bulk_create_with_default_track_inventory(
         data["results"][0]["productVariant"]["trackInventory"]
         == site_settings.track_inventory_by_default
     )
+
+
+def test_product_variant_bulk_create_without_attributes_and_sku_names_variant_by_global_id(
+    staff_api_client,
+    product_type_generator,
+    category,
+    permission_manage_products,
+):
+    # given
+    product_type = product_type_generator(
+        name="Single Variant Type",
+        slug="single-variant-type",
+        product_attributes=[],
+        variant_attributes=[],
+    )
+    product = Product.objects.create(
+        name="Single Variant Product",
+        slug="single-variant-product",
+        product_type=product_type,
+        category=category,
+    )
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {"productId": product_id, "variants": [{"attributes": []}]}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    variant = ProductVariant.objects.get()
+    expected_name = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    assert data["results"][0]["productVariant"]["name"] == expected_name
+    assert variant.name == expected_name

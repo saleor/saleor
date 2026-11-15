@@ -848,7 +848,7 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     def set_variant_name(cls, variant, cleaned_input):
         attributes_input = cleaned_input.get("attributes", [])
-        sku = cleaned_input.get("sku")
+        sku = cleaned_input.get("sku") or variant.sku
         attributes_display: list = []
 
         for attribute_data in attributes_input:
@@ -860,7 +860,11 @@ class ProductVariantBulkCreate(BaseMutation):
 
         name = " / ".join(sorted(attributes_display))
         if not name:
-            name = sku or variant.get_global_id()
+            # The variant has no primary key yet, so its global ID cannot be
+            # used as the name here. Variants with neither attribute values
+            # nor a SKU are named from their global ID once they are saved;
+            # see `save_variants`.
+            name = sku or ""
 
         variant.name = name
 
@@ -902,6 +906,16 @@ class ProductVariantBulkCreate(BaseMutation):
             if not variant.name:
                 cls.set_variant_name(variant, cleaned_input)
         models.ProductVariant.objects.bulk_create(variants_to_create)
+
+        # Variants that had neither variant-selection attribute values nor a
+        # SKU are named after their global ID, mirroring `productVariantCreate`.
+        # The name can only be generated now that the variants have primary
+        # keys; before the creation above it encoded `ProductVariant:None`.
+        variants_without_name = [v for v in variants_to_create if not v.name]
+        if variants_without_name:
+            for variant in variants_without_name:
+                variant.name = variant.get_global_id()
+            models.ProductVariant.objects.bulk_update(variants_without_name, ["name"])
 
         for variant, attributes in attributes_to_save:
             AttributeAssignmentMixin.save(variant, attributes)

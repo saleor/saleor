@@ -21,7 +21,7 @@ from .....core.exceptions import UnsupportedMediaProviderException
 from .....discount.utils.promotion import get_active_catalogue_promotion_rules
 from .....product import MEDIA_URL_CHAR_LIMIT
 from .....product.error_codes import ProductBulkCreateErrorCode
-from .....product.models import Product
+from .....product.models import Product, ProductVariant
 from .....product.tests.utils import (
     create_image,
     create_image_without_extension,
@@ -3578,3 +3578,44 @@ def test_product_bulk_create_with_media_url_request_exception(
     assert error["code"] == ProductBulkCreateErrorCode.INVALID.name
     assert error["path"] == "media.0.mediaUrl"
     assert error["message"] == "Failed to fetch media from URL."
+
+
+def test_product_bulk_create_variant_without_attributes_uses_sku_as_name(
+    staff_api_client,
+    product_type_generator,
+    category,
+    permission_manage_products,
+):
+    # given
+    product_type = product_type_generator(
+        name="Single Variant Type",
+        slug="single-variant-type",
+        product_attributes=[],
+        variant_attributes=[],
+    )
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    sku = "TEST-SKU"
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": "Single Variant Product",
+            "variants": [{"sku": sku, "attributes": []}],
+        }
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION, {"products": products}
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    variant = ProductVariant.objects.get()
+    assert variant.sku == sku
+    assert variant.name == sku
+    assert data["results"][0]["product"]["variants"][0]["name"] == sku
