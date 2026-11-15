@@ -18,6 +18,7 @@ from ....product.models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+from ....site.models import SiteSettings
 from ....warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.filters import (
@@ -186,12 +187,22 @@ def filter_variants_by_stock_availability(qs, stock_availability, channel_slug):
     return qs
 
 
-def get_available_warehouse_pks_for_product(qs, channel_slug):
-    # refetch the site to make sure that we have the latest settings
-    Site.objects.clear_cache()
-    include_shipping_zones = (
-        Site.objects.get_current().settings.use_legacy_shipping_zone_stock_availability
+def _use_legacy_shipping_zone_stock_availability(database_connection_name: str) -> bool:
+    """Read the flag from the database instead of the process-wide site cache.
+
+    The cached `Site.objects.get_current().settings` can be stale after the setting
+    changes, and clearing that cache here would empty it for every other caller.
+    """
+    return (
+        SiteSettings.objects.using(database_connection_name)
+        .filter(site_id=Site.objects.get_current().pk)
+        .values_list("use_legacy_shipping_zone_stock_availability", flat=True)
+        .get()
     )
+
+
+def get_available_warehouse_pks_for_product(qs, channel_slug):
+    include_shipping_zones = _use_legacy_shipping_zone_stock_availability(qs.db)
 
     if include_shipping_zones:
         warehouse_pks = list(

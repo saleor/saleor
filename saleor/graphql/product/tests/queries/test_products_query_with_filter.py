@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from django.contrib.sites.models import Site
 from django.utils import timezone
 
 from .....attribute import AttributeInputType, AttributeType
@@ -1818,6 +1819,42 @@ def test_products_filter_stock_availability_without_shipping_zones_excluded_from
 
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
+
+
+def test_products_filter_stock_availability_reads_fresh_setting_without_clearing_site_cache(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+    site_settings,
+):
+    # given
+    Site.objects.clear_cache()
+    cached_site = Site.objects.get_current()
+    assert cached_site.settings.use_legacy_shipping_zone_stock_availability is True
+
+    site_settings.use_legacy_shipping_zone_stock_availability = False
+    site_settings.save(update_fields=["use_legacy_shipping_zone_stock_availability"])
+
+    channel_USD.shipping_zones.clear()
+    variables = {
+        "filter": {"stockAvailability": "IN_STOCK"},
+        "channel": channel_USD.slug,
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PRODUCTS_WITH_FILTER, variables)
+    content = get_graphql_content(response)
+
+    # then - the updated flag is used even though the cached settings are stale
+    products = content["data"]["products"]["edges"]
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    # the filter must not clear the site cache for the rest of the process
+    assert Site.objects.get_current() is cached_site
 
 
 @pytest.mark.parametrize("include_shipping_zones", [True, False])

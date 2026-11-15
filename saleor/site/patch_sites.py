@@ -16,6 +16,26 @@ with lock:
     THREADED_SITE_CACHE: dict[str | int, Site] = {}
 
 
+def _fetch_site(manager, database_connection_name: str, **lookup) -> Site:
+    return (
+        manager.prefetch_related("settings")
+        .using(database_connection_name)
+        .filter(**lookup)[0]
+    )
+
+
+def _store_site(cache: dict[str | int, Site], key: str | int, site: Site) -> None:
+    """Store a fetched site in the cache it was looked up in.
+
+    The site is fetched without holding the lock, so the cache may have been
+    cleared in the meantime. In that case `cache` is no longer the current
+    cache and the site, which may predate the clear, is not stored.
+    """
+    with lock:
+        if cache is THREADED_SITE_CACHE:
+            cache[key] = site
+
+
 def new_get_current(self, request=None):
     from django.conf import settings
 
@@ -23,41 +43,38 @@ def new_get_current(self, request=None):
 
     if getattr(settings, "SITE_ID", ""):
         site_id = settings.SITE_ID
-        if site_id not in THREADED_SITE_CACHE:
-            with lock:
-                site = (
-                    self.prefetch_related("settings")
-                    .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-                    .filter(pk=site_id)[0]
-                )
-                THREADED_SITE_CACHE[site_id] = site
-        return THREADED_SITE_CACHE[site_id]
+        cache = THREADED_SITE_CACHE
+        site = cache.get(site_id)
+        if site is None:
+            site = _fetch_site(
+                self, settings.DATABASE_CONNECTION_REPLICA_NAME, pk=site_id
+            )
+            _store_site(cache, site_id, site)
+        return site
     if request:
         host = request.get_host()
         try:
             # First attempt to look up the site by host with or without port.
-            if host not in THREADED_SITE_CACHE:
-                with lock:
-                    database_connection_name = get_database_connection_name(request)
-                    site = (
-                        self.prefetch_related("settings")
-                        .using(database_connection_name)
-                        .filter(domain__iexact=host)[0]
-                    )
-                    THREADED_SITE_CACHE[host] = site
-            return THREADED_SITE_CACHE[host]
+            cache = THREADED_SITE_CACHE
+            site = cache.get(host)
+            if site is None:
+                database_connection_name = get_database_connection_name(request)
+                site = _fetch_site(self, database_connection_name, domain__iexact=host)
+                _store_site(cache, host, site)
+            return site
         except Site.DoesNotExist:
             # Fallback to looking up site after stripping port from the host.
             domain, dummy_port = split_domain_port(host)
-            if domain not in THREADED_SITE_CACHE:
-                with lock:
-                    site = (
-                        self.prefetch_related("settings")
-                        .using(settings.DATABASE_CONNECTION_REPLICA_NAME)
-                        .filter(domain__iexact=domain)[0]
-                    )
-                    THREADED_SITE_CACHE[domain] = site
-        return THREADED_SITE_CACHE[domain]
+            cache = THREADED_SITE_CACHE
+            site = cache.get(domain)
+            if site is None:
+                site = _fetch_site(
+                    self,
+                    settings.DATABASE_CONNECTION_REPLICA_NAME,
+                    domain__iexact=domain,
+                )
+                _store_site(cache, domain, site)
+        return site
 
     raise ImproperlyConfigured(
         "You're using the Django sites framework without having"
