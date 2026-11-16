@@ -176,6 +176,16 @@ def test_clean_url_error_handling(input_url: str, expected_error: str):
             '<a href="example-relative-url">link</a>',
             '<a href="example-relative-url" rel="noopener noreferrer">link</a>',
         ),
+        (
+            "a[target=_blank] is allowed by default",
+            '<a href="https://foo.test" target="_blank">link</a>',
+            '<a href="https://foo.test" target="_blank" rel="noopener noreferrer">link</a>',
+        ),
+        (
+            "a[target] other than _blank is dropped",
+            '<a href="https://foo.test" target="_self">link</a>',
+            '<a href="https://foo.test" rel="noopener noreferrer">link</a>',
+        ),
     ],
 )
 def test_clean_text_data_block(_case: str, text: str, expected_cleaned_text: str):
@@ -260,6 +270,16 @@ def test_clean_text_data_block_allow_custom_attributes(
             '<a href="https://example.com">Link</a>',
         ),
         (
+            "Default a[target=_blank] is merged with configured values",
+            '<a href="https://example.com" target="_blank">Link</a>',
+            '<a href="https://example.com" target="_blank">Link</a>',
+        ),
+        (
+            "Configured a[target] values extend the default",
+            '<a href="https://example.com" target="_parent">Link</a>',
+            '<a href="https://example.com" target="_parent">Link</a>',
+        ),
+        (
             "If <a> is allowed, shouldn't be able to use it for <div>",
             '<div is="allowed">x</div>',
             "<div>x</div>",
@@ -280,6 +300,7 @@ def test_clean_text_data_block_allow_custom_attribute_values(
                 "a": {
                     "is": ["allowed", "multiple words"],
                     "rel": ["noopener noreferrer"],
+                    "target": ["_parent"],
                 }
             }
         ),
