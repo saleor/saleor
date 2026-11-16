@@ -4,6 +4,7 @@ import graphene
 
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
+from ....order.lock_objects import order_qs_select_for_update
 from ....order.utils import invalidate_order_prices, remove_discount_from_order_line
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
@@ -50,6 +51,11 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
 
         order_line_before_deletion = copy.deepcopy(order_line)
         with traced_atomic_transaction():
+            # Lock the order before modifying lines to ensure consistent lock
+            # ordering (order -> lines) with `order.calculations.process_order_prices`
+            # and prevent deadlocks.
+            order_qs_select_for_update().only("pk").get(pk=order.pk)
+
             remove_discount_from_order_line(order_line, order)
             app = get_app_promise(info.context).get()
             events.order_line_discount_removed_event(

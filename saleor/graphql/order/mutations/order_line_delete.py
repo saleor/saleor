@@ -66,9 +66,9 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             else None
         )
         with traced_atomic_transaction():
-            # Lock the order before modifying lines to ensure consistent
-            # lock ordering (order → lines) with `process_order_prices`,
-            # and preventing deadlocks.
+            # Lock the order before modifying lines to ensure consistent lock
+            # ordering (order -> lines) with `order.calculations.process_order_prices`
+            # and prevent deadlocks.
             order_qs_select_for_update().only("pk").get(pk=order.pk)
 
             line_info = OrderLineInfo(
