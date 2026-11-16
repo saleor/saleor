@@ -542,6 +542,19 @@ def recalculate_discounts(
         )
     )
 
+    if checkout_info.voucher:
+        # The catalogue promotion discounts refreshed above change the base line
+        # prices the voucher amount is calculated from. Recompute the voucher
+        # amount from the refreshed prices, so a voucher applied before the
+        # promotion discounts were stored on the lines - or a price change
+        # since it was applied - does not leave a stale `checkout.discount`
+        # behind until the next recalculating mutation.
+        # Local import to avoid a circular import: `checkout.utils` imports
+        # this module.
+        from .utils import recalculate_checkout_discount
+
+        recalculate_checkout_discount(checkout_info.manager, checkout_info, lines)
+
     if soonest_promotion_end_date is not None:
         checkout.discount_expiration = min(
             soonest_promotion_end_date, timezone.now() + settings.CHECKOUT_PRICES_TTL

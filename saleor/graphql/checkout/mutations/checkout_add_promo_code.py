@@ -11,6 +11,9 @@ from ....checkout.utils import (
     add_promo_code_to_checkout,
     invalidate_checkout,
 )
+from ....discount.utils.checkout import (
+    create_checkout_line_discount_objects_for_catalogue_promotions,
+)
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.context import SyncWebhookControlContext
@@ -99,6 +102,12 @@ class CheckoutAddPromoCode(BaseMutation):
             )
 
         checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+        # Refresh the catalogue promotion discounts before the voucher amount is
+        # calculated. `checkoutCreate` does not store `CheckoutLineDiscount` rows,
+        # so without this the voucher would be calculated from undiscounted
+        # line prices and the wrong amount would stay in `checkout.discount`.
+        create_checkout_line_discount_objects_for_catalogue_promotions(lines)
 
         add_promo_code_to_checkout(manager, checkout_info, lines, promo_code)
 
