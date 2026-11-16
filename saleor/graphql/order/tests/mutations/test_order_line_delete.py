@@ -422,3 +422,28 @@ def test_order_line_delete_triggers_webhooks(
         filter_shipping_delivery.event_type
         == WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS
     )
+
+
+@pytest.mark.parametrize("status", [OrderStatus.DRAFT, OrderStatus.UNCONFIRMED])
+def test_order_line_delete_locks_order_before_deleting_line(
+    status,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    assert_row_lock_before_first_write,
+):
+    # given
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    line = order.lines.first()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    variables = {"id": graphene.Node.to_global_id("OrderLine", line.id)}
+
+    # when
+    with assert_row_lock_before_first_write("order_order", "order_orderline"):
+        response = staff_api_client.post_graphql(ORDER_LINE_DELETE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["orderLineDelete"]["errors"]

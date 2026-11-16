@@ -2071,3 +2071,26 @@ def test_fetch_order_prices_if_expired_refreshes_charge_status(
     order.refresh_from_db(fields=("total_gross_amount", "charge_status"))
     assert order.total_gross_amount == recalculated_total
     assert order.charge_status == expected_charge_status
+
+
+def test_process_order_prices_locks_order_before_writing_lines(
+    order_with_lines, plugins_manager, assert_row_lock_before_first_write
+):
+    # given
+    order = order_with_lines
+    tc = order.channel.tax_configuration
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.save(update_fields=["tax_calculation_strategy"])
+    lines = list(order.lines.all())
+
+    # when
+    # `process_order_prices` is called directly, as `fetch_order_prices_if_expired`
+    # may write lines before it, in separate transactions that take no order lock
+    with assert_row_lock_before_first_write("order_order", "order_orderline"):
+        calculations.process_order_prices(
+            order=order, manager=plugins_manager, requestor=None, lines=lines
+        ).get()
+
+    # then
+    order.refresh_from_db()
+    assert order.should_refresh_prices is False
