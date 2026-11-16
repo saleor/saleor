@@ -83,8 +83,11 @@ legacy_account_delete_token_generator = SessionIndependentTokenGenerator(
 password_reset_token_generator = SessionIndependentTokenGenerator(
     key_salt=f"{__name__}.password_reset_token_generator"
 )
-legacy_password_reset_token_generator = SessionIndependentTokenGenerator(
-    key_salt=LEGACY_SALT
+# Accepts links emailed before password reset dropped `last_login`. Giving this
+# LEGACY_SALT instead would make it identical to the legacy account delete generator,
+# and setPassword would start accepting account delete links.
+legacy_password_reset_token_generator = BaseTokenGenerator(
+    key_salt=f"{__name__}.password_reset_token_generator"
 )
 
 # Account confirmation
