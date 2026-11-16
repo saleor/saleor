@@ -126,6 +126,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Fixed slow paginated `products` queries with channel-dependent filters (`isPublished`, `isAvailable`, `isVisibleInListing`, `publishedFrom`, `availableFrom`, `price`) and category filters (`categories`, `category`, `Category.products`). The generated SQL now compares `channel_id` and `category_id` against literal values instead of nested subqueries, so the database picks a plan that stops at the page size instead of scanning every product in the category on each page.
 - Fixed automatic checkout completion tasks being published to SQS without a `MessageGroupId`.
 - Fixed Celery tasks losing their SQS `MessageGroupId` when retried. Retried webhook deliveries are now published with the group ID they were first published with.
+- Fixed password reset links expiring within minutes for anyone with an active session. The token hash included `last_login`, which is updated on every token refresh, so a Dashboard tab refreshing in the background invalidated the link that had just been emailed. A successful reset still invalidates the link, because the password hash remains part of the token.
 
 #### Search improvements
 

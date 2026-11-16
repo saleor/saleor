@@ -1,3 +1,4 @@
+import datetime
 from unittest.mock import patch
 
 import pytest
@@ -237,12 +238,22 @@ def test_set_password_rejects_account_confirm_token(
 def test_set_password_accepts_legacy_password_reset_token(
     mocked_cache, user_api_client, customer_user, setup_mock_for_cache
 ):
-    """Ensure old tokens before adding scopes still work properly."""
+    """Ensure links emailed before `last_login` left the hash still work."""
 
     # given
     setup_mock_for_cache({}, mocked_cache)
     password = "new-password"
+
+    # Without a last_login the two formats produce the same token, which would make
+    # this pass whether or not the old one is still accepted.
+    customer_user.last_login = datetime.datetime(
+        2018, 5, 31, 12, 0, 1, tzinfo=datetime.UTC
+    )
+    customer_user.save(update_fields=["last_login"])
+
     token = legacy_password_reset_token_generator.make_token(customer_user)
+    assert token != password_reset_token_generator.make_token(customer_user)
+
     variables = {
         "email": customer_user.email,
         "password": password,
@@ -260,6 +271,45 @@ def test_set_password_accepts_legacy_password_reset_token(
     assert data["token"]
     customer_user.refresh_from_db()
     assert customer_user.check_password(password)
+
+
+@patch("saleor.account.throttling.cache")
+def test_set_password_accepts_token_older_than_last_login(
+    mocked_cache, user_api_client, customer_user, setup_mock_for_cache
+):
+    """`last_login` updating after a token is issued must not invalidate it."""
+
+    # given
+    setup_mock_for_cache({}, mocked_cache)
+    password = "new-password"
+    issued_at = datetime.datetime(2018, 5, 31, 12, 0, 1, tzinfo=datetime.UTC)
+    logged_in_at = issued_at + datetime.timedelta(minutes=5)
+
+    with freeze_time(issued_at):
+        token = password_reset_token_generator.make_token(customer_user)
+
+    customer_user.last_login = logged_in_at
+    customer_user.save(update_fields=["last_login"])
+
+    variables = {
+        "email": customer_user.email,
+        "password": password,
+        "token": token,
+    }
+
+    # when
+    with freeze_time(logged_in_at):
+        response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["setPassword"]
+    assert data["errors"] == []
+    assert data["user"]["id"]
+    assert data["token"]
+
+    customer_user.refresh_from_db()
+    assert customer_user.check_password(password) is True
 
 
 @patch("saleor.account.throttling.cache")
