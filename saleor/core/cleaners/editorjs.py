@@ -6,17 +6,25 @@ from typing import Self
 
 import nh3
 
+# nh3's default is empty (https://github.com/rust-ammonia/ammonia/blob/6d803b5677006947da7d2f495dbae83090db4909/src/lib.rs#L447).
+# Values from EDITOR_JS_ALLOWED_ATTRIBUTE_VALUES are merged on top of these defaults.
+DEFAULT_ALLOWED_ATTRIBUTE_VALUES: dict[str, dict[str, set[str]]] = {
+    # Allow links to open in a new tab. Rich text can link both to internal pages
+    # (e.g. a product description referencing another product) and to external
+    # sites (e.g. a vendor page), and the storefront may want to open the latter
+    # in a new tab.
+    "a": {"target": {"_blank"}},
+}
+
 
 @dataclass
-class HtmlCleanerSettings:
+class EditorJsCleanerSettings:
     allowed_attributes: dict[str, set[str]] = field(
         default_factory=lambda: deepcopy(nh3.ALLOWED_ATTRIBUTES)
     )
 
-    # NOTE: nh3 doesn't expose the default values, however it's OK as
-    #       the default value is empty https://github.com/rust-ammonia/ammonia/blob/6d803b5677006947da7d2f495dbae83090db4909/src/lib.rs#L447
     allowed_attribute_values: dict[str, dict[str, set[str]]] = field(
-        default_factory=dict
+        default_factory=lambda: deepcopy(DEFAULT_ALLOWED_ATTRIBUTE_VALUES)
     )
 
     # Configures the 'rel' attribute that will be added on links. `None` disables it.
@@ -47,11 +55,10 @@ class HtmlCleanerSettings:
                 allowed_values_str
             )
 
-            # Converts raw values' list[str] to set[str] type as nh3 wants `set[str]`
-            for key, nested_dict in allowed_values.items():
-                self.allowed_attribute_values[key] = {
-                    k: set(v) for k, v in nested_dict.items()
-                }
+            for html_tag, attribute_values in allowed_values.items():
+                tag_values = self.allowed_attribute_values.setdefault(html_tag, {})
+                for attribute, values in attribute_values.items():
+                    tag_values.setdefault(attribute, set()).update(values)
         return self
 
     @classmethod

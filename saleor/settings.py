@@ -29,7 +29,7 @@ from sentry_sdk.scrubber import DEFAULT_DENYLIST, DEFAULT_PII_DENYLIST, EventScr
 
 from . import PatchedSubscriberExecutionContext, __version__
 from .account.i18n_rules_override import i18n_rules_override
-from .core.cleaners.html import HtmlCleanerSettings
+from .core.cleaners.editorjs import EditorJsCleanerSettings
 from .core.db.patch import patch_db
 from .core.languages import LANGUAGES as CORE_LANGUAGES
 from .core.rlimit import validate_and_set_rlimit
@@ -1250,7 +1250,7 @@ GRAPHQL_CACHE_SUFFIX = os.environ.get("GRAPHQL_CACHE_SUFFIX", "")
 #       user-experience on the client-side (https://github.com/editor-js/list/blob/f8cde313224499ed5bcf3e93864fc11c45fe7efb/README.md#config-params)
 EDITOR_JS_LISTS_MAX_DEPTH = int(os.environ.get("EDITOR_JS_LISTS_MAX_DEPTH", 10))
 
-HTML_CLEANER_PREFS = HtmlCleanerSettings.parse()
+EDITOR_JS_CLEANER_PREFS = EditorJsCleanerSettings.parse()
 
 # File upload settings
 # Allowed mime types for file uploads (safe, non-executable formats)
