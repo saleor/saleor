@@ -18,7 +18,7 @@ DEFAULT_ALLOWED_ATTRIBUTE_VALUES: dict[str, dict[str, set[str]]] = {
 
 
 @dataclass
-class HtmlCleanerSettings:
+class EditorJsCleanerSettings:
     allowed_attributes: dict[str, set[str]] = field(
         default_factory=lambda: deepcopy(nh3.ALLOWED_ATTRIBUTES)
     )

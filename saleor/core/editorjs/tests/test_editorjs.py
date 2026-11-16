@@ -7,7 +7,7 @@ import pydantic_core
 import pytest
 from django.utils.html import strip_tags
 
-from ...cleaners.html import HtmlCleanerSettings
+from ...cleaners.editorjs import EditorJsCleanerSettings
 from .. import clean_editorjs, editorjs_to_text
 from ..cleaners import _clean_url_value
 from .conftest import assert_pydantic_errors
@@ -42,15 +42,15 @@ def assert_paragraph_cleaned(text_input: str, expected_text_output: str) -> None
 
 @pytest.fixture
 def cleaner_settings(settings):
-    old_prefs = settings.HTML_CLEANER_PREFS
+    old_prefs = settings.EDITOR_JS_CLEANER_PREFS
 
     # NOTE: use env vars to control the settings (using prefs.reload())
     #       to ensure the parsing logic of env var is tested
-    prefs = HtmlCleanerSettings()
-    settings.HTML_CLEANER_PREFS = prefs
+    prefs = EditorJsCleanerSettings()
+    settings.EDITOR_JS_CLEANER_PREFS = prefs
 
     yield prefs
-    settings.HTML_CLEANER_PREFS = old_prefs
+    settings.EDITOR_JS_CLEANER_PREFS = old_prefs
 
 
 @pytest.mark.parametrize(

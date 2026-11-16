@@ -107,7 +107,7 @@ def _clean_text(text: str | None) -> str | None:
     return nh3.clean(
         text,
         url_schemes=ALLOWED_URL_SCHEMES,
-        attributes=settings.HTML_CLEANER_PREFS.allowed_attributes,
-        tag_attribute_values=settings.HTML_CLEANER_PREFS.allowed_attribute_values,
-        link_rel=settings.HTML_CLEANER_PREFS.link_rel,
+        attributes=settings.EDITOR_JS_CLEANER_PREFS.allowed_attributes,
+        tag_attribute_values=settings.EDITOR_JS_CLEANER_PREFS.allowed_attribute_values,
+        link_rel=settings.EDITOR_JS_CLEANER_PREFS.link_rel,
     )
