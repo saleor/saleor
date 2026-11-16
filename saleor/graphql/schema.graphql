@@ -2312,6 +2312,13 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """Shop metadata is updated."""
   SHOP_METADATA_UPDATED
 
+  """
+  The Saleor API URL is changing, for example after a domain rename.
+  
+  Added in Saleor 3.23.
+  """
+  SALEOR_API_URL_CHANGED
+
   """Listing available payment gateways."""
   PAYMENT_LIST_GATEWAYS @deprecated(reason: "The legacy Payments API is deprecated and will be removed. Use the Transactions API instead.")
 
@@ -2935,6 +2942,13 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """Shop metadata is updated."""
   SHOP_METADATA_UPDATED
+
+  """
+  The Saleor API URL is changing, for example after a domain rename.
+  
+  Added in Saleor 3.23.
+  """
+  SALEOR_API_URL_CHANGED
 }
 
 """Represents app data."""
@@ -14758,6 +14772,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   OBSERVABILITY @deprecated(reason: "The observability feature is no longer supported. This event will be removed in Saleor 3.24.")
   THUMBNAIL_CREATED
   SHOP_METADATA_UPDATED
+  SALEOR_API_URL_CHANGED
 }
 
 type WarehouseCountableConnection @doc(category: "Products") {
@@ -38143,6 +38158,33 @@ type ShopMetadataUpdated implements Event {
 
   """Shop data."""
   shop: Shop
+}
+
+"""
+Event sent when the Saleor API URL is about to change, for example when the domain is renamed. Apps that store data keyed by the API URL should copy it to `saleorApiUrl`. The previous URL may stop responding right after the change, so verify the signature with the JWKS stored for the previous URL instead of fetching it. Delivery is best effort: apps that are inactive when it is sent do not receive it.
+
+Added in Saleor 3.23.
+"""
+type SaleorApiUrlChanged implements Event @doc(category: "Apps") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  The Saleor API URL before the change. Every delivery of this event sends it in the `Saleor-Api-Url` header.
+  """
+  previousSaleorApiUrl: String!
+
+  """The Saleor API URL after the change."""
+  saleorApiUrl: String!
 }
 
 """Event sent when new staff user is created."""

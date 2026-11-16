@@ -222,6 +222,8 @@ class WebhookEventAsyncType:
 
     SHOP_METADATA_UPDATED = "shop_metadata_updated"
 
+    SALEOR_API_URL_CHANGED = "saleor_api_url_changed"
+
     EVENT_MAP: dict[str, dict[str, Any]] = {
         ACCOUNT_CONFIRMATION_REQUESTED: {
             "name": "Account confirmation requested",
@@ -855,6 +857,10 @@ class WebhookEventAsyncType:
         SHOP_METADATA_UPDATED: {
             "name": "Shop metadata updated",
             "permission": SitePermissions.MANAGE_SETTINGS,
+        },
+        SALEOR_API_URL_CHANGED: {
+            "name": "Saleor API URL changed",
+            "permission": None,
         },
     }
 

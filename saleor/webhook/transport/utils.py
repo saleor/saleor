@@ -214,6 +214,7 @@ def send_webhook_using_http(
     event_type,
     timeout=settings.WEBHOOK_TIMEOUT,
     custom_headers: dict[str, str] | None = None,
+    saleor_api_url: str | None = None,
 ) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
@@ -224,6 +225,7 @@ def send_webhook_using_http(
     :param event_type: Webhook event type.
     :param timeout: Request timeout.
     :param custom_headers: Custom headers which will be added to request headers.
+    :param saleor_api_url: Saleor API URL; defaults to the one built from `domain`.
 
     :return: WebhookResponse object.
     """
@@ -236,7 +238,8 @@ def send_webhook_using_http(
         AppHeaders.EVENT_TYPE: event_type,
         AppHeaders.DOMAIN: domain,
         AppHeaders.SIGNATURE: signature,
-        AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
+        AppHeaders.API_URL: saleor_api_url
+        or build_absolute_uri(reverse("api"), domain),
     }
     tracer.inject_context(headers)
 
@@ -288,12 +291,18 @@ def send_webhook_using_http(
 
 
 def send_webhook_using_aws_sqs(
-    target_url, message, domain, signature, event_type, **kwargs
+    target_url,
+    message,
+    domain,
+    signature,
+    event_type,
+    saleor_api_url: str | None = None,
+    **kwargs,
 ) -> WebhookResponse:
     parts = urlparse(target_url)
     client = get_boto3_sqs_client(parts)
     message_kwargs = get_boto3_sqs_message_kwargs(
-        parts, message, domain, signature, event_type
+        parts, message, domain, signature, event_type, saleor_api_url
     )
 
     with catch_duration_time() as duration:
@@ -310,7 +319,13 @@ def send_webhook_using_aws_sqs(
 
 
 def send_webhook_using_google_cloud_pubsub(
-    target_url, message, domain, signature, event_type, **kwargs
+    target_url,
+    message,
+    domain,
+    signature,
+    event_type,
+    saleor_api_url: str | None = None,
+    **kwargs,
 ):
     parts = urlparse(target_url)
     topic_name = parts.path[1:]  # drop the leading slash
@@ -322,7 +337,8 @@ def send_webhook_using_google_cloud_pubsub(
                 topic_name,
                 message,
                 saleorDomain=domain,
-                saleorApiUrl=build_absolute_uri(reverse("api"), domain),
+                saleorApiUrl=saleor_api_url
+                or build_absolute_uri(reverse("api"), domain),
                 eventType=event_type,
                 signature=signature,
                 retry=retry_config,
@@ -350,6 +366,7 @@ def send_webhook_using_scheme_method(
     event_type,
     data,
     custom_headers=None,
+    saleor_api_url: str | None = None,
 ) -> WebhookResponse:
     parts = urlparse(target_url)
     message = data if isinstance(data, bytes) else data.encode("utf-8")
@@ -370,6 +387,7 @@ def send_webhook_using_scheme_method(
             signature,
             event_type,
             custom_headers=custom_headers,
+            saleor_api_url=saleor_api_url,
         )
     raise ValueError(f"Unknown webhook scheme: {parts.scheme!r}")
 
@@ -752,7 +770,9 @@ def get_boto3_sqs_client(parts):
     )
 
 
-def get_boto3_sqs_message_kwargs(parts, message, domain, signature, event_type):
+def get_boto3_sqs_message_kwargs(
+    parts, message, domain, signature, event_type, saleor_api_url: str | None = None
+):
     queue_url = urlunparse(
         (
             "https",
@@ -769,7 +789,7 @@ def get_boto3_sqs_message_kwargs(parts, message, domain, signature, event_type):
         "SaleorDomain": {"DataType": "String", "StringValue": domain},
         "SaleorApiUrl": {
             "DataType": "String",
-            "StringValue": build_absolute_uri(reverse("api"), domain),
+            "StringValue": saleor_api_url or build_absolute_uri(reverse("api"), domain),
         },
         "EventType": {"DataType": "String", "StringValue": event_type},
     }

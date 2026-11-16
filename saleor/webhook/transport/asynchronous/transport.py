@@ -361,6 +361,7 @@ def trigger_webhooks_async_for_multiple_objects(
     pre_save_payloads=None,
     request_time=None,
     queue=None,
+    saleor_api_url: str | None = None,
 ):
     """Trigger async webhooks (regular and subscription) for each object in the list.
 
@@ -371,6 +372,8 @@ def trigger_webhooks_async_for_multiple_objects(
     :param requestor: used in subscription webhooks to generate metadata for payload.
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
+    :param saleor_api_url: overrides the Saleor API URL sent with every delivery
+    attempt, instead of the URL current at sending time.
     """
     if transaction.get_connection().in_atomic_block:
         # Async webhooks should be delivered after the transaction is committed.
@@ -492,13 +495,16 @@ def trigger_webhooks_async_for_multiple_objects(
         for delivery in deliveries_list:
             message_group_id = get_sqs_message_group_id(domain, delivery.webhook.app)
             # TODO: switch to new `send_webhooks_async_for_app` task when we have
-            # deduplication mechanism in place.
+            # deduplication mechanism in place. It does not support `saleor_api_url`.
+            task_kwargs = {
+                "event_delivery_id": delivery.pk,
+                "telemetry_context": get_task_context().to_dict(),
+            }
+            if saleor_api_url:
+                task_kwargs["saleor_api_url"] = saleor_api_url
 
             send_webhook_request_async.apply_async(
-                kwargs={
-                    "event_delivery_id": delivery.pk,
-                    "telemetry_context": get_task_context().to_dict(),
-                },
+                kwargs=task_kwargs,
                 queue=get_queue_name_for_webhook(
                     delivery.webhook,
                     default_queue=queue or settings.WEBHOOK_CELERY_QUEUE_NAME,
@@ -522,6 +528,7 @@ def trigger_webhooks_async(
     pre_save_payloads=None,
     request_time=None,
     queue=None,
+    saleor_api_url: str | None = None,
 ):
     """Trigger async webhooks - both regular and subscription.
 
@@ -535,6 +542,8 @@ def trigger_webhooks_async(
     :param legacy_data_generator: used to generate payload for regular webhooks.
     :param allow_replica: use a replica database.
     :param queue: defines the queue to which the event should be sent.
+    :param saleor_api_url: overrides the Saleor API URL sent with every delivery
+    attempt, instead of the URL current at sending time.
     """
     trigger_webhooks_async_for_multiple_objects(
         event_type=event_type,
@@ -551,6 +560,7 @@ def trigger_webhooks_async(
         pre_save_payloads=pre_save_payloads,
         request_time=request_time,
         queue=queue,
+        saleor_api_url=saleor_api_url,
     )
 
 
@@ -810,7 +820,11 @@ def _reconstruct_subscribable_object(
 @allow_writer()
 @task_with_telemetry_context
 def send_webhook_request_async(
-    self, event_delivery_id, *, telemetry_context: TelemetryTaskContext
+    self,
+    event_delivery_id,
+    *,
+    telemetry_context: TelemetryTaskContext,
+    saleor_api_url: str | None = None,
 ) -> None:
     delivery, not_found = get_delivery_for_webhook(event_delivery_id)
     if not delivery:
@@ -819,7 +833,7 @@ def send_webhook_request_async(
         return
 
     webhook = delivery.webhook
-    domain = get_domain()
+    domain = urlparse(saleor_api_url).netloc if saleor_api_url else get_domain()
     attempt = create_attempt(delivery, self.request.id)
     response = WebhookResponse(content="", status=EventDeliveryStatus.FAILED)
     retry_on_failure = False
@@ -851,6 +865,7 @@ def send_webhook_request_async(
                     delivery.event_type,
                     data,
                     webhook.custom_headers,
+                    saleor_api_url=saleor_api_url,
                 )
                 retry_on_failure = True
             except ValueError as e:
