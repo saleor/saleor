@@ -45,7 +45,7 @@ class CheckoutDelivery(models.Model):
         on_delete=models.CASCADE,
     )
     external_shipping_method_id = models.CharField(
-        max_length=1024, blank=True, null=True, editable=False, db_index=True
+        max_length=1024, blank=True, null=True, editable=False
     )
     built_in_shipping_method_id = models.IntegerField(
         blank=True, null=True, editable=False, db_index=True
@@ -92,6 +92,12 @@ class CheckoutDelivery(models.Model):
         return self.external_shipping_method_id or str(self.built_in_shipping_method_id)
 
     class Meta:
+        indexes = [
+            BTreeIndex(
+                fields=["external_shipping_method_id"],
+                name="checkout_delivery_externalid_idx",
+            ),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=[
@@ -261,14 +267,12 @@ class Checkout(models.Model):
         max_length=32,
         default=CheckoutAuthorizeStatus.NONE,
         choices=CheckoutAuthorizeStatus.CHOICES,
-        db_index=True,
     )
 
     charge_status = models.CharField(
         max_length=32,
         default=CheckoutChargeStatus.NONE,
         choices=CheckoutChargeStatus.CHOICES,
-        db_index=True,
     )
 
     delivery_methods_stale_at = models.DateTimeField(null=True, blank=True)
@@ -329,6 +333,14 @@ class Checkout(models.Model):
             BTreeIndex(
                 fields=["last_automatic_completion_attempt"],
                 name="automaticcompletionattempt_idx",
+            ),
+            BTreeIndex(
+                fields=["charge_status"],
+                name="checkout_charge_status_idx",
+            ),
+            BTreeIndex(
+                fields=["authorize_status"],
+                name="checkout_authorize_status_idx",
             ),
             models.Index(fields=["created_at"], name="idx_checkout_created_at"),
             GinIndex(
