@@ -941,3 +941,63 @@ def test_attribute_bulk_create_customer_attribute_without_permission(
     assert len(errors) == 1
     assert errors[0]["code"] == AttributeBulkCreateErrorCode.REQUIRED.name
     assert not Attribute.objects.filter(slug="loyalty-level").exists()
+
+
+ATTRIBUTE_BULK_CREATE_INTERNAL_DESCRIPTION_MUTATION = """
+    mutation AttributeBulkCreate($attributes: [AttributeCreateInput!]!) {
+        attributeBulkCreate(attributes: $attributes) {
+            results {
+                errors {
+                    path
+                    message
+                    code
+                }
+                attribute {
+                    name
+                    internalDescription
+                }
+            }
+            count
+        }
+    }
+"""
+
+
+def test_attribute_bulk_create_with_internal_description(
+    staff_api_client, permission_manage_product_types_and_attributes
+):
+    # given
+    attribute_name = "Example name"
+    internal_description = "Use the color from the supplier's catalog."
+    attributes = [
+        {
+            "name": attribute_name,
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "internalDescription": internal_description,
+        }
+    ]
+    staff_api_client.user.user_permissions.add(
+        permission_manage_product_types_and_attributes
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        ATTRIBUTE_BULK_CREATE_INTERNAL_DESCRIPTION_MUTATION,
+        {"attributes": attributes},
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["attributeBulkCreate"]
+    assert data["count"] == 1
+    assert data["results"] == [
+        {
+            "errors": [],
+            "attribute": {
+                "name": attribute_name,
+                "internalDescription": internal_description,
+            },
+        }
+    ]
+    attribute = Attribute.objects.get(name=attribute_name)
+    assert attribute.internal_description == internal_description

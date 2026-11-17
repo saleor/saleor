@@ -6,6 +6,7 @@ from promise import Promise
 
 from ...attribute import AttributeEntityType, AttributeInputType, models
 from ...page import models as page_models
+from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import (
     PagePermissions,
     PageTypePermissions,
@@ -27,12 +28,18 @@ from ..core.context import (
 )
 from ..core.descriptions import (
     ADDED_IN_322,
+    ADDED_IN_323,
     DEPRECATED_IN_3X_INPUT,
     NESTED_QUERY_LIMIT_DESCRIPTION,
 )
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import LanguageCodeEnum, MeasurementUnitsEnum
-from ..core.fields import ConnectionField, FilterConnectionField, JSONString
+from ..core.fields import (
+    ConnectionField,
+    FilterConnectionField,
+    JSONString,
+    PermissionsField,
+)
 from ..core.scalars import JSON, Date, DateTime, PositiveInt
 from ..core.types import (
     BaseInputObjectType,
@@ -411,6 +418,15 @@ class Attribute(ChannelContextType[models.Attribute]):
     external_reference = graphene.String(
         description="External ID of this attribute.",
         required=False,
+    )
+    internal_description = PermissionsField(
+        graphene.String,
+        description=AttributeDescriptions.INTERNAL_DESCRIPTION + ADDED_IN_323,
+        required=False,
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
 
     class Meta:

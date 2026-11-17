@@ -209,6 +209,8 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
     available_in_grid = models.BooleanField(default=False, blank=True)
     max_sort_order = models.IntegerField(default=None, null=True, blank=True)
 
+    internal_description = models.TextField(null=True, blank=True)
+
     objects = AttributeManager()
 
     class Meta(ModelWithMetadata.Meta):
