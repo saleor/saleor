@@ -46,6 +46,13 @@ DEPRECATED_PREORDER_TYPE_DESCRIPTION = "\n\nDEPRECATED: " + DEPRECATED_PREORDER
 # but only when the description carries the DEPRECATED_IN_3X_INPUT marker verbatim.
 DEPRECATED_PREORDER_INPUT = f"{DEPRECATED_IN_3X_INPUT} {DEPRECATED_PREORDER}"
 
+DEPRECATED_ORDER_PAYMENT_STATUS = (
+    "Only valid for orders paid with the legacy Payments API (payment plugins). "
+    "For orders paid with the Transactions API, use `chargeStatus` and "
+    "`authorizeStatus` instead, `totalChargePending` for pending charges "
+    "and `totalRefunded` for refunds."
+)
+
 DEPRECATED_PRODUCT_RATING = (
     "Product rating is deprecated and will be removed. Use a numeric attribute instead."
 )
