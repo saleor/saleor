@@ -10828,6 +10828,13 @@ input AttributeWhereInput @doc(category: "Attributes") {
   ids: [ID!]
   name: StringFilterInput
   slug: StringFilterInput
+
+  """
+  Filter by external reference.
+  
+  Added in Saleor 3.23.
+  """
+  externalReference: StringFilterInput
   withChoices: Boolean
   inputType: AttributeInputTypeEnumFilterInput
   entityType: AttributeEntityTypeEnumFilterInput
@@ -20762,22 +20769,54 @@ type Mutation {
   Delete metadata of an object. To use it, you need to have access to the modified object.
   """
   deleteMetadata(
-    """ID or token (for Order and Checkout) of an object to update."""
-    id: ID!
+    """
+    External reference of an object to update. Requires `type`.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
+    """
+    ID or token (for Order and Checkout) of an object to update. Required unless `externalReference` is provided.
+    """
+    id: ID
 
     """Metadata keys to delete."""
     keys: [String!]!
+
+    """
+    Type of the object referenced by `externalReference`. Required when `externalReference` is provided.
+    
+    Added in Saleor 3.23.
+    """
+    type: ExternalReferenceTypeEnum
   ): DeleteMetadata
 
   """
   Delete object's private metadata. To use it, you need to be an authenticated staff user or an app and have access to the modified object.
   """
   deletePrivateMetadata(
-    """ID or token (for Order and Checkout) of an object to update."""
-    id: ID!
+    """
+    External reference of an object to update. Requires `type`.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
+    """
+    ID or token (for Order and Checkout) of an object to update. Required unless `externalReference` is provided.
+    """
+    id: ID
 
     """Metadata keys to delete."""
     keys: [String!]!
+
+    """
+    Type of the object referenced by `externalReference`. Required when `externalReference` is provided.
+    
+    Added in Saleor 3.23.
+    """
+    type: ExternalReferenceTypeEnum
   ): DeletePrivateMetadata
 
   """
@@ -20786,11 +20825,27 @@ type Mutation {
   Warning: never store sensitive information, including financial data such as credit card details.
   """
   updateMetadata(
-    """ID or token (for Order and Checkout) of an object to update."""
-    id: ID!
+    """
+    External reference of an object to update. Requires `type`.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
+    """
+    ID or token (for Order and Checkout) of an object to update. Required unless `externalReference` is provided.
+    """
+    id: ID
 
     """Fields required to update the object's metadata."""
     input: [MetadataInput!]!
+
+    """
+    Type of the object referenced by `externalReference`. Required when `externalReference` is provided.
+    
+    Added in Saleor 3.23.
+    """
+    type: ExternalReferenceTypeEnum
   ): UpdateMetadata
 
   """
@@ -20799,11 +20854,27 @@ type Mutation {
   Warning: never store sensitive information, including financial data such as credit card details.
   """
   updatePrivateMetadata(
-    """ID or token (for Order and Checkout) of an object to update."""
-    id: ID!
+    """
+    External reference of an object to update. Requires `type`.
+    
+    Added in Saleor 3.23.
+    """
+    externalReference: String
+
+    """
+    ID or token (for Order and Checkout) of an object to update. Required unless `externalReference` is provided.
+    """
+    id: ID
 
     """Fields required to update the object's metadata."""
     input: [MetadataInput!]!
+
+    """
+    Type of the object referenced by `externalReference`. Required when `externalReference` is provided.
+    
+    Added in Saleor 3.23.
+    """
+    type: ExternalReferenceTypeEnum
   ): UpdatePrivateMetadata
 
   """
@@ -24200,6 +24271,20 @@ type StockBulkResult @doc(category: "Products") {
 
   """List of errors occurred on create or update attempt."""
   errors: [StockBulkUpdateError!]
+
+  """
+  Variant external reference provided in the corresponding input row. Returned also when the row failed, so the result can be matched with the input.
+  
+  Added in Saleor 3.23.
+  """
+  variantExternalReference: String
+
+  """
+  Warehouse external reference provided in the corresponding input row. Returned also when the row failed, so the result can be matched with the input.
+  
+  Added in Saleor 3.23.
+  """
+  warehouseExternalReference: String
 }
 
 type StockBulkUpdateError @doc(category: "Products") {
@@ -30048,6 +30133,23 @@ enum MetadataErrorCode {
   NOT_FOUND
   REQUIRED
   NOT_UPDATED
+}
+
+"""
+Type of an object that can be looked up by its external reference.
+
+Added in Saleor 3.23.
+"""
+enum ExternalReferenceTypeEnum {
+  ATTRIBUTE
+  CATEGORY
+  COLLECTION
+  ORDER
+  PRODUCT
+  PRODUCT_VARIANT
+  PROMOTION
+  VOUCHER
+  WAREHOUSE
 }
 
 """
