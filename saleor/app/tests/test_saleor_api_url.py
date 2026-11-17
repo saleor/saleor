@@ -1,12 +1,10 @@
 import datetime
 import json
 import re
-from io import StringIO
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.sites.models import Site
-from django.core.management import CommandError, call_command
 from requests_hardened import HTTPSession
 
 from ...app.headers import AppHeaders, DeprecatedAppHeaders
@@ -15,8 +13,9 @@ from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.transport.asynchronous.transport import send_webhook_request_async
 from ..saleor_api_url import notify_saleor_api_url_changed
 
-PREVIOUS_PUBLIC_URL = "https://old.example.com"
+PREVIOUS_DOMAIN = "old.example.com"
 PREVIOUS_SALEOR_API_URL = "https://old.example.com/graphql/"
+NEW_DOMAIN = "new.example.com"
 NEW_PUBLIC_URL = "https://new.example.com"
 NEW_SALEOR_API_URL = "https://new.example.com/graphql/"
 
@@ -36,11 +35,12 @@ def test_notify_sends_previous_url_in_headers(
     mocked_request, subscription_saleor_api_url_changed_webhook, settings
 ):
     # given
-    settings.PUBLIC_URL = PREVIOUS_PUBLIC_URL
+    settings.PUBLIC_URL = None
+    settings.ENABLE_SSL = True
     mocked_request.return_value = _http_ok_response()
 
     # when
-    change = notify_saleor_api_url_changed(NEW_PUBLIC_URL)
+    change = notify_saleor_api_url_changed(PREVIOUS_DOMAIN, NEW_DOMAIN)
 
     # then
     assert change.previous_saleor_api_url == PREVIOUS_SALEOR_API_URL
@@ -151,80 +151,28 @@ def test_retry_to_google_cloud_pubsub_sends_previous_url(event_delivery, monkeyp
 
 
 @pytest.mark.parametrize(
-    ("_case", "new_public_url", "error_message"),
+    ("_case", "public_url", "new_domain"),
     [
-        (
-            "not_http",
-            "ftp://new.example.com",
-            "Invalid public URL: 'ftp://new.example.com'. Expected http(s)://<host>.",
-        ),
-        (
-            "no_host",
-            "new.example.com",
-            "Invalid public URL: 'new.example.com'. Expected http(s)://<host>.",
-        ),
-        (
-            "unchanged",
-            PREVIOUS_PUBLIC_URL,
-            f"Saleor API URL is already {PREVIOUS_SALEOR_API_URL!r}; nothing changes.",
-        ),
+        ("same_domain", None, PREVIOUS_DOMAIN),
+        ("public_url_overrides_domain", NEW_PUBLIC_URL, NEW_DOMAIN),
     ],
 )
-def test_notify_rejects_invalid_url(
+def test_notify_rejects_unchanged_url(
     _case,
-    new_public_url,
-    error_message,
+    public_url,
+    new_domain,
     subscription_saleor_api_url_changed_webhook,
     settings,
 ):
     # given
-    settings.PUBLIC_URL = PREVIOUS_PUBLIC_URL
+    settings.PUBLIC_URL = public_url
+    settings.ENABLE_SSL = True
+    unchanged_url = public_url + "/graphql/" if public_url else PREVIOUS_SALEOR_API_URL
+    error_message = f"Saleor API URL is already {unchanged_url!r}; nothing changes."
 
     # when
     with pytest.raises(ValueError, match=f"^{re.escape(error_message)}$"):
-        notify_saleor_api_url_changed(new_public_url)
+        notify_saleor_api_url_changed(PREVIOUS_DOMAIN, new_domain)
 
     # then
-    assert EventDelivery.objects.exists() is False
-
-
-@patch.object(HTTPSession, "request")
-def test_command_prints_change(
-    mocked_request, subscription_saleor_api_url_changed_webhook, settings
-):
-    # given
-    settings.PUBLIC_URL = PREVIOUS_PUBLIC_URL
-    mocked_request.return_value = _http_ok_response()
-    out = StringIO()
-
-    # when
-    call_command(
-        "notify_saleor_api_url_changed", new_public_url=NEW_PUBLIC_URL, stdout=out
-    )
-
-    # then
-    assert json.loads(out.getvalue()) == {
-        "kind": "saleor_api_url_change",
-        "previous_saleor_api_url": PREVIOUS_SALEOR_API_URL,
-        "saleor_api_url": NEW_SALEOR_API_URL,
-    }
-    mocked_request.assert_called_once()
-
-
-def test_command_fails_on_invalid_url(
-    subscription_saleor_api_url_changed_webhook, settings
-):
-    # given
-    settings.PUBLIC_URL = PREVIOUS_PUBLIC_URL
-
-    # when
-    with pytest.raises(CommandError) as exc_info:
-        call_command(
-            "notify_saleor_api_url_changed", new_public_url=PREVIOUS_PUBLIC_URL
-        )
-
-    # then
-    assert str(exc_info.value) == (
-        f"Saleor API URL is already {PREVIOUS_SALEOR_API_URL!r}; nothing changes."
-    )
     assert EventDelivery.objects.exists() is False

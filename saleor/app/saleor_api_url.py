@@ -1,6 +1,5 @@
 import json
 from dataclasses import dataclass
-from urllib.parse import urljoin, urlparse
 
 from django.urls import reverse
 
@@ -16,22 +15,22 @@ class SaleorApiUrlChange:
     saleor_api_url: str
 
 
-def notify_saleor_api_url_changed(new_public_url: str) -> SaleorApiUrlChange:
-    """Tell apps that the Saleor API URL is about to change.
+def notify_saleor_api_url_changed(
+    previous_domain: str, new_domain: str
+) -> SaleorApiUrlChange:
+    """Tell apps that the Saleor API URL changed from one domain to another.
 
-    Run it before the change: the previous URL is the current one. Apps store their
-    auth data keyed by `Saleor-Api-Url`, so every delivery of this event, retries
-    included, carries the previous URL in that header, letting apps find and re-key
-    their data. Delivery is asynchronous and best effort.
+    Apps store their auth data keyed by `Saleor-Api-Url`, so every delivery of this
+    event, retries included, carries the previous URL in that header, letting apps
+    find and re-key their data. Delivery is asynchronous and best effort.
+
+    Call it after the transaction that changes the domain commits (e.g. from
+    `transaction.on_commit`). Raises `ValueError` when the API URL does not change,
+    which is also the case when `PUBLIC_URL` is set, as it overrides the domain.
     """
-    parsed = urlparse(new_public_url)
-    if parsed.scheme not in ("http", "https") or not parsed.netloc:
-        raise ValueError(
-            f"Invalid public URL: {new_public_url!r}. Expected http(s)://<host>."
-        )
     change = SaleorApiUrlChange(
-        previous_saleor_api_url=build_absolute_uri(reverse("api")),
-        saleor_api_url=urljoin(new_public_url, reverse("api")),
+        previous_saleor_api_url=build_absolute_uri(reverse("api"), previous_domain),
+        saleor_api_url=build_absolute_uri(reverse("api"), new_domain),
     )
     if change.previous_saleor_api_url == change.saleor_api_url:
         raise ValueError(
