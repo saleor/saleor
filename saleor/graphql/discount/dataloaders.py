@@ -7,7 +7,11 @@ from django.db.models.functions import Coalesce
 from promise import Promise
 
 from ...channel.models import Channel
-from ...discount.interface import VoucherInfo
+from ...discount.interface import (
+    VoucherInfo,
+    build_voucher_info,
+    fetch_voucher_relation_pks,
+)
 from ...discount.models import (
     CheckoutDiscount,
     CheckoutLineDiscount,
@@ -176,39 +180,10 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, VoucherInfo | None]):
             .in_bulk(field_name="code")
         )
 
-        vouchers = {code.voucher for code in voucher_codes_map.values()}
-        voucher_products = (
-            Voucher.products.through.objects.using(self.database_connection_name)
-            .filter(voucher__in=vouchers)
-            .values_list("voucher_id", "product_id")
+        related_pks = fetch_voucher_relation_pks(
+            {code.voucher_id for code in voucher_codes_map.values()},
+            self.database_connection_name,
         )
-        voucher_variants = (
-            Voucher.variants.through.objects.using(self.database_connection_name)
-            .filter(voucher__in=vouchers)
-            .values_list("voucher_id", "productvariant_id")
-        )
-        voucher_collections = (
-            Voucher.collections.through.objects.using(self.database_connection_name)
-            .filter(voucher__in=vouchers)
-            .values_list("voucher_id", "collection_id")
-        )
-        voucher_categories = (
-            Voucher.categories.through.objects.using(self.database_connection_name)
-            .filter(voucher__in=vouchers)
-            .values_list("voucher_id", "category_id")
-        )
-        product_pks_map = defaultdict(list)
-        variant_pks_map = defaultdict(list)
-        category_pks_map = defaultdict(list)
-        collection_pks_map = defaultdict(list)
-        for voucher_id, product_id in voucher_products:
-            product_pks_map[voucher_id].append(product_id)
-        for voucher_id, variant_id in voucher_variants:
-            variant_pks_map[voucher_id].append(variant_id)
-        for voucher_id, category_id in voucher_categories:
-            category_pks_map[voucher_id].append(category_id)
-        for voucher_id, collection_id in voucher_collections:
-            collection_pks_map[voucher_id].append(collection_id)
 
         voucher_infos: list[VoucherInfo | None] = []
         for code in keys:
@@ -217,13 +192,10 @@ class VoucherInfoByVoucherCodeLoader(DataLoader[str, VoucherInfo | None]):
                 voucher_infos.append(None)
                 continue
             voucher_infos.append(
-                VoucherInfo(
-                    voucher=voucher_code.voucher,
-                    voucher_code=voucher_code.code,
-                    product_pks=product_pks_map.get(voucher_code.voucher_id, []),
-                    variant_pks=variant_pks_map.get(voucher_code.voucher_id, []),
-                    category_pks=category_pks_map.get(voucher_code.voucher_id, []),
-                    collection_pks=collection_pks_map.get(voucher_code.voucher_id, []),
+                build_voucher_info(
+                    voucher_code.voucher,
+                    voucher_code.code,
+                    related_pks.get(voucher_code.voucher_id, {}),
                 )
             )
         return voucher_infos

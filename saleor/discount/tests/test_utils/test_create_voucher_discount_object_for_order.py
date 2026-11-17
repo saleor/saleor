@@ -1083,3 +1083,56 @@ def test_create_discount_for_voucher_specific_product_line_with_catalogue_discou
         line_1.unit_discount_reason
         == f"Promotion: {promotion_id}; Voucher code: {order.voucher_code}"
     )
+
+
+def test_create_discount_for_draft_order_voucher_skips_excluded_product_type(
+    order_with_lines, voucher_percentage, product_type_list, plugins_manager
+):
+    # given
+    order = order_with_lines
+    order.status = OrderStatus.DRAFT
+    discounted_line, fee_line = order.lines.all()
+    recycling_fee_type = product_type_list[0]
+    fee_product = fee_line.variant.product
+    fee_product.product_type = recycling_fee_type
+    fee_product.save(update_fields=["product_type"])
+    assert discounted_line.variant.product.product_type_id != recycling_fee_type.pk
+
+    discount_value = Decimal(2)
+    voucher = voucher_percentage
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.channel_listings.update(discount_value=discount_value)
+    voucher.excluded_product_types.add(recycling_fee_type)
+    order.voucher = voucher
+    order.voucher_code = voucher.codes.get().code
+
+    # when
+    create_or_update_voucher_discount_objects_for_order(order)
+    order, lines = fetch_order_prices_if_expired(
+        order, plugins_manager, None, None, True
+    ).get()
+
+    # then
+    discounted_line, fee_line = lines
+    discount_amount = quantize_price(
+        discounted_line.undiscounted_base_unit_price_amount
+        * discounted_line.quantity
+        * discount_value
+        / 100,
+        order.currency,
+    )
+    assert discounted_line.discounts.get().amount_value == discount_amount
+    assert discounted_line.base_unit_price_amount == (
+        discounted_line.undiscounted_base_unit_price_amount
+        - discount_amount / discounted_line.quantity
+    )
+    assert fee_line.discounts.exists() is False
+    assert fee_line.unit_discount_amount == 0
+    assert (
+        fee_line.base_unit_price_amount == fee_line.undiscounted_base_unit_price_amount
+    )
+    assert (
+        fee_line.total_price_gross_amount
+        == fee_line.undiscounted_total_price_gross_amount
+    )

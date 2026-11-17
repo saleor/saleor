@@ -13,7 +13,7 @@ from prices import TaxedMoney
 
 from .....account.models import Address
 from .....channel import MarkAsPaidStrategy
-from .....checkout import calculations
+from .....checkout import base_calculations, calculations
 from .....checkout.delivery_context import (
     PRIVATE_META_APP_SHIPPING_ID,
     fetch_shipping_methods_for_checkout,
@@ -27,8 +27,14 @@ from .....checkout.fetch import (
 from .....checkout.models import Checkout, CheckoutDelivery, CheckoutLine
 from .....checkout.payment_utils import update_checkout_payment_statuses
 from .....checkout.utils import add_voucher_to_checkout
+from .....core.prices import quantize_price
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
-from .....discount import DiscountType, DiscountValueType, RewardValueType
+from .....discount import (
+    DiscountType,
+    DiscountValueType,
+    RewardValueType,
+    VoucherType,
+)
 from .....discount.models import (
     CheckoutLineDiscount,
     OrderLineDiscount,
@@ -6121,3 +6127,88 @@ def test_checkout_complete_with_transaction_warehouse_without_shipping_zones_exc
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
     assert data["order"]
+
+
+def test_checkout_complete_specific_product_voucher_skips_excluded_product_type(
+    user_api_client,
+    checkout_with_items,
+    voucher_percentage,
+    product_type_list,
+    address,
+    checkout_delivery,
+    transaction_item_generator,
+    transaction_events_generator,
+):
+    # given
+    checkout = checkout_with_items
+    recycling_fee_type = product_type_list[0]
+    fee_variant = checkout.lines.first().variant
+    fee_product = fee_variant.product
+    fee_product.product_type = recycling_fee_type
+    fee_product.save(update_fields=["product_type"])
+
+    discount_percentage = Decimal(2)
+    voucher = voucher_percentage
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save(update_fields=["type"])
+    voucher.channel_listings.update(discount_value=discount_percentage)
+    voucher.excluded_product_types.add(recycling_fee_type)
+    assert voucher.products.exists() is False
+    assert voucher.categories.exists() is False
+
+    checkout = prepare_checkout_for_test(
+        checkout,
+        address,
+        address,
+        checkout_delivery(checkout),
+        transaction_item_generator,
+        transaction_events_generator,
+        voucher=voucher,
+    )
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    assert len(lines) == 4
+    for line_info in lines:
+        line_total = calculations.checkout_line_total(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            checkout_line_info=line_info,
+        )
+        undiscounted_total = (
+            base_calculations.calculate_undiscounted_base_line_total_price(
+                line_info, checkout_info.channel
+            )
+        )
+        if line_info.variant == fee_variant:
+            assert line_total.gross == undiscounted_total
+        else:
+            assert line_total.gross == undiscounted_total - quantize_price(
+                undiscounted_total * discount_percentage / 100, checkout.currency
+            )
+
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert data["errors"] == []
+    order = Order.objects.get()
+    order_lines = list(order.lines.all())
+    assert len(order_lines) == 4
+    for order_line in order_lines:
+        undiscounted_total = order_line.undiscounted_total_price.gross
+        if order_line.variant == fee_variant:
+            assert order_line.total_price.gross == undiscounted_total
+            assert order_line.unit_discount_amount == 0
+            assert order_line.discounts.exists() is False
+        else:
+            assert order_line.total_price.gross == undiscounted_total - quantize_price(
+                undiscounted_total * discount_percentage / 100, order.currency
+            )
+            assert order_line.discounts.get().voucher == voucher

@@ -28,6 +28,7 @@ from ...product.types import (
     CategoryCountableConnection,
     CollectionCountableConnection,
     ProductCountableConnection,
+    ProductTypeCountableConnection,
     ProductVariantCountableConnection,
 )
 from ...translations.fields import TranslationField
@@ -84,6 +85,24 @@ class VoucherCodeCountableConnection(CountableConnection):
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
         node = VoucherCode
+
+
+def _resolve_catalogue(
+    field_name: str,
+    connection_type: type[CountableConnection],
+    with_channel_context: bool = False,
+):
+    def resolver(root: ChannelContext[models.Voucher], info: ResolveInfo, **kwargs):
+        qs = (
+            getattr(root.node, field_name)
+            .using(get_database_connection_name(info.context))
+            .all()
+        )
+        if with_channel_context:
+            qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
+        return create_connection_slice(qs, info, kwargs, connection_type)
+
+    return resolver
 
 
 class Voucher(ChannelContextType[models.Voucher]):
@@ -155,6 +174,60 @@ class Voucher(ChannelContextType[models.Voucher]):
     variants = ConnectionField(
         ProductVariantCountableConnection,
         description="List of product variants this voucher applies to.",
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    product_types = ConnectionField(
+        ProductTypeCountableConnection,
+        description="List of product types this voucher applies to." + ADDED_IN_323,
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_categories = ConnectionField(
+        CategoryCountableConnection,
+        description=(
+            "List of categories excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+    )
+    excluded_collections = ConnectionField(
+        CollectionCountableConnection,
+        description=(
+            "List of collections excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_products = ConnectionField(
+        ProductCountableConnection,
+        description=(
+            "List of products excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_variants = ConnectionField(
+        ProductVariantCountableConnection,
+        description=(
+            "List of product variants excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+    )
+    excluded_product_types = ConnectionField(
+        ProductTypeCountableConnection,
+        description=(
+            "List of product types excluded from this voucher. Exclusions take "
+            "precedence over the voucher's includes." + ADDED_IN_323
+        ),
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
@@ -250,6 +323,35 @@ class Voucher(ChannelContextType[models.Voucher]):
         return create_connection_slice(
             qs, info, kwargs, ProductVariantCountableConnection
         )
+
+    resolve_product_types = staticmethod(
+        _resolve_catalogue("product_types", ProductTypeCountableConnection)
+    )
+    resolve_excluded_categories = staticmethod(
+        _resolve_catalogue("excluded_categories", CategoryCountableConnection)
+    )
+    resolve_excluded_collections = staticmethod(
+        _resolve_catalogue(
+            "excluded_collections",
+            CollectionCountableConnection,
+            with_channel_context=True,
+        )
+    )
+    resolve_excluded_products = staticmethod(
+        _resolve_catalogue(
+            "excluded_products", ProductCountableConnection, with_channel_context=True
+        )
+    )
+    resolve_excluded_variants = staticmethod(
+        _resolve_catalogue(
+            "excluded_variants",
+            ProductVariantCountableConnection,
+            with_channel_context=True,
+        )
+    )
+    resolve_excluded_product_types = staticmethod(
+        _resolve_catalogue("excluded_product_types", ProductTypeCountableConnection)
+    )
 
     @staticmethod
     def resolve_countries(root: ChannelContext[models.Voucher], _info: ResolveInfo):
