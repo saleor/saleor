@@ -110,6 +110,7 @@ class CheckoutLinesDelete(BaseMutation):
         checkout.save(
             update_fields=shipping_update_fields
             + invalidate_update_fields
+            + checkout.mark_customer_change()
             + ["search_index_dirty"]
         )
         call_checkout_info_event(

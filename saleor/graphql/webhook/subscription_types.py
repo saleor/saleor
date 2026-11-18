@@ -1786,10 +1786,12 @@ class CheckoutAbandoned(SubscriptionObjectType, CheckoutBase):
         description = (
             "Event sent when a checkout is abandoned. A checkout is considered "
             "abandoned when it is not fully paid (authorized or charged), has lines, "
-            "has an email or a "
-            "user assigned, and has not been modified for the time configured in the "
-            "channel's `checkoutSettings.abandonedCheckoutThreshold`. The event is sent "
-            "again if the checkout is modified and becomes abandoned again."
+            "has an email or a user assigned, and has not been changed by the "
+            "customer for the time configured in the channel's "
+            "`checkoutSettings.abandonedCheckoutThreshold`. The event is sent again "
+            "if the customer changes the checkout and abandons it again. Checkout "
+            "and payment mutations count as customer changes; metadata updates and "
+            "background updates, like transaction event reports, don't."
         )
 
 

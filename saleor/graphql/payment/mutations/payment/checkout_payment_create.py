@@ -324,6 +324,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 )
 
             cancel_active_payments(checkout)
+            checkout.save(update_fields=checkout.mark_customer_change())
 
             payment = None
             if amount != 0:

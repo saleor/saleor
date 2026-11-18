@@ -39,17 +39,18 @@ def abandoned_checkout_channel(channel_USD):
 
 @pytest.fixture
 def idle_checkout(checkout_with_item, abandoned_checkout_channel):
-    set_last_change(
+    set_last_customer_change(
         checkout_with_item,
         timezone.now() - datetime.timedelta(minutes=THRESHOLD_MINUTES + 1),
     )
     return checkout_with_item
 
 
-def set_last_change(checkout, last_change):
-    # `update()` bypasses `auto_now` on `last_change`.
-    Checkout.objects.filter(pk=checkout.pk).update(last_change=last_change)
-    checkout.refresh_from_db(fields=["last_change"])
+def set_last_customer_change(checkout, last_customer_change):
+    Checkout.objects.filter(pk=checkout.pk).update(
+        last_customer_change=last_customer_change
+    )
+    checkout.refresh_from_db(fields=["last_customer_change"])
 
 
 def emitted_checkouts(mocked_trigger):
@@ -115,11 +116,11 @@ def test_authorize_status(
 
 
 @mock.patch(TRIGGER_PATH)
-def test_skips_checkout_modified_within_threshold(
+def test_skips_checkout_changed_within_threshold(
     mocked_trigger, idle_checkout, subscription_checkout_abandoned_webhook
 ):
     # given
-    set_last_change(
+    set_last_customer_change(
         idle_checkout,
         timezone.now() - datetime.timedelta(minutes=THRESHOLD_MINUTES - 1),
     )
@@ -134,14 +135,14 @@ def test_skips_checkout_modified_within_threshold(
 
 
 @mock.patch(TRIGGER_PATH)
-def test_skips_checkout_modified_before_cut_off_date(
+def test_skips_checkout_changed_before_cut_off_date(
     mocked_trigger,
     idle_checkout,
     abandoned_checkout_channel,
     subscription_checkout_abandoned_webhook,
 ):
     # given
-    set_last_change(
+    set_last_customer_change(
         idle_checkout,
         abandoned_checkout_channel.abandoned_checkout_cut_off_date
         - datetime.timedelta(minutes=1),
@@ -246,7 +247,7 @@ def test_emits_once_per_idle_period(
 
 
 @mock.patch(TRIGGER_PATH)
-def test_emits_again_after_checkout_modified(
+def test_emits_again_after_customer_change(
     mocked_trigger, idle_checkout, subscription_checkout_abandoned_webhook
 ):
     # given
@@ -254,7 +255,7 @@ def test_emits_again_after_checkout_modified(
     Checkout.objects.filter(pk=idle_checkout.pk).update(
         abandoned_notified_at=notified_at
     )
-    set_last_change(idle_checkout, notified_at + datetime.timedelta(minutes=1))
+    set_last_customer_change(idle_checkout, notified_at + datetime.timedelta(minutes=1))
 
     # when
     trigger_abandoned_checkout_events_task()
@@ -295,10 +296,11 @@ def test_respects_webhook_channel_filter(
     assert idle_checkout.abandoned_notified_at is None
 
 
-def create_checkout_like(checkout, last_change, email):
+def create_checkout_like(checkout, last_customer_change, email, channel=None):
     line = checkout.lines.get()
+    channel = channel or checkout.channel
     new_checkout = Checkout.objects.create(
-        channel=checkout.channel, currency=checkout.currency, email=email
+        channel=channel, currency=channel.currency_code, email=email
     )
     CheckoutLine.objects.create(
         checkout=new_checkout,
@@ -306,7 +308,7 @@ def create_checkout_like(checkout, last_change, email):
         quantity=line.quantity,
         undiscounted_unit_price_amount=line.undiscounted_unit_price_amount,
     )
-    set_last_change(new_checkout, last_change)
+    set_last_customer_change(new_checkout, last_customer_change)
     return new_checkout
 
 
@@ -321,7 +323,7 @@ def test_processes_oldest_checkouts_first_up_to_batch_size(
     settings.ABANDONED_CHECKOUT_BATCH_SIZE = 1
     older_checkout = create_checkout_like(
         idle_checkout,
-        idle_checkout.last_change - datetime.timedelta(minutes=1),
+        idle_checkout.last_customer_change - datetime.timedelta(minutes=1),
         idle_checkout.email,
     )
 
@@ -349,7 +351,7 @@ def test_cursor_moves_past_not_eligible_checkouts(
     settings.ABANDONED_CHECKOUT_SCAN_BATCH_SIZE = 1
     anonymous_checkout = create_checkout_like(
         idle_checkout,
-        idle_checkout.last_change - datetime.timedelta(minutes=1),
+        idle_checkout.last_customer_change - datetime.timedelta(minutes=1),
         email=None,
     )
 
@@ -368,7 +370,7 @@ def test_cursor_moves_past_not_eligible_checkouts(
 
     # then
     assert first_run == []
-    assert cursor_after_first_run == anonymous_checkout.last_change
+    assert cursor_after_first_run == anonymous_checkout.last_customer_change
     assert second_run == [idle_checkout]
 
 
@@ -381,7 +383,7 @@ def test_skips_checkouts_before_cursor(
 ):
     # given
     abandoned_checkout_channel.abandoned_checkout_processed_until = (
-        idle_checkout.last_change + datetime.timedelta(seconds=1)
+        idle_checkout.last_customer_change + datetime.timedelta(seconds=1)
     )
     abandoned_checkout_channel.save(
         update_fields=["abandoned_checkout_processed_until"]
@@ -395,7 +397,7 @@ def test_skips_checkouts_before_cursor(
 
 
 @mock.patch(TRIGGER_PATH)
-def test_batch_limit_does_not_skip_checkouts_with_same_last_change(
+def test_batch_limit_does_not_skip_checkouts_with_same_last_customer_change(
     mocked_trigger,
     idle_checkout,
     subscription_checkout_abandoned_webhook,
@@ -404,7 +406,7 @@ def test_batch_limit_does_not_skip_checkouts_with_same_last_change(
     # given
     settings.ABANDONED_CHECKOUT_BATCH_SIZE = 1
     twin_checkout = create_checkout_like(
-        idle_checkout, idle_checkout.last_change, idle_checkout.email
+        idle_checkout, idle_checkout.last_customer_change, idle_checkout.email
     )
 
     # when
@@ -440,3 +442,119 @@ def test_creates_event_delivery(
         "kwargs"
     ]["deferred_payload_data"]
     assert deferred_payload_data["object_id"] == idle_checkout.pk
+
+
+@mock.patch(TRIGGER_PATH)
+def test_skips_checkout_without_customer_change(
+    mocked_trigger, idle_checkout, subscription_checkout_abandoned_webhook
+):
+    # given
+    Checkout.objects.filter(pk=idle_checkout.pk).update(
+        last_customer_change=None,
+        last_change=timezone.now() - datetime.timedelta(minutes=THRESHOLD_MINUTES + 1),
+    )
+
+    # when
+    trigger_abandoned_checkout_events_task()
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(TRIGGER_PATH)
+def test_does_not_emit_again_after_non_customer_change(
+    mocked_trigger, idle_checkout, subscription_checkout_abandoned_webhook
+):
+    # given
+    trigger_abandoned_checkout_events_task()
+    assert emitted_checkouts(mocked_trigger) == [idle_checkout]
+    mocked_trigger.reset_mock()
+    # Metadata updates and system bulk updates bump only `last_change`.
+    idle_checkout.save(update_fields=["last_change"])
+
+    # when
+    with freeze_time(
+        timezone.now() + datetime.timedelta(minutes=THRESHOLD_MINUTES + 1)
+    ):
+        trigger_abandoned_checkout_events_task()
+
+    # then
+    mocked_trigger.assert_not_called()
+
+
+@pytest.fixture
+def abandoned_checkout_channel_PLN(channel_PLN):
+    channel_PLN.abandoned_checkout_enabled = True
+    channel_PLN.abandoned_checkout_threshold = THRESHOLD_MINUTES
+    channel_PLN.abandoned_checkout_cut_off_date = timezone.now() - datetime.timedelta(
+        days=1
+    )
+    channel_PLN.save(
+        update_fields=[
+            "abandoned_checkout_enabled",
+            "abandoned_checkout_threshold",
+            "abandoned_checkout_cut_off_date",
+        ]
+    )
+    return channel_PLN
+
+
+@mock.patch(TRIGGER_PATH)
+def test_shares_batch_between_channels(
+    mocked_trigger,
+    idle_checkout,
+    abandoned_checkout_channel_PLN,
+    subscription_checkout_abandoned_webhook,
+    settings,
+):
+    # given
+    settings.ABANDONED_CHECKOUT_BATCH_SIZE = 2
+    older = idle_checkout.last_customer_change - datetime.timedelta(minutes=1)
+    create_checkout_like(idle_checkout, older, idle_checkout.email)
+    pln_checkouts = [
+        create_checkout_like(
+            idle_checkout, older, idle_checkout.email, abandoned_checkout_channel_PLN
+        )
+        for _ in range(2)
+    ]
+
+    # when
+    trigger_abandoned_checkout_events_task()
+
+    # then
+    emitted = emitted_checkouts(mocked_trigger)
+    assert len(emitted) == 2
+    assert [c.channel_id for c in emitted].count(idle_checkout.channel_id) == 1
+    assert len({*emitted} & {*pln_checkouts}) == 1
+
+
+@mock.patch(TRIGGER_PATH)
+def test_gives_unused_batch_to_busy_channel(
+    mocked_trigger,
+    idle_checkout,
+    abandoned_checkout_channel_PLN,
+    subscription_checkout_abandoned_webhook,
+    settings,
+):
+    # given
+    settings.ABANDONED_CHECKOUT_BATCH_SIZE = 4
+    older = idle_checkout.last_customer_change - datetime.timedelta(minutes=1)
+    usd_checkouts = [
+        idle_checkout,
+        *[
+            create_checkout_like(idle_checkout, older, idle_checkout.email)
+            for _ in range(3)
+        ],
+    ]
+    pln_checkout = create_checkout_like(
+        idle_checkout, older, idle_checkout.email, abandoned_checkout_channel_PLN
+    )
+
+    # when
+    trigger_abandoned_checkout_events_task()
+
+    # then
+    emitted = emitted_checkouts(mocked_trigger)
+    assert len(emitted) == 4
+    assert pln_checkout in emitted
+    assert len({*emitted} & {*usd_checkouts}) == 3

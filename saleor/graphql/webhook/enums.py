@@ -37,8 +37,8 @@ checkout_fully_authorized_event_enum_description = (
 )
 checkout_abandoned_event_enum_description = (
     "A checkout was abandoned: it is not fully paid (authorized or charged) "
-    "and has not been "
-    "modified for the time configured in the channel's "
+    "and has not been changed by the customer for the time configured in the "
+    "channel's "
     "`checkoutSettings.abandonedCheckoutThreshold`."
 )
 checkout_fully_paid_event_enum_description = (

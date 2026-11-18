@@ -191,6 +191,7 @@ class TransactionProcess(BaseMutation):
 
         if isinstance(source_object, checkout_models.Checkout):
             cls.validate_checkout(source_object)
+            source_object.save(update_fields=source_object.mark_customer_change())
 
         app = cls.clean_payment_app(transaction_item)
         app_identifier = app.identifier

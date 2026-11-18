@@ -103,15 +103,14 @@ class CheckoutAbandonedInput(BaseInputObjectType):
         description=(
             "Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for "
             "checkouts that are not fully paid (authorized or charged) and were not "
-            "modified for "
-            "`threshold` minutes."
+            "changed by the customer for `threshold` minutes."
         ),
     )
     threshold = Minute(
         required=False,
         description=(
-            "The time in minutes since the last checkout modification after which "
-            "the checkout is considered abandoned. Must be between 1 and "
+            "The time in minutes since the customer's last change to the checkout "
+            "after which the checkout is considered abandoned. Must be between 1 and "
             f"{settings.MAX_ABANDONED_CHECKOUT_THRESHOLD} (30 days). Default is "
             f"{settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD}."
         ),
@@ -119,8 +118,8 @@ class CheckoutAbandonedInput(BaseInputObjectType):
     cut_off_date = DateTime(
         required=False,
         description=(
-            "Only checkouts modified after this date can be considered abandoned. "
-            "Defaults to the current date time when the setting is enabled. "
+            "Only checkouts changed by the customer after this date can be "
+            "considered abandoned. Defaults to the current date time when the setting is enabled. "
             "Setting a past date emits the event for checkouts abandoned since then, "
             "processed in batches."
         ),

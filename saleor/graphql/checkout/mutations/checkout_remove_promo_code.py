@@ -113,7 +113,9 @@ class CheckoutRemovePromoCode(BaseMutation):
             save=False,
         )
         if fields_to_update:
-            checkout.save(update_fields=fields_to_update)
+            checkout.save(
+                update_fields=fields_to_update + checkout.mark_customer_change()
+            )
 
         call_checkout_info_event(
             manager,

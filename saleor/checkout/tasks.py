@@ -315,13 +315,13 @@ def automatic_checkout_completion_task(
 
 
 # Checkouts that are not fully paid, have lines, a reachable customer and were not
-# notified since their last change.
+# notified since the customer's last change.
 ABANDONED_CHECKOUT_ELIGIBILITY = (
     ~Q(authorize_status=CheckoutAuthorizeStatus.FULL)
     & (Q(user_id__isnull=False) | (Q(email__isnull=False) & ~Q(email="")))
     & (
         Q(abandoned_notified_at__isnull=True)
-        | Q(last_change__gt=F("abandoned_notified_at"))
+        | Q(last_customer_change__gt=F("abandoned_notified_at"))
     )
     & Q(Exists(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))))
 )
@@ -332,13 +332,17 @@ def trigger_abandoned_checkout_events_task():
     """Emit CHECKOUT_ABANDONED for idle, not fully paid checkouts.
 
     Not fully paid means the authorized and charged amounts don't cover the total.
-    A checkout is abandoned when it was not modified for the channel's
-    `abandoned_checkout_threshold` minutes.
+    A checkout is abandoned when its customer didn't change it for the channel's
+    `abandoned_checkout_threshold` minutes. Metadata and system updates don't count
+    as changes, see `Checkout.last_customer_change`.
 
     Each channel keeps a cursor (`abandoned_checkout_processed_until`) over
-    `last_change`, so every run reads only checkouts that went idle since the
-    previous run. A checkout modified later gets a newer `last_change` and is
-    picked up again, which emits the event once per idle period.
+    `last_customer_change`, so every run reads only checkouts that went idle since
+    the previous run. A checkout changed later by the customer is picked up again,
+    which emits the event once per idle period.
+
+    The run's budget is shared equally between channels. Budget not used by a
+    channel goes to channels that still have checkouts to process.
     """
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHECKOUT_ABANDONED)
     if not webhooks:
@@ -349,21 +353,28 @@ def trigger_abandoned_checkout_events_task():
     )
     # Channels excluded by webhook channel filters are skipped, so their checkouts
     # are not marked as notified without any delivery.
-    webhooks_per_channel = {
+    pending = {
         channel.pk: channel_webhooks
         for channel in channels
         if (channel_webhooks := filter_webhooks_for_channel(webhooks, channel.slug))
     }
 
     budget = settings.ABANDONED_CHECKOUT_BATCH_SIZE
-    for channel_id, channel_webhooks in webhooks_per_channel.items():
-        if budget <= 0:
-            break
-        checkouts = _process_abandoned_checkouts_for_channel(channel_id, budget)
-        if checkouts:
-            with allow_writer():
-                trigger_checkout_abandoned(checkouts, {channel_id: channel_webhooks})
-            budget -= len(checkouts)
+    while pending and budget > 0:
+        share = max(1, budget // len(pending))
+        for channel_id, channel_webhooks in list(pending.items()):
+            limit = min(share, budget)
+            checkouts = _process_abandoned_checkouts_for_channel(channel_id, limit)
+            if checkouts:
+                with allow_writer():
+                    trigger_checkout_abandoned(
+                        checkouts, {channel_id: channel_webhooks}
+                    )
+                budget -= len(checkouts)
+            if len(checkouts) < limit:
+                del pending[channel_id]
+            if budget <= 0:
+                break
 
 
 def _process_abandoned_checkouts_for_channel(
@@ -391,30 +402,39 @@ def _process_abandoned_checkouts_for_channel(
             )
             window = Checkout.objects.filter(
                 channel_id=channel.pk,
-                last_change__lt=now - datetime.timedelta(minutes=threshold),
+                last_customer_change__lt=now - datetime.timedelta(minutes=threshold),
             )
             if cursor:
-                window = window.filter(last_change__gt=cursor)
+                window = window.filter(last_customer_change__gt=cursor)
 
             scanned = list(
-                window.order_by("last_change").values_list("last_change", flat=True)[
-                    : settings.ABANDONED_CHECKOUT_SCAN_BATCH_SIZE
-                ]
+                window.order_by("last_customer_change").values_list(
+                    "last_customer_change", flat=True
+                )[: settings.ABANDONED_CHECKOUT_SCAN_BATCH_SIZE]
             )
             if not scanned:
                 return []
             checkouts = list(
                 window.filter(
-                    ABANDONED_CHECKOUT_ELIGIBILITY, last_change__lte=scanned[-1]
+                    ABANDONED_CHECKOUT_ELIGIBILITY,
+                    last_customer_change__lte=scanned[-1],
                 )
                 .select_for_update(of=("self",))
-                .order_by("last_change", "pk")[:limit]
+                .order_by("last_customer_change", "pk")[:limit]
             )
             if len(checkouts) == limit:
-                # More eligible checkouts may share the last one's `last_change`;
-                # stop before it. Those already taken are filtered out as notified.
-                boundary = checkouts[-1].last_change
-                new_cursor = max((v for v in scanned if v < boundary), default=cursor)
+                # More eligible checkouts may share the last one's
+                # `last_customer_change`; stop before it. Those already taken are
+                # filtered out as notified.
+                boundary = checkouts[-1].last_customer_change
+                # `scanned` is sorted, so the value before the boundary's first
+                # occurrence is the latest one below it.
+                first_at_boundary = (
+                    scanned.index(boundary) if boundary in scanned else 0
+                )
+                new_cursor = (
+                    scanned[first_at_boundary - 1] if first_at_boundary else cursor
+                )
             else:
                 # Every eligible checkout up to the last scanned one was taken.
                 new_cursor = scanned[-1]

@@ -80,7 +80,10 @@ class CheckoutEmailUpdate(BaseMutation):
         checkout.email = email
         cls.clean_instance(info, checkout)
         checkout.search_index_dirty = True
-        checkout.save(update_fields=["email", "last_change", "search_index_dirty"])
+        checkout.save(
+            update_fields=["email", "last_change", "search_index_dirty"]
+            + checkout.mark_customer_change()
+        )
         manager = get_plugin_manager_promise(info.context).get()
         call_checkout_event(
             manager,

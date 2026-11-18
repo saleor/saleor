@@ -14,4 +14,9 @@ class Migration(migrations.Migration):
             name="abandoned_notified_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
+        migrations.AddField(
+            model_name="checkout",
+            name="last_customer_change",
+            field=models.DateTimeField(blank=True, null=True),
+        ),
     ]

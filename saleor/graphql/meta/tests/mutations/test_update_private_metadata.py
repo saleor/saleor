@@ -325,3 +325,24 @@ def test_update_private_metadata_another_key_deleted_in_meantime(
         value=new_value,
     )
     assert order.get_value_from_private_metadata(key_to_delete) is None
+
+
+def test_update_private_metadata_for_checkout_does_not_mark_customer_change(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    last_customer_change = checkout.last_customer_change
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_checkouts,
+        checkout.token,
+        "Checkout",
+        value="NewMetaValue",
+    )
+
+    # then
+    assert response["data"]["updatePrivateMetadata"]["errors"] == []
+    checkout.refresh_from_db(fields=["last_customer_change"])
+    assert checkout.last_customer_change == last_customer_change

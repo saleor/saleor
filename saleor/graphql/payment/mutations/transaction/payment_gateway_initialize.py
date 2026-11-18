@@ -1,6 +1,7 @@
 import graphene
 from django.conf import settings
 
+from .....checkout import models as checkout_models
 from .....payment.interface import PaymentGatewayData
 from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.enums import PaymentGatewayInitializeErrorCode
@@ -133,6 +134,8 @@ class PaymentGatewayInitialize(TransactionSessionBase):
             PaymentGatewayInitializeErrorCode.NOT_FOUND.value,
             manager=manager,
         )
+        if isinstance(source_object, checkout_models.Checkout):
+            source_object.save(update_fields=source_object.mark_customer_change())
         payment_gateways_data = []
         if payment_gateways:
             payment_gateways_data = [

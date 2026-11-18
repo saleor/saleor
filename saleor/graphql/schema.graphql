@@ -2220,7 +2220,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   CHECKOUT_FULLY_PAID
 
   """
-  A checkout was abandoned: it is not fully paid (authorized or charged) and has not been modified for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`.
+  A checkout was abandoned: it is not fully paid (authorized or charged) and has not been changed by the customer for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`.
   """
   CHECKOUT_ABANDONED
 
@@ -2850,7 +2850,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   CHECKOUT_FULLY_PAID
 
   """
-  A checkout was abandoned: it is not fully paid (authorized or charged) and has not been modified for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`.
+  A checkout was abandoned: it is not fully paid (authorized or charged) and has not been changed by the customer for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`.
   """
   CHECKOUT_ABANDONED
 
@@ -9488,21 +9488,21 @@ type CheckoutSettings {
   allowLegacyGiftCardUse: Boolean!
 
   """
-  Default `false`. Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for checkouts that are not fully paid (authorized or charged) and were not modified for `abandonedCheckoutThreshold` minutes.
+  Default `false`. Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for checkouts that are not fully paid (authorized or charged) and were not changed by the customer for `abandonedCheckoutThreshold` minutes.
   
   Added in Saleor 3.23.
   """
   abandonedCheckoutEnabled: Boolean!
 
   """
-  The time in minutes since the last checkout modification after which the checkout is considered abandoned.
+  The time in minutes since the customer's last change to the checkout after which the checkout is considered abandoned.
   
   Added in Saleor 3.23.
   """
   abandonedCheckoutThreshold: Minute
 
   """
-  Only checkouts modified after this date can be considered abandoned.
+  Only checkouts changed by the customer after this date can be considered abandoned.
   
   Added in Saleor 3.23.
   """
@@ -33114,17 +33114,17 @@ input CheckoutAutoCompleteInput @doc(category: "Checkout") {
 
 input CheckoutAbandonedInput @doc(category: "Checkout") {
   """
-  Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for checkouts that are not fully paid (authorized or charged) and were not modified for `threshold` minutes.
+  Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for checkouts that are not fully paid (authorized or charged) and were not changed by the customer for `threshold` minutes.
   """
   enabled: Boolean!
 
   """
-  The time in minutes since the last checkout modification after which the checkout is considered abandoned. Must be between 1 and 43200 (30 days). Default is 30.
+  The time in minutes since the customer's last change to the checkout after which the checkout is considered abandoned. Must be between 1 and 43200 (30 days). Default is 30.
   """
   threshold: Minute
 
   """
-  Only checkouts modified after this date can be considered abandoned. Defaults to the current date time when the setting is enabled. Setting a past date emits the event for checkouts abandoned since then, processed in batches.
+  Only checkouts changed by the customer after this date can be considered abandoned. Defaults to the current date time when the setting is enabled. Setting a past date emits the event for checkouts abandoned since then, processed in batches.
   """
   cutOffDate: DateTime
 }
@@ -36619,7 +36619,7 @@ type CheckoutFullyAuthorized implements Event @doc(category: "Checkout") {
 }
 
 """
-Event sent when a checkout is abandoned. A checkout is considered abandoned when it is not fully paid (authorized or charged), has lines, has an email or a user assigned, and has not been modified for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`. The event is sent again if the checkout is modified and becomes abandoned again.
+Event sent when a checkout is abandoned. A checkout is considered abandoned when it is not fully paid (authorized or charged), has lines, has an email or a user assigned, and has not been changed by the customer for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`. The event is sent again if the customer changes the checkout and abandons it again. Checkout and payment mutations count as customer changes; metadata updates and background updates, like transaction event reports, don't.
 """
 type CheckoutAbandoned implements Event @doc(category: "Checkout") {
   """Time of the event."""

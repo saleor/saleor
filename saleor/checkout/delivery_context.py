@@ -823,7 +823,11 @@ def assign_delivery_method_to_checkout(
         invalidate_prices_updated_fields = invalidate_checkout(
             checkout_info, lines_info, manager, save=False
         )
-        checkout.save(update_fields=fields_to_update + invalidate_prices_updated_fields)
+        checkout.save(
+            update_fields=fields_to_update
+            + invalidate_prices_updated_fields
+            + checkout.mark_customer_change()
+        )
         call_checkout_info_event(
             manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,

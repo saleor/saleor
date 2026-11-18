@@ -5,6 +5,8 @@ from unittest import mock
 
 from django.conf import settings
 from django.test import override_settings
+from django.utils import timezone
+from freezegun import freeze_time
 
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -1233,3 +1235,25 @@ def test_with_mutiple_payment_gateways_have_different_recipments(
     second_message = mock_send_webhook_using_http.mock_calls[1].args[1]
 
     assert json.loads(first_message) != json.loads(second_message)
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
+def test_for_checkout_marks_customer_change(
+    mocked_initialize, user_api_client, checkout_with_prices
+):
+    # given
+    checkout = checkout_with_prices
+    assert checkout.last_customer_change is None
+    mocked_initialize.return_value = []
+    variables = {"id": to_global_id_or_none(checkout), "paymentGateways": None}
+    now = timezone.now()
+
+    # when
+    with freeze_time(now):
+        response = user_api_client.post_graphql(PAYMENT_GATEWAY_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["paymentGatewayInitialize"]["errors"] == []
+    checkout.refresh_from_db(fields=["last_customer_change"])
+    assert checkout.last_customer_change == now

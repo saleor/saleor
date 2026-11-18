@@ -2353,3 +2353,33 @@ def test_concurrent_add_of_same_variant_merges_into_single_line(
     line = checkout.lines.get()
     assert line.variant_id == variant.pk
     assert line.quantity == quantity * 2
+
+
+def test_checkout_lines_add_marks_customer_change(
+    user_api_client, checkout_with_item, stock
+):
+    # given
+    checkout = checkout_with_item
+    assert checkout.last_customer_change is None
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "lines": [
+            {
+                "variantId": graphene.Node.to_global_id(
+                    "ProductVariant", stock.product_variant.pk
+                ),
+                "quantity": 1,
+            }
+        ],
+    }
+    now = timezone.now()
+
+    # when
+    with freeze_time(now):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkoutLinesAdd"]["errors"] == []
+    checkout.refresh_from_db(fields=["last_customer_change"])
+    assert checkout.last_customer_change == now
