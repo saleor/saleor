@@ -121,6 +121,9 @@ class Checkout(models.Model):
 
     # Tracks the last time automatic checkout completion was attempted
     last_automatic_completion_attempt = models.DateTimeField(null=True, blank=True)
+    # Set when CHECKOUT_ABANDONED is emitted. Must be updated with `QuerySet.update()`
+    # so `last_change` is not bumped.
+    abandoned_notified_at = models.DateTimeField(null=True, blank=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

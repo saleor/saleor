@@ -820,6 +820,13 @@ def subscription_checkout_fully_paid_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_checkout_abandoned_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.CHECKOUT_ABANDONED, WebhookEventAsyncType.CHECKOUT_ABANDONED
+    )
+
+
+@pytest.fixture
 def subscription_checkout_fully_authorized_webhook(subscription_webhook):
     return subscription_webhook(
         queries.CHECKOUT_FULLY_AUTHORIZED,

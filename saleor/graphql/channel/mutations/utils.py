@@ -31,6 +31,9 @@ CHANNEL_UPDATE_FIELDS = [
     "checkout_ttl_before_releasing_funds",
     "checkout_release_funds_cut_off_date",
     "allow_legacy_gift_card_use",
+    "abandoned_checkout_enabled",
+    "abandoned_checkout_threshold",
+    "abandoned_checkout_cut_off_date",
     "metadata",
     "private_metadata",
 ]
@@ -132,6 +135,8 @@ def clean_input_checkout_settings(
     checkout_settings: dict, cleaned_input: dict, instance: Channel | None = None
 ):
     clean_automatic_completion(checkout_settings, cleaned_input)
+    if abandoned_checkout := checkout_settings.get("abandoned_checkout"):
+        clean_abandoned_checkout(abandoned_checkout, cleaned_input, instance)
 
     if "allow_legacy_gift_card_use" in checkout_settings:
         cleaned_input["allow_legacy_gift_card_use"] = checkout_settings[
@@ -143,6 +148,54 @@ def clean_input_checkout_settings(
         cleaned_input["use_legacy_error_flow_for_checkout"] = checkout_settings[
             "use_legacy_error_flow"
         ]
+
+
+def clean_abandoned_checkout(
+    abandoned_checkout: dict, cleaned_input: dict, instance: Channel | None
+):
+    enabled = abandoned_checkout["enabled"]
+    threshold = abandoned_checkout.get("threshold")
+    cut_off_date = abandoned_checkout.get("cut_off_date")
+    cleaned_input["abandoned_checkout_enabled"] = enabled
+
+    if not enabled:
+        for field, label, value in (
+            ("threshold", "threshold", threshold),
+            ("cut_off_date", "cut-off date", cut_off_date),
+        ):
+            if value is not None:
+                raise ValidationError(
+                    {
+                        field: ValidationError(
+                            f"The {label} cannot be set when abandoned checkout "
+                            "event is disabled.",
+                            code=ChannelErrorCode.INVALID.value,
+                        )
+                    }
+                )
+        cleaned_input["abandoned_checkout_threshold"] = None
+        cleaned_input["abandoned_checkout_cut_off_date"] = None
+        return
+
+    if threshold is not None and threshold < 1:
+        raise ValidationError(
+            {
+                "threshold": ValidationError(
+                    "The threshold must be at least 1 minute.",
+                    code=ChannelErrorCode.INVALID.value,
+                )
+            }
+        )
+
+    # Keep the current values when the setting was already enabled, so re-sending
+    # `enabled: true` doesn't move the cut-off date and skip abandoned checkouts.
+    if instance is not None and instance.abandoned_checkout_enabled:
+        threshold = threshold or instance.abandoned_checkout_threshold
+        cut_off_date = cut_off_date or instance.abandoned_checkout_cut_off_date
+    threshold = threshold or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
+    cut_off_date = cut_off_date or timezone.now()
+    cleaned_input["abandoned_checkout_threshold"] = threshold
+    cleaned_input["abandoned_checkout_cut_off_date"] = cut_off_date
 
 
 def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):

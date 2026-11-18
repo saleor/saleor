@@ -35,6 +35,12 @@ checkout_fully_authorized_event_enum_description = (
     "\n\nThis event is emitted only for checkouts whose payments are "
     "processed through the Transaction API."
 )
+checkout_abandoned_event_enum_description = (
+    "A checkout was abandoned: it is not fully paid (authorized or charged) "
+    "and has not been "
+    "modified for the time configured in the channel's "
+    "`checkoutSettings.abandonedCheckoutThreshold`."
+)
 checkout_fully_paid_event_enum_description = (
     "A checkout was fully paid (its `chargeStatus` is `FULL` "
     "or `OVERCHARGED`). This event is not sent if payments are only authorized "
@@ -82,6 +88,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.CHECKOUT_UPDATED: checkout_updated_event_enum_description,
     WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED: checkout_fully_authorized_event_enum_description,
     WebhookEventAsyncType.CHECKOUT_FULLY_PAID: checkout_fully_paid_event_enum_description,
+    WebhookEventAsyncType.CHECKOUT_ABANDONED: checkout_abandoned_event_enum_description,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: "A checkout metadata is updated.",
     WebhookEventAsyncType.COLLECTION_CREATED: "A new collection is created.",
     WebhookEventAsyncType.COLLECTION_UPDATED: "A collection is updated.",

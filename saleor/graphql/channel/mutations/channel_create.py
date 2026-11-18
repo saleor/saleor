@@ -97,6 +97,36 @@ class CheckoutAutoCompleteInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_CHECKOUT
 
 
+class CheckoutAbandonedInput(BaseInputObjectType):
+    enabled = graphene.Boolean(
+        required=True,
+        description=(
+            "Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for "
+            "checkouts that are not fully paid (authorized or charged) and were not "
+            "modified for "
+            "`threshold` minutes."
+        ),
+    )
+    threshold = Minute(
+        required=False,
+        description=(
+            "The time in minutes since the last checkout modification after which "
+            "the checkout is considered abandoned. Default is "
+            f"{settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD}."
+        ),
+    )
+    cut_off_date = DateTime(
+        required=False,
+        description=(
+            "Only checkouts modified after this date can be considered abandoned. "
+            "Defaults to the current date time when the setting is enabled."
+        ),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
 class CheckoutSettingsInput(BaseInputObjectType):
     use_legacy_error_flow = graphene.Boolean(
         description=(
@@ -137,6 +167,11 @@ class CheckoutSettingsInput(BaseInputObjectType):
             "is deprecated."
         )
         + ADDED_IN_323,
+    )
+    abandoned_checkout = CheckoutAbandonedInput(
+        description="Settings for emitting the `CHECKOUT_ABANDONED` webhook event."
+        + ADDED_IN_323,
+        required=False,
     )
 
     class Meta:

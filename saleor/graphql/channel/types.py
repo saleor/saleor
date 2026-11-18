@@ -118,6 +118,31 @@ class CheckoutSettings(ObjectType):
         )
         + ADDED_IN_323,
     )
+    abandoned_checkout_enabled = graphene.Boolean(
+        required=True,
+        description=(
+            "Default `false`. Determines if the `CHECKOUT_ABANDONED` webhook event "
+            "is emitted for checkouts that are not fully paid (authorized or "
+            "charged) and were not "
+            "modified for `abandonedCheckoutThreshold` minutes."
+        )
+        + ADDED_IN_323,
+    )
+    abandoned_checkout_threshold = Minute(
+        required=False,
+        description=(
+            "The time in minutes since the last checkout modification after which "
+            "the checkout is considered abandoned."
+        )
+        + ADDED_IN_323,
+    )
+    abandoned_checkout_cut_off_date = DateTime(
+        required=False,
+        description=(
+            "Only checkouts modified after this date can be considered abandoned."
+        )
+        + ADDED_IN_323,
+    )
 
     class Meta:
         description = "Represents the channel-specific checkout settings."
@@ -540,6 +565,9 @@ class Channel(ModelObjectType):
             automatic_completion_delay=root.automatic_completion_delay,
             automatic_completion_cut_off_date=root.automatic_completion_cut_off_date,
             allow_legacy_gift_card_use=root.allow_legacy_gift_card_use,
+            abandoned_checkout_enabled=root.abandoned_checkout_enabled,
+            abandoned_checkout_threshold=root.abandoned_checkout_threshold,
+            abandoned_checkout_cut_off_date=root.abandoned_checkout_cut_off_date,
         )
 
     @staticmethod

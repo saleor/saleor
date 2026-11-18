@@ -19,12 +19,15 @@ from ..core.db.connection import allow_writer
 from ..core.utils import get_domain
 from ..payment.models import TransactionItem
 from ..plugins.manager import get_plugins_manager
+from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.transport.utils import get_sqs_message_group_id
+from ..webhook.utils import filter_webhooks_for_channel, get_webhooks_for_event
 from .complete_checkout import complete_checkout
 from .fetch import fetch_checkout_info, fetch_checkout_lines
 from .models import Checkout, CheckoutLine
 from .search.indexing import update_checkouts_search_vector
 from .utils import delete_checkouts
+from .webhooks.checkout_abandoned import trigger_checkout_abandoned
 
 task_logger: logging.Logger = get_task_logger(__name__)
 
@@ -309,6 +312,80 @@ def automatic_checkout_completion_task(
             checkout_id,
             extra={"checkout_id": checkout_id},
         )
+
+
+@app.task
+def trigger_abandoned_checkout_events_task():
+    """Emit CHECKOUT_ABANDONED for idle, not fully paid checkouts.
+
+    Not fully paid means the authorized and charged amounts don't cover the total.
+
+    A checkout is abandoned when it was not modified for the channel's
+    `abandoned_checkout_threshold` minutes. The event is emitted once per idle
+    period: `abandoned_notified_at` is compared with `last_change`, so a checkout
+    modified after the notification becomes eligible again.
+    """
+    webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHECKOUT_ABANDONED)
+    if not webhooks:
+        return
+
+    channels = Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+        abandoned_checkout_enabled=True
+    )
+    # Skip channels excluded by webhook channel filters, so their checkouts are not
+    # marked as notified without any delivery.
+    webhooks_per_channel = {
+        channel.pk: channel_webhooks
+        for channel in channels
+        if (channel_webhooks := filter_webhooks_for_channel(webhooks, channel.slug))
+    }
+    if not webhooks_per_channel:
+        return
+
+    now = timezone.now()
+    lookup = Q()
+    for channel in channels:
+        if channel.pk not in webhooks_per_channel:
+            continue
+        threshold = (
+            channel.abandoned_checkout_threshold
+            or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
+        )
+        channel_lookup = Q(
+            channel_id=channel.pk,
+            last_change__lt=now - datetime.timedelta(minutes=threshold),
+        )
+        if cut_off_date := channel.abandoned_checkout_cut_off_date:
+            channel_lookup &= Q(last_change__gte=cut_off_date)
+        lookup |= channel_lookup
+
+    with allow_writer():
+        with transaction.atomic():
+            # skip_locked: overlapping runs never pick the same checkout twice.
+            checkouts = list(
+                Checkout.objects.select_for_update(of=("self",), skip_locked=True)
+                .filter(lookup)
+                .exclude(authorize_status=CheckoutAuthorizeStatus.FULL)
+                # The customer must be reachable.
+                .filter(
+                    Q(user_id__isnull=False) | (Q(email__isnull=False) & ~Q(email=""))
+                )
+                .filter(
+                    Q(abandoned_notified_at__isnull=True)
+                    | Q(last_change__gt=F("abandoned_notified_at"))
+                )
+                .filter(Exists(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))))
+                .order_by("last_change")[: settings.ABANDONED_CHECKOUT_BATCH_SIZE]
+            )
+            if not checkouts:
+                return
+            # `update()` doesn't bump `last_change` (auto_now).
+            Checkout.objects.filter(pk__in=[c.pk for c in checkouts]).update(
+                abandoned_notified_at=now
+            )
+
+    with allow_writer():
+        trigger_checkout_abandoned(checkouts, webhooks_per_channel)
 
 
 @app.task(

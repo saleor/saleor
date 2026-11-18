@@ -74,6 +74,14 @@ class Channel(ModelWithMetadata):
 
     allow_legacy_gift_card_use = models.BooleanField(default=True, db_default=True)
 
+    # CHECKOUT_ABANDONED is emitted for not fully paid (authorized or charged)
+    # checkouts that were not modified for `abandoned_checkout_threshold` minutes.
+    # Only checkouts modified after `abandoned_checkout_cut_off_date` are taken
+    # into account.
+    abandoned_checkout_enabled = models.BooleanField(default=False, db_default=False)
+    abandoned_checkout_threshold = models.PositiveIntegerField(null=True, blank=True)
+    abandoned_checkout_cut_off_date = models.DateTimeField(null=True, blank=True)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"

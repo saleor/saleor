@@ -2219,6 +2219,11 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   CHECKOUT_FULLY_PAID
 
+  """
+  A checkout was abandoned: it is not fully paid (authorized or charged) and has not been modified for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`.
+  """
+  CHECKOUT_ABANDONED
+
   """A checkout metadata is updated."""
   CHECKOUT_METADATA_UPDATED
 
@@ -2843,6 +2848,11 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   This event is emitted only for checkouts whose payments are processed through the Transaction API.
   """
   CHECKOUT_FULLY_PAID
+
+  """
+  A checkout was abandoned: it is not fully paid (authorized or charged) and has not been modified for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`.
+  """
+  CHECKOUT_ABANDONED
 
   """A checkout metadata is updated."""
   CHECKOUT_METADATA_UPDATED
@@ -9476,6 +9486,27 @@ type CheckoutSettings {
   Added in Saleor 3.23.
   """
   allowLegacyGiftCardUse: Boolean!
+
+  """
+  Default `false`. Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for checkouts that are not fully paid (authorized or charged) and were not modified for `abandonedCheckoutThreshold` minutes.
+  
+  Added in Saleor 3.23.
+  """
+  abandonedCheckoutEnabled: Boolean!
+
+  """
+  The time in minutes since the last checkout modification after which the checkout is considered abandoned.
+  
+  Added in Saleor 3.23.
+  """
+  abandonedCheckoutThreshold: Minute
+
+  """
+  Only checkouts modified after this date can be considered abandoned.
+  
+  Added in Saleor 3.23.
+  """
+  abandonedCheckoutCutOffDate: DateTime
 }
 
 """Represents the channel-specific payment settings."""
@@ -14984,6 +15015,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   CHECKOUT_UPDATED
   CHECKOUT_FULLY_AUTHORIZED
   CHECKOUT_FULLY_PAID
+  CHECKOUT_ABANDONED
   CHECKOUT_METADATA_UPDATED
   NOTIFY_USER @deprecated(reason: "See the docs for more details about migrating from NOTIFY_USER to other events: https://docs.saleor.io/upgrade-guides/core/3-16-to-3-17#migrating-from-notify_user")
   PAGE_CREATED
@@ -33054,6 +33086,13 @@ input CheckoutSettingsInput @doc(category: "Checkout") {
   Added in Saleor 3.23.
   """
   allowLegacyGiftCardUse: Boolean
+
+  """
+  Settings for emitting the `CHECKOUT_ABANDONED` webhook event.
+  
+  Added in Saleor 3.23.
+  """
+  abandonedCheckout: CheckoutAbandonedInput
 }
 
 input CheckoutAutoCompleteInput @doc(category: "Checkout") {
@@ -33069,6 +33108,23 @@ input CheckoutAutoCompleteInput @doc(category: "Checkout") {
 
   """
   Specifies the earliest date on which fully paid checkouts can begin to be automatically completed. Fully paid checkouts dated before this cut-off will not be automatically completed. Must be less than the threshold of the oldest modified checkout eligible for automatic completion. Default is current date time.
+  """
+  cutOffDate: DateTime
+}
+
+input CheckoutAbandonedInput @doc(category: "Checkout") {
+  """
+  Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for checkouts that are not fully paid (authorized or charged) and were not modified for `threshold` minutes.
+  """
+  enabled: Boolean!
+
+  """
+  The time in minutes since the last checkout modification after which the checkout is considered abandoned. Default is 30.
+  """
+  threshold: Minute
+
+  """
+  Only checkouts modified after this date can be considered abandoned. Defaults to the current date time when the setting is enabled.
   """
   cutOffDate: DateTime
 }
@@ -36088,6 +36144,20 @@ type Subscription @doc(category: "Miscellaneous") {
   ): CheckoutFullyAuthorized @doc(category: "Checkout")
 
   """
+  Event sent when checkout is abandoned.
+  
+  Added in Saleor 3.23.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutAbandoned(
+    """
+    List of channel slugs. The event will be sent only if the object belongs to one of the provided channels. If the channel slug list is empty, objects that belong to any channel will be sent. Maximally 500 items.
+    """
+    channels: [String!]
+  ): CheckoutAbandoned @doc(category: "Checkout")
+
+  """
   Event sent when checkout metadata is updated.
   
   Added in Saleor 3.21.
@@ -36532,6 +36602,26 @@ Event sent when a checkout was fully authorized. A checkout is considered fully 
 It is triggered only for checkouts whose payments are processed through the Transaction API.
 """
 type CheckoutFullyAuthorized implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
+Event sent when a checkout is abandoned. A checkout is considered abandoned when it is not fully paid (authorized or charged), has lines, has an email or a user assigned, and has not been modified for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`. The event is sent again if the checkout is modified and becomes abandoned again.
+"""
+type CheckoutAbandoned implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
