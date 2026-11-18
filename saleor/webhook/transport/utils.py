@@ -206,6 +206,11 @@ def generate_cache_key_for_webhook(
 
 
 # TODO (PE-568): change typing of data to `bytes` to avoid unnecessary encoding.
+def get_saleor_api_url(domain: str, saleor_api_url: str | None = None) -> str:
+    """Return the Saleor API URL sent to apps: the override, or the one for `domain`."""
+    return saleor_api_url or build_absolute_uri(reverse("api"), domain)
+
+
 def send_webhook_using_http(
     target_url,
     message,
@@ -238,8 +243,7 @@ def send_webhook_using_http(
         AppHeaders.EVENT_TYPE: event_type,
         AppHeaders.DOMAIN: domain,
         AppHeaders.SIGNATURE: signature,
-        AppHeaders.API_URL: saleor_api_url
-        or build_absolute_uri(reverse("api"), domain),
+        AppHeaders.API_URL: get_saleor_api_url(domain, saleor_api_url),
     }
     tracer.inject_context(headers)
 
@@ -337,8 +341,7 @@ def send_webhook_using_google_cloud_pubsub(
                 topic_name,
                 message,
                 saleorDomain=domain,
-                saleorApiUrl=saleor_api_url
-                or build_absolute_uri(reverse("api"), domain),
+                saleorApiUrl=get_saleor_api_url(domain, saleor_api_url),
                 eventType=event_type,
                 signature=signature,
                 retry=retry_config,
@@ -789,7 +792,7 @@ def get_boto3_sqs_message_kwargs(
         "SaleorDomain": {"DataType": "String", "StringValue": domain},
         "SaleorApiUrl": {
             "DataType": "String",
-            "StringValue": saleor_api_url or build_absolute_uri(reverse("api"), domain),
+            "StringValue": get_saleor_api_url(domain, saleor_api_url),
         },
         "EventType": {"DataType": "String", "StringValue": event_type},
     }

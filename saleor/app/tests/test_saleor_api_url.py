@@ -14,10 +14,10 @@ from ...webhook.transport.asynchronous.transport import send_webhook_request_asy
 from ..saleor_api_url import notify_saleor_api_url_changed
 
 PREVIOUS_DOMAIN = "old.example.com"
-PREVIOUS_SALEOR_API_URL = "https://old.example.com/graphql/"
+PREVIOUS_SALEOR_API_URL = f"https://{PREVIOUS_DOMAIN}/graphql/"
 NEW_DOMAIN = "new.example.com"
-NEW_PUBLIC_URL = "https://new.example.com"
-NEW_SALEOR_API_URL = "https://new.example.com/graphql/"
+NEW_PUBLIC_URL = f"https://{NEW_DOMAIN}"
+NEW_SALEOR_API_URL = f"{NEW_PUBLIC_URL}/graphql/"
 
 
 def _http_ok_response():
@@ -48,8 +48,8 @@ def test_notify_sends_previous_url_in_headers(
     mocked_request.assert_called_once()
     _, kwargs = mocked_request.call_args
     assert kwargs["headers"][AppHeaders.API_URL] == PREVIOUS_SALEOR_API_URL
-    assert kwargs["headers"][AppHeaders.DOMAIN] == "old.example.com"
-    assert kwargs["headers"][DeprecatedAppHeaders.DOMAIN] == "old.example.com"
+    assert kwargs["headers"][AppHeaders.DOMAIN] == PREVIOUS_DOMAIN
+    assert kwargs["headers"][DeprecatedAppHeaders.DOMAIN] == PREVIOUS_DOMAIN
     assert kwargs["headers"][AppHeaders.EVENT_TYPE] == (
         WebhookEventAsyncType.SALEOR_API_URL_CHANGED
     )
@@ -62,7 +62,7 @@ def test_notify_sends_previous_url_in_headers(
 @pytest.mark.parametrize(
     ("_case", "public_url_after_change", "site_domain_after_change"),
     [
-        ("cloud_site_domain_renamed", None, "new.example.com"),
+        ("cloud_site_domain_renamed", None, NEW_DOMAIN),
         ("public_url_changed", NEW_PUBLIC_URL, "example.com"),
     ],
 )
@@ -93,7 +93,7 @@ def test_retry_after_change_sends_previous_url(
     mocked_request.assert_called_once()
     _, kwargs = mocked_request.call_args
     assert kwargs["headers"][AppHeaders.API_URL] == PREVIOUS_SALEOR_API_URL
-    assert kwargs["headers"][AppHeaders.DOMAIN] == "old.example.com"
+    assert kwargs["headers"][AppHeaders.DOMAIN] == PREVIOUS_DOMAIN
 
 
 def test_retry_to_aws_sqs_sends_previous_url(event_delivery, monkeypatch):
@@ -121,7 +121,7 @@ def test_retry_to_aws_sqs_sends_previous_url(event_delivery, monkeypatch):
     mocked_client.send_message.assert_called_once()
     attributes = mocked_client.send_message.call_args.kwargs["MessageAttributes"]
     assert attributes["SaleorApiUrl"]["StringValue"] == PREVIOUS_SALEOR_API_URL
-    assert attributes["SaleorDomain"]["StringValue"] == "old.example.com"
+    assert attributes["SaleorDomain"]["StringValue"] == PREVIOUS_DOMAIN
 
 
 def test_retry_to_google_cloud_pubsub_sends_previous_url(event_delivery, monkeypatch):
@@ -147,7 +147,7 @@ def test_retry_to_google_cloud_pubsub_sends_previous_url(event_delivery, monkeyp
     mocked_publisher.publish.assert_called_once()
     kwargs = mocked_publisher.publish.call_args.kwargs
     assert kwargs["saleorApiUrl"] == PREVIOUS_SALEOR_API_URL
-    assert kwargs["saleorDomain"] == "old.example.com"
+    assert kwargs["saleorDomain"] == PREVIOUS_DOMAIN
 
 
 @pytest.mark.parametrize(
