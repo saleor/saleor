@@ -9,13 +9,14 @@ from .....product.utils.product import mark_products_in_channels_as_dirty
 from .....webhook.event_types import WebhookEventAsyncType
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import DeprecatedModelMutation
 from ....core.types import Error
 from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionRuleCreateErrorCode
-from ...types import PromotionRule
+from ...types import Promotion, PromotionRule
 from ...utils import get_products_for_rule
 from ..utils import (
     clear_promotion_old_sale_id,
@@ -27,8 +28,17 @@ from .validators import clean_promotion_rule
 
 class PromotionRuleCreateInput(PromotionRuleInput):
     promotion = graphene.ID(
-        description="The ID of the promotion that rule belongs to.",
-        required=True,
+        description=(
+            "The ID of the promotion that rule belongs to. Required unless "
+            "`promotionExternalReference` is provided."
+        ),
+        required=False,
+    )
+    promotion_external_reference = graphene.String(
+        description=(
+            "External ID of the promotion that rule belongs to." + ADDED_IN_323
+        ),
+        required=False,
     )
 
 
@@ -72,13 +82,19 @@ class PromotionRuleCreate(DeprecatedModelMutation):
     def clean_input(
         cls, info: ResolveInfo, instance: models.PromotionRule, data: dict, **kwargs
     ):
-        promotion_value = data.pop("promotion")
+        promotion_id = data.pop("promotion", None)
+        promotion_external_reference = data.pop("promotion_external_reference", None)
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-        promotion = cls.get_node_or_error(
-            info, promotion_value, field="promotion", only_type="Promotion"
+        promotion = cls.get_node_by_id_or_external_reference(
+            info,
+            node_id=promotion_id,
+            external_reference=promotion_external_reference,
+            only_type=Promotion,
+            id_field="promotion",
+            external_reference_field="promotion_external_reference",
         )
         cleaned_input["promotion"] = promotion
-        promotion_type = promotion.type  # type: ignore[union-attr]
+        promotion_type = promotion.type
 
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
         clean_promotion_rule(

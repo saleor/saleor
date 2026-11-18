@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -11,7 +12,11 @@ from .....plugins.manager import get_plugins_manager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductVariant, ProductVariantChannelListing
 from .....product.utils.costs import get_product_costs_data
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateProductChannelListing(
@@ -1469,3 +1474,246 @@ def test_product_channel_listing_remove_last_variant_channel_listing(
     data = content["data"]["productChannelListingUpdate"]
     assert not data["errors"]
     assert not product.channel_listings.filter(channel=channel_USD).exists()
+
+
+PRODUCT_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION = """
+mutation UpdateProductChannelListing(
+    $id: ID
+    $externalReference: String
+    $input: ProductChannelListingUpdateInput!
+) {
+    productChannelListingUpdate(
+        id: $id, externalReference: $externalReference, input: $input
+    ) {
+        errors {
+            field
+            message
+            code
+        }
+        product {
+            id
+            channelListings {
+                isPublished
+                channel {
+                    slug
+                }
+            }
+        }
+    }
+}
+"""
+
+
+def test_by_external_reference(
+    staff_api_client, product, permission_manage_products, channel_USD, mocker
+):
+    # given
+    external_reference = "product-ext-ref"
+    product.external_reference = external_reference
+    product.save(update_fields=["external_reference"])
+    listing = product.channel_listings.get(channel=channel_USD)
+    assert listing.is_published is True
+    product_updated = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_updated"
+    )
+    variables = {
+        "externalReference": external_reference,
+        "input": {
+            "updateChannels": [
+                {
+                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                    "isPublished": False,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productChannelListingUpdate"]
+    assert data["errors"] == []
+    assert data["product"] == {
+        "id": graphene.Node.to_global_id("Product", product.pk),
+        "channelListings": [
+            {"isPublished": False, "channel": {"slug": channel_USD.slug}}
+        ],
+    }
+    listing.refresh_from_db(fields=("is_published",))
+    assert listing.is_published is False
+    product_updated.assert_called_once_with(product)
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'externalReference'.",
+        ),
+        (
+            "null",
+            {"id": None, "externalReference": None},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'externalReference'.",
+        ),
+        (
+            "empty",
+            {"externalReference": ""},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'externalReference'.",
+        ),
+        (
+            "both",
+            {"externalReference": "existing-reference"},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "Argument 'id' cannot be combined with 'externalReference'",
+        ),
+        (
+            "not_found",
+            {"externalReference": "missing-reference"},
+            "externalReference",
+            ProductErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    product,
+    permission_manage_products,
+    channel_USD,
+    mocker,
+):
+    # given
+    product.external_reference = "existing-reference"
+    product.save(update_fields=["external_reference"])
+    listing = product.channel_listings.get(channel=channel_USD)
+    assert listing.is_published is True
+    product_updated = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_updated"
+    )
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["id"] = graphene.Node.to_global_id("Product", product.pk)
+    variables["input"] = {
+        "updateChannels": [
+            {
+                "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                "isPublished": False,
+            }
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=(permission_manage_products,),
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["productChannelListingUpdate"]
+    assert data["product"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    listing.refresh_from_db(fields=("is_published",))
+    assert listing.is_published is True
+    product_updated.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    product,
+    permission_manage_products,
+    channel_USD,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    external_reference = "existing-reference"
+    product.external_reference = external_reference
+    product.save(update_fields=["external_reference"])
+    listing = product.channel_listings.get(channel=channel_USD)
+    assert listing.is_published is True
+    product_updated = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.product_updated"
+    )
+    variables = {
+        "externalReference": external_reference,
+        "input": {
+            "updateChannels": [
+                {
+                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                    "isPublished": False,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = client.post_graphql(
+        PRODUCT_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    listing.refresh_from_db(fields=("is_published",))
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["productChannelListingUpdate"]
+        assert data["errors"] == []
+        assert data["product"]["id"] == graphene.Node.to_global_id(
+            "Product", product.pk
+        )
+        assert listing.is_published is False
+        product_updated.assert_called_once_with(product)
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"productChannelListingUpdate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["productChannelListingUpdate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: "
+            "MANAGE_PRODUCTS"
+        )
+        assert listing.is_published is True
+        product_updated.assert_not_called()

@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
@@ -10,7 +11,11 @@ from .....discount import DiscountValueType
 from .....discount.error_codes import DiscountErrorCode
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 VOUCHER_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateVoucherChannelListing($id: ID!, $input: VoucherChannelListingInput!) {
@@ -738,3 +743,247 @@ def test_voucher_channel_listing_update_invalid_precision_min_amount_spent(
     assert errors[0]["field"] == "minAmountSpent"
     assert errors[0]["code"] == DiscountErrorCode.INVALID.name
     assert errors[0]["channels"] == [channel_id]
+
+
+VOUCHER_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION = """
+mutation UpdateVoucherChannelListing(
+    $id: ID, $externalReference: String, $input: VoucherChannelListingInput!
+) {
+    voucherChannelListingUpdate(
+        id: $id, externalReference: $externalReference, input: $input
+    ) {
+        errors {
+            field
+            message
+            code
+        }
+        voucher {
+            id
+            channelListings {
+                channel {
+                    slug
+                }
+                discountValue
+            }
+        }
+    }
+}
+"""
+
+
+def test_by_external_reference(
+    staff_api_client, voucher, permission_manage_discounts, channel_USD, mocker
+):
+    # given
+    external_reference = "voucher-ext-ref"
+    voucher.external_reference = external_reference
+    voucher.save(update_fields=["external_reference"])
+    listing = voucher.channel_listings.get(channel=channel_USD)
+    discount_value = 5
+    assert listing.discount_value != discount_value
+    voucher_updated = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.voucher_updated"
+    )
+    variables = {
+        "externalReference": external_reference,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                    "discountValue": discount_value,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOUCHER_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_discounts,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["voucherChannelListingUpdate"]
+    assert data["errors"] == []
+    assert data["voucher"] == {
+        "id": graphene.Node.to_global_id("Voucher", voucher.pk),
+        "channelListings": [
+            {"channel": {"slug": channel_USD.slug}, "discountValue": discount_value}
+        ],
+    }
+    listing.refresh_from_db(fields=("discount_value",))
+    assert listing.discount_value == discount_value
+    voucher_updated.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'externalReference'.",
+        ),
+        (
+            "null",
+            {"id": None, "externalReference": None},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'externalReference'.",
+        ),
+        (
+            "empty",
+            {"externalReference": ""},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'id', 'externalReference'.",
+        ),
+        (
+            "both",
+            {"externalReference": "existing-reference"},
+            None,
+            DiscountErrorCode.GRAPHQL_ERROR,
+            "Argument 'id' cannot be combined with 'externalReference'",
+        ),
+        (
+            "not_found",
+            {"externalReference": "missing-reference"},
+            "externalReference",
+            DiscountErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    voucher,
+    permission_manage_discounts,
+    channel_USD,
+    mocker,
+):
+    # given
+    voucher.external_reference = "existing-reference"
+    voucher.save(update_fields=["external_reference"])
+    listing = voucher.channel_listings.get(channel=channel_USD)
+    original_discount_value = listing.discount_value
+    voucher_updated = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.voucher_updated"
+    )
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["id"] = graphene.Node.to_global_id("Voucher", voucher.pk)
+    variables["input"] = {
+        "addChannels": [
+            {
+                "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                "discountValue": 5,
+            }
+        ]
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VOUCHER_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=(permission_manage_discounts,),
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["voucherChannelListingUpdate"]
+    assert data["voucher"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    listing.refresh_from_db(fields=("discount_value",))
+    assert listing.discount_value == original_discount_value
+    voucher_updated.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    voucher,
+    permission_manage_discounts,
+    channel_USD,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    external_reference = "existing-reference"
+    voucher.external_reference = external_reference
+    voucher.save(update_fields=["external_reference"])
+    listing = voucher.channel_listings.get(channel=channel_USD)
+    original_discount_value = listing.discount_value
+    discount_value = 5
+    assert original_discount_value != discount_value
+    voucher_updated = mocker.patch(
+        "saleor.plugins.manager.PluginsManager.voucher_updated"
+    )
+    variables = {
+        "externalReference": external_reference,
+        "input": {
+            "addChannels": [
+                {
+                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
+                    "discountValue": discount_value,
+                }
+            ]
+        },
+    }
+
+    # when
+    response = client.post_graphql(
+        VOUCHER_CHANNEL_LISTING_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_discounts] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    listing.refresh_from_db(fields=("discount_value",))
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["voucherChannelListingUpdate"]
+        assert data["errors"] == []
+        assert data["voucher"]["id"] == graphene.Node.to_global_id(
+            "Voucher", voucher.pk
+        )
+        assert listing.discount_value == discount_value
+        voucher_updated.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"voucherChannelListingUpdate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["voucherChannelListingUpdate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: "
+            "MANAGE_DISCOUNTS"
+        )
+        assert listing.discount_value == original_discount_value
+        voucher_updated.assert_not_called()

@@ -42,14 +42,12 @@ from ...core.types import (
     ProductVariantChannelListingAvailabilityUpdateError,
 )
 from ...core.utils import get_duplicated_values
-from ...core.validators import (
-    validate_one_of_args_is_in_mutation,
-    validate_price_precision,
-)
+from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types.collections import Collection
 from ..types.products import Product, ProductVariant
+from .utils import VariantLookupMixin
 
 if TYPE_CHECKING:
     from ....channel.models import Channel as ChannelModel
@@ -143,7 +141,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
     product = graphene.Field(Product, description="An updated product instance.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a product to update.")
+        id = graphene.ID(required=False, description="ID of a product to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product to update.{ADDED_IN_323}",
+        )
         input = ProductChannelListingUpdateInput(
             required=True,
             description="Fields required to create or update product channel listings.",
@@ -364,9 +366,11 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input
+        cls, _root, info: ResolveInfo, /, *, id=None, external_reference=None, input
     ):
-        product = cls.get_node_or_error(info, id, only_type=Product, field="id")
+        product = cls.get_node_by_id_or_external_reference(
+            info, node_id=id, external_reference=external_reference, only_type=Product
+        )
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         cleaned_input = cls.clean_channels(
@@ -433,33 +437,7 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
-class VariantByIdOrSkuMixin:
-    """Resolve the product variant a channel listing mutation operates on."""
-
-    @classmethod
-    def get_variant_by_id_or_sku(
-        cls, info: ResolveInfo, id: str | None, sku: str | None
-    ) -> "ProductVariantModel":
-        validate_one_of_args_is_in_mutation("sku", sku, "id", id)
-
-        qs = ProductVariantModel.objects.all()
-        if id:
-            return cls.get_node_or_error(  # type: ignore[attr-defined]
-                info, id, only_type=ProductVariant, field="id", qs=qs
-            )
-        variant = qs.filter(sku=sku).first()
-        if not variant:
-            raise ValidationError(
-                {
-                    "sku": ValidationError(
-                        f"Couldn't resolve to a node: {sku}", code="not_found"
-                    )
-                }
-            )
-        return variant
-
-
-class ProductVariantChannelListingUpdate(VariantByIdOrSkuMixin, BaseMutation):
+class ProductVariantChannelListingUpdate(VariantLookupMixin, BaseMutation):
     variant = graphene.Field(
         ProductVariant, description="An updated product variant instance."
     )
@@ -470,6 +448,10 @@ class ProductVariantChannelListingUpdate(VariantByIdOrSkuMixin, BaseMutation):
         )
         sku = graphene.String(
             required=False, description="SKU of a product variant to update."
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product variant to update.{ADDED_IN_323}",
         )
         input = NonNullList(
             ProductVariantChannelListingAddInput,
@@ -624,9 +606,19 @@ class ProductVariantChannelListingUpdate(VariantByIdOrSkuMixin, BaseMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id=None, input, sku=None
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id=None,
+        input,
+        sku=None,
+        external_reference=None,
     ):
-        variant = cls.get_variant_by_id_or_sku(info, id, sku)
+        variant = cls.get_variant(
+            info, id=id, sku=sku, external_reference=external_reference
+        )
 
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
@@ -659,9 +651,7 @@ class ProductVariantChannelListingAvailabilityInput(BaseInputObjectType):
         )
 
 
-class ProductVariantChannelListingAvailabilityUpdate(
-    VariantByIdOrSkuMixin, BaseMutation
-):
+class ProductVariantChannelListingAvailabilityUpdate(VariantLookupMixin, BaseMutation):
     variant = graphene.Field(
         ProductVariant, description="An updated product variant instance."
     )
@@ -672,6 +662,10 @@ class ProductVariantChannelListingAvailabilityUpdate(
         )
         sku = graphene.String(
             required=False, description="SKU of a product variant to update."
+        )
+        external_reference = graphene.String(
+            required=False,
+            description="External ID of a product variant to update.",
         )
         input = NonNullList(
             ProductVariantChannelListingAvailabilityInput,
@@ -786,9 +780,19 @@ class ProductVariantChannelListingAvailabilityUpdate(
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id=None, input, sku=None
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id=None,
+        input,
+        sku=None,
+        external_reference=None,
     ):
-        variant = cls.get_variant_by_id_or_sku(info, id, sku)
+        variant = cls.get_variant(
+            info, id=id, sku=sku, external_reference=external_reference
+        )
         channel_id_to_input = cls.clean_channels(input)
 
         with traced_atomic_transaction():
@@ -826,7 +830,11 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
     )
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a collection to update.")
+        id = graphene.ID(required=False, description="ID of a collection to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a collection to update.{ADDED_IN_323}",
+        )
         input = CollectionChannelListingUpdateInput(
             required=True,
             description=(
@@ -868,9 +876,14 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input
+        cls, _root, info: ResolveInfo, /, *, id=None, external_reference=None, input
     ):
-        collection = cls.get_node_or_error(info, id, only_type=Collection, field="id")
+        collection = cls.get_node_by_id_or_external_reference(
+            info,
+            node_id=id,
+            external_reference=external_reference,
+            only_type=Collection,
+        )
         errors: defaultdict[str, list[ValidationError]] = defaultdict(list)
 
         cleaned_input = cls.clean_channels(

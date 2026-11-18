@@ -382,6 +382,40 @@ class BaseMutation(graphene.Mutation):
         return node
 
     @classmethod
+    def get_node_by_id_or_external_reference(
+        cls,
+        info: ResolveInfo,
+        *,
+        node_id: str | None,
+        external_reference: str | None,
+        only_type: type[ModelObjectType[MT]],
+        id_field: str = "id",
+        external_reference_field: str = "external_reference",
+        qs: Any = None,
+    ) -> MT:
+        """Return the node identified by exactly one of a global ID or an external reference.
+
+        `id_field` and `external_reference_field` are the mutation's argument names,
+        used in error messages and as the fields errors are attributed to.
+        """
+        validate_one_of_args_is_in_mutation(
+            id_field,
+            node_id,
+            external_reference_field,
+            external_reference,
+            use_camel_case=True,
+        )
+        if external_reference:
+            node_id = ext_ref_to_global_id_or_error(
+                only_type._meta.model,
+                external_reference,
+                field=external_reference_field,
+            )
+        return cls.get_node_or_error(
+            info, cast(str, node_id), field=id_field, only_type=only_type, qs=qs
+        )
+
+    @classmethod
     def get_global_ids_or_error(
         cls,
         ids: Iterable[str],

@@ -68,6 +68,12 @@ permissions.
   - Existing listings and newly created ones default to `true`, so behaviour is unchanged unless the flag is set.
 - Added `sizeRounding` argument to thumbnail fields: `User.avatar`, `Product.thumbnail`, `ProductMedia.url`, `ProductImage.url`, `OrderLine.thumbnail`, `Category.backgroundImage`, `Collection.backgroundImage`, `AppBrandLogo.default` and `AppManifestBrandLogo.default`. Thumbnails are generated only in the available sizes (32, 64, 128, 256, 512, 1024, 2048, 4096); a requested `size` outside that list is matched to one of them. `NEAREST` (default) keeps the current behavior and returns the closest size, which may be smaller than requested (e.g. `1500` returns `1024`). `UP` returns the smallest available size not smaller than requested (e.g. `1500` returns `2048`), so the image does not look blurry when displayed at the requested size.
 - Added `externalReference` filter to `productVariants(where: ...)`. Supports `eq` and `oneOf`, allowing product variants to be fetched in batch by their external references.
+- Mutations that so far identified their target object only by ID now also accept its external reference. Exactly one identifier must be given; the ID arguments are no longer required.
+  - Channel listings: `productChannelListingUpdate`, `productVariantChannelListingUpdate`, `productVariantChannelListingAvailabilityUpdate`, `collectionChannelListingUpdate` and `voucherChannelListingUpdate` accept `externalReference`.
+  - Stocks: `productVariantStocksCreate`, `productVariantStocksUpdate` and `productVariantStocksDelete` accept `variantExternalReference`.
+  - Translations: `productTranslate`, `productVariantTranslate`, `categoryTranslate`, `collectionTranslate`, `voucherTranslate`, `promotionTranslate`, `attributeTranslate` and `attributeValueTranslate` accept `externalReference`.
+  - Discounts: `voucherCataloguesAdd` and `voucherCataloguesRemove` accept `externalReference`; `promotionRuleCreate` accepts `promotionExternalReference` in its input.
+  - Collections: `collectionAddProducts`, `collectionRemoveProducts` and `collectionReorderProducts` accept `collectionExternalReference`.
 
 ### Webhooks
 

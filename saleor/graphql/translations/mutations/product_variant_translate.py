@@ -5,6 +5,7 @@ from ....permission.enums import SitePermissions
 from ....product import models as product_models
 from ...core import ResolveInfo
 from ...core.context import ChannelContext
+from ...core.descriptions import ADDED_IN_323
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -15,8 +16,12 @@ from .utils import BaseTranslateMutation, NameTranslationInput
 class ProductVariantTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
-            required=True,
+            required=False,
             description="ProductVariant ID or ProductVariantTranslatableContent ID.",
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product variant to translate.{ADDED_IN_323}",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
@@ -36,9 +41,17 @@ class ProductVariantTranslate(BaseTranslateMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id=None,
+        external_reference=None,
+        input,
+        language_code,
     ):
-        node_id = cls.clean_node_id(id)[0]
+        node_id = cls.clean_node_id_or_external_reference(id, external_reference)[0]
         variant_pk = cls.get_global_id_or_error(node_id, only_type=ProductVariant)
         variant = product_models.ProductVariant.objects.get(pk=variant_pk)
         cls.validate_input(input)

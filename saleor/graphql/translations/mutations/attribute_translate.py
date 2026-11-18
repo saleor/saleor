@@ -4,6 +4,7 @@ from ....attribute import models as attribute_models
 from ....permission.enums import SitePermissions
 from ...attribute.types import Attribute
 from ...core.context import ChannelContext
+from ...core.descriptions import ADDED_IN_323
 from ...core.enums import LanguageCodeEnum
 from ...core.types import TranslationError
 from .utils import BaseTranslateMutation, NameTranslationInput
@@ -12,8 +13,12 @@ from .utils import BaseTranslateMutation, NameTranslationInput
 class AttributeTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
-            required=True,
+            required=False,
             description="Attribute ID or AttributeTranslatableContent ID.",
+        )
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of an attribute to translate.{ADDED_IN_323}",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."

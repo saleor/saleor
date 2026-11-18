@@ -1,11 +1,17 @@
 from unittest import mock
 
 import graphene
+import pytest
 
 from .....product.error_codes import ProductErrorCode
 from .....warehouse import WarehouseClickAndCollectOption
+from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
-from ....tests.utils import get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 
 VARIANT_STOCKS_DELETE_MUTATION = """
     mutation ProductVariantStocksDelete($variantId: ID!, $warehouseIds: [ID!]!){
@@ -328,3 +334,239 @@ def test_delete_stocks_skips_channel_events_when_legacy_flag_enabled(
     # then
     mocked_out.assert_not_called()
     mocked_out_cc.assert_not_called()
+
+
+VARIANT_STOCKS_DELETE_BY_EXTERNAL_REFERENCE_MUTATION = """
+    mutation ProductVariantStocksDelete(
+        $variantId: ID,
+        $sku: String,
+        $variantExternalReference: String,
+        $warehouseIds: [ID!]!
+    ){
+        productVariantStocksDelete(
+            variantId: $variantId,
+            sku: $sku,
+            variantExternalReference: $variantExternalReference,
+            warehouseIds: $warehouseIds
+        ){
+            productVariant{
+                id
+                stocks{
+                    id
+                }
+            }
+            errors{
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_by_external_reference(
+    staff_api_client, variant, warehouse, permission_manage_products, mocker
+):
+    # given
+    external_reference = "variant-ext-ref"
+    variant.external_reference = external_reference
+    variant.save(update_fields=["external_reference"])
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
+    out_of_stock = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_delete"
+        ".trigger_product_variant_out_of_stock"
+    )
+    variables = {
+        "variantExternalReference": external_reference,
+        "warehouseIds": [graphene.Node.to_global_id("Warehouse", warehouse.pk)],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_DELETE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantStocksDelete"]
+    assert data["errors"] == []
+    assert data["productVariant"] == {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "stocks": [],
+    }
+    assert variant.stocks.exists() is False
+    out_of_stock.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            StockErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', 'sku', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "null",
+            {"variantId": None, "sku": None, "variantExternalReference": None},
+            None,
+            StockErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', 'sku', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "empty",
+            {"variantExternalReference": ""},
+            None,
+            StockErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', 'sku', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "both",
+            {"variantExternalReference": "existing-reference"},
+            None,
+            StockErrorCode.GRAPHQL_ERROR,
+            "Argument 'variantId' cannot be combined with 'variantExternalReference'",
+        ),
+        (
+            "sku_and_external_reference",
+            {"variantExternalReference": "existing-reference"},
+            None,
+            StockErrorCode.GRAPHQL_ERROR,
+            "Argument 'sku' cannot be combined with 'variantExternalReference'",
+        ),
+        (
+            "not_found",
+            {"variantExternalReference": "missing-reference"},
+            "variantExternalReference",
+            StockErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    variant,
+    warehouse,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    variant.external_reference = "existing-reference"
+    variant.save(update_fields=["external_reference"])
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=10
+    )
+    out_of_stock = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_delete"
+        ".trigger_product_variant_out_of_stock"
+    )
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["variantId"] = graphene.Node.to_global_id(
+            "ProductVariant", variant.pk
+        )
+    elif _case == "sku_and_external_reference":
+        variables["sku"] = variant.sku
+    variables["warehouseIds"] = [graphene.Node.to_global_id("Warehouse", warehouse.pk)]
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_DELETE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["productVariantStocksDelete"]
+    assert data["productVariant"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    assert Stock.objects.filter(pk=stock.pk).exists() is True
+    out_of_stock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    variant,
+    warehouse,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    external_reference = "existing-reference"
+    variant.external_reference = external_reference
+    variant.save(update_fields=["external_reference"])
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=10
+    )
+    out_of_stock = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_delete"
+        ".trigger_product_variant_out_of_stock"
+    )
+    variables = {
+        "variantExternalReference": external_reference,
+        "warehouseIds": [graphene.Node.to_global_id("Warehouse", warehouse.pk)],
+    }
+
+    # when
+    response = client.post_graphql(
+        VARIANT_STOCKS_DELETE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["productVariantStocksDelete"]
+        assert data["errors"] == []
+        assert data["productVariant"]["id"] == graphene.Node.to_global_id(
+            "ProductVariant", variant.pk
+        )
+        assert Stock.objects.filter(pk=stock.pk).exists() is False
+        out_of_stock.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"productVariantStocksDelete": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["productVariantStocksDelete"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: "
+            "MANAGE_PRODUCTS"
+        )
+        assert Stock.objects.filter(pk=stock.pk).exists() is True
+        out_of_stock.assert_not_called()

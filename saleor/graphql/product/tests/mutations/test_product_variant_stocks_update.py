@@ -5,9 +5,14 @@ import pytest
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
 
+from .....product.error_codes import ProductErrorCode
 from .....warehouse.error_codes import StockErrorCode
 from .....warehouse.models import Stock, Warehouse
-from ....tests.utils import get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...bulk_mutations import ProductVariantStocksUpdate
 from ...utils import create_stocks
 
@@ -893,3 +898,266 @@ def test_update_stocks_does_not_trigger_channel_events_when_quantity_remains(
     # then
     mocked_back.assert_not_called()
     mocked_out.assert_not_called()
+
+
+VARIANT_STOCKS_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION = """
+    mutation ProductVariantStocksUpdate(
+        $variantId: ID,
+        $sku: String,
+        $variantExternalReference: String,
+        $stocks: [StockInput!]!
+    ){
+        productVariantStocksUpdate(
+            variantId: $variantId,
+            sku: $sku,
+            variantExternalReference: $variantExternalReference,
+            stocks: $stocks
+        ){
+            productVariant {
+                id
+                stocks {
+                    quantity
+                    warehouse {
+                        slug
+                    }
+                }
+            }
+            errors {
+                code
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_by_external_reference(
+    staff_api_client, variant, warehouse, permission_manage_products, mocker
+):
+    # given
+    external_reference = "variant-ext-ref"
+    variant.external_reference = external_reference
+    variant.save(update_fields=["external_reference"])
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=10
+    )
+    stocks_updated = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+        ".trigger_product_variant_stocks_updated"
+    )
+    quantity = 20
+    variables = {
+        "variantExternalReference": external_reference,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+                "quantity": quantity,
+            }
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantStocksUpdate"]
+    assert data["errors"] == []
+    assert data["productVariant"] == {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "stocks": [{"quantity": quantity, "warehouse": {"slug": warehouse.slug}}],
+    }
+    stock.refresh_from_db(fields=("quantity",))
+    assert stock.quantity == quantity
+    stocks_updated.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("_case", "identifiers", "error_field", "error_code", "message"),
+    [
+        (
+            "omitted",
+            {},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', 'sku', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "null",
+            {"variantId": None, "sku": None, "variantExternalReference": None},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', 'sku', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "empty",
+            {"variantExternalReference": ""},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "At least one of arguments is required: 'variantId', 'sku', "
+            "'variantExternalReference'.",
+        ),
+        (
+            "both",
+            {"variantExternalReference": "existing-reference"},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "Argument 'variantId' cannot be combined with 'variantExternalReference'",
+        ),
+        (
+            "sku_and_external_reference",
+            {"variantExternalReference": "existing-reference"},
+            None,
+            ProductErrorCode.GRAPHQL_ERROR,
+            "Argument 'sku' cannot be combined with 'variantExternalReference'",
+        ),
+        (
+            "not_found",
+            {"variantExternalReference": "missing-reference"},
+            "variantExternalReference",
+            ProductErrorCode.NOT_FOUND,
+            "Couldn't resolve to a node: missing-reference",
+        ),
+    ],
+)
+def test_external_reference_invalid_identifiers(
+    _case,
+    identifiers,
+    error_field,
+    error_code,
+    message,
+    staff_api_client,
+    variant,
+    warehouse,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    variant.external_reference = "existing-reference"
+    variant.save(update_fields=["external_reference"])
+    original_quantity = 10
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=original_quantity
+    )
+    stocks_updated = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+        ".trigger_product_variant_stocks_updated"
+    )
+    variables = dict(identifiers)
+    if _case == "both":
+        variables["variantId"] = graphene.Node.to_global_id(
+            "ProductVariant", variant.pk
+        )
+    elif _case == "sku_and_external_reference":
+        variables["sku"] = variant.sku
+    variables["stocks"] = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
+
+    # when
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]["productVariantStocksUpdate"]
+    assert data["productVariant"] is None
+    assert len(data["errors"]) == 1
+    assert data["errors"][0] == {
+        "field": error_field,
+        "code": error_code.name,
+        "message": message,
+    }
+    stock.refresh_from_db(fields=("quantity",))
+    assert stock.quantity == original_quantity
+    stocks_updated.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    ("_case", "client_fixture", "is_allowed"),
+    [
+        ("anonymous", "api_client", False),
+        ("customer", "user_api_client", False),
+        ("staff_without_permission", "staff_api_client", False),
+        ("staff_with_permission", "staff_api_client", True),
+        ("app_without_permission", "app_api_client", False),
+        ("app_with_permission", "app_api_client", True),
+    ],
+)
+def test_external_reference_authorization(
+    _case,
+    client_fixture,
+    is_allowed,
+    request,
+    variant,
+    warehouse,
+    permission_manage_products,
+    mocker,
+):
+    # given
+    client = request.getfixturevalue(client_fixture)
+    external_reference = "existing-reference"
+    variant.external_reference = external_reference
+    variant.save(update_fields=["external_reference"])
+    original_quantity = 10
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=original_quantity
+    )
+    stocks_updated = mocker.patch(
+        "saleor.graphql.product.bulk_mutations.product_variant_stocks_update"
+        ".trigger_product_variant_stocks_updated"
+    )
+    quantity = 20
+    variables = {
+        "variantExternalReference": external_reference,
+        "stocks": [
+            {
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+                "quantity": quantity,
+            }
+        ],
+    }
+
+    # when
+    response = client.post_graphql(
+        VARIANT_STOCKS_UPDATE_BY_EXTERNAL_REFERENCE_MUTATION,
+        variables,
+        permissions=[permission_manage_products] if is_allowed else [],
+        check_no_permissions=False,
+    )
+
+    # then
+    stock.refresh_from_db(fields=("quantity",))
+    if is_allowed:
+        data = get_graphql_content(response)["data"]["productVariantStocksUpdate"]
+        assert data["errors"] == []
+        assert data["productVariant"]["id"] == graphene.Node.to_global_id(
+            "ProductVariant", variant.pk
+        )
+        assert stock.quantity == quantity
+        stocks_updated.assert_called_once()
+    else:
+        assert_no_permission(response)
+        content = get_graphql_content_from_response(response)
+        assert content["data"] == {"productVariantStocksUpdate": None}
+        assert len(content["errors"]) == 1
+        assert content["errors"][0]["path"] == ["productVariantStocksUpdate"]
+        assert content["errors"][0]["message"] == (
+            "To access this path, you need one of the following permissions: "
+            "MANAGE_PRODUCTS"
+        )
+        assert stock.quantity == original_quantity
+        stocks_updated.assert_not_called()

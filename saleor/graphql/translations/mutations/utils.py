@@ -22,8 +22,11 @@ from ...core.doc_category import DOC_CATEGORY_MAP
 from ...core.enums import ErrorPolicyEnum, TranslationErrorCode
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, DeprecatedModelMutation
-from ...core.utils import from_global_id_or_error
-from ...core.validators import clean_editorjs_field
+from ...core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
+from ...core.validators import (
+    clean_editorjs_field,
+    validate_one_of_args_is_in_mutation,
+)
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import types as translation_types
 
@@ -106,7 +109,7 @@ class BaseTranslateMutation(DeprecatedModelMutation):
         abstract = True
 
     @classmethod
-    def clean_node_id(cls, id: str) -> tuple[str, type[graphene.ObjectType]]:
+    def clean_node_id(cls, id: str | None) -> tuple[str, type[graphene.ObjectType]]:
         if not id:
             raise ValidationError(
                 {"id": ValidationError("This field is required", code="required")}
@@ -136,6 +139,21 @@ class BaseTranslateMutation(DeprecatedModelMutation):
         return id, cls._meta.object_type
 
     @classmethod
+    def clean_node_id_or_external_reference(
+        cls, id: str | None, external_reference: str | None
+    ) -> tuple[str, type[graphene.ObjectType]]:
+        """Resolve the translated object's global ID from `id` or `externalReference`."""
+        if external_reference is None:
+            return cls.clean_node_id(id)
+        validate_one_of_args_is_in_mutation(
+            "id", id, "external_reference", external_reference, use_camel_case=True
+        )
+        if not external_reference:
+            return cls.clean_node_id(id)
+        global_id = ext_ref_to_global_id_or_error(cls._meta.model, external_reference)
+        return global_id, cls._meta.object_type
+
+    @classmethod
     def validate_input(cls, input_data):
         validate_input_against_model(cls._meta.model, input_data)
 
@@ -145,9 +163,19 @@ class BaseTranslateMutation(DeprecatedModelMutation):
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input, language_code
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        id=None,
+        external_reference=None,
+        input,
+        language_code,
     ):
-        node_id, model_type = cls.clean_node_id(id)
+        node_id, model_type = cls.clean_node_id_or_external_reference(
+            id, external_reference
+        )
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
         cls.validate_input(input)
 
