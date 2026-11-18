@@ -10,6 +10,7 @@ from .....product.error_codes import ProductErrorCode
 from .....product.tasks import fetch_product_media_image_task
 from ....core import ResolveInfo
 from ....core.context import ChannelContext
+from ....core.descriptions import ADDED_IN_323
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType, ProductError, Upload
@@ -29,6 +30,10 @@ class ProductMediaCreateInput(BaseInputObjectType):
     )
     media_url = graphene.String(
         required=False, description="Represents an URL to an external media."
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this product media.{ADDED_IN_323}",
+        required=False,
     )
 
     class Meta:
@@ -55,6 +60,8 @@ class ProductMediaCreate(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+        # A product deleted concurrently is reported on insert as "no longer exists".
+        exclude = ["product"]
 
     @classmethod
     def validate_input(cls, input):
@@ -130,10 +137,16 @@ class ProductMediaCreate(BaseMutation):
 
         media = None
         if media_data:
+            media = models.ProductMedia(
+                product=product,
+                external_reference=input.get("external_reference"),
+                **media_data,
+            )
+            cls.clean_instance(info, media)
             # The product can be deleted concurrently while the image is uploaded or
             # the remote URL is probed, so the insert may fail on the foreign key.
             try:
-                media = product.media.create(**media_data)
+                media.save()
             except IntegrityError as e:
                 if not models.Product.objects.filter(pk=product.pk).exists():
                     raise ValidationError(
