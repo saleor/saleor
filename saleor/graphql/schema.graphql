@@ -33119,12 +33119,12 @@ input CheckoutAbandonedInput @doc(category: "Checkout") {
   enabled: Boolean!
 
   """
-  The time in minutes since the last checkout modification after which the checkout is considered abandoned. Default is 30.
+  The time in minutes since the last checkout modification after which the checkout is considered abandoned. Must be between 1 and 43200 (30 days). Default is 30.
   """
   threshold: Minute
 
   """
-  Only checkouts modified after this date can be considered abandoned. Defaults to the current date time when the setting is enabled.
+  Only checkouts modified after this date can be considered abandoned. Defaults to the current date time when the setting is enabled. Setting a past date emits the event for checkouts abandoned since then, processed in batches.
   """
   cutOffDate: DateTime
 }

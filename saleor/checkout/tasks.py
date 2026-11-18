@@ -314,16 +314,31 @@ def automatic_checkout_completion_task(
         )
 
 
-@app.task
+# Checkouts that are not fully paid, have lines, a reachable customer and were not
+# notified since their last change.
+ABANDONED_CHECKOUT_ELIGIBILITY = (
+    ~Q(authorize_status=CheckoutAuthorizeStatus.FULL)
+    & (Q(user_id__isnull=False) | (Q(email__isnull=False) & ~Q(email="")))
+    & (
+        Q(abandoned_notified_at__isnull=True)
+        | Q(last_change__gt=F("abandoned_notified_at"))
+    )
+    & Q(Exists(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))))
+)
+
+
+@app.task(expires=settings.ABANDONED_CHECKOUT_SCHEDULE_SECONDS)
 def trigger_abandoned_checkout_events_task():
     """Emit CHECKOUT_ABANDONED for idle, not fully paid checkouts.
 
     Not fully paid means the authorized and charged amounts don't cover the total.
-
     A checkout is abandoned when it was not modified for the channel's
-    `abandoned_checkout_threshold` minutes. The event is emitted once per idle
-    period: `abandoned_notified_at` is compared with `last_change`, so a checkout
-    modified after the notification becomes eligible again.
+    `abandoned_checkout_threshold` minutes.
+
+    Each channel keeps a cursor (`abandoned_checkout_processed_until`) over
+    `last_change`, so every run reads only checkouts that went idle since the
+    previous run. A checkout modified later gets a newer `last_change` and is
+    picked up again, which emits the event once per idle period.
     """
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHECKOUT_ABANDONED)
     if not webhooks:
@@ -332,60 +347,86 @@ def trigger_abandoned_checkout_events_task():
     channels = Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
         abandoned_checkout_enabled=True
     )
-    # Skip channels excluded by webhook channel filters, so their checkouts are not
-    # marked as notified without any delivery.
+    # Channels excluded by webhook channel filters are skipped, so their checkouts
+    # are not marked as notified without any delivery.
     webhooks_per_channel = {
         channel.pk: channel_webhooks
         for channel in channels
         if (channel_webhooks := filter_webhooks_for_channel(webhooks, channel.slug))
     }
-    if not webhooks_per_channel:
-        return
 
+    budget = settings.ABANDONED_CHECKOUT_BATCH_SIZE
+    for channel_id, channel_webhooks in webhooks_per_channel.items():
+        if budget <= 0:
+            break
+        checkouts = _process_abandoned_checkouts_for_channel(channel_id, budget)
+        if checkouts:
+            with allow_writer():
+                trigger_checkout_abandoned(checkouts, {channel_id: channel_webhooks})
+            budget -= len(checkouts)
+
+
+def _process_abandoned_checkouts_for_channel(
+    channel_id: int, limit: int
+) -> list[Checkout]:
+    """Mark up to `limit` abandoned checkouts as notified and move the cursor."""
     now = timezone.now()
-    lookup = Q()
-    for channel in channels:
-        if channel.pk not in webhooks_per_channel:
-            continue
-        threshold = (
-            channel.abandoned_checkout_threshold
-            or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
-        )
-        channel_lookup = Q(
-            channel_id=channel.pk,
-            last_change__lt=now - datetime.timedelta(minutes=threshold),
-        )
-        if cut_off_date := channel.abandoned_checkout_cut_off_date:
-            channel_lookup &= Q(last_change__gte=cut_off_date)
-        lookup |= channel_lookup
-
     with allow_writer():
         with transaction.atomic():
-            # skip_locked: overlapping runs never pick the same checkout twice.
-            checkouts = list(
-                Checkout.objects.select_for_update(of=("self",), skip_locked=True)
-                .filter(lookup)
-                .exclude(authorize_status=CheckoutAuthorizeStatus.FULL)
-                # The customer must be reachable.
-                .filter(
-                    Q(user_id__isnull=False) | (Q(email__isnull=False) & ~Q(email=""))
-                )
-                .filter(
-                    Q(abandoned_notified_at__isnull=True)
-                    | Q(last_change__gt=F("abandoned_notified_at"))
-                )
-                .filter(Exists(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))))
-                .order_by("last_change")[: settings.ABANDONED_CHECKOUT_BATCH_SIZE]
+            # Lock the channel, so overlapping runs don't move the cursor at once.
+            channel = (
+                Channel.objects.select_for_update(skip_locked=True)
+                .filter(pk=channel_id, abandoned_checkout_enabled=True)
+                .first()
             )
-            if not checkouts:
-                return
-            # `update()` doesn't bump `last_change` (auto_now).
-            Checkout.objects.filter(pk__in=[c.pk for c in checkouts]).update(
-                abandoned_notified_at=now
+            if channel is None:
+                return []
+            threshold = (
+                channel.abandoned_checkout_threshold
+                or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
             )
+            cursor = (
+                channel.abandoned_checkout_processed_until
+                or channel.abandoned_checkout_cut_off_date
+            )
+            window = Checkout.objects.filter(
+                channel_id=channel.pk,
+                last_change__lt=now - datetime.timedelta(minutes=threshold),
+            )
+            if cursor:
+                window = window.filter(last_change__gt=cursor)
 
-    with allow_writer():
-        trigger_checkout_abandoned(checkouts, webhooks_per_channel)
+            scanned = list(
+                window.order_by("last_change").values_list("last_change", flat=True)[
+                    : settings.ABANDONED_CHECKOUT_SCAN_BATCH_SIZE
+                ]
+            )
+            if not scanned:
+                return []
+            checkouts = list(
+                window.filter(
+                    ABANDONED_CHECKOUT_ELIGIBILITY, last_change__lte=scanned[-1]
+                )
+                .select_for_update(of=("self",))
+                .order_by("last_change", "pk")[:limit]
+            )
+            if len(checkouts) == limit:
+                # More eligible checkouts may share the last one's `last_change`;
+                # stop before it. Those already taken are filtered out as notified.
+                boundary = checkouts[-1].last_change
+                new_cursor = max((v for v in scanned if v < boundary), default=cursor)
+            else:
+                # Every eligible checkout up to the last scanned one was taken.
+                new_cursor = scanned[-1]
+
+            if checkouts:
+                # `update()` doesn't bump `last_change` (auto_now).
+                Checkout.objects.filter(pk__in=[c.pk for c in checkouts]).update(
+                    abandoned_notified_at=now
+                )
+            channel.abandoned_checkout_processed_until = new_cursor
+            channel.save(update_fields=["abandoned_checkout_processed_until"])
+    return checkouts
 
 
 @app.task(

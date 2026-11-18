@@ -81,6 +81,9 @@ class Channel(ModelWithMetadata):
     abandoned_checkout_enabled = models.BooleanField(default=False, db_default=False)
     abandoned_checkout_threshold = models.PositiveIntegerField(null=True, blank=True)
     abandoned_checkout_cut_off_date = models.DateTimeField(null=True, blank=True)
+    # Internal scan cursor: checkouts with `last_change` before it were already
+    # processed. Starts at `abandoned_checkout_cut_off_date` and only moves forward.
+    abandoned_checkout_processed_until = models.DateTimeField(null=True, blank=True)
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)

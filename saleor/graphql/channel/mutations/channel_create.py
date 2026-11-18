@@ -111,7 +111,8 @@ class CheckoutAbandonedInput(BaseInputObjectType):
         required=False,
         description=(
             "The time in minutes since the last checkout modification after which "
-            "the checkout is considered abandoned. Default is "
+            "the checkout is considered abandoned. Must be between 1 and "
+            f"{settings.MAX_ABANDONED_CHECKOUT_THRESHOLD} (30 days). Default is "
             f"{settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD}."
         ),
     )
@@ -119,7 +120,9 @@ class CheckoutAbandonedInput(BaseInputObjectType):
         required=False,
         description=(
             "Only checkouts modified after this date can be considered abandoned. "
-            "Defaults to the current date time when the setting is enabled."
+            "Defaults to the current date time when the setting is enabled. "
+            "Setting a past date emits the event for checkouts abandoned since then, "
+            "processed in batches."
         ),
     )
 

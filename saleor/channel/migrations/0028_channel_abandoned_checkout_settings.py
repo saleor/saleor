@@ -21,6 +21,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="channel",
+            name="abandoned_checkout_processed_until",
+            field=models.DateTimeField(blank=True, null=True),
+        ),
+        migrations.AddField(
+            model_name="channel",
             name="abandoned_checkout_threshold",
             field=models.PositiveIntegerField(blank=True, null=True),
         ),

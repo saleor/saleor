@@ -34,6 +34,7 @@ CHANNEL_UPDATE_FIELDS = [
     "abandoned_checkout_enabled",
     "abandoned_checkout_threshold",
     "abandoned_checkout_cut_off_date",
+    "abandoned_checkout_processed_until",
     "metadata",
     "private_metadata",
 ]
@@ -175,27 +176,35 @@ def clean_abandoned_checkout(
                 )
         cleaned_input["abandoned_checkout_threshold"] = None
         cleaned_input["abandoned_checkout_cut_off_date"] = None
+        cleaned_input["abandoned_checkout_processed_until"] = None
         return
 
-    if threshold is not None and threshold < 1:
+    max_threshold = settings.MAX_ABANDONED_CHECKOUT_THRESHOLD
+    if threshold is not None and not 1 <= threshold <= max_threshold:
         raise ValidationError(
             {
                 "threshold": ValidationError(
-                    "The threshold must be at least 1 minute.",
+                    f"The threshold must be between 1 and {max_threshold} minutes.",
                     code=ChannelErrorCode.INVALID.value,
                 )
             }
         )
 
+    already_enabled = instance is not None and instance.abandoned_checkout_enabled
     # Keep the current values when the setting was already enabled, so re-sending
     # `enabled: true` doesn't move the cut-off date and skip abandoned checkouts.
-    if instance is not None and instance.abandoned_checkout_enabled:
+    if already_enabled and instance:
         threshold = threshold or instance.abandoned_checkout_threshold
-        cut_off_date = cut_off_date or instance.abandoned_checkout_cut_off_date
-    threshold = threshold or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
+    cleaned_input["abandoned_checkout_threshold"] = (
+        threshold or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
+    )
+
+    if cut_off_date is None and already_enabled:
+        return
+    # A new cut-off date restarts the scan cursor from it.
     cut_off_date = cut_off_date or timezone.now()
-    cleaned_input["abandoned_checkout_threshold"] = threshold
     cleaned_input["abandoned_checkout_cut_off_date"] = cut_off_date
+    cleaned_input["abandoned_checkout_processed_until"] = cut_off_date
 
 
 def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):

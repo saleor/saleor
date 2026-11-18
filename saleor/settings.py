@@ -626,9 +626,14 @@ EMPTY_CHECKOUTS_TIMEDELTA = datetime.timedelta(
 DEFAULT_ABANDONED_CHECKOUT_THRESHOLD = int(
     os.environ.get("DEFAULT_ABANDONED_CHECKOUT_THRESHOLD", 30)
 )
+# Max abandoned checkout threshold in minutes (30 days).
+MAX_ABANDONED_CHECKOUT_THRESHOLD = 30 * 24 * 60
 # Max number of checkouts for which CHECKOUT_ABANDONED is emitted in one task run.
-ABANDONED_CHECKOUT_BATCH_SIZE = int(
-    os.environ.get("ABANDONED_CHECKOUT_BATCH_SIZE", 500)
+ABANDONED_CHECKOUT_BATCH_SIZE = int(os.environ.get("ABANDONED_CHECKOUT_BATCH_SIZE", 50))
+# Max number of checkouts per channel the task looks through in one run, to move
+# the channel cursor past checkouts that are not eligible.
+ABANDONED_CHECKOUT_SCAN_BATCH_SIZE = int(
+    os.environ.get("ABANDONED_CHECKOUT_SCAN_BATCH_SIZE", 1000)
 )
 ABANDONED_CHECKOUT_SCHEDULE_SECONDS = int(
     os.environ.get("ABANDONED_CHECKOUT_SCHEDULE_SECONDS", 60)

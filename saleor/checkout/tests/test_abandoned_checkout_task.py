@@ -295,6 +295,21 @@ def test_respects_webhook_channel_filter(
     assert idle_checkout.abandoned_notified_at is None
 
 
+def create_checkout_like(checkout, last_change, email):
+    line = checkout.lines.get()
+    new_checkout = Checkout.objects.create(
+        channel=checkout.channel, currency=checkout.currency, email=email
+    )
+    CheckoutLine.objects.create(
+        checkout=new_checkout,
+        variant=line.variant,
+        quantity=line.quantity,
+        undiscounted_unit_price_amount=line.undiscounted_unit_price_amount,
+    )
+    set_last_change(new_checkout, last_change)
+    return new_checkout
+
+
 @mock.patch(TRIGGER_PATH)
 def test_processes_oldest_checkouts_first_up_to_batch_size(
     mocked_trigger,
@@ -304,27 +319,104 @@ def test_processes_oldest_checkouts_first_up_to_batch_size(
 ):
     # given
     settings.ABANDONED_CHECKOUT_BATCH_SIZE = 1
-    line = idle_checkout.lines.get()
-    older_checkout = Checkout.objects.create(
-        channel=idle_checkout.channel,
-        currency=idle_checkout.currency,
-        email=idle_checkout.email,
+    older_checkout = create_checkout_like(
+        idle_checkout,
+        idle_checkout.last_change - datetime.timedelta(minutes=1),
+        idle_checkout.email,
     )
-    CheckoutLine.objects.create(
-        checkout=older_checkout,
-        variant=line.variant,
-        quantity=line.quantity,
-        undiscounted_unit_price_amount=line.undiscounted_unit_price_amount,
+
+    # when
+    trigger_abandoned_checkout_events_task()
+    first_run = emitted_checkouts(mocked_trigger)
+    mocked_trigger.reset_mock()
+    trigger_abandoned_checkout_events_task()
+    second_run = emitted_checkouts(mocked_trigger)
+
+    # then
+    assert first_run == [older_checkout]
+    assert second_run == [idle_checkout]
+
+
+@mock.patch(TRIGGER_PATH)
+def test_cursor_moves_past_not_eligible_checkouts(
+    mocked_trigger,
+    idle_checkout,
+    abandoned_checkout_channel,
+    subscription_checkout_abandoned_webhook,
+    settings,
+):
+    # given
+    settings.ABANDONED_CHECKOUT_SCAN_BATCH_SIZE = 1
+    anonymous_checkout = create_checkout_like(
+        idle_checkout,
+        idle_checkout.last_change - datetime.timedelta(minutes=1),
+        email=None,
     )
-    set_last_change(
-        older_checkout, idle_checkout.last_change - datetime.timedelta(minutes=1)
+
+    # when
+    trigger_abandoned_checkout_events_task()
+    first_run = emitted_checkouts(mocked_trigger)
+    abandoned_checkout_channel.refresh_from_db(
+        fields=["abandoned_checkout_processed_until"]
+    )
+    cursor_after_first_run = (
+        abandoned_checkout_channel.abandoned_checkout_processed_until
+    )
+    mocked_trigger.reset_mock()
+    trigger_abandoned_checkout_events_task()
+    second_run = emitted_checkouts(mocked_trigger)
+
+    # then
+    assert first_run == []
+    assert cursor_after_first_run == anonymous_checkout.last_change
+    assert second_run == [idle_checkout]
+
+
+@mock.patch(TRIGGER_PATH)
+def test_skips_checkouts_before_cursor(
+    mocked_trigger,
+    idle_checkout,
+    abandoned_checkout_channel,
+    subscription_checkout_abandoned_webhook,
+):
+    # given
+    abandoned_checkout_channel.abandoned_checkout_processed_until = (
+        idle_checkout.last_change + datetime.timedelta(seconds=1)
+    )
+    abandoned_checkout_channel.save(
+        update_fields=["abandoned_checkout_processed_until"]
     )
 
     # when
     trigger_abandoned_checkout_events_task()
 
     # then
-    assert emitted_checkouts(mocked_trigger) == [older_checkout]
+    mocked_trigger.assert_not_called()
+
+
+@mock.patch(TRIGGER_PATH)
+def test_batch_limit_does_not_skip_checkouts_with_same_last_change(
+    mocked_trigger,
+    idle_checkout,
+    subscription_checkout_abandoned_webhook,
+    settings,
+):
+    # given
+    settings.ABANDONED_CHECKOUT_BATCH_SIZE = 1
+    twin_checkout = create_checkout_like(
+        idle_checkout, idle_checkout.last_change, idle_checkout.email
+    )
+
+    # when
+    trigger_abandoned_checkout_events_task()
+    first_run = emitted_checkouts(mocked_trigger)
+    mocked_trigger.reset_mock()
+    trigger_abandoned_checkout_events_task()
+    second_run = emitted_checkouts(mocked_trigger)
+
+    # then
+    assert {*first_run, *second_run} == {idle_checkout, twin_checkout}
+    assert len(first_run) == len(second_run) == 1
 
 
 @mock.patch(
