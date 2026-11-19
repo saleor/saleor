@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("checkout", "0095_checkout_abandoned_notified_at"),
+        ("checkout", "0095_checkout_abandoned_notified_change"),
     ]
 
     operations = [

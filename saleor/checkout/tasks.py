@@ -322,8 +322,8 @@ ABANDONED_CHECKOUT_ELIGIBILITY = (
     ~Q(authorize_status=CheckoutAuthorizeStatus.FULL)
     & (Q(user_id__isnull=False) | (Q(email__isnull=False) & ~Q(email="")))
     & (
-        Q(abandoned_notified_at__isnull=True)
-        | Q(last_customer_change__gt=F("abandoned_notified_at"))
+        Q(abandoned_notified_change__isnull=True)
+        | Q(last_customer_change__gt=F("abandoned_notified_change"))
     )
     & Q(Exists(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))))
 )
@@ -344,7 +344,9 @@ def trigger_abandoned_checkout_events_task():
     which emits the event once per idle period.
 
     The run's budget is shared equally between channels. Budget not used by a
-    channel goes to channels that still have checkouts to process.
+    channel goes to channels that still have checkouts to process. Each run starts
+    from the next channel, so with more channels than budget every channel gets
+    its turn.
     """
     webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHECKOUT_ABANDONED)
     if not webhooks:
@@ -359,6 +361,18 @@ def trigger_abandoned_checkout_events_task():
         channel.pk: channel_webhooks
         for channel in channels
         if (channel_webhooks := filter_webhooks_for_channel(webhooks, channel.slug))
+    }
+    if not pending:
+        return
+    # Rotate the start channel by run number; no state needed.
+    channel_ids = list(pending)
+    run_number = int(timezone.now().timestamp()) // (
+        settings.ABANDONED_CHECKOUT_SCHEDULE_SECONDS
+    )
+    start = run_number % len(channel_ids)
+    pending = {
+        channel_id: pending[channel_id]
+        for channel_id in channel_ids[start:] + channel_ids[:start]
     }
 
     budget = settings.ABANDONED_CHECKOUT_BATCH_SIZE
@@ -460,7 +474,7 @@ def _process_abandoned_checkouts_for_channel(
             if checkouts:
                 # `update()` doesn't bump `last_change` (auto_now).
                 Checkout.objects.filter(pk__in=[c.pk for c in checkouts]).update(
-                    abandoned_notified_at=now
+                    abandoned_notified_change=F("last_customer_change")
                 )
             channel.abandoned_checkout_processed_until = new_cursor
             channel.save(update_fields=["abandoned_checkout_processed_until"])

@@ -125,9 +125,11 @@ class Checkout(models.Model):
     # contact, promo codes, payment). Unlike `last_change`, it is not bumped by
     # metadata or system updates. Starts the CHECKOUT_ABANDONED idle period.
     last_customer_change = models.DateTimeField(null=True, blank=True)
-    # Set when CHECKOUT_ABANDONED is emitted. Must be updated with `QuerySet.update()`
-    # so `last_change` is not bumped.
-    abandoned_notified_at = models.DateTimeField(null=True, blank=True)
+    # The `last_customer_change` that CHECKOUT_ABANDONED was emitted for. Copied
+    # rather than stamped with the worker's clock, so a later customer change always
+    # compares as newer. Must be updated with `QuerySet.update()` so `last_change`
+    # is not bumped.
+    abandoned_notified_change = models.DateTimeField(null=True, blank=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
