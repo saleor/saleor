@@ -622,6 +622,23 @@ EMPTY_CHECKOUTS_TIMEDELTA = datetime.timedelta(
     seconds=parse(os.environ.get("EMPTY_CHECKOUTS_TIMEDELTA", "6 hours"))
 )
 
+# Default time in minutes after which a not modified checkout is considered abandoned.
+DEFAULT_ABANDONED_CHECKOUT_THRESHOLD = int(
+    os.environ.get("DEFAULT_ABANDONED_CHECKOUT_THRESHOLD", 30)
+)
+# Max abandoned checkout threshold in minutes (30 days).
+MAX_ABANDONED_CHECKOUT_THRESHOLD = 30 * 24 * 60
+# Max number of checkouts for which CHECKOUT_ABANDONED is emitted in one task run.
+ABANDONED_CHECKOUT_BATCH_SIZE = int(os.environ.get("ABANDONED_CHECKOUT_BATCH_SIZE", 50))
+# Max number of checkouts per channel the task looks through in one run, to move
+# the channel cursor past checkouts that are not eligible.
+ABANDONED_CHECKOUT_SCAN_BATCH_SIZE = int(
+    os.environ.get("ABANDONED_CHECKOUT_SCAN_BATCH_SIZE", 1000)
+)
+ABANDONED_CHECKOUT_SCHEDULE_SECONDS = int(
+    os.environ.get("ABANDONED_CHECKOUT_SCHEDULE_SECONDS", 60)
+)
+
 # Exports settings - defines after what time exported files will be deleted
 EXPORT_FILES_TIMEDELTA = datetime.timedelta(
     seconds=parse(os.environ.get("EXPORT_FILES_TIMEDELTA", "30 days"))
@@ -765,6 +782,10 @@ CELERY_BEAT_SCHEDULE = {
         # readiness for automatic completion.
         "task": "saleor.checkout.tasks.trigger_automatic_checkout_completion_task",
         "schedule": initiated_checkout_automatic_completion_schedule,
+    },
+    "checkout-abandoned-events": {
+        "task": "saleor.checkout.tasks.trigger_abandoned_checkout_events_task",
+        "schedule": datetime.timedelta(seconds=ABANDONED_CHECKOUT_SCHEDULE_SECONDS),
     },
 }
 

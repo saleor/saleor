@@ -260,7 +260,11 @@ class CheckoutLinesAdd(BaseMutation):
         invalidate_update_fields = invalidate_checkout(
             checkout_info, lines, manager, save=False
         )
-        update_fields = shipping_update_fields + invalidate_update_fields
+        update_fields = (
+            shipping_update_fields
+            + invalidate_update_fields
+            + checkout.mark_customer_change()
+        )
         cls.mark_search_vectors_as_dirty(checkout, update_fields)
         checkout.save(update_fields=update_fields)
         call_checkout_info_event(

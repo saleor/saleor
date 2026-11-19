@@ -214,6 +214,7 @@ class CheckoutShippingAddressUpdate(AddressMetadataMixin, BaseMutation, I18nMixi
             update_fields=shipping_address_updated_fields
             + invalidate_prices_updated_fields
             + shipping_update_fields
+            + checkout.mark_customer_change()
             + ["search_index_dirty"]
         )
 

@@ -4,6 +4,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 from django.utils import timezone
+from freezegun import freeze_time
 
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
@@ -935,3 +936,38 @@ def test_checkout_payment_create_is_not_allowed_when_checkout_has_transaction(
     assert len(errors) == 1
     assert errors[0]["field"] is None
     assert errors[0]["code"] == PaymentErrorCode.CHECKOUT_HAS_TRANSACTION.name
+
+
+def test_checkout_payment_create_marks_customer_change(
+    user_api_client, checkout_without_shipping_required, address
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save(update_fields=["billing_address"])
+    assert checkout.last_customer_change is None
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines
+    )
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+    now = timezone.now()
+
+    # when
+    with freeze_time(now):
+        response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkoutPaymentCreate"]["errors"] == []
+    checkout.refresh_from_db(fields=["last_customer_change"])
+    assert checkout.last_customer_change == now

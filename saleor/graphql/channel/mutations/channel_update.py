@@ -112,6 +112,15 @@ class ChannelUpdate(DeprecatedModelMutation):
     FIELDS_TO_TRACK = list(CHANNEL_UPDATE_FIELDS)
 
     @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        instance = super().construct_instance(instance, cleaned_data)
+        if "abandoned_checkout_cut_off_date" in cleaned_data:
+            instance.set_abandoned_checkout_cut_off_date(
+                cleaned_data["abandoned_checkout_cut_off_date"]
+            )
+        return instance
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance_tracker = None
         instance = cls.get_instance(info, **data)

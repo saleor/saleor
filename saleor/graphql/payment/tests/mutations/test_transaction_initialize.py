@@ -4378,3 +4378,39 @@ def test_for_checkout_with_gift_card_payment_gateway_initialize_transaction_usin
     latest_transaction.events.get(type=TransactionEventType.AUTHORIZATION_REQUEST)
     latest_transaction.events.get(type=TransactionEventType.AUTHORIZATION_SUCCESS)
     assert latest_transaction.available_actions == [TransactionAction.CANCEL]
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_for_checkout_marks_customer_change(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    assert checkout.last_customer_change is None
+    app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = app_identifier
+    webhook_app.save(update_fields=["identifier"])
+    mocked_initialize.return_value = TransactionSessionResult(
+        app_identifier=app_identifier, response=transaction_session_response.copy()
+    )
+    variables = {
+        "action": None,
+        "amount": Decimal("10.00"),
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": app_identifier, "data": None},
+    }
+    now = timezone.now()
+
+    # when
+    with freeze_time(now):
+        response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["transactionInitialize"]["errors"] == []
+    checkout.refresh_from_db(fields=["last_customer_change"])
+    assert checkout.last_customer_change == now

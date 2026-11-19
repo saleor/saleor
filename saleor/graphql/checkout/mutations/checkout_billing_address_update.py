@@ -118,6 +118,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             checkout.save(
                 update_fields=change_address_updated_fields
                 + invalidate_prices_updated_fields
+                + checkout.mark_customer_change()
                 + ["search_index_dirty"]
             )
 

@@ -113,7 +113,11 @@ class CheckoutAddPromoCode(BaseMutation):
             recalculate_discount=False,
             save=False,
         )
-        checkout.save(update_fields=shipping_update_fields + invalidate_update_fields)
+        checkout.save(
+            update_fields=shipping_update_fields
+            + invalidate_update_fields
+            + checkout.mark_customer_change()
+        )
         call_checkout_info_event(
             manager=manager,
             event_name=WebhookEventAsyncType.CHECKOUT_UPDATED,

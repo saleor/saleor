@@ -121,6 +121,15 @@ class Checkout(models.Model):
 
     # Tracks the last time automatic checkout completion was attempted
     last_automatic_completion_attempt = models.DateTimeField(null=True, blank=True)
+    # Last change made by the checkout's customer (lines, addresses, delivery,
+    # contact, promo codes, payment). Unlike `last_change`, it is not bumped by
+    # metadata or system updates. Starts the CHECKOUT_ABANDONED idle period.
+    last_customer_change = models.DateTimeField(null=True, blank=True)
+    # The `last_customer_change` that CHECKOUT_ABANDONED was emitted for. Copied
+    # rather than stamped with the worker's clock, so a later customer change always
+    # compares as newer. Must be updated with `QuerySet.update()` so `last_change`
+    # is not bumped.
+    abandoned_notified_change = models.DateTimeField(null=True, blank=True)
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -331,6 +340,10 @@ class Checkout(models.Model):
                 name="automaticcompletionattempt_idx",
             ),
             models.Index(fields=["created_at"], name="idx_checkout_created_at"),
+            BTreeIndex(
+                fields=["channel", "last_customer_change"],
+                name="checkout_customer_change_idx",
+            ),
             GinIndex(
                 name="checkout_tsearch",
                 fields=["search_vector"],
@@ -375,6 +388,11 @@ class Checkout(models.Model):
     def is_shipping_required(self) -> bool:
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
+
+    def mark_customer_change(self) -> list[str]:
+        """Set `last_customer_change` to now and return the fields to save."""
+        self.last_customer_change = timezone.now()
+        return ["last_customer_change"]
 
     def is_checkout_locked(self) -> bool:
         return bool(

@@ -482,6 +482,7 @@ class CheckoutCreate(DeprecatedModelMutation, I18nMixin):
     ):
         with traced_atomic_transaction():
             # Create the checkout object
+            instance.mark_customer_change()
             instance.save()
 
             # Set checkout country

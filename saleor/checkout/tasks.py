@@ -1,3 +1,4 @@
+import bisect
 import datetime
 import logging
 from decimal import Decimal
@@ -19,12 +20,16 @@ from ..core.db.connection import allow_writer
 from ..core.utils import get_domain
 from ..payment.models import TransactionItem
 from ..plugins.manager import get_plugins_manager
+from ..webhook.event_types import WebhookEventAsyncType
 from ..webhook.transport.utils import get_sqs_message_group_id
+from ..webhook.utils import filter_webhooks_for_channel, get_webhooks_for_event
 from .complete_checkout import complete_checkout
 from .fetch import fetch_checkout_info, fetch_checkout_lines
+from .lock_objects import checkout_qs_select_for_update
 from .models import Checkout, CheckoutLine
 from .search.indexing import update_checkouts_search_vector
 from .utils import delete_checkouts
+from .webhooks.checkout_abandoned import trigger_checkout_abandoned
 
 task_logger: logging.Logger = get_task_logger(__name__)
 
@@ -309,6 +314,171 @@ def automatic_checkout_completion_task(
             checkout_id,
             extra={"checkout_id": checkout_id},
         )
+
+
+# Checkouts that are not fully paid, have lines, a reachable customer and were not
+# notified since the customer's last change.
+ABANDONED_CHECKOUT_ELIGIBILITY = (
+    ~Q(authorize_status=CheckoutAuthorizeStatus.FULL)
+    & (Q(user_id__isnull=False) | (Q(email__isnull=False) & ~Q(email="")))
+    & (
+        Q(abandoned_notified_change__isnull=True)
+        | Q(last_customer_change__gt=F("abandoned_notified_change"))
+    )
+    & Q(Exists(CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))))
+)
+
+
+@app.task(expires=settings.ABANDONED_CHECKOUT_SCHEDULE_SECONDS)
+def trigger_abandoned_checkout_events_task():
+    """Emit CHECKOUT_ABANDONED for idle, not fully paid checkouts.
+
+    Not fully paid means the authorized and charged amounts don't cover the total.
+    A checkout is abandoned when its customer didn't change it for the channel's
+    `abandoned_checkout_threshold` minutes. Metadata and system updates don't count
+    as changes, see `Checkout.last_customer_change`.
+
+    Each channel keeps a cursor (`abandoned_checkout_processed_until`) over
+    `last_customer_change`, so every run reads only checkouts that went idle since
+    the previous run. A checkout changed later by the customer is picked up again,
+    which emits the event once per idle period.
+
+    The run's budget is shared equally between channels. Budget not used by a
+    channel goes to channels that still have checkouts to process. Each run starts
+    from the next channel, so with more channels than budget every channel gets
+    its turn.
+    """
+    webhooks = get_webhooks_for_event(WebhookEventAsyncType.CHECKOUT_ABANDONED)
+    if not webhooks:
+        return
+
+    channels = Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
+        abandoned_checkout_enabled=True
+    )
+    # Channels excluded by webhook channel filters are skipped, so their checkouts
+    # are not marked as notified without any delivery.
+    pending = {
+        channel.pk: channel_webhooks
+        for channel in channels
+        if (channel_webhooks := filter_webhooks_for_channel(webhooks, channel.slug))
+    }
+    if not pending:
+        return
+    # Rotate the start channel by run number; no state needed.
+    channel_ids = list(pending)
+    run_number = int(timezone.now().timestamp()) // (
+        settings.ABANDONED_CHECKOUT_SCHEDULE_SECONDS
+    )
+    start = run_number % len(channel_ids)
+    pending = {
+        channel_id: pending[channel_id]
+        for channel_id in channel_ids[start:] + channel_ids[:start]
+    }
+
+    budget = settings.ABANDONED_CHECKOUT_BATCH_SIZE
+    while pending and budget > 0:
+        share = max(1, budget // len(pending))
+        for channel_id, channel_webhooks in list(pending.items()):
+            limit = min(share, budget)
+            checkouts = _process_abandoned_checkouts_for_channel(channel_id, limit)
+            if checkouts:
+                with allow_writer():
+                    trigger_checkout_abandoned(
+                        checkouts, {channel_id: channel_webhooks}
+                    )
+                budget -= len(checkouts)
+            if len(checkouts) < limit:
+                del pending[channel_id]
+            if budget <= 0:
+                break
+
+
+def _process_abandoned_checkouts_for_channel(
+    channel_id: int, limit: int
+) -> list[Checkout]:
+    """Mark up to `limit` abandoned checkouts as notified and move the cursor."""
+    now = timezone.now()
+    with allow_writer():
+        with transaction.atomic():
+            # Lock the channel, so overlapping runs don't move the cursor at once.
+            # `no_key` doesn't block inserts referencing the channel (e.g. the order
+            # created by checkout completion, which holds a checkout lock).
+            channel = (
+                Channel.objects.select_for_update(no_key=True, skip_locked=True)
+                .filter(pk=channel_id, abandoned_checkout_enabled=True)
+                .first()
+            )
+            if channel is None:
+                return []
+            threshold = (
+                channel.abandoned_checkout_threshold
+                or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
+            )
+            cursor = (
+                channel.abandoned_checkout_processed_until
+                or channel.abandoned_checkout_cut_off_date
+            )
+            idle_before = now - datetime.timedelta(minutes=threshold)
+            window = Checkout.objects.filter(
+                channel_id=channel.pk, last_customer_change__lt=idle_before
+            )
+            if cursor:
+                window = window.filter(last_customer_change__gt=cursor)
+
+            # The window excludes NULL `last_customer_change`; the `if` only
+            # narrows the type.
+            scanned = [
+                changed_at
+                for changed_at in window.order_by("last_customer_change").values_list(
+                    "last_customer_change", flat=True
+                )[: settings.ABANDONED_CHECKOUT_SCAN_BATCH_SIZE]
+                if changed_at
+            ]
+            if not scanned:
+                return []
+            candidates = [
+                (pk, changed_at)
+                for pk, changed_at in window.filter(
+                    ABANDONED_CHECKOUT_ELIGIBILITY,
+                    last_customer_change__lte=scanned[-1],
+                )
+                .order_by("last_customer_change", "pk")
+                .values_list("pk", "last_customer_change")[:limit]
+                if changed_at
+            ]
+            if len(candidates) == limit:
+                # More eligible checkouts may share the last one's
+                # `last_customer_change`; stop before it. Those already taken are
+                # filtered out as notified.
+                boundary = candidates[-1][1]
+                # `scanned` is sorted; the boundary may be missing from it when
+                # a checkout was committed between the two reads.
+                below_boundary = bisect.bisect_left(scanned, boundary)
+                new_cursor = scanned[below_boundary - 1] if below_boundary else cursor
+            else:
+                # Every eligible checkout up to the last scanned one was taken.
+                new_cursor = scanned[-1]
+
+            # Lock in `pk` order like other checkout writers and re-check
+            # eligibility: the customer may have changed or completed the checkout
+            # since it was read. Such checkouts are picked up again later, as their
+            # `last_customer_change` is past the cursor.
+            checkouts = sorted(
+                checkout_qs_select_for_update().filter(
+                    ABANDONED_CHECKOUT_ELIGIBILITY,
+                    pk__in=[pk for pk, _ in candidates],
+                    last_customer_change__lt=idle_before,
+                ),
+                key=lambda c: (c.last_customer_change, c.pk),
+            )
+            if checkouts:
+                # `update()` doesn't bump `last_change` (auto_now).
+                Checkout.objects.filter(pk__in=[c.pk for c in checkouts]).update(
+                    abandoned_notified_change=F("last_customer_change")
+                )
+            channel.abandoned_checkout_processed_until = new_cursor
+            channel.save(update_fields=["abandoned_checkout_processed_until"])
+    return checkouts
 
 
 @app.task(

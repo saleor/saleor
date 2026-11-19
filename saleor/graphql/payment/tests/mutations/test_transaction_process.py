@@ -2991,3 +2991,50 @@ def test_stored_payment_methods_not_invalidated_for_checkout(
 
     # ensure that cache has not been cleared
     cache_delete_mock.assert_not_called()
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
+def test_for_checkout_marks_customer_change(
+    mocked_process,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_with_prices
+    assert checkout.last_customer_change is None
+    app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = app_identifier
+    webhook_app.save(update_fields=["identifier"])
+    transaction_item = transaction_item_generator(
+        checkout_id=checkout.pk, app=webhook_app
+    )
+    amount = Decimal("10.00")
+    TransactionEvent.objects.create(
+        transaction=transaction_item,
+        amount_value=amount,
+        currency=transaction_item.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+    response_data = transaction_session_response.copy()
+    response_data["amount"] = amount
+    mocked_process.return_value = TransactionSessionResult(
+        app_identifier=app_identifier, response=response_data
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
+    now = timezone.now()
+
+    # when
+    with freeze_time(now):
+        response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["transactionProcess"]["errors"] == []
+    checkout.refresh_from_db(fields=["last_customer_change"])
+    assert checkout.last_customer_change == now

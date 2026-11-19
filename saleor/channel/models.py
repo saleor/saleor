@@ -74,6 +74,17 @@ class Channel(ModelWithMetadata):
 
     allow_legacy_gift_card_use = models.BooleanField(default=True, db_default=True)
 
+    # CHECKOUT_ABANDONED is emitted for not fully paid (authorized or charged)
+    # checkouts the customer didn't change for `abandoned_checkout_threshold`
+    # minutes (see `Checkout.last_customer_change`). Only checkouts changed after
+    # `abandoned_checkout_cut_off_date` are taken into account.
+    abandoned_checkout_enabled = models.BooleanField(default=False, db_default=False)
+    abandoned_checkout_threshold = models.PositiveIntegerField(null=True, blank=True)
+    abandoned_checkout_cut_off_date = models.DateTimeField(null=True, blank=True)
+    # Internal scan cursor: checkouts with `last_customer_change` before it were already
+    # processed. Starts at `abandoned_checkout_cut_off_date` and only moves forward.
+    abandoned_checkout_processed_until = models.DateTimeField(null=True, blank=True)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"
@@ -86,3 +97,8 @@ class Channel(ModelWithMetadata):
 
     def __str__(self):
         return self.slug
+
+    def set_abandoned_checkout_cut_off_date(self, cut_off_date):
+        """Set the cut-off date and restart the abandoned checkout scan from it."""
+        self.abandoned_checkout_cut_off_date = cut_off_date
+        self.abandoned_checkout_processed_until = cut_off_date

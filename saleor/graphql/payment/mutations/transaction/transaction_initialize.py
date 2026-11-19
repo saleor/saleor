@@ -177,6 +177,7 @@ class TransactionInitialize(TransactionSessionBase):
         )
         if isinstance(source_object, checkout_models.Checkout):
             cls.validate_checkout(source_object)
+            source_object.save(update_fields=source_object.mark_customer_change())
 
         idempotency_key = cls.clean_idempotency_key(idempotency_key)
         action = cls.clean_action(

@@ -165,6 +165,7 @@ class WebhookEventAsyncType:
     CHECKOUT_UPDATED = "checkout_updated"
     CHECKOUT_FULLY_AUTHORIZED = "checkout_fully_authorized"
     CHECKOUT_FULLY_PAID = "checkout_fully_paid"
+    CHECKOUT_ABANDONED = "checkout_abandoned"
     CHECKOUT_METADATA_UPDATED = "checkout_metadata_updated"
 
     NOTIFY_USER = "notify_user"  # deprecated
@@ -692,6 +693,11 @@ class WebhookEventAsyncType:
         CHECKOUT_FULLY_PAID: {
             "name": "Checkout fully paid",
             "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+        },
+        CHECKOUT_ABANDONED: {
+            "name": "Checkout abandoned",
+            "permission": CheckoutPermissions.MANAGE_CHECKOUTS,
+            "is_deferred_payload": True,
         },
         CHECKOUT_METADATA_UPDATED: {
             "name": "Checkout metadata updated",

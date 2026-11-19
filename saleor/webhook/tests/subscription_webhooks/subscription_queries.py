@@ -2156,6 +2156,18 @@ CHECKOUT_FULLY_AUTHORIZED = """
     }
 """
 
+CHECKOUT_ABANDONED = """
+    subscription{
+      event{
+        ...on CheckoutAbandoned{
+          checkout{
+            id
+          }
+        }
+      }
+    }
+"""
+
 CHECKOUT_METADATA_UPDATED = """
     subscription{
       event{

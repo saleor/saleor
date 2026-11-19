@@ -1778,6 +1778,23 @@ class CheckoutFullyAuthorized(SubscriptionObjectType, CheckoutBase):
         )
 
 
+class CheckoutAbandoned(SubscriptionObjectType, CheckoutBase):
+    class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when a checkout is abandoned. A checkout is considered "
+            "abandoned when it is not fully paid (authorized or charged), has lines, "
+            "has an email or a user assigned, and has not been changed by the "
+            "customer for the time configured in the channel's "
+            "`checkoutSettings.abandonedCheckoutThreshold`. The event is sent again "
+            "if the customer changes the checkout and abandons it again. Checkout "
+            "and payment mutations count as customer changes; metadata updates and "
+            "background updates, like transaction event reports, don't." + ADDED_IN_323
+        )
+
+
 class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = "Checkout"
@@ -3086,6 +3103,15 @@ class Subscription(SubscriptionObjectType):
         channels=channels_argument,
         doc_category=DOC_CATEGORY_CHECKOUT,
     )
+    checkout_abandoned = BaseField(
+        CheckoutAbandoned,
+        description=(
+            "Event sent when checkout is abandoned." + ADDED_IN_323 + PREVIEW_FEATURE
+        ),
+        resolver=default_channel_filterable_resolver,
+        channels=channels_argument,
+        doc_category=DOC_CATEGORY_CHECKOUT,
+    )
     checkout_metadata_updated = BaseField(
         CheckoutMetadataUpdated,
         description=(
@@ -3380,6 +3406,7 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.CHECKOUT_UPDATED: CheckoutUpdated,
     WebhookEventAsyncType.CHECKOUT_FULLY_AUTHORIZED: CheckoutFullyAuthorized,
     WebhookEventAsyncType.CHECKOUT_FULLY_PAID: CheckoutFullyPaid,
+    WebhookEventAsyncType.CHECKOUT_ABANDONED: CheckoutAbandoned,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: CheckoutMetadataUpdated,
     WebhookEventAsyncType.PAGE_CREATED: PageCreated,
     WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,

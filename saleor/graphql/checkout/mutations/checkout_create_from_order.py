@@ -376,6 +376,7 @@ class CheckoutCreateFromOrder(BaseMutation):
         if user:
             checkout.user = user
             checkout.email = user.email
+        checkout.mark_customer_change()
         checkout.save()
         return checkout
 
