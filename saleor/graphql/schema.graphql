@@ -8446,7 +8446,7 @@ enum CountryCode {
   """Azerbaijan"""
   AZ
 
-  """Bahamas"""
+  """Bahamas (The)"""
   BS
 
   """Bahrain"""
@@ -8551,9 +8551,6 @@ enum CountryCode {
   """Congo"""
   CG
 
-  """Congo (the Democratic Republic of the)"""
-  CD
-
   """Cook Islands"""
   CK
 
@@ -8577,6 +8574,9 @@ enum CountryCode {
 
   """Czechia"""
   CZ
+
+  """Democratic Republic of the Congo"""
+  CD
 
   """Denmark"""
   DK
@@ -8694,9 +8694,6 @@ enum CountryCode {
 
   """Heard Island and McDonald Islands"""
   HM
-
-  """Holy See"""
-  VA
 
   """Honduras"""
   HN
@@ -8860,7 +8857,7 @@ enum CountryCode {
   """Namibia"""
   NA
 
-  """Nauru"""
+  """Naoero"""
   NR
 
   """Nepal"""
@@ -8911,7 +8908,7 @@ enum CountryCode {
   """Palau"""
   PW
 
-  """Palestine, State of"""
+  """Palestine"""
   PS
 
   """Panama"""
@@ -8959,7 +8956,7 @@ enum CountryCode {
   """Saint Barthélemy"""
   BL
 
-  """Saint Helena, Ascension and Tristan da Cunha"""
+  """Saint Helena"""
   SH
 
   """Saint Kitts and Nevis"""
@@ -9022,7 +9019,7 @@ enum CountryCode {
   """South Africa"""
   ZA
 
-  """South Georgia and the South Sandwich Islands"""
+  """South Georgia"""
   GS
 
   """South Korea"""
@@ -9123,6 +9120,9 @@ enum CountryCode {
 
   """Vanuatu"""
   VU
+
+  """Vatican City"""
+  VA
 
   """Venezuela"""
   VE
