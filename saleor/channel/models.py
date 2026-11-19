@@ -97,3 +97,8 @@ class Channel(ModelWithMetadata):
 
     def __str__(self):
         return self.slug
+
+    def set_abandoned_checkout_cut_off_date(self, cut_off_date):
+        """Set the cut-off date and restart the abandoned checkout scan from it."""
+        self.abandoned_checkout_cut_off_date = cut_off_date
+        self.abandoned_checkout_processed_until = cut_off_date

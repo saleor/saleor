@@ -33112,19 +33112,30 @@ input CheckoutAutoCompleteInput @doc(category: "Checkout") {
   cutOffDate: DateTime
 }
 
+"""
+Settings for emitting the `CHECKOUT_ABANDONED` webhook event.
+
+Added in Saleor 3.23.
+"""
 input CheckoutAbandonedInput @doc(category: "Checkout") {
   """
   Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for checkouts that are not fully paid (authorized or charged) and were not changed by the customer for `threshold` minutes.
+  
+  Added in Saleor 3.23.
   """
   enabled: Boolean!
 
   """
   The time in minutes since the customer's last change to the checkout after which the checkout is considered abandoned. Must be between 1 and 43200 (30 days). Default is 30.
+  
+  Added in Saleor 3.23.
   """
   threshold: Minute
 
   """
   Only checkouts changed by the customer after this date can be considered abandoned. Defaults to the current date time when the setting is enabled. Setting a past date emits the event for checkouts abandoned since then, processed in batches.
+  
+  Added in Saleor 3.23.
   """
   cutOffDate: DateTime
 }
@@ -36620,6 +36631,8 @@ type CheckoutFullyAuthorized implements Event @doc(category: "Checkout") {
 
 """
 Event sent when a checkout is abandoned. A checkout is considered abandoned when it is not fully paid (authorized or charged), has lines, has an email or a user assigned, and has not been changed by the customer for the time configured in the channel's `checkoutSettings.abandonedCheckoutThreshold`. The event is sent again if the customer changes the checkout and abandons it again. Checkout and payment mutations count as customer changes; metadata updates and background updates, like transaction event reports, don't.
+
+Added in Saleor 3.23.
 """
 type CheckoutAbandoned implements Event @doc(category: "Checkout") {
   """Time of the event."""

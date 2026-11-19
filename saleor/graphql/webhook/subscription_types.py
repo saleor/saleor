@@ -1791,7 +1791,7 @@ class CheckoutAbandoned(SubscriptionObjectType, CheckoutBase):
             "`checkoutSettings.abandonedCheckoutThreshold`. The event is sent again "
             "if the customer changes the checkout and abandons it again. Checkout "
             "and payment mutations count as customer changes; metadata updates and "
-            "background updates, like transaction event reports, don't."
+            "background updates, like transaction event reports, don't." + ADDED_IN_323
         )
 
 

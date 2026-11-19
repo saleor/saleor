@@ -176,7 +176,6 @@ def clean_abandoned_checkout(
                 )
         cleaned_input["abandoned_checkout_threshold"] = None
         cleaned_input["abandoned_checkout_cut_off_date"] = None
-        cleaned_input["abandoned_checkout_processed_until"] = None
         return
 
     max_threshold = settings.MAX_ABANDONED_CHECKOUT_THRESHOLD
@@ -190,21 +189,19 @@ def clean_abandoned_checkout(
             }
         )
 
-    already_enabled = instance is not None and instance.abandoned_checkout_enabled
     # Keep the current values when the setting was already enabled, so re-sending
     # `enabled: true` doesn't move the cut-off date and skip abandoned checkouts.
-    if already_enabled and instance:
-        threshold = threshold or instance.abandoned_checkout_threshold
+    enabled_channel = (
+        instance if instance and instance.abandoned_checkout_enabled else None
+    )
+    if enabled_channel:
+        threshold = threshold or enabled_channel.abandoned_checkout_threshold
     cleaned_input["abandoned_checkout_threshold"] = (
         threshold or settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD
     )
-
-    if cut_off_date is None and already_enabled:
+    if cut_off_date is None and enabled_channel:
         return
-    # A new cut-off date restarts the scan cursor from it.
-    cut_off_date = cut_off_date or timezone.now()
-    cleaned_input["abandoned_checkout_cut_off_date"] = cut_off_date
-    cleaned_input["abandoned_checkout_processed_until"] = cut_off_date
+    cleaned_input["abandoned_checkout_cut_off_date"] = cut_off_date or timezone.now()
 
 
 def clean_automatic_completion(checkout_settings: dict, cleaned_input: dict):

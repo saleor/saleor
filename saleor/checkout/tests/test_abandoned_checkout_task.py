@@ -2,6 +2,8 @@ import datetime
 from unittest import mock
 
 import pytest
+from django.db import DEFAULT_DB_ALIAS, connection, connections
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -558,3 +560,68 @@ def test_gives_unused_batch_to_busy_channel(
     assert len(emitted) == 4
     assert pln_checkout in emitted
     assert len({*emitted} & {*usd_checkouts}) == 3
+
+
+@pytest.mark.django_db(transaction=True)
+@mock.patch(TRIGGER_PATH)
+def test_skips_channel_locked_by_overlapping_run(
+    mocked_trigger,
+    idle_checkout,
+    abandoned_checkout_channel,
+    subscription_checkout_abandoned_webhook,
+):
+    # given
+    # A separate connection plays the overlapping run that holds the channel lock.
+    overlapping_run = connections.create_connection(DEFAULT_DB_ALIAS)
+    try:
+        with overlapping_run.cursor() as cursor:
+            cursor.execute("BEGIN")
+            cursor.execute(
+                "SELECT id FROM channel_channel WHERE id = %s FOR UPDATE",
+                [abandoned_checkout_channel.pk],
+            )
+
+            # Without the channel lock the run would block on the locked row;
+            # fail fast instead of hanging.
+            with connection.cursor() as own_cursor:
+                own_cursor.execute("SET lock_timeout = '2s'")
+
+            # when
+            trigger_abandoned_checkout_events_task()
+
+            cursor.execute("ROLLBACK")
+    finally:
+        overlapping_run.close()
+        with connection.cursor() as own_cursor:
+            own_cursor.execute("RESET lock_timeout")
+
+    # then
+    mocked_trigger.assert_not_called()
+    idle_checkout.refresh_from_db(fields=["abandoned_notified_at"])
+    assert idle_checkout.abandoned_notified_at is None
+    abandoned_checkout_channel.refresh_from_db(
+        fields=["abandoned_checkout_processed_until"]
+    )
+    assert abandoned_checkout_channel.abandoned_checkout_processed_until is None
+
+
+@mock.patch(TRIGGER_PATH)
+def test_channel_lock_does_not_block_inserts_referencing_channel(
+    mocked_trigger, idle_checkout, subscription_checkout_abandoned_webhook
+):
+    # given
+    # Checkout completion inserts an order referencing the channel while holding a
+    # checkout lock; a plain `FOR UPDATE` on the channel would deadlock with it.
+
+    # when
+    with CaptureQueriesContext(connection) as ctx:
+        trigger_abandoned_checkout_events_task()
+
+    # then
+    channel_locks = [
+        query["sql"]
+        for query in ctx.captured_queries
+        if 'FROM "channel_channel"' in query["sql"] and "FOR " in query["sql"]
+    ]
+    assert len(channel_locks) == 1
+    assert channel_locks[0].endswith("FOR NO KEY UPDATE SKIP LOCKED")

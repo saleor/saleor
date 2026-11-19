@@ -104,7 +104,8 @@ class CheckoutAbandonedInput(BaseInputObjectType):
             "Determines if the `CHECKOUT_ABANDONED` webhook event is emitted for "
             "checkouts that are not fully paid (authorized or charged) and were not "
             "changed by the customer for `threshold` minutes."
-        ),
+        )
+        + ADDED_IN_323,
     )
     threshold = Minute(
         required=False,
@@ -113,7 +114,8 @@ class CheckoutAbandonedInput(BaseInputObjectType):
             "after which the checkout is considered abandoned. Must be between 1 and "
             f"{settings.MAX_ABANDONED_CHECKOUT_THRESHOLD} (30 days). Default is "
             f"{settings.DEFAULT_ABANDONED_CHECKOUT_THRESHOLD}."
-        ),
+        )
+        + ADDED_IN_323,
     )
     cut_off_date = DateTime(
         required=False,
@@ -122,10 +124,15 @@ class CheckoutAbandonedInput(BaseInputObjectType):
             "considered abandoned. Defaults to the current date time when the setting is enabled. "
             "Setting a past date emits the event for checkouts abandoned since then, "
             "processed in batches."
-        ),
+        )
+        + ADDED_IN_323,
     )
 
     class Meta:
+        description = (
+            "Settings for emitting the `CHECKOUT_ABANDONED` webhook event."
+            + ADDED_IN_323
+        )
         doc_category = DOC_CATEGORY_CHECKOUT
 
 
@@ -424,6 +431,15 @@ class ChannelCreate(DeprecatedModelMutation):
             clean_input_payment_settings(payment_settings, cleaned_input)
 
         return cleaned_input
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        instance = super().construct_instance(instance, cleaned_data)
+        if "abandoned_checkout_cut_off_date" in cleaned_data:
+            instance.set_abandoned_checkout_cut_off_date(
+                cleaned_data["abandoned_checkout_cut_off_date"]
+            )
+        return instance
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
