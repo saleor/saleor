@@ -35,7 +35,11 @@ from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
 from ....discount.enums import DiscountValueTypeEnum, OrderDiscountTypeEnum
 from ....payment.enums import TransactionActionEnum
-from ....tests.utils import assert_no_permission, get_graphql_content
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
 from ...enums import OrderStatusEnum, StockUpdatePolicyEnum
 
@@ -967,6 +971,41 @@ def test_order_bulk_create(
 
     customer_user.refresh_from_db()
     assert customer_user.number_of_orders == user_orders_count + 1
+
+
+def test_order_bulk_create_missing_status(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    order = order_bulk_input
+    del order["status"]
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+
+    # then - the required `status` field is rejected at the GraphQL schema level
+    assert response.status_code == 400
+    content = get_graphql_content_from_response(response)
+    assert len(content["errors"]) == 1
+    assert (
+        'In field "status": Expected "OrderStatus!", found null.'
+        in content["errors"][0]["message"]
+    )
+    assert Order.objects.count() == orders_count
 
 
 def test_order_bulk_create_multiple_orders(
