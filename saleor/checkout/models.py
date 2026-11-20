@@ -45,10 +45,10 @@ class CheckoutDelivery(models.Model):
         on_delete=models.CASCADE,
     )
     external_shipping_method_id = models.CharField(
-        max_length=1024, blank=True, null=True, editable=False, db_index=True
+        max_length=1024, blank=True, null=True, editable=False
     )
     built_in_shipping_method_id = models.IntegerField(
-        blank=True, null=True, editable=False, db_index=True
+        blank=True, null=True, editable=False
     )
 
     name = models.CharField(max_length=255)

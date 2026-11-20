@@ -404,12 +404,6 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             GinIndex(
-                name="order_search_gin",
-                # `opclasses` and `fields` should be the same length
-                fields=["search_document"],
-                opclasses=["gin_trgm_ops"],
-            ),
-            GinIndex(
                 name="order_tsearch",
                 fields=["search_vector"],
             ),
