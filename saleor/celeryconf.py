@@ -37,7 +37,6 @@ app.autodiscover_tasks(
     packages=[
         "saleor.account.migrations.tasks",
         "saleor.order.migrations.tasks",
-        "saleor.app.migrations.tasks",
         "saleor.checkout.migrations.tasks",
         "saleor.product.migrations.tasks",
     ],
