@@ -30,6 +30,7 @@ from ....core.doc_category import DOC_CATEGORY_PAYMENTS
 from ....core.mutations import BaseMutation
 from ....core.types import BaseInputObjectType
 from ....core.types import common as common_types
+from ....core.utils import snake_to_camel_case
 from ....meta.inputs import MetadataInput, MetadataInputDescription
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import TransactionActionEnum
@@ -44,6 +45,19 @@ from .shared import (
 
 if TYPE_CHECKING:
     pass
+
+TRANSACTION_ITEM_MAX_LENGTHS = {
+    "name": payment_models.TransactionItem._meta.get_field("name").max_length,
+    "message": payment_models.TransactionItem._meta.get_field("message").max_length,
+    "psp_reference": payment_models.TransactionItem._meta.get_field(
+        "psp_reference"
+    ).max_length,
+}
+TRANSACTION_EVENT_MAX_LENGTHS = {
+    "psp_reference": payment_models.TransactionEvent._meta.get_field(
+        "psp_reference"
+    ).max_length,
+}
 
 
 class TransactionCreateInput(BaseInputObjectType):
@@ -135,6 +149,43 @@ class TransactionCreate(BaseMutation):
                     )
                 }
             ) from e
+
+    @classmethod
+    def validate_max_length(
+        cls,
+        input_data: dict,
+        max_lengths: dict[str, int | None],
+        error_field: str,
+        error_code: str,
+    ):
+        """Raise a validation error when a value exceeds its DB column length."""
+        for field_name, max_length in max_lengths.items():
+            value = input_data.get(field_name)
+            if value is None:
+                continue
+            if max_length is not None and len(value) > max_length:
+                raise ValidationError(
+                    {
+                        error_field: ValidationError(
+                            f"`{snake_to_camel_case(field_name)}` cannot be longer "
+                            f"than {max_length} characters.",
+                            code=error_code,
+                        )
+                    }
+                )
+
+    @classmethod
+    def validate_transaction_event_input(
+        cls, transaction_event: dict | None, error_code: str
+    ):
+        if not transaction_event:
+            return
+        cls.validate_max_length(
+            transaction_event,
+            max_lengths=TRANSACTION_EVENT_MAX_LENGTHS,
+            error_field="transactionEvent",
+            error_code=error_code,
+        )
 
     # TODO This should be unified with metadata_manager and MetadataItemCollection
     # EXT-2054
@@ -241,6 +292,12 @@ class TransactionCreate(BaseMutation):
     ) -> checkout_models.Checkout | order_models.Order:
         currency = instance.currency
 
+        cls.validate_max_length(
+            transaction,
+            max_lengths=TRANSACTION_ITEM_MAX_LENGTHS,
+            error_field="transaction",
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
         cls.validate_money_input(
             transaction,
             currency,
@@ -343,6 +400,9 @@ class TransactionCreate(BaseMutation):
         )
         order_or_checkout_instance = cls.validate_input(
             order_or_checkout_instance, transaction=transaction
+        )
+        cls.validate_transaction_event_input(
+            transaction_event, error_code=TransactionCreateErrorCode.INVALID.value
         )
         payment_details_data: PaymentMethodDetails | None = None
         if payment_method_details := transaction.pop("payment_method_details", None):
