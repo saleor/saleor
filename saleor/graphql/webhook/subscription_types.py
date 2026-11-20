@@ -62,6 +62,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
+    DOC_CATEGORY_APPS,
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_GIFT_CARDS,
     DOC_CATEGORY_MISC,
@@ -2652,6 +2653,43 @@ class ShopMetadataUpdated(SubscriptionObjectType, AbstractType):
         return Shop()
 
 
+class SaleorApiUrlChanged(SubscriptionObjectType):
+    previous_saleor_api_url = graphene.String(
+        required=True,
+        description=(
+            "The Saleor API URL before the change. "
+            "Every delivery of this event sends it in the `Saleor-Api-Url` header."
+        ),
+    )
+    saleor_api_url = graphene.String(
+        required=True, description="The Saleor API URL after the change."
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when the Saleor API URL is about to change, for example "
+            "when the domain is renamed. Apps that store data keyed by the API URL "
+            "should copy it to `saleorApiUrl`. The previous URL may stop responding "
+            "right after the change, so verify the signature with the JWKS stored "
+            "for the previous URL instead of fetching it. Delivery is best effort: "
+            "apps that are inactive when it is sent do not receive it." + ADDED_IN_323
+        )
+        doc_category = DOC_CATEGORY_APPS
+
+    @staticmethod
+    def resolve_previous_saleor_api_url(root, _info: ResolveInfo):
+        _, change = root
+        return change.previous_saleor_api_url
+
+    @staticmethod
+    def resolve_saleor_api_url(root, _info: ResolveInfo):
+        _, change = root
+        return change.saleor_api_url
+
+
 class PaymentBase(AbstractType):
     payment = graphene.Field(
         "saleor.graphql.payment.types.Payment",
@@ -3342,6 +3380,7 @@ ASYNC_WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.SHIPPING_ZONE_DELETED: ShippingZoneDeleted,
     WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED: ShippingZoneMetadataUpdated,
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: ShopMetadataUpdated,
+    WebhookEventAsyncType.SALEOR_API_URL_CHANGED: SaleorApiUrlChanged,
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,

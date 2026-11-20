@@ -244,6 +244,10 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
     WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created.",
     WebhookEventAsyncType.SHOP_METADATA_UPDATED: "Shop metadata is updated.",
+    WebhookEventAsyncType.SALEOR_API_URL_CHANGED: (
+        "The Saleor API URL is changing, for example after a domain rename."
+        + ADDED_IN_323
+    ),
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         "Fetch external shipping methods for checkout."
     ),

@@ -1288,6 +1288,14 @@ def subscription_shop_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_saleor_api_url_changed_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.SALEOR_API_URL_CHANGED,
+        WebhookEventAsyncType.SALEOR_API_URL_CHANGED,
+    )
+
+
+@pytest.fixture
 def subscription_payment_authorize_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PAYMENT_AUTHORIZE, WebhookEventSyncType.PAYMENT_AUTHORIZE

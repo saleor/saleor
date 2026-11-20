@@ -761,6 +761,18 @@ SHOP_METADATA_UPDATED = """
 """
 
 
+SALEOR_API_URL_CHANGED = """
+    subscription{
+      event{
+        ...on SaleorApiUrlChanged{
+          previousSaleorApiUrl
+          saleorApiUrl
+        }
+      }
+    }
+"""
+
+
 CHANNEL_CREATED = """
     subscription{
       event{

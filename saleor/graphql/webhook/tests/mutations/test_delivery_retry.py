@@ -2,8 +2,10 @@ from unittest.mock import patch
 
 import graphene
 
+from .....core import EventDeliveryStatus
 from .....graphql.tests.utils import assert_no_permission, get_graphql_content
 from .....webhook.error_codes import WebhookErrorCode
+from .....webhook.event_types import WebhookEventAsyncType
 
 WEBHOOK_DELIVERY_RETRY_MUTATION = """
     mutation eventDeliveryRetry($id: ID!){
@@ -127,3 +129,40 @@ def test_delivery_retry_mutation_for_removed_app(
     assert app_data["delivery"] is None
     assert app_data["errors"][0]["code"] == WebhookErrorCode.NOT_FOUND.name
     assert app_data["errors"][0]["field"] == "id"
+
+
+@patch("saleor.plugins.manager.PluginsManager.event_delivery_retry")
+def test_delivery_retry_rejects_saleor_api_url_changed(
+    mocked_event_delivery_retry,
+    app_api_client,
+    permission_manage_apps,
+    event_delivery,
+):
+    # given
+    event_delivery.event_type = WebhookEventAsyncType.SALEOR_API_URL_CHANGED
+    event_delivery.status = EventDeliveryStatus.FAILED
+    event_delivery.save(update_fields=["event_type", "status"])
+    delivery_id = graphene.Node.to_global_id("EventDelivery", event_delivery.pk)
+
+    # when
+    response = app_api_client.post_graphql(
+        WEBHOOK_DELIVERY_RETRY_MUTATION,
+        variables={"id": delivery_id},
+        permissions=[permission_manage_apps],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["eventDeliveryRetry"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == WebhookErrorCode.INVALID.name
+    assert errors[0]["message"] == (
+        "Deliveries of the SALEOR_API_URL_CHANGED event can't be retried, because "
+        "a retry would carry the new Saleor API URL instead of the previous one. "
+        "Reinstall the app instead."
+    )
+    mocked_event_delivery_retry.assert_not_called()
+    event_delivery.refresh_from_db(fields=["status"])
+    assert event_delivery.status == EventDeliveryStatus.FAILED

@@ -1,9 +1,12 @@
 import graphene
+from django.core.exceptions import ValidationError
 from django.db.models import Exists, OuterRef
 
 from ....app.models import App
 from ....core import models
 from ....permission.enums import AppPermission
+from ....webhook.error_codes import WebhookErrorCode
+from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.models import Webhook
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -43,6 +46,17 @@ class EventDeliveryRetry(BaseMutation):
             only_type=EventDelivery,
             qs=deliveries,
         )
+        if delivery.event_type == WebhookEventAsyncType.SALEOR_API_URL_CHANGED:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Deliveries of the SALEOR_API_URL_CHANGED event can't be "
+                        "retried, because a retry would carry the new Saleor API URL "
+                        "instead of the previous one. Reinstall the app instead.",
+                        code=WebhookErrorCode.INVALID.value,
+                    )
+                }
+            )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.event_delivery_retry, delivery)
         return EventDeliveryRetry(delivery=delivery)

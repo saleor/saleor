@@ -1892,6 +1892,7 @@ def test_send_webhook_request_async_with_success_response(
         event_delivery.event_type,
         event_delivery.payload.get_payload().encode("utf-8"),
         event_delivery.webhook.custom_headers,
+        saleor_api_url=None,
     )
     mocked_clear_delivery.assert_called_once_with(event_delivery)
     attempt = EventDeliveryAttempt.objects.get(delivery=event_delivery)
