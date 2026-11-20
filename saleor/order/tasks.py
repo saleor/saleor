@@ -144,8 +144,8 @@ def _order_expired_events(order_ids):
 def _expire_orders(manager, now, site_settings):
     time_diff_func_in_minutes = (
         Func(Value("day"), now - OuterRef("created_at"), function="DATE_PART") * 24
-        + Func(Value("hour"), now - OuterRef("created_at"), function="DATE_PART") * 60
-    ) + Func(Value("minute"), now - OuterRef("created_at"), function="DATE_PART")
+        + Func(Value("hour"), now - OuterRef("created_at"), function="DATE_PART")
+    ) * 60 + Func(Value("minute"), now - OuterRef("created_at"), function="DATE_PART")
     channels = Channel.objects.using(settings.DATABASE_CONNECTION_REPLICA_NAME).filter(
         id=OuterRef("channel"),
         expire_orders_after__isnull=False,

@@ -381,6 +381,66 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     ).exists()
 
 
+@pytest.mark.parametrize(
+    ("_case", "expire_orders_after", "order_age", "expected_status"),
+    [
+        (
+            "one day setting, order just under a day old",
+            1440,
+            datetime.timedelta(hours=23, minutes=59),
+            OrderStatus.UNCONFIRMED,
+        ),
+        (
+            "one day setting, order exactly a day old",
+            1440,
+            datetime.timedelta(days=1),
+            OrderStatus.EXPIRED,
+        ),
+        (
+            "one day setting, order a day and an hour old",
+            1440,
+            datetime.timedelta(days=1, hours=1),
+            OrderStatus.EXPIRED,
+        ),
+        (
+            "two day setting, order just under two days old",
+            2880,
+            datetime.timedelta(days=1, hours=23, minutes=59),
+            OrderStatus.UNCONFIRMED,
+        ),
+        (
+            "two day setting, order two days and an hour old",
+            2880,
+            datetime.timedelta(days=2, hours=1),
+            OrderStatus.EXPIRED,
+        ),
+        (
+            "one week setting, order eight days old",
+            10080,
+            datetime.timedelta(days=8),
+            OrderStatus.EXPIRED,
+        ),
+    ],
+)
+def test_expire_orders_task_expire_after_one_day_or_more(
+    _case, expire_orders_after, order_age, expected_status, order, channel_USD
+):
+    # given
+    channel_USD.expire_orders_after = expire_orders_after
+    channel_USD.save(update_fields=["expire_orders_after"])
+
+    order.created_at = timezone.now() - order_age
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["created_at", "status"])
+
+    # when
+    expire_orders_task()
+
+    # then
+    order.refresh_from_db()
+    assert order.status == expected_status
+
+
 @freeze_time("2020-03-18 12:00:00")
 def test_delete_expired_orders_task(order_list, allocations, channel_USD):
     # given
