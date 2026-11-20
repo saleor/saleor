@@ -7,6 +7,10 @@ from django.core.exceptions import ValidationError
 from django.test import override_settings
 from django.utils import timezone
 from prices import TaxedMoney
+from promise import Promise
+
+from saleor.checkout.error_codes import CheckoutErrorCode
+from saleor.warehouse.models import Stock
 
 from ...account import CustomerEvents
 from ...account.models import CustomerEvent
@@ -14,13 +18,13 @@ from ...channel import MarkAsPaidStrategy
 from ...checkout import CheckoutAuthorizeStatus
 from ...core.exceptions import InsufficientStock
 from ...core.notify import NotifyEventType
-from ...core.taxes import zero_money, zero_taxed_money
+from ...core.taxes import TaxDataError, zero_money, zero_taxed_money
 from ...core.tests.utils import get_site_context_payload
 from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
-from ...order.models import OrderEvent
+from ...order.models import Order, OrderEvent
 from ...order.notifications import get_default_order_payload
 from ...payment import TransactionKind
 from ...payment.interface import GatewayResponse
@@ -38,6 +42,7 @@ from ..complete_checkout import (
     _process_user_data_for_order,
     _release_checkout_voucher_usage,
     complete_checkout,
+    create_order_from_checkout,
 )
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
@@ -2860,3 +2865,409 @@ def test_checkout_complete_with_voucher_0_total(
     assert (
         discount.amount_value == (order.undiscounted_total - order.total).gross.amount
     )
+
+
+@pytest.mark.parametrize(
+    ("_case", "usage_limit", "single_use", "apply_once_per_customer"),
+    [
+        ("usage limit", 1, False, False),
+        ("single use", None, True, False),
+        ("once per customer", None, False, True),
+    ],
+)
+def test_voucher_usage_released_when_order_creation_fails_on_insufficient_stock(
+    _case,
+    usage_limit,
+    single_use,
+    apply_once_per_customer,
+    checkout_with_voucher,
+    voucher,
+):
+    # given
+    voucher.usage_limit = usage_limit
+    voucher.single_use = single_use
+    voucher.apply_once_per_customer = apply_once_per_customer
+    voucher.save(update_fields=["usage_limit", "single_use", "apply_once_per_customer"])
+
+    code = voucher.codes.first()
+    used_before = code.used
+    checkout = checkout_with_voucher
+    assert checkout.email
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    with pytest.raises(InsufficientStock):
+        create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    code.refresh_from_db()
+    checkout.refresh_from_db()
+    state = {
+        "used": code.used,
+        "is_active": code.is_active,
+        "customer_row": VoucherCustomer.objects.filter(
+            voucher_code=code, customer_email=checkout.email
+        ).exists(),
+        "flag": checkout.is_voucher_usage_increased,
+    }
+
+    assert not Order.objects.filter(checkout_token=checkout.token).exists()
+    assert state == {
+        "used": used_before,
+        "is_active": True,
+        "customer_row": False,
+        "flag": False,
+    }
+
+
+@mock.patch(
+    "saleor.checkout.calculations._get_promised_taxes_for_checkout",
+    return_value=Promise.reject(TaxDataError("Invalid data")),
+)
+def test_voucher_usage_released_when_order_creation_fails_on_tax_data_error(
+    _taxes, checkout_with_voucher, voucher, caplog
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+    used_before = code.used
+
+    checkout = checkout_with_voucher
+    # forcing tax recalc
+    checkout.price_expiration = timezone.now()
+    checkout.save(update_fields=["price_expiration"])
+
+    manager = get_plugins_manager(allow_replica=False)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    with pytest.raises(TaxDataError):
+        create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    _taxes.assert_called()
+    assert "Tax app error for checkout" in caplog.text
+    code.refresh_from_db()
+    checkout.refresh_from_db()
+    assert not Order.objects.filter(checkout_token=checkout.token).exists()
+    state = {"used": code.used, "flag": checkout.is_voucher_usage_increased}
+    assert state == {"used": used_before, "flag": False}
+
+
+# Low possibility to happen as already the mutations check for lines before calling the function
+def test_voucher_usage_released_when_order_creation_fails_on_validation_error(
+    checkout_with_voucher, voucher
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+    used_before = code.used
+
+    checkout = checkout_with_voucher
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    checkout.lines.all().delete()
+
+    # when
+    with pytest.raises(ValidationError) as info:
+        create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    checkout.refresh_from_db()
+    code.refresh_from_db()
+    state = {"used": code.used, "flag": checkout.is_voucher_usage_increased}
+
+    assert not Order.objects.filter(checkout_token=checkout.token).exists()
+    assert info.value.error_dict["lines"][0].code == CheckoutErrorCode.NO_LINES.value
+    assert state == {"used": used_before, "flag": False}
+
+
+@pytest.mark.parametrize(
+    ("_case", "usage_limit", "single_use", "apply_once_per_customer", "expected"),
+    [
+        (
+            "usage limit",
+            1,
+            False,
+            False,
+            {"delta": 1, "is_active": True, "customer_row": False},
+        ),
+        (
+            "single use",
+            None,
+            True,
+            False,
+            {"delta": 0, "is_active": False, "customer_row": False},
+        ),
+        (
+            "once per customer",
+            None,
+            False,
+            True,
+            {"delta": 0, "is_active": True, "customer_row": True},
+        ),
+    ],
+)
+def test_voucher_retry_succeeds_and_counts_usage_once_after_failed_completion(
+    _case,
+    usage_limit,
+    single_use,
+    apply_once_per_customer,
+    checkout_with_voucher,
+    voucher,
+    expected,
+):
+    # given
+    voucher.usage_limit = usage_limit
+    voucher.single_use = single_use
+    voucher.apply_once_per_customer = apply_once_per_customer
+    voucher.save(update_fields=["usage_limit", "single_use", "apply_once_per_customer"])
+
+    code = voucher.codes.first()
+    used_before = code.used
+    checkout = checkout_with_voucher
+    assert checkout.email
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # failed completion
+    with pytest.raises(InsufficientStock):
+        create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # when
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=10)
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    code.refresh_from_db()
+    state = {
+        "delta": code.used - used_before,
+        "is_active": code.is_active,
+        "customer_row": VoucherCustomer.objects.filter(
+            voucher_code=code, customer_email=checkout.email
+        ).exists(),
+    }
+
+    order = Order.objects.get(checkout_token=checkout.token)
+    assert order.voucher_code == code.code
+    assert state == expected
+
+
+def test_completion_loaded_before_failed_attempt_finishes_cleanup_still_takes_voucher_usage(
+    checkout_with_voucher, voucher
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+    used_before = code.used
+
+    checkout = checkout_with_voucher
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    request_b = {}
+
+    def load_request_b(*args, **kwargs):
+        # Request B starts while A is failing: it loads a fresh copy of the
+        # checkout from the database right before A's fail handler runs.
+        checkout_b = Checkout.objects.get(pk=checkout.pk)
+        lines_b, _ = fetch_checkout_lines(checkout_b)
+        request_b["checkout_info"] = fetch_checkout_info(checkout_b, lines_b, manager)
+
+    # request A fails, and request B loads its copy before A's cleanup
+    with race_condition.RunBefore(
+        "saleor.checkout.complete_checkout._handle_failed_order_creation",
+        load_request_b,
+    ):
+        with pytest.raises(InsufficientStock):
+            create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # preconditions are B loaded its copy while A's usage was still taken,
+    # and A ran the fail handler that released the usage in the database
+    checkout_info_b = request_b["checkout_info"]
+    assert checkout_info_b.checkout.is_voucher_usage_increased is True
+    code.refresh_from_db()
+    assert code.used == used_before
+
+    # when
+    # request B completes with the copy it loaded earlier
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=10)
+    create_order_from_checkout(checkout_info_b, manager, user=None, app=None)
+
+    # then
+    order = Order.objects.get(checkout_token=checkout.token)
+    assert order.voucher_code == code.code
+    code.refresh_from_db()
+    assert code.used == used_before + 1
+
+
+def test_voucher_usage_not_double_released_when_flag_already_false_in_db(
+    checkout_with_voucher, voucher
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+
+    checkout = checkout_with_voucher
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    def simulate_concurrent_release(*args, **kwargs):
+        Checkout.objects.filter(pk=checkout.pk).update(is_voucher_usage_increased=False)
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.checkout.complete_checkout._handle_failed_order_creation",
+        simulate_concurrent_release,
+    ):
+        with pytest.raises(InsufficientStock):
+            create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    checkout.refresh_from_db()
+    code.refresh_from_db()
+    assert code.used == 1
+    assert checkout.is_voucher_usage_increased is False
+
+
+def test_voucher_usage_not_released_when_order_exists(
+    order, checkout_with_voucher, voucher
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+
+    checkout = checkout_with_voucher
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    order.checkout_token = str(checkout.token)
+    order.save(update_fields=["checkout_token"])
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    with pytest.raises(InsufficientStock):
+        create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    code.refresh_from_db()
+    checkout.refresh_from_db()
+    assert code.used == 1
+    assert checkout.is_voucher_usage_increased is True
+
+
+def test_voucher_usage_not_released_when_checkout_deleted_from_db(
+    checkout_with_voucher, voucher
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+
+    checkout = checkout_with_voucher
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    def delete_checkout(*args, **kwargs):
+        Checkout.objects.filter(pk=checkout.pk).delete()
+
+    # when
+    with race_condition.RunBefore(
+        "saleor.checkout.complete_checkout._handle_failed_order_creation",
+        delete_checkout,
+    ):
+        with pytest.raises(InsufficientStock):
+            create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    code.refresh_from_db()
+    assert not Checkout.objects.filter(pk=checkout.pk).exists()
+    assert code.used == 1
+
+
+@mock.patch(
+    "saleor.checkout.complete_checkout._complete_checkout_fail_handler",
+    side_effect=Exception("unexpected_exception"),
+)
+def test_voucher_usage_release_failure_doesnt_hide_original_error(
+    _exception, checkout_with_voucher, voucher, caplog
+):
+    # given
+    voucher.usage_limit = 1
+    voucher.save(update_fields=["usage_limit"])
+    code = voucher.codes.first()
+
+    checkout = checkout_with_voucher
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    with pytest.raises(InsufficientStock):
+        create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    code.refresh_from_db()
+    assert (
+        "Failed to handle clean up after failed order creation for checkout"
+        in caplog.text
+    )
+    assert code.used == 1
+
+
+def test_order_creation_failure_without_voucher_behaves_normally(
+    checkout_with_item, voucher
+):
+    # given
+    checkout = checkout_with_item
+    variant_ids = list(checkout.lines.values_list("variant_id", flat=True))
+    Stock.objects.filter(product_variant_id__in=variant_ids).update(quantity=0)
+    manager = get_plugins_manager(allow_replica=False)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    with pytest.raises(InsufficientStock):
+        create_order_from_checkout(checkout_info, manager, user=None, app=None)
+
+    # then
+    assert not Order.objects.filter(checkout_token=checkout.token).exists()

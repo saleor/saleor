@@ -1,3 +1,4 @@
+import dataclasses
 import datetime
 import logging
 from collections.abc import Iterable
@@ -1601,11 +1602,12 @@ def create_order_from_checkout(
 
     Checkout can be deleted by setting flag `delete_checkout` to True
 
-    :raises: InsufficientStock, GiftCardNotApplicable
+    :raises: InsufficientStock, GiftCardNotApplicable, TaxDataError, ValidationError
     """
 
     code = None
     checkout_pk = checkout_info.checkout.pk
+    original_checkout_info = checkout_info
 
     if voucher := checkout_info.voucher:
         with transaction.atomic():
@@ -1615,33 +1617,41 @@ def create_order_from_checkout(
             if not checkout:
                 order = Order.objects.get_by_checkout_token(checkout_pk)
                 return order
-            code = _increase_voucher_code_usage_value(checkout_info=checkout_info)
 
-    with transaction.atomic():
-        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
-        if not checkout:
-            order = Order.objects.get_by_checkout_token(checkout_pk)
-            return order
-
-        # Fetching checkout info inside the transaction block with select_for_update
-        # ensure that we are processing checkout on the current data.
-        force_update = checkout.tax_error is not None
-        checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
-        checkout_info = fetch_checkout_info(
-            checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
-        )
-        if not checkout_lines:
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Cannot complete checkout without lines.",
-                        code=CheckoutErrorCode.NO_LINES.value,
-                    )
-                }
+            # Decide on voucher usage from the freshly locked row not the caller's copy that might be stale
+            checkout_info_with_fresh_checkout = dataclasses.replace(
+                checkout_info, checkout=checkout
             )
-        assign_checkout_user(user, checkout_info)
+            code = _increase_voucher_code_usage_value(
+                checkout_info=checkout_info_with_fresh_checkout
+            )
+    try:
+        with transaction.atomic():
+            checkout = (
+                Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            )
+            if not checkout:
+                order = Order.objects.get_by_checkout_token(checkout_pk)
+                return order
 
-        try:
+            # Fetching checkout info inside the transaction block with select_for_update
+            # ensure that we are processing checkout on the current data.
+            force_update = checkout.tax_error is not None
+            checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
+            checkout_info = fetch_checkout_info(
+                checkout, checkout_lines, manager, voucher=voucher, voucher_code=code
+            )
+            if not checkout_lines:
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            "Cannot complete checkout without lines.",
+                            code=CheckoutErrorCode.NO_LINES.value,
+                        )
+                    }
+                )
+            assign_checkout_user(user, checkout_info)
+
             order = _create_order_from_checkout(
                 checkout_info=checkout_info,
                 checkout_lines_info=list(checkout_lines),
@@ -1683,22 +1693,17 @@ def create_order_from_checkout(
                 if update_fields:
                     checkout.save(update_fields=update_fields)
             return order
-        except InsufficientStock:
-            _complete_checkout_fail_handler(
-                checkout_info,
-                manager,
-                voucher_code=code,
-                voucher=voucher,
-            )
-            raise
-        except GiftCardNotApplicable:
-            _complete_checkout_fail_handler(
-                checkout_info,
-                manager,
-                voucher_code=code,
-                voucher=voucher,
-            )
-            raise
+    except Exception:
+        # The failed transaction has been rolled back at this point, so the handler
+        # runs in its own transaction and is not rolled back with it.
+        _handle_failed_order_creation(
+            checkout_pk,
+            original_checkout_info,
+            manager,
+            voucher=voucher,
+            voucher_code=code,
+        )
+        raise
 
 
 def assign_checkout_user(
@@ -2059,4 +2064,43 @@ def _complete_checkout_fail_handler(
     if payment:
         gateway.payment_refund_or_void(
             payment, manager, channel_slug=checkout_info.channel.slug
+        )
+
+
+def _handle_failed_order_creation(
+    checkout_pk: UUID,
+    checkout_info: "CheckoutInfo",
+    manager: "PluginsManager",
+    *,
+    voucher_code: Optional["VoucherCode"],
+    voucher: Optional["Voucher"],
+) -> None:
+    """Run the fail handler after the failed transaction has rolled back.
+
+    It must run in a transaction of its own. Inside the failed transaction
+    its writes would be rolled back too.
+    """
+    if not voucher or not voucher_code:
+        return
+    try:
+        with traced_atomic_transaction():
+            checkout = (
+                Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+            )
+            if checkout is None:
+                return
+            if Order.objects.filter(checkout_token=checkout.token).exists():
+                return
+            # Using the freshly locked checkout row without mutating the caller's checkout_info
+            fresh_checkout_info = dataclasses.replace(checkout_info, checkout=checkout)
+            _complete_checkout_fail_handler(
+                fresh_checkout_info,
+                manager,
+                voucher_code=voucher_code,
+                voucher=voucher,
+            )
+    except Exception:
+        logger.exception(
+            "Failed to handle clean up after failed order creation for checkout %s",
+            checkout_pk,
         )
