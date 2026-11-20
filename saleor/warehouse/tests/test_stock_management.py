@@ -640,6 +640,55 @@ def test_deallocate_stock_many_allocations_partially(
     assert allocations[1].quantity_allocated == 1
 
 
+def test_deallocate_stock_many_lines_from_the_same_stock(allocations, site_settings):
+    # given
+    first_allocation = allocations[0]
+    second_allocation = allocations[1]
+
+    # make sure that we have only two allocations for the same stock
+    Allocation.objects.exclude(
+        pk__in=[first_allocation.pk, second_allocation.pk]
+    ).delete()
+
+    stock = first_allocation.stock
+    stock.quantity = 100
+    stock.quantity_allocated = (
+        first_allocation.quantity_allocated + second_allocation.quantity_allocated
+    )
+    stock.save(update_fields=["quantity", "quantity_allocated"])
+
+    first_order_line = first_allocation.order_line
+    second_order_line = second_allocation.order_line
+    assert first_allocation.stock_id == second_allocation.stock_id
+
+    # when
+    deallocate_stock(
+        [
+            OrderLineInfo(
+                line=first_order_line,
+                quantity=first_allocation.quantity_allocated,
+                variant=first_order_line.variant,
+            ),
+            OrderLineInfo(
+                line=second_order_line,
+                quantity=second_allocation.quantity_allocated,
+                variant=second_order_line.variant,
+            ),
+        ],
+        site_settings=site_settings,
+        requestor=None,
+    )
+
+    # then
+    first_allocation.refresh_from_db()
+    second_allocation.refresh_from_db()
+    stock.refresh_from_db()
+
+    assert stock.quantity_allocated == 0
+    assert first_allocation.quantity_allocated == 0
+    assert second_allocation.quantity_allocated == 0
+
+
 def test_increase_stock_without_allocate(allocation):
     stock = allocation.stock
     stock.quantity = 100
