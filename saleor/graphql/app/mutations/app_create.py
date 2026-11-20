@@ -95,5 +95,7 @@ class AppCreate(DeprecatedModelMutation):
         if not instance.identifier:
             instance.identifier = graphene.Node.to_global_id("App", instance.pk)
             instance.save(update_fields=["identifier"])
-        _, auth_token = instance.tokens.create(name="Default")
+        _, auth_token = instance.tokens.create(
+            name="Default", created_by=info.context.user
+        )
         return auth_token

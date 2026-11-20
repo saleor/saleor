@@ -1,3 +1,4 @@
+import datetime
 import json
 from unittest import mock
 
@@ -145,6 +146,29 @@ def test_app_create_without_permissions(
 
 
 @freeze_time("2022-05-12 12:00:00")
+def test_default_token_creator_tracking(
+    permission_manage_apps,
+    staff_api_client,
+):
+    """The default token is attributed to the staff user who created the app."""
+    # given
+    variables = {"name": "New integration", "permissions": []}
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_CREATE_MUTATION, variables=variables, permissions=(permission_manage_apps,)
+    )
+
+    # then
+    get_graphql_content(response)
+    token = App.objects.get().tokens.get()
+    assert token.created_by == staff_api_client.user
+    assert token.created_at == datetime.datetime(
+        2022, 5, 12, 12, 0, tzinfo=datetime.UTC
+    )
+
+
+@freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_app_lifecycle_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_app_create_trigger_webhook(
@@ -210,8 +234,9 @@ def test_app_is_not_allowed_to_call_create_mutation_for_app(
     requestor = app_api_client.app
     requestor.permissions.add(permission_manage_apps, permission_manage_products)
 
+    name = "New integration"
     variables = {
-        "name": "New integration",
+        "name": name,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
 
@@ -220,6 +245,7 @@ def test_app_is_not_allowed_to_call_create_mutation_for_app(
 
     # then
     assert_no_permission(response)
+    assert App.objects.filter(name=name).exists() is False
 
 
 def test_app_create_mutation_out_of_scope_permissions(
