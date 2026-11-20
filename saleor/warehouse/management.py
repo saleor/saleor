@@ -147,7 +147,7 @@ def allocate_stocks(
         .filter(**filter_lookup)
         .values("id", "product_variant", "pk", "quantity", "warehouse_id")
     )
-    stocks_id = (stock.pop("id") for stock in stocks)
+    stocks_id = [stock.pop("id") for stock in stocks]
 
     quantity_reservation_for_stocks: dict = _prepare_stock_to_reserved_quantity_map(
         checkout_lines, check_reservations, stocks_id
@@ -225,8 +225,10 @@ def allocate_stocks(
             )
             if not max(allocation.stock.quantity - allocated_stock, 0):
                 transaction.on_commit(
-                    lambda: trigger_product_variant_out_of_stock(
-                        allocation.stock, requestor=requestor
+                    partial(
+                        trigger_product_variant_out_of_stock,
+                        allocation.stock,
+                        requestor=requestor,
                     )
                 )
                 out_of_stock_stocks.append(allocation.stock)
@@ -644,7 +646,9 @@ def decrease_stock(
     for stock in Stock.objects.filter(id__in=stock_ids).annotate_available_quantity():
         if stock.available_quantity <= 0:
             transaction.on_commit(
-                lambda: trigger_product_variant_out_of_stock(stock, requestor=requestor)
+                partial(
+                    trigger_product_variant_out_of_stock, stock, requestor=requestor
+                )
             )
 
 

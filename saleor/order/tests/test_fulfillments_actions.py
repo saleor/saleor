@@ -4,11 +4,12 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from ...core.exceptions import InsufficientStock
-from ...order import OrderEvents
+from ...order import FulfillmentStatus, OrderEvents
 from ...plugins.manager import get_plugins_manager
 from ...warehouse.models import Allocation, Stock
-from ..actions import create_fulfillments
-from ..models import FulfillmentLine, OrderStatus
+from ..actions import approve_fulfillment, create_fulfillments
+from ..error_codes import OrderErrorCode
+from ..models import Fulfillment, FulfillmentLine, OrderLine, OrderStatus
 
 
 @patch("saleor.plugins.manager.PluginsManager.fulfillment_approved")
@@ -799,3 +800,96 @@ def test_create_fulfillments_validate_lines_raise_error(
             site_settings,
             notify_customer=True,
         )
+
+
+def test_create_fulfillments_with_stale_order_line_after_concurrent_fulfillment(
+    staff_user, order_with_lines, warehouse, site_settings
+):
+    # given
+    order = order_with_lines
+    order_line, _ = order.lines.all()
+    stale_order_line = OrderLine.objects.get(pk=order_line.pk)
+    stock = order_line.variant.stocks.get()
+    initial_stock_quantity = stock.quantity
+    quantity = 1
+    manager = get_plugins_manager(allow_replica=False)
+
+    create_fulfillments(
+        staff_user,
+        None,
+        order,
+        {warehouse.pk: [{"order_line": order_line, "quantity": quantity}]},
+        manager,
+        site_settings,
+        notify_customer=False,
+    )
+    assert stale_order_line.quantity_fulfilled == 0
+
+    # when
+    create_fulfillments(
+        staff_user,
+        None,
+        order,
+        {warehouse.pk: [{"order_line": stale_order_line, "quantity": quantity}]},
+        manager,
+        site_settings,
+        notify_customer=False,
+    )
+
+    # then
+    order_line.refresh_from_db(fields=["quantity_fulfilled"])
+    assert order_line.quantity_fulfilled == 2 * quantity
+    stock.refresh_from_db(fields=["quantity"])
+    assert stock.quantity == initial_stock_quantity - 2 * quantity
+
+
+def test_approve_fulfillment_already_approved_by_concurrent_request(
+    full_fulfillment_awaiting_approval, staff_user, site_settings
+):
+    # given
+    fulfillment = full_fulfillment_awaiting_approval
+    order = fulfillment.order
+    stale_fulfillment = Fulfillment.objects.get(pk=fulfillment.pk)
+    manager = get_plugins_manager(allow_replica=False)
+    # enough stock for both approvals, so only the status check can stop the second
+    Stock.objects.filter(fulfillment_lines__fulfillment=fulfillment).update(
+        quantity=100
+    )
+
+    approve_fulfillment(
+        fulfillment, staff_user, None, manager, site_settings, notify_customer=False
+    )
+    assert stale_fulfillment.status == FulfillmentStatus.WAITING_FOR_APPROVAL
+    stock_quantities = dict(
+        Stock.objects.filter(fulfillment_lines__fulfillment=fulfillment).values_list(
+            "pk", "quantity"
+        )
+    )
+    events_count = order.events.count()
+
+    # when
+    with pytest.raises(ValidationError) as exc:
+        approve_fulfillment(
+            stale_fulfillment,
+            staff_user,
+            None,
+            manager,
+            site_settings,
+            notify_customer=False,
+        )
+
+    # then
+    assert exc.value.code == OrderErrorCode.INVALID.value
+    assert exc.value.message == (
+        "Invalid fulfillment status, only WAITING_FOR_APPROVAL "
+        "fulfillments can be accepted."
+    )
+    assert (
+        dict(
+            Stock.objects.filter(
+                fulfillment_lines__fulfillment=fulfillment
+            ).values_list("pk", "quantity")
+        )
+        == stock_quantities
+    )
+    assert order.events.count() == events_count

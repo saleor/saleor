@@ -1237,15 +1237,21 @@ def _is_refund_ongoing(payment):
     )
 
 
-def _increase_voucher_code_usage_value(checkout_info: "CheckoutInfo"):
-    """Increase a voucher usage applied to the checkout."""
+def _increase_voucher_code_usage_value(
+    checkout_info: "CheckoutInfo", checkout: "Checkout"
+):
+    """Increase a voucher usage applied to the checkout.
+
+    `checkout` must be the row locked by the caller. `checkout_info.checkout` may be
+    a stale copy fetched before a concurrent completion already increased the usage,
+    so its `is_voucher_usage_increased` flag can't be trusted.
+    """
     voucher, code = get_voucher_for_checkout_info(checkout_info, with_lock=True)
     if not voucher or not code:
         return None
 
     customer_email = cast(str, get_customer_email_for_voucher_usage(checkout_info))
 
-    checkout = checkout_info.checkout
     _increase_checkout_voucher_usage(checkout, code, voucher, customer_email)
     return code
 
@@ -1615,7 +1621,9 @@ def create_order_from_checkout(
             if not checkout:
                 order = Order.objects.get_by_checkout_token(checkout_pk)
                 return order
-            code = _increase_voucher_code_usage_value(checkout_info=checkout_info)
+            code = _increase_voucher_code_usage_value(
+                checkout_info=checkout_info, checkout=checkout
+            )
 
     with transaction.atomic():
         checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
@@ -1873,6 +1881,16 @@ def complete_checkout_with_payment(
         if not checkout:
             order = Order.objects.get_by_checkout_token(checkout_pk)
             return order, False, {}
+
+        # Another request is already completing this checkout; continuing would
+        # process the same payment with the gateway for the second time.
+        if checkout.is_checkout_locked():
+            raise ValidationError(
+                "Checkout cannot be completed - the checkout completion is currently "
+                "in progress. Please wait until the process is finished "
+                f"(max {settings.CHECKOUT_COMPLETION_LOCK_TIME} seconds).",
+                code=CheckoutErrorCode.INVALID.value,
+            )
 
         checkout.completing_started_at = timezone.now()
         checkout.save(update_fields=["completing_started_at"])

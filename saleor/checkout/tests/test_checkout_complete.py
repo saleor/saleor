@@ -3,6 +3,7 @@ from decimal import Decimal
 from unittest import mock
 
 import pytest
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import override_settings
 from django.utils import timezone
@@ -39,6 +40,7 @@ from ..complete_checkout import (
     _release_checkout_voucher_usage,
     complete_checkout,
 )
+from ..error_codes import CheckoutErrorCode
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
 from ..models import Checkout
 from ..payment_utils import update_checkout_payment_statuses
@@ -1735,18 +1737,23 @@ def test_complete_checkout_checkout_limited_use_voucher_multiple_thread(
     mocked_process_payment.return_value = success_gateway_response
 
     # when
+    concurrent_completion_errors = []
+
     def call_checkout_complete(*args, **kwargs):
         lines_2, _ = fetch_checkout_lines(checkout)
         checkout_info_2 = fetch_checkout_info(checkout, lines, manager)
-        complete_checkout(
-            checkout_info=checkout_info_2,
-            lines=lines_2,
-            manager=manager,
-            payment_data={},
-            store_source=False,
-            user=customer_user,
-            app=app,
-        )
+        try:
+            complete_checkout(
+                checkout_info=checkout_info_2,
+                lines=lines_2,
+                manager=manager,
+                payment_data={},
+                store_source=False,
+                user=customer_user,
+                app=app,
+            )
+        except ValidationError as error:
+            concurrent_completion_errors.append(error)
 
     with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._process_payment", call_checkout_complete
@@ -1761,7 +1768,15 @@ def test_complete_checkout_checkout_limited_use_voucher_multiple_thread(
             app=app,
         )
     # then
-    assert order_from_checkout
+    assert order_from_checkout.checkout_token == str(checkout.token)
+    [error] = concurrent_completion_errors
+    assert error.code == CheckoutErrorCode.INVALID.value
+    assert error.message == (
+        "Checkout cannot be completed - the checkout completion is currently "
+        "in progress. Please wait until the process is finished "
+        f"(max {settings.CHECKOUT_COMPLETION_LOCK_TIME} seconds)."
+    )
+    mocked_process_payment.assert_called_once()
     mocked_payment_refund_or_void.assert_not_called()
     code = voucher_free_shipping.codes.first()
     assert code.used == 1
@@ -1769,7 +1784,7 @@ def test_complete_checkout_checkout_limited_use_voucher_multiple_thread(
 
 @mock.patch("saleor.checkout.complete_checkout.gateway.payment_refund_or_void")
 @mock.patch("saleor.checkout.complete_checkout._process_payment")
-def test_complete_checkout_checkout_completed_in_the_meantime(
+def test_complete_checkout_concurrent_completion_rejected_while_in_progress(
     mocked_process_payment,
     mocked_payment_refund_or_void,
     customer_user,
@@ -1803,18 +1818,23 @@ def test_complete_checkout_checkout_completed_in_the_meantime(
     mocked_process_payment.return_value = success_gateway_response
 
     # when
+    concurrent_completion_errors = []
+
     def call_checkout_complete(*args, **kwargs):
         lines_2, _ = fetch_checkout_lines(checkout)
         checkout_info_2 = fetch_checkout_info(checkout, lines, manager)
-        complete_checkout(
-            checkout_info=checkout_info_2,
-            lines=lines_2,
-            manager=manager,
-            payment_data={},
-            store_source=False,
-            user=customer_user,
-            app=app,
-        )
+        try:
+            complete_checkout(
+                checkout_info=checkout_info_2,
+                lines=lines_2,
+                manager=manager,
+                payment_data={},
+                store_source=False,
+                user=customer_user,
+                app=app,
+            )
+        except ValidationError as error:
+            concurrent_completion_errors.append(error)
 
     with race_condition.RunAfter(
         "saleor.checkout.complete_checkout._reserve_stocks_without_availability_check",
@@ -1830,7 +1850,15 @@ def test_complete_checkout_checkout_completed_in_the_meantime(
             app=app,
         )
     # then
-    assert order_from_checkout
+    assert order_from_checkout.checkout_token == str(checkout.token)
+    [error] = concurrent_completion_errors
+    assert error.code == CheckoutErrorCode.INVALID.value
+    assert error.message == (
+        "Checkout cannot be completed - the checkout completion is currently "
+        "in progress. Please wait until the process is finished "
+        f"(max {settings.CHECKOUT_COMPLETION_LOCK_TIME} seconds)."
+    )
+    mocked_process_payment.assert_called_once()
     mocked_payment_refund_or_void.assert_not_called()
 
 
