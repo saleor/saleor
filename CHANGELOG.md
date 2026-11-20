@@ -127,7 +127,7 @@ Validation is now performed on the frontend (Dashboard). This change increases v
 - Fixed automatic checkout completion tasks being published to SQS without a `MessageGroupId`.
 - Fixed Celery tasks losing their SQS `MessageGroupId` when retried. Retried webhook deliveries are now published with the group ID they were first published with.
 - Fixed password reset links expiring within minutes for anyone with an active session. The token hash included `last_login`, which is updated on every token refresh, so a Dashboard tab refreshing in the background invalidated the link that had just been emailed. A successful reset still invalidates the link, because the password hash remains part of the token.
-- Dropped database indexes that were maintained on every write but never used by queries: the trigram index on `Order.search_document`, the trigram index on the user's full name, and the indexes on `CheckoutDelivery.external_shipping_method_id` and `CheckoutDelivery.built_in_shipping_method_id`.
+- Dropped database indexes that were maintained on every write but never used by queries: the trigram index on `Order.search_document`, the trigram index on the user's full name, the trigram index on warehouse address fields (`warehouse_address_search_gin`), and the indexes on `CheckoutDelivery.external_shipping_method_id` and `CheckoutDelivery.built_in_shipping_method_id`.
 
 #### Search improvements
 
