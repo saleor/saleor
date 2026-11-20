@@ -58,12 +58,6 @@ class WebhookCreateInput(BaseInputObjectType):
     is_active = graphene.Boolean(
         description="Determine if webhook will be set active or not.", required=False
     )
-    secret_key = graphene.String(
-        description="The secret key used to create a hash signature with each payload."
-        f"{DEPRECATED_IN_3X_INPUT} As of Saleor 3.5, webhook payloads default to "
-        "signing using a verifiable JWS.",
-        required=False,
-    )
     query = graphene.String(
         description="Subscription query used to define a webhook payload.",
         required=False,

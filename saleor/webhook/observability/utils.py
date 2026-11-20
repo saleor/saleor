@@ -32,7 +32,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 CACHE_TIMEOUT = parse("2 minutes")
 BUFFER_KEY = "observability_buffer"
-WEBHOOKS_KEY = "observability_webhooks"
+# Bumped when the shape of the cached `WebhookData` changes, so pods still running
+# the previous release during a rolling deploy do not read entries they cannot use.
+WEBHOOKS_KEY = "observability_webhooks_v2"
 _active_webhooks_exists_cache: dict[str, tuple[bool, float]] = {}
 _context = Local()
 
@@ -42,7 +44,6 @@ class WebhookData:
     id: int
     saleor_domain: str
     target_url: str
-    secret_key: str | None = None
 
 
 def get_buffer_name() -> str:
@@ -74,7 +75,6 @@ def get_webhooks(timeout=CACHE_TIMEOUT) -> list[WebhookData]:
                             id=webhook.id,
                             saleor_domain=domain,
                             target_url=webhook.target_url,
-                            secret_key=webhook.secret_key,
                         )
                     )
             cache.set(WEBHOOKS_KEY, webhooks_data, timeout=CACHE_TIMEOUT)
