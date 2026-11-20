@@ -4157,3 +4157,64 @@ def test_stored_payment_methods_not_invalidated_for_checkout(
 
     # ensure that cache has not been cleared
     cache_delete_mock.assert_not_called()
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="An event can commit before its money projection; duplicate delivery skips recalculation.",
+)
+def test_retry_repairs_charge_total_after_event_commit(
+    transaction_item_generator, app_api_client, permission_manage_payments
+):
+    """A provider retry must complete money projection for its accepted event."""
+    transaction = transaction_item_generator(app=app_api_client.app)
+    amount = Decimal("7.00")
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": "charge-after-interruption",
+    }
+    query = """
+    mutation Report($id: ID!, $type: TransactionEventTypeEnum!,
+                    $amount: PositiveDecimal!, $pspReference: String!) {
+        transactionEventReport(id: $id, type: $type, amount: $amount,
+                               pspReference: $pspReference) {
+            alreadyProcessed
+            errors { field code }
+        }
+    }
+    """
+
+    # The event's transaction commits before recalculation starts.
+    with patch(
+        "saleor.graphql.payment.mutations.transaction.transaction_event_report."
+        "recalculate_transaction_amounts",
+        side_effect=RuntimeError("interrupted after event commit"),
+    ):
+        interrupted = app_api_client.post_graphql(
+            query,
+            variables,
+            permissions=[permission_manage_payments],
+            check_no_permissions=False,
+        )
+    assert interrupted.json()["errors"]
+    assert (
+        transaction.events.filter(
+            psp_reference=variables["pspReference"],
+            type=TransactionEventType.CHARGE_SUCCESS,
+        ).count()
+        == 1
+    )
+
+    retry = app_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_payments],
+        check_no_permissions=False,
+    )
+    report = get_graphql_content(retry)["data"]["transactionEventReport"]
+    assert report["alreadyProcessed"] is True
+    assert report["errors"] == []
+    transaction.refresh_from_db()
+    assert transaction.charged_value == amount
