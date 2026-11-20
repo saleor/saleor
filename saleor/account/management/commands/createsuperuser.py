@@ -265,7 +265,7 @@ class Command(BaseCommand):
                 else field.remote_field.field_name
             )
             message += f" ({field.remote_field.model._meta.object_name}.{field_name})"
-        return message
+        return f"{message}: "
 
     def _validate_username(self, username, verbose_field_name, database):
         """Validate username. If invalid, return a string error message."""
