@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 
 - Added `stockAvailability` and `stocks` filters to the `productVariants` query `where` input, allowing variants to be filtered by their stock status and stock quantity for a given channel - #17689 by @ayesha-waris
+- `checkoutCustomerAttach` now returns success when reattaching the same customer that already owns the checkout, and returns a `CheckoutError` with the `CHECKOUT_HAS_USER` code (instead of a permission error) when attaching a different customer to an already-owned checkout - #12037 by @ayesha-waris
 - `lines` input on the `checkoutCreate` mutation is no longer required. When omitted, a checkout with no lines is created.
 - Removed the deprecated `availableShippingMethods` field from the `Order` type. Use `shippingMethods` instead.
 - Removed the deprecated `variant` field from the `Product` type. Use the top-level `variant` query instead.
