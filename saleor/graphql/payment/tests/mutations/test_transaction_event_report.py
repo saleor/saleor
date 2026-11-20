@@ -4066,6 +4066,63 @@ def test_stored_payment_methods_not_invalidated_for_order(
     cache_delete_mock.assert_not_called()
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="A stale report can save its computed total after a newer report's save.",
+)
+def test_overlapping_charge_reports_preserve_both_amounts(
+    transaction_item_generator, app_api_client, permission_manage_payments
+):
+    """Two accepted provider events must both appear in the money projection."""
+    transaction = transaction_item_generator(app=app_api_client.app)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    query = """
+    mutation Report($id: ID!, $type: TransactionEventTypeEnum!,
+                    $amount: PositiveDecimal!, $pspReference: String!) {
+        transactionEventReport(id: $id, type: $type, amount: $amount,
+                               pspReference: $pspReference) {
+            alreadyProcessed
+            errors { field code }
+        }
+    }
+    """
+
+    def report(amount, reference):
+        response = app_api_client.post_graphql(
+            query,
+            {
+                "id": transaction_id,
+                "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+                "amount": amount,
+                "pspReference": reference,
+            },
+            permissions=[permission_manage_payments],
+            check_no_permissions=False,
+        )
+        result = get_graphql_content(response)["data"]["transactionEventReport"]
+        assert result["errors"] == []
+        return result
+
+    # The first report has computed its total but has not saved it. The second
+    # report then commits another event and its total before the first save.
+    def report_second(*_args, **_kwargs):
+        assert report(Decimal("11.00"), "charge-eleven")["alreadyProcessed"] is False
+
+    with race_condition.RunBefore(
+        "saleor.payment.models.TransactionItem.save",
+        report_second,
+    ):
+        assert report(Decimal("7.00"), "charge-seven")["alreadyProcessed"] is False
+
+    assert (
+        transaction.events.filter(type=TransactionEventType.CHARGE_SUCCESS).count() == 2
+    )
+    assert report(Decimal("7.00"), "charge-seven")["alreadyProcessed"] is True
+    assert report(Decimal("11.00"), "charge-eleven")["alreadyProcessed"] is True
+    transaction.refresh_from_db()
+    assert transaction.charged_value == Decimal("18.00")
+
+
 @pytest.mark.parametrize(
     "result",
     [
