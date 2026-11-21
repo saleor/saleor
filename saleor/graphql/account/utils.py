@@ -10,6 +10,7 @@ from ...account.models import Group, User
 from ...core.exceptions import PermissionDenied
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions
+from ...permission.read_permissions import get_manage_parent_permission
 from ...permission.utils import has_one_of_permissions
 from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
@@ -56,11 +57,19 @@ def get_user_permissions(user: "User") -> "QuerySet":
 def get_out_of_scope_permissions(
     requestor: Union["User", "App", None], permissions: list[str]
 ) -> list[str]:
-    """Return permissions that the requestor hasn't got."""
+    """Return permissions that the requestor hasn't got.
+
+    A ``READ_X`` permission is a subset of ``MANAGE_X``, so a requestor holding
+    ``MANAGE_X`` can grant ``READ_X`` even without holding it directly.
+    """
     missing_permissions = []
     for perm in permissions:
-        if not requestor or not requestor.has_perm(perm):
-            missing_permissions.append(perm)
+        if requestor and requestor.has_perm(perm):
+            continue
+        manage_parent = get_manage_parent_permission(perm)
+        if requestor and manage_parent and requestor.has_perm(manage_parent):
+            continue
+        missing_permissions.append(perm)
     return missing_permissions
 
 
