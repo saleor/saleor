@@ -91,7 +91,7 @@ Documentation = "https://docs.saleor.io/"
 
 [dependency-groups]
 dev = [
-    "coverage~=7.14",
+    "coverage~=7.17",
     "deptry>=0.23.0,<0.24",
     "django-extensions~=4.1",
     # TODO: once on django-stubs >= 6.0.2, revert the PublishedQuerySet TypeVar
