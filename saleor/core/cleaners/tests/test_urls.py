@@ -1,6 +1,7 @@
 import pytest
 
-from .. import clean_mailto, clean_tel
+from .. import URL_SCHEME_CLEANERS, clean_mailto, clean_sms, clean_tel
+from ..urls import InvalidUsage
 
 
 @pytest.mark.parametrize(
@@ -49,6 +50,57 @@ def test_clean_url_tel_scheme_invalid(input_url: str, expected_cleaned_url: str)
     """Test invalid characters in `tel` URLs are quoted."""
     actual = clean_tel(input_url)
     assert actual == expected_cleaned_url
+
+
+@pytest.mark.parametrize(
+    "input_url",
+    [
+        "sms:1234567890",
+        "sms:+1234567890",
+        "sms:+1-202-555-0123",
+        "sms:+1(202)555.0123",
+        "sms:*123#",
+        "sms:123;ext=456",
+        "sms:",
+    ],
+)
+def test_clean_url_sms_scheme_valid(input_url: str):
+    """Test valid `sms` URL inputs are unchanged (RFC 3966)."""
+    actual = clean_sms(input_url)
+    assert actual == input_url, "URL shouldn't have been changed"
+
+
+@pytest.mark.parametrize(
+    ("input_url", "expected_cleaned_url"),
+    [
+        # It must be 'sms:' not 'sms://'
+        ("sms://", "sms:%2F%2F"),
+        ('sms:+3300"<>', "sms:+3300%22%3C%3E"),
+        ("sms:+3300\n", "sms:+3300%0A"),
+        # Ensures all parts/components are quoted
+        ('sms:"\n#"\n;"\n', "sms:%22%0A#%22%0A;%22%0A"),
+    ],
+)
+def test_clean_url_sms_scheme_invalid(input_url: str, expected_cleaned_url: str):
+    """Test invalid characters in `sms` URLs are quoted."""
+    actual = clean_sms(input_url)
+    assert actual == expected_cleaned_url
+
+
+def test_clean_url_sms_scheme_rejects_other_schemes():
+    with pytest.raises(
+        InvalidUsage, match="Expected url scheme to be 'sms', found tel"
+    ):
+        clean_sms("tel:+1234567890")
+    with pytest.raises(
+        InvalidUsage, match="Expected url scheme to be 'tel', found sms"
+    ):
+        clean_tel("sms:+1234567890")
+
+
+def test_sms_cleaner_is_registered():
+    assert URL_SCHEME_CLEANERS["sms"] is clean_sms
+    assert URL_SCHEME_CLEANERS["sms"]("sms:+1") == "sms:+1"
 
 
 @pytest.mark.parametrize(
