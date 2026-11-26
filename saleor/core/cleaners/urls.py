@@ -58,18 +58,30 @@ def normalize_host(dirty_domain: str) -> str:
     return ".".join(parts)
 
 
-def clean_tel(dirty_url: str) -> str:
-    """Clean a 'tel' URL (e.g., 'tel:+3312345678')."""
+def _clean_rfc3966_url(dirty_url: str, expected_scheme: str) -> str:
+    """Quote the subscriber part of an RFC 3966 URL for the given scheme."""
 
-    scheme, _, dirty_tel = dirty_url.partition(":")
+    scheme, _, dirty_path = dirty_url.partition(":")
 
     # This should never happen, as a safeguard we are raising
-    if scheme != "tel":
-        raise InvalidUsage(f"Expected url scheme to be 'tel', found {scheme} instead")
+    if scheme != expected_scheme:
+        raise InvalidUsage(
+            f"Expected url scheme to be '{expected_scheme}', found {scheme} instead"
+        )
     # Keeps special characters listed by RFC 3966 as is, and encodes anything else
     # (such as dangerous characters like "<>)
-    cleaned_path = urllib.parse.quote(dirty_tel, safe="+-.()*#;=%")
-    return f"tel:{cleaned_path}"
+    cleaned_path = urllib.parse.quote(dirty_path, safe="+-.()*#;=%")
+    return f"{expected_scheme}:{cleaned_path}"
+
+
+def clean_tel(dirty_url: str) -> str:
+    """Clean a 'tel' URL (e.g., 'tel:+3312345678')."""
+    return _clean_rfc3966_url(dirty_url, "tel")
+
+
+def clean_sms(dirty_url: str) -> str:
+    """Clean an 'sms' URL (e.g., 'sms:+3312345678')."""
+    return _clean_rfc3966_url(dirty_url, "sms")
 
 
 def clean_mailto(
@@ -142,4 +154,8 @@ def clean_mailto(
     return cleaned_url
 
 
-URL_SCHEME_CLEANERS: dict[str, UrlCleaner] = {"mailto": clean_mailto, "tel": clean_tel}
+URL_SCHEME_CLEANERS: dict[str, UrlCleaner] = {
+    "mailto": clean_mailto,
+    "sms": clean_sms,
+    "tel": clean_tel,
+}
