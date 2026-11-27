@@ -1,0 +1,62 @@
+name: OpenHands Test Generation Trigger
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  dispatch-test-generation:
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false
+
+    runs-on: ubuntu-latest
+
+    permissions: {}
+
+    steps:
+      - name: Dispatch test generation in automation repository
+        env:
+          GH_TOKEN: ${{ secrets.OPENHANDS_AUTOMATION_TOKEN }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          payload=$(jq -n \
+            --arg target_repository "$TARGET_REPOSITORY" \
+            --arg base_sha "$PR_BASE_SHA" \
+            --arg head_sha "$PR_HEAD_SHA" \
+            --arg pr_number "$PR_NUMBER" \
+            --arg pr_title "$PR_TITLE" \
+            --arg pr_body "$PR_BODY" \
+            '{
+              ref: "feature/permanent-regression-tests",
+              inputs: {
+                target_repository: $target_repository,
+                base_sha: $base_sha,
+                head_sha: $head_sha,
+                pr_number: $pr_number,
+                pr_title: $pr_title,
+                pr_body: $pr_body,
+                publish_comments: "false"
+              }
+            }')
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "$payload" \
+            "https://api.github.com/repos/kirthi28-gi/openhands-pr-testing/actions/workflows/openhands-test-generation.yml/dispatches"
+
+          echo "Test generation workflow dispatched successfully."
