@@ -24,7 +24,7 @@ from ..tasks import (
     decrease_voucher_code_usage_of_draft_orders,
     decrease_voucher_codes_usage_task,
     disconnect_voucher_codes_from_draft_orders_task,
-    fetch_promotion_variants_and_product_ids,
+    fetch_promotion_variants,
     handle_promotion_toggle,
     release_voucher_code_usage_of_draft_orders,
     set_promotion_rule_variants_task,
@@ -32,9 +32,7 @@ from ..tasks import (
 from ..utils.promotion import mark_catalogue_promotion_rules_as_dirty
 
 
-def test_fetch_promotion_variants_and_product_ids(
-    promotion_list, product, collection, product_list
-):
+def test_fetch_promotion_variants(promotion_list, product, collection, product_list):
     # given
     promotions = Promotion.objects.all()
 
@@ -48,14 +46,9 @@ def test_fetch_promotion_variants_and_product_ids(
     }
 
     # when
-    promotion_id_to_variants, product_ids = fetch_promotion_variants_and_product_ids(
-        promotions
-    )
+    promotion_id_to_variants = fetch_promotion_variants(promotions)
 
     # then
-    expected_product_ids = {product.id, product_list[0].id, product_list[1].id}
-    assert set(product_ids) == expected_product_ids
-
     variants_promo_1 = promotion_id_to_variants[promotion_list[0].id]
     variants_promo_2 = promotion_id_to_variants[promotion_list[1].id]
     variants_promo_3 = promotion_id_to_variants[promotion_list[2].id]
