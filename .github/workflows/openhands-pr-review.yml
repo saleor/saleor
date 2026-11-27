@@ -1,0 +1,34 @@
+name: OpenHands PR Review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, ready_for_review, labeled, review_requested]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  pr-review:
+    if: |
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      (
+        (github.event.action == 'opened' && github.event.pull_request.draft == false) ||
+        (github.event.action == 'synchronize' && github.event.pull_request.draft == false) ||
+        github.event.action == 'ready_for_review' ||
+        github.event.label.name == 'review-this' ||
+        github.event.requested_reviewer.login == 'openhands-agent'
+      )
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run PR Review
+        uses: OpenHands/extensions/plugins/pr-review@main
+        with:
+          llm-model: openai/gpt-6-luna
+          llm-base-url: https://api.openai.com/v1
+          llm-api-key: ${{ secrets.LLM_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
