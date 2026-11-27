@@ -64,7 +64,7 @@ def clean_tel(dirty_url: str) -> str:
     scheme, _, dirty_tel = dirty_url.partition(":")
 
     # This should never happen, as a safeguard we are raising
-    if scheme != "tel":
+    if scheme.lower() != "tel":
         raise InvalidUsage(f"Expected url scheme to be 'tel', found {scheme} instead")
     # Keeps special characters listed by RFC 3966 as is, and encodes anything else
     # (such as dangerous characters like "<>)
@@ -82,7 +82,7 @@ def clean_mailto(
 
     scheme, _, dirty_url = dirty_url.partition(":")
 
-    if scheme != "mailto":
+    if scheme.lower() != "mailto":
         raise InvalidUsage(
             f"Expected url scheme to be 'mailto', found {scheme} instead"
         )
