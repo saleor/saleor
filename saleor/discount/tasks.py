@@ -68,9 +68,7 @@ def handle_promotion_toggle():
         promotion for promotion in ending_promotions if promotion.id in promotion_ids
     ]
     promotions = Promotion.objects.filter(id__in=promotion_ids).all()
-    promotion_id_to_variants, product_ids = fetch_promotion_variants_and_product_ids(
-        promotions
-    )
+    promotion_id_to_variants = fetch_promotion_variants(promotions)
 
     started_webhooks = get_webhooks_for_event(WebhookEventAsyncType.PROMOTION_STARTED)
     for starting_promo in starting_promotions:
@@ -173,23 +171,18 @@ def get_ending_promotions(batch=False):
     return promotions
 
 
-def fetch_promotion_variants_and_product_ids(promotions: "QuerySet[Promotion]"):
-    """Fetch products that are included in the given promotions."""
+def fetch_promotion_variants(promotions: "QuerySet[Promotion]"):
+    """Map each of the given promotion ids to a lazy queryset of its variants."""
     promotion_id_to_variants: dict[UUID, QuerySet] = defaultdict(
         lambda: ProductVariant.objects.none()
     )
-    variants = ProductVariant.objects.none()
     rules = PromotionRule.objects.filter(
         Exists(promotions.filter(id=OuterRef("promotion_id")))
     )
     for rule in rules:
         rule_variants = get_variants_for_catalogue_predicate(rule.catalogue_predicate)
-        variants |= rule_variants
         promotion_id_to_variants[rule.promotion_id] |= rule_variants
-    products = Product.objects.filter(
-        Exists(variants.filter(product_id=OuterRef("id")))
-    )
-    return promotion_id_to_variants, list(products.values_list("id", flat=True))
+    return promotion_id_to_variants
 
 
 @app.task
